@@ -39,14 +39,16 @@
 	<string>public.app-category.social-networking</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth is required when you using the Solar Network Meet and looking for Nearby Users.</string>
+	<key>NSBluetoothWhileInUseUsageDescription</key>
+	<string>Bluetooth is required when you using the Solar Network Meet and looking for Nearby Users.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Allow Solian to use your camera for Solar Network video call.</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
-	<key>NSLocationUsageDescription</key>
-	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSMicrophoneUsageDescription</key>

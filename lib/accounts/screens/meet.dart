@@ -15,12 +15,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/meet_bluetooth.dart';
 import 'package:island/accounts/meet_service.dart';
+import 'package:island/accounts/nearby_service.dart';
 import 'package:island/core/widgets/content/cloud_file_picker.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/talker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -44,13 +46,14 @@ class MeetScreen extends HookConsumerWidget {
     final initialMeetId = routeData.queryParams.optString('meet_id') ?? '';
     final meetService = ref.watch(meetServiceProvider);
     final bluetoothService = ref.watch(meetBluetoothServiceProvider);
+    final nearbyService = ref.watch(nearbyServiceProvider);
     final meetHistory = ref.watch(meetHistoryProvider);
 
     final joinController = useTextEditingController(text: initialMeetId);
     final topicController = useTextEditingController();
     final notesController = useTextEditingController();
     final tabController = useTabController(
-      initialLength: 3,
+      initialLength: 4,
       initialIndex: initialMeetId.isNotEmpty ? 1 : 0,
     );
     final entryMode = useState(MeetEntryMode.nearby);
@@ -64,6 +67,21 @@ class MeetScreen extends HookConsumerWidget {
     final didAutoJoin = useState(false);
     final scanResultSub = useRef<StreamSubscription<List<ScanResult>>?>(null);
     final scanStateSub = useRef<StreamSubscription<bool>?>(null);
+    final nearbyDiscoverable = useState(true);
+    final nearbyFriendOnly = useState(true);
+    final nearbyBusy = useState(false);
+    final nearbyScanning = useState(false);
+    final nearbyPeers = useState<List<NearbyPeer>>([]);
+    final nearbyBundle = useState<NearbyPresenceBundle?>(null);
+    final nearbyBroadcastToken = useState<String?>(null);
+    final nearbyError = useState<Object?>(null);
+    final nearbyObservationCount = useState(0);
+    final nearbyAggregator = useRef(NearbyObservationAggregator());
+    final nearbyScanResultSub =
+        useRef<StreamSubscription<List<BluetoothHexDiscovery>>?>(null);
+    final nearbyScanStateSub = useRef<StreamSubscription<bool>?>(null);
+    final nearbyRefreshTimer = useRef<Timer?>(null);
+    final nearbyResolveBusy = useRef(false);
 
     Future<void> startNearbyScan() async {
       if (!bluetoothService.supportsNearbyDiscovery) {
@@ -230,13 +248,156 @@ class MeetScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> stopNearbySession({bool stopScan = true}) async {
+      nearbyScanning.value = false;
+      nearbyBroadcastToken.value = null;
+      nearbyRefreshTimer.value?.cancel();
+      nearbyRefreshTimer.value = null;
+      await nearbyScanResultSub.value?.cancel();
+      nearbyScanResultSub.value = null;
+      await nearbyScanStateSub.value?.cancel();
+      nearbyScanStateSub.value = null;
+      if (stopScan) {
+        await bluetoothService.stopNearbyDiscovery();
+      }
+      await bluetoothService.stopAdvertising();
+    }
+
+    Future<void> syncNearbyAdvertising() async {
+      final bundle = nearbyBundle.value;
+      if (bundle == null) return;
+      if (!nearbyDiscoverable.value) {
+        nearbyBroadcastToken.value = null;
+        await bluetoothService.stopAdvertising();
+        return;
+      }
+      if (!bluetoothService.supportsAdvertising) return;
+
+      final activeToken = bundle.tokenForNow();
+      if (activeToken == null) return;
+      if (nearbyBroadcastToken.value == activeToken.token) return;
+
+      await bluetoothService.startAdvertisingHex(
+        serviceUuid: bundle.serviceUuid,
+        payloadHex: activeToken.token,
+      );
+      nearbyBroadcastToken.value = activeToken.token;
+    }
+
+    Future<void> resolveNearbyPeers() async {
+      if (nearbyResolveBusy.value) return;
+      nearbyResolveBusy.value = true;
+      try {
+        final observations = nearbyAggregator.value.build(
+          minSeenCount: 2,
+          minDurationMs: 3000,
+          minAvgRssi: -75,
+        );
+        nearbyObservationCount.value = observations.length;
+        if (observations.isEmpty) return;
+        nearbyPeers.value = await nearbyService.resolveObservations(
+          observations,
+        );
+      } catch (error) {
+        nearbyError.value = error;
+      } finally {
+        nearbyResolveBusy.value = false;
+      }
+    }
+
+    Future<void> startNearbyPresence() async {
+      nearbyBusy.value = true;
+      nearbyError.value = null;
+      try {
+        final effectiveDiscoverable =
+            bluetoothService.supportsAdvertising && nearbyDiscoverable.value;
+        final deviceId = await nearbyService.getOrCreateDeviceId();
+        final bundle = await nearbyService.issuePresenceTokens(
+          deviceId: deviceId,
+          discoverable: effectiveDiscoverable,
+          friendOnly: nearbyFriendOnly.value,
+        );
+        talker.info(
+          '[Nearby] presence bundle deviceId=$deviceId serviceUuid=${bundle.serviceUuid} slotDurationSec=${bundle.slotDurationSec} tokenCount=${bundle.tokens.length} currentToken=${bundle.tokenForNow()?.token ?? "none"} discoverable=$effectiveDiscoverable friendOnly=${nearbyFriendOnly.value}',
+        );
+        nearbyBundle.value = bundle;
+        nearbyObservationCount.value = 0;
+        nearbyAggregator.value = NearbyObservationAggregator();
+
+        await nearbyScanResultSub.value?.cancel();
+        nearbyScanResultSub.value = bluetoothService.nearbyDiscoveriesStream
+            .listen(
+          (discoveries) {
+            final currentBundle = nearbyBundle.value;
+            if (currentBundle == null || discoveries.isEmpty) return;
+            if (discoveries.isEmpty) return;
+
+            final slot = nearbyService.currentSlot(
+              currentBundle.slotDurationSec,
+            );
+            final rssiByToken = <String, int>{
+              for (final item in discoveries) item.payloadHex: item.rssi,
+            };
+            nearbyAggregator.value.ingest(
+              tokens: discoveries.map((e) => e.payloadHex),
+              slot: slot,
+              rssiByToken: rssiByToken,
+            );
+          },
+          onError: (error, _) {
+            nearbyScanning.value = false;
+            nearbyError.value = error;
+          },
+        );
+        nearbyScanStateSub.value ??= bluetoothService.nearbyDiscoveryStateStream
+            .listen((value) {
+          nearbyScanning.value = value;
+          if (!value && tabController.index == 2) {
+            unawaited(resolveNearbyPeers());
+          }
+        });
+
+        await syncNearbyAdvertising();
+        nearbyRefreshTimer.value?.cancel();
+        nearbyRefreshTimer.value = Timer.periodic(const Duration(seconds: 5), (
+          _,
+        ) {
+          if (nearbyBusy.value || tabController.index != 2) return;
+          final activeToken = nearbyBundle.value?.tokenForNow();
+          if (activeToken == null) {
+            unawaited(startNearbyPresence());
+          } else if (bluetoothService.supportsAdvertising) {
+            unawaited(syncNearbyAdvertising());
+          }
+        });
+        await bluetoothService.startNearbyDiscoveryForService(
+          bundle.serviceUuid,
+          expectedLength: kNearbyTokenHexLength ~/ 2,
+        );
+      } catch (error) {
+        nearbyError.value = error;
+        showErrorAlert(error);
+      } finally {
+        nearbyBusy.value = false;
+      }
+    }
+
     useEffect(() {
       void handleTabChange() {
-        if (tabController.index == 1 &&
-            !tabController.indexIsChanging &&
-            !isScanning.value) {
+        if (tabController.indexIsChanging) return;
+
+        if (tabController.index == 1 && !isScanning.value) {
+          unawaited(stopNearbySession());
           unawaited(startNearbyScan());
+          return;
         }
+
+        if (tabController.index == 2) {
+          unawaited(startNearbyPresence());
+          return;
+        }
+
+        unawaited(stopNearbySession());
       }
 
       tabController.addListener(handleTabChange);
@@ -259,11 +420,12 @@ class MeetScreen extends HookConsumerWidget {
         unawaited(bluetoothService.stopScan());
         unawaited(scanResultSub.value?.cancel() ?? Future.value());
         unawaited(scanStateSub.value?.cancel() ?? Future.value());
+        unawaited(stopNearbySession());
       };
     }, [initialMeetId]);
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('meet').tr(),
@@ -281,7 +443,15 @@ class MeetScreen extends HookConsumerWidget {
               ),
               Tab(
                 child: Text(
-                  'meetNearbyTab'.tr(),
+                  'meetJoinTab'.tr(),
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                ),
+              ),
+              Tab(
+                child: Text(
+                  'nearby'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
@@ -366,6 +536,35 @@ class MeetScreen extends HookConsumerWidget {
                     title: 'meetJoinReadyTitle'.tr(),
                     description: 'meetJoinReadyDescription'.tr(),
                   ),
+              ],
+            ),
+            ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _NearbyPresenceCard(
+                  busy: nearbyBusy.value,
+                  scanning: nearbyScanning.value,
+                  discoverable: nearbyDiscoverable.value,
+                  friendOnly: nearbyFriendOnly.value,
+                  advertiseSupported: bluetoothService.supportsAdvertising,
+                  observationCount: nearbyObservationCount.value,
+                  hasPeers: nearbyPeers.value.isNotEmpty,
+                  onToggleDiscoverable: (value) async {
+                    nearbyDiscoverable.value = value;
+                    await startNearbyPresence();
+                  },
+                  onToggleFriendOnly: (value) async {
+                    nearbyFriendOnly.value = value;
+                    await startNearbyPresence();
+                  },
+                  onRefresh: startNearbyPresence,
+                ),
+                const Gap(16),
+                _NearbyPeersCard(
+                  peers: nearbyPeers.value,
+                  error: nearbyError.value,
+                  onRetry: startNearbyPresence,
+                ),
               ],
             ),
             ListView(
@@ -1153,7 +1352,9 @@ class _MeetStartCard extends StatelessWidget {
                 onPressed: busy ? null : onStart,
                 icon: const Icon(Symbols.add_circle),
                 label: Text(
-                  advertising ? 'meetRestartBroadcast'.tr() : 'meetStartNow'.tr(),
+                  advertising
+                      ? 'meetRestartBroadcast'.tr()
+                      : 'meetStartNow'.tr(),
                 ),
               ),
             ),
@@ -1306,6 +1507,199 @@ class _MeetNearbyCard extends StatelessWidget {
   }
 }
 
+class _NearbyPresenceCard extends StatelessWidget {
+  final bool busy;
+  final bool scanning;
+  final bool discoverable;
+  final bool friendOnly;
+  final bool advertiseSupported;
+  final int observationCount;
+  final bool hasPeers;
+  final VoidCallback onRefresh;
+  final ValueChanged<bool> onToggleDiscoverable;
+  final ValueChanged<bool> onToggleFriendOnly;
+
+  const _NearbyPresenceCard({
+    required this.busy,
+    required this.scanning,
+    required this.discoverable,
+    required this.friendOnly,
+    required this.advertiseSupported,
+    required this.observationCount,
+    required this.hasPeers,
+    required this.onRefresh,
+    required this.onToggleDiscoverable,
+    required this.onToggleFriendOnly,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('nearbyTitle').tr().fontSize(18).bold(),
+            const Gap(8),
+            Text(
+              'nearbyDescription'.tr(),
+              style: TextStyle(color: theme.colorScheme.secondary),
+            ),
+            const Gap(16),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: discoverable,
+              onChanged: busy || !advertiseSupported
+                  ? null
+                  : onToggleDiscoverable,
+              title: Text('nearbyDiscoverable').tr(),
+              subtitle: Text(
+                advertiseSupported
+                    ? 'nearbyDiscoverableHint'.tr()
+                    : 'nearbyDiscoverableUnsupported'.tr(),
+              ),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: friendOnly,
+              onChanged: busy ? null : onToggleFriendOnly,
+              title: Text('nearbyFriendOnly').tr(),
+              subtitle: Text('nearbyFriendOnlyHint').tr(),
+            ),
+            const Gap(8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _InfoPill(
+                  icon: discoverable ? Symbols.radar : Symbols.visibility_off,
+                  label: discoverable
+                      ? 'nearbyBroadcasting'.tr()
+                      : 'nearbyHidden'.tr(),
+                ),
+                _InfoPill(
+                  icon: scanning ? Symbols.radar : Symbols.sync_disabled,
+                  label: scanning
+                      ? 'nearbyScanning'.tr()
+                      : 'meetWatchStopped'.tr(),
+                ),
+                _InfoPill(
+                  icon: Symbols.network_intelligence,
+                  label: 'nearbyObservationCount'.tr(
+                    args: [observationCount.toString()],
+                  ),
+                ),
+                if (hasPeers)
+                  _InfoPill(
+                    icon: Symbols.group,
+                    label: 'nearbyPeersFound'.tr(),
+                  ),
+              ],
+            ),
+            const Gap(16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.tonalIcon(
+                onPressed: busy ? null : onRefresh,
+                icon: Icon(busy ? Symbols.progress_activity : Symbols.refresh),
+                label: Text(busy ? 'loading'.tr() : 'nearbyRefresh'.tr()),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NearbyPeersCard extends StatelessWidget {
+  final List<NearbyPeer> peers;
+  final Object? error;
+  final VoidCallback onRetry;
+
+  const _NearbyPeersCard({
+    required this.peers,
+    required this.error,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('nearbyPeersTitle').tr().fontSize(18).bold(),
+            const Gap(8),
+            Text(
+              'nearbyPeersHint'.tr(),
+              style: TextStyle(color: theme.colorScheme.secondary),
+            ),
+            const Gap(16),
+            if (error != null)
+              ResponseErrorWidget(error: error, onRetry: onRetry)
+            else if (peers.isEmpty)
+              _MeetInfoCard(
+                icon: Symbols.radar,
+                title: 'nearbyPeersEmptyTitle'.tr(),
+                description: 'nearbyPeersEmpty'.tr(),
+              )
+            else
+              ...peers.map(
+                (peer) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: peer.avatar != null
+                      ? ProfilePictureWidget(file: peer.avatar, radius: 22)
+                      : CircleAvatar(
+                          radius: 22,
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          child: Text(
+                            peer.displayName.isNotEmpty
+                                ? peer.displayName.substring(0, 1).toUpperCase()
+                                : '?',
+                            style: TextStyle(
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                  title: Text(peer.displayName),
+                  subtitle: Text(
+                    [
+                      peer.isFriend
+                          ? 'relationshipStatusFriend'.tr()
+                          : _nearbyVisibilityLabel(peer.visibility, context),
+                      if (peer.lastSeenAt != null)
+                        'nearbyLastSeen'.tr(
+                          args: [
+                            DateFormat.Hm().format(peer.lastSeenAt!.toLocal()),
+                          ],
+                        ),
+                    ].join(' · '),
+                  ),
+                  trailing: peer.canInvite
+                      ? Badge(
+                          label: Text('nearbyCanInvite').tr(),
+                          backgroundColor: theme.colorScheme.secondaryContainer,
+                          textColor: theme.colorScheme.onSecondaryContainer,
+                        )
+                      : null,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MeetHistorySection extends StatelessWidget {
   final AsyncValue<List<SnMeet>> history;
   final ValueChanged<SnMeet> onOpen;
@@ -1383,7 +1777,9 @@ class _MeetHistoryCard extends StatelessWidget {
     final topic = meet.metadata['topic']?.toString();
     final title = meet.locationName?.isNotEmpty == true
         ? meet.locationName!
-        : (topic?.isNotEmpty == true ? topic! : _statusLabel(meet.status, context));
+        : (topic?.isNotEmpty == true
+              ? topic!
+              : _statusLabel(meet.status, context));
     final locationPoint = _parseMeetPoint(meet.locationWkt);
     final hasImage = meet.image != null;
     final hasLocation = locationPoint != null;
@@ -1548,7 +1944,9 @@ class _MeetHistoryCard extends StatelessWidget {
                       meet.notes!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const Gap(10),
                   ],
@@ -1600,41 +1998,44 @@ class _MeetHistoryCard extends StatelessWidget {
                       child: Row(
                         children: [
                           // Stacked avatars
-                          ...participants.take(5).toList().asMap().entries.map(
-                            (entry) {
-                              final index = entry.key;
-                              final participant = entry.value;
-                              return Transform.translate(
-                                offset: Offset(-index * 10.0, 0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: theme.colorScheme.surface,
-                                      width: 2,
-                                    ),
+                          ...participants.take(5).toList().asMap().entries.map((
+                            entry,
+                          ) {
+                            final index = entry.key;
+                            final participant = entry.value;
+                            return Transform.translate(
+                              offset: Offset(-index * 10.0, 0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: theme.colorScheme.surface,
+                                    width: 2,
                                   ),
-                                  child: participant.account != null
-                                      ? ProfilePictureWidget(
-                                          file: participant
-                                              .account!.profile.picture,
-                                          radius: 16,
-                                        )
-                                      : CircleAvatar(
-                                          radius: 16,
-                                          backgroundColor: theme
-                                              .colorScheme.primaryContainer,
-                                          child: Icon(
-                                            Symbols.person,
-                                            size: 14,
-                                            color: theme
-                                                .colorScheme.onPrimaryContainer,
-                                          ),
-                                        ),
                                 ),
-                              );
-                            },
-                          ),
+                                child: participant.account != null
+                                    ? ProfilePictureWidget(
+                                        file: participant
+                                            .account!
+                                            .profile
+                                            .picture,
+                                        radius: 16,
+                                      )
+                                    : CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor:
+                                            theme.colorScheme.primaryContainer,
+                                        child: Icon(
+                                          Symbols.person,
+                                          size: 14,
+                                          color: theme
+                                              .colorScheme
+                                              .onPrimaryContainer,
+                                        ),
+                                      ),
+                              ),
+                            );
+                          }),
                           // Show remaining count if more than 5
                           if (participants.length > 5)
                             Transform.translate(
@@ -1667,14 +2068,14 @@ class _MeetHistoryCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               participants
-                                  .take(2)
-                                  .map(
-                                    (p) =>
-                                        p.account?.nick.isNotEmpty == true
+                                      .take(2)
+                                      .map(
+                                        (p) =>
+                                            p.account?.nick.isNotEmpty == true
                                             ? p.account!.nick
                                             : '@${p.account?.name ?? p.fallbackName}',
-                                  )
-                                  .join(', ') +
+                                      )
+                                      .join(', ') +
                                   (participants.length > 2
                                       ? ' +${participants.length - 2}'
                                       : ''),
@@ -2162,6 +2563,14 @@ String _visibilityLabel(SnMeetVisibility visibility, BuildContext context) {
     SnMeetVisibility.public => 'meetVisibilityPublic'.tr(),
     SnMeetVisibility.private => 'meetVisibilityPrivate'.tr(),
     SnMeetVisibility.unknown => 'unknown'.tr(),
+  };
+}
+
+String _nearbyVisibilityLabel(String visibility, BuildContext context) {
+  return switch (visibility.trim().toLowerCase()) {
+    'friend_only' => 'nearbyVisibleToFriends'.tr(),
+    'public' => 'nearbyVisibleToEveryone'.tr(),
+    _ => visibility,
   };
 }
 

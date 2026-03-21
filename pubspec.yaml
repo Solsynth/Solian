@@ -169,6 +169,7 @@ dependencies:
   desktop_drop: ^0.7.0
   flutter_animate: ^4.5.2
   flutter_blue_plus: ^2.2.1
+  bluetooth_low_energy: ^6.2.1
   flutter_map: ^8.2.2
   geolocator: ^14.0.2
   geocoding: ^4.0.0
