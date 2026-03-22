@@ -298,13 +298,11 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     useEffect(() {
       return () {
-        Future.microtask(() {
           final currentSubscribed = ref.read(currentSubscribedChatIdProvider);
           if (currentSubscribed == id) {
             ref.read(currentSubscribedChatIdProvider.notifier).set(null);
           }
-        });
-        Future.microtask(saveLastReadAnchor);
+        saveLastReadAnchor();
       };
     }, []);
 
