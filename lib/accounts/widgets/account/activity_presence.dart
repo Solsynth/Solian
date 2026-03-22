@@ -191,6 +191,90 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
     return images;
   }
 
+  Widget _SteamCompactImage({required SnPresenceActivity activity}) {
+    final meta = activity.meta as Map<String, dynamic>;
+    final gameId = meta['game_id']?.toString();
+    if (gameId == null) {
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1B2838),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Icon(
+          Symbols.sports_esports,
+          color: Colors.white70,
+          size: 18,
+        ),
+      );
+    }
+    final steamUrl =
+        'https://cdn.cloudflare.steamstatic.com/steam/apps/$gameId/library_600x900.jpg';
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: CachedNetworkImage(
+        imageUrl: steamUrl,
+        width: 32,
+        height: 32,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B2838),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Center(
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 1),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B2838),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Icon(
+            Symbols.sports_esports,
+            color: Colors.white70,
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactImage(SnPresenceActivity activity, WidgetRef ref) {
+    if (activity.largeImage!.startsWith('discord:')) {
+      final key = activity.largeImage!.substring('discord:'.length);
+      final urlAsync = ref.watch(discordAssetsUrlProvider(activity, key));
+      return urlAsync.when(
+        data: (url) => url != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: CachedNetworkImage(imageUrl: url, width: 32, height: 32),
+              )
+            : const SizedBox.shrink(),
+        loading: () => const SizedBox(
+          width: 32,
+          height: 32,
+          child: CircularProgressIndicator(strokeWidth: 1),
+        ),
+        error: (error, stack) => const SizedBox.shrink(),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: UniversalImage(uri: activity.largeImage!, width: 32, height: 32),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
@@ -204,53 +288,17 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
             data: (activities) {
               if (activities.isEmpty) return const SizedBox.shrink();
               final activity = activities.first;
+              final isSteam = activity.manualId == 'steam';
+
               return Padding(
                 padding: widget.compactPadding,
                 child: Row(
                   spacing: 8,
                   children: [
-                    if (activity.largeImage != null)
-                      activity.largeImage!.startsWith('discord:')
-                          ? ref
-                                .watch(
-                                  discordAssetsUrlProvider(
-                                    activity,
-                                    activity.largeImage!.substring(
-                                      'discord:'.length,
-                                    ),
-                                  ),
-                                )
-                                .when(
-                                  data: (url) => url != null
-                                      ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                          child: CachedNetworkImage(
-                                            imageUrl: url,
-                                            width: 32,
-                                            height: 32,
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(),
-                                  loading: () => const SizedBox(
-                                    width: 32,
-                                    height: 32,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 1,
-                                    ),
-                                  ),
-                                  error: (error, stack) =>
-                                      const SizedBox.shrink(),
-                                )
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: UniversalImage(
-                                uri: activity.largeImage!,
-                                width: 32,
-                                height: 32,
-                              ),
-                            ),
+                    if (isSteam && activity.meta != null)
+                      _SteamCompactImage(activity: activity)
+                    else if (activity.largeImage != null)
+                      _buildCompactImage(activity, ref),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
