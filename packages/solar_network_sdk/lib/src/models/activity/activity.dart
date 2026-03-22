@@ -101,3 +101,21 @@ sealed class SnPresenceActivity with _$SnPresenceActivity {
   factory SnPresenceActivity.fromJson(Map<String, dynamic> json) =>
       _$SnPresenceActivityFromJson(json);
 }
+
+@freezed
+sealed class SnAccountTimelineItem with _$SnAccountTimelineItem {
+  const factory SnAccountTimelineItem.statusChange({
+    required String id,
+    required DateTime createdAt,
+    required SnAccountStatus status,
+  }) = _AccountTimelineStatusChange;
+
+  const factory SnAccountTimelineItem.activity({
+    required String id,
+    required DateTime createdAt,
+    required SnPresenceActivity activity,
+  }) = _AccountTimelineActivity;
+
+  factory SnAccountTimelineItem.fromJson(Map<String, dynamic> json) =>
+      _$SnAccountTimelineItemFromJson(json);
+}

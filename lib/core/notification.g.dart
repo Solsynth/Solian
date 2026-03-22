@@ -41,7 +41,7 @@ final class NotificationStateProvider
   }
 }
 
-String _$notificationStateHash() => r'189051b88f25395b27fa28ea93de0a00096cde5d';
+String _$notificationStateHash() => r'4597cfc7c75dd0fd05dab65f78265a3ae10d23e7';
 
 abstract class _$NotificationState extends $Notifier<List<NotificationItem>> {
   List<NotificationItem> build();

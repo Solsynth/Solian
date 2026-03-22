@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -26,6 +28,7 @@ import 'package:island/core/services/timezone/native.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
@@ -1088,6 +1091,299 @@ class _AccountAction extends StatelessWidget {
   }
 }
 
+class _AccountTimelineWidget extends StatelessWidget {
+  final String uname;
+
+  const _AccountTimelineWidget({required this.uname});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Symbols.timeline,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Gap(12),
+                Text(
+                  'timeline',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ).tr(),
+              ],
+            ),
+            const Gap(16),
+            _AccountTimelineList(uname: uname),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountTimelineList extends ConsumerWidget {
+  final String uname;
+
+  const _AccountTimelineList({required this.uname});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PaginationList<SnAccountTimelineItem>(
+      provider: accountTimelineProvider(uname),
+      notifier: accountTimelineProvider(uname).notifier,
+      spacing: 8,
+      padding: EdgeInsets.zero,
+      footerSkeletonChild: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      itemBuilder: (context, idx, item) {
+        return _AccountTimelineItem(item: item);
+      },
+    );
+  }
+}
+
+class _AccountTimelineItem extends StatelessWidget {
+  final SnAccountTimelineItem item;
+
+  const _AccountTimelineItem({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return item.when(
+      statusChange: (id, createdAt, status) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            spacing: 12,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _getStatusColor(status).withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _getStatusIcon(status),
+                  size: 20,
+                  color: _getStatusColor(status),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      status.label.isNotEmpty
+                          ? status.label
+                          : 'statusChange'.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Gap(2),
+                    Text(
+                      createdAt.toLocal().formatRelative(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (status.isAutomated)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 4,
+                    children: [
+                      Icon(
+                        Symbols.smart_toy,
+                        size: 14,
+                        color: theme.colorScheme.onSecondaryContainer,
+                      ),
+                      Text(
+                        'bot',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ).tr(),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+      activity: (id, createdAt, activity) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            spacing: 12,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _getActivityColor(activity.type).withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _getActivityIcon(activity.type),
+                  size: 20,
+                  color: _getActivityColor(activity.type),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity.title ?? 'unknown'.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (activity.subtitle != null) ...[
+                      const Gap(2),
+                      Text(
+                        activity.subtitle!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const Gap(2),
+                    Text(
+                      createdAt.toLocal().formatRelative(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  kPresenceActivityTypes[activity.type],
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onTertiaryContainer,
+                  ),
+                ).tr(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Color _getStatusColor(SnAccountStatus status) {
+    switch (status.type) {
+      case SnAccountStatusType.busy:
+        return Colors.red;
+      case SnAccountStatusType.doNotDisturb:
+        return Colors.orange;
+      case SnAccountStatusType.invisible:
+        return Colors.grey;
+      default:
+        return Colors.green;
+    }
+  }
+
+  IconData _getStatusIcon(SnAccountStatus status) {
+    switch (status.type) {
+      case SnAccountStatusType.busy:
+        return Symbols.do_not_disturb_on;
+      case SnAccountStatusType.doNotDisturb:
+        return Symbols.mic_off;
+      case SnAccountStatusType.invisible:
+        return Symbols.visibility_off;
+      default:
+        return Symbols.circle;
+    }
+  }
+
+  Color _getActivityColor(int type) {
+    switch (type) {
+      case 1:
+        return Colors.purple;
+      case 2:
+        return Colors.green;
+      case 3:
+        return Colors.orange;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  IconData _getActivityIcon(int type) {
+    switch (type) {
+      case 1:
+        return Symbols.play_arrow;
+      case 2:
+        return Symbols.music_note;
+      case 3:
+        return Symbols.fitness_center;
+      default:
+        return Symbols.category;
+    }
+  }
+}
+
 @riverpod
 Future<SnAccount> account(Ref ref, String uname) async {
   if (uname == 'me') {
@@ -1194,6 +1490,97 @@ Future<List<SnPublisher>> accountPublishers(Ref ref, String id) async {
     return [];
   }
 }
+
+final accountTimelineProvider = AsyncNotifierProvider.autoDispose
+    .family<
+      AccountTimelineNotifier,
+      PaginationState<SnAccountTimelineItem>,
+      String
+    >(AccountTimelineNotifier.new);
+
+class AccountTimelineNotifier
+    extends AsyncNotifier<PaginationState<SnAccountTimelineItem>>
+    with AsyncPaginationController<SnAccountTimelineItem> {
+  static const int pageSize = 20;
+
+  late final String _uname;
+
+  @override
+  FutureOr<PaginationState<SnAccountTimelineItem>> build() async {
+    _uname = ref.watch(accountTimelineUnameProvider);
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
+
+  @override
+  Future<List<SnAccountTimelineItem>> fetch() async {
+    final client = ref.read(apiClientProvider);
+    if (_uname.isEmpty) return [];
+
+    final queryParams = {
+      'offset': fetchedCount.toString(),
+      'take': pageSize.toString(),
+    };
+
+    final response = await client.get(
+      '/passport/accounts/$_uname/timeline',
+      queryParameters: queryParams,
+    );
+
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+
+    final items = response.data.map<SnAccountTimelineItem>((json) {
+      final eventType = json['eventType'] as String?;
+      if (eventType == 'StatusChange' && json['status'] != null) {
+        return SnAccountTimelineItem.statusChange(
+          id: json['id'] as String,
+          createdAt: DateTime.parse(json['createdAt'] as String),
+          status: SnAccountStatus.fromJson(json['status']),
+        );
+      } else if (eventType == 'Activity' && json['activity'] != null) {
+        return SnAccountTimelineItem.activity(
+          id: json['id'] as String,
+          createdAt: DateTime.parse(json['createdAt'] as String),
+          activity: SnPresenceActivity.fromJson(json['activity']),
+        );
+      }
+      return SnAccountTimelineItem.statusChange(
+        id: json['id'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        status: SnAccountStatus(
+          id: '',
+          attitude: 0,
+          isOnline: false,
+          isCustomized: false,
+          label: '',
+          meta: null,
+          clearedAt: null,
+          accountId: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          deletedAt: null,
+        ),
+      );
+    }).toList();
+
+    return items;
+  }
+}
+
+final accountTimelineUnameProvider = Provider.family<String, String>((
+  ref,
+  uname,
+) {
+  ref.keepAlive();
+  return uname;
+});
 
 @RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
@@ -1315,94 +1702,107 @@ class AccountProfileScreen extends HookConsumerWidget {
               : null,
           body: isWideScreen(context)
               ? Row(
-                  spacing: 12,
                   children: [
                     Flexible(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: 12,
-                          children: [
-                            _AccountBasicInfo(
-                              data: data,
-                              uname: name,
-                              accountDeveloper: accountDeveloper,
-                            ),
-                            if (data.badges.isNotEmpty)
-                              Card(
-                                margin: EdgeInsets.zero,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: BadgeList(badges: data.badges),
-                                ),
-                              ),
-                            Column(
-                              spacing: 12,
-                              children: [
-                                LevelingProgressCard(
-                                  level: data.profile.level,
-                                  experience: data.profile.experience,
-                                  progress: data.profile.levelingProgress,
-                                ),
-                                if (data.profile.verification != null)
-                                  Card(
-                                    margin: EdgeInsets.zero,
-                                    child: VerificationStatusCard(
-                                      mark: data.profile.verification!,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            _AccountProfileBio(data: data),
-                            if (data.profile.links.isNotEmpty)
-                              _AccountProfileLinks(data: data),
-                            if (data.contacts.any((c) => c.isPublic))
-                              _AccountProfileContacts(data: data),
-                            _AccountProfileDetail(data: data),
-                          ],
-                        ),
-                      ),
+                      flex: 4,
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverGap(16),
+                          SliverToBoxAdapter(
+                            child: _AccountTimelineWidget(uname: name),
+                          ),
+                          SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                        ],
+                      ).padding(left: 8),
                     ),
                     Flexible(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        child: Column(
-                          children: [
-                            ActivityPresenceWidget(uname: name),
-                            const SizedBox(height: 12),
-                            _AccountPublisherList(
-                              publishers: accountPublishers.value ?? [],
-                            ),
-                            const SizedBox(height: 12),
-                            if (user.value != null && !isCurrentUser) ...[
-                              _AccountAction(
+                      flex: 3,
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _AccountBasicInfo(
                                 data: data,
-                                accountRelationship: accountRelationship,
-                                accountChat: accountChat,
-                                relationshipAction: relationshipAction,
-                                blockAction: blockAction,
-                                directMessageAction: directMessageAction,
-                              ),
-                              const SizedBox(height: 12),
-                            ],
-                            Card(
-                              margin: EdgeInsets.zero,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: FortuneGraphWidget(
-                                  events: accountEvents,
-                                  eventCalandarUser: data.name,
-                                  margin: EdgeInsets.zero,
+                                uname: name,
+                                accountDeveloper: accountDeveloper,
+                              ).padding(horizontal: 4, top: 20),
+                              if (data.badges.isNotEmpty)
+                                Card(
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 8,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: BadgeList(badges: data.badges),
+                                  ),
+                                ),
+                              Column(
+                                spacing: 12,
+                                children: [
+                                  LevelingProgressCard(
+                                    level: data.profile.level,
+                                    experience: data.profile.experience,
+                                    progress: data.profile.levelingProgress,
+                                  ),
+                                  if (data.profile.verification != null)
+                                    Card(
+                                      margin: EdgeInsets.zero,
+                                      child: VerificationStatusCard(
+                                        mark: data.profile.verification!,
+                                      ),
+                                    ),
+                                ],
+                              ).padding(horizontal: 4),
+                              _AccountProfileBio(
+                                data: data,
+                              ).padding(horizontal: 4),
+                              if (data.profile.links.isNotEmpty)
+                                _AccountProfileLinks(
+                                  data: data,
+                                ).padding(horizontal: 4),
+                              if (data.contacts.any((c) => c.isPublic))
+                                _AccountProfileContacts(
+                                  data: data,
+                                ).padding(horizontal: 4),
+                              _AccountProfileDetail(
+                                data: data,
+                              ).padding(horizontal: 4),
+                              _AccountPublisherList(
+                                publishers: accountPublishers.value ?? [],
+                              ).padding(horizontal: 4, vertical: 8),
+                              if (user.value != null && !isCurrentUser)
+                                _AccountAction(
+                                  data: data,
+                                  accountRelationship: accountRelationship,
+                                  accountChat: accountChat,
+                                  relationshipAction: relationshipAction,
+                                  blockAction: blockAction,
+                                  directMessageAction: directMessageAction,
+                                ).padding(horizontal: 4),
+                              Card(
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 8,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: FortuneGraphWidget(
+                                    events: accountEvents,
+                                    eventCalandarUser: data.name,
+                                    margin: EdgeInsets.zero,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ],
-                ).padding(horizontal: 24)
+                )
               : CustomScrollView(
                   slivers: [
                     SliverAppBar(
@@ -1479,7 +1879,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                             _AccountProfileLinks(data: data),
                           if (data.contacts.any((c) => c.isPublic))
                             _AccountProfileContacts(data: data),
-                          ActivityPresenceWidget(uname: name),
+                          _AccountTimelineWidget(uname: name),
                           _AccountPublisherList(
                             publishers: accountPublishers.value ?? [],
                           ),
