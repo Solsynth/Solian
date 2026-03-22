@@ -639,21 +639,25 @@ class StellarProgramTab extends HookConsumerWidget {
                 minimumSize: const Size(double.infinity, 48),
               ),
             ).padding(top: 12),
+          const Gap(16),
+          // Subscription Duration Notice
+          Text(
+            'Every subscription lasts 30 days',
+            style: TextStyle(fontSize: 12),
+            textAlign: TextAlign.center,
+          ).opacity(0.75),
 
           // Terms Link
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: InkWell(
-              onTap: () => launchUrlString(
-                'https://solsynth.dev/terms/user-agreement',
-                mode: LaunchMode.externalApplication,
-              ),
-              child: Text(
-                'termsLink'.tr(),
-                style: TextStyle(fontSize: 12),
-                textAlign: TextAlign.center,
-              ).opacity(0.75),
+          InkWell(
+            onTap: () => launchUrlString(
+              'https://solsynth.dev/terms/user-agreement',
+              mode: LaunchMode.externalApplication,
             ),
+            child: Text(
+              'termsLink'.tr(),
+              style: TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            ).opacity(0.75),
           ),
         ],
       ).padding(all: 16),

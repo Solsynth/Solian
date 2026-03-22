@@ -411,7 +411,7 @@ class PostReplyPreview extends HookConsumerWidget {
                   spacing: 4,
                   children: [
                     Text('repliesCount')
-                        .plural(parent.threadedRepliesCount)
+                        .plural(parent.repliesCount)
                         .fontSize(15)
                         .bold()
                         .padding(horizontal: 5),
