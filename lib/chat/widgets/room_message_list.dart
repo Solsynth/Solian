@@ -121,12 +121,9 @@ class RoomMessageList extends HookConsumerWidget {
         botGroupMap[i] = g;
       }
     }
-    final collapsedByDefault = Set<String>.from(
-      botGroups.map((g) => g.groupId),
-    );
-    final effectiveCollapsed = collapsedBotGroupIds.isEmpty
-        ? collapsedByDefault
-        : collapsedBotGroupIds;
+    final allGroupIds = botGroups.map((g) => g.groupId).toSet();
+    final effectiveCollapsed = {...allGroupIds}
+      ..removeAll(collapsedBotGroupIds);
 
     int lastReturnedIndex = -1;
 
