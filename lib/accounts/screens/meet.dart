@@ -77,7 +77,6 @@ class MeetScreen extends HookConsumerWidget {
     final nearbyBroadcastToken = useState<String?>(null);
     final nearbyError = useState<Object?>(null);
     final nearbyObservationCount = useState(0);
-    final nearbyAggregator = useRef(NearbyObservationAggregator());
     final nearbyScanResultSub =
         useRef<StreamSubscription<List<BluetoothHexDiscovery>>?>(null);
     final nearbyScanStateSub = useRef<StreamSubscription<bool>?>(null);
@@ -292,13 +291,26 @@ class MeetScreen extends HookConsumerWidget {
       nearbyResolveBusy.value = true;
       nearbyIsResolving.value = true;
       try {
-        final observations = nearbyAggregator.value.build(
-          minSeenCount: 2,
-          minDurationMs: 3000,
-          minAvgRssi: -75,
-        );
-        nearbyObservationCount.value = observations.length;
-        if (observations.isEmpty) return;
+        final discoveries = nearbyDiscoveries.value;
+        if (discoveries.isEmpty) return;
+
+        final now = DateTime.now().toUtc();
+        final observations = discoveries
+            .map(
+              (d) => NearbyObservation(
+                token: d.payloadHex,
+                slot: nearbyService.currentSlot(
+                  nearbyBundle.value?.slotDurationSec ?? 30,
+                ),
+                avgRssi: d.rssi,
+                seenCount: 1,
+                durationMs: 0,
+                firstSeenAt: now,
+                lastSeenAt: now,
+              ),
+            )
+            .toList();
+
         final peers = await nearbyService.resolveObservations(observations);
         final uniquePeers = <String, NearbyPeer>{
           for (final peer in peers) peer.userId: peer,
@@ -330,27 +342,14 @@ class MeetScreen extends HookConsumerWidget {
         );
         nearbyBundle.value = bundle;
         nearbyObservationCount.value = 0;
-        nearbyAggregator.value = NearbyObservationAggregator();
 
         await nearbyScanResultSub.value?.cancel();
         nearbyScanResultSub.value = bluetoothService.nearbyDiscoveriesStream
             .listen(
               (discoveries) {
                 nearbyDiscoveries.value = discoveries;
-                final currentBundle = nearbyBundle.value;
-                if (currentBundle == null || discoveries.isEmpty) return;
-
-                final slot = nearbyService.currentSlot(
-                  currentBundle.slotDurationSec,
-                );
-                final rssiByToken = <String, int>{
-                  for (final item in discoveries) item.payloadHex: item.rssi,
-                };
-                nearbyAggregator.value.ingest(
-                  tokens: discoveries.map((e) => e.payloadHex),
-                  slot: slot,
-                  rssiByToken: rssiByToken,
-                );
+                if (discoveries.isEmpty) return;
+                nearbyObservationCount.value = discoveries.length;
                 if (tabController.index == 2) {
                   unawaited(resolveNearbyPeers());
                 }
