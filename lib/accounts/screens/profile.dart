@@ -16,11 +16,9 @@ import 'package:island/accounts/widgets/account/leveling_progress.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/accounts/screens/profile_timeline.dart';
 import 'package:island/developers/models/developer.dart';
-import 'package:island/core/config.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/core/services/color.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/core/services/time.dart';
@@ -32,7 +30,6 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:island/core/services/color_extraction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -62,71 +59,51 @@ class _AccountBasicInfo extends HookWidget {
   Widget build(BuildContext context) {
     final isBioExpanded = useState(false);
     final theme = Theme.of(context);
-    final hasBackground = data.profile.background != null;
-    final showBackground = isWideScreen(context) && hasBackground;
 
     return Card(
       margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (showBackground)
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 7,
-                    child: CloudImageWidget(
-                      file: data.profile.background,
-                      fit: BoxFit.cover,
-                    ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+                child: AspectRatio(
+                  aspectRatio: 16 / 7,
+                  child: CloudImageWidget(
+                    file: data.profile.background,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                Positioned(
-                  bottom: -24,
-                  left: 16,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: theme.colorScheme.surface,
-                        width: 3,
-                      ),
-                    ),
-                    child: ProfilePictureWidget(
-                      file: data.profile.picture,
-                      radius: 32,
+              ),
+              Positioned(
+                bottom: -24,
+                left: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.surface,
+                      width: 3,
                     ),
                   ),
+                  child: ProfilePictureWidget(
+                    file: data.profile.picture,
+                    radius: 32,
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
           Padding(
-            padding: EdgeInsets.all(showBackground ? 16 : 20),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (!showBackground)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: theme.colorScheme.outline.withOpacity(0.2),
-                          width: 2,
-                        ),
-                      ),
-                      child: ProfilePictureWidget(
-                        file: data.profile.picture,
-                        radius: 40,
-                      ),
-                    ),
-                  ),
                 Column(
                   children: [
                     Row(
@@ -1048,25 +1025,6 @@ Future<List<SnAccountBadge>> accountBadges(Ref ref, String uname) async {
 }
 
 @riverpod
-Future<Color?> accountAppbarForcegroundColor(Ref ref, String uname) async {
-  try {
-    final account = await ref.watch(accountProvider(uname).future);
-    if (account.profile.background == null) return null;
-    final colors = await ColorExtractionService.getColorsFromImage(
-      CloudImageWidget.provider(
-        file: account.profile.background!,
-        serverUrl: ref.watch(serverUrlProvider),
-      ),
-    );
-    if (colors.isEmpty) return null;
-    final dominantColor = colors.first;
-    return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-  } catch (_) {
-    return null;
-  }
-}
-
-@riverpod
 Future<SnChatRoom?> accountDirectChat(Ref ref, String uname) async {
   final userInfo = ref.watch(userInfoProvider);
   if (userInfo.value == null) return null;
@@ -1205,14 +1163,6 @@ class AccountProfileScreen extends HookConsumerWidget {
     final accountRelationship = ref.watch(accountRelationshipProvider(name));
     final accountDeveloper = ref.watch(accountBotDeveloperProvider(name));
 
-    final appbarColor = ref.watch(accountAppbarForcegroundColorProvider(name));
-
-    final appbarShadow = Shadow(
-      color: appbarColor.value?.invert ?? Colors.transparent,
-      blurRadius: 5.0,
-      offset: Offset(1.0, 1.0),
-    );
-
     Future<void> relationshipAction() async {
       if (accountRelationship.value != null) return;
       showLoadingModal(context);
@@ -1287,19 +1237,7 @@ class AccountProfileScreen extends HookConsumerWidget {
         return AppScaffold(
           isNoBackground: false,
           appBar: isWideScreen(context)
-              ? AppBar(
-                  foregroundColor: appbarColor.value,
-                  leading: AutoLeadingButton(),
-                  title: Text(
-                    data.nick,
-                    style: TextStyle(
-                      color:
-                          appbarColor.value ??
-                          Theme.of(context).appBarTheme.foregroundColor,
-                      shadows: [appbarShadow],
-                    ),
-                  ),
-                )
+              ? AppBar(leading: AutoLeadingButton(), title: Text(data.nick))
               : null,
           body: isWideScreen(context)
               ? Row(
@@ -1388,34 +1326,16 @@ class AccountProfileScreen extends HookConsumerWidget {
               : CustomScrollView(
                   slivers: [
                     SliverAppBar(
-                      foregroundColor: appbarColor.value,
-                      expandedHeight: 180,
                       pinned: true,
                       leading: AutoLeadingButton(),
+                      title: Text(data.nick),
                       flexibleSpace: Stack(
                         children: [
                           Positioned.fill(
-                            child: data.profile.background != null
-                                ? CloudImageWidget(
-                                    file: data.profile.background,
-                                  )
-                                : Container(
-                                    color: Theme.of(
-                                      context,
-                                    ).appBarTheme.backgroundColor,
-                                  ),
-                          ),
-                          FlexibleSpaceBar(
-                            title: Text(
-                              data.nick,
-                              style: TextStyle(
-                                color:
-                                    appbarColor.value ??
-                                    Theme.of(
-                                      context,
-                                    ).appBarTheme.foregroundColor,
-                                shadows: [appbarShadow],
-                              ),
+                            child: Container(
+                              color: Theme.of(
+                                context,
+                              ).appBarTheme.backgroundColor,
                             ),
                           ),
                         ],
@@ -1482,9 +1402,12 @@ class AccountProfileScreen extends HookConsumerWidget {
                             ),
                           ),
                         ],
-                      ).padding(horizontal: 8, vertical: 8),
+                      ).padding(vertical: 8, horizontal: 8),
                     ),
-                    AccountTimelineList(uname: name),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      sliver: AccountTimelineList(uname: name),
+                    ),
                   ],
                 ),
         );

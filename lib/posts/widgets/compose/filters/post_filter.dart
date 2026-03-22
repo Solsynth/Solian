@@ -65,7 +65,7 @@ class PostFilterWidget extends HookConsumerWidget {
     }, [categoryTabController]);
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: EdgeInsets.zero,
       child: Column(
         children: [
           TabBar(

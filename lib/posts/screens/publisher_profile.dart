@@ -10,22 +10,20 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/livestreams/livestream.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/pods/post_list.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/widgets/compose/filters/post_filter.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
-import 'package:island/core/services/color.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
-import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/activity_heatmap.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:island/core/services/color_extraction.dart';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -65,7 +63,7 @@ class _PinnedPostsPageView extends HookConsumerWidget {
         }
 
         return Card(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          margin: EdgeInsets.zero,
           child: Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
@@ -139,7 +137,7 @@ class _PinnedPostsPageView extends HookConsumerWidget {
   }
 }
 
-class _PublisherBasisWidget extends StatelessWidget {
+class _PublisherBasisWidget extends HookWidget {
   final SnPublisher data;
   final AsyncValue<SnPublisherSubscription?> subStatus;
   final AsyncValue<SnLiveStream?> liveStatus;
@@ -156,266 +154,251 @@ class _PublisherBasisWidget extends StatelessWidget {
     required this.unsubscribe,
   });
 
+  String _getFirstLine(String bio) {
+    final lines = bio.split('\n');
+    if (lines.isEmpty) return '';
+    return lines.first.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isBioExpanded = useState(false);
+    final theme = Theme.of(context);
+
     return Card(
-      child: Builder(
-        builder: (context) {
-          final hasBackground = data.background != null;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (isWideScreen(context) && hasBackground)
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 7,
-                        child: CloudImageWidget(
-                          file: data.background,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 20,
+              children: [
+                GestureDetector(
+                  child: Badge(
+                    isLabelVisible: data.type == 0,
+                    padding: EdgeInsets.all(4),
+                    label: Icon(
+                      Symbols.launch,
+                      size: 16,
+                      color: theme.colorScheme.onPrimary,
                     ),
-                    Positioned(
-                      bottom: -24,
-                      left: 16,
-                      child: GestureDetector(
-                        child: Badge(
-                          isLabelVisible: data.type == 0,
-                          padding: EdgeInsets.all(3),
-                          label: Icon(
-                            Symbols.launch,
-                            size: 12,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          offset: Offset(0, 48),
-                          child: ProfilePictureWidget(
-                            file: data.picture,
-                            radius: 32,
-                            borderRadius: data.type == 0 ? null : 12,
-                          ),
-                        ),
-                        onTap: () {
-                          if (data.account?.name != null) {
-                            Navigator.pop(context, true);
-                            context.router.push(
-                              AccountProfileRoute(name: data.account!.name),
-                            );
-                          }
-                        },
-                      ),
+                    backgroundColor: theme.colorScheme.primary,
+                    offset: Offset(0, 48),
+                    child: ProfilePictureWidget(
+                      file: data.picture,
+                      radius: 32,
+                      borderRadius: data.type == 0 ? null : 12,
                     ),
-                  ],
+                  ),
+                  onTap: () {
+                    if (data.account?.name != null) {
+                      Navigator.pop(context, true);
+                      context.router.push(
+                        AccountProfileRoute(name: data.account!.name),
+                      );
+                    }
+                  },
                 ),
-              Builder(
-                builder: (context) {
-                  final showBackground = isWideScreen(context) && hasBackground;
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: showBackground ? 0 : 20,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (!showBackground)
-                        GestureDetector(
-                          child: Badge(
-                            isLabelVisible: data.type == 0,
-                            padding: EdgeInsets.all(4),
-                            label: Icon(
-                              Symbols.launch,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                            ),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                            offset: Offset(0, 48),
-                            child: ProfilePictureWidget(
-                              file: data.picture,
-                              radius: 32,
-                              borderRadius: data.type == 0 ? null : 12,
-                            ),
-                          ),
-                          onTap: () {
-                            if (data.account?.name != null) {
-                              Navigator.pop(context, true);
-                              context.router.push(
-                                AccountProfileRoute(name: data.account!.name),
-                              );
-                            }
-                          },
-                        ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              spacing: 6,
-                              children: [
-                                if (data.account != null && data.type == 0)
-                                  AccountName(
-                                    account: data.account!,
-                                    textOverride: data.nick,
-                                    hideVerificationMark: true,
-                                    style: TextStyle(fontSize: 20),
-                                  )
-                                else
-                                  Text(data.nick).fontSize(20),
-                                if (data.verification != null)
-                                  VerificationMark(mark: data.verification!),
-                                liveStatus.when(
-                                  data: (stream) => stream == null
-                                      ? const SizedBox.shrink()
-                                      : InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                            999,
-                                          ),
-                                          onTap: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    _PublisherLivestreamWatchScreen(
-                                                      stream: stream,
-                                                    ),
+                      Row(
+                        spacing: 6,
+                        children: [
+                          if (data.account != null && data.type == 0)
+                            AccountName(
+                              account: data.account!,
+                              textOverride: data.nick,
+                              hideVerificationMark: true,
+                              style: TextStyle(fontSize: 20),
+                            )
+                          else
+                            Text(data.nick).fontSize(20),
+                          if (data.verification != null)
+                            VerificationMark(mark: data.verification!),
+                          liveStatus.when(
+                            data: (stream) => stream == null
+                                ? const SizedBox.shrink()
+                                : InkWell(
+                                    borderRadius: BorderRadius.circular(999),
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              _PublisherLivestreamWatchScreen(
+                                                stream: stream,
                                               ),
-                                            );
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.redAccent
-                                                  .withOpacity(0.16),
-                                              borderRadius:
-                                                  BorderRadius.circular(999),
-                                            ),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  Symbols.fiber_manual_record,
-                                                  size: 10,
-                                                  color: Colors.redAccent,
-                                                ),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  'LIVE',
-                                                  style: TextStyle(
-                                                    color: Colors.redAccent,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ],
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.redAccent.withOpacity(
+                                          0.16,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Symbols.circle,
+                                            fill: 1,
+                                            size: 10,
+                                            color: Colors.redAccent,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'LIVE',
+                                            style: TextStyle(
+                                              color: Colors.redAccent,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 11,
                                             ),
                                           ),
-                                        ),
-                                  loading: () => const SizedBox.shrink(),
-                                  error: (_, _) => const SizedBox.shrink(),
-                                ),
-                                if (isWideScreen(context))
-                                  Expanded(
-                                    child: Text(
-                                      '@${data.name}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ).fontSize(14).opacity(0.85),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                              ],
-                            ),
-                            if (!isWideScreen(context))
-                              Text(
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, _) => const SizedBox.shrink(),
+                          ),
+                          if (isWideScreen(context))
+                            Expanded(
+                              child: Text(
                                 '@${data.name}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                              ).fontSize(14).opacity(0.85).padding(bottom: 2.5),
-                            if (data.type == 0 && data.account != null)
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                spacing: 6,
-                                children: [
-                                  Icon(
-                                    data.type == 0
-                                        ? Symbols.person
-                                        : Symbols.workspaces,
-                                    fill: 1,
-                                    size: 17,
-                                  ),
-                                  Text(
-                                    'publisherBelongsTo'.tr(
-                                      args: ['@${data.account!.name}'],
-                                    ),
-                                  ).fontSize(14),
-                                ],
-                              ).opacity(0.85),
-                            const Gap(4),
-                            if (data.type == 0 && data.account != null)
-                              AccountStatusWidget(
-                                uname: data.account!.name,
-                                padding: EdgeInsets.zero,
+                              ).fontSize(14).opacity(0.85),
+                            ),
+                        ],
+                      ),
+                      if (!isWideScreen(context))
+                        Text(
+                          '@${data.name}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ).fontSize(14).opacity(0.85).padding(bottom: 2.5),
+                      if (data.type == 0 && data.account != null)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              data.type == 0
+                                  ? Symbols.person
+                                  : Symbols.workspaces,
+                              fill: 1,
+                              size: 17,
+                            ),
+                            Text(
+                              'publisherBelongsTo'.tr(
+                                args: ['@${data.account!.name}'],
                               ),
-                            subStatus
-                                .when(
-                                  data: (status) => FilledButton.icon(
-                                    onPressed: subscribing.value
-                                        ? null
-                                        : (status != null
-                                              ? unsubscribe
-                                              : subscribe),
-                                    icon: Icon(
-                                      status != null
-                                          ? Symbols.remove_circle
-                                          : Symbols.add_circle,
-                                    ),
-                                    label: Text(
-                                      status != null
-                                          ? 'unsubscribe'
-                                          : 'subscribe',
-                                    ).tr(),
-                                    style: ButtonStyle(
-                                      visualDensity: VisualDensity(
-                                        vertical: -2,
-                                      ),
-                                    ),
-                                  ),
-                                  error: (_, _) => const SizedBox(),
-                                  loading: () => const SizedBox(
-                                    height: 36,
-                                    child: Center(
-                                      child: SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .padding(vertical: 12),
+                            ).fontSize(14),
                           ],
+                        ).opacity(0.85),
+                      const Gap(4),
+                      if (data.type == 0 && data.account != null)
+                        AccountStatusWidget(
+                          uname: data.account!.name,
+                          padding: EdgeInsets.zero,
+                        ),
+                      subStatus
+                          .when(
+                            data: (status) => FilledButton.icon(
+                              onPressed: subscribing.value
+                                  ? null
+                                  : (status != null ? unsubscribe : subscribe),
+                              icon: Icon(
+                                status != null
+                                    ? Symbols.remove_circle
+                                    : Symbols.add_circle,
+                              ),
+                              label: Text(
+                                status != null ? 'unsubscribe' : 'subscribe',
+                              ).tr(),
+                              style: ButtonStyle(
+                                visualDensity: VisualDensity(vertical: -2),
+                              ),
+                            ),
+                            error: (_, _) => const SizedBox(),
+                            loading: () => const SizedBox(
+                              height: 36,
+                              child: Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .padding(vertical: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // Bio section
+            if (data.bio.isNotEmpty) ...[
+              const Gap(12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: isBioExpanded.value
+                              ? MarkdownTextContent(
+                                  key: const ValueKey('expanded'),
+                                  content: data.bio,
+                                  linesMargin: EdgeInsets.zero,
+                                )
+                              : Text(
+                                  _getFirstLine(data.bio),
+                                  key: const ValueKey('collapsed'),
+                                ),
+                        ).alignment(Alignment.centerLeft),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          isBioExpanded.value = !isBioExpanded.value;
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            isBioExpanded.value
+                                ? 'collapse'.tr()
+                                : 'expand'.tr(),
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                          ).tr(),
                         ),
                       ),
                     ],
-                  ).padding(
-                    left: 16,
-                    right: 16,
-                    top: 16 + (showBackground ? 16 : 0),
-                  );
-                },
+                  ),
+                ],
               ),
             ],
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -431,10 +414,12 @@ class _PublisherBadgesWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return (badges.value?.isNotEmpty ?? false)
         ? Card(
-            child: BadgeList(
-              badges: badges.value!,
-            ).padding(horizontal: 26, vertical: 20),
-          ).padding(horizontal: 4)
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: BadgeList(badges: badges.value!),
+            ),
+          )
         : const SizedBox.shrink();
   }
 }
@@ -448,36 +433,10 @@ class _PublisherVerificationWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return (data.verification != null)
         ? Card(
-            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            margin: EdgeInsets.zero,
             child: VerificationStatusCard(mark: data.verification!),
           )
         : const SizedBox.shrink();
-  }
-}
-
-class _PublisherBioWidget extends StatelessWidget {
-  final SnPublisher data;
-
-  const _PublisherBioWidget({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('bio').tr().bold().fontSize(15).padding(bottom: 8),
-          if (data.bio.isEmpty)
-            Text('descriptionNone').tr().italic()
-          else
-            MarkdownTextContent(
-              content: data.bio,
-              linesMargin: EdgeInsets.zero,
-            ),
-        ],
-      ).padding(horizontal: 20, vertical: 16),
-    );
   }
 }
 
@@ -493,15 +452,13 @@ class _PublisherLivestreamWatchScreen extends StatelessWidget {
       appBar: AppBar(title: Text(stream.title ?? 'untitledLivestream'.tr())),
       body: ListView(
         children: [
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900),
-              child: LivestreamEmbedWidget(
-                livestreamId: stream.id,
-                margin: const EdgeInsets.all(12),
-              ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: LivestreamEmbedWidget(
+              livestreamId: stream.id,
+              margin: const EdgeInsets.all(12),
             ),
-          ),
+          ).center(),
         ],
       ),
     );
@@ -521,10 +478,7 @@ class _PublisherHeatmapWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return heatmap.when(
       data: (data) => data != null
-          ? ActivityHeatmapWidget(
-              heatmap: data,
-              forceDense: forceDense,
-            ).padding(horizontal: 8)
+          ? ActivityHeatmapWidget(heatmap: data, forceDense: forceDense)
           : const SizedBox.shrink(),
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
@@ -573,25 +527,6 @@ Future<SnPublisherSubscription?> publisherSubscriptionStatus(
 }
 
 @riverpod
-Future<Color?> publisherAppbarForcegroundColor(Ref ref, String pubName) async {
-  try {
-    final publisher = await ref.watch(publisherProvider(pubName).future);
-    if (publisher.background == null) return null;
-    final colors = await ColorExtractionService.getColorsFromImage(
-      CloudImageWidget.provider(
-        file: publisher.background!,
-        serverUrl: ref.watch(serverUrlProvider),
-      ),
-    );
-    if (colors.isEmpty) return null;
-    final dominantColor = colors.first;
-    return dominantColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-  } catch (_) {
-    return null;
-  }
-}
-
-@riverpod
 Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get('/sphere/publishers/$uname/heatmap');
@@ -623,10 +558,7 @@ final publisherActiveLivestreamProvider = FutureProvider.family
 @RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
-  const PublisherProfileScreen({
-    super.key,
-    @PathParam("name") required this.name,
-  });
+  const PublisherProfileScreen({super.key, required this.name});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -634,9 +566,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final badges = ref.watch(publisherBadgesProvider(name));
     final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
     final heatmap = ref.watch(publisherHeatmapProvider(name));
-    final appbarColor = ref.watch(
-      publisherAppbarForcegroundColorProvider(name),
-    );
 
     final categoryTabController = useTabController(initialLength: 3);
 
@@ -685,12 +614,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
       }
     }
 
-    final appbarShadow = Shadow(
-      color: appbarColor.value?.invert ?? Colors.transparent,
-      blurRadius: 5.0,
-      offset: Offset(1.0, 1.0),
-    );
-
     return publisher.when(
       data: (data) {
         final liveStatus = ref.watch(
@@ -698,23 +621,10 @@ class PublisherProfileScreen extends HookConsumerWidget {
         );
         return AppScaffold(
           isNoBackground: false,
-          appBar: isWideScreen(context)
-              ? AppBar(
-                  foregroundColor: appbarColor.value,
-                  leading: AutoLeadingButton(),
-                  title: Text(
-                    data.nick,
-                    style: TextStyle(
-                      color:
-                          appbarColor.value ??
-                          Theme.of(context).appBarTheme.foregroundColor,
-                      shadows: [appbarShadow],
-                    ),
-                  ),
-                )
-              : null,
+          appBar: AppBar(leading: AutoLeadingButton(), title: Text(data.nick)),
           body: isWideScreen(context)
               ? Row(
+                  spacing: 12,
                   children: [
                     Flexible(
                       flex: 4,
@@ -722,7 +632,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         slivers: [
                           SliverGap(16),
                           SliverToBoxAdapter(
-                            child: _PinnedPostsPageView(pubName: name),
+                            child: _PinnedPostsPageView(
+                              pubName: name,
+                            ).padding(bottom: 8),
                           ),
                           SliverToBoxAdapter(
                             child: PostFilterWidget(
@@ -730,22 +642,26 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               initialQuery: queryState.value,
                               onQueryChanged: (newQuery) =>
                                   queryState.value = newQuery,
-                            ),
+                            ).padding(bottom: 4),
                           ),
                           SliverPostList(
+                            maxWidth: double.infinity,
+                            itemPadding: EdgeInsets.symmetric(vertical: 4),
                             query: queryState.value,
                             queryKey: 'publisher-$name',
                           ),
                           SliverGap(MediaQuery.of(context).padding.bottom + 16),
                         ],
-                      ).padding(left: 8),
+                      ),
                     ),
                     Flexible(
                       flex: 3,
                       child: Align(
                         alignment: Alignment.topLeft,
                         child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           child: Column(
+                            spacing: 12,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _PublisherBasisWidget(
@@ -755,60 +671,28 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                 subscribing: subscribing,
                                 subscribe: subscribe,
                                 unsubscribe: unsubscribe,
-                              ).padding(horizontal: 4, top: 20),
-                              _PublisherBadgesWidget(
-                                data: data,
-                                badges: badges,
                               ),
-                              _PublisherVerificationWidget(data: data),
-                              _PublisherBioWidget(data: data),
+                              if (data.account?.badges.isNotEmpty ?? false)
+                                _PublisherBadgesWidget(
+                                  data: data,
+                                  badges: badges,
+                                ),
+                              if (data.verification != null)
+                                _PublisherVerificationWidget(data: data),
                               _PublisherHeatmapWidget(
                                 heatmap: heatmap,
                                 forceDense: true,
-                              ).padding(vertical: 4),
+                              ),
                             ],
                           ),
                         ),
                       ),
                     ),
                   ],
-                )
+                ).padding(horizontal: 12)
               : CustomScrollView(
                   slivers: [
-                    SliverAppBar(
-                      foregroundColor: appbarColor.value,
-                      expandedHeight: 180,
-                      pinned: true,
-                      leading: AutoLeadingButton(),
-                      flexibleSpace: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: data.background != null
-                                ? CloudImageWidget(file: data.background)
-                                : Container(
-                                    color: Theme.of(
-                                      context,
-                                    ).appBarTheme.backgroundColor,
-                                  ),
-                          ),
-                          FlexibleSpaceBar(
-                            title: Text(
-                              data.nick,
-                              style: TextStyle(
-                                color:
-                                    appbarColor.value ??
-                                    Theme.of(
-                                      context,
-                                    ).appBarTheme.foregroundColor,
-                                shadows: [appbarShadow],
-                              ),
-                            ),
-                            background:
-                                Container(), // Empty container since background is handled by Stack
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SliverGap(12),
                     SliverToBoxAdapter(
                       child: _PublisherBasisWidget(
                         data: data,
@@ -817,23 +701,25 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         subscribing: subscribing,
                         subscribe: subscribe,
                         unsubscribe: unsubscribe,
-                      ).padding(horizontal: 4, top: 8),
+                      ),
                     ),
+                    const SliverGap(12),
                     SliverToBoxAdapter(
                       child: _PublisherBadgesWidget(data: data, badges: badges),
                     ),
+                    const SliverGap(12),
                     SliverToBoxAdapter(
                       child: _PublisherVerificationWidget(data: data),
                     ),
-                    SliverToBoxAdapter(child: _PublisherBioWidget(data: data)),
+                    const SliverGap(12),
                     SliverToBoxAdapter(
-                      child: _PublisherHeatmapWidget(
-                        heatmap: heatmap,
-                      ).padding(vertical: 4),
+                      child: _PublisherHeatmapWidget(heatmap: heatmap),
                     ),
+                    const SliverGap(12),
                     SliverToBoxAdapter(
                       child: _PinnedPostsPageView(pubName: name),
                     ),
+                    const SliverGap(12),
                     SliverToBoxAdapter(
                       child: PostFilterWidget(
                         categoryTabController: categoryTabController,
@@ -842,14 +728,17 @@ class PublisherProfileScreen extends HookConsumerWidget {
                             queryState.value = newQuery,
                       ),
                     ),
+                    const SliverGap(12),
                     SliverPostList(
                       key: ValueKey(queryState.value),
                       query: queryState.value,
                       queryKey: 'publisher-$name',
+                      maxWidth: double.infinity,
+                      itemPadding: const EdgeInsets.symmetric(vertical: 4),
                     ),
                     SliverGap(MediaQuery.of(context).padding.bottom + 16),
                   ],
-                ),
+                ).padding(horizontal: 8),
         );
       },
       error: (error, stackTrace) => AppScaffold(

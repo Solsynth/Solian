@@ -12,7 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/content/image.dart';
-import 'package:island/posts/publisher_profile.dart';
+import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
