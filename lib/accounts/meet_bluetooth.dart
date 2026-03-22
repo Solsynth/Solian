@@ -47,26 +47,23 @@ class BluetoothHexDiscovery {
 class MeetBluetoothService {
   final ble.PeripheralManager _peripheralManager = ble.PeripheralManager();
   final StreamController<List<BluetoothHexDiscovery>>
-  _nearbyDiscoveriesController = StreamController.broadcast();
+      _nearbyDiscoveriesController = StreamController.broadcast();
   final StreamController<bool> _nearbyDiscoveryStateController =
       StreamController<bool>.broadcast();
   StreamSubscription<List<ScanResult>>? _nearbyScanResultSub;
-  StreamSubscription<bool>? _nearbyScanStateSub;
+  StreamSubscription<bool>? _nearbyScanStateSub; //将在此处正确释放
   Timer? _nearbyDiscoveryTimer;
   final Map<String, BluetoothHexDiscovery> _nearbyDiscoveries = {};
   String? _activeAdvertisementKey;
   bool _isNearbyDiscovering = false;
+  bool _isAdvertising = false; 
 
   MeetBluetoothService();
 
   bool get supportsNearbyDiscovery =>
       !kIsWeb &&
       switch (defaultTargetPlatform) {
-        TargetPlatform.android ||
-        TargetPlatform.iOS ||
-        TargetPlatform.macOS ||
-        TargetPlatform.linux ||
-        TargetPlatform.windows => true,
+        TargetPlatform.android || TargetPlatform.iOS => true,
         _ => false,
       };
 
@@ -109,44 +106,52 @@ class MeetBluetoothService {
     required String serviceUuid,
     required String payloadHex,
   }) async {
-    await ensureAdvertiseReady();
-    final service = ble.UUID.fromString(serviceUuid);
-    final payload = _hexToBytes(payloadHex);
-    if (payload == null || payload.isEmpty) {
-      throw const FormatException('Payload hex is invalid.');
-    }
-    final advertisementKey =
-        '${serviceUuid.toLowerCase()}|${payloadHex.toUpperCase()}';
-    if (_activeAdvertisementKey == advertisementKey) {
-      talker.info(
-        '[Nearby/BLE] startAdvertising skipped serviceUuid=$serviceUuid payloadHex=$payloadHex because the same advertisement is already active',
-      );
+    if (_isAdvertising) {
+      talker.info('[Nearby/BLE] startAdvertisingHex skipped: already advertising');
       return;
     }
+    _isAdvertising = true;
 
-    const useSeparateServiceUuidField = true;
-    await stopAdvertising();
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-    }
-    final advertisement = ble.Advertisement(
-      serviceUUIDs: [service],
-      serviceData: {service: Uint8List.fromList(payload)},
-    );
-    final payloadLayout = _buildAdvertisementLayout(
-      serviceUuid: serviceUuid,
-      payloadHex: payloadHex.toUpperCase(),
-      includeSeparateServiceUuid: useSeparateServiceUuidField,
-    );
-    talker.info(
-      '[Nearby/BLE] startAdvertising serviceUuid=$serviceUuid serviceUuidBytes=${_bytesToHex(service.value).toUpperCase()} payloadHex=$payloadHex payloadBytes=${payload.length} estimatedBytes=${payloadLayout.totalBytes} separateServiceUuid=$useSeparateServiceUuidField layout=${payloadLayout.summary}',
-    );
     try {
+      await ensureAdvertiseReady();
+      final service = ble.UUID.fromString(serviceUuid);
+      final payload = _hexToBytes(payloadHex);
+      if (payload == null || payload.isEmpty) {
+        throw const FormatException('Payload hex is invalid.');
+      }
+      final advertisementKey =
+          '${serviceUuid.toLowerCase()}|${payloadHex.toUpperCase()}';
+      if (_activeAdvertisementKey == advertisementKey) {
+        talker.info(
+          '[Nearby/BLE] startAdvertising skipped serviceUuid=$serviceUuid payloadHex=$payloadHex because the same advertisement is already active',
+        );
+        return;
+      }
+
+      const useSeparateServiceUuidField = true;
+      await stopAdvertising(); 
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+      final advertisement = ble.Advertisement(
+        serviceUUIDs: [service],
+        serviceData: {service: Uint8List.fromList(payload)},
+      );
+      final payloadLayout = _buildAdvertisementLayout(
+        serviceUuid: serviceUuid,
+        payloadHex: payloadHex.toUpperCase(),
+        includeSeparateServiceUuid: useSeparateServiceUuidField,
+      );
+      talker.info(
+        '[Nearby/BLE] startAdvertising serviceUuid=$serviceUuid serviceUuidBytes=${_bytesToHex(service.value).toUpperCase()} payloadHex=$payloadHex payloadBytes=${payload.length} estimatedBytes=${payloadLayout.totalBytes} separateServiceUuid=$useSeparateServiceUuidField layout=${payloadLayout.summary}',
+      );
       await _peripheralManager.startAdvertising(advertisement);
       _activeAdvertisementKey = advertisementKey;
     } catch (error) {
       _activeAdvertisementKey = null;
       rethrow;
+    } finally {
+      _isAdvertising = false; 
     }
   }
 
@@ -244,7 +249,9 @@ class MeetBluetoothService {
       },
     );
 
-    _nearbyScanStateSub ??= FlutterBluePlus.isScanning.listen((isScanning) {
+    
+    await _nearbyScanStateSub?.cancel(); 
+    _nearbyScanStateSub = FlutterBluePlus.isScanning.listen((isScanning) {
       _nearbyDiscoveryStateController.add(isScanning);
       if (!isScanning) {
         _isNearbyDiscovering = false;
@@ -269,6 +276,10 @@ class MeetBluetoothService {
     _nearbyDiscoveryTimer = null;
     await _nearbyScanResultSub?.cancel();
     _nearbyScanResultSub = null;
+  
+    await _nearbyScanStateSub?.cancel();
+    _nearbyScanStateSub = null;
+
     if (_isNearbyDiscovering) {
       if (await FlutterBluePlus.isScanning.first) {
         await FlutterBluePlus.stopScan();
@@ -321,37 +332,8 @@ class MeetBluetoothService {
   }) {
     final byPayload = <String, BluetoothHexDiscovery>{};
     final targetGuid = Guid(serviceUuid);
-    final matchingServiceUuids = <String>[];
-    final matchingManufacturerRows = <String>[];
-    final rawServiceDataRows = <String>[];
 
     for (final result in results) {
-      final advertisedServiceData = result.advertisementData.serviceData.entries
-          .map(
-            (entry) =>
-                '${entry.key.str128.toUpperCase()}:${_bytesToHex(entry.value).toUpperCase()}',
-          )
-          .toList();
-      if (result.advertisementData.serviceUuids.any(
-        (entry) => _guidEquals(entry, targetGuid),
-      )) {
-        matchingServiceUuids.add(
-          '${result.device.remoteId.str}@${result.rssi}',
-        );
-      }
-      if (result.advertisementData.manufacturerData.containsKey(
-        kSolianManufacturerId,
-      )) {
-        matchingManufacturerRows.add(
-          '${result.device.remoteId.str}@${result.rssi}:${_bytesToHex(result.advertisementData.manufacturerData[kSolianManufacturerId]!).toUpperCase()}',
-        );
-      }
-      if (advertisedServiceData.isNotEmpty) {
-        rawServiceDataRows.add(
-          '${result.device.remoteId.str}@${result.rssi}:${advertisedServiceData.join("|")}',
-        );
-      }
-
       List<int>? rawBytes;
       for (final entry in result.advertisementData.serviceData.entries) {
         if (_guidEquals(entry.key, targetGuid)) {
@@ -381,13 +363,6 @@ class MeetBluetoothService {
 
     final items = byPayload.values.toList()
       ..sort((a, b) => b.rssi.compareTo(a.rssi));
-    if (matchingServiceUuids.isNotEmpty ||
-        matchingManufacturerRows.isNotEmpty ||
-        rawServiceDataRows.isNotEmpty) {
-      talker.info(
-        '[Nearby/BLE] rawScan serviceUuid=$serviceUuid matchedServiceUuids=${matchingServiceUuids.join(",")} manufacturer=${matchingManufacturerRows.join(",")} serviceData=${rawServiceDataRows.join(",")}',
-      );
-    }
     if (items.isNotEmpty) {
       talker.info(
         '[Nearby/BLE] parsed ${items.length} discoveries for serviceUuid=$serviceUuid payloads=${items.map((e) => e.payloadHex).join(",")}',
@@ -502,21 +477,12 @@ class MeetBluetoothService {
       await FlutterBluePlus.turnOn();
     }
 
-    final initial = await FlutterBluePlus.adapterState.first;
-    if (initial == BluetoothAdapterState.unknown &&
-        !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.macOS)) {
-      await Future<void>.delayed(const Duration(seconds: 1));
-    }
-
     final state = await FlutterBluePlus.adapterState
-        .where(
-          (value) =>
-              value != BluetoothAdapterState.unknown &&
-              value != BluetoothAdapterState.turningOn,
+        .skipWhile((s) => s == BluetoothAdapterState.unknown)
+        .firstWhere(
+          (s) => s != BluetoothAdapterState.turningOn,
+          orElse: () => BluetoothAdapterState.off,
         )
-        .first
         .timeout(const Duration(seconds: 10));
 
     if (state == BluetoothAdapterState.on) {
@@ -619,9 +585,4 @@ List<int>? _hexToBytes(String value) {
     bytes.add(parsed);
   }
   return bytes;
-}
-
-int estimateDistancePercent(int rssi) {
-  final bounded = max(-100, min(-35, rssi));
-  return ((bounded + 100) / 65 * 100).round();
 }
