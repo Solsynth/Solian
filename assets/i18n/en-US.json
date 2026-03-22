@@ -2187,5 +2187,6 @@
   "meetEventParticipantJoined": "Someone joined",
   "meetEventCompleted": "Meet completed",
   "meetEventExpired": "Meet expired",
-  "timeline": "Timeline"
+  "timeline": "Timeline",
+  "statusChange": "Status Change"
 }
