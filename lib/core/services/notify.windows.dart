@@ -157,6 +157,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
           );
         }
         // Speak notification via TTS
+        if (!context.mounted) return;
         final locale = Localizations.localeOf(context);
         final languageCode = localeToLanguageCode(locale);
         await _speakNotification(notification, ref, languageCode);
