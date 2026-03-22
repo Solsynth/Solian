@@ -10,6 +10,8 @@ import 'package:island/core/services/time.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:gap/gap.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 
 class AccountTimelineList extends ConsumerWidget {
   final String uname;
@@ -36,23 +38,41 @@ class AccountTimelineList extends ConsumerWidget {
           );
         }
 
-        return SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final groupedItem = groupedItems[index];
-            if (groupedItem.items.length > 1) {
+        return SliverPadding(
+          padding: const EdgeInsets.only(bottom: 16),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              if (index == groupedItems.length) {
+                if (state.hasMore) {
+                  return _TimelineLoadMore(
+                    onVisible: () {
+                      if (!state.isLoading) {
+                        ref
+                            .read(accountTimelineProvider(uname).notifier)
+                            .fetchFurther();
+                      }
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              }
+
+              final groupedItem = groupedItems[index];
+              if (groupedItem.items.length > 1) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: AccountTimelineItem(
+                    item: groupedItem.items.first,
+                    duplicateCount: groupedItem.items.length,
+                  ),
+                );
+              }
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: AccountTimelineItem(
-                  item: groupedItem.items.first,
-                  duplicateCount: groupedItem.items.length,
-                ),
+                child: AccountTimelineItem(item: groupedItem.items.first),
               );
-            }
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: AccountTimelineItem(item: groupedItem.items.first),
-            );
-          }, childCount: groupedItems.length),
+            }, childCount: groupedItems.length + 1),
+          ),
         );
       },
       loading: () => const SliverToBoxAdapter(
@@ -111,6 +131,42 @@ class AccountTimelineList extends ConsumerWidget {
       return activityA.title == activityB.title;
     }
     return false;
+  }
+}
+
+class _TimelineLoadMore extends StatefulWidget {
+  final VoidCallback onVisible;
+
+  const _TimelineLoadMore({required this.onVisible});
+
+  @override
+  State<_TimelineLoadMore> createState() => _TimelineLoadMoreState();
+}
+
+class _TimelineLoadMoreState extends State<_TimelineLoadMore> {
+  bool _hasTriggered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return VisibilityDetector(
+      key: const ValueKey('timeline-load-more'),
+      onVisibilityChanged: (info) {
+        if (info.visibleFraction > 0.1 && !_hasTriggered) {
+          _hasTriggered = true;
+          widget.onVisible();
+        }
+      },
+      child: Container(
+        height: 60,
+        alignment: Alignment.center,
+        child: ConfuseSpinner(
+          size: 24,
+          speed: 3,
+          text: 'o.O O.o',
+          fontSize: 14,
+        ),
+      ),
+    );
   }
 }
 

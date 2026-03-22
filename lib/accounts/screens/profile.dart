@@ -58,11 +58,6 @@ class _AccountBasicInfo extends HookWidget {
     return lines.first.trim();
   }
 
-  bool _hasMoreLines(String bio) {
-    final lines = bio.split('\n');
-    return lines.length > 1 || bio.contains('\n');
-  }
-
   @override
   Widget build(BuildContext context) {
     final isBioExpanded = useState(false);
@@ -116,213 +111,207 @@ class _AccountBasicInfo extends HookWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (!showBackground)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Center(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: theme.colorScheme.outline.withOpacity(0.2),
-                            width: 2,
-                          ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withOpacity(0.2),
+                          width: 2,
                         ),
-                        child: ProfilePictureWidget(
-                          file: data.profile.picture,
-                          radius: 40,
-                        ),
+                      ),
+                      child: ProfilePictureWidget(
+                        file: data.profile.picture,
+                        radius: 40,
                       ),
                     ),
                   ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Column(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Gap(12),
-                          Row(
-                            spacing: 8,
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Flexible(
-                                child: AccountName(
-                                  account: data,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      theme.colorScheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '@${data.name}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Gap(4),
-                          AccountStatusWidget(
-                            uname: uname,
-                            padding: EdgeInsets.zero,
-                          ),
-                          // Collapsible Bio Section
-                          if (data.profile.bio.isNotEmpty) ...[
-                            const Gap(12),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest
-                                    .withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // First line always visible
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Text.rich(
-                                          TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: _getFirstLine(data.profile.bio),
-                                                style: theme.textTheme.bodyMedium?.copyWith(
-                                                  color: theme.colorScheme.onSurface,
-                                                ),
-                                              ),
-                                              if (!isBioExpanded.value && _hasMoreLines(data.profile.bio))
-                                                WidgetSpan(
-                                                  child: InkWell(
-                                                    onTap: () {
-                                                      isBioExpanded.value = true;
-                                                    },
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                                                      child: Text(
-                                                        'expandBio',
-                                                        style: theme.textTheme.labelMedium?.copyWith(
-                                                          color: theme.colorScheme.primary,
-                                                        ),
-                                                      ).tr(),
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      if (isBioExpanded.value)
-                                        InkWell(
-                                          onTap: () {
-                                            isBioExpanded.value = false;
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                                            child: Text(
-                                              'collapseBio',
-                                              style: theme.textTheme.labelMedium?.copyWith(
-                                                color: theme.colorScheme.primary,
-                                              ),
-                                            ).tr(),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  // Full bio when expanded
-                                  if (isBioExpanded.value) ...[
-                                    const Gap(8),
-                                    MarkdownTextContent(
-                                      content: data.profile.bio,
-                                      linesMargin: EdgeInsets.zero,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                          if (accountDeveloper.value != null) ...[
-                            const Gap(12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.secondaryContainer
-                                    .withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                              const Gap(12),
+                              Row(
                                 spacing: 8,
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
                                 children: [
-                                  Icon(
-                                    Symbols.smart_toy,
-                                    size: 18,
-                                    color:
-                                        theme.colorScheme.onSecondaryContainer,
-                                  ),
-                                  Text(
-                                    'botAutomatedBy'.tr(
-                                      args: [
-                                        accountDeveloper.value!.publisher!.nick,
-                                      ],
+                                  Flexible(
+                                    child: AccountName(
+                                      account: data,
+                                      style: theme.textTheme.bodyLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
                                       color: theme
                                           .colorScheme
-                                          .onSecondaryContainer,
+                                          .surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '@${data.name}',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        onPressed: () {
-                          SharePlus.instance.share(
-                            ShareParams(
-                              uri: Uri.parse(
-                                'https://solian.app/@${data.name}',
+                              const Gap(4),
+                              AccountStatusWidget(
+                                uname: uname,
+                                padding: EdgeInsets.zero,
                               ),
-                            ),
-                          );
-                        },
-                        icon: Icon(
-                          Symbols.share,
-                          color: theme.colorScheme.primary,
+                              if (accountDeveloper.value != null) ...[
+                                const Gap(12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.secondaryContainer
+                                        .withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 8,
+                                    children: [
+                                      Icon(
+                                        Symbols.smart_toy,
+                                        size: 18,
+                                        color: theme
+                                            .colorScheme
+                                            .onSecondaryContainer,
+                                      ),
+                                      Text(
+                                        'botAutomatedBy'.tr(
+                                          args: [
+                                            accountDeveloper
+                                                .value!
+                                                .publisher!
+                                                .nick,
+                                          ],
+                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSecondaryContainer,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                      ),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              SharePlus.instance.share(
+                                ShareParams(
+                                  uri: Uri.parse(
+                                    'https://solian.app/@${data.name}',
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Symbols.share,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+                // Collapsible Bio Section
+                if (data.profile.bio.isNotEmpty) ...[
+                  const Gap(12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              child: isBioExpanded.value
+                                  ? MarkdownTextContent(
+                                      key: const ValueKey('expanded'),
+                                      content: data.profile.bio,
+                                      linesMargin: EdgeInsets.zero,
+                                    )
+                                  : Text(
+                                      _getFirstLine(data.profile.bio),
+                                      key: const ValueKey('collapsed'),
+                                    ),
+                            ).alignment(Alignment.centerLeft),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              isBioExpanded.value = !isBioExpanded.value;
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: Text(
+                                isBioExpanded.value
+                                    ? 'collapse'.tr()
+                                    : 'expand'.tr(),
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ).tr(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+                // Links
+                if (data.profile.links.isNotEmpty)
+                  Column(
+                    spacing: 8,
+                    children: data.profile.links
+                        .map(
+                          (link) => _LinkCard(
+                            name: link.name.capitalizeEachWord(),
+                            url: link.url,
+                          ),
+                        )
+                        .toList(),
+                  ).padding(top: 12),
               ],
             ),
           ),
@@ -576,65 +565,6 @@ class _DetailChip extends StatelessWidget {
   }
 }
 
-class _AccountProfileLinks extends StatelessWidget {
-  final SnAccount data;
-
-  const _AccountProfileLinks({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Symbols.link,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Gap(12),
-                Text(
-                  'links',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
-              ],
-            ),
-            const Gap(12),
-            Column(
-              spacing: 8,
-              children: data.profile.links
-                  .map(
-                    (link) => _LinkCard(
-                      name: link.name.capitalizeEachWord(),
-                      url: link.url,
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _LinkCard extends StatelessWidget {
   final String name;
   final String url;
@@ -653,53 +583,29 @@ class _LinkCard extends StatelessWidget {
           launchUrlString(url);
         }
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Symbols.open_in_new,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const Gap(12),
+            Icon(Symbols.link, size: 16, color: theme.colorScheme.primary),
+            const Gap(8),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Gap(2),
-                  Text(
-                    url,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              child: Text(
+                name,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Icon(
               Symbols.arrow_outward,
-              size: 18,
+              size: 14,
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
@@ -1449,8 +1355,6 @@ class AccountProfileScreen extends HookConsumerWidget {
                                     ),
                                 ],
                               ),
-                              if (data.profile.links.isNotEmpty)
-                                _AccountProfileLinks(data: data),
                               if (data.contacts.any((c) => c.isPublic))
                                 _AccountProfileContacts(data: data),
                               _AccountProfileDetail(data: data),
@@ -1552,8 +1456,6 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 ),
                             ],
                           ),
-                          if (data.profile.links.isNotEmpty)
-                            _AccountProfileLinks(data: data),
                           if (data.contacts.any((c) => c.isPublic))
                             _AccountProfileContacts(data: data),
                           _AccountPublisherList(
