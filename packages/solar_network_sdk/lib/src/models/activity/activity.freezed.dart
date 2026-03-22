@@ -1741,34 +1741,11 @@ as DateTime?,
 
 }
 
-SnAccountTimelineItem _$SnAccountTimelineItemFromJson(
-  Map<String, dynamic> json
-) {
-        switch (json['runtimeType']) {
-                  case 'statusChange':
-          return _AccountTimelineStatusChange.fromJson(
-            json
-          );
-                case 'activity':
-          return _AccountTimelineActivity.fromJson(
-            json
-          );
-        
-          default:
-            throw CheckedFromJsonException(
-  json,
-  'runtimeType',
-  'SnAccountTimelineItem',
-  'Invalid union type "${json['runtimeType']}"!'
-);
-        }
-      
-}
 
 /// @nodoc
 mixin _$SnAccountTimelineItem {
 
- String get id; DateTime get createdAt;
+ String get id; DateTime get createdAt; int get eventType; SnPresenceActivity? get activity; SnAccountStatus? get status;
 /// Create a copy of SnAccountTimelineItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1781,16 +1758,16 @@ $SnAccountTimelineItemCopyWith<SnAccountTimelineItem> get copyWith => _$SnAccoun
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountTimelineItem&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAccountTimelineItem&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.activity, activity) || other.activity == activity)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,createdAt);
+int get hashCode => Object.hash(runtimeType,id,createdAt,eventType,activity,status);
 
 @override
 String toString() {
-  return 'SnAccountTimelineItem(id: $id, createdAt: $createdAt)';
+  return 'SnAccountTimelineItem(id: $id, createdAt: $createdAt, eventType: $eventType, activity: $activity, status: $status)';
 }
 
 
@@ -1801,11 +1778,11 @@ abstract mixin class $SnAccountTimelineItemCopyWith<$Res>  {
   factory $SnAccountTimelineItemCopyWith(SnAccountTimelineItem value, $Res Function(SnAccountTimelineItem) _then) = _$SnAccountTimelineItemCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime createdAt
+ String id, DateTime createdAt, int eventType, SnPresenceActivity? activity, SnAccountStatus? status
 });
 
 
-
+$SnPresenceActivityCopyWith<$Res>? get activity;$SnAccountStatusCopyWith<$Res>? get status;
 
 }
 /// @nodoc
@@ -1818,14 +1795,41 @@ class _$SnAccountTimelineItemCopyWithImpl<$Res>
 
 /// Create a copy of SnAccountTimelineItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? eventType = null,Object? activity = freezed,Object? status = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
+as int,activity: freezed == activity ? _self.activity : activity // ignore: cast_nullable_to_non_nullable
+as SnPresenceActivity?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,
   ));
 }
+/// Create a copy of SnAccountTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPresenceActivityCopyWith<$Res>? get activity {
+    if (_self.activity == null) {
+    return null;
+  }
 
+  return $SnPresenceActivityCopyWith<$Res>(_self.activity!, (value) {
+    return _then(_self.copyWith(activity: value));
+  });
+}/// Create a copy of SnAccountTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+    return _then(_self.copyWith(status: value));
+  });
+}
 }
 
 
@@ -1843,12 +1847,11 @@ extension SnAccountTimelineItemPatterns on SnAccountTimelineItem {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _AccountTimelineStatusChange value)?  statusChange,TResult Function( _AccountTimelineActivity value)?  activity,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnAccountTimelineItem value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _AccountTimelineStatusChange() when statusChange != null:
-return statusChange(_that);case _AccountTimelineActivity() when activity != null:
-return activity(_that);case _:
+case _SnAccountTimelineItem() when $default != null:
+return $default(_that);case _:
   return orElse();
 
 }
@@ -1866,12 +1869,11 @@ return activity(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _AccountTimelineStatusChange value)  statusChange,required TResult Function( _AccountTimelineActivity value)  activity,}){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnAccountTimelineItem value)  $default,){
 final _that = this;
 switch (_that) {
-case _AccountTimelineStatusChange():
-return statusChange(_that);case _AccountTimelineActivity():
-return activity(_that);}
+case _SnAccountTimelineItem():
+return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -1885,12 +1887,11 @@ return activity(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _AccountTimelineStatusChange value)?  statusChange,TResult? Function( _AccountTimelineActivity value)?  activity,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnAccountTimelineItem value)?  $default,){
 final _that = this;
 switch (_that) {
-case _AccountTimelineStatusChange() when statusChange != null:
-return statusChange(_that);case _AccountTimelineActivity() when activity != null:
-return activity(_that);case _:
+case _SnAccountTimelineItem() when $default != null:
+return $default(_that);case _:
   return null;
 
 }
@@ -1907,11 +1908,10 @@ return activity(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String id,  DateTime createdAt,  SnAccountStatus status)?  statusChange,TResult Function( String id,  DateTime createdAt,  SnPresenceActivity activity)?  activity,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime createdAt,  int eventType,  SnPresenceActivity? activity,  SnAccountStatus? status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _AccountTimelineStatusChange() when statusChange != null:
-return statusChange(_that.id,_that.createdAt,_that.status);case _AccountTimelineActivity() when activity != null:
-return activity(_that.id,_that.createdAt,_that.activity);case _:
+case _SnAccountTimelineItem() when $default != null:
+return $default(_that.id,_that.createdAt,_that.eventType,_that.activity,_that.status);case _:
   return orElse();
 
 }
@@ -1929,11 +1929,10 @@ return activity(_that.id,_that.createdAt,_that.activity);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String id,  DateTime createdAt,  SnAccountStatus status)  statusChange,required TResult Function( String id,  DateTime createdAt,  SnPresenceActivity activity)  activity,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime createdAt,  int eventType,  SnPresenceActivity? activity,  SnAccountStatus? status)  $default,) {final _that = this;
 switch (_that) {
-case _AccountTimelineStatusChange():
-return statusChange(_that.id,_that.createdAt,_that.status);case _AccountTimelineActivity():
-return activity(_that.id,_that.createdAt,_that.activity);}
+case _SnAccountTimelineItem():
+return $default(_that.id,_that.createdAt,_that.eventType,_that.activity,_that.status);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1947,11 +1946,10 @@ return activity(_that.id,_that.createdAt,_that.activity);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String id,  DateTime createdAt,  SnAccountStatus status)?  statusChange,TResult? Function( String id,  DateTime createdAt,  SnPresenceActivity activity)?  activity,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime createdAt,  int eventType,  SnPresenceActivity? activity,  SnAccountStatus? status)?  $default,) {final _that = this;
 switch (_that) {
-case _AccountTimelineStatusChange() when statusChange != null:
-return statusChange(_that.id,_that.createdAt,_that.status);case _AccountTimelineActivity() when activity != null:
-return activity(_that.id,_that.createdAt,_that.activity);case _:
+case _SnAccountTimelineItem() when $default != null:
+return $default(_that.id,_that.createdAt,_that.eventType,_that.activity,_that.status);case _:
   return null;
 
 }
@@ -1962,74 +1960,74 @@ return activity(_that.id,_that.createdAt,_that.activity);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _AccountTimelineStatusChange implements SnAccountTimelineItem {
-  const _AccountTimelineStatusChange({required this.id, required this.createdAt, required this.status, final  String? $type}): $type = $type ?? 'statusChange';
-  factory _AccountTimelineStatusChange.fromJson(Map<String, dynamic> json) => _$AccountTimelineStatusChangeFromJson(json);
+class _SnAccountTimelineItem implements SnAccountTimelineItem {
+  const _SnAccountTimelineItem({required this.id, required this.createdAt, required this.eventType, this.activity, this.status});
+  factory _SnAccountTimelineItem.fromJson(Map<String, dynamic> json) => _$SnAccountTimelineItemFromJson(json);
 
 @override final  String id;
 @override final  DateTime createdAt;
- final  SnAccountStatus status;
-
-@JsonKey(name: 'runtimeType')
-final String $type;
-
+@override final  int eventType;
+@override final  SnPresenceActivity? activity;
+@override final  SnAccountStatus? status;
 
 /// Create a copy of SnAccountTimelineItem
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$AccountTimelineStatusChangeCopyWith<_AccountTimelineStatusChange> get copyWith => __$AccountTimelineStatusChangeCopyWithImpl<_AccountTimelineStatusChange>(this, _$identity);
+_$SnAccountTimelineItemCopyWith<_SnAccountTimelineItem> get copyWith => __$SnAccountTimelineItemCopyWithImpl<_SnAccountTimelineItem>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$AccountTimelineStatusChangeToJson(this, );
+  return _$SnAccountTimelineItemToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountTimelineStatusChange&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAccountTimelineItem&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.activity, activity) || other.activity == activity)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,createdAt,status);
+int get hashCode => Object.hash(runtimeType,id,createdAt,eventType,activity,status);
 
 @override
 String toString() {
-  return 'SnAccountTimelineItem.statusChange(id: $id, createdAt: $createdAt, status: $status)';
+  return 'SnAccountTimelineItem(id: $id, createdAt: $createdAt, eventType: $eventType, activity: $activity, status: $status)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$AccountTimelineStatusChangeCopyWith<$Res> implements $SnAccountTimelineItemCopyWith<$Res> {
-  factory _$AccountTimelineStatusChangeCopyWith(_AccountTimelineStatusChange value, $Res Function(_AccountTimelineStatusChange) _then) = __$AccountTimelineStatusChangeCopyWithImpl;
+abstract mixin class _$SnAccountTimelineItemCopyWith<$Res> implements $SnAccountTimelineItemCopyWith<$Res> {
+  factory _$SnAccountTimelineItemCopyWith(_SnAccountTimelineItem value, $Res Function(_SnAccountTimelineItem) _then) = __$SnAccountTimelineItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime createdAt, SnAccountStatus status
+ String id, DateTime createdAt, int eventType, SnPresenceActivity? activity, SnAccountStatus? status
 });
 
 
-$SnAccountStatusCopyWith<$Res> get status;
+@override $SnPresenceActivityCopyWith<$Res>? get activity;@override $SnAccountStatusCopyWith<$Res>? get status;
 
 }
 /// @nodoc
-class __$AccountTimelineStatusChangeCopyWithImpl<$Res>
-    implements _$AccountTimelineStatusChangeCopyWith<$Res> {
-  __$AccountTimelineStatusChangeCopyWithImpl(this._self, this._then);
+class __$SnAccountTimelineItemCopyWithImpl<$Res>
+    implements _$SnAccountTimelineItemCopyWith<$Res> {
+  __$SnAccountTimelineItemCopyWithImpl(this._self, this._then);
 
-  final _AccountTimelineStatusChange _self;
-  final $Res Function(_AccountTimelineStatusChange) _then;
+  final _SnAccountTimelineItem _self;
+  final $Res Function(_SnAccountTimelineItem) _then;
 
 /// Create a copy of SnAccountTimelineItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? status = null,}) {
-  return _then(_AccountTimelineStatusChange(
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? eventType = null,Object? activity = freezed,Object? status = freezed,}) {
+  return _then(_SnAccountTimelineItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as SnAccountStatus,
+as DateTime,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
+as int,activity: freezed == activity ? _self.activity : activity // ignore: cast_nullable_to_non_nullable
+as SnPresenceActivity?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as SnAccountStatus?,
   ));
 }
 
@@ -2037,96 +2035,25 @@ as SnAccountStatus,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnAccountStatusCopyWith<$Res> get status {
-  
-  return $SnAccountStatusCopyWith<$Res>(_self.status, (value) {
-    return _then(_self.copyWith(status: value));
-  });
-}
-}
+$SnPresenceActivityCopyWith<$Res>? get activity {
+    if (_self.activity == null) {
+    return null;
+  }
 
-/// @nodoc
-@JsonSerializable()
-
-class _AccountTimelineActivity implements SnAccountTimelineItem {
-  const _AccountTimelineActivity({required this.id, required this.createdAt, required this.activity, final  String? $type}): $type = $type ?? 'activity';
-  factory _AccountTimelineActivity.fromJson(Map<String, dynamic> json) => _$AccountTimelineActivityFromJson(json);
-
-@override final  String id;
-@override final  DateTime createdAt;
- final  SnPresenceActivity activity;
-
-@JsonKey(name: 'runtimeType')
-final String $type;
-
-
-/// Create a copy of SnAccountTimelineItem
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$AccountTimelineActivityCopyWith<_AccountTimelineActivity> get copyWith => __$AccountTimelineActivityCopyWithImpl<_AccountTimelineActivity>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$AccountTimelineActivityToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountTimelineActivity&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.activity, activity) || other.activity == activity));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,id,createdAt,activity);
-
-@override
-String toString() {
-  return 'SnAccountTimelineItem.activity(id: $id, createdAt: $createdAt, activity: $activity)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$AccountTimelineActivityCopyWith<$Res> implements $SnAccountTimelineItemCopyWith<$Res> {
-  factory _$AccountTimelineActivityCopyWith(_AccountTimelineActivity value, $Res Function(_AccountTimelineActivity) _then) = __$AccountTimelineActivityCopyWithImpl;
-@override @useResult
-$Res call({
- String id, DateTime createdAt, SnPresenceActivity activity
-});
-
-
-$SnPresenceActivityCopyWith<$Res> get activity;
-
-}
-/// @nodoc
-class __$AccountTimelineActivityCopyWithImpl<$Res>
-    implements _$AccountTimelineActivityCopyWith<$Res> {
-  __$AccountTimelineActivityCopyWithImpl(this._self, this._then);
-
-  final _AccountTimelineActivity _self;
-  final $Res Function(_AccountTimelineActivity) _then;
-
-/// Create a copy of SnAccountTimelineItem
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? activity = null,}) {
-  return _then(_AccountTimelineActivity(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,activity: null == activity ? _self.activity : activity // ignore: cast_nullable_to_non_nullable
-as SnPresenceActivity,
-  ));
-}
-
-/// Create a copy of SnAccountTimelineItem
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SnPresenceActivityCopyWith<$Res> get activity {
-  
-  return $SnPresenceActivityCopyWith<$Res>(_self.activity, (value) {
+  return $SnPresenceActivityCopyWith<$Res>(_self.activity!, (value) {
     return _then(_self.copyWith(activity: value));
+  });
+}/// Create a copy of SnAccountTimelineItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountStatusCopyWith<$Res>? get status {
+    if (_self.status == null) {
+    return null;
+  }
+
+  return $SnAccountStatusCopyWith<$Res>(_self.status!, (value) {
+    return _then(_self.copyWith(status: value));
   });
 }
 }

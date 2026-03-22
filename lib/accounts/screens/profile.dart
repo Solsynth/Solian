@@ -1091,52 +1091,6 @@ class _AccountAction extends StatelessWidget {
   }
 }
 
-class _AccountTimelineWidget extends StatelessWidget {
-  final String uname;
-
-  const _AccountTimelineWidget({required this.uname});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Symbols.timeline,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Gap(12),
-                Text(
-                  'timeline',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
-              ],
-            ),
-          ),
-        ),
-        _AccountTimelineList(uname: uname),
-      ],
-    );
-  }
-}
-
 class _AccountTimelineList extends ConsumerWidget {
   final String uname;
 
@@ -1175,9 +1129,12 @@ class _AccountTimelineItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final createdAt = item.createdAt;
 
-    return item.when(
-      statusChange: (id, createdAt, status) {
+    switch (item.eventType) {
+      case 0:
+        // Status changed
+        final status = item.status!;
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -1253,8 +1210,9 @@ class _AccountTimelineItem extends StatelessWidget {
             ],
           ),
         );
-      },
-      activity: (id, createdAt, activity) {
+      case 1:
+        // Activity
+        final activity = item.activity!;
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -1326,8 +1284,9 @@ class _AccountTimelineItem extends StatelessWidget {
             ],
           ),
         );
-      },
-    );
+      default:
+        return Text('unknown').tr();
+    }
   }
 
   Color _getStatusColor(SnAccountStatus status) {
@@ -1534,29 +1493,10 @@ class AccountTimelineNotifier
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
 
-    final items = response.data.map<SnAccountTimelineItem>((json) {
-      final eventType = json['eventType'] as String?;
-      if (eventType == 'StatusChange' && json['status'] != null) {
-        return SnAccountTimelineItem.statusChange(
-          id: json['id'] as String,
-          createdAt: DateTime.parse(json['created_at'] as String),
-          status: SnAccountStatus.fromJson(json['status']),
-        );
-      } else if (eventType == 'Activity' && json['activity'] != null) {
-        return SnAccountTimelineItem.activity(
-          id: json['id'] as String,
-          createdAt: DateTime.parse(json['created_at'] as String),
-          activity: SnPresenceActivity.fromJson(json['activity']),
-        );
-      }
-      return SnAccountTimelineItem.statusChange(
-        id: json['id'] as String,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        status: SnAccountStatus.fromJson(json['status']),
-      );
-    }).toList();
-
-    return items;
+    return (response.data as List<dynamic>)
+        .map((e) => SnAccountTimelineItem.fromJson(e))
+        .cast<SnAccountTimelineItem>()
+        .toList();
   }
 }
 
@@ -1680,6 +1620,7 @@ class AccountProfileScreen extends HookConsumerWidget {
               : null,
           body: isWideScreen(context)
               ? Row(
+                  spacing: 12,
                   children: [
                     Flexible(
                       flex: 4,
@@ -1689,27 +1630,26 @@ class AccountProfileScreen extends HookConsumerWidget {
                           _AccountTimelineList(uname: name),
                           SliverGap(MediaQuery.of(context).padding.bottom + 16),
                         ],
-                      ).padding(left: 8),
+                      ),
                     ),
                     Flexible(
                       flex: 3,
                       child: Align(
                         alignment: Alignment.topLeft,
                         child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
+                            spacing: 12,
                             children: [
                               _AccountBasicInfo(
                                 data: data,
                                 uname: name,
                                 accountDeveloper: accountDeveloper,
-                              ).padding(horizontal: 4, top: 20),
+                              ),
                               if (data.badges.isNotEmpty)
                                 Card(
-                                  margin: EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 8,
-                                  ),
+                                  margin: EdgeInsets.zero,
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
                                     child: BadgeList(badges: data.badges),
@@ -1731,24 +1671,16 @@ class AccountProfileScreen extends HookConsumerWidget {
                                       ),
                                     ),
                                 ],
-                              ).padding(horizontal: 4),
-                              _AccountProfileBio(
-                                data: data,
-                              ).padding(horizontal: 4),
+                              ),
+                              _AccountProfileBio(data: data),
                               if (data.profile.links.isNotEmpty)
-                                _AccountProfileLinks(
-                                  data: data,
-                                ).padding(horizontal: 4),
+                                _AccountProfileLinks(data: data),
                               if (data.contacts.any((c) => c.isPublic))
-                                _AccountProfileContacts(
-                                  data: data,
-                                ).padding(horizontal: 4),
-                              _AccountProfileDetail(
-                                data: data,
-                              ).padding(horizontal: 4),
+                                _AccountProfileContacts(data: data),
+                              _AccountProfileDetail(data: data),
                               _AccountPublisherList(
                                 publishers: accountPublishers.value ?? [],
-                              ).padding(horizontal: 4, vertical: 8),
+                              ),
                               if (user.value != null && !isCurrentUser)
                                 _AccountAction(
                                   data: data,
@@ -1759,17 +1691,11 @@ class AccountProfileScreen extends HookConsumerWidget {
                                   directMessageAction: directMessageAction,
                                 ).padding(horizontal: 4),
                               Card(
-                                margin: EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 8,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: FortuneGraphWidget(
-                                    events: accountEvents,
-                                    eventCalandarUser: data.name,
-                                    margin: EdgeInsets.zero,
-                                  ),
+                                margin: EdgeInsets.zero,
+                                child: FortuneGraphWidget(
+                                  events: accountEvents,
+                                  eventCalandarUser: data.name,
+                                  margin: EdgeInsets.zero,
                                 ),
                               ),
                             ],
@@ -1778,7 +1704,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                       ),
                     ),
                   ],
-                )
+                ).padding(horizontal: 12)
               : CustomScrollView(
                   slivers: [
                     SliverAppBar(

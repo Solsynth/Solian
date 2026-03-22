@@ -139,17 +139,20 @@ class PostItemScreenshot extends ConsumerWidget {
               isInteractive: false,
               renderingPadding: renderingPadding,
             ),
-          if (item.repliesCount > 0)
+          if (item.threadedRepliesCount > 0)
             Consumer(
               builder: (context, ref, child) {
                 final repliesState = ref.watch(repliesProvider(item.id));
-                final posts = repliesState.posts;
+                final topLevelPosts = repliesState.flatNodes
+                    .where((n) => n.depth == 0)
+                    .toList();
 
                 Widget buildReplyNode(
                   ThreadedReplyNode node, {
                   double indent = 20,
                 }) {
                   final post = node.post;
+                  final children = repliesState.getChildrenOf(post.id);
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -186,7 +189,7 @@ class PostItemScreenshot extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      for (final child in node.replies)
+                      for (final child in children)
                         buildReplyNode(
                           child,
                           indent: indent,
@@ -218,13 +221,15 @@ class PostItemScreenshot extends ConsumerWidget {
                     spacing: 4,
                     children: [
                       Text(
-                        'repliesCount',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ).plural(item.repliesCount).padding(horizontal: 5),
-                      if (posts.isEmpty && repliesState.loading)
+                            'repliesCount',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                          .plural(item.threadedRepliesCount)
+                          .padding(horizontal: 5),
+                      if (topLevelPosts.isEmpty && repliesState.loading)
                         Row(
                           children: [
                             const SizedBox(
@@ -236,8 +241,8 @@ class PostItemScreenshot extends ConsumerWidget {
                             const Text('loading').tr(),
                           ],
                         ).padding(horizontal: 5),
-                      if (posts.isNotEmpty)
-                        ...posts.map((post) => buildReplyNode(post)),
+                      if (topLevelPosts.isNotEmpty)
+                        ...topLevelPosts.map((post) => buildReplyNode(post)),
                     ],
                   ),
                 );

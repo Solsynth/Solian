@@ -162,40 +162,26 @@ Map<String, dynamic> _$SnPresenceActivityToJson(_SnPresenceActivity instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
-_AccountTimelineStatusChange _$AccountTimelineStatusChangeFromJson(
+_SnAccountTimelineItem _$SnAccountTimelineItemFromJson(
   Map<String, dynamic> json,
-) => _AccountTimelineStatusChange(
+) => _SnAccountTimelineItem(
   id: json['id'] as String,
   createdAt: DateTime.parse(json['created_at'] as String),
-  status: SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
-  $type: json['runtimeType'] as String?,
+  eventType: (json['event_type'] as num).toInt(),
+  activity: json['activity'] == null
+      ? null
+      : SnPresenceActivity.fromJson(json['activity'] as Map<String, dynamic>),
+  status: json['status'] == null
+      ? null
+      : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$AccountTimelineStatusChangeToJson(
-  _AccountTimelineStatusChange instance,
+Map<String, dynamic> _$SnAccountTimelineItemToJson(
+  _SnAccountTimelineItem instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'created_at': instance.createdAt.toIso8601String(),
-  'status': instance.status.toJson(),
-  'runtimeType': instance.$type,
-};
-
-_AccountTimelineActivity _$AccountTimelineActivityFromJson(
-  Map<String, dynamic> json,
-) => _AccountTimelineActivity(
-  id: json['id'] as String,
-  createdAt: DateTime.parse(json['created_at'] as String),
-  activity: SnPresenceActivity.fromJson(
-    json['activity'] as Map<String, dynamic>,
-  ),
-  $type: json['runtimeType'] as String?,
-);
-
-Map<String, dynamic> _$AccountTimelineActivityToJson(
-  _AccountTimelineActivity instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'created_at': instance.createdAt.toIso8601String(),
-  'activity': instance.activity.toJson(),
-  'runtimeType': instance.$type,
+  'event_type': instance.eventType,
+  'activity': instance.activity?.toJson(),
+  'status': instance.status?.toJson(),
 };

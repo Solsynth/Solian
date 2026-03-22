@@ -38,31 +38,55 @@ String _convertContentToMarkdown(SnPost post) {
 }
 
 class RepliesState {
-  final List<ThreadedReplyNode> posts;
+  final List<ThreadedReplyNode> flatNodes;
+  final Map<String, List<ThreadedReplyNode>> childrenByParentId;
+  final int totalCount;
   final bool loading;
 
-  RepliesState({required this.posts, required this.loading});
+  RepliesState({
+    required this.flatNodes,
+    required this.childrenByParentId,
+    required this.totalCount,
+    required this.loading,
+  });
 
-  RepliesState copyWith({List<ThreadedReplyNode>? posts, bool? loading}) {
+  RepliesState copyWith({
+    List<ThreadedReplyNode>? flatNodes,
+    Map<String, List<ThreadedReplyNode>>? childrenByParentId,
+    int? totalCount,
+    bool? loading,
+  }) {
     return RepliesState(
-      posts: posts ?? this.posts,
+      flatNodes: flatNodes ?? this.flatNodes,
+      childrenByParentId: childrenByParentId ?? this.childrenByParentId,
+      totalCount: totalCount ?? this.totalCount,
       loading: loading ?? this.loading,
     );
   }
+
+  List<ThreadedReplyNode> getChildrenOf(String? parentId) {
+    return childrenByParentId[parentId] ?? [];
+  }
+
+  bool get hasMore => flatNodes.length < totalCount;
 }
 
 class ThreadedReplyNode {
   final SnPost post;
-  final List<ThreadedReplyNode> replies;
+  final int depth;
+  final String? parentId;
 
-  const ThreadedReplyNode({required this.post, required this.replies});
+  const ThreadedReplyNode({
+    required this.post,
+    required this.depth,
+    this.parentId,
+  });
 
   factory ThreadedReplyNode.fromJson(Map<String, dynamic> json) {
     return ThreadedReplyNode(
       post: SnPost.fromJson(json['post'] as Map<String, dynamic>),
-      replies: (json['replies'] as List<dynamic>? ?? const [])
-          .map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      depth: json['depth'] as int? ?? 0,
+      parentId: json['parentId'] as String?,
     );
   }
 }
@@ -71,7 +95,12 @@ class ThreadedReplyNode {
 class RepliesNotifier extends _$RepliesNotifier {
   @override
   RepliesState build(String parentId) {
-    return RepliesState(posts: [], loading: false);
+    return RepliesState(
+      flatNodes: const [],
+      childrenByParentId: const {},
+      totalCount: 0,
+      loading: false,
+    );
   }
 
   Future<void> fetchMore(int pageSize) async {
@@ -81,17 +110,34 @@ class RepliesNotifier extends _$RepliesNotifier {
 
     final response = await client.get(
       '/sphere/posts/$parentId/replies/threaded',
-      queryParameters: {'offset': state.posts.length, 'take': pageSize},
+      queryParameters: {'offset': state.flatNodes.length, 'take': pageSize},
     );
 
     if (!ref.mounted) return;
+
+    final newNodes = (response.data as List<dynamic>)
+        .map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final newChildrenByParentId = Map<String, List<ThreadedReplyNode>>.from(
+      state.childrenByParentId,
+    );
+    for (final node in newNodes) {
+      final parentId = node.parentId;
+      if (parentId != null) {
+        newChildrenByParentId.putIfAbsent(parentId, () => []);
+        newChildrenByParentId[parentId]!.add(node);
+      }
+    }
+
+    final totalCount =
+        int.tryParse(response.headers.value('X-Total') ?? '0') ??
+        state.totalCount;
+
     state = state.copyWith(
-      posts: [
-        ...state.posts,
-        ...(response.data as List<dynamic>).map(
-          (e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>),
-        ),
-      ],
+      flatNodes: [...state.flatNodes, ...newNodes],
+      childrenByParentId: newChildrenByParentId,
+      totalCount: totalCount,
       loading: false,
     );
   }
@@ -203,6 +249,7 @@ class PostReplyPreview extends HookConsumerWidget {
       double indent = 24,
     }) {
       final post = node.post;
+      final children = repliesState.getChildrenOf(post.id);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -241,7 +288,7 @@ class PostReplyPreview extends HookConsumerWidget {
               context.router.push(PostDetailRoute(id: post.id));
             },
           ),
-          for (final child in node.replies)
+          for (final child in children)
             buildReplyNode(
               child,
               math.max(maxWidth - indent, 200),
@@ -252,11 +299,14 @@ class PostReplyPreview extends HookConsumerWidget {
     }
 
     Widget itemBuilder(double maxWidth) {
+      final topLevelNodes = repliesState.flatNodes
+          .where((n) => n.depth == 0)
+          .toList();
       return isOpenable
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final node in repliesState.posts)
+                for (final node in topLevelNodes)
                   buildReplyNode(node, maxWidth),
                 if (repliesState.loading)
                   Row(
@@ -271,7 +321,7 @@ class PostReplyPreview extends HookConsumerWidget {
                       Text('loading').tr(),
                     ],
                   )
-                else if (repliesState.posts.length < parent.repliesCount)
+                else if (repliesState.hasMore)
                   GestureDetector(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -361,7 +411,7 @@ class PostReplyPreview extends HookConsumerWidget {
                   spacing: 4,
                   children: [
                     Text('repliesCount')
-                        .plural(parent.repliesCount)
+                        .plural(parent.threadedRepliesCount)
                         .fontSize(15)
                         .bold()
                         .padding(horizontal: 5),
