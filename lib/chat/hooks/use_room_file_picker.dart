@@ -32,18 +32,25 @@ RoomFilePicker useRoomFilePicker(
   Function(List<UniversalFile>) onAttachmentsChanged,
 ) {
   final attachments = useState<List<UniversalFile>>(currentAttachments);
+  final mounted = useRef(true);
+
+  useEffect(() {
+    return () {
+      mounted.value = false;
+    };
+  }, []);
 
   Future<void> pickPhotos() async {
     final picker = ImagePicker();
     final results = await picker.pickMultiImage();
-    if (results.isEmpty) return;
+    if (results.isEmpty || !mounted.value) return;
     attachments.value = [
       ...attachments.value,
       ...results.map(
         (xfile) => UniversalFile(data: xfile, type: UniversalFileType.image),
       ),
     ];
-    onAttachmentsChanged(attachments.value);
+    if (mounted.value) onAttachmentsChanged(attachments.value);
   }
 
   Future<void> pickVideos() async {
@@ -52,14 +59,14 @@ RoomFilePicker useRoomFilePicker(
       allowMultiple: true,
       allowCompression: false,
     );
-    if (result == null || result.count == 0) return;
+    if (result == null || result.count == 0 || !mounted.value) return;
     attachments.value = [
       ...attachments.value,
       ...result.files.map(
         (e) => UniversalFile(data: e.xFile, type: UniversalFileType.video),
       ),
     ];
-    onAttachmentsChanged(attachments.value);
+    if (mounted.value) onAttachmentsChanged(attachments.value);
   }
 
   Future<void> pickAudio() async {
@@ -68,14 +75,14 @@ RoomFilePicker useRoomFilePicker(
       allowMultiple: true,
       allowCompression: false,
     );
-    if (result == null || result.count == 0) return;
+    if (result == null || result.count == 0 || !mounted.value) return;
     attachments.value = [
       ...attachments.value,
       ...result.files.map(
         (e) => UniversalFile(data: e.xFile, type: UniversalFileType.audio),
       ),
     ];
-    onAttachmentsChanged(attachments.value);
+    if (mounted.value) onAttachmentsChanged(attachments.value);
   }
 
   Future<void> pickFiles() async {
@@ -83,14 +90,14 @@ RoomFilePicker useRoomFilePicker(
       allowMultiple: true,
       allowCompression: false,
     );
-    if (result == null || result.count == 0) return;
+    if (result == null || result.count == 0 || !mounted.value) return;
     attachments.value = [
       ...attachments.value,
       ...result.files.map(
         (e) => UniversalFile(data: e.xFile, type: UniversalFileType.file),
       ),
     ];
-    onAttachmentsChanged(attachments.value);
+    if (mounted.value) onAttachmentsChanged(attachments.value);
   }
 
   Future<void> linkAttachment() async {
@@ -100,7 +107,7 @@ RoomFilePicker useRoomFilePicker(
       isScrollControlled: true,
       builder: (context) => const ChatLinkAttachment(),
     );
-    if (cloudFile == null) return;
+    if (cloudFile == null || !mounted.value) return;
 
     attachments.value = [
       ...attachments.value,
@@ -115,7 +122,7 @@ RoomFilePicker useRoomFilePicker(
         isLink: true,
       ),
     ];
-    onAttachmentsChanged(attachments.value);
+    if (mounted.value) onAttachmentsChanged(attachments.value);
   }
 
   void updateAttachments(List<UniversalFile> newAttachments) {

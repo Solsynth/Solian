@@ -120,7 +120,12 @@ RoomScrollManager useRoomScrollManager(
           }
 
           final pixels = scrollController.position.pixels;
-          bottomGradientOpacity.value.value = (pixels / 500.0).clamp(0.0, 1.0);
+          if (scrollController.hasClients) {
+            bottomGradientOpacity.value.value = (pixels / 500.0).clamp(
+              0.0,
+              1.0,
+            );
+          }
         },
         loading: () {},
         error: (_, _) {},

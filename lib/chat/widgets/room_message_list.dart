@@ -1,10 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/message_item_wrapper.dart';
-import 'package:island/data/message.dart';
 import 'package:island/core/config.dart';
+import 'package:island/data/message.dart';
+import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+
+bool _isBotMessage(LocalChatMessage message) {
+  return message.sender?.account.automatedId != null;
+}
+
+class BotGroupInfo {
+  final String groupId;
+  final int startIndex;
+  final int endIndex;
+  final int messageCount;
+
+  BotGroupInfo({
+    required this.groupId,
+    required this.startIndex,
+    required this.endIndex,
+    required this.messageCount,
+  });
+}
+
+List<BotGroupInfo> _computeBotGroups(List<LocalChatMessage> messages) {
+  final groups = <BotGroupInfo>[];
+  final n = messages.length;
+
+  int i = 0;
+  while (i < n) {
+    final msg = messages[i];
+    if (!_isBotMessage(msg)) {
+      i++;
+      continue;
+    }
+
+    final senderId = msg.senderId;
+    int j = i + 1;
+    while (j < n) {
+      final next = messages[j];
+      if (!_isBotMessage(next) || next.senderId != senderId) break;
+      j++;
+    }
+
+    final count = j - i;
+    if (count > 1) {
+      groups.add(
+        BotGroupInfo(
+          groupId: msg.id,
+          startIndex: i,
+          endIndex: j - 1,
+          messageCount: count,
+        ),
+      );
+    }
+
+    i = j;
+  }
+
+  return groups;
+}
 
 class RoomMessageList extends HookConsumerWidget {
   final List<LocalChatMessage> messages;
@@ -24,6 +81,8 @@ class RoomMessageList extends HookConsumerWidget {
   final double? previousInputHeight;
   final String? lastReadAnchorMessageId;
   final VoidCallback? onFollowBack;
+  final Set<String> collapsedBotGroupIds;
+  final void Function(String groupId) toggleBotGroup;
 
   const RoomMessageList({
     super.key,
@@ -44,6 +103,8 @@ class RoomMessageList extends HookConsumerWidget {
     this.lastReadAnchorMessageId,
     this.onFollowBack,
     this.previousInputHeight,
+    this.collapsedBotGroupIds = const {},
+    required this.toggleBotGroup,
   });
 
   @override
@@ -53,8 +114,20 @@ class RoomMessageList extends HookConsumerWidget {
 
     final bottomPadding = MediaQuery.of(context).padding.bottom + 8;
 
-    // Track the last index returned by findChildIndexCallback to ensure
-    // indices are returned in strictly increasing order (required by Flutter)
+    final botGroups = _computeBotGroups(messages);
+    final botGroupMap = <int, BotGroupInfo>{};
+    for (final g in botGroups) {
+      for (int i = g.startIndex; i <= g.endIndex; i++) {
+        botGroupMap[i] = g;
+      }
+    }
+    final collapsedByDefault = Set<String>.from(
+      botGroups.map((g) => g.groupId),
+    );
+    final effectiveCollapsed = collapsedBotGroupIds.isEmpty
+        ? collapsedByDefault
+        : collapsedBotGroupIds;
+
     int lastReturnedIndex = -1;
 
     final listWidget = SuperListView.builder(
@@ -64,7 +137,6 @@ class RoomMessageList extends HookConsumerWidget {
       padding: EdgeInsets.only(top: 8, bottom: bottomPadding),
       itemCount: messages.length,
       findChildIndexCallback: (key) {
-        // If messages is empty, return null early to avoid issues
         if (messages.isEmpty) return null;
 
         if (key is! ValueKey<String>) return null;
@@ -74,29 +146,32 @@ class RoomMessageList extends HookConsumerWidget {
 
         final messageId = keyString.substring(messageKeyPrefix.length);
 
-        // Find the index, but validate it before returning
         final index = messages.indexWhere(
           (m) => (m.nonce ?? m.id) == messageId,
         );
 
-        // Only return valid indices that are greater than the last returned index
-        // This ensures we comply with Flutter's requirement that indices must
-        // be returned in strictly increasing order during a build
         if (index > lastReturnedIndex) {
           lastReturnedIndex = index;
           return index;
         }
 
-        // If the index is invalid or not in increasing order, return null
-        // This will cause Flutter to create a new widget instead of reusing
         return null;
       },
       extentEstimation: (_, _) => 40,
       itemBuilder: (context, index) {
         final message = messages[index];
+        final botGroup = botGroupMap[index];
+        final isCollapsed =
+            botGroup != null && effectiveCollapsed.contains(botGroup.groupId);
+
+        if (isCollapsed && index != botGroup.startIndex) {
+          return const SizedBox.shrink();
+        }
+
         final nextMessage = index < messages.length - 1
             ? messages[index + 1]
             : null;
+
         final isLastInGroup =
             nextMessage == null ||
             nextMessage.senderId != message.senderId ||
@@ -104,7 +179,8 @@ class RoomMessageList extends HookConsumerWidget {
                     .difference(message.createdAt)
                     .inMinutes
                     .abs() >
-                3;
+                3 ||
+            (botGroup != null && isCollapsed && index == botGroup.endIndex);
 
         final key = Key('$messageKeyPrefix${message.nonce ?? message.id}');
         final showLastReadMarker =
@@ -167,11 +243,124 @@ class RoomMessageList extends HookConsumerWidget {
               disableAnimation: settings.disableAnimation,
               roomOpenTime: roomOpenTime,
             ),
+            if (botGroup != null && isCollapsed && index == botGroup.startIndex)
+              _BotGroupExpandBar(
+                hiddenCount: botGroup.messageCount - 1,
+                onToggle: () => toggleBotGroup(botGroup.groupId),
+                isExpanded: false,
+              ),
+            if (botGroup != null && !isCollapsed && index == botGroup.endIndex)
+              _BotGroupExpandBar(
+                hiddenCount: 0,
+                onToggle: () => toggleBotGroup(botGroup.groupId),
+                isExpanded: true,
+              ),
           ],
         );
       },
     );
 
     return listWidget;
+  }
+}
+
+class _BotGroupExpandBar extends StatelessWidget {
+  final int hiddenCount;
+  final VoidCallback onToggle;
+  final bool isExpanded;
+
+  const _BotGroupExpandBar({
+    required this.hiddenCount,
+    required this.onToggle,
+    required this.isExpanded,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isExpanded) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+        child: InkWell(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.unfold_less,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Collapse',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ).alignment(Alignment.centerLeft),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      child: InkWell(
+        onTap: onToggle,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.smart_toy,
+                size: 14,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                hiddenCount == 1
+                    ? 'Show 1 more message'
+                    : 'Show $hiddenCount more messages',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.expand_more,
+                size: 14,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ],
+          ),
+        ),
+      ).alignment(Alignment.centerLeft),
+    );
   }
 }

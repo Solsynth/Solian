@@ -65,6 +65,13 @@ RoomInputManager useRoomInputManager(WidgetRef ref, String roomId) {
   final messageForwardingTo = useState<SnChatMessage?>(null);
   final selectedPoll = useState<SnPoll?>(null);
   final selectedFund = useState<SnWalletFund?>(null);
+  final mounted = useRef(true);
+
+  useEffect(() {
+    return () {
+      mounted.value = false;
+    };
+  }, []);
 
   final chatSubscribeNotifier = ref.read(
     chatSubscribeProvider(roomId).notifier,
@@ -136,7 +143,7 @@ RoomInputManager useRoomInputManager(WidgetRef ref, String roomId) {
 
   Future<void> handlePaste() async {
     final image = await Pasteboard.image;
-    if (image != null) {
+    if (image != null && mounted.value) {
       final newAttachments = [
         ...attachments.value,
         UniversalFile(
@@ -153,7 +160,7 @@ RoomInputManager useRoomInputManager(WidgetRef ref, String roomId) {
     }
 
     final textData = await Clipboard.getData(Clipboard.kTextPlain);
-    if (textData != null && textData.text != null) {
+    if (textData != null && textData.text != null && mounted.value) {
       final text = messageController.text;
       final selection = messageController.selection;
       final start = selection.start >= 0 ? selection.start : text.length;
