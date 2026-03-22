@@ -161,3 +161,41 @@ Map<String, dynamic> _$SnPresenceActivityToJson(_SnPresenceActivity instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_AccountTimelineStatusChange _$AccountTimelineStatusChangeFromJson(
+  Map<String, dynamic> json,
+) => _AccountTimelineStatusChange(
+  id: json['id'] as String,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  status: SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
+  $type: json['runtimeType'] as String?,
+);
+
+Map<String, dynamic> _$AccountTimelineStatusChangeToJson(
+  _AccountTimelineStatusChange instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'created_at': instance.createdAt.toIso8601String(),
+  'status': instance.status.toJson(),
+  'runtimeType': instance.$type,
+};
+
+_AccountTimelineActivity _$AccountTimelineActivityFromJson(
+  Map<String, dynamic> json,
+) => _AccountTimelineActivity(
+  id: json['id'] as String,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  activity: SnPresenceActivity.fromJson(
+    json['activity'] as Map<String, dynamic>,
+  ),
+  $type: json['runtimeType'] as String?,
+);
+
+Map<String, dynamic> _$AccountTimelineActivityToJson(
+  _AccountTimelineActivity instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'created_at': instance.createdAt.toIso8601String(),
+  'activity': instance.activity.toJson(),
+  'runtimeType': instance.$type,
+};
