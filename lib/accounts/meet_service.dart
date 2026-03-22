@@ -8,7 +8,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 enum SnMeetStatus { active, completed, expired, cancelled, unknown }
 
-enum SnMeetVisibility { public, private, unknown }
+enum SnMeetVisibility { public, private, unlisted, unknown }
 
 class SnMeetParticipant {
   final String meetId;
@@ -69,8 +69,9 @@ class SnMeet {
   });
 
   bool get isFinal => switch (status) {
-    SnMeetStatus.completed || SnMeetStatus.expired || SnMeetStatus.cancelled =>
-      true,
+    SnMeetStatus.completed ||
+    SnMeetStatus.expired ||
+    SnMeetStatus.cancelled => true,
     _ => false,
   };
 
@@ -88,9 +89,7 @@ class SnMeet {
       status: _parseMeetStatus(json['status']),
       visibility: _parseMeetVisibility(json['visibility']),
       expiresAt: _tryParseDate(json['expires_at'] ?? json['expiresAt']),
-      completedAt: _tryParseDate(
-        json['completed_at'] ?? json['completedAt'],
-      ),
+      completedAt: _tryParseDate(json['completed_at'] ?? json['completedAt']),
       notes: json['notes']?.toString(),
       image: json['image'] is Map<String, dynamic>
           ? SnCloudFile.fromJson(json['image'] as Map<String, dynamic>)
@@ -160,7 +159,9 @@ class MeetService {
       data: {
         'visibility': switch (visibility) {
           SnMeetVisibility.public => 0,
-          SnMeetVisibility.private || SnMeetVisibility.unknown => 1,
+          SnMeetVisibility.private => 1,
+          SnMeetVisibility.unlisted => 2,
+          SnMeetVisibility.unknown => 1,
         },
         if (notes?.trim().isNotEmpty ?? false) 'notes': notes!.trim(),
         if (imageId?.trim().isNotEmpty ?? false) 'image_id': imageId!.trim(),
@@ -190,14 +191,48 @@ class MeetService {
     final response = await _client.get(
       '/passport/meets',
       queryParameters: {
-        if (status != null) 'status': switch (status) {
-          SnMeetStatus.active => 0,
-          SnMeetStatus.completed => 1,
-          SnMeetStatus.expired => 2,
-          SnMeetStatus.cancelled => 3,
-          SnMeetStatus.unknown => null,
-        },
+        if (status != null)
+          'status': switch (status) {
+            SnMeetStatus.active => 0,
+            SnMeetStatus.completed => 1,
+            SnMeetStatus.expired => 2,
+            SnMeetStatus.cancelled => 3,
+            SnMeetStatus.unknown => null,
+          },
         'host_only': hostOnly,
+        'offset': offset,
+        'take': take,
+      },
+    );
+
+    final data = response.data;
+    if (data is! List) return const [];
+    return data
+        .whereType<Map>()
+        .map((item) => SnMeet.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+
+  Future<List<SnMeet>> listNearbyMeets({
+    required String locationWkt,
+    int distanceMeters = 1000,
+    SnMeetStatus? status,
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await _client.get(
+      '/passport/meets/nearby',
+      queryParameters: {
+        'locationWkt': locationWkt,
+        'distanceMeters': distanceMeters,
+        if (status != null)
+          'status': switch (status) {
+            SnMeetStatus.active => 0,
+            SnMeetStatus.completed => 1,
+            SnMeetStatus.expired => 2,
+            SnMeetStatus.cancelled => 3,
+            SnMeetStatus.unknown => null,
+          },
         'offset': offset,
         'take': take,
       },
@@ -235,10 +270,11 @@ class MeetService {
     String? eventName;
     final dataLines = <String>[];
 
-    await for (final line in body.stream
-        .cast<List<int>>()
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())) {
+    await for (final line
+        in body.stream
+            .cast<List<int>>()
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())) {
       if (line.isEmpty) {
         if (dataLines.isNotEmpty) {
           final payload = jsonDecode(dataLines.join('\n'));
@@ -302,6 +338,7 @@ SnMeetVisibility _parseMeetVisibility(dynamic value) {
   return switch (value) {
     0 || '0' || 'Public' || 'public' => SnMeetVisibility.public,
     1 || '1' || 'Private' || 'private' => SnMeetVisibility.private,
+    2 || '2' || 'Unlisted' || 'unlisted' => SnMeetVisibility.unlisted,
     _ => SnMeetVisibility.unknown,
   };
 }

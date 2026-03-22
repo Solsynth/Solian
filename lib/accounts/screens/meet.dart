@@ -35,6 +35,20 @@ final meetHistoryProvider = FutureProvider.autoDispose<List<SnMeet>>((
   return ref.watch(meetServiceProvider).listMeets(take: 20);
 });
 
+final nearbyMeetsProvider = FutureProvider.autoDispose
+    .family<List<SnMeet>, String>((ref, locationWkt) async {
+      if (locationWkt.isEmpty) {
+        return const [];
+      }
+      return ref
+          .watch(meetServiceProvider)
+          .listNearbyMeets(
+            locationWkt: locationWkt,
+            distanceMeters: 5000,
+            take: 50,
+          );
+    });
+
 enum MeetEntryMode { nearby }
 
 @RoutePage()
@@ -54,7 +68,7 @@ class MeetScreen extends HookConsumerWidget {
     final topicController = useTextEditingController();
     final notesController = useTextEditingController();
     final tabController = useTabController(
-      initialLength: 4,
+      initialLength: 5,
       initialIndex: initialMeetId.isNotEmpty ? 1 : 0,
     );
     final entryMode = useState(MeetEntryMode.nearby);
@@ -466,6 +480,14 @@ class MeetScreen extends HookConsumerWidget {
               ),
               Tab(
                 child: Text(
+                  'meetDiscovery'.tr(),
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                ),
+              ),
+              Tab(
+                child: Text(
                   'meetHistory'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
@@ -575,6 +597,9 @@ class MeetScreen extends HookConsumerWidget {
                   onRetry: startNearbyPresence,
                 ),
               ],
+            ),
+            _MeetDiscoverySection(
+              onOpenMeet: (meetId) => openMeetDetail(meetId),
             ),
             ListView(
               padding: const EdgeInsets.all(16),
@@ -1246,12 +1271,17 @@ class _MeetStartCard extends StatelessWidget {
                 ButtonSegment(
                   value: SnMeetVisibility.private,
                   icon: const Icon(Symbols.lock),
-                  label: Text('meetVisibilityPrivate').tr(),
+                  label: Text('meetVisibilityPrivate'.tr()),
                 ),
                 ButtonSegment(
                   value: SnMeetVisibility.public,
                   icon: const Icon(Symbols.public),
-                  label: Text('meetVisibilityPublic').tr(),
+                  label: Text('meetVisibilityPublic'.tr()),
+                ),
+                ButtonSegment(
+                  value: SnMeetVisibility.unlisted,
+                  icon: const Icon(Symbols.link_off),
+                  label: Text('meetVisibilityUnlisted'.tr()),
                 ),
               ],
               selected: {visibility},
@@ -2068,6 +2098,589 @@ class _NearbyPeersCard extends StatelessWidget {
   }
 }
 
+class _MeetDiscoverySection extends HookConsumerWidget {
+  final ValueChanged<String> onOpenMeet;
+
+  const _MeetDiscoverySection({required this.onOpenMeet});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final currentLocation = useState<latlong.LatLng?>(null);
+    final isLocating = useState(false);
+    final selectedMeet = useState<SnMeet?>(null);
+    final locationError = useState<Object?>(null);
+
+    Future<void> getCurrentLocation() async {
+      isLocating.value = true;
+      locationError.value = null;
+      try {
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          throw StateError('Location services are turned off.');
+        }
+
+        var permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          throw StateError(
+            'Location permission is required to discover nearby meets.',
+          );
+        }
+
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ),
+        );
+
+        currentLocation.value = latlong.LatLng(
+          position.latitude,
+          position.longitude,
+        );
+      } catch (error) {
+        locationError.value = error;
+        showErrorAlert(error);
+      } finally {
+        isLocating.value = false;
+      }
+    }
+
+    useEffect(() {
+      getCurrentLocation();
+      return null;
+    }, const []);
+
+    final locationWkt = currentLocation.value != null
+        ? 'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})'
+        : '';
+
+    useEffect(() {
+      if (locationWkt.isNotEmpty) {
+        ref.invalidate(nearbyMeetsProvider(locationWkt));
+      }
+      return null;
+    }, [locationWkt]);
+
+    final nearbyMeets = ref.watch(nearbyMeetsProvider(locationWkt));
+
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              if (currentLocation.value != null)
+                FlutterMap(
+                  options: MapOptions(
+                    initialCenter: currentLocation.value!,
+                    initialZoom: 14,
+                    onTap: (p, l) => selectedMeet.value = null,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'dev.solsynth.solian',
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: currentLocation.value!,
+                          width: 40,
+                          height: 40,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.colorScheme.primary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.colorScheme.primary.withOpacity(
+                                    0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Symbols.my_location,
+                              color: theme.colorScheme.onPrimary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        ...nearbyMeets.maybeWhen(
+                          data: (meets) => meets
+                              .map((meet) => _parseMeetPoint(meet.locationWkt))
+                              .whereType<latlong.LatLng>()
+                              .toList()
+                              .asMap()
+                              .entries
+                              .map((entry) {
+                                final index = entry.key;
+                                final point = entry.value;
+                                final meet = meets[index];
+                                return Marker(
+                                  point: point,
+                                  width: 48,
+                                  height: 48,
+                                  child: GestureDetector(
+                                    onTap: () => selectedMeet.value = meet,
+                                    child: _MeetMapMarker(
+                                      meet: meet,
+                                      isSelected:
+                                          selectedMeet.value?.id == meet.id,
+                                    ),
+                                  ),
+                                );
+                              }),
+                          orElse: () => <Marker>[],
+                        ),
+                      ],
+                    ),
+                    RichAttributionWidget(
+                      attributions: [
+                        TextSourceAttribution(
+                          'OpenStreetMap contributors',
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              else if (isLocating.value)
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const Gap(16),
+                      Text(
+                        'meetLocating'.tr(),
+                        style: TextStyle(color: theme.colorScheme.secondary),
+                      ),
+                    ],
+                  ),
+                )
+              else if (locationError.value != null)
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.location_off,
+                        size: 48,
+                        color: theme.colorScheme.error,
+                      ),
+                      const Gap(16),
+                      Text('meetLocationError'.tr()),
+                      const Gap(16),
+                      FilledButton.icon(
+                        onPressed: getCurrentLocation,
+                        icon: const Icon(Symbols.refresh),
+                        label: Text('retry'.tr()),
+                      ),
+                    ],
+                  ),
+                ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Column(
+                  children: [
+                    FloatingActionButton.small(
+                      heroTag: 'discovery_zoom_in',
+                      onPressed: () {},
+                      child: const Icon(Symbols.add),
+                    ),
+                    const Gap(8),
+                    FloatingActionButton.small(
+                      heroTag: 'discovery_zoom_out',
+                      onPressed: () {},
+                      child: const Icon(Symbols.remove),
+                    ),
+                    const Gap(8),
+                    FloatingActionButton.small(
+                      heroTag: 'discovery_locate',
+                      onPressed: getCurrentLocation,
+                      child: Icon(
+                        isLocating.value
+                            ? Symbols.progress_activity
+                            : Symbols.my_location,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: nearbyMeets.when(
+                  data: (meets) {
+                    if (meets.isEmpty) {
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Symbols.explore_off,
+                              color: theme.colorScheme.secondary,
+                            ),
+                            const Gap(12),
+                            Expanded(
+                              child: Text(
+                                'meetDiscoveryEmpty'.tr(),
+                                style: TextStyle(
+                                  color: theme.colorScheme.secondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.location_on,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const Gap(12),
+                          Expanded(
+                            child: Text(
+                              'meetDiscoveryNearbyCount'.tr(
+                                args: [meets.length.toString()],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const Gap(12),
+                        Text('loading'.tr()),
+                      ],
+                    ),
+                  ),
+                  error: (error, _) => Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.error,
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Text(
+                            'meetDiscoveryError'.tr(),
+                            style: TextStyle(
+                              color: theme.colorScheme.onErrorContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (selectedMeet.value != null)
+          Container(
+            margin: const EdgeInsets.all(16),
+            child: _MeetDiscoveryCard(
+              meet: selectedMeet.value!,
+              onTap: () => onOpenMeet(selectedMeet.value!.id),
+              onClose: () => selectedMeet.value = null,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _MeetMapMarker extends StatelessWidget {
+  final SnMeet meet;
+  final bool isSelected;
+
+  const _MeetMapMarker({required this.meet, required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = meet.status == SnMeetStatus.active
+        ? theme.colorScheme.primary
+        : theme.colorScheme.secondary;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: isSelected ? 44 : 36,
+          height: isSelected ? 44 : 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+            border: Border.all(color: Colors.white, width: isSelected ? 3 : 2),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.4),
+                blurRadius: isSelected ? 12 : 6,
+                spreadRadius: isSelected ? 2 : 1,
+              ),
+            ],
+          ),
+          child: Icon(
+            meet.visibility == SnMeetVisibility.public
+                ? Symbols.public
+                : Symbols.lock,
+            color: Colors.white,
+            size: isSelected ? 22 : 18,
+          ),
+        ),
+        Container(width: 2, height: isSelected ? 16 : 12, color: color),
+      ],
+    );
+  }
+}
+
+class _MeetDiscoveryCard extends StatelessWidget {
+  final SnMeet meet;
+  final VoidCallback onTap;
+  final VoidCallback onClose;
+
+  const _MeetDiscoveryCard({
+    required this.meet,
+    required this.onTap,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final topic = meet.metadata['topic']?.toString();
+    final participants = _displayParticipants(meet, null);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (meet.image != null)
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CloudImageWidget(file: meet.image, fit: BoxFit.cover),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton.filled(
+                        onPressed: onClose,
+                        icon: const Icon(Symbols.close, size: 18),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Wrap(
+                        spacing: 6,
+                        children: [
+                          _HeroPill(
+                            label: _visibilityLabel(meet.visibility, context),
+                          ),
+                          if (meet.status == SnMeetStatus.active)
+                            _HeroPill(label: 'meetStatusActive'.tr()),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      theme.colorScheme.primaryContainer,
+                      theme.colorScheme.secondaryContainer,
+                    ],
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton.filled(
+                        onPressed: onClose,
+                        icon: const Icon(Symbols.close, size: 18),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Wrap(
+                        spacing: 6,
+                        children: [
+                          _HeroPill(
+                            label: _visibilityLabel(meet.visibility, context),
+                          ),
+                          if (meet.status == SnMeetStatus.active)
+                            _HeroPill(label: 'meetStatusActive'.tr()),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          meet.locationName?.isNotEmpty == true
+                              ? meet.locationName!
+                              : (topic?.isNotEmpty == true
+                                    ? topic!
+                                    : 'meetDiscoveryTitle'.tr()),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Symbols.chevron_right,
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ],
+                  ),
+                  if (meet.notes?.isNotEmpty == true) ...[
+                    const Gap(4),
+                    Text(
+                      meet.notes!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  const Gap(8),
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.group,
+                        size: 14,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      const Gap(4),
+                      Text(
+                        'meetParticipantsCount'.tr(
+                          args: ['${participants.length}'],
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (meet.host != null) ...[
+                        ProfilePictureWidget(
+                          file: meet.host!.profile.picture,
+                          radius: 12,
+                        ),
+                        const Gap(4),
+                        Text(
+                          meet.host!.nick.isNotEmpty == true
+                              ? meet.host!.nick
+                              : '@${meet.host!.name}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.colorScheme.secondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MeetHistorySection extends StatelessWidget {
   final AsyncValue<List<SnMeet>> history;
   final ValueChanged<SnMeet> onOpen;
@@ -2778,10 +3391,15 @@ class _HeroPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.16),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHigh.withOpacity(0.5),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(label, style: const TextStyle(color: Colors.white)),
+      child: Text(
+        label,
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+      ),
     );
   }
 }
@@ -2930,6 +3548,7 @@ String _visibilityLabel(SnMeetVisibility visibility, BuildContext context) {
   return switch (visibility) {
     SnMeetVisibility.public => 'meetVisibilityPublic'.tr(),
     SnMeetVisibility.private => 'meetVisibilityPrivate'.tr(),
+    SnMeetVisibility.unlisted => 'meetVisibilityUnlisted'.tr(),
     SnMeetVisibility.unknown => 'unknown'.tr(),
   };
 }
