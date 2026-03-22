@@ -14,6 +14,7 @@ import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/fortune_graph.dart';
 import 'package:island/accounts/widgets/account/leveling_progress.dart';
 import 'package:island/accounts/widgets/account/status.dart';
+import 'package:island/accounts/widgets/account/activity_presence.dart';
 import 'package:island/accounts/screens/profile_timeline.dart';
 import 'package:island/developers/models/developer.dart';
 import 'package:island/accounts/event_calendar.dart';
@@ -155,6 +156,12 @@ class _AccountBasicInfo extends HookWidget {
                               AccountStatusWidget(
                                 uname: uname,
                                 padding: EdgeInsets.zero,
+                              ),
+                              const Gap(8),
+                              ActivityPresenceWidget(
+                                uname: uname,
+                                isCompact: true,
+                                compactPadding: EdgeInsets.zero,
                               ),
                               if (accountDeveloper.value != null) ...[
                                 const Gap(12),
