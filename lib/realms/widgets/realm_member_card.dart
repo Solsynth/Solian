@@ -48,9 +48,9 @@ class RealmMemberCard extends HookConsumerWidget {
   });
 
   String _getRoleLabel(int role) {
-    if (role >= 100) return 'owner'.tr();
-    if (role >= 50) return 'admin'.tr();
-    return 'member'.tr();
+    if (role >= 100) return 'permissionOwner'.tr();
+    if (role >= 50) return 'permissionMonderator'.tr();
+    return 'permissionMember'.tr();
   }
 
   IconData _getRoleIcon(int role) {
