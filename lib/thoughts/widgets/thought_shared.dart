@@ -911,12 +911,16 @@ class ThoughtItem extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: files.map((file) {
-        final heroTag = 'cloud-file-thought-${file.id}';
+      children: files.asMap().entries.map((entry) {
+        final file = entry.value;
         return InkWell(
           onTap: () {
             context.pushTransparentRoute(
-              CloudFileLightbox(item: file, heroTag: heroTag),
+              CloudFileLightbox(
+                items: files,
+                initialIndex: entry.key,
+                heroTag: 'cloud-file-thought-${file.id}',
+              ),
             );
           },
           borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -926,7 +930,7 @@ class ThoughtItem extends StatelessWidget {
               width: 200,
               child: CloudFileWidget(
                 item: file,
-                heroTag: heroTag,
+                heroTag: 'cloud-file-thought-${file.id}',
                 fit: BoxFit.cover,
               ),
             ),

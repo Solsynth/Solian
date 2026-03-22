@@ -21,7 +21,6 @@ import 'package:markdown/markdown.dart' as markdown;
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:uuid/uuid.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class MarkdownTextContent extends HookConsumerWidget {
@@ -174,11 +173,14 @@ class MarkdownTextContent extends HookConsumerWidget {
                       return const SizedBox.shrink();
                     }
 
-                    final heroTag = 'cloud-file-markdown#${const Uuid().v4()}';
                     return InkWell(
                       onTap: () {
                         context.pushTransparentRoute(
-                          CloudFileLightbox(item: file, heroTag: heroTag),
+                          CloudFileLightbox(
+                            items: [file],
+                            initialIndex: 0,
+                            heroTag: 'cloud-file-markdown-${file.id}',
+                          ),
                           rootNavigator: true,
                         );
                       },
@@ -198,7 +200,7 @@ class MarkdownTextContent extends HookConsumerWidget {
                           ),
                           child: CloudFileWidget(
                             item: file,
-                            heroTag: heroTag,
+                            heroTag: 'cloud-file-markdown-${file.id}',
                             fit: BoxFit.cover,
                           ).clipRRect(all: 8),
                         ),

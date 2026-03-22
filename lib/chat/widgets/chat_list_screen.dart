@@ -439,6 +439,7 @@ class ChatFabWidget extends HookConsumerWidget {
     }
 
     return FloatingActionButton(
+      heroTag: 'chat-fab',
       child: const Icon(Symbols.add),
       onPressed: () {
         showModalBottomSheet(

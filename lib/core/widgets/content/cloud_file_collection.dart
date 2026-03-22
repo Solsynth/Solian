@@ -13,7 +13,6 @@ import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/sensitive.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:uuid/uuid.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CloudFileList extends HookConsumerWidget {
@@ -136,19 +135,32 @@ class CloudFileList extends HookConsumerWidget {
         : mostFrequent[mid];
   }
 
+  void _openLightbox(BuildContext context, int index) {
+    if (disableZoomIn) return;
+    final imageFiles = files
+        .asMap()
+        .entries
+        .where((e) => e.value.mimeType?.startsWith('image') == true)
+        .toList();
+    final imageIndex = imageFiles.indexWhere((e) => e.key == index);
+    if (imageIndex == -1) return;
+    context.pushTransparentRoute(
+      CloudFileLightbox(
+        items: imageFiles.map((e) => e.value).toList(),
+        initialIndex: imageIndex,
+        heroTag: 'cloud-file-${files[index].id}',
+      ),
+      rootNavigator: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final heroTags = useMemoized(
-      () => List.generate(
-        files.length,
-        (index) => 'cloud-files#${const Uuid().v4()}',
-      ),
-      [files],
-    );
-
     if (files.isEmpty) return const SizedBox.shrink();
 
     final settings = ref.watch(appSettingsProvider);
+
+    void openLightbox(int index) => _openLightbox(context, index);
 
     final renderInColumn =
         settings.attachmentsListStyle == 'column' || isColumn;
@@ -170,19 +182,14 @@ class CloudFileList extends HookConsumerWidget {
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: _CloudFileListEntry(
             file: file,
-            heroTag: heroTags[i],
+            heroTag: 'cloud-file-${files[i].id}',
             isImage: isImage,
             disableZoomIn: disableZoomIn,
             onTap: () {
               if (!isImage) {
                 return;
               }
-              if (!disableZoomIn) {
-                context.pushTransparentRoute(
-                  CloudFileLightbox(item: file, heroTag: heroTags[i]),
-                  rootNavigator: true,
-                );
-              }
+              _openLightbox(context, i);
             },
           ),
         );
@@ -238,20 +245,9 @@ class CloudFileList extends HookConsumerWidget {
                               height: 120,
                               child: _CloudFileListEntry(
                                 file: filesToShow[i],
-                                heroTag: heroTags[i],
+                                heroTag: 'cloud-file-${files[i].id}',
                                 isImage: false,
                                 disableZoomIn: disableZoomIn,
-                                onTap: () {
-                                  if (!disableZoomIn) {
-                                    context.pushTransparentRoute(
-                                      CloudFileLightbox(
-                                        item: filesToShow[i],
-                                        heroTag: heroTags[i],
-                                      ),
-                                      rootNavigator: true,
-                                    );
-                                  }
-                                },
                               ),
                             )
                           : AspectRatio(
@@ -261,7 +257,7 @@ class CloudFileList extends HookConsumerWidget {
                                   1.0,
                               child: _CloudFileListEntry(
                                 file: filesToShow[i],
-                                heroTag: heroTags[i],
+                                heroTag: 'cloud-file-${files[i].id}',
                                 isImage:
                                     filesToShow[i].mimeType?.startsWith(
                                       'image',
@@ -275,15 +271,7 @@ class CloudFileList extends HookConsumerWidget {
                                       false)) {
                                     return;
                                   }
-                                  if (!disableZoomIn) {
-                                    context.pushTransparentRoute(
-                                      CloudFileLightbox(
-                                        item: filesToShow[i],
-                                        heroTag: heroTags[i],
-                                      ),
-                                      rootNavigator: true,
-                                    );
-                                  }
+                                  openLightbox(i);
                                 },
                               ),
                             ),
@@ -346,19 +334,14 @@ class CloudFileList extends HookConsumerWidget {
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: _CloudFileListEntry(
           file: files.first,
-          heroTag: heroTags.first,
+          heroTag: 'cloud-file-${files.first.id}',
           isImage: isImage,
           disableZoomIn: disableZoomIn,
           onTap: () {
             if (!isImage) {
               return;
             }
-            if (!disableZoomIn) {
-              context.pushTransparentRoute(
-                CloudFileLightbox(item: files.first, heroTag: heroTags.first),
-                rootNavigator: true,
-              );
-            }
+            openLightbox(0);
           },
         ),
       );
@@ -413,7 +396,7 @@ class CloudFileList extends HookConsumerWidget {
                         children: [
                           _CloudFileListEntry(
                             file: files[i],
-                            heroTag: heroTags[i],
+                            heroTag: 'cloud-file-${files[i].id}',
                             isImage:
                                 files[i].mimeType?.startsWith('image') ?? false,
                             disableZoomIn: disableZoomIn,
@@ -436,12 +419,7 @@ class CloudFileList extends HookConsumerWidget {
                     if (!(files[i].mimeType?.startsWith('image') ?? false)) {
                       return;
                     }
-                    if (!disableZoomIn) {
-                      context.pushTransparentRoute(
-                        CloudFileLightbox(item: files[i], heroTag: heroTags[i]),
-                        rootNavigator: true,
-                      );
-                    }
+                    openLightbox(i);
                   },
                 );
               },
@@ -470,7 +448,7 @@ class CloudFileList extends HookConsumerWidget {
                     borderRadius: const BorderRadius.all(Radius.circular(16)),
                     child: _CloudFileListEntry(
                       file: files[index],
-                      heroTag: heroTags[index],
+                      heroTag: 'cloud-file-${files[index].id}',
                       isImage:
                           files[index].mimeType?.startsWith('image') ?? false,
                       disableZoomIn: disableZoomIn,
@@ -479,15 +457,7 @@ class CloudFileList extends HookConsumerWidget {
                             false)) {
                           return;
                         }
-                        if (!disableZoomIn) {
-                          context.pushTransparentRoute(
-                            CloudFileLightbox(
-                              item: files[index],
-                              heroTag: heroTags[index],
-                            ),
-                            rootNavigator: true,
-                          );
-                        }
+                        openLightbox(index);
                       },
                     ),
                   ),

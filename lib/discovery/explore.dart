@@ -139,6 +139,7 @@ class ExploreScreen extends HookConsumerWidget {
       appBar: appBar,
       floatingActionButton: userInfo.value != null
           ? FloatingActionButton(
+              heroTag: 'explore-fab',
               child: const Icon(Symbols.create),
               onPressed: () {
                 final parentContext = context;
