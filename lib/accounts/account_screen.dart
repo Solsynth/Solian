@@ -256,7 +256,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.bluetooth,
+                    'icon': Symbols.handshake,
                     'title': 'meet',
                     'onTap': () {
                       context.router.push(const MeetRoute());

@@ -41,7 +41,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'profile.g.dart';
 
-class _AccountBasicInfo extends StatelessWidget {
+class _AccountBasicInfo extends HookWidget {
   final SnAccount data;
   final String uname;
   final AsyncValue<SnDeveloper?> accountDeveloper;
@@ -52,8 +52,20 @@ class _AccountBasicInfo extends StatelessWidget {
     required this.accountDeveloper,
   });
 
+  String _getFirstLine(String bio) {
+    final lines = bio.split('\n');
+    if (lines.isEmpty) return '';
+    return lines.first.trim();
+  }
+
+  bool _hasMoreLines(String bio) {
+    final lines = bio.split('\n');
+    return lines.length > 1 || bio.contains('\n');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isBioExpanded = useState(false);
     final theme = Theme.of(context);
     final hasBackground = data.profile.background != null;
     final showBackground = isWideScreen(context) && hasBackground;
@@ -167,6 +179,84 @@ class _AccountBasicInfo extends StatelessWidget {
                             uname: uname,
                             padding: EdgeInsets.zero,
                           ),
+                          // Collapsible Bio Section
+                          if (data.profile.bio.isNotEmpty) ...[
+                            const Gap(12),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceContainerHighest
+                                    .withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // First line always visible
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: _getFirstLine(data.profile.bio),
+                                                style: theme.textTheme.bodyMedium?.copyWith(
+                                                  color: theme.colorScheme.onSurface,
+                                                ),
+                                              ),
+                                              if (!isBioExpanded.value && _hasMoreLines(data.profile.bio))
+                                                WidgetSpan(
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      isBioExpanded.value = true;
+                                                    },
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                                      child: Text(
+                                                        'expandBio',
+                                                        style: theme.textTheme.labelMedium?.copyWith(
+                                                          color: theme.colorScheme.primary,
+                                                        ),
+                                                      ).tr(),
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      if (isBioExpanded.value)
+                                        InkWell(
+                                          onTap: () {
+                                            isBioExpanded.value = false;
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                                            child: Text(
+                                              'collapseBio',
+                                              style: theme.textTheme.labelMedium?.copyWith(
+                                                color: theme.colorScheme.primary,
+                                              ),
+                                            ).tr(),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  // Full bio when expanded
+                                  if (isBioExpanded.value) ...[
+                                    const Gap(8),
+                                    MarkdownTextContent(
+                                      content: data.profile.bio,
+                                      linesMargin: EdgeInsets.zero,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                           if (accountDeveloper.value != null) ...[
                             const Gap(12),
                             Container(
@@ -237,67 +327,6 @@ class _AccountBasicInfo extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AccountProfileBio extends StatelessWidget {
-  final SnAccount data;
-
-  const _AccountProfileBio({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Symbols.article,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Gap(12),
-                Text(
-                  'bio',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
-              ],
-            ),
-            const Gap(16),
-            if (data.profile.bio.isEmpty)
-              Text(
-                'descriptionNone',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                ),
-              ).tr()
-            else
-              MarkdownTextContent(
-                content: data.profile.bio,
-                linesMargin: EdgeInsets.zero,
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -1420,7 +1449,6 @@ class AccountProfileScreen extends HookConsumerWidget {
                                     ),
                                 ],
                               ),
-                              _AccountProfileBio(data: data),
                               if (data.profile.links.isNotEmpty)
                                 _AccountProfileLinks(data: data),
                               if (data.contacts.any((c) => c.isPublic))
@@ -1524,7 +1552,6 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 ),
                             ],
                           ),
-                          _AccountProfileBio(data: data),
                           if (data.profile.links.isNotEmpty)
                             _AccountProfileLinks(data: data),
                           if (data.contacts.any((c) => c.isPublic))
