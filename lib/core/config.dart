@@ -15,7 +15,7 @@ String localeToLanguageCode(Locale locale) {
   final lang = locale.languageCode;
   final country = locale.countryCode;
   if (country != null && country.isNotEmpty) {
-    return '${lang}-${country}';
+    return '$lang-$country';
   }
   return lang;
 }
