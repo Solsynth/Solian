@@ -191,7 +191,7 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
     return images;
   }
 
-  Widget _SteamCompactImage({required SnPresenceActivity activity}) {
+  Widget buildSteamCompactImage({required SnPresenceActivity activity}) {
     final meta = activity.meta as Map<String, dynamic>;
     final gameId = meta['game_id']?.toString();
     if (gameId == null) {
@@ -296,7 +296,7 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                   spacing: 8,
                   children: [
                     if (isSteam && activity.meta != null)
-                      _SteamCompactImage(activity: activity)
+                      buildSteamCompactImage(activity: activity)
                     else if (activity.largeImage != null)
                       _buildCompactImage(activity, ref),
                     Expanded(
