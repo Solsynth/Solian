@@ -9,6 +9,7 @@ class ChatRoomListTile extends HookConsumerWidget {
   final SnChatRoom room;
   final bool isDirect;
   final bool selected;
+  final bool pushNotificationsSuppressed;
   final Widget? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -18,6 +19,7 @@ class ChatRoomListTile extends HookConsumerWidget {
     required this.room,
     this.isDirect = false,
     this.selected = false,
+    this.pushNotificationsSuppressed = false,
     this.subtitle,
     this.trailing,
     this.onTap,
@@ -69,6 +71,15 @@ class ChatRoomListTile extends HookConsumerWidget {
               Icons.lock,
               size: 14,
               color: Theme.of(context).colorScheme.primary,
+            ),
+          if (pushNotificationsSuppressed)
+            Tooltip(
+              message: 'Notifications suspended for this room',
+              child: Icon(
+                Icons.notifications_off,
+                size: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
         ],
       ),

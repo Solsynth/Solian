@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
+import 'package:island/chat/pods/chat_account_status.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:island/chat/pods/chat_summary.dart';
@@ -50,6 +51,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     final summaries = ref.watch(chatSummaryProvider);
     final activeChatId = ref.watch(currentSubscribedChatIdProvider);
+    final accountStatus = ref.watch(chatAccountStatusProvider);
     final selectedTabValue = selectedTab.value;
 
     Widget bodyWidget = Column(
@@ -101,6 +103,38 @@ class ChatListBodyWidget extends HookConsumerWidget {
                   ).copyWith(dividerColor: Colors.transparent),
                   child: Column(
                     children: [
+                      // Global notification status indicator
+                      if (accountStatus
+                              .whenData((data) => data)
+                              .value
+                              ?.pushNotificationsMaySendForUnsubscribedRooms ==
+                          false)
+                        ListTile(
+                          leading: Icon(
+                            Symbols.notifications_off,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          title: Text(
+                            'Limited Notifications',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Push notifications are disabled for unsubscribed rooms',
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                              fontSize: 12,
+                            ),
+                          ),
+                          dense: true,
+                          tileColor: Theme.of(
+                            context,
+                          ).colorScheme.errorContainer.withOpacity(0.3),
+                        ),
                       // Always show pinned chats in their own section
                       if (pinnedItems.isNotEmpty)
                         ExpansionTile(
@@ -123,6 +157,14 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                 room: item,
                                 isDirect: item.type == 1,
                                 selected: activeChatId == item.id,
+                                pushNotificationsSuppressed:
+                                    accountStatus
+                                        .whenData((data) => data)
+                                        .value
+                                        ?.isPushNotificationsSuppressed(
+                                          item.id,
+                                        ) ??
+                                    false,
                                 onTap: () {
                                   if (isWideScreen(context)) {
                                     context.router.navigate(
@@ -213,6 +255,14 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                         room: room,
                                         isDirect: room.type == 1,
                                         selected: activeChatId == room.id,
+                                        pushNotificationsSuppressed:
+                                            accountStatus
+                                                .whenData((data) => data)
+                                                .value
+                                                ?.isPushNotificationsSuppressed(
+                                                  room.id,
+                                                ) ??
+                                            false,
                                         onTap: () {
                                           if (isWideScreen(context)) {
                                             context.router.navigate(
@@ -238,6 +288,14 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                       room: room,
                                       isDirect: room.type == 1,
                                       selected: activeChatId == room.id,
+                                      pushNotificationsSuppressed:
+                                          accountStatus
+                                              .whenData((data) => data)
+                                              .value
+                                              ?.isPushNotificationsSuppressed(
+                                                room.id,
+                                              ) ??
+                                          false,
                                       onTap: () {
                                         if (isWideScreen(context)) {
                                           context.router.navigate(
@@ -268,6 +326,14 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                     room: item,
                                     isDirect: item.type == 1,
                                     selected: activeChatId == item.id,
+                                    pushNotificationsSuppressed:
+                                        accountStatus
+                                            .whenData((data) => data)
+                                            .value
+                                            ?.isPushNotificationsSuppressed(
+                                              item.id,
+                                            ) ??
+                                        false,
                                     onTap: () {
                                       if (isWideScreen(context)) {
                                         context.router.navigate(
@@ -836,9 +902,9 @@ class _CollapsedChatListBody extends HookConsumerWidget {
         child: ConfuseSpinner(
           size: 36,
           speed: 6,
-          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(
-            0.65,
-          ),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withOpacity(0.65),
         ),
       ),
       error: (error, stack) => IconButton(
