@@ -263,7 +263,11 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           subscribedNotifier.set(null);
         }
       });
-      _sendUnsubscribe(reason: 'provider-cancel');
+      // Defer to avoid ref.read() inside lifecycle callback
+      Future.microtask(() {
+        if (!ref.mounted) return;
+        _sendUnsubscribe(reason: 'provider-cancel');
+      });
       try {
         _cleanupResources();
       } catch (e, stackTrace) {
