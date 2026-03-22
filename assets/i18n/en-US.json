@@ -2186,5 +2186,6 @@
   "meetEventSnapshot": "Meet opened",
   "meetEventParticipantJoined": "Someone joined",
   "meetEventCompleted": "Meet completed",
-  "meetEventExpired": "Meet expired"
+  "meetEventExpired": "Meet expired",
+  "timeline": "Timeline"
 }

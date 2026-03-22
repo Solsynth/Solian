@@ -1100,14 +1100,12 @@ class _AccountTimelineWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
                 Container(
                   width: 36,
@@ -1131,11 +1129,10 @@ class _AccountTimelineWidget extends StatelessWidget {
                 ).tr(),
               ],
             ),
-            const Gap(16),
-            _AccountTimelineList(uname: uname),
-          ],
+          ),
         ),
-      ),
+        _AccountTimelineList(uname: uname),
+      ],
     );
   }
 }
@@ -1148,10 +1145,12 @@ class _AccountTimelineList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PaginationList<SnAccountTimelineItem>(
+      isSliver: true,
+      isRefreshable: false,
       provider: accountTimelineProvider(uname),
       notifier: accountTimelineProvider(uname).notifier,
       spacing: 8,
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       footerSkeletonChild: Container(
         height: 60,
         decoration: BoxDecoration(
@@ -1215,7 +1214,7 @@ class _AccountTimelineItem extends StatelessWidget {
                     ),
                     const Gap(2),
                     Text(
-                      createdAt.toLocal().formatRelative(),
+                      createdAt.toLocal().formatRelative(context),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -1303,7 +1302,7 @@ class _AccountTimelineItem extends StatelessWidget {
                     ],
                     const Gap(2),
                     Text(
-                      createdAt.toLocal().formatRelative(),
+                      createdAt.toLocal().formatRelative(context),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -1503,11 +1502,11 @@ class AccountTimelineNotifier
     with AsyncPaginationController<SnAccountTimelineItem> {
   static const int pageSize = 20;
 
-  late final String _uname;
+  final String arg;
+  AccountTimelineNotifier(this.arg);
 
   @override
   FutureOr<PaginationState<SnAccountTimelineItem>> build() async {
-    _uname = ref.watch(accountTimelineUnameProvider);
     final items = await fetch();
     return PaginationState(
       items: items,
@@ -1522,7 +1521,6 @@ class AccountTimelineNotifier
   @override
   Future<List<SnAccountTimelineItem>> fetch() async {
     final client = ref.read(apiClientProvider);
-    if (_uname.isEmpty) return [];
 
     final queryParams = {
       'offset': fetchedCount.toString(),
@@ -1530,7 +1528,7 @@ class AccountTimelineNotifier
     };
 
     final response = await client.get(
-      '/passport/accounts/$_uname/timeline',
+      '/passport/accounts/$arg/timeline',
       queryParameters: queryParams,
     );
 
@@ -1541,46 +1539,26 @@ class AccountTimelineNotifier
       if (eventType == 'StatusChange' && json['status'] != null) {
         return SnAccountTimelineItem.statusChange(
           id: json['id'] as String,
-          createdAt: DateTime.parse(json['createdAt'] as String),
+          createdAt: DateTime.parse(json['created_at'] as String),
           status: SnAccountStatus.fromJson(json['status']),
         );
       } else if (eventType == 'Activity' && json['activity'] != null) {
         return SnAccountTimelineItem.activity(
           id: json['id'] as String,
-          createdAt: DateTime.parse(json['createdAt'] as String),
+          createdAt: DateTime.parse(json['created_at'] as String),
           activity: SnPresenceActivity.fromJson(json['activity']),
         );
       }
       return SnAccountTimelineItem.statusChange(
         id: json['id'] as String,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        status: SnAccountStatus(
-          id: '',
-          attitude: 0,
-          isOnline: false,
-          isCustomized: false,
-          label: '',
-          meta: null,
-          clearedAt: null,
-          accountId: '',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          deletedAt: null,
-        ),
+        createdAt: DateTime.parse(json['created_at'] as String),
+        status: SnAccountStatus.fromJson(json['status']),
       );
     }).toList();
 
     return items;
   }
 }
-
-final accountTimelineUnameProvider = Provider.family<String, String>((
-  ref,
-  uname,
-) {
-  ref.keepAlive();
-  return uname;
-});
 
 @RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
@@ -1708,9 +1686,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                       child: CustomScrollView(
                         slivers: [
                           SliverGap(16),
-                          SliverToBoxAdapter(
-                            child: _AccountTimelineWidget(uname: name),
-                          ),
+                          _AccountTimelineList(uname: name),
                           SliverGap(MediaQuery.of(context).padding.bottom + 16),
                         ],
                       ).padding(left: 8),
@@ -1879,7 +1855,6 @@ class AccountProfileScreen extends HookConsumerWidget {
                             _AccountProfileLinks(data: data),
                           if (data.contacts.any((c) => c.isPublic))
                             _AccountProfileContacts(data: data),
-                          _AccountTimelineWidget(uname: name),
                           _AccountPublisherList(
                             publishers: accountPublishers.value ?? [],
                           ),
@@ -1906,6 +1881,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                         ],
                       ).padding(horizontal: 8, vertical: 8),
                     ),
+                    _AccountTimelineList(uname: name),
                   ],
                 ),
         );
