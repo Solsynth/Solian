@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
-
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,6 +50,7 @@ class CloudFileLightbox extends HookConsumerWidget {
     final showExif = useState(ExifInfoOverlay.precheck(items[initialIndex]));
     final showOriginal = useState(false);
     final focusNode = useFocusNode();
+    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
     void goToPage(int index) {
       if (index >= 0 && index < items.length) {
@@ -152,13 +154,37 @@ class CloudFileLightbox extends HookConsumerWidget {
                   );
                   return isHero ? Hero(tag: heroTag!, child: image) : image;
                 } else if (item.mimeType?.startsWith('video') == true) {
-                  return _buildVideoViewer(context, ref, item);
+                  return _buildVideoViewer(
+                    context,
+                    ref,
+                    item,
+                    isMobile,
+                    rotation,
+                  );
                 } else if (item.mimeType?.startsWith('audio') == true) {
-                  return _buildAudioViewer(context, ref, item);
+                  return _buildAudioViewer(
+                    context,
+                    ref,
+                    item,
+                    isMobile,
+                    rotation,
+                  );
                 } else if (item.mimeType == 'application/pdf') {
-                  return _buildPdfViewer(context, ref, item);
+                  return _buildPdfViewer(
+                    context,
+                    ref,
+                    item,
+                    isMobile,
+                    rotation,
+                  );
                 } else {
-                  return _buildGenericViewer(context, ref, item);
+                  return _buildGenericViewer(
+                    context,
+                    ref,
+                    item,
+                    isMobile,
+                    rotation,
+                  );
                 }
               },
             ),
@@ -316,6 +342,8 @@ class CloudFileLightbox extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnCloudFile item,
+    bool isMobile,
+    ValueNotifier<int> rotation,
   ) {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = item.url ?? '$serverUrl/drive/files/${item.id}';
@@ -327,13 +355,21 @@ class CloudFileLightbox extends HookConsumerWidget {
     }
     if (ratio == 0) ratio = 16 / 9;
 
+    final effectiveRatio = rotation.value % 2 == 0 ? ratio : 1 / ratio;
+
     return Container(
       color: Colors.black,
       child: Center(
-        child: Positioned.fill(
+        child: RotatedBox(
+          quarterTurns: rotation.value,
           child: AspectRatio(
-            aspectRatio: ratio,
-            child: UniversalVideo(uri: uri, aspectRatio: ratio, autoplay: true),
+            aspectRatio: effectiveRatio != 0 ? effectiveRatio : ratio,
+            child: UniversalVideo(
+              uri: uri,
+              aspectRatio: ratio,
+              autoplay: true,
+              showFullscreen: !isMobile,
+            ),
           ),
         ),
       ),
@@ -344,30 +380,35 @@ class CloudFileLightbox extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnCloudFile item,
+    bool isMobile,
+    ValueNotifier<int> rotation,
   ) {
     return Container(
       color: Colors.black,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.audiotrack, size: 80, color: Colors.white54),
-            const Gap(16),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.push(FileDetailRoute(item: item));
-              },
-              icon: const Icon(Symbols.play_arrow),
-              label: Text('play'.tr()),
-            ),
-          ],
+        child: RotatedBox(
+          quarterTurns: rotation.value,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Symbols.audiotrack, size: 80, color: Colors.white54),
+              const Gap(16),
+              Text(
+                item.name,
+                style: const TextStyle(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+              const Gap(8),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.router.push(FileDetailRoute(item: item));
+                },
+                icon: const Icon(Symbols.play_arrow),
+                label: Text('play'.tr()),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -377,30 +418,35 @@ class CloudFileLightbox extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnCloudFile item,
+    bool isMobile,
+    ValueNotifier<int> rotation,
   ) {
     return Container(
       color: Colors.black,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.picture_as_pdf, size: 80, color: Colors.white54),
-            const Gap(16),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.push(FileDetailRoute(item: item));
-              },
-              icon: const Icon(Symbols.open_in_new),
-              label: Text('open'.tr()),
-            ),
-          ],
+        child: RotatedBox(
+          quarterTurns: rotation.value,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Symbols.picture_as_pdf, size: 80, color: Colors.white54),
+              const Gap(16),
+              Text(
+                item.name,
+                style: const TextStyle(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+              const Gap(8),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.router.push(FileDetailRoute(item: item));
+                },
+                icon: const Icon(Symbols.open_in_new),
+                label: Text('open'.tr()),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -410,30 +456,35 @@ class CloudFileLightbox extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnCloudFile item,
+    bool isMobile,
+    ValueNotifier<int> rotation,
   ) {
     return Container(
       color: Colors.black,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.insert_drive_file, size: 80, color: Colors.white54),
-            const Gap(16),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.push(FileDetailRoute(item: item));
-              },
-              icon: const Icon(Symbols.open_in_new),
-              label: Text('open'.tr()),
-            ),
-          ],
+        child: RotatedBox(
+          quarterTurns: rotation.value,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Symbols.insert_drive_file, size: 80, color: Colors.white54),
+              const Gap(16),
+              Text(
+                item.name,
+                style: const TextStyle(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+              const Gap(8),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.router.push(FileDetailRoute(item: item));
+                },
+                icon: const Icon(Symbols.open_in_new),
+                label: Text('open'.tr()),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -592,40 +643,34 @@ class _ImageViewerWidget extends HookWidget {
       original: original,
     );
 
-    final previousProvider = !original
-        ? CloudImageWidget.provider(
-            file: item,
-            serverUrl: serverUrl,
-            original: true,
-          )
-        : null;
+    final lowQualityProvider = CloudImageWidget.provider(
+      file: item,
+      serverUrl: serverUrl,
+      original: false,
+    );
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: PhotoView(
-            key: ValueKey('$item-$original'),
+        if (original && !isHighQualityLoaded.value)
+          PhotoView(
+            key: ValueKey('${item.id}-lq'),
             backgroundDecoration: const BoxDecoration(color: Colors.black),
             controller: controller,
-            imageProvider: currentProvider,
+            imageProvider: lowQualityProvider,
             customSize: MediaQuery.of(context).size,
             basePosition: Alignment.center,
-            filterQuality: FilterQuality.high,
+            filterQuality: FilterQuality.medium,
           ),
+        PhotoView(
+          key: ValueKey('${item.id}-hq-$original'),
+          backgroundDecoration: const BoxDecoration(color: Colors.black),
+          controller: controller,
+          imageProvider: currentProvider,
+          customSize: MediaQuery.of(context).size,
+          basePosition: Alignment.center,
+          filterQuality: FilterQuality.high,
         ),
-        if (original && !isHighQualityLoaded.value && previousProvider != null)
-          Positioned.fill(
-            child: PhotoView(
-              backgroundDecoration: const BoxDecoration(color: Colors.black),
-              controller: controller,
-              imageProvider: previousProvider,
-              customSize: MediaQuery.of(context).size,
-              basePosition: Alignment.center,
-              filterQuality: FilterQuality.medium,
-            ),
-          ),
         if (loadingProgress.value != null)
           Positioned(
             bottom: 80,
@@ -672,7 +717,7 @@ class _LightboxBottomBar extends StatelessWidget {
   final BuildContext context;
   final List<SnCloudFile> items;
   final int currentIndex;
-  final PhotoViewControllerBase photoViewController;
+  final PhotoViewControllerBase? photoViewController;
   final ValueNotifier<int> rotation;
   final bool showOriginal;
   final bool showExif;
@@ -683,7 +728,7 @@ class _LightboxBottomBar extends StatelessWidget {
     required this.context,
     required this.items,
     required this.currentIndex,
-    required this.photoViewController,
+    this.photoViewController,
     required this.rotation,
     required this.showOriginal,
     required this.showExif,
@@ -698,7 +743,19 @@ class _LightboxBottomBar extends StatelessWidget {
     final hasExifData = ExifInfoOverlay.precheck(currentItem);
     final paddingBottom = MediaQuery.of(context).padding.bottom;
 
-    if (!isImage) return const SizedBox.shrink();
+    void rotateLeft() {
+      rotation.value = (rotation.value - 1) % 4;
+      if (photoViewController != null) {
+        photoViewController!.rotation = rotation.value * -math.pi / 2;
+      }
+    }
+
+    void rotateRight() {
+      rotation.value = (rotation.value + 1) % 4;
+      if (photoViewController != null) {
+        photoViewController!.rotation = rotation.value * -math.pi / 2;
+      }
+    }
 
     return Positioned(
       bottom: paddingBottom + 16,
@@ -707,53 +764,55 @@ class _LightboxBottomBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            onPressed: onToggleOriginal,
-            icon: Icon(
-              showOriginal
-                  ? Symbols.photo_size_select_large
-                  : Symbols.photo_size_select_small,
-              color: Colors.white,
-              shadows: WhiteShadows.standard,
-            ),
-            tooltip: showOriginal ? 'High Quality' : 'Low Quality',
-          ),
+          if (isImage)
+            IconButton(
+              onPressed: onToggleOriginal,
+              icon: Icon(
+                showOriginal
+                    ? Symbols.photo_size_select_large
+                    : Symbols.photo_size_select_small,
+                color: Colors.white,
+                shadows: WhiteShadows.standard,
+              ),
+              tooltip: showOriginal ? 'High Quality' : 'Low Quality',
+            )
+          else
+            const SizedBox(width: 48),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                icon: Icon(
-                  Icons.remove,
-                  color: Colors.white,
-                  shadows: WhiteShadows.standard,
+              if (isImage) ...[
+                IconButton(
+                  icon: Icon(
+                    Icons.remove,
+                    color: Colors.white,
+                    shadows: WhiteShadows.standard,
+                  ),
+                  onPressed: () {
+                    photoViewController?.scale =
+                        (photoViewController?.scale ?? 1) - 0.05;
+                  },
                 ),
-                onPressed: () {
-                  photoViewController.scale =
-                      (photoViewController.scale ?? 1) - 0.05;
-                },
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.add,
-                  color: Colors.white,
-                  shadows: WhiteShadows.standard,
+                IconButton(
+                  icon: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    shadows: WhiteShadows.standard,
+                  ),
+                  onPressed: () {
+                    photoViewController?.scale =
+                        (photoViewController?.scale ?? 1) + 0.05;
+                  },
                 ),
-                onPressed: () {
-                  photoViewController.scale =
-                      (photoViewController.scale ?? 1) + 0.05;
-                },
-              ),
-              const Gap(8),
+                const Gap(8),
+              ],
               IconButton(
                 icon: Icon(
                   Icons.rotate_left,
                   color: Colors.white,
                   shadows: WhiteShadows.standard,
                 ),
-                onPressed: () {
-                  rotation.value = (rotation.value - 1) % 4;
-                  photoViewController.rotation = rotation.value * -math.pi / 2;
-                },
+                onPressed: rotateLeft,
               ),
               IconButton(
                 icon: Icon(
@@ -761,10 +820,7 @@ class _LightboxBottomBar extends StatelessWidget {
                   color: Colors.white,
                   shadows: WhiteShadows.standard,
                 ),
-                onPressed: () {
-                  rotation.value = (rotation.value + 1) % 4;
-                  photoViewController.rotation = rotation.value * -math.pi / 2;
-                },
+                onPressed: rotateRight,
               ),
               if (hasExifData) ...[
                 const Gap(8),

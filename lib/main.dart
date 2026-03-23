@@ -37,6 +37,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
+import 'package:media_kit/media_kit.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -46,6 +47,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main(List<String> args) async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
+
   await initializeUnifiedPush(args);
 
   if (!kIsWeb && Platform.isLinux && args.contains('--unifiedpush-bg')) {
