@@ -1,10 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
@@ -13,7 +15,6 @@ import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/core/widgets/content/profile_decoration.dart';
-import 'package:island/shared/widgets/content/video.native.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'dart:math' as math;
@@ -386,10 +387,9 @@ class _EncryptedFileCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextButton.icon(
-                onPressed: () =>
-                    ref.read(driveFileDownloaderProvider).downloadWithProgress(
-                      item,
-                    ),
+                onPressed: () => ref
+                    .read(driveFileDownloaderProvider)
+                    .downloadWithProgress(item),
                 icon: const Icon(Symbols.download),
                 label: Text('download').tr(),
               ),
@@ -450,14 +450,11 @@ class CloudVideoWidget extends HookConsumerWidget {
     if (DriveE2eeFileEnvelope.isEncryptedFile(item)) {
       return _EncryptedFileCard(
         item: item,
-        scheme: (item.fileMeta is Map &&
-                (item.fileMeta as Map)['e2ee'] is Map)
+        scheme: (item.fileMeta is Map && (item.fileMeta as Map)['e2ee'] is Map)
             ? ((item.fileMeta as Map)['e2ee'] as Map)['scheme']?.toString()
             : null,
       );
     }
-
-    final open = useState(false);
 
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
@@ -466,10 +463,6 @@ class CloudVideoWidget extends HookConsumerWidget {
         ? item.fileMeta!['ratio'].toDouble()
         : 1.0;
     if (ratio == 0) ratio = 1.0;
-
-    if (open.value) {
-      return UniversalVideo(uri: uri, aspectRatio: ratio, autoplay: true);
-    }
 
     return GestureDetector(
       child: Stack(
@@ -583,7 +576,14 @@ class CloudVideoWidget extends HookConsumerWidget {
         ],
       ),
       onTap: () {
-        open.value = true;
+        context.pushTransparentRoute(
+          CloudFileLightbox(
+            items: [item],
+            initialIndex: 0,
+            heroTag: 'cloud-file-${item.id}',
+          ),
+          rootNavigator: true,
+        );
       },
     );
   }

@@ -10,6 +10,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
+import 'package:island/shared/widgets/content/video.native.dart';
 import 'package:island/core/widgets/content/exif_info_overlay.dart';
 import 'package:island/core/widgets/content/file_action_button.dart';
 import 'package:island/drive/drive_service.dart';
@@ -201,9 +202,9 @@ class CloudFileLightbox extends HookConsumerWidget {
         }
         return KeyEventResult.ignored;
       },
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: Stack(
+      child: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
           children: [
             buildContent(),
             if (items.length > 1) ...[
@@ -316,29 +317,24 @@ class CloudFileLightbox extends HookConsumerWidget {
     WidgetRef ref,
     SnCloudFile item,
   ) {
+    final serverUrl = ref.watch(serverUrlProvider);
+    final uri = item.url ?? '$serverUrl/drive/files/${item.id}';
+
+    var ratio = 1.0;
+    final meta = item.fileMeta is Map ? (item.fileMeta as Map) : const {};
+    if (meta['ratio'] is num) {
+      ratio = (meta['ratio'] as num).toDouble();
+    }
+    if (ratio == 0) ratio = 16 / 9;
+
     return Container(
       color: Colors.black,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.play_circle, size: 80, color: Colors.white54),
-            const Gap(16),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.push(FileDetailRoute(item: item));
-              },
-              icon: const Icon(Symbols.play_arrow),
-              label: Text('play'.tr()),
-            ),
-          ],
+        child: Positioned.fill(
+          child: AspectRatio(
+            aspectRatio: ratio,
+            child: UniversalVideo(uri: uri, aspectRatio: ratio, autoplay: true),
+          ),
         ),
       ),
     );

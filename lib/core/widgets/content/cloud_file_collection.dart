@@ -137,17 +137,21 @@ class CloudFileList extends HookConsumerWidget {
 
   void _openLightbox(BuildContext context, int index) {
     if (disableZoomIn) return;
-    final imageFiles = files
+    final viewableFiles = files
         .asMap()
         .entries
-        .where((e) => e.value.mimeType?.startsWith('image') == true)
+        .where(
+          (e) =>
+              e.value.mimeType?.startsWith('image') == true ||
+              e.value.mimeType?.startsWith('video') == true,
+        )
         .toList();
-    final imageIndex = imageFiles.indexWhere((e) => e.key == index);
-    if (imageIndex == -1) return;
+    final viewableIndex = viewableFiles.indexWhere((e) => e.key == index);
+    if (viewableIndex == -1) return;
     context.pushTransparentRoute(
       CloudFileLightbox(
-        items: imageFiles.map((e) => e.value).toList(),
-        initialIndex: imageIndex,
+        items: viewableFiles.map((e) => e.value).toList(),
+        initialIndex: viewableIndex,
         heroTag: 'cloud-file-${files[index].id}',
       ),
       rootNavigator: true,
