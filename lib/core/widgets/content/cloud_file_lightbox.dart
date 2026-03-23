@@ -260,7 +260,7 @@ class CloudFileLightbox extends HookConsumerWidget {
                 ),
             ],
             GestureDetector(
-              onTap: () {
+              onDoubleTap: () {
                 showControls.value = !showControls.value;
                 controlsVisible.value = true;
               },
@@ -364,12 +364,7 @@ class CloudFileLightbox extends HookConsumerWidget {
           quarterTurns: rotation.value,
           child: AspectRatio(
             aspectRatio: effectiveRatio != 0 ? effectiveRatio : ratio,
-            child: UniversalVideo(
-              uri: uri,
-              aspectRatio: ratio,
-              autoplay: true,
-              showFullscreen: !isMobile,
-            ),
+            child: UniversalVideo(uri: uri, aspectRatio: ratio, autoplay: true),
           ),
         ),
       ),

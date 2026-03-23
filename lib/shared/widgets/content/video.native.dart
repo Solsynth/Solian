@@ -9,13 +9,11 @@ class UniversalVideo extends ConsumerStatefulWidget {
   final String uri;
   final double aspectRatio;
   final bool autoplay;
-  final bool showFullscreen;
   const UniversalVideo({
     super.key,
     required this.uri,
     this.aspectRatio = 16 / 9,
     this.autoplay = false,
-    this.showFullscreen = true,
   });
 
   @override
@@ -25,7 +23,7 @@ class UniversalVideo extends ConsumerStatefulWidget {
 class _UniversalVideoState extends ConsumerState<UniversalVideo> {
   Player? _player;
   VideoController? _videoController;
-  bool _isLoading = true;
+  bool _isInitialLoading = true;
 
   @override
   void initState() {
@@ -41,20 +39,22 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
 
     _player!.stream.playing.listen((playing) {
       if (mounted && playing) {
-        setState(() => _isLoading = false);
+        setState(() => _isInitialLoading = false);
       }
     });
 
     _player!.stream.buffering.listen((buffering) {
-      if (mounted) {
-        setState(() => _isLoading = buffering);
+      if (mounted && buffering) {
+        setState(() => _isInitialLoading = true);
+      } else if (mounted && !buffering && _player!.state.playing) {
+        setState(() => _isInitialLoading = false);
       }
     });
 
     _player!.stream.error.listen((error) {
       debugPrint('Video player error: $error');
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isInitialLoading = false);
       }
     });
 
@@ -90,6 +90,8 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
     if (isMobile) {
       video = MaterialVideoControlsTheme(
         normal: MaterialVideoControlsThemeData(
+          visibleOnMount: true,
+          controlsHoverDuration: const Duration(hours: 1),
           seekBarPositionColor: primaryColor,
           seekBarColor: primaryColor.withValues(alpha: 0.3),
           seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
@@ -97,18 +99,19 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
             const MaterialPlayOrPauseButton(),
             const MaterialSeekBar(),
             const MaterialSkipNextButton(),
-            if (widget.showFullscreen) const MaterialFullscreenButton(),
           ],
         ),
         fullscreen: MaterialVideoControlsThemeData(
+          visibleOnMount: true,
+          controlsHoverDuration: const Duration(hours: 1),
           seekBarPositionColor: primaryColor,
           seekBarColor: primaryColor.withValues(alpha: 0.3),
           seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
+          seekBarThumbColor: primaryColor,
           bottomButtonBar: [
             const MaterialPlayOrPauseButton(),
             const MaterialSeekBar(),
             const MaterialSkipNextButton(),
-            if (widget.showFullscreen) const MaterialFullscreenButton(),
           ],
         ),
         child: video,
@@ -116,12 +119,36 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
     } else {
       video = MaterialDesktopVideoControlsTheme(
         normal: MaterialDesktopVideoControlsThemeData(
+          visibleOnMount: true,
+          controlsHoverDuration: const Duration(hours: 1),
           seekBarPositionColor: primaryColor,
           seekBarColor: primaryColor.withValues(alpha: 0.3),
+          seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
+          seekBarThumbColor: primaryColor,
+          bottomButtonBar: const [
+            MaterialDesktopSkipPreviousButton(),
+            MaterialDesktopPlayOrPauseButton(),
+            MaterialDesktopSkipNextButton(),
+            MaterialDesktopVolumeButton(),
+            MaterialDesktopPositionIndicator(),
+            Spacer(),
+          ],
         ),
         fullscreen: MaterialDesktopVideoControlsThemeData(
+          visibleOnMount: true,
+          controlsHoverDuration: const Duration(hours: 1),
           seekBarPositionColor: primaryColor,
           seekBarColor: primaryColor.withValues(alpha: 0.3),
+          seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
+          seekBarThumbColor: primaryColor,
+          bottomButtonBar: const [
+            MaterialDesktopSkipPreviousButton(),
+            MaterialDesktopPlayOrPauseButton(),
+            MaterialDesktopSkipNextButton(),
+            MaterialDesktopVolumeButton(),
+            MaterialDesktopPositionIndicator(),
+            Spacer(),
+          ],
         ),
         child: video,
       );
@@ -130,10 +157,10 @@ class _UniversalVideoState extends ConsumerState<UniversalVideo> {
     return Stack(
       children: [
         video,
-        if (_isLoading)
+        if (_isInitialLoading)
           Positioned.fill(
             child: Container(
-              color: Colors.black,
+              color: Colors.black54,
               child: const Center(child: CircularProgressIndicator()),
             ),
           ),
