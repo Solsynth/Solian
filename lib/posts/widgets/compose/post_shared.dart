@@ -86,7 +86,7 @@ class ThreadedReplyNode {
     return ThreadedReplyNode(
       post: SnPost.fromJson(json['post'] as Map<String, dynamic>),
       depth: json['depth'] as int? ?? 0,
-      parentId: json['parentId'] as String?,
+      parentId: json['parent_id'] as String?,
     );
   }
 }
