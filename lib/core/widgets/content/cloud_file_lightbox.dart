@@ -51,6 +51,8 @@ class CloudFileLightbox extends HookConsumerWidget {
     final showOriginal = useState(false);
     final focusNode = useFocusNode();
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
 
     void goToPage(int index) {
       if (index >= 0 && index < items.length) {
@@ -120,6 +122,7 @@ class CloudFileLightbox extends HookConsumerWidget {
         controller: controller,
         original: original,
         serverUrl: serverUrl,
+        primaryColor: primaryColor,
       );
     }
 
@@ -228,111 +231,132 @@ class CloudFileLightbox extends HookConsumerWidget {
         }
         return KeyEventResult.ignored;
       },
-      child: SafeArea(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            buildContent(),
-            if (items.length > 1) ...[
-              if (currentIndex.value > 0)
-                Positioned(
-                  left: 16,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: _ArrowButton(
-                      direction: AxisDirection.left,
-                      onPressed: goToPrevious,
+      child: Container(
+        color: Colors.black,
+        child: SafeArea(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              buildContent(),
+              if (items.length > 1) ...[
+                if (currentIndex.value > 0)
+                  Positioned(
+                    left: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _ArrowButton(
+                        direction: AxisDirection.left,
+                        onPressed: goToPrevious,
+                      ),
                     ),
                   ),
-                ),
-              if (currentIndex.value < items.length - 1)
-                Positioned(
-                  right: 16,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: _ArrowButton(
-                      direction: AxisDirection.right,
-                      onPressed: goToNext,
+                if (currentIndex.value < items.length - 1)
+                  Positioned(
+                    right: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _ArrowButton(
+                        direction: AxisDirection.right,
+                        onPressed: goToNext,
+                      ),
                     ),
                   ),
-                ),
-            ],
-            GestureDetector(
-              onDoubleTap: () {
-                showControls.value = !showControls.value;
-                controlsVisible.value = true;
-              },
-              onLongPress: showActionsSheet,
-              onSecondaryTap: showActionsSheet,
-              behavior: HitTestBehavior.translucent,
-              child: AnimatedOpacity(
-                opacity: showControls.value && controlsVisible.value
-                    ? 1.0
-                    : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: IgnorePointer(
-                  ignoring: !showControls.value || !controlsVisible.value,
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: MediaQuery.of(context).padding.top + 60,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.black54, Colors.transparent],
+              ],
+              GestureDetector(
+                onTap: () {
+                  final currentItem = items[currentIndex.value];
+                  if (currentItem.mimeType?.startsWith('image') == true) {
+                    showControls.value = !showControls.value;
+                    controlsVisible.value = true;
+                  }
+                },
+                onDoubleTap: () {
+                  final currentItem = items[currentIndex.value];
+                  if (currentItem.mimeType?.startsWith('image') != true) {
+                    Navigator.of(context).pop();
+                  } else {
+                    showControls.value = !showControls.value;
+                    controlsVisible.value = true;
+                  }
+                },
+                onVerticalDragEnd: (details) {
+                  if (details.primaryVelocity != null &&
+                      details.primaryVelocity! > 300) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                onLongPress: showActionsSheet,
+                onSecondaryTap: showActionsSheet,
+                behavior: HitTestBehavior.translucent,
+                child: AnimatedOpacity(
+                  opacity: showControls.value && controlsVisible.value
+                      ? 1.0
+                      : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: IgnorePointer(
+                    ignoring: !showControls.value || !controlsVisible.value,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: MediaQuery.of(context).padding.top + 60,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: MediaQuery.of(context).padding.bottom + 80,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Colors.black54, Colors.transparent],
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: MediaQuery.of(context).padding.bottom + 80,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      _LightboxTopBar(
-                        context: context,
-                        items: items,
-                        currentIndex: currentIndex.value,
-                        onShowActions: showActionsSheet,
-                      ),
-                      _LightboxBottomBar(
-                        context: context,
-                        items: items,
-                        currentIndex: currentIndex.value,
-                        photoViewController: getCurrentController(),
-                        rotation: rotation,
-                        showOriginal: showOriginal.value,
-                        showExif: showExif.value,
-                        onToggleOriginal: () {
-                          showOriginal.value = !showOriginal.value;
-                        },
-                        onToggleExif: () {
-                          showExif.value = !showExif.value;
-                        },
-                      ),
-                    ],
+                        _LightboxTopBar(
+                          context: context,
+                          items: items,
+                          currentIndex: currentIndex.value,
+                          onShowActions: showActionsSheet,
+                        ),
+                        _LightboxBottomBar(
+                          context: context,
+                          items: items,
+                          currentIndex: currentIndex.value,
+                          photoViewController: getCurrentController(),
+                          rotation: rotation,
+                          showOriginal: showOriginal.value,
+                          showExif: showExif.value,
+                          onToggleOriginal: () {
+                            showOriginal.value = !showOriginal.value;
+                          },
+                          onToggleExif: () {
+                            showExif.value = !showExif.value;
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -534,6 +558,8 @@ class _LightboxTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final paddingTop = MediaQuery.of(context).padding.top;
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
 
     return Positioned(
       top: paddingTop + 8,
@@ -551,7 +577,11 @@ class _LightboxTopBar extends StatelessWidget {
               ),
               child: Text(
                 '${currentIndex + 1}/${items.length}',
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(
+                  color: primaryColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             )
           else
@@ -584,12 +614,14 @@ class _ImageViewerWidget extends HookWidget {
   final PhotoViewControllerBase controller;
   final bool original;
   final String serverUrl;
+  final Color primaryColor;
 
   const _ImageViewerWidget({
     required this.item,
     required this.controller,
     required this.original,
     required this.serverUrl,
+    required this.primaryColor,
   });
 
   @override
@@ -690,13 +722,17 @@ class _ImageViewerWidget extends HookWidget {
                       child: CircularProgressIndicator(
                         value: loadingProgress.value,
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: primaryColor,
                       ),
                     ),
                     const Gap(8),
                     Text(
                       '${(loadingProgress.value! * 100).toInt()}%',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(
+                        color: primaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
