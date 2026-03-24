@@ -1,8 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
@@ -15,6 +17,7 @@ import 'package:island/posts/widgets/compose/post_award_sheet.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
+import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
@@ -453,24 +456,60 @@ class PostActionButtons extends HookConsumerWidget {
   }
 }
 
-class _PostDetailLargeScreenLayout extends StatelessWidget {
+class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   final SnPost post;
-  final WidgetRef ref;
   final String postId;
   final Function(SnPost) onUpdate;
   final VoidCallback onRefresh;
 
   const _PostDetailLargeScreenLayout({
     required this.post,
-    required this.ref,
     required this.postId,
     required this.onUpdate,
     required this.onRefresh,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
+    final reacting = useState(false);
+
+    final mostReaction = post.reactionsCount.isEmpty
+        ? null
+        : post.reactionsCount.entries
+              .sortedBy((e) => e.value)
+              .map((e) => e.key)
+              .last;
+
+    Future<void> reactPost(String symbol, int attitude) async {
+      final client = ref.read(apiClientProvider);
+      reacting.value = true;
+      await client
+          .post(
+            '/sphere/posts/${post.id}/reactions',
+            data: {'symbol': symbol, 'attitude': attitude},
+          )
+          .catchError((err) {
+            showErrorAlert(err);
+            return err;
+          })
+          .then((resp) {
+            final isRemoving = resp.statusCode == 204;
+            final delta = isRemoving ? -1 : 1;
+            final reactionsCount = Map<String, int>.from(post.reactionsCount);
+            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
+            final reactionsMade = Map<String, bool>.from(post.reactionsMade);
+            reactionsMade[symbol] = delta == 1 ? true : false;
+            onUpdate(
+              post.copyWith(
+                reactionsCount: reactionsCount,
+                reactionsMade: reactionsMade,
+              ),
+            );
+            HapticFeedback.heavyImpact();
+          });
+      reacting.value = false;
+    }
 
     return Row(
       children: [
@@ -508,6 +547,73 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
                               isFullPost: true,
                               isCompact: false,
                               renderingPadding: EdgeInsets.zero,
+                              trailing: SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: IconButton(
+                                  icon: mostReaction == null
+                                      ? const Icon(Symbols.add_reaction)
+                                      : Badge(
+                                          label: Center(
+                                            child: Text(
+                                              'x${post.reactionsCount[mostReaction]}',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                          offset: const Offset(4, 20),
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withOpacity(0.75),
+                                          textColor: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                          child: _buildReactionIcon(
+                                            mostReaction,
+                                          ),
+                                        ),
+                                  style: ButtonStyle(
+                                    backgroundColor: WidgetStatePropertyAll(
+                                      (post.reactionsMade[mostReaction] ??
+                                              false)
+                                          ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                                .withOpacity(0.5)
+                                          : null,
+                                    ),
+                                  ),
+                                  onPressed: reacting.value
+                                      ? null
+                                      : () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            useRootNavigator: true,
+                                            isScrollControlled: true,
+                                            builder: (BuildContext context) {
+                                              return PostReactionSheet(
+                                                reactionsCount:
+                                                    post.reactionsCount,
+                                                reactionsMade:
+                                                    post.reactionsMade,
+                                                onReact: (symbol, attitude) {
+                                                  reactPost(symbol, attitude);
+                                                },
+                                                postId: post.id,
+                                              );
+                                            },
+                                          );
+                                        },
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: const VisualDensity(
+                                    horizontal: -3,
+                                    vertical: -3,
+                                  ),
+                                ),
+                              ),
                             ),
                             const Gap(8),
                             PostBody(
@@ -560,6 +666,31 @@ class _PostDetailLargeScreenLayout extends StatelessWidget {
       ],
     );
   }
+
+  Widget _buildReactionIcon(String symbol) {
+    const kAvailableStickers = {
+      'angry',
+      'clap',
+      'confuse',
+      'pray',
+      'thumb_up',
+      'party',
+    };
+    if (kAvailableStickers.contains(symbol)) {
+      return Image.asset(
+        'assets/images/stickers/$symbol.png',
+        width: 32,
+        height: 32,
+        fit: BoxFit.contain,
+        alignment: Alignment.bottomCenter,
+      );
+    } else {
+      return Text(
+        kReactionTemplates[symbol]?.icon ?? '',
+        style: const TextStyle(fontSize: 24),
+      );
+    }
+  }
 }
 
 @RoutePage()
@@ -596,7 +727,6 @@ class PostDetailScreen extends HookConsumerWidget {
                 child: isMediaPostLayout
                     ? _PostDetailLargeScreenLayout(
                         post: postItem,
-                        ref: ref,
                         postId: id,
                         onUpdate: (newItem) {
                           ref
