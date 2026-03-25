@@ -270,6 +270,45 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Link collapse mode settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsLinkCollapseMode').tr(),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.unfold_more),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            isExpanded: true,
+            items: [
+              DropdownItem<String>(
+                value: 'expand',
+                child: Text('settingsLinkCollapseModeExpand').tr().fontSize(14),
+              ),
+              DropdownItem<String>(
+                value: 'collapse',
+                child: Text(
+                  'settingsLinkCollapseModeCollapse',
+                ).tr().fontSize(14),
+              ),
+            ],
+            valueListenable: ValueNotifier<String>(settings.linkCollapseMode),
+            onChanged: (String? value) {
+              if (value != null) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setLinkCollapseMode(value);
+                showSnackBar('settingsApplied'.tr());
+              }
+            },
+            buttonStyleData: const ButtonStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              height: 40,
+              width: 140,
+            ),
+          ),
+        ),
+      ),
+
       // Color scheme settings
       Theme(
         data: Theme.of(

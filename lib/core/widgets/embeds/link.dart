@@ -12,12 +12,14 @@ class EmbedLinkWidget extends StatefulWidget {
   final SnScrappedLink link;
   final double? maxWidth;
   final EdgeInsetsGeometry? margin;
+  final bool isCompact;
 
   const EmbedLinkWidget({
     super.key,
     required this.link,
     this.maxWidth,
     this.margin,
+    this.isCompact = false,
   });
 
   @override
@@ -26,11 +28,27 @@ class EmbedLinkWidget extends StatefulWidget {
 
 class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
   bool? _isSquare;
+  ImageStream? _imageStream;
+  ImageStreamListener? _listener;
 
   @override
   void initState() {
     super.initState();
     _checkIfSquare();
+  }
+
+  @override
+  void dispose() {
+    _cancelImageStream();
+    super.dispose();
+  }
+
+  void _cancelImageStream() {
+    if (_imageStream != null && _listener != null) {
+      _imageStream!.removeListener(_listener!);
+      _imageStream = null;
+      _listener = null;
+    }
   }
 
   Future<void> _checkIfSquare() async {
@@ -40,28 +58,26 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
       return;
     }
 
+    _cancelImageStream();
+
+    if (!mounted) return;
+
     try {
       final image = CachedNetworkImageProvider(widget.link.imageUrl!);
       final ImageStream stream = image.resolve(ImageConfiguration.empty);
-      final completer = Completer<ImageInfo>();
-      final listener = ImageStreamListener((
-        ImageInfo info,
-        bool synchronousCall,
-      ) {
-        completer.complete(info);
-      });
-      stream.addListener(listener);
-      final info = await completer.future;
-      stream.removeListener(listener);
 
-      final aspectRatio = info.image.width / info.image.height;
-      if (mounted) {
+      void listenerCallback(ImageInfo info, bool synchronousCall) {
+        if (!mounted) return;
+        final aspectRatio = info.image.width / info.image.height;
         setState(() {
           _isSquare = aspectRatio >= 0.9 && aspectRatio <= 1.1;
         });
       }
+
+      _listener = ImageStreamListener(listenerCallback);
+      _imageStream = stream;
+      stream.addListener(_listener!);
     } catch (e) {
-      // If error, assume not square
       if (mounted) {
         setState(() {
           _isSquare = false;
@@ -90,6 +106,19 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    if (widget.isCompact) {
+      return _buildCompactLayout(theme, colorScheme);
+    }
+
+    return _buildFullLayout(theme, colorScheme);
+  }
+
+  Widget _buildCompactLayout(ThemeData theme, ColorScheme colorScheme) {
+    final hasImage =
+        widget.link.imageUrl != null &&
+        widget.link.imageUrl!.isNotEmpty &&
+        widget.link.imageUrl != widget.link.faviconUrl;
+
     return Container(
       width: widget.maxWidth,
       margin: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
@@ -100,50 +129,122 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
           onTap: _launchUrl,
           child: Row(
             children: [
-              // Sqaure open graph image
-              if (_isSquare == true) ...[
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 120),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: UniversalImage(
-                      uri: widget.link.imageUrl!,
-                      fit: BoxFit.cover,
-                    ),
+              if (hasImage) ...[
+                SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: UniversalImage(
+                    uri: widget.link.imageUrl!,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                const Gap(8),
+              ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.link.title?.isNotEmpty ?? false)
+                        Text(
+                          widget.link.title!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      const Gap(2),
+                      Row(
+                        children: [
+                          if (widget.link.faviconUrl?.isNotEmpty ?? false) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: UniversalImage(
+                                uri: widget.link.faviconUrl!.startsWith('//')
+                                    ? 'https:${widget.link.faviconUrl!}'
+                                    : widget.link.faviconUrl!.startsWith('/')
+                                    ? _getBaseUrl(widget.link.url) +
+                                          widget.link.faviconUrl!
+                                    : widget.link.faviconUrl!,
+                                width: 12,
+                                height: 12,
+                                fit: BoxFit.cover,
+                                useFallbackImage: false,
+                              ),
+                            ),
+                            const Gap(4),
+                          ],
+                          Expanded(
+                            child: Text(
+                              Uri.parse(widget.link.url).host,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontSize: 11,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullLayout(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      width: widget.maxWidth,
+      margin: widget.margin ?? const EdgeInsets.symmetric(vertical: 8),
+      child: Card(
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: _launchUrl,
+          child: Row(
+            children: [
+              if (_isSquare == true) ...[
+                SizedBox(
+                  width: 100,
+                  child: UniversalImage(
+                    uri: widget.link.imageUrl!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const Gap(12),
               ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Preview Image
                     if (widget.link.imageUrl != null &&
                         widget.link.imageUrl!.isNotEmpty &&
                         widget.link.imageUrl != widget.link.faviconUrl &&
                         _isSquare != true)
                       Container(
                         width: double.infinity,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHigh,
-                        child: IntrinsicHeight(
-                          child: UniversalImage(
-                            uri: widget.link.imageUrl!,
-                            fit: BoxFit.cover,
-                            useFallbackImage: false,
-                          ),
+                        constraints: const BoxConstraints(maxHeight: 200),
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        child: UniversalImage(
+                          uri: widget.link.imageUrl!,
+                          fit: BoxFit.cover,
+                          useFallbackImage: false,
                         ),
                       ),
-
-                    // Content
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Site info row
                           Row(
                             children: [
                               if (widget.link.faviconUrl?.isNotEmpty ??
@@ -175,8 +276,6 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
                                 ),
                                 const Gap(8),
                               ],
-
-                              // Site name
                               Expanded(
                                 child: Text(
                                   (widget.link.siteName?.isNotEmpty ?? false)
@@ -189,89 +288,83 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-
-                              // External link icon
                               Icon(
                                 Symbols.open_in_new,
-                                size: 16,
+                                size: 14,
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ],
                           ),
-
-                          const Gap(8),
-
-                          // Title
+                          const Gap(10),
                           if (widget.link.title?.isNotEmpty ?? false) ...[
                             Text(
                               widget.link.title!,
-                              style: theme.textTheme.titleMedium?.copyWith(
+                              style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w600,
+                                height: 1.3,
                               ),
                               maxLines: _isSquare == true ? 1 : 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Gap(_isSquare == true ? 2 : 4),
+                            Gap(_isSquare == true ? 2 : 6),
                           ],
-
-                          // Description
                           if (widget.link.description != null &&
                               widget.link.description!.isNotEmpty) ...[
                             Text(
                               widget.link.description!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
+                              style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
+                                height: 1.4,
                               ),
-                              maxLines: _isSquare == true ? 1 : 3,
+                              maxLines: _isSquare == true ? 1 : 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             Gap(_isSquare == true ? 4 : 8),
                           ],
-
-                          // URL
                           Text(
                             widget.link.url,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.primary,
                               decoration: TextDecoration.underline,
+                              decorationColor: colorScheme.primary.withOpacity(
+                                0.7,
+                              ),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-
-                          // Author and publish date
                           if (widget.link.author != null ||
                               widget.link.publishedDate != null) ...[
-                            const Gap(8),
+                            const Gap(6),
                             Row(
                               children: [
                                 if (widget.link.author != null) ...[
                                   Icon(
                                     Symbols.person,
-                                    size: 14,
+                                    size: 12,
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                                   const Gap(4),
                                   Text(
                                     widget.link.author!,
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    style: theme.textTheme.labelSmall?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
                                 if (widget.link.author != null &&
                                     widget.link.publishedDate != null)
-                                  const Gap(16),
+                                  const Gap(12),
                                 if (widget.link.publishedDate != null) ...[
                                   Icon(
                                     Symbols.schedule,
-                                    size: 14,
+                                    size: 12,
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                                   const Gap(4),
                                   Text(
                                     _formatDate(widget.link.publishedDate!),
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    style: theme.textTheme.labelSmall?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
                                     ),
                                   ),

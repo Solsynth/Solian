@@ -1,5 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/livestreams/livestream.dart';
 import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/core/widgets/embeds/link.dart';
@@ -7,7 +10,7 @@ import 'package:island/wallets/widgets/fund_envelope.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class EmbedListWidget extends StatelessWidget {
+class EmbedListWidget extends ConsumerStatefulWidget {
   final List<dynamic> embeds;
   final bool isInteractive;
   final bool isFullPost;
@@ -24,9 +27,30 @@ class EmbedListWidget extends StatelessWidget {
   });
 
   @override
+  ConsumerState<EmbedListWidget> createState() => _EmbedListWidgetState();
+}
+
+class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final settings = ref.read(appSettingsProvider);
+      setState(() {
+        _isExpanded = settings.linkCollapseMode == 'expand';
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final linkEmbeds = embeds.where((e) => e['type'] == 'link').toList();
-    final otherEmbeds = embeds.where((e) => e['type'] != 'link').toList();
+    final linkEmbeds = widget.embeds.where((e) => e['type'] == 'link').toList();
+    final otherEmbeds = widget.embeds
+        .where((e) => e['type'] != 'link')
+        .toList();
+    final theme = Theme.of(context);
 
     return Column(
       children: [
@@ -34,59 +58,68 @@ class EmbedListWidget extends StatelessWidget {
           Container(
             margin: EdgeInsets.only(
               top: 8,
-              left: renderingPadding.horizontal,
-              right: renderingPadding.horizontal,
+              left: widget.renderingPadding.horizontal,
+              right: widget.renderingPadding.horizontal,
             ),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.5),
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                initiallyExpanded: true,
-                dense: true,
-                leading: const Icon(Symbols.link),
-                title: Text('embedLinks'.plural(linkEmbeds.length)),
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: linkEmbeds.length == 1
-                        ? EmbedLinkWidget(
-                            link: SnScrappedLink.fromJson(linkEmbeds.first),
-                          )
-                        : SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: linkEmbeds
-                                  .map(
-                                    (embedData) => EmbedLinkWidget(
-                                      link: SnScrappedLink.fromJson(embedData),
-                                      maxWidth:
-                                          200, // Fixed width for horizontal scroll
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row with expand/collapse
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.link,
+                          size: 18,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const Gap(8),
+                        Text(
+                          'embedLinks'.plural(linkEmbeds.length),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          _isExpanded ? 'collapse'.tr() : 'expand'.tr(),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+                // Animated content
+                AnimatedCrossFade(
+                  firstChild: _buildExpandedContent(linkEmbeds),
+                  secondChild: _buildCollapsedContent(linkEmbeds),
+                  crossFadeState: _isExpanded
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  duration: const Duration(milliseconds: 200),
+                ),
+              ],
             ),
           ),
         ...otherEmbeds.map(
           (embedData) => switch (embedData['type']) {
             'poll' => Card(
               margin: EdgeInsets.symmetric(
-                horizontal: renderingPadding.horizontal,
+                horizontal: widget.renderingPadding.horizontal,
                 vertical: 8,
               ),
               child: Padding(
@@ -99,8 +132,8 @@ class EmbedListWidget extends StatelessWidget {
                     : PollSubmit(
                         pollId: embedData['id'],
                         onSubmit: (_) {},
-                        isReadonly: !isInteractive,
-                        isInitiallyExpanded: isFullPost,
+                        isReadonly: !widget.isInteractive,
+                        isInitiallyExpanded: widget.isFullPost,
                       ),
               ),
             ),
@@ -110,7 +143,7 @@ class EmbedListWidget extends StatelessWidget {
                   : FundEnvelopeWidget(
                       fundId: embedData['id'],
                       margin: EdgeInsets.symmetric(
-                        horizontal: renderingPadding.horizontal,
+                        horizontal: widget.renderingPadding.horizontal,
                         vertical: 8,
                       ),
                     ),
@@ -119,9 +152,9 @@ class EmbedListWidget extends StatelessWidget {
                   ? const Text('Livestream was unavailable...')
                   : LivestreamEmbedWidget(
                       livestreamId: embedData['id'],
-                      isInteractive: isInteractive,
+                      isInteractive: widget.isInteractive,
                       margin: EdgeInsets.symmetric(
-                        horizontal: renderingPadding.horizontal,
+                        horizontal: widget.renderingPadding.horizontal,
                         vertical: 8,
                       ),
                     ),
@@ -129,6 +162,47 @@ class EmbedListWidget extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildExpandedContent(List<dynamic> linkEmbeds) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: linkEmbeds.length == 1
+          ? EmbedLinkWidget(link: SnScrappedLink.fromJson(linkEmbeds.first))
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: linkEmbeds
+                    .map(
+                      (embedData) => SizedBox(
+                        width: 180,
+                        child: EmbedLinkWidget(
+                          link: SnScrappedLink.fromJson(embedData),
+                          margin: const EdgeInsets.only(right: 8),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildCollapsedContent(List<dynamic> linkEmbeds) {
+    if (linkEmbeds.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: EmbedLinkWidget(
+        link: SnScrappedLink.fromJson(linkEmbeds.first),
+        isCompact: true,
+      ),
     );
   }
 }

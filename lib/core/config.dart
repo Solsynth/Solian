@@ -48,6 +48,7 @@ const kAppEnterToSend = 'app_enter_to_send';
 const kAppDefaultPoolId = 'app_default_pool_id';
 const kAppMessageDisplayStyle = 'app_message_display_style';
 const kAppAttachmentsListStyle = 'app_attachments_list_style';
+const kAppLinkCollapseMode = 'app_link_collapse_mode';
 const kAppThemeMode = 'app_theme_mode';
 const kAppDisableAnimation = 'app_disable_animation';
 const kAppGroupedChatList = 'app_grouped_chat_list';
@@ -133,6 +134,7 @@ sealed class AppSettings with _$AppSettings {
     required String? defaultPoolId,
     required String messageDisplayStyle,
     required String attachmentsListStyle,
+    required String linkCollapseMode,
     required String? themeMode,
     required bool disableAnimation,
     required bool groupedChatList,
@@ -184,6 +186,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       defaultPoolId: prefs.getString(kAppDefaultPoolId),
       messageDisplayStyle: prefs.getString(kAppMessageDisplayStyle) ?? 'bubble',
       attachmentsListStyle: prefs.getString(kAppAttachmentsListStyle) ?? 'row',
+      linkCollapseMode: prefs.getString(kAppLinkCollapseMode) ?? 'expand',
       themeMode: prefs.getString(kAppThemeMode) ?? 'system',
       disableAnimation: prefs.getBool(kAppDisableAnimation) ?? false,
       groupedChatList: prefs.getBool(kAppGroupedChatList) ?? false,
@@ -375,6 +378,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setString(kAppAttachmentsListStyle, value);
     state = state.copyWith(attachmentsListStyle: value);
+  }
+
+  void setLinkCollapseMode(String value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(kAppLinkCollapseMode, value);
+    state = state.copyWith(linkCollapseMode: value);
   }
 
   void setWindowOpacity(double value) {
