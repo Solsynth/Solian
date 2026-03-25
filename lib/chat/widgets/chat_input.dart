@@ -669,9 +669,7 @@ class ChatInput extends HookConsumerWidget {
     final double leftMargin = isWideScreen(context) ? 8 : 16;
     final double rightMargin = isWideScreen(context) ? leftMargin : 16;
     const double bottomMargin = 16;
-    final inputBorderRadius = BorderRadius.circular(
-      isMessageListScrolling ? 8 : 32,
-    );
+    final inputBorderRadius = BorderRadius.circular(32);
 
     final userInfo = ref.watch(userInfoProvider);
 
@@ -693,414 +691,251 @@ class ChatInput extends HookConsumerWidget {
         isDraggingOver.value = false;
         await handleDroppedFiles(details);
       },
-      child: Container(
-        margin: EdgeInsets.only(
-          left: leftMargin,
-          right: rightMargin,
-          bottom: bottomMargin,
-        ),
-        child: Material(
-          elevation: 2,
-          color: isDraggingOver.value
-              ? Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.8)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          shape: RoundedRectangleBorder(
-            borderRadius: inputBorderRadius,
-            side: isDraggingOver.value
-                ? BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 1.5,
-                  )
-                : BorderSide.none,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: 0,
+            child: AnimatedContainer(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  if (isMessageListScrolling)
+                    BoxShadow(
+                      color: Theme.of(context).shadowColor.withOpacity(0.25),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                      offset: const Offset(0, -4),
+                    ),
+                ],
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                ),
+                color: isMessageListScrolling
+                    ? Theme.of(context).colorScheme.surfaceContainer
+                    : Colors.transparent,
+              ),
+              duration: const Duration(milliseconds: 300),
+            ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-            child: Column(
-              children: [
-                _DirectMessageStatusBanner(
-                  chatRoom: chatRoom,
-                  validMembers: validMembers,
-                ),
-                if (hasActiveTimeout)
-                  _ChatTimeoutBanner(timeoutUntil: timeoutUntil),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  switchInCurve: Curves.fastEaseInToSlowEaseOut,
-                  switchOutCurve: Curves.fastEaseInToSlowEaseOut,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position:
-                              Tween<Offset>(
-                                begin: const Offset(0, -0.3),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                              ),
-                          child: SizeTransition(
-                            sizeFactor: animation,
-                            axisAlignment: -1.0,
-                            child: FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                  child: chatSubscribe.isNotEmpty
-                      ? Container(
-                          key: const ValueKey('typing-indicator'),
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Symbols.more_horiz,
-                                size: 16,
-                              ).padding(horizontal: 8),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  'typingHint'.plural(
-                                    chatSubscribe.length,
-                                    args: [
-                                      chatSubscribe
-                                          .map((x) => (x.nick?.isNotEmpty == true) ? x.nick : x.account.nick)
-                                          .join(', '),
-                                    ],
-                                  ),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(
-                          key: ValueKey('typing-indicator-none'),
-                        ),
-                ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.1),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: SizeTransition(
-                              sizeFactor: animation,
-                              axisAlignment: -1.0,
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                  child: attachments.isNotEmpty
-                      ? SizedBox(
-                          key: ValueKey('attachments-${attachments.length}'),
-                          height: 180,
-                          child: ListView.separated(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: attachments.length,
-                            itemBuilder: (context, idx) {
-                              return SizedBox(
-                                width: 180,
-                                child: AttachmentPreview(
-                                  isCompact: true,
-                                  item: attachments[idx],
-                                  progress:
-                                      attachmentProgress['chat-upload']?[idx],
-                                  isUploading:
-                                      attachmentProgress['chat-upload']
-                                          ?.containsKey(idx) ??
-                                      false,
-                                  onRequestUpload: () => onUploadAttachment(
-                                    idx,
-                                    encryptKey: roomEncryptKey,
-                                  ),
-                                  onDelete: () => onDeleteAttachment(idx),
-                                  onUpdate: (value) {
-                                    attachments[idx] = value;
-                                    onAttachmentsChanged(attachments);
-                                  },
-                                  onMove: (delta) =>
-                                      onMoveAttachment(idx, delta),
-                                ),
-                              );
-                            },
-                            separatorBuilder: (_, _) => const Gap(8),
-                          ),
-                        ).padding(vertical: 12)
-                      : const SizedBox.shrink(key: ValueKey('no-attachments')),
-                ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, -0.25),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: SizeTransition(
-                              sizeFactor: animation,
-                              axisAlignment: -1.0,
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                  child: selectedPoll != null
-                      ? Container(
-                          key: const ValueKey('selected-poll'),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          margin: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.how_to_vote,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  selectedPoll!.title ?? 'Poll',
-                                  style: Theme.of(context).textTheme.bodySmall!
-                                      .copyWith(fontWeight: FontWeight.w500),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () => onPollSelected(null),
-                                  tooltip: 'clear'.tr(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(
-                          key: ValueKey('no-selected-poll'),
-                        ),
-                ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, -0.25),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: SizeTransition(
-                              sizeFactor: animation,
-                              axisAlignment: -1.0,
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                  child: selectedFund != null
-                      ? Container(
-                          key: const ValueKey('selected-fund'),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          margin: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.currency_exchange,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${selectedFund!.totalAmount.toStringAsFixed(2)} ${selectedFund!.currency}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall!
-                                          .copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+          Container(
+            margin: EdgeInsets.only(
+              top: 12,
+              left: leftMargin,
+              right: rightMargin,
+              bottom: bottomMargin,
+            ),
+            child: Material(
+              elevation: 2,
+              color: isDraggingOver.value
+                  ? Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withOpacity(0.8)
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              shape: RoundedRectangleBorder(
+                borderRadius: inputBorderRadius,
+                side: isDraggingOver.value
+                    ? BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1.5,
+                      )
+                    : BorderSide.none,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                child: Column(
+                  children: [
+                    _DirectMessageStatusBanner(
+                      chatRoom: chatRoom,
+                      validMembers: validMembers,
+                    ),
+                    if (hasActiveTimeout)
+                      _ChatTimeoutBanner(timeoutUntil: timeoutUntil),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                      switchOutCurve: Curves.fastEaseInToSlowEaseOut,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin: const Offset(0, -0.3),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic,
                                     ),
-                                    if (selectedFund!.message != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 2),
-                                        child: Text(
-                                          selectedFund!.message!,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall!
-                                              .copyWith(
-                                                fontSize: 10,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                              ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                  ),
+                              child: SizeTransition(
+                                sizeFactor: animation,
+                                axisAlignment: -1.0,
+                                child: FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                      child: chatSubscribe.isNotEmpty
+                          ? Container(
+                              key: const ValueKey('typing-indicator'),
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Symbols.more_horiz,
+                                    size: 16,
+                                  ).padding(horizontal: 8),
+                                  const Gap(8),
+                                  Expanded(
+                                    child: Text(
+                                      'typingHint'.plural(
+                                        chatSubscribe.length,
+                                        args: [
+                                          chatSubscribe
+                                              .map(
+                                                (x) =>
+                                                    (x.nick?.isNotEmpty == true)
+                                                    ? x.nick
+                                                    : x.account.nick,
+                                              )
+                                              .join(', '),
+                                        ],
                                       ),
-                                  ],
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('typing-indicator-none'),
+                            ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.1),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  axisAlignment: -1.0,
+                                  child: child,
                                 ),
                               ),
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () => onFundSelected(null),
-                                  tooltip: 'clear'.tr(),
+                            );
+                          },
+                      child: attachments.isNotEmpty
+                          ? SizedBox(
+                              key: ValueKey(
+                                'attachments-${attachments.length}',
+                              ),
+                              height: 180,
+                              child: ListView.separated(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                scrollDirection: Axis.horizontal,
+                                itemCount: attachments.length,
+                                itemBuilder: (context, idx) {
+                                  return SizedBox(
+                                    width: 180,
+                                    child: AttachmentPreview(
+                                      isCompact: true,
+                                      item: attachments[idx],
+                                      progress:
+                                          attachmentProgress['chat-upload']?[idx],
+                                      isUploading:
+                                          attachmentProgress['chat-upload']
+                                              ?.containsKey(idx) ??
+                                          false,
+                                      onRequestUpload: () => onUploadAttachment(
+                                        idx,
+                                        encryptKey: roomEncryptKey,
+                                      ),
+                                      onDelete: () => onDeleteAttachment(idx),
+                                      onUpdate: (value) {
+                                        attachments[idx] = value;
+                                        onAttachmentsChanged(attachments);
+                                      },
+                                      onMove: (delta) =>
+                                          onMoveAttachment(idx, delta),
+                                    ),
+                                  );
+                                },
+                                separatorBuilder: (_, _) => const Gap(8),
+                              ),
+                            ).padding(vertical: 12)
+                          : const SizedBox.shrink(
+                              key: ValueKey('no-attachments'),
+                            ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, -0.25),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  axisAlignment: -1.0,
+                                  child: child,
                                 ),
                               ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(
-                          key: ValueKey('no-selected-fund'),
-                        ),
-                ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, -0.2),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: SizeTransition(
-                              sizeFactor: animation,
-                              axisAlignment: -1.0,
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                  child:
-                      (messageReplyingTo != null ||
-                          messageForwardingTo != null ||
-                          messageEditingTo != null)
-                      ? Container(
-                          key: ValueKey(
-                            messageReplyingTo?.id ??
-                                messageForwardingTo?.id ??
-                                messageEditingTo?.id ??
-                                'action',
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          margin: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 8,
-                            bottom: 8,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                            );
+                          },
+                      child: selectedPoll != null
+                          ? Container(
+                              key: const ValueKey('selected-poll'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              margin: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                                top: 8,
+                                bottom: 8,
+                              ),
+                              child: Row(
                                 children: [
                                   Icon(
-                                    messageReplyingTo != null
-                                        ? Symbols.reply
-                                        : messageForwardingTo != null
-                                        ? Symbols.forward
-                                        : Symbols.edit,
+                                    Symbols.how_to_vote,
                                     size: 18,
                                     color: Theme.of(
                                       context,
@@ -1109,19 +944,7 @@ class ChatInput extends HookConsumerWidget {
                                   const Gap(8),
                                   Expanded(
                                     child: Text(
-                                      messageReplyingTo != null
-                                          ? 'chatReplyingTo'.tr(
-                                              args: [
-                                                messageReplyingTo
-                                                        ?.sender
-                                                        .account
-                                                        .nick ??
-                                                    'unknown'.tr(),
-                                              ],
-                                            )
-                                          : messageForwardingTo != null
-                                          ? 'chatForwarding'.tr()
-                                          : 'chatEditing'.tr(),
+                                      selectedPoll!.title ?? 'Poll',
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall!
@@ -1138,478 +961,729 @@ class ChatInput extends HookConsumerWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: onClear,
+                                      onPressed: () => onPollSelected(null),
                                       tooltip: 'clear'.tr(),
                                     ),
                                   ),
                                 ],
                               ),
-                              if (messageReplyingTo != null ||
-                                  messageForwardingTo != null ||
-                                  messageEditingTo != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 6,
-                                    left: 26,
-                                  ),
-                                  child: Text(
-                                    (() {
-                                      final actionMessage =
-                                          messageReplyingTo ??
-                                          messageForwardingTo ??
-                                          messageEditingTo;
-                                      if (actionMessage == null) {
-                                        return 'chatNoContent'.tr();
-                                      }
-                                      final resolved =
-                                          resolveE2eeDisplayContentForMessage(
-                                            actionMessage,
-                                          );
-                                      if (resolved.content?.isNotEmpty ==
-                                          true) {
-                                        return resolved.content!;
-                                      }
-                                      if (resolved.decryptFailed) {
-                                        return '[Unable to decrypt this message]';
-                                      }
-                                      if (resolved.emptyAfterDecrypt) {
-                                        return '[Encrypted message has no text content]';
-                                      }
-                                      return 'chatNoContent'.tr();
-                                    })(),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall!
-                                        .copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(key: ValueKey('no-action')),
-                ),
-                Row(
-                  crossAxisAlignment: isVoiceMode.value
-                      ? CrossAxisAlignment.center
-                      : CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: isVoiceMode.value
-                              ? 'Leave voice mode'
-                              : (isExpanded.value
-                                    ? 'collapse'.tr()
-                                    : 'more'.tr()),
-                          icon: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            transitionBuilder: (child, animation) =>
-                                FadeTransition(
-                                  opacity: animation,
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('no-selected-poll'),
+                            ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, -0.25),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  axisAlignment: -1.0,
                                   child: child,
                                 ),
-                            child: isVoiceMode.value
-                                ? const Icon(
-                                    Symbols.keyboard_return,
-                                    key: ValueKey('voice-leave'),
-                                  )
-                                : isExpanded.value
-                                ? const Icon(
-                                    Symbols.close,
-                                    key: ValueKey('close'),
-                                  )
-                                : const Icon(Symbols.add, key: ValueKey('add')),
-                          ),
-                          onPressed: canCompose
-                              ? () {
-                                  if (isVoiceMode.value) {
-                                    leaveVoiceMode();
-                                    return;
-                                  }
-                                  isExpanded.value = !isExpanded.value;
-                                }
-                              : null,
-                        ),
-                        if (!isVoiceMode.value)
-                          IgnorePointer(
-                            ignoring: !canCompose,
-                            child: Opacity(
-                              opacity: canCompose ? 1 : 0.45,
-                              child: UploadMenu(
-                                items: [
-                                  UploadMenuItemData(
-                                    Symbols.add_a_photo,
-                                    'addPhoto',
-                                    () => onPickFile(true),
+                              ),
+                            );
+                          },
+                      child: selectedFund != null
+                          ? Container(
+                              key: const ValueKey('selected-fund'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              margin: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                                top: 8,
+                                bottom: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Symbols.currency_exchange,
+                                    size: 18,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
-                                  UploadMenuItemData(
-                                    Symbols.videocam,
-                                    'addVideo',
-                                    () => onPickFile(false),
+                                  const Gap(8),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${selectedFund!.totalAmount.toStringAsFixed(2)} ${selectedFund!.currency}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall!
+                                              .copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (selectedFund!.message != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 2,
+                                            ),
+                                            child: Text(
+                                              selectedFund!.message!,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall!
+                                                  .copyWith(
+                                                    fontSize: 10,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                  UploadMenuItemData(
-                                    Symbols.mic,
-                                    'addAudio',
-                                    onPickAudio,
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      icon: const Icon(Icons.close, size: 18),
+                                      onPressed: () => onFundSelected(null),
+                                      tooltip: 'clear'.tr(),
+                                    ),
                                   ),
-                                  UploadMenuItemData(
-                                    Symbols.file_upload,
-                                    'uploadFile',
-                                    onPickGeneralFile,
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('no-selected-fund'),
+                            ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, -0.2),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  axisAlignment: -1.0,
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                      child:
+                          (messageReplyingTo != null ||
+                              messageForwardingTo != null ||
+                              messageEditingTo != null)
+                          ? Container(
+                              key: ValueKey(
+                                messageReplyingTo?.id ??
+                                    messageForwardingTo?.id ??
+                                    messageEditingTo?.id ??
+                                    'action',
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              margin: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                                top: 8,
+                                bottom: 8,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        messageReplyingTo != null
+                                            ? Symbols.reply
+                                            : messageForwardingTo != null
+                                            ? Symbols.forward
+                                            : Symbols.edit,
+                                        size: 18,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
+                                      const Gap(8),
+                                      Expanded(
+                                        child: Text(
+                                          messageReplyingTo != null
+                                              ? 'chatReplyingTo'.tr(
+                                                  args: [
+                                                    messageReplyingTo
+                                                            ?.sender
+                                                            .account
+                                                            .nick ??
+                                                        'unknown'.tr(),
+                                                  ],
+                                                )
+                                              : messageForwardingTo != null
+                                              ? 'chatForwarding'.tr()
+                                              : 'chatEditing'.tr(),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall!
+                                              .copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: IconButton(
+                                          padding: EdgeInsets.zero,
+                                          icon: const Icon(
+                                            Icons.close,
+                                            size: 18,
+                                          ),
+                                          onPressed: onClear,
+                                          tooltip: 'clear'.tr(),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  if (onLinkAttachment != null)
-                                    UploadMenuItemData(
-                                      Symbols.attach_file,
-                                      'linkAttachment',
-                                      onLinkAttachment!,
+                                  if (messageReplyingTo != null ||
+                                      messageForwardingTo != null ||
+                                      messageEditingTo != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 6,
+                                        left: 26,
+                                      ),
+                                      child: Text(
+                                        (() {
+                                          final actionMessage =
+                                              messageReplyingTo ??
+                                              messageForwardingTo ??
+                                              messageEditingTo;
+                                          if (actionMessage == null) {
+                                            return 'chatNoContent'.tr();
+                                          }
+                                          final resolved =
+                                              resolveE2eeDisplayContentForMessage(
+                                                actionMessage,
+                                              );
+                                          if (resolved.content?.isNotEmpty ==
+                                              true) {
+                                            return resolved.content!;
+                                          }
+                                          if (resolved.decryptFailed) {
+                                            return '[Unable to decrypt this message]';
+                                          }
+                                          if (resolved.emptyAfterDecrypt) {
+                                            return '[Encrypted message has no text content]';
+                                          }
+                                          return 'chatNoContent'.tr();
+                                        })(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall!
+                                            .copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                 ],
-                                iconColor: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface,
                               ),
+                            )
+                          : const SizedBox.shrink(key: ValueKey('no-action')),
+                    ),
+                    Row(
+                      crossAxisAlignment: isVoiceMode.value
+                          ? CrossAxisAlignment.center
+                          : CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: isVoiceMode.value
+                                  ? 'Leave voice mode'
+                                  : (isExpanded.value
+                                        ? 'collapse'.tr()
+                                        : 'more'.tr()),
+                              icon: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                transitionBuilder: (child, animation) =>
+                                    FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    ),
+                                child: isVoiceMode.value
+                                    ? const Icon(
+                                        Symbols.keyboard_return,
+                                        key: ValueKey('voice-leave'),
+                                      )
+                                    : isExpanded.value
+                                    ? const Icon(
+                                        Symbols.close,
+                                        key: ValueKey('close'),
+                                      )
+                                    : const Icon(
+                                        Symbols.add,
+                                        key: ValueKey('add'),
+                                      ),
+                              ),
+                              onPressed: canCompose
+                                  ? () {
+                                      if (isVoiceMode.value) {
+                                        leaveVoiceMode();
+                                        return;
+                                      }
+                                      isExpanded.value = !isExpanded.value;
+                                    }
+                                  : null,
                             ),
+                            if (!isVoiceMode.value)
+                              IgnorePointer(
+                                ignoring: !canCompose,
+                                child: Opacity(
+                                  opacity: canCompose ? 1 : 0.45,
+                                  child: UploadMenu(
+                                    items: [
+                                      UploadMenuItemData(
+                                        Symbols.add_a_photo,
+                                        'addPhoto',
+                                        () => onPickFile(true),
+                                      ),
+                                      UploadMenuItemData(
+                                        Symbols.videocam,
+                                        'addVideo',
+                                        () => onPickFile(false),
+                                      ),
+                                      UploadMenuItemData(
+                                        Symbols.mic,
+                                        'addAudio',
+                                        onPickAudio,
+                                      ),
+                                      UploadMenuItemData(
+                                        Symbols.file_upload,
+                                        'uploadFile',
+                                        onPickGeneralFile,
+                                      ),
+                                      if (onLinkAttachment != null)
+                                        UploadMenuItemData(
+                                          Symbols.attach_file,
+                                          'linkAttachment',
+                                          onLinkAttachment!,
+                                        ),
+                                    ],
+                                    iconColor: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        Expanded(
+                          child: isVoiceMode.value
+                              ? GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onLongPressStart: (details) async {
+                                    recordingOrigin.value =
+                                        details.globalPosition;
+                                    await startVoiceRecording();
+                                  },
+                                  onLongPressMoveUpdate: (details) {
+                                    final origin = recordingOrigin.value;
+                                    if (origin == null ||
+                                        !isRecordingVoice.value) {
+                                      return;
+                                    }
+                                    final dy =
+                                        details.globalPosition.dy - origin.dy;
+                                    isVoiceCancelArmed.value = dy < -56;
+                                  },
+                                  onLongPressEnd: (_) async {
+                                    await finishVoiceRecording(
+                                      shouldCancel: isVoiceCancelArmed.value,
+                                    );
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 120),
+                                    height: isRecordingVoice.value ? 72 : 44,
+                                    margin: const EdgeInsets.only(top: 2),
+                                    decoration: BoxDecoration(
+                                      color: isRecordingVoice.value
+                                          ? (isVoiceCancelArmed.value
+                                                ? Theme.of(
+                                                    context,
+                                                  ).colorScheme.error
+                                                : Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary)
+                                          : Theme.of(
+                                              context,
+                                            ).colorScheme.surfaceContainerHigh,
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            isRecordingVoice.value
+                                                ? (isVoiceCancelArmed.value
+                                                      ? 'Release to cancel • ${recordingDuration.value.inSeconds}s'
+                                                      : 'Recording ${recordingDuration.value.inSeconds}s • swipe up to cancel')
+                                                : 'Hold to record voice • max 300s',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  color: isRecordingVoice.value
+                                                      ? Theme.of(
+                                                          context,
+                                                        ).colorScheme.onPrimary
+                                                      : null,
+                                                ),
+                                          ),
+                                          if (isRecordingVoice.value) ...[
+                                            const Gap(4),
+                                            SizedBox(
+                                              height: 16,
+                                              child: AnimatedWaveList(
+                                                stream: amplitudeStream.stream,
+                                                barBuilder: (animation, amplitude) {
+                                                  final baseColor = Theme.of(
+                                                    context,
+                                                  ).colorScheme.onPrimary;
+                                                  return SizeTransition(
+                                                    sizeFactor: animation,
+                                                    child: Container(
+                                                      width: 3,
+                                                      height:
+                                                          (160 /
+                                                              amplitude.current
+                                                                  .abs()
+                                                                  .clamp(
+                                                                    1,
+                                                                    160,
+                                                                  )) *
+                                                          1.6,
+                                                      margin:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 1,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: baseColor
+                                                            .withOpacity(0.9),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : TypeAheadField<AutocompleteSuggestion>(
+                                  controller: messageController,
+                                  focusNode: inputFocusNode,
+                                  builder: (context, controller, focusNode) {
+                                    return TextField(
+                                      focusNode: focusNode,
+                                      controller: controller,
+                                      enabled: canCompose,
+                                      readOnly: !canCompose,
+                                      keyboardType: TextInputType.multiline,
+                                      decoration: InputDecoration(
+                                        hintMaxLines: 1,
+                                        hintText:
+                                            (chatRoom.type == 1 &&
+                                                chatRoom.name == null)
+                                            ? 'chatDirectMessageHint'.tr(
+                                                args: [
+                                                  getValidMembers(
+                                                        chatRoom.members!,
+                                                      )
+                                                      .map(
+                                                        (e) => e.account.nick,
+                                                      )
+                                                      .join(', '),
+                                                ],
+                                              )
+                                            : 'chatMessageHint'.tr(
+                                                args: [chatRoom.name!],
+                                              ),
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 12,
+                                            ),
+                                        counterText:
+                                            messageController.text.length > 1024
+                                            ? '${messageController.text.length}/4096'
+                                            : null,
+                                      ),
+                                      maxLines: 5,
+                                      minLines: 1,
+                                      onTapOutside: (_) => FocusManager
+                                          .instance
+                                          .primaryFocus
+                                          ?.unfocus(),
+                                      textInputAction: settings.enterToSend
+                                          ? TextInputAction.send
+                                          : null,
+                                      onEditingComplete: () {
+                                        if (settings.enterToSend &&
+                                            canCompose) {
+                                          inputFocusNode.requestFocus();
+                                        }
+                                      },
+                                      onSubmitted: settings.enterToSend
+                                          ? (_) => send()
+                                          : null,
+                                    );
+                                  },
+                                  suggestionsCallback: (pattern) async {
+                                    // Only trigger on @ or :
+                                    final atIndex = pattern.lastIndexOf('@');
+                                    final colonIndex = pattern.lastIndexOf(':');
+                                    final triggerIndex = atIndex > colonIndex
+                                        ? atIndex
+                                        : colonIndex;
+                                    if (triggerIndex == -1) return [];
+                                    final chopped = pattern.substring(
+                                      triggerIndex,
+                                    );
+                                    if (chopped.contains(' ')) return [];
+                                    final service = ref.read(
+                                      autocompleteServiceProvider,
+                                    );
+                                    try {
+                                      return await service.getSuggestions(
+                                        chatRoom.id,
+                                        chopped,
+                                      );
+                                    } catch (e) {
+                                      return [];
+                                    }
+                                  },
+                                  itemBuilder: (context, suggestion) {
+                                    String title = 'unknown'.tr();
+                                    Widget leading = Icon(Symbols.help);
+                                    switch (suggestion.type) {
+                                      case 'user':
+                                        final user = SnAccount.fromJson(
+                                          suggestion.data,
+                                        );
+                                        title = user.nick;
+                                        leading = ProfilePictureWidget(
+                                          file: user.profile.picture,
+                                          radius: 18,
+                                        );
+                                        break;
+                                      case 'chatroom':
+                                        final chatRoom = SnChatRoom.fromJson(
+                                          suggestion.data,
+                                        );
+                                        title = chatRoom.name ?? 'Chat Room';
+                                        leading = ProfilePictureWidget(
+                                          file: chatRoom.picture,
+                                          radius: 18,
+                                        );
+                                        break;
+                                      case 'realm':
+                                        final realm = SnRealm.fromJson(
+                                          suggestion.data,
+                                        );
+                                        title = realm.name;
+                                        leading = ProfilePictureWidget(
+                                          file: realm.picture,
+                                          radius: 18,
+                                        );
+                                        break;
+                                      case 'publisher':
+                                        final publisher = SnPublisher.fromJson(
+                                          suggestion.data,
+                                        );
+                                        title = publisher.name;
+                                        leading = ProfilePictureWidget(
+                                          file: publisher.picture,
+                                          radius: 18,
+                                        );
+                                        break;
+                                      case 'sticker':
+                                        final sticker = SnSticker.fromJson(
+                                          suggestion.data,
+                                        );
+                                        title = sticker.slug;
+                                        leading = ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: SizedBox(
+                                            width: 28,
+                                            height: 28,
+                                            child: CloudImageWidget(
+                                              file: sticker.image,
+                                            ),
+                                          ),
+                                        );
+                                        break;
+                                      default:
+                                    }
+                                    return ListTile(
+                                      leading: leading,
+                                      title: Text(title),
+                                      subtitle: Text(suggestion.keyword),
+                                      dense: true,
+                                    );
+                                  },
+                                  onSelected: (suggestion) {
+                                    final text = messageController.text;
+                                    final atIndex = text.lastIndexOf('@');
+                                    final colonIndex = text.lastIndexOf(':');
+                                    final triggerIndex = atIndex > colonIndex
+                                        ? atIndex
+                                        : colonIndex;
+                                    if (triggerIndex == -1) return;
+                                    final newText = text.replaceRange(
+                                      triggerIndex,
+                                      text.length,
+                                      suggestion.keyword,
+                                    );
+                                    messageController.value = TextEditingValue(
+                                      text: newText,
+                                      selection: TextSelection.collapsed(
+                                        offset:
+                                            triggerIndex +
+                                            suggestion.keyword.length,
+                                      ),
+                                    );
+                                  },
+                                  direction: VerticalDirection.up,
+                                  hideOnEmpty: true,
+                                  hideOnLoading: true,
+                                  debounceDuration: const Duration(
+                                    milliseconds: 1000,
+                                  ),
+                                ),
+                        ),
+                        if (!isVoiceMode.value)
+                          IconButton(
+                            icon: const Icon(Icons.send),
+                            color: Theme.of(context).colorScheme.primary,
+                            onPressed: canCompose ? send : null,
                           ),
                       ],
                     ),
-                    Expanded(
-                      child: isVoiceMode.value
-                          ? GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onLongPressStart: (details) async {
-                                recordingOrigin.value = details.globalPosition;
-                                await startVoiceRecording();
-                              },
-                              onLongPressMoveUpdate: (details) {
-                                final origin = recordingOrigin.value;
-                                if (origin == null || !isRecordingVoice.value) {
-                                  return;
-                                }
-                                final dy =
-                                    details.globalPosition.dy - origin.dy;
-                                isVoiceCancelArmed.value = dy < -56;
-                              },
-                              onLongPressEnd: (_) async {
-                                await finishVoiceRecording(
-                                  shouldCancel: isVoiceCancelArmed.value,
-                                );
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 120),
-                                height: isRecordingVoice.value ? 72 : 44,
-                                margin: const EdgeInsets.only(top: 2),
-                                decoration: BoxDecoration(
-                                  color: isRecordingVoice.value
-                                      ? (isVoiceCancelArmed.value
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.error
-                                            : Theme.of(
-                                                context,
-                                              ).colorScheme.primary)
-                                      : Theme.of(
-                                          context,
-                                        ).colorScheme.surfaceContainerHigh,
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        isRecordingVoice.value
-                                            ? (isVoiceCancelArmed.value
-                                                  ? 'Release to cancel • ${recordingDuration.value.inSeconds}s'
-                                                  : 'Recording ${recordingDuration.value.inSeconds}s • swipe up to cancel')
-                                            : 'Hold to record voice • max 300s',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: isRecordingVoice.value
-                                                  ? Theme.of(
-                                                      context,
-                                                    ).colorScheme.onPrimary
-                                                  : null,
-                                            ),
-                                      ),
-                                      if (isRecordingVoice.value) ...[
-                                        const Gap(4),
-                                        SizedBox(
-                                          height: 16,
-                                          child: AnimatedWaveList(
-                                            stream: amplitudeStream.stream,
-                                            barBuilder: (animation, amplitude) {
-                                              final baseColor = Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimary;
-                                              return SizeTransition(
-                                                sizeFactor: animation,
-                                                child: Container(
-                                                  width: 3,
-                                                  height:
-                                                      (160 /
-                                                          amplitude.current
-                                                              .abs()
-                                                              .clamp(1, 160)) *
-                                                      1.6,
-                                                  margin:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 1,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: baseColor
-                                                        .withOpacity(0.9),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.1),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  axisAlignment: -1.0,
+                                  child: child,
                                 ),
                               ),
+                            );
+                          },
+                      child: isExpanded.value
+                          ? _ExpandedSection(
+                              messageController: messageController,
+                              selectedPoll: selectedPoll,
+                              onPollSelected: onPollSelected,
+                              selectedFund: selectedFund,
+                              onFundSelected: onFundSelected,
+                              onEnableVoiceMode: () {
+                                isVoiceMode.value = true;
+                                isExpanded.value = false;
+                                onPollSelected(null);
+                                onFundSelected(null);
+                              },
                             )
-                          : TypeAheadField<AutocompleteSuggestion>(
-                              controller: messageController,
-                              focusNode: inputFocusNode,
-                              builder: (context, controller, focusNode) {
-                                return TextField(
-                                  focusNode: focusNode,
-                                  controller: controller,
-                                  enabled: canCompose,
-                                  readOnly: !canCompose,
-                                  keyboardType: TextInputType.multiline,
-                                  decoration: InputDecoration(
-                                    hintMaxLines: 1,
-                                    hintText:
-                                        (chatRoom.type == 1 &&
-                                            chatRoom.name == null)
-                                        ? 'chatDirectMessageHint'.tr(
-                                            args: [
-                                              getValidMembers(chatRoom.members!)
-                                                  .map((e) => e.account.nick)
-                                                  .join(', '),
-                                            ],
-                                          )
-                                        : 'chatMessageHint'.tr(
-                                            args: [chatRoom.name!],
-                                          ),
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 12,
-                                    ),
-                                    counterText:
-                                        messageController.text.length > 1024
-                                        ? '${messageController.text.length}/4096'
-                                        : null,
-                                  ),
-                                  maxLines: 5,
-                                  minLines: 1,
-                                  onTapOutside: (_) => FocusManager
-                                      .instance
-                                      .primaryFocus
-                                      ?.unfocus(),
-                                  textInputAction: settings.enterToSend
-                                      ? TextInputAction.send
-                                      : null,
-                                  onEditingComplete: () {
-                                    if (settings.enterToSend && canCompose) {
-                                      inputFocusNode.requestFocus();
-                                    }
-                                  },
-                                  onSubmitted: settings.enterToSend
-                                      ? (_) => send()
-                                      : null,
-                                );
-                              },
-                              suggestionsCallback: (pattern) async {
-                                // Only trigger on @ or :
-                                final atIndex = pattern.lastIndexOf('@');
-                                final colonIndex = pattern.lastIndexOf(':');
-                                final triggerIndex = atIndex > colonIndex
-                                    ? atIndex
-                                    : colonIndex;
-                                if (triggerIndex == -1) return [];
-                                final chopped = pattern.substring(triggerIndex);
-                                if (chopped.contains(' ')) return [];
-                                final service = ref.read(
-                                  autocompleteServiceProvider,
-                                );
-                                try {
-                                  return await service.getSuggestions(
-                                    chatRoom.id,
-                                    chopped,
-                                  );
-                                } catch (e) {
-                                  return [];
-                                }
-                              },
-                              itemBuilder: (context, suggestion) {
-                                String title = 'unknown'.tr();
-                                Widget leading = Icon(Symbols.help);
-                                switch (suggestion.type) {
-                                  case 'user':
-                                    final user = SnAccount.fromJson(
-                                      suggestion.data,
-                                    );
-                                    title = user.nick;
-                                    leading = ProfilePictureWidget(
-                                      file: user.profile.picture,
-                                      radius: 18,
-                                    );
-                                    break;
-                                  case 'chatroom':
-                                    final chatRoom = SnChatRoom.fromJson(
-                                      suggestion.data,
-                                    );
-                                    title = chatRoom.name ?? 'Chat Room';
-                                    leading = ProfilePictureWidget(
-                                      file: chatRoom.picture,
-                                      radius: 18,
-                                    );
-                                    break;
-                                  case 'realm':
-                                    final realm = SnRealm.fromJson(
-                                      suggestion.data,
-                                    );
-                                    title = realm.name;
-                                    leading = ProfilePictureWidget(
-                                      file: realm.picture,
-                                      radius: 18,
-                                    );
-                                    break;
-                                  case 'publisher':
-                                    final publisher = SnPublisher.fromJson(
-                                      suggestion.data,
-                                    );
-                                    title = publisher.name;
-                                    leading = ProfilePictureWidget(
-                                      file: publisher.picture,
-                                      radius: 18,
-                                    );
-                                    break;
-                                  case 'sticker':
-                                    final sticker = SnSticker.fromJson(
-                                      suggestion.data,
-                                    );
-                                    title = sticker.slug;
-                                    leading = ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: SizedBox(
-                                        width: 28,
-                                        height: 28,
-                                        child: CloudImageWidget(
-                                          file: sticker.image,
-                                        ),
-                                      ),
-                                    );
-                                    break;
-                                  default:
-                                }
-                                return ListTile(
-                                  leading: leading,
-                                  title: Text(title),
-                                  subtitle: Text(suggestion.keyword),
-                                  dense: true,
-                                );
-                              },
-                              onSelected: (suggestion) {
-                                final text = messageController.text;
-                                final atIndex = text.lastIndexOf('@');
-                                final colonIndex = text.lastIndexOf(':');
-                                final triggerIndex = atIndex > colonIndex
-                                    ? atIndex
-                                    : colonIndex;
-                                if (triggerIndex == -1) return;
-                                final newText = text.replaceRange(
-                                  triggerIndex,
-                                  text.length,
-                                  suggestion.keyword,
-                                );
-                                messageController.value = TextEditingValue(
-                                  text: newText,
-                                  selection: TextSelection.collapsed(
-                                    offset:
-                                        triggerIndex +
-                                        suggestion.keyword.length,
-                                  ),
-                                );
-                              },
-                              direction: VerticalDirection.up,
-                              hideOnEmpty: true,
-                              hideOnLoading: true,
-                              debounceDuration: const Duration(
-                                milliseconds: 1000,
-                              ),
-                            ),
+                          : const SizedBox.shrink(key: ValueKey('collapsed')),
                     ),
-                    if (!isVoiceMode.value)
-                      IconButton(
-                        icon: const Icon(Icons.send),
-                        color: Theme.of(context).colorScheme.primary,
-                        onPressed: canCompose ? send : null,
-                      ),
                   ],
                 ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.1),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: SizeTransition(
-                              sizeFactor: animation,
-                              axisAlignment: -1.0,
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                  child: isExpanded.value
-                      ? _ExpandedSection(
-                          messageController: messageController,
-                          selectedPoll: selectedPoll,
-                          onPollSelected: onPollSelected,
-                          selectedFund: selectedFund,
-                          onFundSelected: onFundSelected,
-                          onEnableVoiceMode: () {
-                            isVoiceMode.value = true;
-                            isExpanded.value = false;
-                            onPollSelected(null);
-                            onFundSelected(null);
-                          },
-                        )
-                      : const SizedBox.shrink(key: ValueKey('collapsed')),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

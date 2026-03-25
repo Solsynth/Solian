@@ -373,12 +373,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     final inputManager = useRoomInputManager(ref, id);
     final roomOpenTime = useMemoized(() => DateTime.now());
 
-    final previousInputHeightRef = useRef<double?>(null);
-    useEffect(() {
-      previousInputHeightRef.value = inputHeight.value;
-      return null;
-    }, [inputHeight.value]);
-
     final hasTrackedInputHeight = useRef(false);
     useEffect(() {
       if (hasTrackedInputHeight.value) return;
@@ -688,8 +682,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 onJump: onJump,
                                 attachmentProgress:
                                     inputManager.attachmentProgress,
-                                previousInputHeight:
-                                    previousInputHeightRef.value,
                                 roomOpenTime: roomOpenTime,
                                 lastReadAnchorMessageId:
                                     visibleLastReadAnchorMessageId,
