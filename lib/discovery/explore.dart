@@ -127,6 +127,92 @@ class ExploreScreen extends HookConsumerWidget {
             ),
             actions: [
               IconButton(
+                onPressed: () {
+                  context.router.push(UniversalSearchRoute());
+                },
+                icon: const Icon(Symbols.search),
+                tooltip: 'search'.tr(),
+              ),
+              PopupMenuButton<_ExploreAction>(
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: _ExploreAction.articles,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.auto_stories,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('webArticlesStand').tr(),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: _ExploreAction.livestreams,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.live_tv,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('livestreams').tr(),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: _ExploreAction.categories,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.category,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('categoriesAndTags').tr(),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: _ExploreAction.shuffle,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.shuffle,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('postShuffle').tr(),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) {
+                  switch (value) {
+                    case _ExploreAction.articles:
+                      context.router.push(const ArticleStandRoute());
+                      break;
+                    case _ExploreAction.livestreams:
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ActiveLivestreamsScreen(),
+                        ),
+                      );
+                      break;
+                    case _ExploreAction.categories:
+                      context.router.push(PostCategoriesListRoute());
+                      break;
+                    case _ExploreAction.shuffle:
+                      context.router.push(const PostShuffleRoute());
+                      break;
+                    default:
+                      break;
+                  }
+                },
+                icon: const Icon(Symbols.more_vert),
+              ),
+              IconButton(
                 onPressed: () => _showAlgorithmConfigSheet(
                   context,
                   selectedPublisherNames,
@@ -1066,7 +1152,7 @@ class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
   }
 }
 
-class _DiscoveryActivityItem extends StatelessWidget {
+class _DiscoveryActivityItem extends ConsumerWidget {
   final Map<String, dynamic> data;
   final String eventType;
   final String resourceIdentifier;
@@ -1078,7 +1164,11 @@ class _DiscoveryActivityItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final currentUserId = userInfo.value?.id;
+    final isAdmin = userInfo.value?.isSuperuser == true;
+
     final items =
         (data['items'] as List?)?.whereType<Map>().toList() ?? const [];
     if (items.isEmpty) return const SizedBox.shrink();
@@ -1226,6 +1316,17 @@ class _DiscoveryActivityItem extends StatelessWidget {
             ? (item['score'] as num).toDouble()
             : null;
 
+        final itemOwnerId = switch (type) {
+          'post' => (itemData['author'] as Map?)?['id'] as String?,
+          'account' => itemData['id'] as String?,
+          'publisher' => itemData['id'] as String?,
+          'realm' => itemData['id'] as String?,
+          _ => null,
+        };
+        final isCurrentUserItem =
+            currentUserId != null && itemOwnerId == currentUserId;
+        final shouldShowRank = rank != null && isAdmin && !isCurrentUserItem;
+
         return Column(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1251,7 +1352,7 @@ class _DiscoveryActivityItem extends StatelessWidget {
                   ],
                 ),
               ),
-            if (rank != null && kDebugMode)
+            if (shouldShowRank)
               Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8),
                 child: Row(
