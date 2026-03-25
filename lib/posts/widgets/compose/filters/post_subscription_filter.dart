@@ -152,232 +152,225 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
       onSelectedTagsChanged(selectedTags.value);
     }
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            spacing: 16,
-            children: [
-              const Icon(Symbols.subscriptions, size: 20),
-              Text(
-                'exploreFilterSubscriptions'.tr(),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ).padding(horizontal: 16, top: 12),
-          const Gap(12),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          spacing: 16,
+          children: [
+            const Icon(Symbols.subscriptions, size: 20),
+            Text(
+              'exploreFilterSubscriptions'.tr(),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ).padding(horizontal: 16, top: 12),
+        const Gap(12),
 
-          // Publishers Section
-          publishersAsync.when(
-            data: (items) {
-              if (items.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text('noSubscriptions'.tr()),
-                  ),
-                );
-              }
+        // Publishers Section
+        publishersAsync.when(
+          data: (items) {
+            if (items.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text('noSubscriptions'.tr()),
+                ),
+              );
+            }
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'publishers'.tr(),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ).padding(bottom: 8, horizontal: 16),
-                  ...items.map((item) {
-                    final subscription = item.subscription;
-                    final isSelected = selectedPublishers.value.contains(
-                      subscription.publisher.name,
-                    );
-                    final publisher = subscription.publisher;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'publishers'.tr(),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ).padding(bottom: 8, horizontal: 16),
+                ...items.map((item) {
+                  final subscription = item.subscription;
+                  final isSelected = selectedPublishers.value.contains(
+                    subscription.publisher.name,
+                  );
+                  final publisher = subscription.publisher;
 
-                    return CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.trailing,
-                      title: Row(
-                        children: [
-                          Expanded(child: Text(publisher.nick)),
-                          if (item.hasNewContent)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                              ),
+                  return CheckboxListTile(
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    title: Row(
+                      children: [
+                        Expanded(child: Text(publisher.nick)),
+                        if (item.hasNewContent)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
                             ),
-                          if (item.isLive)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(
-                                    Symbols.fiber_manual_record,
-                                    size: 9,
+                          ),
+                        if (item.isLive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(
+                                  Symbols.fiber_manual_record,
+                                  size: 9,
+                                  color: Colors.redAccent,
+                                ),
+                                SizedBox(width: 3),
+                                Text(
+                                  'LIVE',
+                                  style: TextStyle(
                                     color: Colors.redAccent,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 10,
                                   ),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'LIVE',
-                                    style: TextStyle(
-                                      color: Colors.redAccent,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                        ],
-                      ),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
-                      value: isSelected,
-                      onChanged: (value) async {
-                        if (value == true) {
-                          selectedPublishers.value = [
-                            subscription.publisher.name,
+                          ),
+                      ],
+                    ),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    value: isSelected,
+                    onChanged: (value) async {
+                      if (value == true) {
+                        selectedPublishers.value = [
+                          subscription.publisher.name,
+                        ];
+                        selectedCategories.value = [];
+                        selectedTags.value = [];
+                        await markPublisherAsRead(
+                          ref,
+                          subscription.publisher.name,
+                        );
+                        ref.invalidate(publishersSubscriptionsLiveProvider);
+                      } else {
+                        selectedPublishers.value = selectedPublishers.value
+                            .where(
+                              (name) => name != subscription.publisher.name,
+                            )
+                            .toList();
+                      }
+                      updateSelection();
+                    },
+                    dense: true,
+                    secondary: ProfilePictureWidget(
+                      file: subscription.publisher.picture,
+                      radius: 12,
+                    ),
+                    contentPadding: const EdgeInsets.only(left: 15, right: 16),
+                  );
+                }),
+              ],
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (error, stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text('errorLoadingSubscriptions'.tr()),
+            ),
+          ),
+        ),
+
+        if (publishersAsync.value?.isNotEmpty ?? false)
+          const Divider(height: 1).padding(vertical: 8),
+
+        // Categories Section
+        categoriesAsync.when(
+          data: (subscriptions) {
+            if (subscriptions.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'categoriesAndTags'.tr(),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ).padding(bottom: 8, horizontal: 16),
+                ...subscriptions.map((subscription) {
+                  final category = subscription.category;
+                  final tag = subscription.tag;
+                  final slug = category?.slug ?? tag?.slug;
+                  final displayTitle =
+                      category?.categoryTranslationKey.tr() ??
+                      tag?.name ??
+                      slug ??
+                      '';
+                  final isCategorySelected = selectedCategories.value.contains(
+                    slug,
+                  );
+                  final isTagSelected = selectedTags.value.contains(slug);
+
+                  return CheckboxListTile(
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    title: Text(displayTitle),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    secondary: category != null
+                        ? Icon(Symbols.category)
+                        : Icon(Symbols.tag),
+                    value: category != null
+                        ? isCategorySelected
+                        : isTagSelected,
+                    onChanged: (value) {
+                      if (value == true) {
+                        selectedPublishers.value = [];
+                        if (category != null) {
+                          selectedCategories.value = [
+                            ...selectedCategories.value,
+                            slug!,
                           ];
-                          selectedCategories.value = [];
-                          selectedTags.value = [];
-                          await markPublisherAsRead(
-                            ref,
-                            subscription.publisher.name,
-                          );
-                          ref.invalidate(publishersSubscriptionsLiveProvider);
-                        } else {
-                          selectedPublishers.value = selectedPublishers.value
-                              .where(
-                                (name) => name != subscription.publisher.name,
-                              )
+                        } else if (tag != null) {
+                          selectedTags.value = [...selectedTags.value, slug!];
+                        }
+                      } else {
+                        if (category != null) {
+                          selectedCategories.value = selectedCategories.value
+                              .where((id) => id != slug)
+                              .toList();
+                        } else if (tag != null) {
+                          selectedTags.value = selectedTags.value
+                              .where((id) => id != slug)
                               .toList();
                         }
-                        updateSelection();
-                      },
-                      dense: true,
-                      secondary: ProfilePictureWidget(
-                        file: subscription.publisher.picture,
-                        radius: 12,
-                      ),
-                      contentPadding: const EdgeInsets.only(
-                        left: 15,
-                        right: 16,
-                      ),
-                    );
-                  }),
-                ],
-              );
-            },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-            error: (error, stack) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text('errorLoadingSubscriptions'.tr()),
-              ),
-            ),
-          ),
-
-          if (publishersAsync.value?.isNotEmpty ?? false)
-            const Divider(height: 1).padding(vertical: 8),
-
-          // Categories Section
-          categoriesAsync.when(
-            data: (subscriptions) {
-              if (subscriptions.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'categoriesAndTags'.tr(),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ).padding(bottom: 8, horizontal: 16),
-                  ...subscriptions.map((subscription) {
-                    final category = subscription.category;
-                    final tag = subscription.tag;
-                    final slug = category?.slug ?? tag?.slug;
-                    final displayTitle =
-                        category?.categoryTranslationKey.tr() ??
-                        tag?.name ??
-                        slug ??
-                        '';
-                    final isCategorySelected = selectedCategories.value
-                        .contains(slug);
-                    final isTagSelected = selectedTags.value.contains(slug);
-
-                    return CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.trailing,
-                      title: Text(displayTitle),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      ),
-                      secondary: category != null
-                          ? Icon(Symbols.category)
-                          : Icon(Symbols.tag),
-                      value: category != null
-                          ? isCategorySelected
-                          : isTagSelected,
-                      onChanged: (value) {
-                        if (value == true) {
-                          selectedPublishers.value = [];
-                          if (category != null) {
-                            selectedCategories.value = [
-                              ...selectedCategories.value,
-                              slug!,
-                            ];
-                          } else if (tag != null) {
-                            selectedTags.value = [...selectedTags.value, slug!];
-                          }
-                        } else {
-                          if (category != null) {
-                            selectedCategories.value = selectedCategories.value
-                                .where((id) => id != slug)
-                                .toList();
-                          } else if (tag != null) {
-                            selectedTags.value = selectedTags.value
-                                .where((id) => id != slug)
-                                .toList();
-                          }
-                        }
-                        updateSelection();
-                      },
-                      dense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
-                    );
-                  }),
-                ],
-              );
-            },
-            loading: () => const SizedBox.shrink(),
-            error: (error, stack) => const SizedBox.shrink(),
-          ),
-        ],
-      ),
+                      }
+                      updateSelection();
+                    },
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  );
+                }),
+              ],
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (error, stack) => const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 }

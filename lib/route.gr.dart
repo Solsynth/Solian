@@ -2796,7 +2796,6 @@ class PublisherProfileRoute
   }) : super(
          PublisherProfileRoute.name,
          args: PublisherProfileRouteArgs(key: key, name: name),
-         rawPathParams: {'name': name},
          initialChildren: children,
        );
 
@@ -2805,11 +2804,7 @@ class PublisherProfileRoute
   static _i74.PageInfo page = _i74.PageInfo(
     name,
     builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<PublisherProfileRouteArgs>(
-        orElse: () =>
-            PublisherProfileRouteArgs(name: pathParams.getString('name')),
-      );
+      final args = data.argsAs<PublisherProfileRouteArgs>();
       return _i59.PublisherProfileScreen(key: args.key, name: args.name);
     },
   );

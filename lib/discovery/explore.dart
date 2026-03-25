@@ -117,21 +117,31 @@ class ExploreScreen extends HookConsumerWidget {
 
     final appBar = isWide
         ? null
-        : _buildAppBar(
-            currentFilter.value,
-            currentMode.value,
-            handleFilterChange,
-            handleModeChange,
-            context,
-            hasSubscriptionFiltersApplied,
-            userInfo.value != null
-                ? () => _showSubscriptionFilterSheet(
-                    context,
-                    selectedPublisherNames,
-                    selectedCategoryIds,
-                    selectedTagIds,
-                  )
-                : null,
+        : AppBar(
+            title: Text(
+              currentFilter.value == 'subscriptions'
+                  ? 'exploreFilterSubscriptions'.tr()
+                  : currentFilter.value == 'friends'
+                  ? 'exploreFilterFriends'.tr()
+                  : 'explore'.tr(),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () => _showAlgorithmConfigSheet(
+                  context,
+                  selectedPublisherNames,
+                  selectedCategoryIds,
+                  selectedTagIds,
+                  currentFilter,
+                  handleFilterChange,
+                  currentMode,
+                  handleModeChange,
+                ),
+                icon: const Icon(Symbols.tune),
+                tooltip: 'explorePreferred'.tr(),
+              ),
+              const Gap(8),
+            ],
           );
 
     return AppScaffold(
@@ -192,26 +202,35 @@ class ExploreScreen extends HookConsumerWidget {
               events,
               selectedDay,
               currentFilter.value,
+              currentMode.value,
               selectedPublisherNames,
               selectedCategoryIds,
               selectedTagIds,
+              handleFilterChange,
+              handleModeChange,
+              hasSubscriptionFiltersApplied,
             )
           : _buildNarrowBody(
               context,
               ref,
-              currentFilter.value,
-              selectedPublisherNames.value,
-              selectedCategoryIds.value,
-              selectedTagIds.value,
+              selectedPublisherNames,
+              selectedCategoryIds,
+              selectedTagIds,
+              currentMode,
+              handleModeChange,
             ),
     );
   }
 
-  Future<void> _showSubscriptionFilterSheet(
+  Future<void> _showAlgorithmConfigSheet(
     BuildContext context,
     ValueNotifier<List<String>> selectedPublishers,
     ValueNotifier<List<String>> selectedCategories,
     ValueNotifier<List<String>> selectedTags,
+    ValueNotifier<String?> currentFilter,
+    void Function(String?) handleFilterChange,
+    ValueNotifier<String> mode,
+    void Function(String?) onModeChange,
   ) async {
     await showModalBottomSheet(
       context: context,
@@ -219,24 +238,65 @@ class ExploreScreen extends HookConsumerWidget {
       useRootNavigator: true,
       builder: (sheetContext) {
         return SheetScaffold(
-          titleText: 'exploreFilterSubscriptions'.tr(),
-          heightFactor: 0.4,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
-            child: PostSubscriptionFilterWidget(
-              initialSelectedPublishers: selectedPublishers.value,
-              initialSelectedCategories: selectedCategories.value,
-              initialSelectedTags: selectedTags.value,
-              onSelectedPublishersChanged: (names) {
-                selectedPublishers.value = names;
-              },
-              onSelectedCategoriesChanged: (ids) {
-                selectedCategories.value = ids;
-              },
-              onSelectedTagsChanged: (ids) {
-                selectedTags.value = ids;
-              },
-            ),
+          titleText: currentFilter.value == 'subscriptions'
+              ? 'exploreFilterSubscriptions'.tr()
+              : currentFilter.value == 'friends'
+              ? 'exploreFilterFriends'.tr()
+              : 'explore'.tr(),
+          heightFactor: 0.6,
+          child: ValueListenableBuilder<String?>(
+            valueListenable: currentFilter,
+            builder: (context, filterValue, child) {
+              return ValueListenableBuilder<String>(
+                valueListenable: mode,
+                builder: (context, modeValue, child) {
+                  return ListView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    children: [
+                      _ExploreFilterToolbar(
+                        currentFilter: filterValue,
+                        currentMode: modeValue,
+                        onFilterChange: handleFilterChange,
+                        onModeChange: onModeChange,
+                        onOpenSubscriptionFilters: () {},
+                        disableFilterSwitching: false,
+                        hideSubscriptionsTab: false,
+                      ),
+                      const Gap(16),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: BoxBorder.all(
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 1 / MediaQuery.devicePixelRatioOf(context),
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(12),
+                          ),
+                        ),
+                        child: PostSubscriptionFilterWidget(
+                          initialSelectedPublishers: selectedPublishers.value,
+                          initialSelectedCategories: selectedCategories.value,
+                          initialSelectedTags: selectedTags.value,
+                          onSelectedPublishersChanged: (names) {
+                            selectedPublishers.value = names;
+                          },
+                          onSelectedCategoriesChanged: (ids) {
+                            selectedCategories.value = ids;
+                          },
+                          onSelectedTagsChanged: (ids) {
+                            selectedTags.value = ids;
+                          },
+                        ),
+                      ),
+                      const Gap(32),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         );
       },
@@ -322,9 +382,13 @@ class ExploreScreen extends HookConsumerWidget {
     AsyncValue<List<dynamic>> events,
     ValueNotifier<DateTime> selectedDay,
     String? currentFilter,
+    String currentMode,
     ValueNotifier<List<String>> selectedPublishers,
     ValueNotifier<List<String>> selectedCategories,
     ValueNotifier<List<String>> selectedTags,
+    void Function(String?) handleFilterChange,
+    void Function(String?) handleModeChange,
+    bool hasSubscriptionFiltersApplied,
   ) {
     // Use post list when subscription filter is active and publishers are selected
     final usePostList =
@@ -354,8 +418,6 @@ class ExploreScreen extends HookConsumerWidget {
             child: CustomScrollView(
               slivers: [
                 const SliverGap(12),
-                SliverToBoxAdapter(child: filterBar),
-                const SliverGap(8),
                 if (usePostList) ...[
                   _buildLiveStreamsOnTop(
                     context,
@@ -394,25 +456,38 @@ class ExploreScreen extends HookConsumerWidget {
             child: Align(
               alignment: Alignment.topCenter,
               child: SingleChildScrollView(
-                child: Column(
-                  spacing: 8,
-                  children: [
-                    Gap(4 + MediaQuery.paddingOf(context).top),
-                    PostSubscriptionFilterWidget(
-                      initialSelectedPublishers: selectedPublishers.value,
-                      initialSelectedCategories: selectedCategories.value,
-                      initialSelectedTags: selectedTags.value,
-                      onSelectedPublishersChanged: (names) {
-                        selectedPublishers.value = names;
-                      },
-                      onSelectedCategoriesChanged: (ids) {
-                        selectedCategories.value = ids;
-                      },
-                      onSelectedTagsChanged: (ids) {
-                        selectedTags.value = ids;
-                      },
-                    ),
-                  ],
+                child: Card(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 8,
+                    children: [
+                      Gap(4 + MediaQuery.paddingOf(context).top),
+                      _ExploreFilterToolbar(
+                        currentFilter: currentFilter,
+                        currentMode: currentMode,
+                        onFilterChange: handleFilterChange,
+                        onModeChange: handleModeChange,
+                        onOpenSubscriptionFilters: null,
+                        disableFilterSwitching: hasSubscriptionFiltersApplied,
+                        hideSubscriptionsTab: true,
+                      ).padding(horizontal: 12),
+                      PostSubscriptionFilterWidget(
+                        initialSelectedPublishers: selectedPublishers.value,
+                        initialSelectedCategories: selectedCategories.value,
+                        initialSelectedTags: selectedTags.value,
+                        onSelectedPublishersChanged: (names) {
+                          selectedPublishers.value = names;
+                        },
+                        onSelectedCategoriesChanged: (ids) {
+                          selectedCategories.value = ids;
+                        },
+                        onSelectedTagsChanged: (ids) {
+                          selectedTags.value = ids;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -457,62 +532,19 @@ class ExploreScreen extends HookConsumerWidget {
     ).padding(horizontal: 12);
   }
 
-  PreferredSizeWidget _buildAppBar(
-    String? currentFilter,
-    String currentMode,
-    void Function(String?) handleFilterChange,
-    void Function(String?) handleModeChange,
-    BuildContext context,
-    bool hasSubscriptionFiltersApplied,
-    VoidCallback? onOpenSubscriptionFilters,
-  ) {
-    final toolbarHeight = switch (currentFilter) {
-      null => 126.0,
-      'subscriptions' when onOpenSubscriptionFilters != null => 120.0,
-      _ => 78.0,
-    };
-    final verticalPadding = switch (currentFilter) {
-      null => 8.0,
-      'subscriptions' when onOpenSubscriptionFilters != null => 8.0,
-      _ => 6.0,
-    };
-
-    return AppBar(
-      automaticallyImplyLeading: false,
-      toolbarHeight: toolbarHeight,
-      flexibleSpace: Container(
-        height: toolbarHeight,
-        margin: EdgeInsets.only(
-          left: 8,
-          right: 8,
-          top: 2 + MediaQuery.of(context).padding.top,
-          bottom: 2,
-        ),
-        child: _ExploreFilterToolbar(
-          currentFilter: currentFilter,
-          currentMode: currentMode,
-          onFilterChange: handleFilterChange,
-          onModeChange: handleModeChange,
-          onOpenSubscriptionFilters: onOpenSubscriptionFilters,
-          disableFilterSwitching: hasSubscriptionFiltersApplied,
-          showCompactActions: true,
-        ).padding(horizontal: 12, vertical: verticalPadding),
-      ),
-    );
-  }
-
   Widget _buildNarrowBody(
     BuildContext context,
     WidgetRef ref,
-    String? currentFilter,
-    List<String> selectedPublishers,
-    List<String> selectedCategories,
-    List<String> selectedTags,
+    ValueNotifier<List<String>> selectedPublishers,
+    ValueNotifier<List<String>> selectedCategoryIds,
+    ValueNotifier<List<String>> selectedTagIds,
+    ValueNotifier<String> currentMode,
+    void Function(String?) handleModeChange,
   ) {
     final usePostList =
-        selectedPublishers.isNotEmpty ||
-        selectedCategories.isNotEmpty ||
-        selectedTags.isNotEmpty;
+        selectedPublishers.value.isNotEmpty ||
+        selectedCategoryIds.value.isNotEmpty ||
+        selectedTagIds.value.isNotEmpty;
     final activityState = ref.watch(activityListProvider);
     final isListInitialLoading =
         (activityState.isLoading || activityState.value?.isLoading == true) &&
@@ -544,13 +576,13 @@ class ExploreScreen extends HookConsumerWidget {
             slivers: [
               const SliverGap(8),
               if (usePostList) ...[
-                _buildLiveStreamsOnTop(context, ref, selectedPublishers),
+                _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
                 _buildPostList(
                   context,
                   ref,
-                  selectedPublishers,
-                  selectedCategories,
-                  selectedTags,
+                  selectedPublishers.value,
+                  selectedCategoryIds.value,
+                  selectedTagIds.value,
                 ),
               ] else
                 bodyView,
@@ -569,7 +601,7 @@ class _ExploreFilterToolbar extends StatelessWidget {
   final void Function(String?) onModeChange;
   final VoidCallback? onOpenSubscriptionFilters;
   final bool disableFilterSwitching;
-  final bool showCompactActions;
+  final bool hideSubscriptionsTab;
 
   const _ExploreFilterToolbar({
     required this.currentFilter,
@@ -578,7 +610,7 @@ class _ExploreFilterToolbar extends StatelessWidget {
     required this.onModeChange,
     required this.onOpenSubscriptionFilters,
     required this.disableFilterSwitching,
-    this.showCompactActions = false,
+    this.hideSubscriptionsTab = false,
   });
 
   @override
@@ -586,19 +618,13 @@ class _ExploreFilterToolbar extends StatelessWidget {
     final theme = Theme.of(context);
     final secondarySurfaceColor = theme.colorScheme.surfaceContainerHighest
         .withOpacity(0.55);
-    final rowTwo = switch (currentFilter) {
-      null => _RankingToolbar(
-        currentMode: currentMode,
-        onModeChange: onModeChange,
-        backgroundColor: secondarySurfaceColor,
-      ),
-      'subscriptions' when onOpenSubscriptionFilters != null =>
-        _SubscriptionFilterPromptTile(
-          onTap: onOpenSubscriptionFilters!,
-          backgroundColor: secondarySurfaceColor,
-        ),
-      _ => null,
-    };
+    final rowTwo = currentFilter == null
+        ? _RankingToolbar(
+            currentMode: currentMode,
+            onModeChange: onModeChange,
+            backgroundColor: secondarySurfaceColor,
+          )
+        : null;
     final selectedIndex = switch (currentFilter) {
       'subscriptions' => 1,
       'friends' => 2,
@@ -607,8 +633,7 @@ class _ExploreFilterToolbar extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useSingleActionMenu =
-            showCompactActions && constraints.maxWidth < 540;
+        final useSingleActionMenu = constraints.maxWidth < 540;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -697,9 +722,6 @@ class _ExploreFilterToolbar extends StatelessWidget {
                     },
                     icon: const Icon(Symbols.auto_stories),
                     tooltip: 'webArticlesStand'.tr(),
-                    visualDensity: showCompactActions
-                        ? VisualDensity.compact
-                        : VisualDensity.standard,
                   ),
                 PopupMenuButton<_ExploreAction>(
                   itemBuilder: (context) => [
@@ -945,57 +967,6 @@ class _RankingToolbar extends StatelessWidget {
             ),
             _TimelineModeDropdown(value: currentMode, onChanged: onModeChange),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SubscriptionFilterPromptTile extends StatelessWidget {
-  final VoidCallback onTap;
-  final Color backgroundColor;
-
-  const _SubscriptionFilterPromptTile({
-    required this.onTap,
-    required this.backgroundColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      key: const ValueKey('subscription_toolbar'),
-      color: backgroundColor,
-      borderRadius: const BorderRadius.all(Radius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              Icon(
-                Symbols.tune,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const Gap(10),
-              Expanded(
-                child: Text(
-                  'exploreFilterSubscriptions'.tr(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
-                ),
-              ),
-              const Gap(8),
-              Icon(
-                Symbols.chevron_right,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
         ),
       ),
     );
