@@ -722,7 +722,7 @@ class ChatInput extends HookConsumerWidget {
           ),
           Container(
             margin: EdgeInsets.only(
-              top: 12,
+              top: 16,
               left: leftMargin,
               right: rightMargin,
               bottom: bottomMargin,
