@@ -78,7 +78,6 @@ class RoomMessageList extends HookConsumerWidget {
   final Map<String, Map<int, double?>> attachmentProgress;
   final bool disableAnimation;
   final DateTime roomOpenTime;
-  final double? previousInputHeight;
   final String? lastReadAnchorMessageId;
   final VoidCallback? onFollowBack;
   final Set<String> collapsedBotGroupIds;
@@ -102,7 +101,6 @@ class RoomMessageList extends HookConsumerWidget {
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
     this.onFollowBack,
-    this.previousInputHeight,
     this.collapsedBotGroupIds = const {},
     required this.toggleBotGroup,
   });
@@ -112,7 +110,7 @@ class RoomMessageList extends HookConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     const messageKeyPrefix = 'message-';
 
-    final bottomPadding = MediaQuery.of(context).padding.bottom + 8;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     final botGroups = _computeBotGroups(messages);
     final botGroupMap = <int, BotGroupInfo>{};
