@@ -659,6 +659,39 @@ class FileUploader {
     );
   }
 
+  Future<Map<String, dynamic>> getUploadProgress(String taskId) async {
+    final response = await _client.get(
+      '/drive/files/upload/progress/$taskId',
+      options: Options(
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+      ),
+    );
+    return Map<String, dynamic>.from(response.data);
+  }
+
+  Future<SnCloudFile> _waitForUploadComplete(String taskId) async {
+    while (true) {
+      final progress = await getUploadProgress(taskId);
+      final status = progress['status']?.toString();
+
+      if (status == 'Completed') {
+        final file = progress['file'];
+        if (file is Map) {
+          return SnCloudFile.fromJson(Map<String, dynamic>.from(file));
+        }
+        throw const FormatException('Upload completed but no file data found.');
+      }
+
+      if (status == 'Failed') {
+        final error = progress['error']?.toString() ?? 'Upload failed';
+        throw Exception(error);
+      }
+
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
+
   /// Completes the upload and returns the CloudFile object.
   Future<SnCloudFile> completeUpload(String taskId) async {
     final stepTimer = Stopwatch()..start();
@@ -673,6 +706,10 @@ class FileUploader {
     debugPrint(
       '[DriveUpload] Complete upload request took: ${stepTimer.elapsedMilliseconds}ms',
     );
+
+    if (response.statusCode == 202) {
+      return _waitForUploadComplete(taskId);
+    }
 
     return SnCloudFile.fromJson(response.data);
   }
