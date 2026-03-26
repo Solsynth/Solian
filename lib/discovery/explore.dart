@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -64,6 +63,7 @@ class ExploreScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentFilter = useState<String?>(null);
     final currentMode = useState('personalized');
+    final currentAggressive = useState(true);
     final selectedPublisherNames = useState<List<String>>([]);
     final selectedCategoryIds = useState<List<String>>([]);
     final selectedTagIds = useState<List<String>>([]);
@@ -78,6 +78,11 @@ class ExploreScreen extends HookConsumerWidget {
       if (mode == null) return;
       currentMode.value = mode;
       notifier.applyMode(mode);
+    }
+
+    void handleAggressiveChange(bool isAggressive) {
+      currentAggressive.value = isAggressive;
+      notifier.applyAggressiveMode(isAggressive);
     }
 
     final now = DateTime.now();
@@ -118,6 +123,13 @@ class ExploreScreen extends HookConsumerWidget {
     final appBar = isWide
         ? null
         : AppBar(
+            centerTitle: false,
+            leading: switch (currentFilter.value) {
+              'subscriptions' => const Icon(Symbols.subscriptions, fill: 1),
+              'friends' => const Icon(Symbols.group, fill: 1),
+              _ => const Icon(Symbols.explore, fill: 1),
+            },
+            titleSpacing: 4,
             title: Text(
               currentFilter.value == 'subscriptions'
                   ? 'exploreFilterSubscriptions'.tr()
@@ -134,6 +146,7 @@ class ExploreScreen extends HookConsumerWidget {
                 tooltip: 'search'.tr(),
               ),
               PopupMenuButton<_ExploreAction>(
+                icon: const Icon(Symbols.menu),
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: _ExploreAction.articles,
@@ -210,7 +223,6 @@ class ExploreScreen extends HookConsumerWidget {
                       break;
                   }
                 },
-                icon: const Icon(Symbols.more_vert),
               ),
               IconButton(
                 onPressed: () => _showAlgorithmConfigSheet(
@@ -218,8 +230,10 @@ class ExploreScreen extends HookConsumerWidget {
                   selectedPublisherNames,
                   selectedCategoryIds,
                   selectedTagIds,
+                  currentAggressive,
                   currentFilter,
                   handleFilterChange,
+                  handleAggressiveChange,
                   currentMode,
                   handleModeChange,
                 ),
@@ -292,8 +306,10 @@ class ExploreScreen extends HookConsumerWidget {
               selectedPublisherNames,
               selectedCategoryIds,
               selectedTagIds,
+              currentAggressive,
               handleFilterChange,
               handleModeChange,
+              handleAggressiveChange,
               hasSubscriptionFiltersApplied,
             )
           : _buildNarrowBody(
@@ -313,8 +329,10 @@ class ExploreScreen extends HookConsumerWidget {
     ValueNotifier<List<String>> selectedPublishers,
     ValueNotifier<List<String>> selectedCategories,
     ValueNotifier<List<String>> selectedTags,
+    ValueNotifier<bool> currentAggressive,
     ValueNotifier<String?> currentFilter,
     void Function(String?) handleFilterChange,
+    void Function(bool) handleAggressiveChange,
     ValueNotifier<String> mode,
     void Function(String?) onModeChange,
   ) async {
@@ -350,6 +368,33 @@ class ExploreScreen extends HookConsumerWidget {
                         onOpenSubscriptionFilters: () {},
                         disableFilterSwitching: false,
                         hideSubscriptionsTab: false,
+                      ),
+                      const Gap(16),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: BoxBorder.all(
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 1 / MediaQuery.devicePixelRatioOf(context),
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(12),
+                          ),
+                        ),
+                        child: ValueListenableBuilder(
+                          valueListenable: currentAggressive,
+                          builder: (context, value, child) {
+                            return CheckboxListTile(
+                              title: Text('Aggressive Mode'),
+                              subtitle: Text(
+                                'Hide low rank post from your timeline.',
+                              ),
+                              value: value,
+                              onChanged: (value) {
+                                handleAggressiveChange.call(value ?? true);
+                              },
+                            );
+                          },
+                        ),
                       ),
                       const Gap(16),
                       Container(
@@ -472,8 +517,10 @@ class ExploreScreen extends HookConsumerWidget {
     ValueNotifier<List<String>> selectedPublishers,
     ValueNotifier<List<String>> selectedCategories,
     ValueNotifier<List<String>> selectedTags,
+    ValueNotifier<bool> currentAggressive,
     void Function(String?) handleFilterChange,
     void Function(String?) handleModeChange,
+    void Function(bool) handleAggressiveChange,
     bool hasSubscriptionFiltersApplied,
   ) {
     // Use post list when subscription filter is active and publishers are selected
@@ -558,6 +605,33 @@ class ExploreScreen extends HookConsumerWidget {
                         disableFilterSwitching: hasSubscriptionFiltersApplied,
                         hideSubscriptionsTab: true,
                       ).padding(horizontal: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: BoxBorder.all(
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 1 / MediaQuery.devicePixelRatioOf(context),
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(12),
+                          ),
+                        ),
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        child: ValueListenableBuilder(
+                          valueListenable: currentAggressive,
+                          builder: (context, value, child) {
+                            return CheckboxListTile(
+                              title: Text('Aggressive Mode'),
+                              subtitle: Text(
+                                'Hide low rank post from your timeline.',
+                              ),
+                              value: value,
+                              onChanged: (value) {
+                                handleAggressiveChange.call(value ?? true);
+                              },
+                            );
+                          },
+                        ),
+                      ),
                       PostSubscriptionFilterWidget(
                         initialSelectedPublishers: selectedPublishers.value,
                         initialSelectedCategories: selectedCategories.value,

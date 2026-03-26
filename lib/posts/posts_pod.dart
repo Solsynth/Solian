@@ -17,6 +17,7 @@ class ActivityListNotifier
   static const Duration retryAdjustmentDuration = Duration(seconds: 10);
   static const int maxRetryAttempts = 1;
 
+  bool isAggressiveMode = true;
   String currentMode = 'personalized';
 
   StreamSubscription? _postCreatedSubscription;
@@ -183,6 +184,7 @@ class ActivityListNotifier
       if (cursor != null) 'cursor': cursor,
       'take': pageSize,
       'mode': currentMode,
+      'aggressive': isAggressiveMode,
       if (currentFilter != null) 'filter': currentFilter,
       'showFediverse': settings.showFediverseContent,
     };
@@ -300,6 +302,36 @@ class ActivityListNotifier
     }).toList();
 
     state = AsyncData(currentState.copyWith(items: updatedItems));
+  }
+
+  Future<void> applyAggressiveMode(bool isAggressive) async {
+    if (isAggressiveMode == isAggressive) return;
+
+    state = AsyncData(
+      PaginationState(
+        items: [],
+        isLoading: true,
+        isReloading: true,
+        totalCount: null,
+        hasMore: true,
+        cursor: null,
+      ),
+    );
+    isAggressiveMode = isAggressive;
+
+    final newItems = await fetch();
+
+    if (!ref.mounted) return;
+    state = AsyncData(
+      PaginationState(
+        items: newItems,
+        isLoading: false,
+        isReloading: false,
+        totalCount: totalCount,
+        hasMore: hasMore,
+        cursor: cursor,
+      ),
+    );
   }
 
   Future<void> applyMode(String mode) async {
