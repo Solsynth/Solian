@@ -30,6 +30,18 @@ class PostRepliesNotifier extends AsyncNotifier<PaginationState<SnPost>>
     final List<dynamic> data = response.data;
     return data.map((json) => SnPost.fromJson(json)).toList();
   }
+
+  void updatePost(SnPost updatedPost) {
+    if (state is! AsyncData) return;
+    final currentState = (state as AsyncData).value;
+    final items = currentState.items.map((post) {
+      if (post.id == updatedPost.id) {
+        return updatedPost;
+      }
+      return post;
+    }).toList();
+    state = AsyncData(currentState.copyWith(items: items));
+  }
 }
 
 class PostRepliesList extends HookConsumerWidget {
@@ -46,6 +58,7 @@ class PostRepliesList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = postRepliesProvider(postId);
+    final notifier = ref.read(provider.notifier);
 
     final skeletonItem = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -74,7 +87,9 @@ class PostRepliesList extends HookConsumerWidget {
             isShowReference: false,
             isEmbedOpenable: true,
             onOpen: onOpen,
-            onUpdate: (newPost) {},
+            onUpdate: (newPost) {
+              notifier.updatePost(newPost);
+            },
           ),
         );
 

@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +13,6 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
@@ -29,38 +27,7 @@ import 'package:island/sharing/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
-import 'package:island/core/services/analytics_service.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-const kAvailableStickers = {
-  'angry',
-  'clap',
-  'confuse',
-  'pray',
-  'thumb_up',
-  'party',
-};
-
-bool _getReactionImageAvailable(String symbol) {
-  return kAvailableStickers.contains(symbol);
-}
-
-Widget _buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
-  if (_getReactionImageAvailable(symbol)) {
-    return Image.asset(
-      'assets/images/stickers/$symbol.png',
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      alignment: Alignment.bottomCenter,
-    );
-  } else {
-    return Text(
-      kReactionTemplates[symbol]?.icon ?? '',
-      style: TextStyle(fontSize: iconSize),
-    );
-  }
-}
 
 class PostActionableItem extends HookConsumerWidget {
   final SnPost item;
@@ -380,53 +347,6 @@ class PostItem extends HookConsumerWidget {
     final renderingPadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
-    final reacting = useState(false);
-
-    Future<void> reactPost(String symbol, int attitude) async {
-      final client = ref.watch(apiClientProvider);
-      reacting.value = true;
-      await client
-          .post(
-            '/sphere/posts/${item.id}/reactions',
-            data: {'symbol': symbol, 'attitude': attitude},
-          )
-          .catchError((err) {
-            showErrorAlert(err);
-            return err;
-          })
-          .then((resp) {
-            final isRemoving = resp.statusCode == 204;
-            final delta = isRemoving ? -1 : 1;
-            final reactionsCount = Map<String, int>.from(item.reactionsCount);
-            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
-            final reactionsMade = Map<String, bool>.from(item.reactionsMade);
-            reactionsMade[symbol] = delta == 1 ? true : false;
-            onUpdate?.call(
-              item.copyWith(
-                reactionsCount: reactionsCount,
-                reactionsMade: reactionsMade,
-              ),
-            );
-            HapticFeedback.heavyImpact();
-
-            AnalyticsService().logPostReacted(
-              item.id,
-              symbol,
-              attitude,
-              isRemoving,
-            );
-          });
-
-      reacting.value = false;
-    }
-
-    final mostReaction = item.reactionsCount.isEmpty
-        ? null
-        : item.reactionsCount.entries
-              .sortedBy((e) => e.value)
-              .map((e) => e.key)
-              .last;
-
     final postLanguage = item.content != null && isTranslatable
         ? ref.watch(detectStringLanguageProvider(item.content!))
         : null;
@@ -541,87 +461,6 @@ class PostItem extends HookConsumerWidget {
           showUpperLine:
               isShowReference &&
               (item.repliedPost != null || item.forwardedPost != null),
-          trailing: isCompact
-              ? null
-              : SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: IconButton(
-                    icon: mostReaction == null
-                        ? const Icon(Symbols.add_reaction)
-                        : Badge(
-                            label: Center(
-                              child: Text(
-                                'x${item.reactionsCount[mostReaction]}',
-                                style: const TextStyle(fontSize: 11),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            offset: const Offset(4, 20),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.75),
-                            textColor: Theme.of(context).colorScheme.onPrimary,
-                            child: mostReaction.contains('+')
-                                ? HookConsumer(
-                                    builder: (context, ref, child) {
-                                      final baseUrl = ref.watch(
-                                        serverUrlProvider,
-                                      );
-                                      final stickerUri =
-                                          '$baseUrl/sphere/stickers/lookup/$mostReaction/open';
-                                      return SizedBox(
-                                        width: 32,
-                                        height: 32,
-                                        child: UniversalImage(
-                                          uri: stickerUri,
-                                          width: 28,
-                                          height: 28,
-                                          fit: BoxFit.contain,
-                                        ).center(),
-                                      );
-                                    },
-                                  )
-                                : _buildReactionIcon(mostReaction, 32).padding(
-                                    bottom:
-                                        _getReactionImageAvailable(mostReaction)
-                                        ? 2
-                                        : 0,
-                                  ),
-                          ),
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        (item.reactionsMade[mostReaction] ?? false)
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.5)
-                            : null,
-                      ),
-                    ),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        useRootNavigator: true,
-                        isScrollControlled: true,
-                        builder: (BuildContext context) {
-                          return PostReactionSheet(
-                            reactionsCount: item.reactionsCount,
-                            reactionsMade: item.reactionsMade,
-                            onReact: (symbol, attitude) {
-                              reactPost(symbol, attitude);
-                            },
-                            postId: item.id,
-                          );
-                        },
-                      );
-                    },
-                    padding: EdgeInsets.zero,
-                    visualDensity: const VisualDensity(
-                      horizontal: -3,
-                      vertical: -3,
-                    ),
-                  ),
-                ),
         ),
         PostBody(
           item: item,
@@ -638,6 +477,28 @@ class PostItem extends HookConsumerWidget {
             maxHeight: 400,
             borderRadius: BorderRadius.circular(12),
           ).padding(horizontal: renderingPadding.horizontal, vertical: 8),
+        PostReactionList(
+          padding: EdgeInsets.only(
+            left: renderingPadding.horizontal,
+            right: renderingPadding.horizontal,
+            top: 8,
+          ),
+          parentId: item.id,
+          reactions: item.reactionsCount,
+          reactionsMade: item.reactionsMade,
+          onReact: (symbol, attitude, delta) {
+            final reactionsCount = Map<String, int>.from(item.reactionsCount);
+            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
+            final reactionsMade = Map<String, bool>.from(item.reactionsMade);
+            reactionsMade[symbol] = delta == 1 ? true : false;
+            onUpdate?.call(
+              item.copyWith(
+                reactionsCount: reactionsCount,
+                reactionsMade: reactionsMade,
+              ),
+            );
+          },
+        ),
         if (item.repliesCount > 0 && isEmbedReply)
           PostReplyPreview(
             parent: item,
@@ -729,14 +590,17 @@ class PostReactionList extends HookConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ActionChip(
-                avatar: _buildReactionIcon(symbol, 24),
+                avatar: buildReactionIcon(symbol, 24),
                 label: Row(
                   spacing: 4,
                   children: [
-                    Text(symbol),
+                    Text(ReactInfo.getTranslationKey(symbol)).tr(),
                     Text('x${reactions[symbol]}').bold(),
                   ],
                 ),
+                backgroundColor: (reactionsMade[symbol] ?? false)
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                    : null,
                 onPressed: submitting.value
                     ? null
                     : () {

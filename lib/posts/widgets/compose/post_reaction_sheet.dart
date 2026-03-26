@@ -75,7 +75,7 @@ bool _getReactionImageAvailable(String symbol) {
   return kAvailableStickers.contains(symbol);
 }
 
-Widget _buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
+Widget buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
   if (_getReactionImageAvailable(symbol)) {
     return Image.asset(
       'assets/images/stickers/$symbol.png',
@@ -85,9 +85,13 @@ Widget _buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
       alignment: Alignment.bottomCenter,
     );
   } else {
-    return Text(
-      kReactionTemplates[symbol]?.icon ?? '',
-      style: TextStyle(fontSize: iconSize),
+    return SizedBox(
+      width: iconSize,
+      height: iconSize,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Text(kReactionTemplates[symbol]?.icon ?? ''),
+      ),
     );
   }
 }
@@ -430,7 +434,7 @@ class PostReactionSheet extends StatelessWidget {
                                   ? MainAxisAlignment.end
                                   : MainAxisAlignment.center,
                               children: [
-                                if (!hasImage) _buildReactionIcon(symbol, 36),
+                                if (!hasImage) buildReactionIcon(symbol, 36),
                                 Text(
                                   ReactInfo.getTranslationKey(symbol),
                                   textAlign: TextAlign.center,
@@ -494,7 +498,7 @@ class ReactionDetailsPopup extends HookConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  _buildReactionIcon(symbol, 24),
+                  buildReactionIcon(symbol, 24),
                   const Gap(8),
                   Text(
                     ReactInfo.getTranslationKey(symbol),

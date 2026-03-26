@@ -1,10 +1,8 @@
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
@@ -12,13 +10,14 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
+import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
 import 'package:island/posts/widgets/compose/post_award_history_sheet.dart';
 import 'package:island/posts/widgets/compose/post_award_sheet.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
-import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
+import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
@@ -123,49 +122,39 @@ class PostActionButtons extends HookConsumerWidget {
 
     final actions = <Widget>[];
 
-    const kButtonHeight = 40.0;
-    const kButtonRadius = 20.0;
-
-    // 1. Author-only actions first
     if (isAuthor) {
-      // Combined edit/delete actions using custom segmented-style buttons
-      final editButtons = <Widget>[
-        FilledButton.tonal(
-          onPressed: () {
-            if (post.type == 1) {
-              context.router.push(ArticleEditRoute(id: post.id)).then((value) {
-                if (value != null) {
-                  onRefresh?.call();
-                }
-              });
-            } else {
-              PostComposeDialog.show(context, originalPost: post).then((value) {
-                if (value == true) {
-                  onRefresh?.call();
-                }
-              });
-            }
-          },
-          style: FilledButton.styleFrom(
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(kButtonRadius),
-                bottomLeft: Radius.circular(kButtonRadius),
-              ),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Symbols.edit, size: 18),
-              const Gap(4),
-              Text('edit'.tr()),
-            ],
+      actions.add(
+        Tooltip(
+          message: 'edit'.tr(),
+          child: IconButton(
+            onPressed: () {
+              if (post.type == 1) {
+                context.router.push(ArticleEditRoute(id: post.id)).then((
+                  value,
+                ) {
+                  if (value != null) {
+                    onRefresh?.call();
+                  }
+                });
+              } else {
+                PostComposeDialog.show(context, originalPost: post).then((
+                  value,
+                ) {
+                  if (value == true) {
+                    onRefresh?.call();
+                  }
+                });
+              }
+            },
+            icon: const Icon(Symbols.edit, size: 18),
           ),
         ),
+      );
+
+      actions.add(
         Tooltip(
           message: 'delete'.tr(),
-          child: FilledButton.tonal(
+          child: IconButton(
             onPressed: () {
               showConfirmAlert(
                 'deletePostHint'.tr(),
@@ -186,271 +175,205 @@ class PostActionButtons extends HookConsumerWidget {
                 }
               });
             },
-            style: FilledButton.styleFrom(
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(kButtonRadius),
-                  bottomRight: Radius.circular(kButtonRadius),
-                ),
-              ),
-            ),
-            child: const Icon(Symbols.delete, size: 18),
+            icon: const Icon(Symbols.delete, size: 18),
           ),
-        ),
-      ];
-
-      actions.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children:
-              editButtons
-                  .map((e) => SizedBox(height: kButtonHeight, child: e))
-                  .expand((widget) => [widget, const VerticalDivider(width: 1)])
-                  .toList()
-                ..removeLast(),
         ),
       );
 
-      // Pin/Unpin actions (also author-only)
-      if (post.pinMode == null) {
-        actions.add(
-          FilledButton.tonalIcon(
+      actions.add(
+        Tooltip(
+          message: post.pinMode == null ? 'pinPost'.tr() : 'unpinPost'.tr(),
+          child: IconButton(
             onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => PostPinSheet(post: post),
-              ).then((value) {
-                if (value is int) {
-                  onUpdate?.call(post.copyWith(pinMode: value));
-                }
-              });
-            },
-            icon: const Icon(Symbols.keep),
-            label: Text('pinPost'.tr()),
-          ),
-        );
-      } else {
-        actions.add(
-          FilledButton.tonalIcon(
-            onPressed: () {
-              showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
-                confirm,
-              ) async {
-                if (confirm) {
-                  final client = ref.watch(apiClientProvider);
-                  try {
-                    if (context.mounted) showLoadingModal(context);
-                    await client.delete('/sphere/posts/${post.id}/pin');
-                    onUpdate?.call(post.copyWith(pinMode: null));
-                  } catch (err) {
-                    showErrorAlert(err);
-                  } finally {
-                    if (context.mounted) hideLoadingModal(context);
+              if (post.pinMode == null) {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => PostPinSheet(post: post),
+                ).then((value) {
+                  if (value is int) {
+                    onUpdate?.call(post.copyWith(pinMode: value));
                   }
-                }
-              });
+                });
+              } else {
+                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+                  confirm,
+                ) async {
+                  if (confirm) {
+                    final client = ref.watch(apiClientProvider);
+                    try {
+                      if (context.mounted) showLoadingModal(context);
+                      await client.delete('/sphere/posts/${post.id}/pin');
+                      onUpdate?.call(post.copyWith(pinMode: null));
+                    } catch (err) {
+                      showErrorAlert(err);
+                    } finally {
+                      if (context.mounted) hideLoadingModal(context);
+                    }
+                  }
+                });
+              }
             },
-            icon: const Icon(Symbols.keep_off),
-            label: Text('unpinPost'.tr()),
-          ),
-        );
-      }
-    }
-
-    // 2. Replies and forwards
-    final replyButtons = <Widget>[
-      FilledButton.tonal(
-        onPressed: () {
-          PostComposeDialog.show(
-            context,
-            initialState: PostComposeInitialState(replyingTo: post),
-          );
-        },
-        style: FilledButton.styleFrom(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(kButtonRadius),
-              bottomLeft: Radius.circular(kButtonRadius),
+            icon: Icon(
+              post.pinMode == null ? Symbols.keep : Symbols.keep_off,
+              size: 18,
             ),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Symbols.reply, size: 18),
-            const Gap(4),
-            Text('reply'.tr()),
-          ],
+      );
+    }
+
+    actions.add(
+      Tooltip(
+        message: 'reply'.tr(),
+        child: IconButton(
+          onPressed: () {
+            PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(replyingTo: post),
+            );
+          },
+          icon: const Icon(Symbols.reply, size: 18),
         ),
       ),
+    );
+
+    actions.add(
       Tooltip(
         message: 'forward'.tr(),
-        child: FilledButton.tonal(
+        child: IconButton(
           onPressed: () {
             PostComposeDialog.show(
               context,
               initialState: PostComposeInitialState(forwardingTo: post),
             );
           },
-          style: FilledButton.styleFrom(
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(kButtonRadius),
-                bottomRight: Radius.circular(kButtonRadius),
-              ),
-            ),
-          ),
-          child: const Icon(Symbols.forward, size: 18),
+          icon: const Icon(Symbols.forward, size: 18),
         ),
-      ),
-    ];
-
-    actions.add(
-      FilledButton.tonalIcon(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useRootNavigator: true,
-            builder: (context) => PostAwardSheet(post: post),
-          );
-        },
-        onLongPress: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) => PostAwardHistorySheet(postId: post.id),
-          );
-        },
-        icon: const Icon(Symbols.emoji_events),
-        label: post.awardedScore > 0
-            ? Text('${formatScore(post.awardedScore)} pts')
-            : Text('award').tr(),
       ),
     );
 
     actions.add(
-      FilledButton.tonalIcon(
-        onPressed: () {
-          ThoughtSheet.show(context, attachedPosts: [post.id]);
-        },
-        icon: const Icon(Symbols.smart_toy),
-        label: Text('aiThought'.tr()),
+      Tooltip(
+        message: post.awardedScore > 0
+            ? '${formatScore(post.awardedScore)} pts'
+            : 'award'.tr(),
+        child: IconButton(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (context) => PostAwardSheet(post: post),
+            );
+          },
+          onLongPress: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => PostAwardHistorySheet(postId: post.id),
+            );
+          },
+          icon: const Icon(Symbols.emoji_events, size: 18),
+        ),
       ),
     );
 
     actions.add(
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: replyButtons
-            .map((e) => SizedBox(height: kButtonHeight, child: e))
-            .toList(),
+      Tooltip(
+        message: 'aiThought'.tr(),
+        child: IconButton(
+          onPressed: () {
+            ThoughtSheet.show(context, attachedPosts: [post.id]);
+          },
+          icon: const Icon(Symbols.smart_toy, size: 18),
+        ),
       ),
     );
 
-    // 3. Share, copy link, and report
-    final shareButtons = <Widget>[
-      FilledButton.tonal(
-        onPressed: () {
-          showShareSheetLink(
-            context: context,
-            link: 'https://solian.app/posts/${post.id}',
-            title: 'sharePost'.tr(),
-            toSystem: true,
-          );
-        },
-        style: FilledButton.styleFrom(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(kButtonRadius),
-              bottomLeft: Radius.circular(kButtonRadius),
-            ),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Symbols.share, size: 18),
-            const Gap(4),
-            Text('share'.tr()),
-          ],
+    actions.add(
+      Tooltip(
+        message: 'share'.tr(),
+        child: IconButton(
+          onPressed: () {
+            showShareSheetLink(
+              context: context,
+              link: 'https://solian.app/posts/${post.id}',
+              title: 'sharePost'.tr(),
+              toSystem: true,
+            );
+          },
+          icon: const Icon(Symbols.share, size: 18),
         ),
       ),
-    ];
+    );
 
     if (!kIsWeb) {
-      shareButtons.add(
+      actions.add(
         Tooltip(
           message: 'sharePostPhoto'.tr(),
-          child: FilledButton.tonal(
+          child: IconButton(
             onPressed: () => sharePostAsScreenshot(context, ref, post),
-            style: FilledButton.styleFrom(
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(kButtonRadius),
-                  bottomRight: Radius.circular(kButtonRadius),
-                ),
-              ),
-            ),
-            child: const Icon(Symbols.share_reviews, size: 18),
+            icon: const Icon(Symbols.share_reviews, size: 18),
           ),
         ),
       );
     }
 
     actions.add(
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children:
-            shareButtons
-                .map((e) => SizedBox(height: kButtonHeight, child: e))
-                .expand((widget) => [widget, const VerticalDivider(width: 1)])
-                .toList()
-              ..removeLast(),
-      ),
-    );
-
-    actions.add(
-      FilledButton.tonalIcon(
-        onPressed: () {
-          Clipboard.setData(
-            ClipboardData(text: 'https://solian.app/posts/${post.id}'),
-          );
+      PopupMenuButton<String>(
+        tooltip: 'more'.tr(),
+        icon: const Icon(Symbols.more_vert, size: 18),
+        onSelected: (value) {
+          switch (value) {
+            case 'copy':
+              Clipboard.setData(
+                ClipboardData(text: 'https://solian.app/posts/${post.id}'),
+              );
+              break;
+            case 'report':
+              showAbuseReportSheet(
+                context,
+                resourceIdentifier: 'post/${post.id}',
+              );
+              break;
+          }
         },
-        icon: const Icon(Symbols.link),
-        label: Text('copyLink'.tr()),
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'copy',
+            child: Row(
+              children: [
+                const Icon(Symbols.link, size: 18),
+                const Gap(8),
+                Text('copyLink'.tr()),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'report',
+            child: Row(
+              children: [
+                const Icon(Symbols.flag, size: 18),
+                const Gap(8),
+                Text('abuseReport'.tr()),
+              ],
+            ),
+          ),
+        ],
       ),
     );
 
-    actions.add(
-      FilledButton.tonalIcon(
-        onPressed: () {
-          showAbuseReportSheet(context, resourceIdentifier: 'post/${post.id}');
-        },
-        icon: const Icon(Symbols.flag),
-        label: Text('abuseReport'.tr()),
+    return Padding(
+      padding: renderingPadding.copyWith(
+        bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
       ),
-    );
-
-    // Add gaps between actions (excluding first one) using FP style
-    final children = actions.asMap().entries.expand((entry) {
-      final index = entry.key;
-      final action = entry.value;
-      if (index == 0) {
-        return [action];
-      } else {
-        return [const Gap(8), action];
-      }
-    }).toList();
-
-    return Container(
-      height: kButtonHeight,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: renderingPadding.horizontal),
-        children: children,
+      child: Wrap(
+        spacing: 2,
+        runSpacing: 2,
+        alignment: WrapAlignment.start,
+        runAlignment: WrapAlignment.start,
+        children: actions,
       ),
     );
   }
@@ -472,44 +395,6 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
-    final reacting = useState(false);
-
-    final mostReaction = post.reactionsCount.isEmpty
-        ? null
-        : post.reactionsCount.entries
-              .sortedBy((e) => e.value)
-              .map((e) => e.key)
-              .last;
-
-    Future<void> reactPost(String symbol, int attitude) async {
-      final client = ref.read(apiClientProvider);
-      reacting.value = true;
-      await client
-          .post(
-            '/sphere/posts/${post.id}/reactions',
-            data: {'symbol': symbol, 'attitude': attitude},
-          )
-          .catchError((err) {
-            showErrorAlert(err);
-            return err;
-          })
-          .then((resp) {
-            final isRemoving = resp.statusCode == 204;
-            final delta = isRemoving ? -1 : 1;
-            final reactionsCount = Map<String, int>.from(post.reactionsCount);
-            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
-            final reactionsMade = Map<String, bool>.from(post.reactionsMade);
-            reactionsMade[symbol] = delta == 1 ? true : false;
-            onUpdate(
-              post.copyWith(
-                reactionsCount: reactionsCount,
-                reactionsMade: reactionsMade,
-              ),
-            );
-            HapticFeedback.heavyImpact();
-          });
-      reacting.value = false;
-    }
 
     return Row(
       children: [
@@ -532,115 +417,107 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
             fit: StackFit.expand,
             children: [
               Material(
-                color: Theme.of(context).colorScheme.surfaceContainer,
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
                 elevation: 8,
-                child: CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            PostHeader(
-                              item: post,
-                              isFullPost: true,
-                              isCompact: false,
-                              renderingPadding: EdgeInsets.zero,
-                              trailing: SizedBox(
-                                width: 36,
-                                height: 36,
-                                child: IconButton(
-                                  icon: mostReaction == null
-                                      ? const Icon(Symbols.add_reaction)
-                                      : Badge(
-                                          label: Center(
-                                            child: Text(
-                                              'x${post.reactionsCount[mostReaction]}',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                          offset: const Offset(4, 20),
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withOpacity(0.75),
-                                          textColor: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
-                                          child: _buildReactionIcon(
-                                            mostReaction,
-                                          ),
-                                        ),
-                                  style: ButtonStyle(
-                                    backgroundColor: WidgetStatePropertyAll(
-                                      (post.reactionsMade[mostReaction] ??
-                                              false)
-                                          ? Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withOpacity(0.5)
-                                          : null,
-                                    ),
+                child: DefaultTabController(
+                  length: 4,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: CustomScrollView(
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
                                   ),
-                                  onPressed: reacting.value
-                                      ? null
-                                      : () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            useRootNavigator: true,
-                                            isScrollControlled: true,
-                                            builder: (BuildContext context) {
-                                              return PostReactionSheet(
-                                                reactionsCount:
-                                                    post.reactionsCount,
-                                                reactionsMade:
-                                                    post.reactionsMade,
-                                                onReact: (symbol, attitude) {
-                                                  reactPost(symbol, attitude);
-                                                },
-                                                postId: post.id,
-                                              );
-                                            },
-                                          );
-                                        },
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: const VisualDensity(
-                                    horizontal: -3,
-                                    vertical: -3,
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      16,
+                                      16,
+                                      0,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        PostHeader(
+                                          item: post,
+                                          isFullPost: true,
+                                          isCompact: false,
+                                          renderingPadding: EdgeInsets.zero,
+                                        ),
+                                        const Gap(8),
+                                        PostBody(
+                                          item: post,
+                                          isFullPost: true,
+                                          isTextSelectable: true,
+                                          renderingPadding: EdgeInsets.zero,
+                                          hideAttachments: true,
+                                          textScale: post.type == 1 ? 1.2 : 1.1,
+                                        ),
+                                        if (post.embedView != null)
+                                          EmbedViewRenderer(
+                                            embedView: post.embedView!,
+                                            maxHeight: 400,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ).padding(vertical: 8),
+                                        PostReactionList(
+                                          padding: EdgeInsets.only(top: 8),
+                                          parentId: post.id,
+                                          reactions: post.reactionsCount,
+                                          reactionsMade: post.reactionsMade,
+                                          onReact: (symbol, attitude, delta) {
+                                            final reactionsCount =
+                                                Map<String, int>.from(
+                                                  post.reactionsCount,
+                                                );
+                                            reactionsCount[symbol] =
+                                                (reactionsCount[symbol] ?? 0) +
+                                                delta;
+                                            final reactionsMade =
+                                                Map<String, bool>.from(
+                                                  post.reactionsMade,
+                                                );
+                                            reactionsMade[symbol] = delta == 1
+                                                ? true
+                                                : false;
+                                            onUpdate.call(
+                                              post.copyWith(
+                                                reactionsCount: reactionsCount,
+                                                reactionsMade: reactionsMade,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        PostActionButtons(
+                                          post: post,
+                                          renderingPadding:
+                                              const EdgeInsets.only(top: 8),
+                                          onRefresh: onRefresh,
+                                          onUpdate: onUpdate,
+                                        ).alignment(Alignment.centerLeft),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                            const Gap(8),
-                            PostBody(
-                              item: post,
-                              isFullPost: true,
-                              isTextSelectable: true,
-                              renderingPadding: EdgeInsets.zero,
-                              hideAttachments: true,
-                              textScale: post.type == 1 ? 1.2 : 1.1,
-                            ),
-                            const Gap(12),
-                            PostActionButtons(
-                              post: post,
-                              renderingPadding: EdgeInsets.zero,
-                              onRefresh: onRefresh,
-                              onUpdate: onUpdate,
+                            SliverFillRemaining(
+                              child: PostInteractionsTabs(
+                                postId: postId,
+                                maxWidth: _postDetailMaxWidth,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    PostRepliesList(
-                      postId: postId,
-                      maxWidth: _postDetailMaxWidth,
-                    ),
-                    SliverGap(MediaQuery.of(context).padding.bottom + 80),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               if (user.value != null)
@@ -665,31 +542,6 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildReactionIcon(String symbol) {
-    const kAvailableStickers = {
-      'angry',
-      'clap',
-      'confuse',
-      'pray',
-      'thumb_up',
-      'party',
-    };
-    if (kAvailableStickers.contains(symbol)) {
-      return Image.asset(
-        'assets/images/stickers/$symbol.png',
-        width: 32,
-        height: 32,
-        fit: BoxFit.contain,
-        alignment: Alignment.bottomCenter,
-      );
-    } else {
-      return Text(
-        kReactionTemplates[symbol]?.icon ?? '',
-        style: const TextStyle(fontSize: 24),
-      );
-    }
   }
 }
 
@@ -772,6 +624,12 @@ class PostDetailScreen extends HookConsumerWidget {
                                   isFullPost: true,
                                   isEmbedReply: false,
                                   textScale: postItem.type == 1 ? 1.2 : 1.1,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    8,
+                                    8,
+                                    8,
+                                    0,
+                                  ),
                                   onUpdate: (newItem) {
                                     ref
                                         .read(postStateProvider(id).notifier)
@@ -790,7 +648,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                 child: PostActionButtons(
                                   post: postItem,
                                   renderingPadding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
+                                    horizontal: 16,
                                   ),
                                   onRefresh: () {
                                     ref.invalidate(postProvider(id));
@@ -803,13 +661,18 @@ class PostDetailScreen extends HookConsumerWidget {
                                         .read(postStateProvider(id).notifier)
                                         .updatePost(newItem);
                                   },
-                                ),
+                                ).alignment(Alignment.centerLeft),
                               ),
                             ),
                           ),
-                          PostRepliesList(
-                            postId: id,
-                            maxWidth: _postDetailMaxWidth,
+                          SliverFillRemaining(
+                            child: DefaultTabController(
+                              length: 4,
+                              child: PostInteractionsTabs(
+                                postId: id,
+                                maxWidth: _postDetailMaxWidth,
+                              ),
+                            ),
                           ),
                           SliverGap(MediaQuery.of(context).padding.bottom + 80),
                         ],

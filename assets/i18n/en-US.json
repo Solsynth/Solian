@@ -1902,7 +1902,6 @@
   "openChat": "Open chat",
   "liveChatMessageHint": "Chat with chat",
   "live": "LIVE",
-  "open": "Open",
   "liveChat": "Live Chat",
   "watchToJoin":"Watch to Join",
   "searchUsersEmpty": "Search for users..",
@@ -2208,5 +2207,8 @@
   "meetEventCompleted": "Meet completed",
   "meetEventExpired": "Meet expired",
   "timeline": "Timeline",
-  "statusChange": "Status Change"
+  "statusChange": "Status Change",
+  "replies": "Replies",
+  "forwards": "Forwards",
+  "boosts": "Boosts"
 }

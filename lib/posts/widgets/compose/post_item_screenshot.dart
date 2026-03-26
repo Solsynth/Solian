@@ -1,46 +1,14 @@
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/config.dart';
-import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
+import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-const kAvailableStickers = {
-  'angry',
-  'clap',
-  'confuse',
-  'pray',
-  'thumb_up',
-  'party',
-};
-
-bool _getReactionImageAvailable(String symbol) {
-  return kAvailableStickers.contains(symbol);
-}
-
-Widget _buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
-  if (_getReactionImageAvailable(symbol)) {
-    return Image.asset(
-      'assets/images/stickers/$symbol.png',
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      alignment: Alignment.bottomCenter,
-    );
-  } else {
-    return Text(
-      kReactionTemplates[symbol]?.icon ?? '',
-      style: TextStyle(fontSize: iconSize),
-    );
-  }
-}
 
 class PostItemScreenshot extends ConsumerWidget {
   final SnPost item;
@@ -60,13 +28,6 @@ class PostItemScreenshot extends ConsumerWidget {
     final renderingPadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
-    final mostReaction = item.reactionsCount.isEmpty
-        ? null
-        : item.reactionsCount.entries
-              .sortedBy((e) => e.value)
-              .map((e) => e.key)
-              .last;
-
     final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
 
     return Material(
@@ -84,45 +45,6 @@ class PostItemScreenshot extends ConsumerWidget {
             isInteractive: false,
             renderingPadding: renderingPadding,
             isRelativeTime: false,
-            trailing: mostReaction != null
-                ? Badge(
-                    label: Center(
-                      child: Text(
-                        'x${item.reactionsCount[mostReaction]}',
-                        style: const TextStyle(fontSize: 11),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    offset: const Offset(4, 20),
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.75),
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                    child: mostReaction.contains('+')
-                        ? Consumer(
-                            builder: (context, ref, child) {
-                              final baseUrl = ref.watch(serverUrlProvider);
-                              final stickerUri =
-                                  '$baseUrl/sphere/stickers/lookup/$mostReaction/open';
-                              return SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: UniversalImage(
-                                  uri: stickerUri,
-                                  width: 28,
-                                  height: 28,
-                                  fit: BoxFit.contain,
-                                ).center(),
-                              );
-                            },
-                          )
-                        : _buildReactionIcon(mostReaction, 32).padding(
-                            bottom: _getReactionImageAvailable(mostReaction)
-                                ? 2
-                                : 0,
-                          ),
-                  )
-                : null,
           ),
           PostBody(
             item: item,
@@ -138,6 +60,17 @@ class PostItemScreenshot extends ConsumerWidget {
               item: item,
               isInteractive: false,
               renderingPadding: renderingPadding,
+            ),
+          if (item.reactionsCount.isNotEmpty)
+            PostReactionList(
+              padding: EdgeInsets.only(
+                left: renderingPadding.horizontal,
+                right: renderingPadding.horizontal,
+                top: 8,
+              ),
+              parentId: item.id,
+              reactions: item.reactionsCount,
+              reactionsMade: item.reactionsMade,
             ),
           if (item.threadedRepliesCount > 0)
             Consumer(
