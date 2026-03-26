@@ -87,6 +87,7 @@ SnCloudFile? _getPostThumbnail(SnPost post) {
 class PostActionButtons extends HookConsumerWidget {
   final SnPost post;
   final EdgeInsets renderingPadding;
+  final bool noBottomPadding;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
 
@@ -94,6 +95,7 @@ class PostActionButtons extends HookConsumerWidget {
     super.key,
     required this.post,
     this.renderingPadding = EdgeInsets.zero,
+    this.noBottomPadding = false,
     this.onRefresh,
     this.onUpdate,
   });
@@ -365,9 +367,11 @@ class PostActionButtons extends HookConsumerWidget {
     );
 
     return Padding(
-      padding: renderingPadding.copyWith(
-        bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
-      ),
+      padding: noBottomPadding
+          ? renderingPadding
+          : renderingPadding.copyWith(
+              bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
+            ),
       child: Wrap(
         spacing: 2,
         runSpacing: 2,
@@ -496,6 +500,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                         ),
                                         PostActionButtons(
                                           post: post,
+                                          noBottomPadding: true,
                                           renderingPadding:
                                               const EdgeInsets.only(top: 8),
                                           onRefresh: onRefresh,
