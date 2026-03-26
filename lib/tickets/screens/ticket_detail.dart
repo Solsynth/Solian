@@ -73,8 +73,9 @@ class TicketDetailScreen extends HookConsumerWidget {
       () async {
         if (messageController.text.trim().isEmpty &&
                 attachments.value.isEmpty ||
-            isSubmitting.value)
+            isSubmitting.value) {
           return;
+        }
 
         isSubmitting.value = true;
 

@@ -76,7 +76,7 @@ class UniversalImage extends HookConsumerWidget {
 
     return SizedBox(
       width: width,
-      height: height,
+      height: height ?? 200,
       child: Stack(
         fit: StackFit.expand,
         children: [

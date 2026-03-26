@@ -31,7 +31,7 @@ class EmbedListWidget extends ConsumerStatefulWidget {
 }
 
 class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
-  late bool _isExpanded;
+  bool _isExpanded = false;
 
   @override
   void initState() {

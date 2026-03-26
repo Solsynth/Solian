@@ -1,7 +1,3 @@
-/// Dyson's FullyManaged sites now use file-based template rendering.
-/// File management is now available for both FullyManaged and SelfManaged sites.
-///
-/// See: DysonNetwork.Zone FullyManaged Template Generator: Client Migration Guide
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
