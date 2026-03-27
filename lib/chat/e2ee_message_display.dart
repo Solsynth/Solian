@@ -1,4 +1,3 @@
-import 'package:island/chat/e2ee_codec.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 typedef E2eeDisplayContent = ({
@@ -13,6 +12,8 @@ E2eeDisplayContent resolveE2eeDisplayContentForMessage(SnChatMessage message) {
     roomId: message.chatRoomId,
     content: message.content,
     meta: message.meta,
+    ciphertext: message.meta['e2ee_ciphertext']?.toString(),
+    isEncrypted: message.meta['e2ee_is_encrypted'] == true,
   );
 }
 
@@ -32,9 +33,20 @@ E2eeDisplayContent resolveE2eeDisplayContent({
     );
   }
 
-  final resolvedCiphertext = ciphertext ?? meta?['e2ee_ciphertext']?.toString();
   final resolvedEncrypted =
       isEncrypted == true || meta?['e2ee_is_encrypted'] == true;
+  final resolvedDecryptedContent = meta?['e2ee_decrypted_content']?.toString();
+
+  if (resolvedDecryptedContent != null && resolvedDecryptedContent.isNotEmpty) {
+    return (
+      content: resolvedDecryptedContent,
+      isEncrypted: true,
+      decryptFailed: false,
+      emptyAfterDecrypt: false,
+    );
+  }
+
+  final resolvedCiphertext = ciphertext ?? meta?['e2ee_ciphertext']?.toString();
 
   if (resolvedCiphertext == null || resolvedCiphertext.isEmpty) {
     return (
@@ -45,33 +57,10 @@ E2eeDisplayContent resolveE2eeDisplayContent({
     );
   }
 
-  final decoded = decodeE2eeCiphertext(
-    roomId: roomId,
-    ciphertext: resolvedCiphertext,
-  );
-  if (decoded == null) {
-    return (
-      content: null,
-      isEncrypted: true,
-      decryptFailed: true,
-      emptyAfterDecrypt: false,
-    );
-  }
-
-  final decodedContent = decoded['content']?.toString();
-  if (decodedContent == null || decodedContent.isEmpty) {
-    return (
-      content: null,
-      isEncrypted: true,
-      decryptFailed: false,
-      emptyAfterDecrypt: true,
-    );
-  }
-
   return (
-    content: decodedContent,
+    content: null,
     isEncrypted: true,
-    decryptFailed: false,
+    decryptFailed: true,
     emptyAfterDecrypt: false,
   );
 }
