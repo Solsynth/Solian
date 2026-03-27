@@ -1,3 +1,4 @@
+import 'package:island/e2ee/e2ee.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 typedef E2eeDisplayContent = ({
@@ -12,6 +13,8 @@ E2eeDisplayContent resolveE2eeDisplayContentForMessage(SnChatMessage message) {
     roomId: message.chatRoomId,
     content: message.content,
     meta: message.meta,
+    ciphertext: message.meta['e2ee_ciphertext']?.toString(),
+    isEncrypted: message.meta['e2ee_is_encrypted'] == true,
   );
 }
 
@@ -44,7 +47,7 @@ E2eeDisplayContent resolveE2eeDisplayContent({
     );
   }
 
-  final decoded = decodeMlsCiphertext(
+  final decoded = decodeE2eeCiphertext(
     roomId: roomId,
     ciphertext: resolvedCiphertext,
   );
@@ -73,11 +76,4 @@ E2eeDisplayContent resolveE2eeDisplayContent({
     decryptFailed: false,
     emptyAfterDecrypt: false,
   );
-}
-
-Map<String, dynamic>? decodeMlsCiphertext({
-  required String roomId,
-  required String ciphertext,
-}) {
-  return null;
 }

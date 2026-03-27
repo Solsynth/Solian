@@ -59,7 +59,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   String get _e2eeScheme => 'chat.mls.v1';
   String? get _fileEncryptKey =>
-      _isE2eeRoom ? deriveFileEncryptKey(roomId) : null;
+      _isE2eeRoom ? deriveE2eeFileEncryptKey(roomId) : null;
 
   Options? _mlsWriteOptions() {
     if (!_isE2eeRoom) return null;
@@ -103,6 +103,11 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) {
     final normalizedMessageType =
         _normalizeEncryptionMessageType(messageType) ?? 'text';
+    final envelope = {
+      'content': content,
+      'attachments_id': attachmentIds,
+      'nonce': nonce,
+    };
     final meta = <String, dynamic>{
       'attachments_id': attachmentIds,
       'replied_message_id': repliedMessageId,
@@ -119,7 +124,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       'poll_id': pollId,
       'fund_id': fundId,
       'is_encrypted': true,
+      'ciphertext': encodeE2eeCiphertext(roomId: roomId, envelope: envelope),
+      'encryption_header': base64Encode(utf8.encode('{"v":1}')),
       'encryption_scheme': _e2eeScheme,
+      'encryption_epoch': 1,
       'encryption_message_type': normalizedMessageType,
       'client_message_id': nonce,
       'nonce': nonce,
