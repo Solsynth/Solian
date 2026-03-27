@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -689,11 +690,15 @@ class _AccountSearchTab extends HookConsumerWidget {
                               title: Row(
                                 children: [
                                   Flexible(
-                                    child: Text(
-                                      actor.displayName ?? actor.username ?? '',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleMedium,
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          actor.displayName ?? actor.username,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(width: 6),

@@ -777,7 +777,7 @@ class PostHeader extends HookConsumerWidget {
     }
     // Handle actor case
     if (post.actor != null) {
-      return post.actor!.displayName ?? post.actor!.username ?? 'unknown'.tr();
+      return post.actor!.displayName ?? post.actor!.username;
     }
     return 'unknown'.tr();
   }

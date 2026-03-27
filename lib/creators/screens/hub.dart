@@ -1382,9 +1382,7 @@ class _PublisherFediverseSheet extends HookConsumerWidget {
                       radius: 24,
                     ),
                     title: Text(
-                      status.actor!.displayName ??
-                          status.actor!.username ??
-                          'unknown'.tr(),
+                      status.actor!.displayName ?? status.actor!.username,
                     ),
                     subtitle: Text(
                       '@${status.actor!.username}@${status.actor!.instance.domain}',

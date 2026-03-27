@@ -26,13 +26,13 @@ class ApActorListItem extends StatelessWidget {
       return actor.displayName!;
     }
     if (actor.username.isNotEmpty) {
-      return actor.username!;
+      return actor.username;
     }
     return actor.id.split('@').lastOrNull ?? 'Unknown';
   }
 
   String _getUsername() {
-    if (actor.username.isNotEmpty ?? false) {
+    if (actor.username.isNotEmpty) {
       return '${actor.username}@${actor.instance.domain}';
     }
     return actor.id;
