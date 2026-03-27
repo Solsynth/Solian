@@ -335,7 +335,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     try {
       final msg = await db.getMessageById(messageId);
       if (msg != null && msg.roomId == roomId) {
-        return db.companionToMessage(msg);
+        return msg;
       }
     } catch (_) {}
     return null;
@@ -549,7 +549,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       reactionsMade: reactionsMade,
     );
 
-    await db.updateMessage(db.messageToCompanion(updatedMessage));
+    await db.saveMessage(updatedMessage);
     return true;
   }
 
@@ -809,68 +809,23 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
     final db = ref.watch(databaseProvider);
 
     try {
-      final localRoomsData = await db.getAllChatRooms();
-      final localRealmsData = await db.getAllRealms();
-      if (localRoomsData.isNotEmpty) {
-        final localRooms = await Future.wait(
-          localRoomsData.map((row) async {
+      final localRooms = await db.getAllChatRooms();
+      final localRealms = await db.getAllRealms();
+      if (localRooms.isNotEmpty) {
+        final roomsWithDetails = await Future.wait(
+          localRooms.map((room) async {
             final encryptionModeRaw = await db.getSecret(
-              _chatRoomEncryptionModeStoreKey(row.id),
+              _chatRoomEncryptionModeStoreKey(room.id),
             );
             final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
-            final membersRows = await db.getMembersByRoomId(row.id);
-            final members = membersRows.map((mRow) {
-              final account = SnAccount.fromJson(mRow.account);
-              return SnChatMember(
-                id: mRow.id,
-                chatRoomId: mRow.chatRoomId,
-                accountId: mRow.accountId,
-                account: account,
-                nick: mRow.nick,
-                notify: mRow.notify,
-                joinedAt: mRow.joinedAt,
-                breakUntil: mRow.breakUntil,
-                timeoutUntil: mRow.timeoutUntil,
-                status: null,
-                createdAt: mRow.createdAt,
-                updatedAt: mRow.updatedAt,
-                deletedAt: mRow.deletedAt,
-                chatRoom: null,
-                realmNick: mRow.realmNick ?? '',
-                realmBio: mRow.realmBio ?? '',
-                realmExperience: mRow.realmExperience,
-                realmLevel: mRow.realmLevel,
-                realmLevelingProgress: mRow.realmLevelingProgress,
-                realmLabel: mRow.realmLabel != null
-                    ? SnRealmLabel.fromJson(mRow.realmLabel!)
-                    : null,
-              );
-            }).toList();
-            return SnChatRoom(
-              id: row.id,
-              name: row.name,
-              description: row.description,
-              type: row.type,
+            final members = await db.getMembersByRoomId(room.id);
+            final realm = localRealms
+                .where((e) => e.id == room.realmId)
+                .firstOrNull;
+            return room.copyWith(
               encryptionMode: encryptionMode,
-              isPublic: row.isPublic!,
-              isCommunity: row.isCommunity!,
-              picture: row.picture != null
-                  ? SnCloudFile.fromJson(row.picture!)
-                  : null,
-              background: row.background != null
-                  ? SnCloudFile.fromJson(row.background!)
-                  : null,
-              realmId: row.realmId,
-              accountId: row.accountId,
-              realm: localRealmsData
-                  .where((e) => e.id == row.realmId)
-                  .map((e) => _buildRealmFromTableEntry(e))
-                  .firstOrNull,
-              createdAt: row.createdAt,
-              updatedAt: row.updatedAt,
-              deletedAt: row.deletedAt,
               members: members,
-              isPinned: row.isPinned ?? false,
+              realm: realm,
             );
           }),
         );
@@ -894,7 +849,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
           return rooms;
         } catch (_) {
           // If remote fetch fails, return local rooms
-          return localRooms;
+          return roomsWithDetails;
         }
       }
     } catch (_) {}
@@ -916,29 +871,6 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
     await db.saveChatRooms(rooms, override: true);
     return rooms;
   }
-
-  SnRealm _buildRealmFromTableEntry(Realm localRealm) {
-    return SnRealm(
-      id: localRealm.id,
-      slug: localRealm.slug,
-      name: localRealm.name ?? localRealm.slug,
-      description: localRealm.description ?? '',
-      verifiedAs: localRealm.verifiedAs,
-      verifiedAt: localRealm.verifiedAt,
-      isCommunity: localRealm.isCommunity,
-      isPublic: localRealm.isPublic,
-      picture: localRealm.picture != null
-          ? SnCloudFile.fromJson(localRealm.picture!)
-          : null,
-      background: localRealm.background != null
-          ? SnCloudFile.fromJson(localRealm.background!)
-          : null,
-      accountId: localRealm.accountId ?? '',
-      createdAt: localRealm.createdAt,
-      updatedAt: localRealm.updatedAt,
-      deletedAt: localRealm.deletedAt,
-    );
-  }
 }
 
 @riverpod
@@ -950,63 +882,18 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
 
     try {
       // Try to get from local database first
-      final localRoomData = await db.getChatRoomById(identifier);
+      final localRoom = await db.getChatRoomById(identifier);
 
-      if (localRoomData != null) {
+      if (localRoom != null) {
         final encryptionModeRaw = await db.getSecret(
-          _chatRoomEncryptionModeStoreKey(localRoomData.id),
+          _chatRoomEncryptionModeStoreKey(localRoom.id),
         );
         final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
         // Fetch members for this room
-        final membersRows = await db.getMembersByRoomId(localRoomData.id);
-        final members = membersRows.map((mRow) {
-          final account = SnAccount.fromJson(mRow.account);
-          return SnChatMember(
-            id: mRow.id,
-            chatRoomId: mRow.chatRoomId,
-            accountId: mRow.accountId,
-            account: account,
-            nick: mRow.nick,
-            notify: mRow.notify,
-            joinedAt: mRow.joinedAt,
-            breakUntil: mRow.breakUntil,
-            timeoutUntil: mRow.timeoutUntil,
-            status: null,
-            createdAt: mRow.createdAt,
-            updatedAt: mRow.updatedAt,
-            deletedAt: mRow.deletedAt,
-            chatRoom: null,
-            realmNick: mRow.realmNick ?? '',
-            realmBio: mRow.realmBio ?? '',
-            realmExperience: mRow.realmExperience,
-            realmLevel: mRow.realmLevel,
-            realmLevelingProgress: mRow.realmLevelingProgress,
-            realmLabel: mRow.realmLabel != null
-                ? SnRealmLabel.fromJson(mRow.realmLabel!)
-                : null,
-          );
-        }).toList();
+        final members = await db.getMembersByRoomId(localRoom.id);
 
-        final localRoom = SnChatRoom(
-          id: localRoomData.id,
-          name: localRoomData.name,
-          description: localRoomData.description,
-          type: localRoomData.type,
+        final room = localRoom.copyWith(
           encryptionMode: encryptionMode,
-          isPublic: localRoomData.isPublic!,
-          isCommunity: localRoomData.isCommunity!,
-          picture: localRoomData.picture != null
-              ? SnCloudFile.fromJson(localRoomData.picture!)
-              : null,
-          background: localRoomData.background != null
-              ? SnCloudFile.fromJson(localRoomData.background!)
-              : null,
-          realmId: localRoomData.realmId,
-          accountId: localRoomData.accountId,
-          realm: null,
-          createdAt: localRoomData.createdAt,
-          updatedAt: localRoomData.updatedAt,
-          deletedAt: localRoomData.deletedAt,
           members: members,
         );
 
@@ -1026,7 +913,7 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
           } catch (_) {}
         }).ignore();
 
-        return localRoom;
+        return room;
       }
     } catch (_) {}
 
@@ -1061,38 +948,12 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
     try {
       // Try to get from local database first
       if (userInfo.value != null) {
-        final localMemberData = await db.getMemberByRoomAndAccount(
+        final localMember = await db.getMemberByRoomAndAccount(
           identifier,
           userInfo.value!.id,
         );
 
-        if (localMemberData != null) {
-          final account = SnAccount.fromJson(localMemberData.account);
-          final localMember = SnChatMember(
-            id: localMemberData.id,
-            chatRoomId: localMemberData.chatRoomId,
-            accountId: localMemberData.accountId,
-            account: account,
-            nick: localMemberData.nick,
-            notify: localMemberData.notify,
-            joinedAt: localMemberData.joinedAt,
-            breakUntil: localMemberData.breakUntil,
-            timeoutUntil: localMemberData.timeoutUntil,
-            status: null,
-            createdAt: localMemberData.createdAt,
-            updatedAt: localMemberData.updatedAt,
-            deletedAt: localMemberData.deletedAt,
-            chatRoom: null,
-            realmNick: localMemberData.realmNick ?? '',
-            realmBio: localMemberData.realmBio ?? '',
-            realmExperience: localMemberData.realmExperience,
-            realmLevel: localMemberData.realmLevel,
-            realmLevelingProgress: localMemberData.realmLevelingProgress,
-            realmLabel: localMemberData.realmLabel != null
-                ? SnRealmLabel.fromJson(localMemberData.realmLabel!)
-                : null,
-          );
-
+        if (localMember != null) {
           // Background sync
           Future(() async {
             try {
@@ -1105,7 +966,10 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
               // Update state with fresh data
               if (userInfo.value != null) {
                 state = AsyncData(
-                  await _buildMemberFromDb(db, identifier, userInfo.value!.id),
+                  await db.getMemberByRoomAndAccount(
+                    identifier,
+                    userInfo.value!.id,
+                  ),
                 );
               }
             } catch (_) {}
@@ -1129,45 +993,6 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
       }
       rethrow; // Rethrow other errors
     }
-  }
-
-  Future<SnChatMember?> _buildMemberFromDb(
-    AppDatabase db,
-    String identifier,
-    String accountId,
-  ) async {
-    final localMemberData = await db.getMemberByRoomAndAccount(
-      identifier,
-      accountId,
-    );
-
-    if (localMemberData == null) return null;
-
-    final account = SnAccount.fromJson(localMemberData.account);
-    return SnChatMember(
-      id: localMemberData.id,
-      chatRoomId: localMemberData.chatRoomId,
-      accountId: localMemberData.accountId,
-      account: account,
-      nick: localMemberData.nick,
-      notify: localMemberData.notify,
-      joinedAt: localMemberData.joinedAt,
-      breakUntil: localMemberData.breakUntil,
-      timeoutUntil: localMemberData.timeoutUntil,
-      status: null,
-      createdAt: localMemberData.createdAt,
-      updatedAt: localMemberData.updatedAt,
-      deletedAt: localMemberData.deletedAt,
-      chatRoom: null,
-      realmNick: localMemberData.realmNick ?? '',
-      realmBio: localMemberData.realmBio ?? '',
-      realmExperience: localMemberData.realmExperience,
-      realmLevel: localMemberData.realmLevel,
-      realmLevelingProgress: localMemberData.realmLevelingProgress,
-      realmLabel: localMemberData.realmLabel != null
-          ? SnRealmLabel.fromJson(localMemberData.realmLabel!)
-          : null,
-    );
   }
 }
 

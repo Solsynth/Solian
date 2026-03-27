@@ -8,182 +8,6 @@ import 'package:island/data/objectbox/entities.dart';
 import 'package:island/objectbox.g.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class ChatMessage {
-  ChatMessage({
-    required this.id,
-    required this.roomId,
-    required this.senderId,
-    required this.content,
-    required this.nonce,
-    required this.data,
-    required this.createdAt,
-    required this.status,
-    required this.isDeleted,
-    required this.updatedAt,
-    required this.deletedAt,
-    required this.type,
-    required this.meta,
-    required this.membersMentioned,
-    required this.editedAt,
-    required this.attachments,
-    required this.reactions,
-    required this.repliedMessageId,
-    required this.forwardedMessageId,
-  });
-
-  final String id;
-  final String roomId;
-  final String senderId;
-  final String? content;
-  final String? nonce;
-  final String data;
-  final DateTime createdAt;
-  final MessageStatus status;
-  final bool? isDeleted;
-  final DateTime? updatedAt;
-  final DateTime? deletedAt;
-  final String type;
-  final Map<String, dynamic> meta;
-  final List<String> membersMentioned;
-  final DateTime? editedAt;
-  final List<Map<String, dynamic>> attachments;
-  final List<Map<String, dynamic>> reactions;
-  final String? repliedMessageId;
-  final String? forwardedMessageId;
-}
-
-class ChatRoom {
-  ChatRoom({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.type,
-    required this.isPublic,
-    required this.isCommunity,
-    required this.picture,
-    required this.background,
-    required this.realmId,
-    required this.accountId,
-    required this.isPinned,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.deletedAt,
-  });
-
-  final String id;
-  final String? name;
-  final String? description;
-  final int type;
-  final bool? isPublic;
-  final bool? isCommunity;
-  final Map<String, dynamic>? picture;
-  final Map<String, dynamic>? background;
-  final String? realmId;
-  final String? accountId;
-  final bool? isPinned;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime? deletedAt;
-}
-
-class ChatMember {
-  ChatMember({
-    required this.id,
-    required this.chatRoomId,
-    required this.accountId,
-    required this.account,
-    required this.nick,
-    required this.notify,
-    required this.joinedAt,
-    required this.breakUntil,
-    required this.timeoutUntil,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.deletedAt,
-    required this.realmNick,
-    required this.realmBio,
-    required this.realmExperience,
-    required this.realmLevel,
-    required this.realmLevelingProgress,
-    required this.realmLabel,
-  });
-
-  final String id;
-  final String chatRoomId;
-  final String accountId;
-  final Map<String, dynamic> account;
-  final String? nick;
-  final int notify;
-  final DateTime? joinedAt;
-  final DateTime? breakUntil;
-  final DateTime? timeoutUntil;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime? deletedAt;
-  final String? realmNick;
-  final String? realmBio;
-  final int? realmExperience;
-  final int? realmLevel;
-  final double? realmLevelingProgress;
-  final Map<String, dynamic>? realmLabel;
-}
-
-class Realm {
-  Realm({
-    required this.id,
-    required this.slug,
-    required this.name,
-    required this.description,
-    required this.verifiedAs,
-    required this.verifiedAt,
-    required this.isCommunity,
-    required this.isPublic,
-    required this.picture,
-    required this.background,
-    required this.accountId,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.deletedAt,
-  });
-
-  final String id;
-  final String slug;
-  final String? name;
-  final String? description;
-  final String? verifiedAs;
-  final DateTime? verifiedAt;
-  final bool isCommunity;
-  final bool isPublic;
-  final Map<String, dynamic>? picture;
-  final Map<String, dynamic>? background;
-  final String? accountId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime? deletedAt;
-}
-
-class PostDraft {
-  PostDraft({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.content,
-    required this.visibility,
-    required this.type,
-    required this.lastModified,
-    required this.postData,
-  });
-
-  final String id;
-  final String? title;
-  final String? description;
-  final String? content;
-  final int visibility;
-  final int type;
-  final DateTime lastModified;
-  final String postData;
-}
-
 class AppDatabase {
   AppDatabase.native(this._directoryPathFuture) : _isWeb = false;
   AppDatabase.web() : _isWeb = true, _directoryPathFuture = null;
@@ -258,11 +82,12 @@ class AppDatabase {
   }
 
   Future<T> transaction<T>(Future<T> Function() action) async {
-    // ObjectBox transactions accept synchronous callbacks only.
-    // Most callsites here are already serialized at the notifier level,
-    // so we run the async action directly.
     return action();
   }
+
+  // ---------------------------------------------------------------------------
+  // Messages
+  // ---------------------------------------------------------------------------
 
   Future<int> getLatestMessageTimestamp() async {
     if (_isWeb) return 0;
@@ -290,7 +115,7 @@ class AppDatabase {
         .count();
   }
 
-  Future<List<ChatMessage>> getMessagesForRoom(
+  Future<List<LocalChatMessage>> getMessagesForRoom(
     String roomId, {
     int offset = 0,
     int limit = 20,
@@ -305,12 +130,17 @@ class AppDatabase {
         .build();
     query.offset = offset;
     query.limit = limit;
-    final rows = query.find().map(_messageEntityToRow).toList();
+    final entities = query.find();
     query.close();
-    return rows;
+
+    final results = <LocalChatMessage>[];
+    for (final entity in entities) {
+      results.add(await _entityToLocalChatMessage(entity));
+    }
+    return results;
   }
 
-  Future<ChatMessage?> getMessageById(String id) async {
+  Future<LocalChatMessage?> getMessageById(String id) async {
     if (_isWeb) return null;
     final store = await _getStore();
     if (store == null) return null;
@@ -321,10 +151,10 @@ class AppDatabase {
     final entity = query.findFirst();
     query.close();
     if (entity == null) return null;
-    return _messageEntityToRow(entity);
+    return _entityToLocalChatMessage(entity);
   }
 
-  Future<int> saveMessage(ChatMessage message) async {
+  Future<int> saveMessage(LocalChatMessage message) async {
     if (_isWeb) return 1;
     final store = await _getStore();
     if (store == null) return 0;
@@ -333,12 +163,10 @@ class AppDatabase {
         .query(ChatMessageEntity_.uid.equals(message.id))
         .build()
         .findFirst();
-    final entity = _rowToMessageEntity(message, existing: existing);
+    final entity = _localChatMessageToEntity(message, existing: existing);
     box.put(entity);
     return 1;
   }
-
-  Future<int> updateMessage(ChatMessage message) => saveMessage(message);
 
   Future<int> updateMessageStatus(String id, MessageStatus status) async {
     if (_isWeb) return 1;
@@ -390,12 +218,12 @@ class AppDatabase {
       limit: 5000,
     );
     final lower = query.toLowerCase();
-    final filtered = <ChatMessage>[];
-    for (final row in messageRows) {
-      final contentText = (row.content ?? '').toLowerCase();
-      final metaText = jsonEncode(row.meta).toLowerCase();
-      final attachmentsText = jsonEncode(row.attachments).toLowerCase();
-      final typeText = row.type.toLowerCase();
+    final filtered = <LocalChatMessage>[];
+    for (final msg in messageRows) {
+      final contentText = (msg.content ?? '').toLowerCase();
+      final metaText = jsonEncode(msg.meta).toLowerCase();
+      final attachmentsText = jsonEncode(msg.attachments).toLowerCase();
+      final typeText = msg.type.toLowerCase();
 
       final matchesQuery =
           query.isEmpty ||
@@ -406,202 +234,85 @@ class AppDatabase {
       if (!matchesQuery) continue;
 
       final matchesAttachmentFilter =
-          withAttachments != true || row.attachments.isNotEmpty;
+          withAttachments != true || msg.attachments.isNotEmpty;
       if (!matchesAttachmentFilter) continue;
-      filtered.add(row);
+      filtered.add(msg);
     }
-
-    final list = <LocalChatMessage>[];
-    for (final row in filtered) {
-      list.add(await companionToMessage(row, fetchAccount: fetchAccount));
-    }
-    return list;
+    return filtered;
   }
 
-  ChatMessage messageToCompanion(LocalChatMessage message) {
-    return ChatMessage(
-      id: message.id,
-      roomId: message.roomId,
-      senderId: message.senderId,
-      content: message.content,
-      nonce: message.nonce,
-      data: jsonEncode(message.data),
-      createdAt: message.createdAt,
-      status: message.status,
-      isDeleted: message.isDeleted ?? false,
-      updatedAt: message.updatedAt,
-      deletedAt: message.deletedAt,
-      type: message.type,
-      meta: message.meta,
-      membersMentioned: message.membersMentioned,
-      editedAt: message.editedAt,
-      attachments: message.attachments,
-      reactions: message.reactions,
-      repliedMessageId: message.repliedMessageId,
-      forwardedMessageId: message.forwardedMessageId,
-    );
+  Future<int> saveMessageWithSender(LocalChatMessage message) async {
+    if (message.sender != null) {
+      await saveMember(message.sender!);
+    }
+    return saveMessage(message);
   }
 
-  Future<LocalChatMessage> companionToMessage(
-    ChatMessage dbMessage, {
-    Future<SnAccount?> Function(String accountId)? fetchAccount,
-  }) async {
-    final data = jsonDecode(dbMessage.data) as Map<String, dynamic>;
-    final senderSnapshot = _parseSenderSnapshot(data['sender']);
-    SnChatMember? sender;
-    try {
-      final senderRow = await getMemberById(dbMessage.senderId);
-      if (senderRow != null) {
-        SnAccount senderAccount = SnAccount.fromJson(senderRow.account);
-        sender = SnChatMember(
-          id: senderRow.id,
-          chatRoomId: senderRow.chatRoomId,
-          accountId: senderRow.accountId,
-          account: senderAccount,
-          nick: senderRow.nick,
-          notify: senderRow.notify,
-          joinedAt: senderRow.joinedAt,
-          breakUntil: senderRow.breakUntil,
-          timeoutUntil: senderRow.timeoutUntil,
-          status: null,
-          createdAt: senderRow.createdAt,
-          updatedAt: senderRow.updatedAt,
-          deletedAt: senderRow.deletedAt,
-          chatRoom: null,
-          realmNick: senderRow.realmNick ?? '',
-          realmBio: senderRow.realmBio ?? '',
-          realmExperience: senderRow.realmExperience,
-          realmLevel: senderRow.realmLevel,
-          realmLevelingProgress: senderRow.realmLevelingProgress,
-          realmLabel: senderRow.realmLabel != null
-              ? SnRealmLabel.fromJson(senderRow.realmLabel!)
-              : null,
+  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) async {
+    if (_isWeb || messages.isEmpty) return 0;
+    final store = await _getStore();
+    if (store == null) return 0;
+
+    var written = 0;
+    store.runInTransaction(TxMode.write, () {
+      final memberBox = store.box<ChatMemberEntity>();
+      final messageBox = store.box<ChatMessageEntity>();
+
+      for (final message in messages) {
+        final sender = message.sender;
+        if (sender != null) {
+          final memberQuery = memberBox
+              .query(ChatMemberEntity_.uid.equals(sender.id))
+              .build();
+          final existingMember = memberQuery.findFirst();
+          memberQuery.close();
+          memberBox.put(_memberToEntity(sender, existing: existingMember));
+        }
+
+        final messageQuery = messageBox
+            .query(ChatMessageEntity_.uid.equals(message.id))
+            .build();
+        final existingMessage = messageQuery.findFirst();
+        messageQuery.close();
+
+        final entity = _localChatMessageToEntity(
+          message,
+          existing: existingMessage,
         );
+        messageBox.put(entity);
+        written += 1;
       }
-    } catch (_) {
-      sender = null;
-    }
-
-    sender = _mergeSenderSnapshot(sender, senderSnapshot);
-
-    sender ??= senderSnapshot;
-
-    sender ??= SnChatMember(
-      id: 'unknown',
-      chatRoomId: dbMessage.roomId,
-      accountId: dbMessage.senderId,
-      account: SnAccount(
-        id: 'unknown',
-        name: 'unknown',
-        nick: dbMessage.senderId,
-        activatedAt: null,
-        profile: SnAccountProfile(
-          picture: null,
-          id: 'unknown',
-          experience: 0,
-          level: 1,
-          levelingProgress: 0.0,
-          background: null,
-          verification: null,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          deletedAt: null,
-        ),
-        language: '',
-        isSuperuser: false,
-        automatedId: null,
-        perkSubscription: null,
-        deletedAt: null,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      nick: dbMessage.senderId,
-      notify: 0,
-      joinedAt: null,
-      breakUntil: null,
-      timeoutUntil: null,
-      status: null,
-      lastTyped: null,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      deletedAt: null,
-      chatRoom: null,
-      realmNick: '',
-      realmBio: '',
-      realmExperience: null,
-      realmLevel: null,
-      realmLevelingProgress: null,
-      realmLabel: null,
-    );
-
-    return LocalChatMessage(
-      id: dbMessage.id,
-      roomId: dbMessage.roomId,
-      senderId: dbMessage.senderId,
-      sender: sender,
-      data: data,
-      createdAt: dbMessage.createdAt,
-      status: dbMessage.status,
-      nonce: dbMessage.nonce,
-      content: dbMessage.content,
-      isDeleted: dbMessage.isDeleted,
-      updatedAt: dbMessage.updatedAt,
-      deletedAt: dbMessage.deletedAt,
-      type: dbMessage.type,
-      meta: dbMessage.meta,
-      membersMentioned: dbMessage.membersMentioned,
-      editedAt: dbMessage.editedAt,
-      attachments: dbMessage.attachments,
-      reactions: dbMessage.reactions,
-      repliedMessageId: dbMessage.repliedMessageId,
-      forwardedMessageId: dbMessage.forwardedMessageId,
-    );
+    });
+    return written;
   }
 
-  SnChatMember? _parseSenderSnapshot(dynamic raw) {
-    if (raw is! Map) return null;
-    try {
-      return SnChatMember.fromJson(Map<String, dynamic>.from(raw));
-    } catch (_) {
-      return null;
-    }
+  // ---------------------------------------------------------------------------
+  // Rooms
+  // ---------------------------------------------------------------------------
+
+  Future<List<SnChatRoom>> getAllChatRooms() async {
+    if (_isWeb) return const [];
+    final store = await _getStore();
+    if (store == null) return const [];
+    return store
+        .box<ChatRoomEntity>()
+        .getAll()
+        .map(_entityToSnChatRoom)
+        .toList();
   }
 
-  SnChatMember? _mergeSenderSnapshot(
-    SnChatMember? primary,
-    SnChatMember? fallback,
-  ) {
-    if (primary == null) return fallback;
-    if (fallback == null) return primary;
-
-    final hasPrimaryRealmData =
-        primary.realmLabel != null ||
-        (primary.realmNick?.isNotEmpty ?? false) ||
-        (primary.realmBio?.isNotEmpty ?? false) ||
-        primary.realmExperience != null ||
-        primary.realmLevel != null ||
-        primary.realmLevelingProgress != null;
-
-    return primary.copyWith(
-      account: primary.account.id != 'unknown'
-          ? primary.account
-          : fallback.account,
-      nick: (primary.nick?.isNotEmpty == true) ? primary.nick : fallback.nick,
-      notify: primary.notify != 0 ? primary.notify : fallback.notify,
-      joinedAt: primary.joinedAt ?? fallback.joinedAt,
-      breakUntil: primary.breakUntil ?? fallback.breakUntil,
-      timeoutUntil: primary.timeoutUntil ?? fallback.timeoutUntil,
-      createdAt: primary.createdAt,
-      updatedAt: primary.updatedAt,
-      deletedAt: primary.deletedAt ?? fallback.deletedAt,
-      realmNick: hasPrimaryRealmData ? primary.realmNick : fallback.realmNick,
-      realmBio: hasPrimaryRealmData ? primary.realmBio : fallback.realmBio,
-      realmExperience: primary.realmExperience ?? fallback.realmExperience,
-      realmLevel: primary.realmLevel ?? fallback.realmLevel,
-      realmLevelingProgress:
-          primary.realmLevelingProgress ?? fallback.realmLevelingProgress,
-      realmLabel: primary.realmLabel ?? fallback.realmLabel,
-    );
+  Future<SnChatRoom?> getChatRoomById(String id) async {
+    if (_isWeb) return null;
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<ChatRoomEntity>()
+        .query(ChatRoomEntity_.uid.equals(id))
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity == null) return null;
+    return _entityToSnChatRoom(entity);
   }
 
   Future<void> saveChatRooms(
@@ -661,7 +372,7 @@ class AppDatabase {
         final existing = query.findFirst();
         query.close();
         final preservedPinned = existing?.isPinned ?? false;
-        final entity = _roomToEntity(
+        final entity = _snChatRoomToEntity(
           room,
           isPinnedOverride: preservedPinned,
           existing: existing,
@@ -679,6 +390,110 @@ class AppDatabase {
     });
   }
 
+  Future<void> toggleChatRoomPinned(String roomId) async {
+    if (_isWeb) return;
+    final store = await _getStore();
+    if (store == null) return;
+    final box = store.box<ChatRoomEntity>();
+    final query = box.query(ChatRoomEntity_.uid.equals(roomId)).build();
+    final room = query.findFirst();
+    query.close();
+    if (room == null) return;
+    room.isPinned = !room.isPinned;
+    box.put(room);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Members
+  // ---------------------------------------------------------------------------
+
+  Future<List<SnChatMember>> getMembersByRoomId(String roomId) async {
+    if (_isWeb) return const [];
+    final store = await _getStore();
+    if (store == null) return const [];
+    final query = store
+        .box<ChatMemberEntity>()
+        .query(ChatMemberEntity_.chatRoomId.equals(roomId))
+        .build();
+    final list = query.find().map(_entityToSnChatMember).toList();
+    query.close();
+    return list;
+  }
+
+  Future<SnChatMember?> getMemberByRoomAndAccount(
+    String roomId,
+    String accountId,
+  ) async {
+    if (_isWeb) return null;
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<ChatMemberEntity>()
+        .query(
+          ChatMemberEntity_.chatRoomId.equals(roomId) &
+              ChatMemberEntity_.accountId.equals(accountId),
+        )
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity == null) return null;
+    return _entityToSnChatMember(entity);
+  }
+
+  Future<SnChatMember?> getMemberById(String id) async {
+    if (_isWeb) return null;
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<ChatMemberEntity>()
+        .query(ChatMemberEntity_.uid.equals(id))
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity == null) return null;
+    return _entityToSnChatMember(entity);
+  }
+
+  Future<void> saveMember(SnChatMember member) async {
+    if (_isWeb) return;
+    final store = await _getStore();
+    if (store == null) return;
+    final box = store.box<ChatMemberEntity>();
+    final query = box.query(ChatMemberEntity_.uid.equals(member.id)).build();
+    final existing = query.findFirst();
+    query.close();
+    box.put(_memberToEntity(member, existing: existing));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Realms
+  // ---------------------------------------------------------------------------
+
+  Future<List<SnRealm>> getAllRealms() async {
+    if (_isWeb) return const [];
+    final store = await _getStore();
+    if (store == null) return const [];
+    return store.box<RealmEntity>().getAll().map(_entityToSnRealm).toList();
+  }
+
+  Future<SnRealm?> getRealmById(String id) async {
+    if (_isWeb) return null;
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<RealmEntity>()
+        .query(RealmEntity_.uid.equals(id))
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity == null) return null;
+    return _entityToSnRealm(entity);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Post drafts
+  // ---------------------------------------------------------------------------
+
   Future<List<SnPost>> getAllPostDrafts() async {
     if (_isWeb) {
       final drafts = _webDraftStore.values.toList()
@@ -689,44 +504,21 @@ class AppDatabase {
         );
       return drafts;
     }
-    final rows = await getAllPostDraftRecords();
-    return rows
-        .map((draft) => SnPost.fromJson(jsonDecode(draft.postData)))
-        .toList();
-  }
-
-  Future<List<PostDraft>> getAllPostDraftRecords() async {
-    if (_isWeb) {
-      return _webDraftStore.values
-          .map(
-            (post) => PostDraft(
-              id: post.id,
-              title: post.title,
-              description: post.description,
-              content: post.content,
-              visibility: post.visibility,
-              type: post.type,
-              lastModified: post.updatedAt ?? DateTime.now(),
-              postData: jsonEncode(post.toJson()),
-            ),
-          )
-          .toList();
-    }
     final store = await _getStore();
     if (store == null) return const [];
-    final drafts = store.box<PostDraftEntity>().getAll()
+    final entities = store.box<PostDraftEntity>().getAll()
       ..sort((a, b) => b.lastModifiedMs.compareTo(a.lastModifiedMs));
-    return drafts.map(_draftEntityToRow).toList();
+    return entities.map(_entityToSnPost).toList();
   }
 
-  Future<List<PostDraft>> searchPostDrafts(String query) async {
-    final rows = await getAllPostDraftRecords();
-    if (query.isEmpty) return rows;
+  Future<List<SnPost>> searchPostDrafts(String query) async {
+    final drafts = await getAllPostDrafts();
+    if (query.isEmpty) return drafts;
     final lower = query.toLowerCase();
-    return rows.where((draft) {
-      return (draft.title ?? '').toLowerCase().contains(lower) ||
-          (draft.description ?? '').toLowerCase().contains(lower) ||
-          (draft.content ?? '').toLowerCase().contains(lower);
+    return drafts.where((post) {
+      return (post.title ?? '').toLowerCase().contains(lower) ||
+          (post.description ?? '').toLowerCase().contains(lower) ||
+          (post.content ?? '').toLowerCase().contains(lower);
     }).toList();
   }
 
@@ -744,7 +536,7 @@ class AppDatabase {
         .build();
     final existing = query.findFirst();
     query.close();
-    final entity = _postToEntity(updatedPost, existing: existing);
+    final entity = _snPostToEntity(updatedPost, existing: existing);
     box.put(entity);
   }
 
@@ -772,20 +564,9 @@ class AppDatabase {
     store.box<PostDraftEntity>().removeAll();
   }
 
-  Future<PostDraft?> getPostDraftById(String id) async {
+  Future<SnPost?> getPostDraftById(String id) async {
     if (_isWeb) {
-      final draft = _webDraftStore[id];
-      if (draft == null) return null;
-      return PostDraft(
-        id: draft.id,
-        title: draft.title,
-        description: draft.description,
-        content: draft.content,
-        visibility: draft.visibility,
-        type: draft.type,
-        lastModified: draft.updatedAt ?? DateTime.now(),
-        postData: jsonEncode(draft.toJson()),
-      );
+      return _webDraftStore[id];
     }
     final store = await _getStore();
     if (store == null) return null;
@@ -794,164 +575,12 @@ class AppDatabase {
     final entity = query.findFirst();
     query.close();
     if (entity == null) return null;
-    return _draftEntityToRow(entity);
+    return _entityToSnPost(entity);
   }
 
-  Future<void> saveMember(SnChatMember member) async {
-    if (_isWeb) return;
-    final store = await _getStore();
-    if (store == null) return;
-    final box = store.box<ChatMemberEntity>();
-    final query = box.query(ChatMemberEntity_.uid.equals(member.id)).build();
-    final existing = query.findFirst();
-    query.close();
-    box.put(_memberToEntity(member, existing: existing));
-  }
-
-  Future<int> saveMessageWithSender(LocalChatMessage message) async {
-    if (message.sender != null) {
-      await saveMember(message.sender!);
-    }
-    return saveMessage(messageToCompanion(message));
-  }
-
-  Future<int> saveMessagesWithSenders(List<LocalChatMessage> messages) async {
-    if (_isWeb || messages.isEmpty) return 0;
-    final store = await _getStore();
-    if (store == null) return 0;
-
-    var written = 0;
-    store.runInTransaction(TxMode.write, () {
-      final memberBox = store.box<ChatMemberEntity>();
-      final messageBox = store.box<ChatMessageEntity>();
-
-      for (final message in messages) {
-        final sender = message.sender;
-        if (sender != null) {
-          final memberQuery = memberBox
-              .query(ChatMemberEntity_.uid.equals(sender.id))
-              .build();
-          final existingMember = memberQuery.findFirst();
-          memberQuery.close();
-          memberBox.put(_memberToEntity(sender, existing: existingMember));
-        }
-
-        final row = messageToCompanion(message);
-        final messageQuery = messageBox
-            .query(ChatMessageEntity_.uid.equals(row.id))
-            .build();
-        final existingMessage = messageQuery.findFirst();
-        messageQuery.close();
-
-        final entity = _rowToMessageEntity(row, existing: existingMessage);
-        messageBox.put(entity);
-        written += 1;
-      }
-    });
-    return written;
-  }
-
-  Future<void> toggleChatRoomPinned(String roomId) async {
-    if (_isWeb) return;
-    final store = await _getStore();
-    if (store == null) return;
-    final box = store.box<ChatRoomEntity>();
-    final query = box.query(ChatRoomEntity_.uid.equals(roomId)).build();
-    final room = query.findFirst();
-    query.close();
-    if (room == null) return;
-    room.isPinned = !room.isPinned;
-    box.put(room);
-  }
-
-  Future<List<ChatRoom>> getAllChatRooms() async {
-    if (_isWeb) return const [];
-    final store = await _getStore();
-    if (store == null) return const [];
-    return store.box<ChatRoomEntity>().getAll().map(_roomEntityToRow).toList();
-  }
-
-  Future<ChatRoom?> getChatRoomById(String id) async {
-    if (_isWeb) return null;
-    final store = await _getStore();
-    if (store == null) return null;
-    final query = store
-        .box<ChatRoomEntity>()
-        .query(ChatRoomEntity_.uid.equals(id))
-        .build();
-    final row = query.findFirst();
-    query.close();
-    if (row == null) return null;
-    return _roomEntityToRow(row);
-  }
-
-  Future<List<ChatMember>> getMembersByRoomId(String roomId) async {
-    if (_isWeb) return const [];
-    final store = await _getStore();
-    if (store == null) return const [];
-    final query = store
-        .box<ChatMemberEntity>()
-        .query(ChatMemberEntity_.chatRoomId.equals(roomId))
-        .build();
-    final list = query.find().map(_memberEntityToRow).toList();
-    query.close();
-    return list;
-  }
-
-  Future<ChatMember?> getMemberByRoomAndAccount(
-    String roomId,
-    String accountId,
-  ) async {
-    if (_isWeb) return null;
-    final store = await _getStore();
-    if (store == null) return null;
-    final query = store
-        .box<ChatMemberEntity>()
-        .query(
-          ChatMemberEntity_.chatRoomId.equals(roomId) &
-              ChatMemberEntity_.accountId.equals(accountId),
-        )
-        .build();
-    final row = query.findFirst();
-    query.close();
-    if (row == null) return null;
-    return _memberEntityToRow(row);
-  }
-
-  Future<ChatMember?> getMemberById(String id) async {
-    if (_isWeb) return null;
-    final store = await _getStore();
-    if (store == null) return null;
-    final query = store
-        .box<ChatMemberEntity>()
-        .query(ChatMemberEntity_.uid.equals(id))
-        .build();
-    final row = query.findFirst();
-    query.close();
-    if (row == null) return null;
-    return _memberEntityToRow(row);
-  }
-
-  Future<List<Realm>> getAllRealms() async {
-    if (_isWeb) return const [];
-    final store = await _getStore();
-    if (store == null) return const [];
-    return store.box<RealmEntity>().getAll().map(_realmEntityToRow).toList();
-  }
-
-  Future<Realm?> getRealmById(String id) async {
-    if (_isWeb) return null;
-    final store = await _getStore();
-    if (store == null) return null;
-    final query = store
-        .box<RealmEntity>()
-        .query(RealmEntity_.uid.equals(id))
-        .build();
-    final row = query.findFirst();
-    query.close();
-    if (row == null) return null;
-    return _realmEntityToRow(row);
-  }
+  // ---------------------------------------------------------------------------
+  // Secrets / KV store
+  // ---------------------------------------------------------------------------
 
   Future<String?> getSecret(String key) async {
     if (_isWeb) return null;
@@ -1016,16 +645,44 @@ class AppDatabase {
     return File('${directory.path}/app_kv_store.json');
   }
 
-  ChatMessage _messageEntityToRow(ChatMessageEntity entity) {
-    return ChatMessage(
+  // ---------------------------------------------------------------------------
+  // Entity adapters: ChatMessageEntity <-> LocalChatMessage
+  // ---------------------------------------------------------------------------
+
+  Future<LocalChatMessage> _entityToLocalChatMessage(
+    ChatMessageEntity entity,
+  ) async {
+    final dataJson = entity.dataJson;
+    final data = dataJson.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(dataJson) as Map<String, dynamic>;
+
+    final senderSnapshot = _parseSenderSnapshot(data['sender']);
+    SnChatMember? sender;
+
+    try {
+      final senderEntity = await _loadMemberEntity(entity.senderId);
+      if (senderEntity != null) {
+        sender = _entityToSnChatMember(senderEntity);
+      }
+    } catch (_) {}
+
+    sender = _mergeSenderSnapshot(sender, senderSnapshot);
+
+    sender ??= senderSnapshot;
+
+    sender ??= _unknownSender(entity.senderId, entity.roomId);
+
+    return LocalChatMessage(
       id: entity.uid,
       roomId: entity.roomId,
       senderId: entity.senderId,
-      content: entity.content,
-      nonce: entity.nonce,
-      data: entity.dataJson,
+      sender: sender,
+      data: data,
       createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
       status: MessageStatus.values[entity.status],
+      nonce: entity.nonce,
+      content: entity.content,
       isDeleted: entity.isDeleted,
       updatedAt: _fromMs(entity.updatedAtMs),
       deletedAt: _fromMs(entity.deletedAtMs),
@@ -1040,40 +697,204 @@ class AppDatabase {
     );
   }
 
-  ChatMessageEntity _rowToMessageEntity(
-    ChatMessage row, {
+  ChatMessageEntity _localChatMessageToEntity(
+    LocalChatMessage message, {
     ChatMessageEntity? existing,
   }) {
+    final dataJson = message.toDataJson();
     final entity =
         existing ??
         ChatMessageEntity(
-          uid: row.id,
-          roomId: row.roomId,
-          senderId: row.senderId,
-          dataJson: row.data,
-          createdAtMs: row.createdAt.millisecondsSinceEpoch,
-          status: row.status.index,
+          uid: message.id,
+          roomId: message.roomId,
+          senderId: message.senderId,
+          dataJson: dataJson,
+          createdAtMs: message.createdAt.millisecondsSinceEpoch,
+          status: message.status.index,
         );
-    entity.uid = row.id;
-    entity.roomId = row.roomId;
-    entity.senderId = row.senderId;
-    entity.content = row.content;
-    entity.nonce = row.nonce;
-    entity.dataJson = row.data;
-    entity.createdAtMs = row.createdAt.millisecondsSinceEpoch;
-    entity.status = row.status.index;
-    entity.isDeleted = row.isDeleted ?? false;
-    entity.updatedAtMs = _toMs(row.updatedAt);
-    entity.deletedAtMs = _toMs(row.deletedAt);
-    entity.type = row.type;
-    entity.metaJson = jsonEncode(row.meta);
-    entity.membersMentionedJson = jsonEncode(row.membersMentioned);
-    entity.editedAtMs = _toMs(row.editedAt);
-    entity.attachmentsJson = jsonEncode(row.attachments);
-    entity.reactionsJson = jsonEncode(row.reactions);
-    entity.repliedMessageId = row.repliedMessageId;
-    entity.forwardedMessageId = row.forwardedMessageId;
+    entity.uid = message.id;
+    entity.roomId = message.roomId;
+    entity.senderId = message.senderId;
+    entity.content = message.content;
+    entity.nonce = message.nonce;
+    entity.dataJson = dataJson;
+    entity.createdAtMs = message.createdAt.millisecondsSinceEpoch;
+    entity.status = message.status.index;
+    entity.isDeleted = message.isDeleted ?? false;
+    entity.updatedAtMs = _toMs(message.updatedAt);
+    entity.deletedAtMs = _toMs(message.deletedAt);
+    entity.type = message.type;
+    entity.metaJson = jsonEncode(message.meta);
+    entity.membersMentionedJson = jsonEncode(message.membersMentioned);
+    entity.editedAtMs = _toMs(message.editedAt);
+    entity.attachmentsJson = jsonEncode(message.attachments);
+    entity.reactionsJson = jsonEncode(message.reactions);
+    entity.repliedMessageId = message.repliedMessageId;
+    entity.forwardedMessageId = message.forwardedMessageId;
     return entity;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Entity adapters: ChatRoomEntity <-> SnChatRoom
+  // ---------------------------------------------------------------------------
+
+  SnChatRoom _entityToSnChatRoom(ChatRoomEntity entity) {
+    return SnChatRoom(
+      id: entity.uid,
+      name: entity.name,
+      description: entity.description,
+      type: entity.type,
+      encryptionMode: 0,
+      isPublic: entity.isPublic ?? false,
+      isCommunity: entity.isCommunity ?? false,
+      picture: entity.pictureJson != null
+          ? SnCloudFile.fromJson(_decodeMap(entity.pictureJson!))
+          : null,
+      background: entity.backgroundJson != null
+          ? SnCloudFile.fromJson(_decodeMap(entity.backgroundJson!))
+          : null,
+      realmId: entity.realmId,
+      accountId: entity.accountId,
+      realm: null,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
+      deletedAt: _fromMs(entity.deletedAtMs),
+      members: null,
+      isPinned: entity.isPinned ?? false,
+    );
+  }
+
+  ChatRoomEntity _snChatRoomToEntity(
+    SnChatRoom room, {
+    required bool isPinnedOverride,
+    ChatRoomEntity? existing,
+  }) {
+    final entity =
+        existing ??
+        ChatRoomEntity(
+          uid: room.id,
+          type: room.type,
+          createdAtMs: room.createdAt.millisecondsSinceEpoch,
+          updatedAtMs: room.updatedAt.millisecondsSinceEpoch,
+        );
+    entity.uid = room.id;
+    entity.name = room.name;
+    entity.description = room.description;
+    entity.type = room.type;
+    entity.isPublic = room.isPublic;
+    entity.isCommunity = room.isCommunity;
+    entity.pictureJson = room.picture == null
+        ? null
+        : jsonEncode(room.picture!.toJson());
+    entity.backgroundJson = room.background == null
+        ? null
+        : jsonEncode(room.background!.toJson());
+    entity.realmId = room.realmId;
+    entity.accountId = room.accountId;
+    entity.isPinned = isPinnedOverride;
+    entity.createdAtMs = room.createdAt.millisecondsSinceEpoch;
+    entity.updatedAtMs = room.updatedAt.millisecondsSinceEpoch;
+    entity.deletedAtMs = _toMs(room.deletedAt);
+    return entity;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Entity adapters: ChatMemberEntity <-> SnChatMember
+  // ---------------------------------------------------------------------------
+
+  SnChatMember _entityToSnChatMember(ChatMemberEntity entity) {
+    return SnChatMember(
+      id: entity.uid,
+      chatRoomId: entity.chatRoomId,
+      accountId: entity.accountId,
+      account: SnAccount.fromJson(_decodeMap(entity.accountJson)),
+      nick: entity.nick,
+      notify: entity.notify,
+      joinedAt: _fromMs(entity.joinedAtMs),
+      breakUntil: _fromMs(entity.breakUntilMs),
+      timeoutUntil: _fromMs(entity.timeoutUntilMs),
+      status: null,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
+      deletedAt: _fromMs(entity.deletedAtMs),
+      chatRoom: null,
+      realmNick: null,
+      realmBio: null,
+      realmExperience: null,
+      realmLevel: null,
+      realmLevelingProgress: null,
+      realmLabel: null,
+      lastTyped: null,
+    );
+  }
+
+  ChatMemberEntity _memberToEntity(
+    SnChatMember member, {
+    ChatMemberEntity? existing,
+  }) {
+    final entity =
+        existing ??
+        ChatMemberEntity(
+          uid: member.id,
+          chatRoomId: member.chatRoomId,
+          accountId: member.accountId,
+          accountJson: jsonEncode(member.account.toJson()),
+          notify: member.notify,
+          createdAtMs: member.createdAt.millisecondsSinceEpoch,
+          updatedAtMs: member.updatedAt.millisecondsSinceEpoch,
+        );
+    entity.uid = member.id;
+    entity.chatRoomId = member.chatRoomId;
+    entity.accountId = member.accountId;
+    entity.accountJson = jsonEncode(member.account.toJson());
+    entity.nick = member.nick;
+    entity.notify = member.notify;
+    entity.joinedAtMs = _toMs(member.joinedAt);
+    entity.breakUntilMs = _toMs(member.breakUntil);
+    entity.timeoutUntilMs = _toMs(member.timeoutUntil);
+    entity.createdAtMs = member.createdAt.millisecondsSinceEpoch;
+    entity.updatedAtMs = member.updatedAt.millisecondsSinceEpoch;
+    entity.deletedAtMs = _toMs(member.deletedAt);
+    return entity;
+  }
+
+  Future<ChatMemberEntity?> _loadMemberEntity(String id) async {
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<ChatMemberEntity>()
+        .query(ChatMemberEntity_.uid.equals(id))
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    return entity;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Entity adapters: RealmEntity <-> SnRealm
+  // ---------------------------------------------------------------------------
+
+  SnRealm _entityToSnRealm(RealmEntity entity) {
+    return SnRealm(
+      id: entity.uid,
+      slug: entity.slug,
+      name: entity.name ?? entity.slug,
+      description: entity.description ?? '',
+      verifiedAs: entity.verifiedAs,
+      verifiedAt: _fromMs(entity.verifiedAtMs),
+      isCommunity: entity.isCommunity,
+      isPublic: entity.isPublic,
+      picture: entity.pictureJson != null
+          ? SnCloudFile.fromJson(_decodeMap(entity.pictureJson!))
+          : null,
+      background: entity.backgroundJson != null
+          ? SnCloudFile.fromJson(_decodeMap(entity.backgroundJson!))
+          : null,
+      accountId: entity.accountId ?? '',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
+      deletedAt: _fromMs(entity.deletedAtMs),
+    );
   }
 
   RealmEntity _realmToEntity(SnRealm realm, {RealmEntity? existing}) {
@@ -1108,71 +929,15 @@ class AppDatabase {
     return entity;
   }
 
-  ChatRoomEntity _roomToEntity(
-    SnChatRoom room, {
-    required bool isPinnedOverride,
-    ChatRoomEntity? existing,
-  }) {
-    final entity =
-        existing ??
-        ChatRoomEntity(
-          uid: room.id,
-          type: room.type,
-          createdAtMs: room.createdAt.millisecondsSinceEpoch,
-          updatedAtMs: room.updatedAt.millisecondsSinceEpoch,
-        );
-    entity.uid = room.id;
-    entity.name = room.name;
-    entity.description = room.description;
-    entity.type = room.type;
-    entity.isPublic = room.isPublic;
-    entity.isCommunity = room.isCommunity;
-    entity.pictureJson = room.picture == null
-        ? null
-        : jsonEncode(room.picture!.toJson());
-    entity.backgroundJson = room.background == null
-        ? null
-        : jsonEncode(room.background!.toJson());
-    entity.realmId = room.realmId;
-    entity.accountId = room.accountId;
-    entity.isPinned = isPinnedOverride;
-    entity.createdAtMs = room.createdAt.millisecondsSinceEpoch;
-    entity.updatedAtMs = room.updatedAt.millisecondsSinceEpoch;
-    entity.deletedAtMs = _toMs(room.deletedAt);
-    return entity;
+  // ---------------------------------------------------------------------------
+  // Entity adapters: PostDraftEntity <-> SnPost
+  // ---------------------------------------------------------------------------
+
+  SnPost _entityToSnPost(PostDraftEntity entity) {
+    return SnPost.fromJson(jsonDecode(entity.postDataJson));
   }
 
-  ChatMemberEntity _memberToEntity(
-    SnChatMember member, {
-    ChatMemberEntity? existing,
-  }) {
-    final entity =
-        existing ??
-        ChatMemberEntity(
-          uid: member.id,
-          chatRoomId: member.chatRoomId,
-          accountId: member.accountId,
-          accountJson: jsonEncode(member.account.toJson()),
-          notify: member.notify,
-          createdAtMs: member.createdAt.millisecondsSinceEpoch,
-          updatedAtMs: member.updatedAt.millisecondsSinceEpoch,
-        );
-    entity.uid = member.id;
-    entity.chatRoomId = member.chatRoomId;
-    entity.accountId = member.accountId;
-    entity.accountJson = jsonEncode(member.account.toJson());
-    entity.nick = member.nick;
-    entity.notify = member.notify;
-    entity.joinedAtMs = _toMs(member.joinedAt);
-    entity.breakUntilMs = _toMs(member.breakUntil);
-    entity.timeoutUntilMs = _toMs(member.timeoutUntil);
-    entity.createdAtMs = member.createdAt.millisecondsSinceEpoch;
-    entity.updatedAtMs = member.updatedAt.millisecondsSinceEpoch;
-    entity.deletedAtMs = _toMs(member.deletedAt);
-    return entity;
-  }
-
-  PostDraftEntity _postToEntity(SnPost post, {PostDraftEntity? existing}) {
+  PostDraftEntity _snPostToEntity(SnPost post, {PostDraftEntity? existing}) {
     final updatedAt = post.updatedAt ?? DateTime.now();
     final entity =
         existing ??
@@ -1194,54 +959,99 @@ class AppDatabase {
     return entity;
   }
 
-  PostDraft _draftEntityToRow(PostDraftEntity entity) {
-    return PostDraft(
-      id: entity.uid,
-      title: entity.title,
-      description: entity.description,
-      content: entity.content,
-      visibility: entity.visibility,
-      type: entity.type,
-      lastModified: DateTime.fromMillisecondsSinceEpoch(entity.lastModifiedMs),
-      postData: entity.postDataJson,
+  // ---------------------------------------------------------------------------
+  // Sender helpers
+  // ---------------------------------------------------------------------------
+
+  SnChatMember? _parseSenderSnapshot(dynamic raw) {
+    if (raw is! Map) return null;
+    try {
+      return SnChatMember.fromJson(Map<String, dynamic>.from(raw));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  SnChatMember? _mergeSenderSnapshot(
+    SnChatMember? primary,
+    SnChatMember? fallback,
+  ) {
+    if (primary == null) return fallback;
+    if (fallback == null) return primary;
+
+    final hasPrimaryRealmData =
+        primary.realmLabel != null ||
+        (primary.realmNick?.isNotEmpty ?? false) ||
+        (primary.realmBio?.isNotEmpty ?? false) ||
+        primary.realmExperience != null ||
+        primary.realmLevel != null ||
+        primary.realmLevelingProgress != null;
+
+    return primary.copyWith(
+      account: primary.account.id != 'unknown'
+          ? primary.account
+          : fallback.account,
+      nick: (primary.nick?.isNotEmpty == true) ? primary.nick : fallback.nick,
+      notify: primary.notify != 0 ? primary.notify : fallback.notify,
+      joinedAt: primary.joinedAt ?? fallback.joinedAt,
+      breakUntil: primary.breakUntil ?? fallback.breakUntil,
+      timeoutUntil: primary.timeoutUntil ?? fallback.timeoutUntil,
+      createdAt: primary.createdAt,
+      updatedAt: primary.updatedAt,
+      deletedAt: primary.deletedAt ?? fallback.deletedAt,
+      realmNick: hasPrimaryRealmData ? primary.realmNick : fallback.realmNick,
+      realmBio: hasPrimaryRealmData ? primary.realmBio : fallback.realmBio,
+      realmExperience: primary.realmExperience ?? fallback.realmExperience,
+      realmLevel: primary.realmLevel ?? fallback.realmLevel,
+      realmLevelingProgress:
+          primary.realmLevelingProgress ?? fallback.realmLevelingProgress,
+      realmLabel: primary.realmLabel ?? fallback.realmLabel,
     );
   }
 
-  ChatRoom _roomEntityToRow(ChatRoomEntity entity) {
-    return ChatRoom(
-      id: entity.uid,
-      name: entity.name,
-      description: entity.description,
-      type: entity.type,
-      isPublic: entity.isPublic,
-      isCommunity: entity.isCommunity,
-      picture: _decodeNullableMap(entity.pictureJson),
-      background: _decodeNullableMap(entity.backgroundJson),
-      realmId: entity.realmId,
-      accountId: entity.accountId,
-      isPinned: entity.isPinned,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
-      deletedAt: _fromMs(entity.deletedAtMs),
-    );
-  }
-
-  ChatMember _memberEntityToRow(ChatMemberEntity entity) {
-    return ChatMember(
-      id: entity.uid,
-      chatRoomId: entity.chatRoomId,
-      accountId: entity.accountId,
-      account: _decodeMap(entity.accountJson),
-      nick: entity.nick,
-      notify: entity.notify,
-      joinedAt: _fromMs(entity.joinedAtMs),
-      breakUntil: _fromMs(entity.breakUntilMs),
-      timeoutUntil: _fromMs(entity.timeoutUntilMs),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
-      deletedAt: _fromMs(entity.deletedAtMs),
-      realmNick: null,
-      realmBio: null,
+  SnChatMember _unknownSender(String senderId, String roomId) {
+    return SnChatMember(
+      id: 'unknown',
+      chatRoomId: roomId,
+      accountId: senderId,
+      account: SnAccount(
+        id: 'unknown',
+        name: 'unknown',
+        nick: senderId,
+        activatedAt: null,
+        profile: SnAccountProfile(
+          picture: null,
+          id: 'unknown',
+          experience: 0,
+          level: 1,
+          levelingProgress: 0.0,
+          background: null,
+          verification: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          deletedAt: null,
+        ),
+        language: '',
+        isSuperuser: false,
+        automatedId: null,
+        perkSubscription: null,
+        deletedAt: null,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      nick: senderId,
+      notify: 0,
+      joinedAt: null,
+      breakUntil: null,
+      timeoutUntil: null,
+      status: null,
+      lastTyped: null,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      deletedAt: null,
+      chatRoom: null,
+      realmNick: '',
+      realmBio: '',
       realmExperience: null,
       realmLevel: null,
       realmLevelingProgress: null,
@@ -1249,24 +1059,9 @@ class AppDatabase {
     );
   }
 
-  Realm _realmEntityToRow(RealmEntity entity) {
-    return Realm(
-      id: entity.uid,
-      slug: entity.slug,
-      name: entity.name,
-      description: entity.description,
-      verifiedAs: entity.verifiedAs,
-      verifiedAt: _fromMs(entity.verifiedAtMs),
-      isCommunity: entity.isCommunity,
-      isPublic: entity.isPublic,
-      picture: _decodeNullableMap(entity.pictureJson),
-      background: _decodeNullableMap(entity.backgroundJson),
-      accountId: entity.accountId,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
-      deletedAt: _fromMs(entity.deletedAtMs),
-    );
-  }
+  // ---------------------------------------------------------------------------
+  // JSON helpers
+  // ---------------------------------------------------------------------------
 
   static int? _toMs(DateTime? value) => value?.millisecondsSinceEpoch;
   static DateTime? _fromMs(int? value) =>
@@ -1274,8 +1069,6 @@ class AppDatabase {
 
   static Map<String, dynamic> _decodeMap(String data) =>
       Map<String, dynamic>.from(jsonDecode(data) as Map);
-  static Map<String, dynamic>? _decodeNullableMap(String? data) =>
-      data == null ? null : _decodeMap(data);
   static List<Map<String, dynamic>> _decodeMapList(String data) =>
       (jsonDecode(data) as List)
           .map((e) => Map<String, dynamic>.from(e as Map))

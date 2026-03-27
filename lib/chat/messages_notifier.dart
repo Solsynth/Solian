@@ -544,20 +544,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         fetchAccount: _fetchAccount,
       );
     } else {
-      final chatMessagesFromDb = await _database.getMessagesForRoom(
+      dbMessages = await _database.getMessagesForRoom(
         roomId,
         offset: offset,
         limit: take,
-      );
-      dbMessages = await Future.wait(
-        chatMessagesFromDb
-            .map(
-              (msg) => _database.companionToMessage(
-                msg,
-                fetchAccount: _fetchAccount,
-              ),
-            )
-            .toList(),
       );
     }
 
@@ -617,18 +607,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     int take = 20,
   }) async {
     talker.log('Getting all messages for jump from offset $offset, take $take');
-    final chatMessagesFromDb = await _database.getMessagesForRoom(
+    final dbMessages = await _database.getMessagesForRoom(
       roomId,
       offset: offset,
       limit: take,
-    );
-    final dbMessages = await Future.wait(
-      chatMessagesFromDb
-          .map(
-            (msg) =>
-                _database.companionToMessage(msg, fetchAccount: _fetchAccount),
-          )
-          .toList(),
     );
     for (final message in dbMessages) {
       unawaited(_prefetchVoiceForLocalMessage(message));
@@ -707,14 +689,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final existing = await _database.getMessageById(localMessage.id);
 
       if (existing != null) {
-        final existingLocal = await _database.companionToMessage(
-          existing,
-          fetchAccount: _fetchAccount,
-        );
-        final mergedData = _mergeMessageData(
-          localMessage.data,
-          existingLocal.data,
-        );
+        final mergedData = _mergeMessageData(localMessage.data, existing.data);
         if (mergedData.length != localMessage.data.length) {
           localMessage = _copyWithMergedData(localMessage, mergedData);
         }
@@ -1458,7 +1433,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
     }
 
-    await _database.updateMessage(_database.messageToCompanion(updatedMessage));
+    await _database.saveMessage(updatedMessage);
 
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final index = currentMessages.indexWhere((m) => m.id == updatedMessage.id);
@@ -1696,7 +1671,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       reactionsMade: reactionsMade,
     );
 
-    await _database.updateMessage(_database.messageToCompanion(updatedMessage));
+    await _database.saveMessage(updatedMessage);
 
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final index = currentMessages.indexWhere((m) => m.id == messageId);
@@ -1736,7 +1711,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       reactionsMade: reactionsMade,
     );
 
-    await _database.updateMessage(_database.messageToCompanion(updatedMessage));
+    await _database.saveMessage(updatedMessage);
 
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final index = currentMessages.indexWhere((m) => m.id == messageId);
@@ -1924,10 +1899,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       final localMessage = await _database.getMessageById(messageId);
       if (localMessage != null) {
-        return _database.companionToMessage(
-          localMessage,
-          fetchAccount: _fetchAccount,
-        );
+        return localMessage;
       }
 
       final response = await _apiClient.get(
