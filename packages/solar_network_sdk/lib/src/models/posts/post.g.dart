@@ -108,6 +108,12 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   repliedGone: json['replied_gone'] as bool? ?? false,
   forwardedGone: json['forwarded_gone'] as bool? ?? false,
   isTruncated: json['is_truncated'] as bool? ?? false,
+  boostedBy: json['boosted_by'] == null
+      ? null
+      : SnActivityPubActor.fromJson(json['boosted_by'] as Map<String, dynamic>),
+  boostedAt: json['boosted_at'] == null
+      ? null
+      : DateTime.parse(json['boosted_at'] as String),
 );
 
 Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
@@ -162,6 +168,8 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'replied_gone': instance.repliedGone,
   'forwarded_gone': instance.forwardedGone,
   'is_truncated': instance.isTruncated,
+  'boosted_by': instance.boostedBy?.toJson(),
+  'boosted_at': instance.boostedAt?.toIso8601String(),
 };
 
 _SnPublisherStats _$SnPublisherStatsFromJson(Map<String, dynamic> json) =>

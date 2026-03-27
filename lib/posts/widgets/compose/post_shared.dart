@@ -856,6 +856,29 @@ class PostHeader extends HookConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (item.boostedBy != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.repeat, size: 14),
+                          const Gap(4),
+                          ActorPictureWidget(actor: item.boostedBy!, radius: 8),
+                          const Gap(4),
+                          Text(
+                            'boostedBy'.tr(
+                              args: ['@${item.boostedBy!.username}'],
+                            ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (showUpperLine) const Gap(12),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,

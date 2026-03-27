@@ -58,6 +58,8 @@ sealed class SnPost with _$SnPost {
     @Default(false) bool repliedGone,
     @Default(false) bool forwardedGone,
     @Default(false) bool isTruncated,
+    @Default(null) SnActivityPubActor? boostedBy,
+    @Default(null) DateTime? boostedAt,
   }) = _SnPost;
 
   factory SnPost.fromJson(Map<String, dynamic> json) => _$SnPostFromJson(json);

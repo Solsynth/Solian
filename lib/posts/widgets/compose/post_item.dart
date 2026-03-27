@@ -227,6 +227,23 @@ class PostActionableItem extends HookConsumerWidget {
             ),
             MenuSeparator(),
             MenuAction(
+              title: 'boost'.tr(),
+              image: MenuImage.icon(Symbols.repeat),
+              callback: () async {
+                final client = ref.read(apiClientProvider);
+                try {
+                  if (context.mounted) showLoadingModal(context);
+                  await client.post('/sphere/posts/${item.id}/boost');
+                  onRefresh?.call();
+                } catch (err) {
+                  showErrorAlert(err);
+                } finally {
+                  if (context.mounted) hideLoadingModal(context);
+                }
+              },
+            ),
+            MenuSeparator(),
+            MenuAction(
               title: 'share'.tr(),
               image: MenuImage.icon(Symbols.share),
               callback: () {
