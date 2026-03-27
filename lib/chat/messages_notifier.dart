@@ -57,7 +57,6 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   bool get _isE2eeRoom => _roomEncryptionMode == 3;
 
-  String get _e2eeScheme => 'chat.mls.v1';
   String? get _fileEncryptKey =>
       _isE2eeRoom ? deriveE2eeFileEncryptKey(roomId) : null;
 
@@ -91,7 +90,13 @@ class MessagesNotifier extends _$MessagesNotifier {
     return raw;
   }
 
-  Future<Map<String, dynamic>> _buildE2eeMessagePayload({
+  /// Builds the E2EE message payload and returns both:
+  /// - The encrypted payload to send to the server
+  /// - The plaintext envelope for local display (since sender can't decrypt their own messages)
+  Future<
+    ({Map<String, dynamic> serverPayload, Map<String, dynamic> localEnvelope})
+  >
+  _buildE2eeMessagePayload({
     required String nonce,
     required String messageType,
     required String content,
@@ -112,7 +117,17 @@ class MessagesNotifier extends _$MessagesNotifier {
       repliedMessageId: repliedMessageId,
       forwardedMessageId: forwardedMessageId,
     );
-    return {...encrypted, 'client_message_id': nonce};
+
+    // Extract plaintext envelope for local display
+    final plaintextEnvelope =
+        (encrypted['plaintextEnvelope'] as Map<String, dynamic>?) ?? {};
+
+    // Build server payload (without plaintext)
+    final serverPayload = Map<String, dynamic>.from(encrypted)
+      ..remove('plaintextEnvelope')
+      ..['client_message_id'] = nonce;
+
+    return (serverPayload: serverPayload, localEnvelope: plaintextEnvelope);
   }
 
   bool _isWebSocketConnected() => ref
@@ -373,6 +388,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       final mlsClient = ref.read(mlsClientProvider);
       final decrypted = await mlsClient.decryptMessage(
+        messageId: message.id,
         roomId: message.chatRoomId,
         ciphertext: ciphertext,
         encryptionHeader: message.meta['e2ee_header']?.toString(),
@@ -382,11 +398,11 @@ class MessagesNotifier extends _$MessagesNotifier {
         if (decryptedContent != null && decryptedContent.isNotEmpty) {
           final updatedMeta = Map<String, dynamic>.from(message.meta);
           updatedMeta['e2ee_decrypted_content'] = decryptedContent;
-          return message.copyWith(meta: updatedMeta);
+          return message.copyWith(content: decryptedContent, meta: updatedMeta);
         }
       }
     } catch (e) {
-      talker.debug('Failed to decrypt message ${message.id}: $e');
+      talker.debug('Decryption failed for message ${message.id}: $e');
     }
     return message;
   }
@@ -704,12 +720,43 @@ class MessagesNotifier extends _$MessagesNotifier {
       final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
       if (decryptedMessage == null) continue;
 
+      // Check for existing message (by ID or by nonce from pending)
+      final existing = await _database.getMessageById(decryptedMessage.id);
+      final pendingByNonce = decryptedMessage.nonce != null
+          ? _pendingMessages.values
+                .where((m) => m.nonce == decryptedMessage.nonce)
+                .firstOrNull
+          : null;
+
+      SnChatMessage messageToConvert = decryptedMessage;
+
+      // Preserve local content when synced message has no content.
+      // This handles:
+      // 1. Own messages (decryption fails due to MLS Forward Secrecy)
+      // 2. Pending messages use 'pending_$nonce' as ID, so getMessageById
+      //    by server UUID won't find them — check by nonce instead
+      if (_isE2eeRoom &&
+          (decryptedMessage.content == null ||
+              decryptedMessage.content!.isEmpty)) {
+        // Try existing DB record first
+        if (existing?.content != null && existing!.content!.isNotEmpty) {
+          messageToConvert = messageToConvert.copyWith(
+            content: existing.content,
+          );
+        }
+        // Then try pending message by nonce
+        else if (pendingByNonce?.content != null &&
+            pendingByNonce!.content!.isNotEmpty) {
+          messageToConvert = messageToConvert.copyWith(
+            content: pendingByNonce.content,
+          );
+        }
+      }
+
       var localMessage = LocalChatMessage.fromRemoteMessage(
-        decryptedMessage,
+        messageToConvert,
         MessageStatus.sent,
       );
-
-      final existing = await _database.getMessageById(localMessage.id);
 
       if (existing != null) {
         final mergedData = _mergeMessageData(localMessage.data, existing.data);
@@ -1040,8 +1087,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
 
       final Map<String, dynamic> payload;
+      final Map<String, dynamic>? plaintextEnvelope;
       if (_isE2eeRoom) {
-        payload = await _buildE2eeMessagePayload(
+        final result = await _buildE2eeMessagePayload(
           nonce: nonce,
           messageType: editingTo == null ? 'text' : 'messages.update',
           content: content,
@@ -1051,6 +1099,8 @@ class MessagesNotifier extends _$MessagesNotifier {
           pollId: poll?.id,
           fundId: fund?.id,
         );
+        payload = result.serverPayload;
+        plaintextEnvelope = result.localEnvelope;
       } else {
         payload = {
           'content': content,
@@ -1062,6 +1112,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           'meta': {},
           'nonce': nonce,
         };
+        plaintextEnvelope = null;
       }
 
       final remoteMessage = editingTo == null
@@ -1086,8 +1137,26 @@ class MessagesNotifier extends _$MessagesNotifier {
       final normalizedRemoteMessage = editingTo != null
           ? remoteMessage.copyWith(createdAt: editingTo.createdAt)
           : remoteMessage;
+
+      // For E2EE rooms, preserve plaintext content for the sender
+      // since they cannot decrypt their own messages due to MLS Forward Secrecy
+      SnChatMessage messageToSave = normalizedRemoteMessage;
+      if (_isE2eeRoom && plaintextEnvelope != null) {
+        final plaintextContent = plaintextEnvelope['content']?.toString();
+        if (plaintextContent != null && plaintextContent.isNotEmpty) {
+          final updatedMeta = Map<String, dynamic>.from(messageToSave.meta);
+          updatedMeta['e2ee_decrypted_content'] = plaintextContent;
+          // Also store the plaintext content in the main content field for display
+          messageToSave = messageToSave.copyWith(
+            content: plaintextContent,
+            meta: updatedMeta,
+          );
+          talker.debug('Preserved plaintext content for sender message $nonce');
+        }
+      }
+
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        normalizedRemoteMessage,
+        messageToSave,
         MessageStatus.sent,
       );
 
@@ -1099,20 +1168,24 @@ class MessagesNotifier extends _$MessagesNotifier {
         final currentMessages = state.value ?? [];
         if (editingTo != null) {
           final newMessages = currentMessages
-              .where((m) => m.id != localMessage.id) // remove pending message
+              .where(
+                (m) => m.id != localMessage.id && m.nonce != localMessage.nonce,
+              ) // remove pending AND any ws-echo message with same nonce
               .map(
                 (m) => m.id == editingTo.id ? updatedMessage : m,
               ) // update original message
               .toList();
           state = AsyncValue.data(newMessages);
         } else {
-          final newMessages = currentMessages.map((m) {
-            if (m.id == localMessage.id) {
-              return updatedMessage;
-            }
-            return m;
-          }).toList();
-          state = AsyncValue.data(newMessages);
+          // Remove pending message AND any WebSocket echo message with same nonce,
+          // then insert the final message with plaintext content
+          final newMessages = currentMessages
+              .where(
+                (m) => m.id != localMessage.id && m.nonce != localMessage.nonce,
+              )
+              .toList();
+          newMessages.add(updatedMessage);
+          state = AsyncValue.data(_sortMessages(newMessages));
         }
       }
 
@@ -1270,12 +1343,13 @@ class MessagesNotifier extends _$MessagesNotifier {
       final attachmentIds = remoteMessage.attachments.map((e) => e.id).toList();
       final Map<String, dynamic> payload;
       if (_isE2eeRoom) {
-        payload = await _buildE2eeMessagePayload(
+        final result = await _buildE2eeMessagePayload(
           nonce: nonce,
           messageType: 'text',
           content: remoteMessage.content ?? '',
           attachmentIds: attachmentIds,
         );
+        payload = result.serverPayload;
       } else {
         payload = {
           'content': remoteMessage.content,
@@ -1348,11 +1422,58 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('Received new message ${remoteMessage.id}');
 
+    // Check if this message already exists in DB (e.g., saved by sendMessage
+    // before the WebSocket echo arrives). If so, skip to avoid duplicates.
+    final existingInDb = await _database.getMessageById(remoteMessage.id);
+    if (existingInDb != null &&
+        existingInDb.content != null &&
+        existingInDb.content!.isNotEmpty) {
+      talker.debug(
+        'Message ${remoteMessage.id} already in DB with content, skipping duplicate',
+      );
+      // Still clean up pending messages
+      if (remoteMessage.nonce != null) {
+        _pendingMessages.removeWhere(
+          (_, pendingMsg) => pendingMsg.nonce == remoteMessage.nonce,
+        );
+      }
+      return;
+    }
+
+    // Check for pending message (has plaintext content) before decryption
+    LocalChatMessage? pendingMessage;
+    if (remoteMessage.nonce != null) {
+      pendingMessage = _pendingMessages.values
+          .where((m) => m.nonce == remoteMessage.nonce)
+          .firstOrNull;
+    }
+
     final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
     if (decryptedMessage == null) return;
 
+    SnChatMessage messageToConvert = decryptedMessage;
+
+    // Preserve plaintext content from:
+    // 1. Pending message (sender's message before server ack)
+    // 2. Existing DB record (saved by sendMessage)
+    if (_isE2eeRoom &&
+        (decryptedMessage.content == null ||
+            decryptedMessage.content!.isEmpty)) {
+      if (pendingMessage?.content != null &&
+          pendingMessage!.content!.isNotEmpty) {
+        messageToConvert = messageToConvert.copyWith(
+          content: pendingMessage.content,
+        );
+      } else if (existingInDb?.content != null &&
+          existingInDb!.content!.isNotEmpty) {
+        messageToConvert = messageToConvert.copyWith(
+          content: existingInDb.content,
+        );
+      }
+    }
+
     final localMessage = LocalChatMessage.fromRemoteMessage(
-      decryptedMessage,
+      messageToConvert,
       MessageStatus.sent,
     );
     unawaited(_prefetchVoiceForRemoteMessage(decryptedMessage));

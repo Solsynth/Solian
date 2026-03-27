@@ -176,7 +176,7 @@ class CompactReferencePost extends StatelessWidget {
     }
     // Handle actor case
     if (post.actor != null) {
-      return post.actor!.displayName ?? post.actor!.username ?? 'Unknown';
+      return post.actor!.displayName ?? post.actor!.username;
     }
     return 'Unknown';
   }

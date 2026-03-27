@@ -745,8 +745,8 @@ class AppDatabase {
       description: entity.description,
       type: entity.type,
       encryptionMode: 0,
-      isPublic: entity.isPublic ?? false,
-      isCommunity: entity.isCommunity ?? false,
+      isPublic: entity.isPublic,
+      isCommunity: entity.isCommunity,
       picture: entity.pictureJson != null
           ? SnCloudFile.fromJson(_decodeMap(entity.pictureJson!))
           : null,
@@ -760,7 +760,7 @@ class AppDatabase {
       updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
       deletedAt: _fromMs(entity.deletedAtMs),
       members: null,
-      isPinned: entity.isPinned ?? false,
+      isPinned: entity.isPinned,
     );
   }
 

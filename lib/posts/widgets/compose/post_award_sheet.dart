@@ -63,7 +63,7 @@ class PostAwardSheet extends HookConsumerWidget {
     }
     // Handle actor case
     if (post.actor != null) {
-      return post.actor!.username ?? 'Unknown';
+      return post.actor!.username;
     }
     return 'Unknown';
   }
