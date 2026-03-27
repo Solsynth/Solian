@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:openmls/openmls.dart';
 import 'package:island/talker.dart';
+import 'mls_engine.dart';
 import 'mls_storage.dart';
 
 class MlsIdentityManager {
@@ -28,20 +30,67 @@ class MlsIdentityManager {
   }
 
   Future<bool> hasCredential() async {
-    final cred = await _storage.getCredential();
-    return cred != null && cred.isNotEmpty;
+    return _storage.hasSignerKeyPair();
   }
 
   Future<String?> getCredential() async {
-    return _storage.getCredential();
+    return _storage.getSignerKeyPair();
   }
 
   Future<void> setCredential(String credential) async {
-    await _storage.setCredential(credential);
+    await _storage.setSignerKeyPair(credential);
   }
 
   Future<void> deleteCredential() async {
     await _storage.deleteCredential();
+  }
+
+  Future<void> generateAndStoreSignerKeyPair() async {
+    final existing = await _storage.getSignerKeyPair();
+    if (existing != null && existing.isNotEmpty) {
+      talker.debug('Signer keypair already exists');
+      return;
+    }
+
+    final keyPair = MlsSignatureKeyPair.generate(
+      ciphersuite: defaultCiphersuite,
+    );
+    final privateKey = keyPair.privateKey();
+    final publicKey = keyPair.publicKey();
+
+    final serialized = '${base64Encode(privateKey)}:${base64Encode(publicKey)}';
+    await _storage.setSignerKeyPair(serialized);
+    talker.debug('Signer keypair generated and stored');
+  }
+
+  Future<KeyPackageResult> generateKeyPackage() async {
+    final engineService = await MlsEngineService.getInstance();
+    final engine = engineService.engine;
+
+    final signerKeyPairRaw = await _storage.getSignerKeyPair();
+    if (signerKeyPairRaw == null) {
+      throw Exception('Signer keypair not found');
+    }
+
+    final signerKeyPair = MlsSignatureKeyPair.fromRaw(
+      ciphersuite: defaultCiphersuite,
+      privateKey: base64Decode(signerKeyPairRaw.split(':')[0]),
+      publicKey: base64Decode(signerKeyPairRaw.split(':')[1]),
+    );
+
+    final deviceId = await getOrCreateDeviceId();
+    if (deviceId == null) {
+      throw Exception('Device ID not found');
+    }
+
+    final kp = await engine.createKeyPackage(
+      ciphersuite: defaultCiphersuite,
+      signerBytes: signerKeyPair.privateKey(),
+      credentialIdentity: utf8.encode(deviceId),
+      signerPublicKey: signerKeyPair.publicKey(),
+    );
+
+    return kp;
   }
 
   Future<int> uploadKeyPackage(String keyPackage) async {

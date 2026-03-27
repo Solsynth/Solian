@@ -11,6 +11,7 @@ class MlsStorage {
   static const _keyCredential = 'mls_credential';
   static const _keyKeyPackages = 'mls_key_packages';
   static const _keyGroupStates = 'mls_group_states';
+  static const _keySignerKeyPair = 'mls_signer_keypair';
 
   Future<String?> getDeviceId() async {
     return _storage.read(key: _keyDeviceId);
@@ -102,5 +103,18 @@ class MlsStorage {
     if (deviceId != null) {
       await setDeviceId(deviceId);
     }
+  }
+
+  Future<String?> getSignerKeyPair() async {
+    return _storage.read(key: _keySignerKeyPair);
+  }
+
+  Future<void> setSignerKeyPair(String signerKeyPair) async {
+    await _storage.write(key: _keySignerKeyPair, value: signerKeyPair);
+  }
+
+  Future<bool> hasSignerKeyPair() async {
+    final raw = await _storage.read(key: _keySignerKeyPair);
+    return raw != null && raw.isNotEmpty;
   }
 }

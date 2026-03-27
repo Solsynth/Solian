@@ -91,7 +91,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     return raw;
   }
 
-  Map<String, dynamic> _buildE2eeMessagePayload({
+  Future<Map<String, dynamic>> _buildE2eeMessagePayload({
     required String nonce,
     required String messageType,
     required String content,
@@ -100,38 +100,19 @@ class MessagesNotifier extends _$MessagesNotifier {
     String? forwardedMessageId,
     String? pollId,
     String? fundId,
-  }) {
+  }) async {
     final normalizedMessageType =
         _normalizeEncryptionMessageType(messageType) ?? 'text';
-    final envelope = {
-      'content': content,
-      'attachments_id': attachmentIds,
-      'nonce': nonce,
-    };
-    final meta = <String, dynamic>{
-      'attachments_id': attachmentIds,
-      'replied_message_id': repliedMessageId,
-      'forwarded_message_id': forwardedMessageId,
-      'poll_id': pollId,
-      'fund_id': fundId,
-    };
-    return {
-      'type': normalizedMessageType,
-      'attachments_id': attachmentIds,
-      'meta': meta,
-      'replied_message_id': repliedMessageId,
-      'forwarded_message_id': forwardedMessageId,
-      'poll_id': pollId,
-      'fund_id': fundId,
-      'is_encrypted': true,
-      'ciphertext': encodeE2eeCiphertext(roomId: roomId, envelope: envelope),
-      'encryption_header': base64Encode(utf8.encode('{"v":1}')),
-      'encryption_scheme': _e2eeScheme,
-      'encryption_epoch': 1,
-      'encryption_message_type': normalizedMessageType,
-      'client_message_id': nonce,
-      'nonce': nonce,
-    };
+    final mlsClient = ref.read(mlsClientProvider);
+    final encrypted = await mlsClient.encryptMessage(
+      roomId: roomId,
+      content: content,
+      attachmentIds: attachmentIds,
+      messageType: MlsMessageType.fromString(normalizedMessageType),
+      repliedMessageId: repliedMessageId,
+      forwardedMessageId: forwardedMessageId,
+    );
+    return {...encrypted, 'client_message_id': nonce};
   }
 
   bool _isWebSocketConnected() => ref
@@ -381,6 +362,35 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  Future<SnChatMessage?> _decryptMessageIfEncrypted(
+    SnChatMessage message,
+  ) async {
+    if (!_isE2eeRoom) return message;
+
+    final ciphertext = message.meta['e2ee_ciphertext']?.toString();
+    if (ciphertext == null || ciphertext.isEmpty) return message;
+
+    try {
+      final mlsClient = ref.read(mlsClientProvider);
+      final decrypted = await mlsClient.decryptMessage(
+        roomId: message.chatRoomId,
+        ciphertext: ciphertext,
+        encryptionHeader: message.meta['e2ee_header']?.toString(),
+      );
+      if (decrypted != null) {
+        final decryptedContent = decrypted['content']?.toString();
+        if (decryptedContent != null && decryptedContent.isNotEmpty) {
+          final updatedMeta = Map<String, dynamic>.from(message.meta);
+          updatedMeta['e2ee_decrypted_content'] = decryptedContent;
+          return message.copyWith(meta: updatedMeta);
+        }
+      }
+    } catch (e) {
+      talker.debug('Failed to decrypt message ${message.id}: $e');
+    }
+    return message;
+  }
+
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _apiClient = ref.watch(apiClientProvider);
@@ -401,6 +411,16 @@ class MessagesNotifier extends _$MessagesNotifier {
       throw Exception('Room not found');
     }
     _roomEncryptionMode = room.encryptionMode;
+
+    // Ensure MLS group is bootstrapped for E2EE rooms
+    if (_isE2eeRoom) {
+      try {
+        final mlsClient = ref.read(mlsClientProvider);
+        await mlsClient.bootstrapGroup(roomId);
+      } catch (e) {
+        talker.error('Failed to bootstrap MLS group for room $roomId: $e');
+      }
+    }
 
     // Allow building even if identity is null for public rooms
     if (identity != null) {
@@ -699,8 +719,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       if (remoteMessage == null) continue;
 
+      final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
+      if (decryptedMessage == null) continue;
+
       var localMessage = LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
+        decryptedMessage,
         MessageStatus.sent,
       );
 
@@ -1041,27 +1064,30 @@ class MessagesNotifier extends _$MessagesNotifier {
         cloudAttachments.add(cloudFile);
       }
 
-      final payload = _isE2eeRoom
-          ? _buildE2eeMessagePayload(
-              nonce: nonce,
-              messageType: editingTo == null ? 'text' : 'messages.update',
-              content: content,
-              attachmentIds: cloudAttachments.map((e) => e.id).toList(),
-              repliedMessageId: replyingTo?.id,
-              forwardedMessageId: forwardingTo?.id,
-              pollId: poll?.id,
-              fundId: fund?.id,
-            )
-          : {
-              'content': content,
-              'attachments_id': cloudAttachments.map((e) => e.id).toList(),
-              'replied_message_id': replyingTo?.id,
-              'forwarded_message_id': forwardingTo?.id,
-              'poll_id': poll?.id,
-              'fund_id': fund?.id,
-              'meta': {},
-              'nonce': nonce,
-            };
+      final Map<String, dynamic> payload;
+      if (_isE2eeRoom) {
+        payload = await _buildE2eeMessagePayload(
+          nonce: nonce,
+          messageType: editingTo == null ? 'text' : 'messages.update',
+          content: content,
+          attachmentIds: cloudAttachments.map((e) => e.id).toList(),
+          repliedMessageId: replyingTo?.id,
+          forwardedMessageId: forwardingTo?.id,
+          pollId: poll?.id,
+          fundId: fund?.id,
+        );
+      } else {
+        payload = {
+          'content': content,
+          'attachments_id': cloudAttachments.map((e) => e.id).toList(),
+          'replied_message_id': replyingTo?.id,
+          'forwarded_message_id': forwardingTo?.id,
+          'poll_id': poll?.id,
+          'fund_id': fund?.id,
+          'meta': {},
+          'nonce': nonce,
+        };
+      }
 
       final remoteMessage = editingTo == null
           ? await _sendNewMessageWithFallback(
@@ -1267,19 +1293,22 @@ class MessagesNotifier extends _$MessagesNotifier {
       var remoteMessage = message.toRemoteMessage();
       final nonce = message.nonce ?? const Uuid().v4();
       final attachmentIds = remoteMessage.attachments.map((e) => e.id).toList();
-      final payload = _isE2eeRoom
-          ? _buildE2eeMessagePayload(
-              nonce: nonce,
-              messageType: 'text',
-              content: remoteMessage.content ?? '',
-              attachmentIds: attachmentIds,
-            )
-          : {
-              'content': remoteMessage.content,
-              'attachments_id': attachmentIds,
-              'meta': remoteMessage.meta,
-              'nonce': nonce,
-            };
+      final Map<String, dynamic> payload;
+      if (_isE2eeRoom) {
+        payload = await _buildE2eeMessagePayload(
+          nonce: nonce,
+          messageType: 'text',
+          content: remoteMessage.content ?? '',
+          attachmentIds: attachmentIds,
+        );
+      } else {
+        payload = {
+          'content': remoteMessage.content,
+          'attachments_id': attachmentIds,
+          'meta': remoteMessage.meta,
+          'nonce': nonce,
+        };
+      }
 
       remoteMessage = await _sendNewMessageWithFallback(
         targetRoomId: message.roomId,
@@ -1344,11 +1373,14 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('Received new message ${remoteMessage.id}');
 
+    final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
+    if (decryptedMessage == null) return;
+
     final localMessage = LocalChatMessage.fromRemoteMessage(
-      remoteMessage,
+      decryptedMessage,
       MessageStatus.sent,
     );
-    unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
+    unawaited(_prefetchVoiceForRemoteMessage(decryptedMessage));
 
     if (remoteMessage.nonce != null) {
       _pendingMessages.removeWhere(
@@ -1418,7 +1450,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
 
-    final targetId = remoteMessage.meta['message_id'] ?? remoteMessage.id;
+    final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
+    if (decryptedMessage == null) return;
+
+    final targetId = decryptedMessage.meta['message_id'] ?? decryptedMessage.id;
 
     final existingMessage = await fetchMessageById(targetId);
     if (existingMessage == null) {
@@ -1428,16 +1463,16 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     LocalChatMessage updatedMessage;
 
-    if (remoteMessage.type == 'messages.update.links') {
+    if (decryptedMessage.type == 'messages.update.links') {
       // For link updates, merge meta with existing message instead of creating new one
       final existingRemote = existingMessage.toRemoteMessage();
       final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
-      mergedMeta.addAll(remoteMessage.meta);
+      mergedMeta.addAll(decryptedMessage.meta);
       mergedMeta.remove('message_id'); // Remove the target message ID from meta
 
       final updatedRemote = existingRemote.copyWith(
         meta: mergedMeta,
-        editedAt: remoteMessage.createdAt,
+        editedAt: decryptedMessage.createdAt,
       );
 
       updatedMessage = LocalChatMessage.fromRemoteMessage(
@@ -1447,12 +1482,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     } else {
       // Preserve original createdAt so edited messages keep their order.
       updatedMessage = LocalChatMessage.fromRemoteMessage(
-        remoteMessage.copyWith(
+        decryptedMessage.copyWith(
           id: targetId,
           createdAt: existingMessage.createdAt,
-          meta: Map.of(remoteMessage.meta)..remove('message_id'),
+          meta: Map.of(decryptedMessage.meta)..remove('message_id'),
           type: 'text',
-          editedAt: remoteMessage.createdAt,
+          editedAt: decryptedMessage.createdAt,
         ),
         existingMessage.status,
       );
