@@ -11,14 +11,12 @@ import 'mls_message_handler.dart';
 
 class MlsClient {
   final MlsStorage _storage;
-  final Dio _padlockClient;
   late final MlsIdentityManager _identityManager;
   late final MlsGroupManager _groupManager;
   late final MlsMessageHandler _messageHandler;
 
   MlsClient({required MlsStorage storage, required Dio padlockClient})
-    : _storage = storage,
-      _padlockClient = padlockClient {
+    : _storage = storage {
     _identityManager = MlsIdentityManager(
       storage: storage,
       padlockClient: padlockClient,
@@ -26,10 +24,11 @@ class MlsClient {
     _groupManager = MlsGroupManager(
       storage: storage,
       padlockClient: padlockClient,
+      identityManager: _identityManager,
     );
     _messageHandler = MlsMessageHandler(
-      storage: storage,
       groupManager: _groupManager,
+      identityManager: _identityManager,
       padlockClient: padlockClient,
     );
   }
@@ -78,11 +77,13 @@ class MlsClient {
   }
 
   Future<Map<String, dynamic>?> decryptMessage({
+    required String messageId,
     required String roomId,
     required String ciphertext,
     required String? encryptionHeader,
   }) async {
     return _messageHandler.decryptMessage(
+      messageId: messageId,
       roomId: roomId,
       ciphertext: ciphertext,
       encryptionHeader: encryptionHeader,

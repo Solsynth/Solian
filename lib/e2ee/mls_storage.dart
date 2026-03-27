@@ -12,6 +12,8 @@ class MlsStorage {
   static const _keyKeyPackages = 'mls_key_packages';
   static const _keyGroupStates = 'mls_group_states';
   static const _keySignerKeyPair = 'mls_signer_keypair';
+  static const _keySignerBytes = 'mls_signer_bytes';
+  static const _keySignerPublicKey = 'mls_signer_public_key';
 
   Future<String?> getDeviceId() async {
     return _storage.read(key: _keyDeviceId);
@@ -116,5 +118,23 @@ class MlsStorage {
   Future<bool> hasSignerKeyPair() async {
     final raw = await _storage.read(key: _keySignerKeyPair);
     return raw != null && raw.isNotEmpty;
+  }
+
+  // New: signer bytes (from serializeSigner)
+  Future<String?> getSignerBytes() async {
+    return _storage.read(key: _keySignerBytes);
+  }
+
+  Future<void> setSignerBytes(String base64Value) async {
+    await _storage.write(key: _keySignerBytes, value: base64Value);
+  }
+
+  // New: signer public key (stored separately for easy access)
+  Future<String?> getSignerPublicKey() async {
+    return _storage.read(key: _keySignerPublicKey);
+  }
+
+  Future<void> setSignerPublicKey(String base64Value) async {
+    await _storage.write(key: _keySignerPublicKey, value: base64Value);
   }
 }

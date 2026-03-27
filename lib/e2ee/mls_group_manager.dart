@@ -4,15 +4,21 @@ import 'package:dio/dio.dart';
 import 'package:openmls/openmls.dart';
 import 'package:island/talker.dart';
 import 'mls_engine.dart';
+import 'mls_identity_manager.dart';
 import 'mls_storage.dart';
 
 class MlsGroupManager {
   final MlsStorage _storage;
   final Dio _padlockClient;
+  final MlsIdentityManager _identityManager;
 
-  MlsGroupManager({required MlsStorage storage, required Dio padlockClient})
-    : _storage = storage,
-      _padlockClient = padlockClient;
+  MlsGroupManager({
+    required MlsStorage storage,
+    required Dio padlockClient,
+    required MlsIdentityManager identityManager,
+  }) : _storage = storage,
+       _padlockClient = padlockClient,
+       _identityManager = identityManager;
 
   Future<Map<String, dynamic>?> getGroupState(String roomId) async {
     return _storage.getGroupState(roomId);
@@ -32,6 +38,32 @@ class MlsGroupManager {
     return state['serialized_group'] != null;
   }
 
+  Future<bool> ensureGroupAvailable(String roomId) async {
+    final engineService = await MlsEngineService.getInstance();
+    final engine = engineService.engine;
+    final groupIdBytes = utf8.encode('room:$roomId');
+
+    try {
+      final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
+      if (isActive) return true;
+    } catch (e) {
+      talker.warning(
+        'Failed to verify MLS group activity for room $roomId, re-bootstrap will be attempted: $e',
+      );
+    }
+
+    await bootstrapGroup(roomId, force: true);
+
+    try {
+      return await engine.groupIsActive(groupIdBytes: groupIdBytes);
+    } catch (e) {
+      talker.error(
+        'MLS group still unavailable after bootstrap for room $roomId: $e',
+      );
+      return false;
+    }
+  }
+
   Future<int> getCurrentEpoch(String roomId) async {
     try {
       final engineService = await MlsEngineService.getInstance();
@@ -48,45 +80,67 @@ class MlsGroupManager {
     }
   }
 
-  Future<Map<String, dynamic>?> bootstrapGroup(String roomId) async {
+  /// Bootstrap an MLS group for a room.
+  ///
+  /// [roomId] - The room identifier
+  /// [force] - If true, re-create the group even if one exists
+  /// [invitedMembers] - Optional list of member IDs to fan out Welcome to
+  Future<Map<String, dynamic>?> bootstrapGroup(
+    String roomId, {
+    bool force = false,
+    List<String>? invitedMembers,
+  }) async {
     try {
       final existingState = await getGroupState(roomId);
-      if (existingState != null && existingState['serialized_group'] != null) {
-        talker.info('Group already exists locally for room $roomId');
-        return existingState;
-      }
 
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
-
-      final signerKeyPairRaw = await _storage.getSignerKeyPair();
-      if (signerKeyPairRaw == null) {
-        throw Exception(
-          'Signer keypair not found. Please initialize MLS first.',
-        );
-      }
-
-      final signerKeyPair = MlsSignatureKeyPair.fromRaw(
-        ciphersuite: defaultCiphersuite,
-        privateKey: base64Decode(signerKeyPairRaw.split(':')[0]),
-        publicKey: base64Decode(signerKeyPairRaw.split(':')[1]),
-      );
-
-      final deviceId = await _storage.getDeviceId();
-      if (deviceId == null) {
-        throw Exception('Device ID not found');
-      }
-
       final groupIdBytes = utf8.encode('room:$roomId');
+
+      final hasStoredGroup =
+          existingState != null && existingState['serialized_group'] != null;
+
+      if (!force && hasStoredGroup) {
+        try {
+          final isActive = await engine.groupIsActive(
+            groupIdBytes: groupIdBytes,
+          );
+          if (isActive) {
+            talker.info('Group already exists for room $roomId');
+            return existingState;
+          }
+          talker.warning(
+            'Stored group exists but engine group is missing for room $roomId, recreating...',
+          );
+        } catch (e) {
+          talker.warning(
+            'Failed to verify MLS group for room $roomId, recreating: $e',
+          );
+        }
+      }
+
+      if (force && hasStoredGroup) {
+        talker.info('Force re-bootstrapping MLS group for room $roomId');
+      }
+
+      if (hasStoredGroup) {
+        await deleteGroupState(roomId);
+      }
+
+      // Use identity manager for clean signer access
+      final signerBytes = await _identityManager.getOrCreateSignerBytes();
+      final signerPublicKey = await _identityManager.getSignerPublicKey();
 
       final config = MlsGroupConfig.defaultConfig(
         ciphersuite: defaultCiphersuite,
       );
+
+      talker.debug('Creating MLS group for room $roomId...');
       final createResult = await engine.createGroup(
         config: config,
-        signerBytes: signerKeyPair.privateKey(),
+        signerBytes: signerBytes,
         credentialIdentity: utf8.encode('room:$roomId'),
-        signerPublicKey: signerKeyPair.publicKey(),
+        signerPublicKey: signerPublicKey,
         groupId: groupIdBytes,
       );
 
@@ -99,11 +153,21 @@ class MlsGroupManager {
         'created_at': DateTime.now().toIso8601String(),
       });
 
-      talker.info('Group bootstrapped for room $roomId');
+      talker.info(
+        'MLS group bootstrapped for room $roomId (epoch: ${epoch.toInt()})',
+      );
+
+      // Fan out Welcome if members are provided
+      if (invitedMembers != null && invitedMembers.isNotEmpty) {
+        talker.debug(
+          'Fanning out Welcome to ${invitedMembers.length} members...',
+        );
+        await fanoutWelcome(roomId, invitedMembers);
+      }
 
       return await getGroupState(roomId);
     } catch (e) {
-      talker.error('Failed to bootstrap group: $e');
+      talker.error('Failed to bootstrap group for room $roomId: $e');
       rethrow;
     }
   }
@@ -116,40 +180,33 @@ class MlsGroupManager {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
 
-      final signerKeyPairRaw = await _storage.getSignerKeyPair();
-      if (signerKeyPairRaw == null) {
-        throw Exception(
-          'Signer keypair not found. Please initialize MLS first.',
-        );
-      }
+      // Use identity manager for clean signer access
+      final signerBytes = await _identityManager.getOrCreateSignerBytes();
 
-      final signerKeyPair = MlsSignatureKeyPair.fromRaw(
-        ciphersuite: defaultCiphersuite,
-        privateKey: base64Decode(signerKeyPairRaw.split(':')[0]),
-        publicKey: base64Decode(signerKeyPairRaw.split(':')[1]),
-      );
-
+      talker.debug('Joining MLS group from Welcome for room $roomId...');
       final joinResult = await engine.joinGroupFromWelcome(
         config: MlsGroupConfig.defaultConfig(ciphersuite: defaultCiphersuite),
         welcomeBytes: welcomeBytes,
-        signerBytes: signerKeyPair.privateKey(),
+        signerBytes: signerBytes,
       );
 
       final groupIdBytes = joinResult.groupId;
       final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
 
       await saveGroupState(roomId, {
-        'group_id': base64Encode(groupIdBytes),
+        'group_id': 'room:$roomId',
         'serialized_group': base64Encode(groupIdBytes),
         'epoch': epoch.toInt(),
         'created_at': DateTime.now().toIso8601String(),
       });
 
-      talker.info('Joined group from welcome for room $roomId');
+      talker.info(
+        'Joined MLS group from Welcome for room $roomId (epoch: ${epoch.toInt()})',
+      );
 
       return await getGroupState(roomId);
     } catch (e) {
-      talker.error('Failed to join group from welcome: $e');
+      talker.error('Failed to join group from Welcome for room $roomId: $e');
       rethrow;
     }
   }

@@ -1,12 +1,15 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:openmls/openmls.dart';
 import 'package:island/talker.dart';
 import 'mls_engine.dart';
-import 'mls_storage.dart';
+import 'mls_identity_manager.dart';
 import 'mls_group_manager.dart';
 
+/// Derive a file encryption key for E2EE rooms.
+/// Used for encrypting attachments/files, not MLS messages.
 String deriveE2eeFileEncryptKey(String roomId) {
   final keyBytes = sha256
       .convert(utf8.encode('island-chat-file-e2ee-v1:$roomId'))
@@ -37,18 +40,34 @@ enum MlsMessageType {
 }
 
 class MlsMessageHandler {
-  final MlsStorage _storage;
   final MlsGroupManager _groupManager;
+  final MlsIdentityManager _identityManager;
   final Dio _padlockClient;
 
   MlsMessageHandler({
-    required MlsStorage storage,
     required MlsGroupManager groupManager,
+    required MlsIdentityManager identityManager,
     required Dio padlockClient,
-  }) : _storage = storage,
-       _groupManager = groupManager,
+  }) : _groupManager = groupManager,
+       _identityManager = identityManager,
        _padlockClient = padlockClient;
 
+  bool _isMissingGroupError(Object error) {
+    final message = error.toString();
+    return message.contains('No group found in storage') ||
+        message.contains('group not found in storage');
+  }
+
+  /// Encrypt a message for the MLS group.
+  ///
+  /// Returns a map containing:
+  /// - `ciphertext`: The encrypted message for sending to server
+  /// - `plaintextEnvelope`: The plaintext envelope for local display
+  /// - Other metadata fields
+  ///
+  /// IMPORTANT: Due to MLS Forward Secrecy, the sender cannot decrypt
+  /// their own messages. The plaintextEnvelope should be used locally
+  /// for immediate display by the sender.
   Future<Map<String, dynamic>> encryptMessage({
     required String roomId,
     required String content,
@@ -62,44 +81,59 @@ class MlsMessageHandler {
     final engineService = await MlsEngineService.getInstance();
     final engine = engineService.engine;
 
-    final signerKeyPairRaw = await _storage.getSignerKeyPair();
-    if (signerKeyPairRaw == null) {
-      throw Exception('Signer keypair not found. Please initialize MLS first.');
-    }
-
-    final signerKeyPair = MlsSignatureKeyPair.fromRaw(
-      ciphersuite: defaultCiphersuite,
-      privateKey: base64Decode(signerKeyPairRaw.split(':')[0]),
-      publicKey: base64Decode(signerKeyPairRaw.split(':')[1]),
-    );
+    // Use clean signer access via identity manager
+    final signerBytes = await _identityManager.getOrCreateSignerBytes();
 
     final groupIdBytes = utf8.encode('room:$roomId');
-
-    final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
-    if (!isActive) {
-      talker.info('Group not active for room $roomId, bootstrapping...');
-      await _groupManager.bootstrapGroup(roomId);
+    final isAvailable = await _groupManager.ensureGroupAvailable(roomId);
+    if (!isAvailable) {
+      throw Exception('Failed to bootstrap MLS group for room $roomId.');
     }
 
-    final envelope = {
+    final nonce = _generateNonce();
+    final envelope = <String, dynamic>{
       'content': content,
       'attachments_id': attachmentIds,
-      'nonce': _generateNonce(),
-      if (repliedMessageId != null) 'replied_message_id': repliedMessageId,
-      if (forwardedMessageId != null)
-        'forwarded_message_id': forwardedMessageId,
-      if (pollId != null) 'poll_id': pollId,
-      if (fundId != null) 'fund_id': fundId,
-    };
+      'nonce': nonce,
+      'replied_message_id': repliedMessageId,
+      'forwarded_message_id': forwardedMessageId,
+      'poll_id': pollId,
+      'fund_id': fundId,
+    }..removeWhere((_, v) => v == null);
 
     final plaintext = utf8.encode(jsonEncode(envelope));
-    final result = await engine.createMessage(
-      groupIdBytes: groupIdBytes,
-      signerBytes: signerKeyPair.privateKey(),
-      message: plaintext,
-    );
+    Uint8List? ciphertextBytes;
+    int? epoch;
 
-    final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+    try {
+      final result = await engine.createMessage(
+        groupIdBytes: groupIdBytes,
+        signerBytes: signerBytes,
+        message: plaintext,
+      );
+      ciphertextBytes = result.ciphertext;
+      epoch = (await engine.groupEpoch(groupIdBytes: groupIdBytes)).toInt();
+    } catch (e) {
+      if (!_isMissingGroupError(e)) rethrow;
+
+      talker.warning(
+        'MLS group missing while encrypting room $roomId, re-bootstrapping and retrying...',
+      );
+      final recovered = await _groupManager.ensureGroupAvailable(roomId);
+      if (!recovered) rethrow;
+
+      final result = await engine.createMessage(
+        groupIdBytes: groupIdBytes,
+        signerBytes: signerBytes,
+        message: plaintext,
+      );
+      ciphertextBytes = result.ciphertext;
+      epoch = (await engine.groupEpoch(groupIdBytes: groupIdBytes)).toInt();
+    }
+
+    talker.debug(
+      'Encrypted message for room $roomId (epoch: $epoch, type: ${messageType.value})',
+    );
 
     return {
       'type': messageType.value,
@@ -116,17 +150,26 @@ class MlsMessageHandler {
       'poll_id': pollId,
       'fund_id': fundId,
       'is_encrypted': true,
-      'ciphertext': base64Encode(result.ciphertext),
+      'ciphertext': base64Encode(ciphertextBytes),
       'encryption_header': base64Encode(utf8.encode('{"v":1,"scheme":"mls"}')),
       'encryption_scheme': 'chat.mls.v1',
-      'encryption_epoch': epoch.toInt(),
+      'encryption_epoch': epoch,
       'encryption_message_type': messageType.value,
-      'client_message_id': envelope['nonce'],
-      'nonce': envelope['nonce'],
+      'client_message_id': nonce,
+      'nonce': nonce,
+      // IMPORTANT: plaintextEnvelope for local display by the sender
+      // The sender cannot decrypt their own message due to MLS Forward Secrecy
+      'plaintextEnvelope': envelope,
     };
   }
 
+  /// Decrypt a message from the MLS group.
+  ///
+  /// Due to MLS Forward Secrecy, a sender cannot decrypt their own messages.
+  /// If this method is called on a message that was sent by this device,
+  /// it will return null and log a warning.
   Future<Map<String, dynamic>?> decryptMessage({
+    required String messageId,
     required String roomId,
     required String ciphertext,
     required String? encryptionHeader,
@@ -136,28 +179,71 @@ class MlsMessageHandler {
       final engine = engineService.engine;
 
       final groupIdBytes = utf8.encode('room:$roomId');
-      final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
-      if (!isActive) {
+      final isAvailable = await _groupManager.ensureGroupAvailable(roomId);
+      if (!isAvailable) {
         talker.debug('Group not active for room: $roomId');
         return null;
       }
 
       final ciphertextBytes = base64Decode(ciphertext);
-      final result = await engine.processMessage(
-        groupIdBytes: groupIdBytes,
-        messageBytes: ciphertextBytes,
-      );
+      ProcessedMessageResult? result;
+      try {
+        result = await engine.processMessage(
+          groupIdBytes: groupIdBytes,
+          messageBytes: ciphertextBytes,
+        );
+      } catch (e) {
+        // Handle "Cannot decrypt own messages" gracefully
+        // This is expected MLS behavior due to Forward Secrecy
+        if (e.toString().contains('Cannot decrypt') ||
+            e.toString().contains('cannot decrypt')) {
+          talker.debug(
+            'Cannot decrypt own message $messageId (expected MLS behavior)',
+          );
+          return null;
+        }
+
+        if (!_isMissingGroupError(e)) rethrow;
+
+        talker.warning(
+          'MLS group missing while decrypting room $roomId, re-bootstrapping and retrying...',
+        );
+        final recovered = await _groupManager.ensureGroupAvailable(roomId);
+        if (!recovered) return null;
+
+        result = await engine.processMessage(
+          groupIdBytes: groupIdBytes,
+          messageBytes: ciphertextBytes,
+        );
+      }
 
       if (result.messageType == ProcessedMessageType.application) {
         if (result.applicationMessage != null) {
           final plaintext = utf8.decode(result.applicationMessage!);
           return jsonDecode(plaintext) as Map<String, dynamic>;
         }
+      } else if (result.messageType == ProcessedMessageType.stagedCommit) {
+        // Handle epoch changes from commits
+        final epoch = result.epoch.toInt();
+        talker.debug(
+          'Processed staged commit for room $roomId (new epoch: $epoch)',
+        );
+        await _groupManager.handleEpochChanged(roomId, epoch);
+      } else if (result.messageType == ProcessedMessageType.proposal) {
+        talker.debug('Processed proposal for room $roomId');
       }
 
       return null;
     } catch (e) {
-      talker.error('Failed to decrypt message: $e');
+      // Final catch for any remaining errors
+      if (e.toString().contains('Cannot decrypt') ||
+          e.toString().contains('cannot decrypt')) {
+        talker.debug(
+          'Cannot decrypt message for room $roomId (likely own message)',
+        );
+        return null;
+      }
+      talker.error('Failed to decrypt message for room $roomId: $e');
       return null;
     }
   }
