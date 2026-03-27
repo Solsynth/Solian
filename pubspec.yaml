@@ -37,12 +37,12 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^1.0.9
   flutter_hooks: ^0.21.3+1
   hooks_riverpod: ^3.3.1
   quick_actions: ^1.1.0
   styled_widget: ^0.4.1
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.5
   flutter_riverpod: ^3.3.1
   path_provider: ^2.1.5
   dio: ^5.9.2
@@ -74,16 +74,16 @@ dependencies:
   file_picker: ^10.3.10
   riverpod_annotation: ^4.0.2
   image_picker_platform_interface: ^2.11.1
-  image_picker_android: ^0.8.13+14
+  image_picker_android: ^0.8.13+15
   super_context_menu: ^0.9.1
   modal_bottom_sheet: ^3.0.0
-  firebase_messaging: ^16.1.2
+  firebase_messaging: ^16.1.3
   flutter_udid: ^4.1.2
-  firebase_core: ^4.5.0
+  firebase_core: ^4.6.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2906.0
-  objectbox: ^5.2.0
-  objectbox_flutter_libs: ^5.2.0
+  objectbox: ^5.3.1
+  objectbox_flutter_libs: ^5.3.1
   path: ^1.9.1
   collection: ^1.19.1
   markdown_editor_plus: ^0.2.15
@@ -133,8 +133,8 @@ dependencies:
   flutter_app_update: ^3.2.2
   archive: ^4.0.9
   process_run: ^1.3.1+1
-  firebase_crashlytics: ^5.0.8
-  firebase_analytics: ^12.1.3
+  firebase_crashlytics: ^5.1.0
+  firebase_analytics: ^12.2.0
   material_color_utilities: ^0.13.0
   screenshot: ^3.0.0
   flutter_card_swiper: ^7.2.0
@@ -155,11 +155,11 @@ dependencies:
   dart_ipc: ^1.0.1
   pretty_diff_text: ^2.1.0
   window_manager: ^0.5.1
-  talker: ^5.1.15
-  talker_flutter: ^5.1.15
-  talker_logger: ^5.1.15
-  talker_dio_logger: ^5.1.15
-  talker_riverpod_logger: ^5.1.14
+  talker: ^5.1.16
+  talker_flutter: ^5.1.16
+  talker_logger: ^5.1.16
+  talker_dio_logger: ^5.1.16
+  talker_riverpod_logger: ^5.1.16
   syncfusion_flutter_pdfviewer: ^31.1.21
   swipe_to: ^1.0.6
   dio_smart_retry: ^7.0.1
@@ -204,7 +204,7 @@ dev_dependencies:
   freezed: ^3.2.5
   json_serializable: ^6.13.0
   riverpod_generator: ^4.0.3
-  objectbox_generator: ^5.2.0
+  objectbox_generator: ^5.3.1
   flutter_launcher_icons: ^0.14.4
   auto_route_generator: ^10.4.0
 

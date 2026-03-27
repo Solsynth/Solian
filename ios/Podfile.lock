@@ -55,18 +55,18 @@ PODS:
   - Firebase/Messaging (12.9.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 12.9.0)
-  - firebase_analytics (12.1.3):
+  - firebase_analytics (12.2.0):
     - firebase_core
     - FirebaseAnalytics (= 12.9.0)
     - Flutter
-  - firebase_core (4.5.0):
+  - firebase_core (4.6.0):
     - Firebase/CoreOnly (= 12.9.0)
     - Flutter
-  - firebase_crashlytics (5.0.8):
+  - firebase_crashlytics (5.1.0):
     - Firebase/Crashlytics (= 12.9.0)
     - firebase_core
     - Flutter
-  - firebase_messaging (16.1.2):
+  - firebase_messaging (16.1.3):
     - Firebase/Messaging (= 12.9.0)
     - firebase_core
     - Flutter
@@ -273,10 +273,10 @@ PODS:
   - nanopb/encode (3.30910.0)
   - native_exif (0.0.1):
     - Flutter
-  - ObjectBox (5.2.0)
+  - ObjectBox (5.3.0-beta.4)
   - objectbox_flutter_libs (0.0.1):
     - Flutter
-    - ObjectBox (= 5.2.0)
+    - ObjectBox (= 5.3.0-beta.4)
   - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
@@ -548,10 +548,10 @@ SPEC CHECKSUMS:
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   file_saver: 6cdbcddd690cb02b0c1a0c225b37cd805c2bf8b6
   Firebase: 065f2bb395062046623036d8e6dc857bc2521d56
-  firebase_analytics: 6903a46192a92993abde88152a14ce1df1c0de2f
-  firebase_core: afac1aac13c931e0401c7e74ed1276112030efab
-  firebase_crashlytics: a316d8dddba772359d93dc38d303ed964579b7a6
-  firebase_messaging: 7cb2727feb789751fc6936bcc8e08408970e2820
+  firebase_analytics: 8288e2480a2b2a5eb2cc3c474e4a4327e8dc520b
+  firebase_core: 8e6f58412ca227827c366b92e7cee047a2148c60
+  firebase_crashlytics: c399f9682c474beb06a89c11dfab04db537f3cd2
+  firebase_messaging: c3aa897e0d40109cfb7927c40dc0dea799863f3b
   FirebaseAnalytics: cd7d01d352f3c237c9a0e31552c257cd0b0c0352
   FirebaseCore: 428912f751178b06bef0a1793effeb4a5e09a9b8
   FirebaseCoreExtension: e911052d59cd0da237a45d706fc0f81654f035c1
@@ -595,8 +595,8 @@ SPEC CHECKSUMS:
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   native_exif: 0eb73d3d5b3ca892719228df8d2d1b13d1ae396c
-  ObjectBox: 946c1e8586aaa61e21b6661bab4948d06fdd51c4
-  objectbox_flutter_libs: 4d609454f39d002fc850b3019e180fc4760cdf36
+  ObjectBox: eccb95ea2054c39d81dfa2d4ccc5f1e31187228a
+  objectbox_flutter_libs: ed1510f71602e4a0d3f2a721324e468d066fdbb9
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   pasteboard: 3913b69d3f2be214970a8ae94e7e87fe76e47e98
