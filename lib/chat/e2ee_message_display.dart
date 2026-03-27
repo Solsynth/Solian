@@ -1,4 +1,3 @@
-import 'package:island/chat/e2ee_codec.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 typedef E2eeDisplayContent = ({
@@ -45,7 +44,7 @@ E2eeDisplayContent resolveE2eeDisplayContent({
     );
   }
 
-  final decoded = decodeE2eeCiphertext(
+  final decoded = decodeMlsCiphertext(
     roomId: roomId,
     ciphertext: resolvedCiphertext,
   );
@@ -74,4 +73,11 @@ E2eeDisplayContent resolveE2eeDisplayContent({
     decryptFailed: false,
     emptyAfterDecrypt: false,
   );
+}
+
+Map<String, dynamic>? decodeMlsCiphertext({
+  required String roomId,
+  required String ciphertext,
+}) {
+  return null;
 }

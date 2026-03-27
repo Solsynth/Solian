@@ -7,7 +7,6 @@ import "package:flutter_cache_manager/flutter_cache_manager.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:http_parser/http_parser.dart";
 import "package:island/chat/pods/chat_room.dart";
-import "package:island/chat/e2ee_codec.dart";
 import "package:island/data/database.dart";
 import "package:island/data/message.dart";
 import "package:island/core/config.dart";
@@ -16,6 +15,7 @@ import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/core/websocket.dart";
 import "package:island/drive/drive_service.dart";
+import "package:island/e2ee/e2ee.dart";
 import "package:mime/mime.dart";
 import "package:island/talker.dart";
 import "package:island/shared/widgets/alert.dart";
@@ -59,7 +59,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   String get _e2eeScheme => 'chat.mls.v1';
   String? get _fileEncryptKey =>
-      _isE2eeRoom ? deriveE2eeFileEncryptKey(roomId) : null;
+      _isE2eeRoom ? deriveFileEncryptKey(roomId) : null;
 
   Options? _mlsWriteOptions() {
     if (!_isE2eeRoom) return null;
@@ -103,31 +103,23 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) {
     final normalizedMessageType =
         _normalizeEncryptionMessageType(messageType) ?? 'text';
-    final envelope = {
-      'content': content,
-      'attachments_id': attachmentIds,
-      'nonce': nonce,
-    };
     final meta = <String, dynamic>{
       'attachments_id': attachmentIds,
-      'replied_message_id': ?repliedMessageId,
-      'forwarded_message_id': ?forwardedMessageId,
-      'poll_id': ?pollId,
-      'fund_id': ?fundId,
+      'replied_message_id': repliedMessageId,
+      'forwarded_message_id': forwardedMessageId,
+      'poll_id': pollId,
+      'fund_id': fundId,
     };
     return {
       'type': normalizedMessageType,
       'attachments_id': attachmentIds,
       'meta': meta,
-      'replied_message_id': ?repliedMessageId,
-      'forwarded_message_id': ?forwardedMessageId,
-      'poll_id': ?pollId,
-      'fund_id': ?fundId,
+      'replied_message_id': repliedMessageId,
+      'forwarded_message_id': forwardedMessageId,
+      'poll_id': pollId,
+      'fund_id': fundId,
       'is_encrypted': true,
-      'ciphertext': encodeE2eeCiphertext(roomId: roomId, envelope: envelope),
-      'encryption_header': base64Encode(utf8.encode('{"v":1}')),
       'encryption_scheme': _e2eeScheme,
-      'encryption_epoch': 1,
       'encryption_message_type': normalizedMessageType,
       'client_message_id': nonce,
       'nonce': nonce,
