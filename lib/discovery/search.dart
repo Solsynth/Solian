@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -209,7 +210,7 @@ class _PostsSearchTab extends HookConsumerWidget {
 
     // Listen to debounced search query changes and update the list.
     useEffect(() {
-      onSearchChanged(searchQuery.value);
+      Future.microtask(() => onSearchChanged(searchQuery.value));
       return null;
     }, [searchQuery.value]);
 
@@ -410,7 +411,9 @@ class _AccountSearchTab extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final accountResults = useState<List<SnAccount>>([]);
     final publisherResults = useState<List<SnPublisher>>([]);
+    final fediverseResults = useState<List<SnActivityPubActor>>([]);
     final isSearching = useState(false);
+    final includeFediverse = useState(false);
     final requestToken = useRef(0);
 
     Future<void> performSearch(String query) async {
@@ -420,6 +423,7 @@ class _AccountSearchTab extends HookConsumerWidget {
       if (normalizedQuery.isEmpty) {
         accountResults.value = [];
         publisherResults.value = [];
+        fediverseResults.value = [];
         isSearching.value = false;
         return;
       }
@@ -435,14 +439,32 @@ class _AccountSearchTab extends HookConsumerWidget {
           queryParameters: {'query': normalizedQuery},
         );
 
-        final accountData = await accountFuture;
-        final publisherResponse = await publisherFuture;
+        final futures = <Future>[accountFuture, publisherFuture];
+
+        if (includeFediverse.value) {
+          futures.add(
+            apiClient.get(
+              '/sphere/fediverse/actors/search',
+              queryParameters: {'query': normalizedQuery, 'limit': 20},
+            ),
+          );
+        }
+
+        final results = await Future.wait(futures);
 
         if (token == requestToken.value) {
-          accountResults.value = accountData;
-          publisherResults.value = (publisherResponse.data as List)
+          accountResults.value = results[0] as List<SnAccount>;
+          publisherResults.value = (results[1].data as List)
               .map((json) => SnPublisher.fromJson(json))
               .toList();
+
+          if (includeFediverse.value && results.length > 2) {
+            fediverseResults.value = (results[2].data as List)
+                .map((json) => SnActivityPubActor.fromJson(json))
+                .toList();
+          } else {
+            fediverseResults.value = [];
+          }
         }
       } catch (err) {
         if (token == requestToken.value) {
@@ -459,9 +481,9 @@ class _AccountSearchTab extends HookConsumerWidget {
     useEffect(() {
       performSearch(searchQuery.value);
       return null;
-    }, [searchQuery.value]);
+    }, [searchQuery.value, includeFediverse.value]);
 
-    // Combine and display results - accounts first, then publishers.
+    // Combine and display results - accounts first, then publishers, then fediverse.
     final allResults = [
       ...accountResults.value.map(
         (account) => {'type': 'account', 'data': account},
@@ -469,10 +491,32 @@ class _AccountSearchTab extends HookConsumerWidget {
       ...publisherResults.value.map(
         (publisher) => {'type': 'publisher', 'data': publisher},
       ),
+      ...fediverseResults.value.map(
+        (actor) => {'type': 'fediverse', 'data': actor},
+      ),
     ];
 
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(
+            children: [
+              Checkbox(
+                value: includeFediverse.value,
+                onChanged: (value) {
+                  includeFediverse.value = value ?? false;
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+              Text(
+                'includeFediverse'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
         Expanded(
           child: isSearching.value
               ? const Center(child: CircularProgressIndicator())
@@ -588,6 +632,105 @@ class _AccountSearchTab extends HookConsumerWidget {
                                     Text('@${publisher.name}'),
                                 ],
                               ),
+                              trailing: const Icon(
+                                Symbols.chevron_right,
+                              ).padding(right: 12),
+                            ),
+                          ),
+                        );
+                      } else if (result['type'] == 'fediverse') {
+                        final actor = result['data'] as SnActivityPubActor;
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                left: 16,
+                                right: 12,
+                              ),
+                              leading: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: actor.avatarUrl != null
+                                        ? CachedNetworkImageProvider(
+                                            actor.avatarUrl!,
+                                          )
+                                        : null,
+                                    radius: 24,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainer,
+                                    child: actor.avatarUrl == null
+                                        ? Icon(Symbols.person)
+                                        : null,
+                                  ),
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.tertiary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Symbols.public,
+                                        size: 12,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onTertiary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              title: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      actor.displayName ?? actor.username ?? '',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.secondaryContainer,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      actor.instance.domain,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSecondaryContainer,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle:
+                                  actor.bio != null && actor.bio!.isNotEmpty
+                                  ? Text(
+                                      actor.bio!,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    )
+                                  : null,
                               trailing: const Icon(
                                 Symbols.chevron_right,
                               ).padding(right: 12),

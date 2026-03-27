@@ -25,14 +25,14 @@ class ApActorListItem extends StatelessWidget {
     if (actor.displayName?.isNotEmpty ?? false) {
       return actor.displayName!;
     }
-    if (actor.username?.isNotEmpty ?? false) {
+    if (actor.username.isNotEmpty) {
       return actor.username!;
     }
     return actor.id.split('@').lastOrNull ?? 'Unknown';
   }
 
   String _getUsername() {
-    if (actor.username?.isNotEmpty ?? false) {
+    if (actor.username.isNotEmpty ?? false) {
       return '${actor.username}@${actor.instance.domain}';
     }
     return actor.id;
@@ -122,10 +122,10 @@ class ApActorListItem extends StatelessWidget {
         spacing: 8,
         children: [
           Text(username),
-          if (actor.summary?.isNotEmpty ?? false)
+          if (actor.bio?.isNotEmpty ?? false)
             Expanded(
               child: Text(
-                actor.summary!,
+                actor.bio!,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,

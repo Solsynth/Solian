@@ -2210,5 +2210,7 @@
   "statusChange": "Status Change",
   "replies": "Replies",
   "forwards": "Forwards",
-  "boosts": "Boosts"
+  "boosts": "Boosts",
+  "searchUsersNoResults": "No users matches search",
+  "includeFediverse": "Include Fediverse"
 }
