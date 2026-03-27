@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:math';
-import 'dart:typed_data';
-import 'package:dio/dio.dart';
 import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
+import 'package:openmls/openmls.dart';
 import 'package:island/talker.dart';
+import 'mls_engine.dart';
 import 'mls_storage.dart';
 import 'mls_group_manager.dart';
 
@@ -12,102 +12,6 @@ String deriveE2eeFileEncryptKey(String roomId) {
       .convert(utf8.encode('island-chat-file-e2ee-v1:$roomId'))
       .bytes;
   return base64Encode(keyBytes);
-}
-
-List<int> _roomKey(String roomId) {
-  return sha256.convert(utf8.encode('island-chat-e2ee-v1:$roomId')).bytes;
-}
-
-String encodeE2eeCiphertext({
-  required String roomId,
-  required Map<String, dynamic> envelope,
-}) {
-  final payload = utf8.encode(jsonEncode(envelope));
-  final nonce = List<int>.generate(12, (_) => Random.secure().nextInt(256));
-  final key = _roomKey(roomId);
-  final stream = _keystream(key: key, nonce: nonce, length: payload.length);
-  final cipher = List<int>.generate(
-    payload.length,
-    (i) => payload[i] ^ stream[i],
-  );
-  final bytes = <int>[
-    ...utf8.encode('ISLE2E1'),
-    nonce.length,
-    ...nonce,
-    ...cipher,
-  ];
-  return base64Encode(bytes);
-}
-
-List<int> _keystream({
-  required List<int> key,
-  required List<int> nonce,
-  required int length,
-}) {
-  final out = <int>[];
-  var counter = 0;
-  while (out.length < length) {
-    final c = ByteData(4)..setUint32(0, counter, Endian.big);
-    final block = sha256.convert([
-      ...key,
-      ...nonce,
-      ...c.buffer.asUint8List(),
-    ]).bytes;
-    out.addAll(block);
-    counter += 1;
-  }
-  return out.take(length).toList();
-}
-
-Map<String, dynamic>? decodeE2eeCiphertext({
-  required String roomId,
-  required String ciphertext,
-}) {
-  Map<String, dynamic>? parseJsonBytes(List<int> bytes) {
-    try {
-      final decoded = jsonDecode(utf8.decode(bytes));
-      if (decoded is Map<String, dynamic>) return decoded;
-    } catch (_) {}
-    return null;
-  }
-
-  try {
-    final bytes = base64Decode(ciphertext);
-    final magicBytes = utf8.encode('ISLE2E1');
-    var hasMagic = bytes.length >= magicBytes.length + 1;
-    if (hasMagic) {
-      for (var i = 0; i < magicBytes.length; i++) {
-        if (bytes[i] != magicBytes[i]) {
-          hasMagic = false;
-          break;
-        }
-      }
-    }
-
-    if (!hasMagic) {
-      return parseJsonBytes(bytes);
-    }
-
-    final nonceLen = bytes[magicBytes.length];
-    final nonceStart = magicBytes.length + 1;
-    final nonceEnd = nonceStart + nonceLen;
-    if (bytes.length < nonceEnd) return null;
-    final nonce = bytes.sublist(nonceStart, nonceEnd);
-    final cipher = bytes.sublist(nonceEnd);
-    final key = _roomKey(roomId);
-    final stream = _keystream(key: key, nonce: nonce, length: cipher.length);
-    final plain = List<int>.generate(
-      cipher.length,
-      (i) => cipher[i] ^ stream[i],
-    );
-    return parseJsonBytes(plain);
-  } catch (_) {
-    try {
-      final decoded = jsonDecode(ciphertext);
-      if (decoded is Map<String, dynamic>) return decoded;
-    } catch (_) {}
-    return null;
-  }
 }
 
 enum MlsMessageType {
@@ -152,35 +56,72 @@ class MlsMessageHandler {
     required MlsMessageType messageType,
     String? repliedMessageId,
     String? forwardedMessageId,
+    String? pollId,
+    String? fundId,
   }) async {
+    final engineService = await MlsEngineService.getInstance();
+    final engine = engineService.engine;
+
+    final signerKeyPairRaw = await _storage.getSignerKeyPair();
+    if (signerKeyPairRaw == null) {
+      throw Exception('Signer keypair not found. Please initialize MLS first.');
+    }
+
+    final signerKeyPair = MlsSignatureKeyPair.fromRaw(
+      ciphersuite: defaultCiphersuite,
+      privateKey: base64Decode(signerKeyPairRaw.split(':')[0]),
+      publicKey: base64Decode(signerKeyPairRaw.split(':')[1]),
+    );
+
+    final groupIdBytes = utf8.encode('room:$roomId');
+
+    final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
+    if (!isActive) {
+      talker.info('Group not active for room $roomId, bootstrapping...');
+      await _groupManager.bootstrapGroup(roomId);
+    }
+
     final envelope = {
       'content': content,
       'attachments_id': attachmentIds,
       'nonce': _generateNonce(),
-    };
-    final meta = <String, dynamic>{
-      'attachments_id': attachmentIds,
       if (repliedMessageId != null) 'replied_message_id': repliedMessageId,
       if (forwardedMessageId != null)
         'forwarded_message_id': forwardedMessageId,
+      if (pollId != null) 'poll_id': pollId,
+      if (fundId != null) 'fund_id': fundId,
     };
-    final epoch = await _groupManager.getCurrentEpoch(roomId);
+
+    final plaintext = utf8.encode(jsonEncode(envelope));
+    final result = await engine.createMessage(
+      groupIdBytes: groupIdBytes,
+      signerBytes: signerKeyPair.privateKey(),
+      message: plaintext,
+    );
+
+    final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
 
     return {
       'type': messageType.value,
       'attachments_id': attachmentIds,
-      'meta': meta,
-      if (repliedMessageId != null) 'replied_message_id': repliedMessageId,
-      if (forwardedMessageId != null)
+      'meta': {
+        'attachments_id': attachmentIds,
+        'replied_message_id': repliedMessageId,
         'forwarded_message_id': forwardedMessageId,
+        'poll_id': pollId,
+        'fund_id': fundId,
+      },
+      'replied_message_id': repliedMessageId,
+      'forwarded_message_id': forwardedMessageId,
+      'poll_id': pollId,
+      'fund_id': fundId,
       'is_encrypted': true,
-      'ciphertext': utf8.encode(
-        encodeE2eeCiphertext(roomId: roomId, envelope: envelope),
-      ),
-      'encryption_header': utf8.encode('{"v":1}'),
+      'ciphertext': base64Encode(result.ciphertext),
+      'encryption_header': base64Encode(utf8.encode('{"v":1,"scheme":"mls"}')),
       'encryption_scheme': 'chat.mls.v1',
-      'encryption_epoch': epoch,
+      'encryption_epoch': epoch.toInt(),
       'encryption_message_type': messageType.value,
+      'client_message_id': envelope['nonce'],
       'nonce': envelope['nonce'],
     };
   }
@@ -191,9 +132,30 @@ class MlsMessageHandler {
     required String? encryptionHeader,
   }) async {
     try {
+      final engineService = await MlsEngineService.getInstance();
+      final engine = engineService.engine;
+
+      final groupIdBytes = utf8.encode('room:$roomId');
+      final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
+      if (!isActive) {
+        talker.debug('Group not active for room: $roomId');
+        return null;
+      }
+
       final ciphertextBytes = base64Decode(ciphertext);
-      final decrypted = utf8.decode(ciphertextBytes);
-      return jsonDecode(decrypted) as Map<String, dynamic>;
+      final result = await engine.processMessage(
+        groupIdBytes: groupIdBytes,
+        messageBytes: ciphertextBytes,
+      );
+
+      if (result.messageType == ProcessedMessageType.application) {
+        if (result.applicationMessage != null) {
+          final plaintext = utf8.decode(result.applicationMessage!);
+          return jsonDecode(plaintext) as Map<String, dynamic>;
+        }
+      }
+
+      return null;
     } catch (e) {
       talker.error('Failed to decrypt message: $e');
       return null;

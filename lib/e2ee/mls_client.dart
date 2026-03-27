@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/talker.dart';
+import 'mls_engine.dart';
 import 'mls_storage.dart';
 import 'mls_identity_manager.dart';
 import 'mls_group_manager.dart';
@@ -10,10 +11,10 @@ import 'mls_message_handler.dart';
 
 class MlsClient {
   final MlsStorage _storage;
+  final Dio _padlockClient;
   late final MlsIdentityManager _identityManager;
   late final MlsGroupManager _groupManager;
   late final MlsMessageHandler _messageHandler;
-  final Dio _padlockClient;
 
   MlsClient({required MlsStorage storage, required Dio padlockClient})
     : _storage = storage,
@@ -39,6 +40,8 @@ class MlsClient {
   MlsMessageHandler get messageHandler => _messageHandler;
 
   Future<void> initialize() async {
+    await MlsEngineService.getInstance();
+    await _identityManager.generateAndStoreSignerKeyPair();
     final deviceId = await _identityManager.getOrCreateDeviceId();
     talker.debug('MLS Client initialized with deviceId: $deviceId');
   }
