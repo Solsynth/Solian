@@ -33,10 +33,7 @@ class PostReactionUpdateEvent {
   final SnPostReaction reaction;
   final ReactionAction action;
 
-  const PostReactionUpdateEvent({
-    required this.reaction,
-    required this.action,
-  });
+  const PostReactionUpdateEvent({required this.reaction, required this.action});
 }
 
 /// Event fired when chat rooms need to be refreshed
@@ -70,10 +67,7 @@ class ChatMessageDeleteEvent {
   final String messageId;
   final String roomId;
 
-  const ChatMessageDeleteEvent({
-    required this.messageId,
-    required this.roomId,
-  });
+  const ChatMessageDeleteEvent({required this.messageId, required this.roomId});
 }
 
 /// Event fired when a user is typing in a chat room
@@ -130,4 +124,31 @@ class SolianDeepLinkEvent {
   final Uri uri;
 
   const SolianDeepLinkEvent(this.uri);
+}
+
+/// Event fired when MLS epoch changes for a room
+class MlsEpochChangedEvent {
+  final String roomId;
+  final int newEpoch;
+
+  const MlsEpochChangedEvent({required this.roomId, required this.newEpoch});
+}
+
+/// Event fired when MLS requires a reshare for a room
+class MlsReshareRequiredEvent {
+  final String roomId;
+
+  const MlsReshareRequiredEvent({required this.roomId});
+}
+
+/// Event fired when a key package is uploaded
+class MlsKeyPackageUploadedEvent {
+  const MlsKeyPackageUploadedEvent();
+}
+
+/// Event fired when MLS device registration completes
+class MlsDeviceRegisteredEvent {
+  final String deviceId;
+
+  const MlsDeviceRegisteredEvent({required this.deviceId});
 }

@@ -95,9 +95,124 @@ final userAgentProvider = FutureProvider<String>((ref) async {
 });
 
 const String _chatE2eeCapability = 'chat-e2ee-v1';
+const String _chatMlsCapability = 'chat-mls-v1';
 const Duration _tokenExpirySkew = Duration(seconds: 30);
 
 Future<_StoredTokenPair?>? _tokenRefreshInFlight;
+
+final padlockApiClientProvider = Provider<Dio>((ref) {
+  final serverUrl = ref.watch(serverUrlProvider);
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: '$serverUrl/padlock',
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Client-Ability': [_chatE2eeCapability, _chatMlsCapability].join(','),
+      },
+    ),
+  );
+
+  dio.interceptors.addAll([
+    InterceptorsWrapper(
+      onRequest:
+          (RequestOptions options, RequestInterceptorHandler handler) async {
+            try {
+              final token = await getValidAuthToken(ref);
+              if (token?.isNotEmpty ?? false) {
+                options.headers['Authorization'] = 'Bearer ${token!}';
+              }
+            } catch (err) {
+              // ignore
+            }
+
+            final userAgent = ref.read(userAgentProvider);
+            if (userAgent.value != null) {
+              options.headers['User-Agent'] = userAgent.value;
+            }
+
+            if (options.path.startsWith('/e2ee/mls')) {
+              options.headers['X-Client-Ability'] = _chatMlsCapability;
+            }
+
+            return handler.next(options);
+          },
+      onResponse: (response, handler) async {
+        final responseData = response.data;
+        if (responseData is Map &&
+            response.requestOptions.path.endsWith('/padlock/auth/token')) {
+          final token = responseData['token'];
+          if (token is String && token.isNotEmpty) {
+            await setToken(
+              ref.read(sharedPreferencesProvider),
+              token,
+              refreshToken: responseData['refresh_token'] as String?,
+              expiresIn: _tryInt(responseData['expires_in']),
+              refreshExpiresIn: _tryInt(responseData['refresh_expires_in']),
+            );
+            ref.invalidate(tokenProvider);
+          }
+        }
+
+        if (response.statusCode == 503) {
+          final networkStatusNotifier = ref.read(
+            networkStatusProvider.notifier,
+          );
+          if (response.headers.value('X-NotReady') != null) {
+            networkStatusNotifier.setNotReady();
+          } else {
+            networkStatusNotifier.setMaintenance();
+          }
+        } else if (response.statusCode != null &&
+            response.statusCode! >= 200 &&
+            response.statusCode! < 300) {
+          final networkStatusNotifier = ref.read(
+            networkStatusProvider.notifier,
+          );
+          networkStatusNotifier.setOnline();
+        }
+        return handler.next(response);
+      },
+      onError: (error, handler) {
+        if (error.response?.statusCode == 503) {
+          final networkStatusNotifier = ref.read(
+            networkStatusProvider.notifier,
+          );
+          if (error.response?.headers.value('X-NotReady') != null) {
+            networkStatusNotifier.setNotReady();
+          } else {
+            networkStatusNotifier.setMaintenance();
+          }
+        }
+        return handler.next(error);
+      },
+    ),
+    TalkerDioLogger(
+      talker: talker,
+      settings: const TalkerDioLoggerSettings(
+        printRequestHeaders: false,
+        printResponseHeaders: false,
+        printResponseMessage: false,
+        printRequestData: false,
+        printResponseData: false,
+      ),
+    ),
+    RetryInterceptor(
+      dio: dio,
+      retries: 3,
+      retryDelays: const [
+        Duration(milliseconds: 300),
+        Duration(milliseconds: 500),
+        Duration(milliseconds: 1000),
+      ],
+      retryEvaluator: (err, _) => err.requestOptions.method == 'GET',
+    ),
+  ]);
+
+  return dio;
+});
 
 final apiClientProvider = Provider<Dio>((ref) {
   final serverUrl = ref.watch(serverUrlProvider);

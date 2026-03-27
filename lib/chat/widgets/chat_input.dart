@@ -12,7 +12,7 @@ import "package:image_picker/image_picker.dart";
 import "package:island/accounts/utils/account_status_utils.dart";
 import "package:island/discovery/models/autocomplete_response.dart";
 import "package:island/chat/e2ee_message_display.dart";
-import "package:island/chat/e2ee_codec.dart";
+import "package:island/e2ee/e2ee.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/chat/pods/chat_online_count.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
