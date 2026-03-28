@@ -369,6 +369,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     _roomEncryptionMode = room.encryptionMode;
     _mlsGroupId = room.mlsGroupId;
 
+    // Set account ID for MLS operations
+    if (identity != null) {
+      final mlsClient = ref.read(mlsClientProvider);
+      await mlsClient.setCurrentAccountId(identity.accountId);
+    }
+
     // Ensure MLS group is bootstrapped for E2EE rooms
     if (_isE2eeRoom) {
       if (room.mlsGroupId == null) {

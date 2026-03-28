@@ -580,7 +580,18 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
 
               try {
                 final mlsClient = ref.read(mlsClientProvider);
-                await mlsClient.resetAndRebootstrapGroup(mlsGroupId);
+                final currentAccountId = chatIdentity.value?.accountId;
+                if (currentAccountId == null) {
+                  if (context.mounted) {
+                    showErrorAlert('Unable to get current account ID');
+                  }
+                  return;
+                }
+                await mlsClient.resetAndRebootstrapGroup(
+                  roomId: id,
+                  mlsGroupId: mlsGroupId,
+                  creatorAccountId: currentAccountId,
+                );
                 ref.invalidate(chatRoomProvider(id));
                 if (context.mounted) {
                   showSnackBar('E2EE reset successfully.');
