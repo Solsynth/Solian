@@ -113,7 +113,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 7468620651290787438),
     name: 'ChatMessageEntity',
-    lastPropertyId: const obx_int.IdUid(20, 8123794081491996196),
+    lastPropertyId: const obx_int.IdUid(22, 9196135481494364333),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -146,12 +146,6 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(5, 9154022089063598045),
         name: 'content',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 5953151212427077877),
-        name: 'nonce',
         type: 9,
         flags: 0,
       ),
@@ -237,6 +231,18 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(20, 8123794081491996196),
         name: 'forwardedMessageId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(21, 7820090683604475842),
+        name: 'clientMessageId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(22, 9196135481494364333),
+        name: 'nonce',
         type: 9,
         flags: 0,
       ),
@@ -563,7 +569,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [5953151212427077877],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -700,9 +706,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final contentOffset = object.content == null
             ? null
             : fbb.writeString(object.content!);
-        final nonceOffset = object.nonce == null
-            ? null
-            : fbb.writeString(object.nonce!);
         final dataJsonOffset = fbb.writeString(object.dataJson);
         final typeOffset = fbb.writeString(object.type);
         final metaJsonOffset = fbb.writeString(object.metaJson);
@@ -717,13 +720,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final forwardedMessageIdOffset = object.forwardedMessageId == null
             ? null
             : fbb.writeString(object.forwardedMessageId!);
-        fbb.startTable(21);
+        final clientMessageIdOffset = object.clientMessageId == null
+            ? null
+            : fbb.writeString(object.clientMessageId!);
+        final nonceOffset = object.nonce == null
+            ? null
+            : fbb.writeString(object.nonce!);
+        fbb.startTable(23);
         fbb.addInt64(0, object.obxId);
         fbb.addOffset(1, uidOffset);
         fbb.addOffset(2, roomIdOffset);
         fbb.addOffset(3, senderIdOffset);
         fbb.addOffset(4, contentOffset);
-        fbb.addOffset(5, nonceOffset);
         fbb.addOffset(6, dataJsonOffset);
         fbb.addInt64(7, object.createdAtMs);
         fbb.addInt64(8, object.status);
@@ -738,6 +746,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(17, reactionsJsonOffset);
         fbb.addOffset(18, repliedMessageIdOffset);
         fbb.addOffset(19, forwardedMessageIdOffset);
+        fbb.addOffset(20, clientMessageIdOffset);
+        fbb.addOffset(21, nonceOffset);
         fbb.finish(fbb.endTable());
         return object.obxId;
       },
@@ -762,9 +772,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final contentParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 12);
+        final clientMessageIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 44);
         final nonceParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 14);
+        ).vTableGetNullable(buffer, rootOffset, 46);
         final dataJsonParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 16, '');
@@ -828,6 +841,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           roomId: roomIdParam,
           senderId: senderIdParam,
           content: contentParam,
+          clientMessageId: clientMessageIdParam,
           nonce: nonceParam,
           dataJson: dataJsonParam,
           createdAtMs: createdAtMsParam,
@@ -1313,78 +1327,83 @@ class ChatMessageEntity_ {
     _entities[1].properties[4],
   );
 
-  /// See [ChatMessageEntity.nonce].
-  static final nonce = obx.QueryStringProperty<ChatMessageEntity>(
-    _entities[1].properties[5],
-  );
-
   /// See [ChatMessageEntity.dataJson].
   static final dataJson = obx.QueryStringProperty<ChatMessageEntity>(
-    _entities[1].properties[6],
+    _entities[1].properties[5],
   );
 
   /// See [ChatMessageEntity.createdAtMs].
   static final createdAtMs = obx.QueryIntegerProperty<ChatMessageEntity>(
-    _entities[1].properties[7],
+    _entities[1].properties[6],
   );
 
   /// See [ChatMessageEntity.status].
   static final status = obx.QueryIntegerProperty<ChatMessageEntity>(
-    _entities[1].properties[8],
+    _entities[1].properties[7],
   );
 
   /// See [ChatMessageEntity.isDeleted].
   static final isDeleted = obx.QueryBooleanProperty<ChatMessageEntity>(
-    _entities[1].properties[9],
+    _entities[1].properties[8],
   );
 
   /// See [ChatMessageEntity.updatedAtMs].
   static final updatedAtMs = obx.QueryIntegerProperty<ChatMessageEntity>(
-    _entities[1].properties[10],
+    _entities[1].properties[9],
   );
 
   /// See [ChatMessageEntity.deletedAtMs].
   static final deletedAtMs = obx.QueryIntegerProperty<ChatMessageEntity>(
-    _entities[1].properties[11],
+    _entities[1].properties[10],
   );
 
   /// See [ChatMessageEntity.type].
   static final type = obx.QueryStringProperty<ChatMessageEntity>(
-    _entities[1].properties[12],
+    _entities[1].properties[11],
   );
 
   /// See [ChatMessageEntity.metaJson].
   static final metaJson = obx.QueryStringProperty<ChatMessageEntity>(
-    _entities[1].properties[13],
+    _entities[1].properties[12],
   );
 
   /// See [ChatMessageEntity.membersMentionedJson].
   static final membersMentionedJson =
-      obx.QueryStringProperty<ChatMessageEntity>(_entities[1].properties[14]);
+      obx.QueryStringProperty<ChatMessageEntity>(_entities[1].properties[13]);
 
   /// See [ChatMessageEntity.editedAtMs].
   static final editedAtMs = obx.QueryIntegerProperty<ChatMessageEntity>(
-    _entities[1].properties[15],
+    _entities[1].properties[14],
   );
 
   /// See [ChatMessageEntity.attachmentsJson].
   static final attachmentsJson = obx.QueryStringProperty<ChatMessageEntity>(
-    _entities[1].properties[16],
+    _entities[1].properties[15],
   );
 
   /// See [ChatMessageEntity.reactionsJson].
   static final reactionsJson = obx.QueryStringProperty<ChatMessageEntity>(
-    _entities[1].properties[17],
+    _entities[1].properties[16],
   );
 
   /// See [ChatMessageEntity.repliedMessageId].
   static final repliedMessageId = obx.QueryStringProperty<ChatMessageEntity>(
-    _entities[1].properties[18],
+    _entities[1].properties[17],
   );
 
   /// See [ChatMessageEntity.forwardedMessageId].
   static final forwardedMessageId = obx.QueryStringProperty<ChatMessageEntity>(
+    _entities[1].properties[18],
+  );
+
+  /// See [ChatMessageEntity.clientMessageId].
+  static final clientMessageId = obx.QueryStringProperty<ChatMessageEntity>(
     _entities[1].properties[19],
+  );
+
+  /// See [ChatMessageEntity.nonce].
+  static final nonce = obx.QueryStringProperty<ChatMessageEntity>(
+    _entities[1].properties[20],
   );
 }
 

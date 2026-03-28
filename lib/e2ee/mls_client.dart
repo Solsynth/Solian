@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
@@ -43,6 +45,23 @@ class MlsClient {
     await _identityManager.generateAndStoreSignerKeyPair();
     final deviceId = await _identityManager.getOrCreateDeviceId();
     talker.debug('MLS Client initialized with deviceId: $deviceId');
+
+    // Upload a KeyPackage if we have none stored (first launch or after rotation)
+    final kpCount = await _identityManager.getKeyPackageUploadCount();
+    if (kpCount < 3) {
+      try {
+        final toUpload = 3 - kpCount;
+        for (var i = 0; i < toUpload; i++) {
+          final kp = await _identityManager.generateKeyPackage();
+          final kpBase64 = base64Encode(kp.keyPackageBytes);
+          await _identityManager.uploadKeyPackage(kpBase64);
+        }
+        talker.debug('Uploaded $toUpload KeyPackage(s) to padlock service');
+      } catch (e) {
+        talker.warning('Failed to upload KeyPackage during init: $e');
+        // Non-fatal: MLS operations will still work for existing groups
+      }
+    }
   }
 
   Future<bool> isDeviceRegistered() async {
@@ -129,6 +148,55 @@ class MlsClient {
   Future<void> handleEpochChanged(String roomId, int newEpoch) async {
     await _groupManager.handleEpochChanged(roomId, newEpoch);
     eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: newEpoch));
+  }
+
+  /// Add members to an existing MLS group and fan out the Welcome message.
+  ///
+  /// Fetches KeyPackages for [memberAccountIds] from the padlock service,
+  /// calls `engine.addMembers()` to generate the commit + welcome,
+  /// then sends the welcome to the server for distribution.
+  Future<Uint8List?> addMembersAndFanoutWelcome(
+    String roomId,
+    List<String> memberAccountIds,
+  ) async {
+    final result = await _groupManager.addMembersAndFanoutWelcome(
+      roomId,
+      memberAccountIds,
+    );
+    if (result != null) {
+      final newEpoch = await _groupManager.getCurrentEpoch(roomId);
+      eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: newEpoch));
+    }
+    return result;
+  }
+
+  /// Process an incoming Welcome message to join an MLS group.
+  ///
+  /// Called when the device receives a MlsWelcome envelope from the server.
+  Future<Map<String, dynamic>?> processWelcome({
+    required String roomId,
+    required Uint8List welcomeBytes,
+  }) async {
+    final result = await _groupManager.processWelcome(
+      roomId: roomId,
+      welcomeBytes: welcomeBytes,
+    );
+    if (result != null) {
+      final newEpoch = await _groupManager.getCurrentEpoch(roomId);
+      eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: newEpoch));
+    }
+    return result;
+  }
+
+  /// Process a Welcome envelope directly from the message handler.
+  Future<Map<String, dynamic>?> processWelcomeEnvelope({
+    required String roomId,
+    required Uint8List welcomeBytes,
+  }) async {
+    return _messageHandler.processWelcomeEnvelope(
+      roomId: roomId,
+      welcomeBytes: welcomeBytes,
+    );
   }
 }
 

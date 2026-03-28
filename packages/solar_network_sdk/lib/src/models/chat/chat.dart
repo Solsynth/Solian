@@ -42,6 +42,7 @@ sealed class SnChatMessage with _$SnChatMessage {
     required String id,
     @Default('text') String type,
     String? content,
+    @JsonKey(name: 'client_message_id') String? clientMessageId,
     String? nonce,
     @Default({}) Map<String, dynamic> meta,
     @Default([]) List<String> membersMentioned,

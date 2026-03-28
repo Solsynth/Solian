@@ -142,7 +142,7 @@ class RoomMessageList extends HookConsumerWidget {
         final messageId = keyString.substring(messageKeyPrefix.length);
 
         final index = messages.indexWhere(
-          (m) => (m.nonce ?? m.id) == messageId,
+          (m) => (m.clientMessageId ?? m.id) == messageId,
         );
 
         if (index > lastReturnedIndex) {
@@ -177,7 +177,9 @@ class RoomMessageList extends HookConsumerWidget {
                 3 ||
             (botGroup != null && isCollapsed && index == botGroup.endIndex);
 
-        final key = Key('$messageKeyPrefix${message.nonce ?? message.id}');
+        final key = Key(
+          '$messageKeyPrefix${message.clientMessageId ?? message.id}',
+        );
         final showLastReadMarker =
             lastReadAnchorMessageId != null &&
             message.id == lastReadAnchorMessageId;

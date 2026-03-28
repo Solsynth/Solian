@@ -131,6 +131,7 @@ class ChatMessageEntity {
     required this.roomId,
     required this.senderId,
     this.content,
+    this.clientMessageId,
     this.nonce,
     required this.dataJson,
     required this.createdAtMs,
@@ -161,6 +162,7 @@ class ChatMessageEntity {
   String senderId;
 
   String? content;
+  String? clientMessageId;
   String? nonce;
   String dataJson;
 

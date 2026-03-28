@@ -67,6 +67,7 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       type: json['type'] as String? ?? 'text',
       content: json['content'] as String?,
+      clientMessageId: json['client_message_id'] as String?,
       nonce: json['nonce'] as String?,
       meta: json['meta'] as Map<String, dynamic>? ?? const {},
       membersMentioned:
@@ -102,6 +103,7 @@ Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
       'id': instance.id,
       'type': instance.type,
       'content': instance.content,
+      'client_message_id': instance.clientMessageId,
       'nonce': instance.nonce,
       'meta': instance.meta,
       'members_mentioned': instance.membersMentioned,

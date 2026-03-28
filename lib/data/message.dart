@@ -10,6 +10,7 @@ class LocalChatMessage {
   final Map<String, dynamic> data;
   final DateTime createdAt;
   MessageStatus status;
+  final String? clientMessageId;
   final String? nonce;
   final String? content;
   final bool? isDeleted;
@@ -32,7 +33,8 @@ class LocalChatMessage {
     required this.sender,
     required this.data,
     required this.createdAt,
-    required this.nonce,
+    required this.clientMessageId,
+    this.nonce,
     required this.status,
     this.content,
     this.isDeleted,
@@ -61,6 +63,7 @@ class LocalChatMessage {
   static LocalChatMessage fromRemoteMessage(
     SnChatMessage message,
     MessageStatus status, {
+    String? clientMessageId,
     String? nonce,
   }) {
     final jsonData = message.toJson();
@@ -84,6 +87,7 @@ class LocalChatMessage {
       data: msgData,
       createdAt: message.createdAt,
       status: status,
+      clientMessageId: clientMessageId ?? message.clientMessageId,
       nonce: nonce ?? message.nonce,
       content: message.content,
       isDeleted: false,

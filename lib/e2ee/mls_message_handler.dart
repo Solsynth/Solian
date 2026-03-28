@@ -90,11 +90,11 @@ class MlsMessageHandler {
       throw Exception('Failed to bootstrap MLS group for room $roomId.');
     }
 
-    final nonce = _generateNonce();
+    final clientMessageId = _generateNonce();
     final envelope = <String, dynamic>{
       'content': content,
       'attachments_id': attachmentIds,
-      'nonce': nonce,
+      'client_message_id': clientMessageId,
       'replied_message_id': repliedMessageId,
       'forwarded_message_id': forwardedMessageId,
       'poll_id': pollId,
@@ -135,6 +135,28 @@ class MlsMessageHandler {
       'Encrypted message for room $roomId (epoch: $epoch, type: ${messageType.value})',
     );
 
+    // Export and cache ratchet tree for external join support
+    try {
+      final ratchetTree = await engine.exportRatchetTree(
+        groupIdBytes: groupIdBytes,
+      );
+      await _groupManager.saveGroupState(roomId, {
+        ...?await _groupManager.getGroupState(roomId),
+        'ratchet_tree': base64Encode(ratchetTree),
+      });
+    } catch (e) {
+      talker.debug(
+        'Could not export ratchet tree after encrypt (non-fatal): $e',
+      );
+    }
+
+    final deviceId = await _identityManager.getOrCreateDeviceId();
+    final headerJson = jsonEncode({
+      'v': 1,
+      'scheme': 'mls',
+      'deviceId': deviceId,
+    });
+
     return {
       'type': messageType.value,
       'attachments_id': attachmentIds,
@@ -151,12 +173,11 @@ class MlsMessageHandler {
       'fund_id': fundId,
       'is_encrypted': true,
       'ciphertext': base64Encode(ciphertextBytes),
-      'encryption_header': base64Encode(utf8.encode('{"v":1,"scheme":"mls"}')),
+      'encryption_header': base64Encode(utf8.encode(headerJson)),
       'encryption_scheme': 'chat.mls.v1',
       'encryption_epoch': epoch,
       'encryption_message_type': messageType.value,
-      'client_message_id': nonce,
-      'nonce': nonce,
+      'client_message_id': clientMessageId,
       // IMPORTANT: plaintextEnvelope for local display by the sender
       // The sender cannot decrypt their own message due to MLS Forward Secrecy
       'plaintextEnvelope': envelope,
@@ -168,6 +189,11 @@ class MlsMessageHandler {
   /// Due to MLS Forward Secrecy, a sender cannot decrypt their own messages.
   /// If this method is called on a message that was sent by this device,
   /// it will return null and log a warning.
+  ///
+  /// Handles all MLS content types:
+  /// - `application`: Decrypts and returns the plaintext envelope
+  /// - `proposal`: Processes the proposal, updates group state
+  /// - `commit` (stagedCommit): Processes the commit, updates epoch, saves ratchet tree
   Future<Map<String, dynamic>?> decryptMessage({
     required String messageId,
     required String roomId,
@@ -186,6 +212,26 @@ class MlsMessageHandler {
       }
 
       final ciphertextBytes = base64Decode(ciphertext);
+
+      // Detect content type before processing
+      String contentType;
+      try {
+        contentType = mlsMessageContentType(messageBytes: ciphertextBytes);
+      } catch (e) {
+        // If content type detection fails, fall back to trying processMessage
+        talker.debug('Could not detect content type for $messageId: $e');
+        contentType = 'application';
+      }
+
+      // Handle Welcome messages (routed from pending envelopes, not via this path normally)
+      if (contentType == 'welcome') {
+        talker.debug(
+          'Received Welcome content type in decryptMessage for room $roomId — '
+          'use processWelcome() instead',
+        );
+        return null;
+      }
+
       ProcessedMessageResult? result;
       try {
         result = await engine.processMessage(
@@ -217,23 +263,43 @@ class MlsMessageHandler {
         );
       }
 
-      if (result.messageType == ProcessedMessageType.application) {
-        if (result.applicationMessage != null) {
-          final plaintext = utf8.decode(result.applicationMessage!);
-          return jsonDecode(plaintext) as Map<String, dynamic>;
-        }
-      } else if (result.messageType == ProcessedMessageType.stagedCommit) {
-        // Handle epoch changes from commits
-        final epoch = result.epoch.toInt();
-        talker.debug(
-          'Processed staged commit for room $roomId (new epoch: $epoch)',
-        );
-        await _groupManager.handleEpochChanged(roomId, epoch);
-      } else if (result.messageType == ProcessedMessageType.proposal) {
-        talker.debug('Processed proposal for room $roomId');
-      }
+      switch (result.messageType) {
+        case ProcessedMessageType.application:
+          if (result.applicationMessage != null) {
+            final plaintext = utf8.decode(result.applicationMessage!);
+            return jsonDecode(plaintext) as Map<String, dynamic>;
+          }
+          return null;
 
-      return null;
+        case ProcessedMessageType.stagedCommit:
+          final epoch = result.epoch.toInt();
+          talker.debug(
+            'Processed staged commit for room $roomId (new epoch: $epoch)',
+          );
+          await _groupManager.handleEpochChanged(roomId, epoch);
+
+          // Save ratchet tree for external join support by other devices
+          try {
+            final ratchetTree = await engine.exportRatchetTree(
+              groupIdBytes: groupIdBytes,
+            );
+            await _groupManager.saveGroupState(roomId, {
+              ...?await _groupManager.getGroupState(roomId),
+              'epoch': epoch,
+              'ratchet_tree': base64Encode(ratchetTree),
+              'last_commit_at': DateTime.now().toIso8601String(),
+            });
+          } catch (e) {
+            talker.debug('Could not save ratchet tree (non-fatal): $e');
+            await _groupManager.handleEpochChanged(roomId, epoch);
+          }
+          return null;
+
+        case ProcessedMessageType.proposal:
+          talker.debug('Processed proposal for room $roomId');
+          // Proposals don't change the epoch until committed
+          return null;
+      }
     } catch (e) {
       // Final catch for any remaining errors
       if (e.toString().contains('Cannot decrypt') ||
@@ -266,6 +332,21 @@ class MlsMessageHandler {
       talker.error('Failed to fanout message: $e');
       rethrow;
     }
+  }
+
+  /// Process an incoming Welcome envelope to join an MLS group.
+  ///
+  /// The [welcomeBytes] should be the raw Welcome message bytes from
+  /// the server (base64-decoded from the envelope payload).
+  /// [roomId] identifies which room this Welcome is for.
+  Future<Map<String, dynamic>?> processWelcomeEnvelope({
+    required String roomId,
+    required Uint8List welcomeBytes,
+  }) async {
+    return _groupManager.processWelcome(
+      roomId: roomId,
+      welcomeBytes: welcomeBytes,
+    );
   }
 
   Future<List<Map<String, dynamic>>> getPendingEnvelopes(

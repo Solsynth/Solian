@@ -681,6 +681,7 @@ class AppDatabase {
       data: data,
       createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
       status: MessageStatus.values[entity.status],
+      clientMessageId: entity.clientMessageId,
       nonce: entity.nonce,
       content: entity.content,
       isDeleted: entity.isDeleted,
@@ -716,6 +717,7 @@ class AppDatabase {
     entity.roomId = message.roomId;
     entity.senderId = message.senderId;
     entity.content = message.content;
+    entity.clientMessageId = message.clientMessageId;
     entity.nonce = message.nonce;
     entity.dataJson = dataJson;
     entity.createdAtMs = message.createdAt.millisecondsSinceEpoch;

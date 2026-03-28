@@ -256,7 +256,9 @@ class MessageItem extends HookConsumerWidget {
       clipBehavior: Clip.none,
       children: [
         Dismissible(
-          key: ValueKey('message-swipe-${message.nonce ?? message.id}'),
+          key: ValueKey(
+            'message-swipe-${message.clientMessageId ?? message.id}',
+          ),
           direction: onAction == null || isSelectionMode
               ? DismissDirection.none
               : DismissDirection.horizontal,

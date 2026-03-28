@@ -15,6 +15,7 @@ import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/core/websocket.dart";
 import "package:island/drive/drive_service.dart";
+import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
 import "package:mime/mime.dart";
 import "package:island/talker.dart";
@@ -65,70 +66,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     return Options(headers: {'X-Client-Ability': 'chat-mls-v1'});
   }
 
-  String? _normalizeEncryptionMessageType(
-    dynamic value, {
-    dynamic messageType,
-  }) {
-    final raw = value?.toString();
-    switch (raw) {
-      case 'content.new':
-      case 'text':
-        return 'text';
-      case 'content.edit':
-      case 'messages.update':
-        return 'messages.update';
-      case 'content.delete':
-      case 'messages.delete':
-        return 'messages.delete';
-    }
-    final fallback = messageType?.toString();
-    if (fallback == 'text' ||
-        fallback == 'messages.update' ||
-        fallback == 'messages.delete') {
-      return fallback;
-    }
-    return raw;
-  }
-
-  /// Builds the E2EE message payload and returns both:
-  /// - The encrypted payload to send to the server
-  /// - The plaintext envelope for local display (since sender can't decrypt their own messages)
-  Future<
-    ({Map<String, dynamic> serverPayload, Map<String, dynamic> localEnvelope})
-  >
-  _buildE2eeMessagePayload({
-    required String nonce,
-    required String messageType,
-    required String content,
-    required List<String> attachmentIds,
-    String? repliedMessageId,
-    String? forwardedMessageId,
-    String? pollId,
-    String? fundId,
-  }) async {
-    final normalizedMessageType =
-        _normalizeEncryptionMessageType(messageType) ?? 'text';
-    final mlsClient = ref.read(mlsClientProvider);
-    final encrypted = await mlsClient.encryptMessage(
-      roomId: roomId,
-      content: content,
-      attachmentIds: attachmentIds,
-      messageType: MlsMessageType.fromString(normalizedMessageType),
-      repliedMessageId: repliedMessageId,
-      forwardedMessageId: forwardedMessageId,
-    );
-
-    // Extract plaintext envelope for local display
-    final plaintextEnvelope =
-        (encrypted['plaintextEnvelope'] as Map<String, dynamic>?) ?? {};
-
-    // Build server payload (without plaintext)
-    final serverPayload = Map<String, dynamic>.from(encrypted)
-      ..remove('plaintextEnvelope')
-      ..['client_message_id'] = nonce;
-
-    return (serverPayload: serverPayload, localEnvelope: plaintextEnvelope);
-  }
+  E2eeMessageService get _e2eeService =>
+      E2eeMessageService(ref: ref, roomId: roomId, isE2eeRoom: _isE2eeRoom);
 
   bool _isWebSocketConnected() => ref
       .read(websocketStateProvider)
@@ -136,7 +75,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<SnChatMessage> _sendMessageViaWebSocket({
     required String targetRoomId,
-    required String nonce,
+    required String clientMessageId,
     required Map<String, dynamic> payload,
     Duration ackTimeout = const Duration(seconds: 12),
   }) async {
@@ -153,7 +92,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         'chat_room_id': targetRoomId,
         ...payload,
         if (!payload.containsKey('client_message_id'))
-          'client_message_id': nonce,
+          'client_message_id': clientMessageId,
       },
     );
 
@@ -165,10 +104,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         .where((data) {
           final pktRoomId = data['chat_room_id']?.toString();
           if (pktRoomId != targetRoomId) return false;
-          final packetNonce =
-              data['nonce']?.toString() ??
-              data['client_message_id']?.toString();
-          return packetNonce == nonce;
+          final packetClientMessageId =
+              data['client_message_id']?.toString() ??
+              data['nonce']?.toString();
+          return packetClientMessageId == clientMessageId;
         })
         .map(
           (data) =>
@@ -190,7 +129,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<SnChatMessage> _sendNewMessageWithFallback({
     required String targetRoomId,
-    required String nonce,
+    required String clientMessageId,
     required Map<String, dynamic> payload,
     required String context,
   }) async {
@@ -209,7 +148,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       try {
         return await _sendMessageViaWebSocket(
           targetRoomId: targetRoomId,
-          nonce: nonce,
+          clientMessageId: clientMessageId,
           payload: payload,
         );
       } catch (err, stackTrace) {
@@ -322,48 +261,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     await _prefetchVoiceUrl(_resolveVoiceMediaUrlFromMeta(message.meta));
   }
 
-  Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) {
-    final data = Map<String, dynamic>.from(input);
-    final meta = data['meta'] is Map<String, dynamic>
-        ? Map<String, dynamic>.from(data['meta'] as Map<String, dynamic>)
-        : <String, dynamic>{};
-    if (data['is_encrypted'] == true) {
-      meta['e2ee_is_encrypted'] = true;
-      meta['e2ee_ciphertext'] = data['ciphertext'];
-      meta['e2ee_header'] = data['encryption_header'];
-      meta['e2ee_signature'] = data['encryption_signature'];
-      meta['e2ee_scheme'] = data['encryption_scheme'];
-      meta['e2ee_epoch'] = data['encryption_epoch'];
-      final normalizedType = _normalizeEncryptionMessageType(
-        data['encryption_message_type'],
-        messageType: data['type'],
-      );
-      if (normalizedType != null) {
-        meta['e2ee_message_type'] = normalizedType;
-      }
-      meta['e2ee_client_message_id'] = data['client_message_id'];
-    }
-    data['meta'] = meta;
-    data['members_mentioned'] =
-        (data['members_mentioned'] is List
-                ? data['members_mentioned'] as List
-                : const [])
-            .whereType<Object?>()
-            .where((e) => e != null)
-            .map((e) => e.toString())
-            .toList();
-    data['attachments'] =
-        (data['attachments'] is List ? data['attachments'] as List : const [])
-            .whereType<Map>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
-    data['reactions'] =
-        (data['reactions'] is List ? data['reactions'] as List : const [])
-            .whereType<Map>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
-    return data;
-  }
+  Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) =>
+      E2eeMessageService.sanitizeChatMessageJson(input);
 
   SnChatMessage? _tryParseChatMessage(dynamic data, {String? context}) {
     if (data is! Map<String, dynamic>) return null;
@@ -377,32 +276,67 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  /// Decrypts an E2EE message, applying decrypted content to the message.
+  /// Returns null if decryption fundamentally fails (should not happen for valid messages).
+  /// Skips decryption for messages sent by current device (identified by device ID in header)
+  /// since MLS forward secrecy prevents self-decryption - plaintext is preserved from pending.
   Future<SnChatMessage?> _decryptMessageIfEncrypted(
     SnChatMessage message,
   ) async {
-    if (!_isE2eeRoom) return message;
+    // Check if message was sent by this device by comparing device IDs
+    final headerStr = message.meta['e2ee_header']?.toString();
+    if (headerStr != null && headerStr.isNotEmpty) {
+      try {
+        final headerBytes = base64Decode(headerStr);
+        final headerJson = utf8.decode(headerBytes);
+        final header = jsonDecode(headerJson) as Map<String, dynamic>;
+        final senderDeviceId = header['deviceId']?.toString();
 
-    final ciphertext = message.meta['e2ee_ciphertext']?.toString();
-    if (ciphertext == null || ciphertext.isEmpty) return message;
-
-    try {
-      final mlsClient = ref.read(mlsClientProvider);
-      final decrypted = await mlsClient.decryptMessage(
-        messageId: message.id,
-        roomId: message.chatRoomId,
-        ciphertext: ciphertext,
-        encryptionHeader: message.meta['e2ee_header']?.toString(),
-      );
-      if (decrypted != null) {
-        final decryptedContent = decrypted['content']?.toString();
-        if (decryptedContent != null && decryptedContent.isNotEmpty) {
-          final updatedMeta = Map<String, dynamic>.from(message.meta);
-          updatedMeta['e2ee_decrypted_content'] = decryptedContent;
-          return message.copyWith(content: decryptedContent, meta: updatedMeta);
+        if (senderDeviceId != null) {
+          final currentDeviceId = await ref
+              .read(mlsClientProvider)
+              .getDeviceId();
+          if (currentDeviceId != null && senderDeviceId == currentDeviceId) {
+            // Own message - try to get plaintext from pending messages by client_message_id
+            final clientMessageId =
+                message.clientMessageId ??
+                message.meta['e2ee_client_message_id']?.toString();
+            String? plaintext;
+            if (clientMessageId != null) {
+              final pending = _pendingMessages.values
+                  .where((m) => m.clientMessageId == clientMessageId)
+                  .firstOrNull;
+              plaintext = pending?.content;
+            }
+            if (plaintext != null && plaintext.isNotEmpty) {
+              final updatedMeta = Map<String, dynamic>.from(message.meta);
+              updatedMeta['e2ee_decrypted_content'] = plaintext;
+              talker.debug(
+                'Skipping decrypt for own message ${message.id}, using plaintext from pending',
+              );
+              return message.copyWith(content: plaintext, meta: updatedMeta);
+            }
+            talker.debug(
+              'Skipping decrypt for own message ${message.id} (device: $senderDeviceId), no pending plaintext',
+            );
+            return message;
+          }
         }
+      } catch (e) {
+        // Header parse failed, proceed with decryption
+        talker.debug('Failed to parse encryption header: $e');
       }
-    } catch (e) {
-      talker.debug('Decryption failed for message ${message.id}: $e');
+    }
+
+    final result = await _e2eeService.decryptMessage(message);
+    if (result == null) {
+      return message; // decrypt failed but message is still valid
+    }
+    final content = result['content']?.toString();
+    if (content != null && content.isNotEmpty) {
+      final updatedMeta = Map<String, dynamic>.from(message.meta);
+      updatedMeta['e2ee_decrypted_content'] = content;
+      return message.copyWith(content: content, meta: updatedMeta);
     }
     return message;
   }
@@ -722,36 +656,20 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       // Check for existing message (by ID or by nonce from pending)
       final existing = await _database.getMessageById(decryptedMessage.id);
-      final pendingByNonce = decryptedMessage.nonce != null
+      final pendingByNonce = decryptedMessage.clientMessageId != null
           ? _pendingMessages.values
-                .where((m) => m.nonce == decryptedMessage.nonce)
+                .where(
+                  (m) => m.clientMessageId == decryptedMessage.clientMessageId,
+                )
                 .firstOrNull
           : null;
 
-      SnChatMessage messageToConvert = decryptedMessage;
-
-      // Preserve local content when synced message has no content.
-      // This handles:
-      // 1. Own messages (decryption fails due to MLS Forward Secrecy)
-      // 2. Pending messages use 'pending_$nonce' as ID, so getMessageById
-      //    by server UUID won't find them — check by nonce instead
-      if (_isE2eeRoom &&
-          (decryptedMessage.content == null ||
-              decryptedMessage.content!.isEmpty)) {
-        // Try existing DB record first
-        if (existing?.content != null && existing!.content!.isNotEmpty) {
-          messageToConvert = messageToConvert.copyWith(
-            content: existing.content,
-          );
-        }
-        // Then try pending message by nonce
-        else if (pendingByNonce?.content != null &&
-            pendingByNonce!.content!.isNotEmpty) {
-          messageToConvert = messageToConvert.copyWith(
-            content: pendingByNonce.content,
-          );
-        }
-      }
+      // Preserve sender plaintext for own E2EE messages
+      final messageToConvert = E2eeMessageService.preserveSenderPlaintext(
+        decryptedMessage,
+        existingDbContent: existing?.content,
+        pendingContent: pendingByNonce?.content,
+      );
 
       var localMessage = LocalChatMessage.fromRemoteMessage(
         messageToConvert,
@@ -776,9 +694,10 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       await _database.saveMessageWithSender(localMessage);
       unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
-      if (localMessage.nonce != null) {
+      if (localMessage.clientMessageId != null) {
         _pendingMessages.removeWhere(
-          (_, pendingMsg) => pendingMsg.nonce == localMessage.nonce,
+          (_, pendingMsg) =>
+              pendingMsg.clientMessageId == localMessage.clientMessageId,
         );
       }
       messages.add(localMessage);
@@ -1026,6 +945,171 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  // ── Send flow helpers ───────────────────────────────────────────────
+
+  /// Uploads attachments to cloud storage, returns cloud file list.
+  Future<List<SnCloudFile>> _uploadAttachments(
+    List<UniversalFile> attachments,
+    String pendingMessageId, {
+    Function(String, Map<int, double?>)? onProgress,
+  }) async {
+    final cloudAttachments = <SnCloudFile>[];
+    for (var idx = 0; idx < attachments.length; idx++) {
+      final cloudFile = await ref
+          .read(driveFileUploaderProvider)
+          .createCloudFile(
+            fileData: attachments[idx],
+            encryptPassword: _fileEncryptKey,
+            onProgress: (progress, _) {
+              _fileUploadProgress[pendingMessageId]?[idx] = progress ?? 0.0;
+              onProgress?.call(
+                pendingMessageId,
+                _fileUploadProgress[pendingMessageId] ?? {},
+              );
+            },
+          )
+          .future;
+      if (cloudFile == null) {
+        throw ArgumentError('Failed to upload the file...');
+      }
+      cloudAttachments.add(cloudFile);
+    }
+    return cloudAttachments;
+  }
+
+  /// Builds the message payload (E2EE encrypted or plain).
+  /// Returns [serverPayload, plaintextEnvelope (null for non-E2EE)].
+  Future<
+    ({Map<String, dynamic> payload, Map<String, dynamic>? plaintextEnvelope})
+  >
+  _buildMessagePayload({
+    required String clientMessageId,
+    required String content,
+    required List<String> attachmentIds,
+    String? repliedMessageId,
+    String? forwardedMessageId,
+    String? pollId,
+    String? fundId,
+    bool isEditing = false,
+  }) async {
+    if (_isE2eeRoom) {
+      final result = await _e2eeService.buildMessagePayload(
+        clientMessageId: clientMessageId,
+        messageType: isEditing ? 'messages.update' : 'text',
+        content: content,
+        attachmentIds: attachmentIds,
+        repliedMessageId: repliedMessageId,
+        forwardedMessageId: forwardedMessageId,
+        pollId: pollId,
+        fundId: fundId,
+      );
+      return (
+        payload: result.serverPayload,
+        plaintextEnvelope: result.localEnvelope,
+      );
+    }
+    return (
+      payload: {
+        'content': content,
+        'attachments_id': attachmentIds,
+        'replied_message_id': repliedMessageId,
+        'forwarded_message_id': forwardedMessageId,
+        'poll_id': pollId,
+        'fund_id': fundId,
+        'meta': {},
+        'client_message_id': clientMessageId,
+      },
+      plaintextEnvelope: null,
+    );
+  }
+
+  /// Sends message to server (new or edit).
+  Future<SnChatMessage> _sendMessageToServer(
+    Map<String, dynamic> payload, {
+    SnChatMessage? editingTo,
+  }) async {
+    if (editingTo != null) {
+      final response = await _apiClient.patch(
+        '/messager/chat/$roomId/messages/${editingTo.id}',
+        data: payload,
+        options: _mlsWriteOptions(),
+      );
+      return _tryParseChatMessage(response.data, context: 'send response') ??
+          (throw Exception('Invalid chat message response.'));
+    }
+    return _sendNewMessageWithFallback(
+      targetRoomId: roomId,
+      clientMessageId: payload['client_message_id'] ?? payload['nonce'] ?? '',
+      payload: payload,
+      context: 'send response',
+    );
+  }
+
+  /// Preserves sender plaintext in E2EE messages (MLS forward secrecy).
+  SnChatMessage _applySenderPlaintext(
+    SnChatMessage message,
+    Map<String, dynamic>? plaintextEnvelope,
+  ) {
+    if (!_isE2eeRoom || plaintextEnvelope == null) return message;
+    return E2eeMessageService.preserveSenderPlaintext(
+      message,
+      plaintextEnvelope: plaintextEnvelope,
+    );
+  }
+
+  /// Replaces pending message with sent message in DB and state.
+  void _applySendSuccess({
+    required LocalChatMessage pendingMessage,
+    required LocalChatMessage sentMessage,
+    SnChatMessage? editingTo,
+  }) {
+    _pendingMessages.remove(pendingMessage.id);
+    _database.deleteMessage(pendingMessage.id);
+    _database.saveMessageWithSender(sentMessage);
+
+    if (!ref.mounted) return;
+    final currentMessages = state.value ?? [];
+
+    if (editingTo != null) {
+      // Remove pending + any WS echo with same nonce; replace original message.
+      final newMessages = currentMessages
+          .where(
+            (m) =>
+                m.id != pendingMessage.id &&
+                m.clientMessageId != pendingMessage.clientMessageId,
+          )
+          .map((m) => m.id == editingTo.id ? sentMessage : m)
+          .toList();
+      state = AsyncValue.data(newMessages);
+    } else {
+      final newMessages = currentMessages
+          .where(
+            (m) =>
+                m.id != pendingMessage.id &&
+                m.clientMessageId != pendingMessage.clientMessageId,
+          )
+          .toList();
+      newMessages.add(sentMessage);
+      state = AsyncValue.data(_sortMessages(newMessages));
+    }
+  }
+
+  /// Marks pending message as failed in DB and state.
+  void _applySendFailure(LocalChatMessage pendingMessage) {
+    pendingMessage.status = MessageStatus.failed;
+    _pendingMessages[pendingMessage.id] = pendingMessage;
+    _database.updateMessageStatus(pendingMessage.id, MessageStatus.failed);
+
+    if (!ref.mounted) return;
+    final newMessages = (state.value ?? []).map((m) {
+      if (m.id == pendingMessage.id) return m..status = MessageStatus.failed;
+      return m;
+    }).toList();
+    state = AsyncValue.data(newMessages);
+  }
+
+  // ── Public send methods ────────────────────────────────────────────
+
   Future<void> sendMessage(
     WidgetRef outerRef,
     String content,
@@ -1037,17 +1121,17 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? replyingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
-    final nonce = const Uuid().v4();
-    talker.log('Sending message with nonce $nonce');
+    final clientMessageId = const Uuid().v4();
+    talker.log('[send:$clientMessageId] Start');
 
     final mockMessage = SnChatMessage(
-      id: 'pending_$nonce',
+      id: 'pending_$clientMessageId',
       chatRoomId: roomId,
       senderId: _identity.id,
       content: content,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      nonce: nonce,
+      clientMessageId: clientMessageId,
       sender: _identity,
     );
 
@@ -1064,154 +1148,60 @@ class MessagesNotifier extends _$MessagesNotifier {
     state = AsyncValue.data([localMessage, ...currentMessages]);
 
     try {
-      final cloudAttachments = <SnCloudFile>[];
-      for (var idx = 0; idx < attachments.length; idx++) {
-        final cloudFile = await ref
-            .read(driveFileUploaderProvider)
-            .createCloudFile(
-              fileData: attachments[idx],
-              encryptPassword: _fileEncryptKey,
-              onProgress: (progress, _) {
-                _fileUploadProgress[localMessage.id]?[idx] = progress ?? 0.0;
-                onProgress?.call(
-                  localMessage.id,
-                  _fileUploadProgress[localMessage.id] ?? {},
-                );
-              },
-            )
-            .future;
-        if (cloudFile == null) {
-          throw ArgumentError('Failed to upload the file...');
-        }
-        cloudAttachments.add(cloudFile);
+      // ── 1. Upload attachments ──
+      final cloudAttachments = await _uploadAttachments(
+        attachments,
+        localMessage.id,
+        onProgress: onProgress,
+      );
+
+      // ── 2. Build payload ──
+      final (:payload, :plaintextEnvelope) = await _buildMessagePayload(
+        clientMessageId: clientMessageId,
+        content: content,
+        attachmentIds: cloudAttachments.map((e) => e.id).toList(),
+        isEditing: editingTo != null,
+        repliedMessageId: replyingTo?.id,
+        forwardedMessageId: forwardingTo?.id,
+        pollId: poll?.id,
+        fundId: fund?.id,
+      );
+
+      // ── 3. Send to server ──
+      var remoteMessage = await _sendMessageToServer(
+        payload,
+        editingTo: editingTo,
+      );
+      if (editingTo != null) {
+        remoteMessage = remoteMessage.copyWith(createdAt: editingTo.createdAt);
       }
 
-      final Map<String, dynamic> payload;
-      final Map<String, dynamic>? plaintextEnvelope;
-      if (_isE2eeRoom) {
-        final result = await _buildE2eeMessagePayload(
-          nonce: nonce,
-          messageType: editingTo == null ? 'text' : 'messages.update',
-          content: content,
-          attachmentIds: cloudAttachments.map((e) => e.id).toList(),
-          repliedMessageId: replyingTo?.id,
-          forwardedMessageId: forwardingTo?.id,
-          pollId: poll?.id,
-          fundId: fund?.id,
-        );
-        payload = result.serverPayload;
-        plaintextEnvelope = result.localEnvelope;
-      } else {
-        payload = {
-          'content': content,
-          'attachments_id': cloudAttachments.map((e) => e.id).toList(),
-          'replied_message_id': replyingTo?.id,
-          'forwarded_message_id': forwardingTo?.id,
-          'poll_id': poll?.id,
-          'fund_id': fund?.id,
-          'meta': {},
-          'nonce': nonce,
-        };
-        plaintextEnvelope = null;
-      }
-
-      final remoteMessage = editingTo == null
-          ? await _sendNewMessageWithFallback(
-              targetRoomId: roomId,
-              nonce: nonce,
-              payload: payload,
-              context: 'send response',
-            )
-          : await (() async {
-              final response = await _apiClient.patch(
-                '/messager/chat/$roomId/messages/${editingTo.id}',
-                data: payload,
-                options: _mlsWriteOptions(),
-              );
-              return _tryParseChatMessage(
-                    response.data,
-                    context: 'send response',
-                  ) ??
-                  (throw Exception('Invalid chat message response.'));
-            })();
-      final normalizedRemoteMessage = editingTo != null
-          ? remoteMessage.copyWith(createdAt: editingTo.createdAt)
-          : remoteMessage;
-
-      // For E2EE rooms, preserve plaintext content for the sender
-      // since they cannot decrypt their own messages due to MLS Forward Secrecy
-      SnChatMessage messageToSave = normalizedRemoteMessage;
-      if (_isE2eeRoom && plaintextEnvelope != null) {
-        final plaintextContent = plaintextEnvelope['content']?.toString();
-        if (plaintextContent != null && plaintextContent.isNotEmpty) {
-          final updatedMeta = Map<String, dynamic>.from(messageToSave.meta);
-          updatedMeta['e2ee_decrypted_content'] = plaintextContent;
-          // Also store the plaintext content in the main content field for display
-          messageToSave = messageToSave.copyWith(
-            content: plaintextContent,
-            meta: updatedMeta,
-          );
-          talker.debug('Preserved plaintext content for sender message $nonce');
-        }
-      }
+      // ── 4. Preserve sender plaintext for E2EE ──
+      final messageWithPlaintext = _applySenderPlaintext(
+        remoteMessage,
+        plaintextEnvelope,
+      );
 
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        messageToSave,
+        messageWithPlaintext,
         MessageStatus.sent,
       );
 
-      _pendingMessages.remove(localMessage.id);
-      await _database.deleteMessage(localMessage.id);
-      await _database.saveMessageWithSender(updatedMessage);
+      // ── 5. Update DB and state ──
+      _applySendSuccess(
+        pendingMessage: localMessage,
+        sentMessage: updatedMessage,
+        editingTo: editingTo,
+      );
 
-      if (ref.mounted) {
-        final currentMessages = state.value ?? [];
-        if (editingTo != null) {
-          final newMessages = currentMessages
-              .where(
-                (m) => m.id != localMessage.id && m.nonce != localMessage.nonce,
-              ) // remove pending AND any ws-echo message with same nonce
-              .map(
-                (m) => m.id == editingTo.id ? updatedMessage : m,
-              ) // update original message
-              .toList();
-          state = AsyncValue.data(newMessages);
-        } else {
-          // Remove pending message AND any WebSocket echo message with same nonce,
-          // then insert the final message with plaintext content
-          final newMessages = currentMessages
-              .where(
-                (m) => m.id != localMessage.id && m.nonce != localMessage.nonce,
-              )
-              .toList();
-          newMessages.add(updatedMessage);
-          state = AsyncValue.data(_sortMessages(newMessages));
-        }
-      }
-
-      talker.log('Message with nonce $nonce sent successfully');
+      talker.log('[send:$clientMessageId] Sent successfully');
     } catch (e, stackTrace) {
       talker.log(
-        'Failed to send message with nonce $nonce',
-
+        '[send:$clientMessageId] Failed',
         exception: e,
         stackTrace: stackTrace,
       );
-      localMessage.status = MessageStatus.failed;
-      _pendingMessages[localMessage.id] = localMessage;
-      await _database.updateMessageStatus(
-        localMessage.id,
-        MessageStatus.failed,
-      );
-      if (ref.mounted) {
-        final newMessages = (state.value ?? []).map((m) {
-          if (m.id == localMessage.id) {
-            return m..status = MessageStatus.failed;
-          }
-          return m;
-        }).toList();
-        state = AsyncValue.data(newMessages);
-      }
+      _applySendFailure(localMessage);
       showErrorAlert(e);
     }
   }
@@ -1230,18 +1220,18 @@ class MessagesNotifier extends _$MessagesNotifier {
       throw err;
     }
 
-    final nonce = const Uuid().v4();
-    talker.log('Sending voice message with nonce $nonce');
+    final clientMessageId = const Uuid().v4();
+    talker.log('Sending voice message with client_message_id $clientMessageId');
 
     final mockMessage = SnChatMessage(
-      id: 'pending_$nonce',
+      id: 'pending_$clientMessageId',
       chatRoomId: roomId,
       senderId: _identity.id,
       type: 'voice',
       content: null,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      nonce: nonce,
+      clientMessageId: clientMessageId,
       sender: _identity,
       meta: {
         'file_name': p.basename(filePath),
@@ -1271,7 +1261,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           filename: p.basename(filePath),
           contentType: MediaType.parse(mimeType),
         ),
-        'nonce': nonce,
+        'client_message_id': clientMessageId,
         if (replyingTo != null) 'repliedMessageId': replyingTo.id,
         if (forwardingTo != null) 'forwardedMessageId': forwardingTo.id,
         ...?durationMs == null ? null : {'durationMs': durationMs},
@@ -1301,7 +1291,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
     } catch (e, stackTrace) {
       talker.log(
-        'Failed to send voice message with nonce $nonce',
+        'Failed to send voice message with client_message_id $clientMessageId',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -1324,7 +1314,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> retryMessage(String pendingMessageId) async {
-    talker.log('Retrying message $pendingMessageId');
+    talker.log('[retry:$pendingMessageId] Start');
     final message = await fetchMessageById(pendingMessageId);
     if (message == null) {
       throw Exception('Message not found');
@@ -1338,35 +1328,24 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     try {
-      var remoteMessage = message.toRemoteMessage();
-      final nonce = message.nonce ?? const Uuid().v4();
+      final remoteMessage = message.toRemoteMessage();
+      final clientMessageId = message.clientMessageId ?? const Uuid().v4();
       final attachmentIds = remoteMessage.attachments.map((e) => e.id).toList();
-      final Map<String, dynamic> payload;
-      if (_isE2eeRoom) {
-        final result = await _buildE2eeMessagePayload(
-          nonce: nonce,
-          messageType: 'text',
-          content: remoteMessage.content ?? '',
-          attachmentIds: attachmentIds,
-        );
-        payload = result.serverPayload;
-      } else {
-        payload = {
-          'content': remoteMessage.content,
-          'attachments_id': attachmentIds,
-          'meta': remoteMessage.meta,
-          'nonce': nonce,
-        };
-      }
 
-      remoteMessage = await _sendNewMessageWithFallback(
-        targetRoomId: message.roomId,
-        nonce: nonce,
-        payload: payload,
-        context: 'retry response',
+      final (:payload, :plaintextEnvelope) = await _buildMessagePayload(
+        clientMessageId: clientMessageId,
+        content: remoteMessage.content ?? '',
+        attachmentIds: attachmentIds,
       );
+
+      var sentMessage = await _sendMessageToServer(payload);
+      final messageWithPlaintext = _applySenderPlaintext(
+        sentMessage,
+        plaintextEnvelope,
+      );
+
       final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
+        messageWithPlaintext,
         MessageStatus.sent,
       );
 
@@ -1376,17 +1355,15 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       if (ref.mounted) {
         final newMessages = (state.value ?? []).map((m) {
-          if (m.id == pendingMessageId) {
-            return updatedMessage;
-          }
+          if (m.id == pendingMessageId) return updatedMessage;
           return m;
         }).toList();
         state = AsyncValue.data(newMessages);
       }
+      talker.log('[retry:$pendingMessageId] Sent successfully');
     } catch (e, stackTrace) {
       talker.log(
-        'Failed to retry message $pendingMessageId',
-
+        '[retry:$pendingMessageId] Failed',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -1422,8 +1399,8 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('Received new message ${remoteMessage.id}');
 
-    // Check if this message already exists in DB (e.g., saved by sendMessage
-    // before the WebSocket echo arrives). If so, skip to avoid duplicates.
+    // ── Step 1: Dedup ──
+    // Skip if already saved by sendMessage before WebSocket echo arrives.
     final existingInDb = await _database.getMessageById(remoteMessage.id);
     if (existingInDb != null &&
         existingInDb.content != null &&
@@ -1431,66 +1408,57 @@ class MessagesNotifier extends _$MessagesNotifier {
       talker.debug(
         'Message ${remoteMessage.id} already in DB with content, skipping duplicate',
       );
-      // Still clean up pending messages
-      if (remoteMessage.nonce != null) {
+      if (remoteMessage.clientMessageId != null) {
         _pendingMessages.removeWhere(
-          (_, pendingMsg) => pendingMsg.nonce == remoteMessage.nonce,
+          (_, pendingMsg) =>
+              pendingMsg.clientMessageId == remoteMessage.clientMessageId,
         );
       }
       return;
     }
 
-    // Check for pending message (has plaintext content) before decryption
+    // ── Step 2: Lookup pending (has plaintext) ──
     LocalChatMessage? pendingMessage;
-    if (remoteMessage.nonce != null) {
+    if (remoteMessage.clientMessageId != null) {
       pendingMessage = _pendingMessages.values
-          .where((m) => m.nonce == remoteMessage.nonce)
+          .where((m) => m.clientMessageId == remoteMessage.clientMessageId)
           .firstOrNull;
     }
 
+    // ── Step 3: Decrypt ──
     final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
     if (decryptedMessage == null) return;
 
-    SnChatMessage messageToConvert = decryptedMessage;
+    // ── Step 4: Preserve sender plaintext for own E2EE messages ──
+    final messageToConvert = E2eeMessageService.preserveSenderPlaintext(
+      decryptedMessage,
+      existingDbContent: existingInDb?.content,
+      pendingContent: pendingMessage?.content,
+    );
 
-    // Preserve plaintext content from:
-    // 1. Pending message (sender's message before server ack)
-    // 2. Existing DB record (saved by sendMessage)
-    if (_isE2eeRoom &&
-        (decryptedMessage.content == null ||
-            decryptedMessage.content!.isEmpty)) {
-      if (pendingMessage?.content != null &&
-          pendingMessage!.content!.isNotEmpty) {
-        messageToConvert = messageToConvert.copyWith(
-          content: pendingMessage.content,
-        );
-      } else if (existingInDb?.content != null &&
-          existingInDb!.content!.isNotEmpty) {
-        messageToConvert = messageToConvert.copyWith(
-          content: existingInDb.content,
-        );
-      }
-    }
-
+    // ── Step 5: Save ──
     final localMessage = LocalChatMessage.fromRemoteMessage(
       messageToConvert,
       MessageStatus.sent,
     );
     unawaited(_prefetchVoiceForRemoteMessage(decryptedMessage));
 
-    if (remoteMessage.nonce != null) {
+    if (remoteMessage.clientMessageId != null) {
       _pendingMessages.removeWhere(
-        (_, pendingMsg) => pendingMsg.nonce == remoteMessage.nonce,
+        (_, pendingMsg) =>
+            pendingMsg.clientMessageId == remoteMessage.clientMessageId,
       );
     }
 
     await _database.saveMessageWithSender(localMessage);
 
+    // ── Step 6: Update UI state ──
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final existingIndex = currentMessages.indexWhere(
       (m) =>
           m.id == localMessage.id ||
-          (localMessage.nonce != null && m.nonce == localMessage.nonce),
+          (localMessage.clientMessageId != null &&
+              m.clientMessageId == localMessage.clientMessageId),
     );
 
     if (ref.mounted) {
@@ -1509,6 +1477,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
     }
 
+    // ── Step 7: Process system events ──
     switch (remoteMessage.type) {
       case "messages.delete":
         await receiveMessageDeletion(
@@ -1744,6 +1713,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       sender: message.sender,
       data: updatedData,
       createdAt: message.createdAt,
+      clientMessageId: message.clientMessageId,
       nonce: message.nonce,
       status: message.status,
       content: message.content,
@@ -1773,7 +1743,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       sender: message.sender,
       data: mergedData,
       createdAt: message.createdAt,
-      nonce: message.nonce,
+      clientMessageId: message.clientMessageId,
       status: message.status,
       content: message.content,
       isDeleted: message.isDeleted,
