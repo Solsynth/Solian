@@ -48,25 +48,25 @@ class FediverseActorRelationship {
       );
 }
 
-final fediverseActorProvider = FutureProvider.family<SnActivityPubActor, String>(
-  (ref, idOrHandle) async {
-    final apiClient = ref.watch(apiClientProvider);
-    final isHandle = idOrHandle.contains('@');
-    final endpoint = isHandle
-        ? idOrHandle
-        : '/sphere/fediverse/actors/${isHandle ? '@$idOrHandle' : idOrHandle}';
+final fediverseActorProvider =
+    FutureProvider.family<SnActivityPubActor, String>((ref, idOrHandle) async {
+      final apiClient = ref.watch(apiClientProvider);
+      final isHandle = idOrHandle.contains('@');
 
-    try {
-      final resp = await apiClient.get(endpoint);
-      return SnActivityPubActor.fromJson(resp.data);
-    } catch (err) {
-      if (err is DioException && err.response?.statusCode == 404 && !isHandle) {
+      try {
+        final resp = await apiClient.get(
+          '/sphere/fediverse/actors/$idOrHandle',
+        );
+        return SnActivityPubActor.fromJson(resp.data);
+      } catch (err) {
+        if (err is DioException &&
+            err.response?.statusCode == 404 &&
+            !isHandle) {
+          rethrow;
+        }
         rethrow;
       }
-      rethrow;
-    }
-  },
-);
+    });
 
 final fediverseActorRelationshipProvider =
     FutureProvider.family<FediverseActorRelationship?, String>((
@@ -103,7 +103,7 @@ final fediverseActorPostsProvider = FutureProvider.family<List<SnPost>, String>(
   },
 );
 
-class _ActorBasisWidget extends StatelessWidget {
+class _ActorBasisWidget extends HookWidget {
   final SnActivityPubActor data;
   final AsyncValue<FediverseActorRelationship?> relationship;
   final ValueNotifier<bool> acting;
