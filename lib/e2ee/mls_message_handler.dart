@@ -8,7 +8,20 @@ import 'mls_engine.dart';
 import 'mls_identity_manager.dart';
 import 'mls_group_manager.dart';
 
-/// Derive a file encryption key for E2EE rooms.
+const _mlsLogPrefix = '[MLS] ';
+
+void _mlsLog(dynamic msg) {
+  talker.info('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogWarn(dynamic msg) {
+  talker.warning('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogError(dynamic msg) {
+  talker.error('$_mlsLogPrefix$msg');
+}
+
 /// Used for encrypting attachments/files, not MLS messages.
 String deriveE2eeFileEncryptKey(String roomId) {
   final keyBytes = sha256
@@ -106,6 +119,11 @@ class MlsMessageHandler {
     int? epoch;
 
     try {
+      final epochBefore = (await engine.groupEpoch(
+        groupIdBytes: groupIdBytes,
+      )).toInt();
+      _mlsLog('Creating message: epoch before=$epochBefore');
+
       final result = await engine.createMessage(
         groupIdBytes: groupIdBytes,
         signerBytes: signerBytes,
@@ -113,10 +131,13 @@ class MlsMessageHandler {
       );
       ciphertextBytes = result.ciphertext;
       epoch = (await engine.groupEpoch(groupIdBytes: groupIdBytes)).toInt();
+      _mlsLog(
+        'Created message: epoch after=$epoch, ciphertext len=${ciphertextBytes.length}',
+      );
     } catch (e) {
       if (!_isMissingGroupError(e)) rethrow;
 
-      talker.warning(
+      _mlsLogWarn(
         'MLS group missing while encrypting room $roomId, re-bootstrapping and retrying...',
       );
       final recovered = await _groupManager.ensureGroupAvailable(roomId);
@@ -131,11 +152,11 @@ class MlsMessageHandler {
       epoch = (await engine.groupEpoch(groupIdBytes: groupIdBytes)).toInt();
     }
 
-    talker.debug(
+    _mlsLog(
       'Encrypted message for room $roomId (epoch: $epoch, type: ${messageType.value})',
     );
 
-    // Export and cache ratchet tree for external join support
+    // Export and cache ratchet tree and epoch for external join support
     try {
       final ratchetTree = await engine.exportRatchetTree(
         groupIdBytes: groupIdBytes,
@@ -143,11 +164,11 @@ class MlsMessageHandler {
       await _groupManager.saveGroupState(roomId, {
         ...?await _groupManager.getGroupState(roomId),
         'ratchet_tree': base64Encode(ratchetTree),
+        'epoch': epoch,
       });
+      _mlsLog('Saved group state after encrypt: epoch=$epoch');
     } catch (e) {
-      talker.debug(
-        'Could not export ratchet tree after encrypt (non-fatal): $e',
-      );
+      _mlsLog('Could not export ratchet tree after encrypt (non-fatal): $e');
     }
 
     final deviceId = await _identityManager.getOrCreateDeviceId();
@@ -155,6 +176,7 @@ class MlsMessageHandler {
       'v': 1,
       'scheme': 'mls',
       'deviceId': deviceId,
+      'epoch': epoch,
     });
 
     return {
@@ -200,6 +222,17 @@ class MlsMessageHandler {
     required String ciphertext,
     required String? encryptionHeader,
   }) async {
+    // Parse message epoch from header for diagnostics
+    int? messageEpoch;
+    if (encryptionHeader != null && encryptionHeader.isNotEmpty) {
+      try {
+        final headerBytes = base64Decode(encryptionHeader);
+        final headerJson = utf8.decode(headerBytes);
+        final header = jsonDecode(headerJson) as Map<String, dynamic>;
+        messageEpoch = header['epoch'] as int?;
+      } catch (_) {}
+    }
+
     try {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
@@ -207,9 +240,17 @@ class MlsMessageHandler {
       final groupIdBytes = utf8.encode('room:$roomId');
       final isAvailable = await _groupManager.ensureGroupAvailable(roomId);
       if (!isAvailable) {
-        talker.debug('Group not active for room: $roomId');
+        _mlsLog('Group not active for room: $roomId');
         return null;
       }
+
+      // Log epoch info for debugging
+      try {
+        final localEpoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+        _mlsLog(
+          'Decrypting: messageEpoch=$messageEpoch, localEpoch=$localEpoch, msgId=$messageId',
+        );
+      } catch (_) {}
 
       final ciphertextBytes = base64Decode(ciphertext);
 
@@ -219,13 +260,13 @@ class MlsMessageHandler {
         contentType = mlsMessageContentType(messageBytes: ciphertextBytes);
       } catch (e) {
         // If content type detection fails, fall back to trying processMessage
-        talker.debug('Could not detect content type for $messageId: $e');
+        _mlsLog('Could not detect content type for $messageId: $e');
         contentType = 'application';
       }
 
       // Handle Welcome messages (routed from pending envelopes, not via this path normally)
       if (contentType == 'welcome') {
-        talker.debug(
+        _mlsLog(
           'Received Welcome content type in decryptMessage for room $roomId — '
           'use processWelcome() instead',
         );
@@ -243,15 +284,34 @@ class MlsMessageHandler {
         // This is expected MLS behavior due to Forward Secrecy
         if (e.toString().contains('Cannot decrypt') ||
             e.toString().contains('cannot decrypt')) {
-          talker.debug(
+          _mlsLog(
             'Cannot decrypt own message $messageId (expected MLS behavior)',
           );
           return null;
         }
 
+        final errorStr = e.toString();
+        _mlsLogError(
+          'Decrypt failed for room $roomId | messageId: $messageId | error: $errorStr',
+        );
+
+        _mlsLog('Ciphertext length: ${ciphertext.length}');
+        try {
+          final epoch = await _groupManager.getCurrentEpoch(roomId);
+          _mlsLog('Current local epoch: $epoch');
+        } catch (_) {
+          _mlsLog('Current local epoch: unknown');
+        }
+
+        if (errorStr.contains('AEAD')) {
+          _mlsLogWarn(
+            'AEAD decryption failed → likely epoch mismatch or stale group state',
+          );
+        }
+
         if (!_isMissingGroupError(e)) rethrow;
 
-        talker.warning(
+        _mlsLogWarn(
           'MLS group missing while decrypting room $roomId, re-bootstrapping and retrying...',
         );
         final recovered = await _groupManager.ensureGroupAvailable(roomId);
@@ -273,7 +333,7 @@ class MlsMessageHandler {
 
         case ProcessedMessageType.stagedCommit:
           final epoch = result.epoch.toInt();
-          talker.debug(
+          _mlsLog(
             'Processed staged commit for room $roomId (new epoch: $epoch)',
           );
           await _groupManager.handleEpochChanged(roomId, epoch);
@@ -290,13 +350,13 @@ class MlsMessageHandler {
               'last_commit_at': DateTime.now().toIso8601String(),
             });
           } catch (e) {
-            talker.debug('Could not save ratchet tree (non-fatal): $e');
+            _mlsLog('Could not save ratchet tree (non-fatal): $e');
             await _groupManager.handleEpochChanged(roomId, epoch);
           }
           return null;
 
         case ProcessedMessageType.proposal:
-          talker.debug('Processed proposal for room $roomId');
+          _mlsLog('Processed proposal for room $roomId');
           // Proposals don't change the epoch until committed
           return null;
       }
@@ -304,12 +364,10 @@ class MlsMessageHandler {
       // Final catch for any remaining errors
       if (e.toString().contains('Cannot decrypt') ||
           e.toString().contains('cannot decrypt')) {
-        talker.debug(
-          'Cannot decrypt message for room $roomId (likely own message)',
-        );
+        _mlsLog('Cannot decrypt message for room $roomId (likely own message)');
         return null;
       }
-      talker.error('Failed to decrypt message for room $roomId: $e');
+      _mlsLogError('Failed to decrypt message for room $roomId: $e');
       return null;
     }
   }
@@ -329,7 +387,7 @@ class MlsMessageHandler {
       }
       return null;
     } catch (e) {
-      talker.error('Failed to fanout message: $e');
+      _mlsLogError('Failed to fanout message: $e');
       rethrow;
     }
   }
@@ -365,7 +423,7 @@ class MlsMessageHandler {
       }
       return [];
     } catch (e) {
-      talker.error('Failed to get pending envelopes: $e');
+      _mlsLogError('Failed to get pending envelopes: $e');
       return [];
     }
   }
@@ -379,7 +437,7 @@ class MlsMessageHandler {
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      talker.error('Failed to ack envelope: $e');
+      _mlsLogError('Failed to ack envelope: $e');
       return false;
     }
   }

@@ -11,6 +11,16 @@ import 'mls_identity_manager.dart';
 import 'mls_group_manager.dart';
 import 'mls_message_handler.dart';
 
+const _mlsLogPrefix = '[MLS] ';
+
+void _mlsLog(dynamic msg) {
+  talker.log('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogWarn(dynamic msg) {
+  talker.warning('$_mlsLogPrefix$msg');
+}
+
 class MlsClient {
   final MlsStorage _storage;
   late final MlsIdentityManager _identityManager;
@@ -44,7 +54,7 @@ class MlsClient {
     await MlsEngineService.getInstance();
     await _identityManager.generateAndStoreSignerKeyPair();
     final deviceId = await _identityManager.getOrCreateDeviceId();
-    talker.debug('MLS Client initialized with deviceId: $deviceId');
+    _mlsLog('MLS Client initialized with deviceId: $deviceId');
 
     // Upload a KeyPackage if we have none stored (first launch or after rotation)
     final kpCount = await _identityManager.getKeyPackageUploadCount();
@@ -56,9 +66,9 @@ class MlsClient {
           final kpBase64 = base64Encode(kp.keyPackageBytes);
           await _identityManager.uploadKeyPackage(kpBase64);
         }
-        talker.debug('Uploaded $toUpload KeyPackage(s) to padlock service');
+        _mlsLog('Uploaded $toUpload KeyPackage(s) to padlock service');
       } catch (e) {
-        talker.warning('Failed to upload KeyPackage during init: $e');
+        _mlsLogWarn('Failed to upload KeyPackage during init: $e');
         // Non-fatal: MLS operations will still work for existing groups
       }
     }
@@ -74,7 +84,7 @@ class MlsClient {
 
   Future<void> registerDevice(String credential) async {
     await _identityManager.setCredential(credential);
-    talker.debug('Device registered with credential');
+    _mlsLog('Device registered with credential');
   }
 
   Future<Map<String, dynamic>> encryptMessage({
@@ -113,8 +123,11 @@ class MlsClient {
     return _groupManager.getCurrentEpoch(roomId);
   }
 
-  Future<Map<String, dynamic>?> bootstrapGroup(String roomId) async {
-    final result = await _groupManager.bootstrapGroup(roomId);
+  Future<Map<String, dynamic>?> bootstrapGroup(
+    String roomId, {
+    bool force = false,
+  }) async {
+    final result = await _groupManager.bootstrapGroup(roomId, force: force);
     if (result != null) {
       eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: 1));
     }

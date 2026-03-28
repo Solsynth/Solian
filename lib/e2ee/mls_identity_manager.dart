@@ -6,6 +6,20 @@ import 'package:island/talker.dart';
 import 'mls_engine.dart';
 import 'mls_storage.dart';
 
+const _mlsLogPrefix = '[MLS] ';
+
+void _mlsLog(dynamic msg) {
+  talker.info('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogWarn(dynamic msg) {
+  talker.warning('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogError(dynamic msg) {
+  talker.error('$_mlsLogPrefix$msg');
+}
+
 class MlsIdentityManager {
   final MlsStorage _storage;
   final Dio _padlockClient;
@@ -62,7 +76,7 @@ class MlsIdentityManager {
     // 2. Check old storage key and migrate
     final oldStored = await _storage.getSignerKeyPair();
     if (oldStored != null && oldStored.isNotEmpty) {
-      talker.debug('Migrating signer from old storage to new format');
+      _mlsLog('Migrating signer from old storage to new format');
 
       late Uint8List signerBytes;
       late Uint8List publicKey;
@@ -95,7 +109,7 @@ class MlsIdentityManager {
           publicKey: signerKeyPair.publicKey(),
         );
         publicKey = signerKeyPair.publicKey();
-        talker.warning(
+        _mlsLogWarn(
           'Migrating from intermediate signer format - group re-bootstrap may be required',
         );
       }
@@ -103,7 +117,7 @@ class MlsIdentityManager {
       // Store in new format
       await _storage.setSignerBytes(base64Encode(signerBytes));
       await _storage.setSignerPublicKey(base64Encode(publicKey));
-      talker.debug('Signer migrated to new storage');
+      _mlsLog('Signer migrated to new storage');
       return signerBytes;
     }
 
@@ -147,7 +161,7 @@ class MlsIdentityManager {
     }
 
     // 3. Generate a new signer (this will also store the public key)
-    talker.warning('No signer public key found, generating new signer');
+    _mlsLogWarn('No signer public key found, generating new signer');
     await getOrCreateSignerBytes();
 
     // Try reading again after generation
@@ -169,7 +183,7 @@ class MlsIdentityManager {
   ) async {
     await _storage.setSignerBytes(base64Encode(signerBytes));
     await _storage.setSignerPublicKey(base64Encode(publicKey));
-    talker.debug('Signer bytes and public key set directly');
+    _mlsLog('Signer bytes and public key set directly');
   }
 
   /// Legacy method for backward compatibility.
@@ -203,16 +217,16 @@ class MlsIdentityManager {
 
   Future<int> uploadKeyPackage(String keyPackage) async {
     try {
-      final response = await _padlockClient.post(
+      final response = await _padlockClient.put(
         '/e2ee/mls/devices/me/key-packages',
         data: {'key_package': keyPackage},
         options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
       );
       await _storage.addKeyPackage(keyPackage);
-      talker.debug('KeyPackage uploaded successfully');
+      _mlsLog('KeyPackage uploaded successfully');
       return response.statusCode ?? 200;
     } catch (e) {
-      talker.error('Failed to upload KeyPackage: $e');
+      _mlsLogError('Failed to upload KeyPackage: $e');
       rethrow;
     }
   }
@@ -224,7 +238,7 @@ class MlsIdentityManager {
         await uploadKeyPackage(kp);
         uploaded++;
       } catch (e) {
-        talker.warning('Failed to upload keypackage: $e');
+        _mlsLogWarn('Failed to upload keypackage: $e');
       }
     }
     return uploaded;
@@ -245,7 +259,7 @@ class MlsIdentityManager {
       }
       return [];
     } catch (e) {
-      talker.error('Failed to get device keypackages: $e');
+      _mlsLogError('Failed to get device keypackages: $e');
       return [];
     }
   }
@@ -258,7 +272,7 @@ class MlsIdentityManager {
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      talker.error('Failed to revoke device: $e');
+      _mlsLogError('Failed to revoke device: $e');
       return false;
     }
   }

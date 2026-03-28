@@ -7,6 +7,24 @@ import 'mls_engine.dart';
 import 'mls_identity_manager.dart';
 import 'mls_storage.dart';
 
+const _mlsLogPrefix = '[MLS] ';
+
+void _mlsLog(dynamic msg) {
+  talker.info('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogWarn(dynamic msg) {
+  talker.warning('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogError(dynamic msg) {
+  talker.error('$_mlsLogPrefix$msg');
+}
+
+void _mlsLogInfo(dynamic msg) {
+  talker.log('$_mlsLogPrefix$msg');
+}
+
 enum MlsEnvelopeType {
   welcome('MlsWelcome'),
   commit('MlsCommit'),
@@ -60,21 +78,34 @@ class MlsGroupManager {
     final engine = engineService.engine;
     final groupIdBytes = utf8.encode('room:$roomId');
 
+    _mlsLog('ensureGroupAvailable: checking for room $roomId');
+
     try {
       final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
-      if (isActive) return true;
+      _mlsLog('ensureGroupAvailable: groupIsActive=$isActive for room $roomId');
+      if (isActive) {
+        final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+        _mlsLog('ensureGroupAvailable: group active, epoch=${epoch.toInt()}');
+        return true;
+      }
     } catch (e) {
-      talker.warning(
-        'Failed to verify MLS group activity for room $roomId, re-bootstrap will be attempted: $e',
+      _mlsLogWarn(
+        'ensureGroupAvailable: Failed to check group for room $roomId: $e',
       );
     }
 
+    _mlsLog('ensureGroupAvailable: group not found, bootstrapping...');
     await bootstrapGroup(roomId, force: true);
 
     try {
-      return await engine.groupIsActive(groupIdBytes: groupIdBytes);
+      final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
+      final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+      _mlsLog(
+        'ensureGroupAvailable: after bootstrap, isActive=$isActive, epoch=${epoch.toInt()}',
+      );
+      return isActive;
     } catch (e) {
-      talker.error(
+      _mlsLogError(
         'MLS group still unavailable after bootstrap for room $roomId: $e',
       );
       return false;
@@ -109,42 +140,50 @@ class MlsGroupManager {
   }) async {
     try {
       final existingState = await getGroupState(roomId);
+      // Check if we have any stored state - OpenMLS persists groups in its encrypted DB
+      final hasStoredState = existingState != null;
 
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
       final groupIdBytes = utf8.encode('room:$roomId');
 
-      final hasStoredGroup =
-          existingState != null && existingState['serialized_group'] != null;
+      _mlsLog(
+        'bootstrapGroup: room=$roomId, force=$force, hasStoredState=$hasStoredState',
+      );
 
-      if (!force && hasStoredGroup) {
+      if (!force && hasStoredState) {
         try {
           final isActive = await engine.groupIsActive(
             groupIdBytes: groupIdBytes,
           );
           if (isActive) {
-            talker.info('Group already exists for room $roomId');
+            final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+            _mlsLogInfo(
+              'Group already exists and active for room $roomId (epoch: ${epoch.toInt()})',
+            );
             return existingState;
+          } else {
+            _mlsLog('Group stored but not active in engine, will recreate');
           }
-          talker.warning(
-            'Stored group exists but engine group is missing for room $roomId, recreating...',
-          );
         } catch (e) {
-          talker.warning(
-            'Failed to verify MLS group for room $roomId, recreating: $e',
-          );
+          _mlsLogWarn('Failed to verify group, will recreate: $e');
         }
       }
 
-      if (force && hasStoredGroup) {
-        talker.info('Force re-bootstrapping MLS group for room $roomId');
-      }
-
-      if (hasStoredGroup) {
+      if (hasStoredState && force) {
+        _mlsLog(
+          'Force re-bootstrap: deleting existing state from storage and engine',
+        );
         await deleteGroupState(roomId);
+        // Also delete from OpenMLS engine to allow recreation
+        try {
+          await engine.deleteGroup(groupIdBytes: groupIdBytes);
+          _mlsLog('Deleted group from OpenMLS engine');
+        } catch (e) {
+          _mlsLog('Group may not exist in engine (non-fatal): $e');
+        }
       }
 
-      // Use identity manager for clean signer access
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
       final signerPublicKey = await _identityManager.getSignerPublicKey();
 
@@ -152,8 +191,10 @@ class MlsGroupManager {
         ciphersuite: defaultCiphersuite,
       );
 
-      talker.debug('Creating MLS group for room $roomId...');
-      final createResult = await engine.createGroup(
+      _mlsLogInfo('Creating MLS group for room $roomId...');
+
+      // Create the group - OpenMLS stores it in its encrypted database
+      await engine.createGroup(
         config: config,
         signerBytes: signerBytes,
         credentialIdentity: utf8.encode('room:$roomId'),
@@ -161,30 +202,39 @@ class MlsGroupManager {
         groupId: groupIdBytes,
       );
 
-      final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
-
-      await saveGroupState(roomId, {
-        'group_id': 'room:$roomId',
-        'serialized_group': base64Encode(createResult.groupId),
-        'epoch': epoch.toInt(),
-        'created_at': DateTime.now().toIso8601String(),
-      });
-
-      talker.info(
-        'MLS group bootstrapped for room $roomId (epoch: ${epoch.toInt()})',
+      // Get group context info for logging
+      final groupContext = await engine.exportGroupContext(
+        groupIdBytes: groupIdBytes,
       );
 
-      // Fan out Welcome if members are provided
+      final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+
+      _mlsLogInfo(
+        'Group created successfully: epoch=${epoch.toInt()}, '
+        'treeHash.length=${groupContext.treeHash.length}, '
+        'confirmedTranscriptHash.length=${groupContext.confirmedTranscriptHash.length}',
+      );
+
+      // 保存完整 group state
+      await saveGroupState(roomId, {
+        'group_id': 'room:$roomId',
+        'serialized_group': base64Encode(groupContext.groupId),
+        'epoch': epoch.toInt(),
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      _mlsLogInfo(
+        'MLS group bootstrapped for room $roomId with epoch ${epoch.toInt()}',
+      );
+
       if (invitedMembers != null && invitedMembers.isNotEmpty) {
-        talker.debug(
-          'Fanning out Welcome to ${invitedMembers.length} members...',
-        );
         await fanoutWelcome(roomId, invitedMembers);
       }
 
       return await getGroupState(roomId);
     } catch (e) {
-      talker.error('Failed to bootstrap group for room $roomId: $e');
+      _mlsLogError('Failed to bootstrap group for room $roomId: $e');
       rethrow;
     }
   }
@@ -200,7 +250,7 @@ class MlsGroupManager {
       // Use identity manager for clean signer access
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
 
-      talker.debug('Joining MLS group from Welcome for room $roomId...');
+      _mlsLog('Joining MLS group from Welcome for room $roomId...');
       final joinResult = await engine.joinGroupFromWelcome(
         config: MlsGroupConfig.defaultConfig(ciphersuite: defaultCiphersuite),
         welcomeBytes: welcomeBytes,
@@ -212,18 +262,18 @@ class MlsGroupManager {
 
       await saveGroupState(roomId, {
         'group_id': 'room:$roomId',
-        'serialized_group': base64Encode(groupIdBytes),
         'epoch': epoch.toInt(),
         'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
       });
 
-      talker.info(
+      _mlsLogInfo(
         'Joined MLS group from Welcome for room $roomId (epoch: ${epoch.toInt()})',
       );
 
       return await getGroupState(roomId);
     } catch (e) {
-      talker.error('Failed to join group from Welcome for room $roomId: $e');
+      _mlsLogError('Failed to join group from Welcome for room $roomId: $e');
       rethrow;
     }
   }
@@ -246,7 +296,7 @@ class MlsGroupManager {
       }
       return null;
     } catch (e) {
-      talker.error('Failed to commit: $e');
+      _mlsLogError('Failed to commit: $e');
       rethrow;
     }
   }
@@ -260,7 +310,7 @@ class MlsGroupManager {
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      talker.error('Failed to fanout welcome: $e');
+      _mlsLogError('Failed to fanout welcome: $e');
       return false;
     }
   }
@@ -295,14 +345,12 @@ class MlsGroupManager {
       }
 
       if (keyPackages.isEmpty) {
-        talker.warning(
-          'No KeyPackages found for members to add to room $roomId',
-        );
+        _mlsLogWarn('No KeyPackages found for members to add to room $roomId');
         return null;
       }
 
       // 2. Add members to MLS group — this produces a commit + welcome
-      talker.debug(
+      _mlsLog(
         'Adding ${keyPackages.length} key packages to group room $roomId...',
       );
       final addResult = await engine.addMembers(
@@ -314,13 +362,13 @@ class MlsGroupManager {
       final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
       await saveGroupState(roomId, {
         'group_id': 'room:$roomId',
-        'serialized_group': base64Encode(groupIdBytes),
         'epoch': epoch.toInt(),
         'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
         'last_member_add_at': DateTime.now().toIso8601String(),
       });
 
-      talker.info(
+      _mlsLogInfo(
         'Added ${keyPackages.length} members to group room $roomId (epoch: ${epoch.toInt()})',
       );
 
@@ -332,7 +380,7 @@ class MlsGroupManager {
 
       return null;
     } catch (e) {
-      talker.error(
+      _mlsLogError(
         'Failed to add members and fanout welcome for room $roomId: $e',
       );
       rethrow;
@@ -356,14 +404,14 @@ class MlsGroupManager {
         options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
       );
       if (response.statusCode == 200 || response.statusCode == 204) {
-        talker.debug('Welcome sent to server for fanout to room $roomId');
+        _mlsLog('Welcome sent to server for fanout to room $roomId');
       } else {
-        talker.warning(
+        _mlsLogWarn(
           'Unexpected status from welcome fanout: ${response.statusCode}',
         );
       }
     } catch (e) {
-      talker.error('Failed to send welcome to server for room $roomId: $e');
+      _mlsLogError('Failed to send welcome to server for room $roomId: $e');
       rethrow;
     }
   }
@@ -387,24 +435,24 @@ class MlsGroupManager {
           config: MlsGroupConfig.defaultConfig(ciphersuite: defaultCiphersuite),
           welcomeBytes: welcomeBytes,
         );
-        talker.debug(
+        _mlsLog(
           'Welcome inspection: groupId=${inspectResult.groupId}, '
           'epoch=${inspectResult.epoch}, ciphersuite=${inspectResult.ciphersuite}',
         );
       } catch (e) {
-        talker.debug('Could not inspect welcome (non-fatal): $e');
+        _mlsLog('Could not inspect welcome (non-fatal): $e');
       }
 
       // Join the group from the welcome
       final result = await joinGroupFromWelcome(roomId, welcomeBytes);
 
       if (result != null) {
-        talker.info('Successfully processed Welcome and joined room $roomId');
+        _mlsLogInfo('Successfully processed Welcome and joined room $roomId');
       }
 
       return result;
     } catch (e) {
-      talker.error('Failed to process Welcome for room $roomId: $e');
+      _mlsLogError('Failed to process Welcome for room $roomId: $e');
       rethrow;
     }
   }
@@ -417,7 +465,7 @@ class MlsGroupManager {
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
-      talker.error('Failed to request reshare: $e');
+      _mlsLogError('Failed to request reshare: $e');
       return false;
     }
   }
