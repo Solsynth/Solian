@@ -12,6 +12,7 @@ _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   description: json['description'] as String?,
   type: (json['type'] as num).toInt(),
   encryptionMode: (json['encryption_mode'] as num?)?.toInt() ?? 0,
+  mlsGroupId: json['mls_group_id'] as String?,
   isPublic: json['is_public'] as bool? ?? false,
   isCommunity: json['is_community'] as bool? ?? false,
   picture: json['picture'] == null
@@ -43,6 +44,7 @@ Map<String, dynamic> _$SnChatRoomToJson(_SnChatRoom instance) =>
       'description': instance.description,
       'type': instance.type,
       'encryption_mode': instance.encryptionMode,
+      'mls_group_id': instance.mlsGroupId,
       'is_public': instance.isPublic,
       'is_community': instance.isCommunity,
       'picture': instance.picture?.toJson(),

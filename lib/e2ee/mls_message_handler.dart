@@ -23,20 +23,17 @@ void _mlsLogError(dynamic msg) {
 }
 
 /// Used for encrypting attachments/files, not MLS messages.
-String deriveE2eeFileEncryptKey(String roomId) {
+String deriveE2eeFileEncryptKey(String mlsGroupId) {
   final keyBytes = sha256
-      .convert(utf8.encode('island-chat-file-e2ee-v1:$roomId'))
+      .convert(utf8.encode('island-chat-file-e2ee-v1:$mlsGroupId'))
       .bytes;
   return base64Encode(keyBytes);
 }
 
 enum MlsMessageType {
-  text('text'),
-  messagesUpdate('messages.update'),
-  messagesDelete('messages.delete');
-
-  final String value;
-  const MlsMessageType(this.value);
+  text,
+  messagesUpdate,
+  messagesDelete;
 
   static MlsMessageType fromString(String? value) {
     switch (value) {
@@ -48,6 +45,17 @@ enum MlsMessageType {
         return MlsMessageType.messagesDelete;
       default:
         return MlsMessageType.text;
+    }
+  }
+
+  String get value {
+    switch (this) {
+      case MlsMessageType.text:
+        return 'text';
+      case MlsMessageType.messagesUpdate:
+        return 'messages.update';
+      case MlsMessageType.messagesDelete:
+        return 'messages.delete';
     }
   }
 }
@@ -82,7 +90,7 @@ class MlsMessageHandler {
   /// their own messages. The plaintextEnvelope should be used locally
   /// for immediate display by the sender.
   Future<Map<String, dynamic>> encryptMessage({
-    required String roomId,
+    required String mlsGroupId,
     required String content,
     required List<String> attachmentIds,
     required MlsMessageType messageType,
@@ -97,10 +105,10 @@ class MlsMessageHandler {
     // Use clean signer access via identity manager
     final signerBytes = await _identityManager.getOrCreateSignerBytes();
 
-    final groupIdBytes = utf8.encode('room:$roomId');
-    final isAvailable = await _groupManager.ensureGroupAvailable(roomId);
+    final groupIdBytes = utf8.encode(mlsGroupId);
+    final isAvailable = await _groupManager.ensureGroupAvailable(mlsGroupId);
     if (!isAvailable) {
-      throw Exception('Failed to bootstrap MLS group for room $roomId.');
+      throw Exception('Failed to bootstrap MLS group for room $mlsGroupId.');
     }
 
     final clientMessageId = _generateNonce();
@@ -138,9 +146,9 @@ class MlsMessageHandler {
       if (!_isMissingGroupError(e)) rethrow;
 
       _mlsLogWarn(
-        'MLS group missing while encrypting room $roomId, re-bootstrapping and retrying...',
+        'MLS group missing while encrypting room $mlsGroupId, re-bootstrapping and retrying...',
       );
-      final recovered = await _groupManager.ensureGroupAvailable(roomId);
+      final recovered = await _groupManager.ensureGroupAvailable(mlsGroupId);
       if (!recovered) rethrow;
 
       final result = await engine.createMessage(
@@ -153,7 +161,7 @@ class MlsMessageHandler {
     }
 
     _mlsLog(
-      'Encrypted message for room $roomId (epoch: $epoch, type: ${messageType.value})',
+      'Encrypted message for room $mlsGroupId (epoch: $epoch, type: ${messageType.value})',
     );
 
     // Export and cache ratchet tree and epoch for external join support
@@ -161,8 +169,8 @@ class MlsMessageHandler {
       final ratchetTree = await engine.exportRatchetTree(
         groupIdBytes: groupIdBytes,
       );
-      await _groupManager.saveGroupState(roomId, {
-        ...?await _groupManager.getGroupState(roomId),
+      await _groupManager.saveGroupState(mlsGroupId, {
+        ...?await _groupManager.getGroupState(mlsGroupId),
         'ratchet_tree': base64Encode(ratchetTree),
         'epoch': epoch,
       });
@@ -175,9 +183,10 @@ class MlsMessageHandler {
     final headerJson = jsonEncode({
       'v': 1,
       'scheme': 'mls',
-      'deviceId': deviceId,
+      'device_id': deviceId,
       'epoch': epoch,
     });
+    _mlsLog('Encrypt header created: $headerJson');
 
     return {
       'type': messageType.value,
@@ -196,13 +205,11 @@ class MlsMessageHandler {
       'is_encrypted': true,
       'ciphertext': base64Encode(ciphertextBytes),
       'encryption_header': base64Encode(utf8.encode(headerJson)),
-      'encryption_scheme': 'chat.mls.v1',
+      'encryption_scheme': 'chat.mls.v2',
       'encryption_epoch': epoch,
       'encryption_message_type': messageType.value,
       'client_message_id': clientMessageId,
-      // IMPORTANT: plaintextEnvelope for local display by the sender
-      // The sender cannot decrypt their own message due to MLS Forward Secrecy
-      'plaintextEnvelope': envelope,
+      'plaintext_envelope': envelope,
     };
   }
 
@@ -218,41 +225,66 @@ class MlsMessageHandler {
   /// - `commit` (stagedCommit): Processes the commit, updates epoch, saves ratchet tree
   Future<Map<String, dynamic>?> decryptMessage({
     required String messageId,
-    required String roomId,
+    required String mlsGroupId,
     required String ciphertext,
     required String? encryptionHeader,
+    String? encryptionScheme,
   }) async {
+    // Skip messages with old encryption schemes
+    if (encryptionScheme != null && encryptionScheme != 'chat.mls.v2') {
+      // _mlsLog(
+      //   'Skipping decryption for old encryption scheme: $encryptionScheme',
+      // );
+      return null;
+    }
+
     // Parse message epoch from header for diagnostics
     int? messageEpoch;
+    String? parsedDeviceId;
     if (encryptionHeader != null && encryptionHeader.isNotEmpty) {
       try {
         final headerBytes = base64Decode(encryptionHeader);
         final headerJson = utf8.decode(headerBytes);
+        _mlsLog('Decrypt header raw: $headerJson');
         final header = jsonDecode(headerJson) as Map<String, dynamic>;
         messageEpoch = header['epoch'] as int?;
-      } catch (_) {}
+        parsedDeviceId = header['device_id'] as String?;
+        _mlsLog(
+          'Decrypt header parsed: epoch=$messageEpoch, deviceId=$parsedDeviceId',
+        );
+      } catch (e) {
+        _mlsLogWarn('Failed to parse encryption header: $e');
+      }
+    } else {
+      _mlsLogWarn('No encryption header provided for decryption!');
     }
 
     try {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
 
-      final groupIdBytes = utf8.encode('room:$roomId');
-      final isAvailable = await _groupManager.ensureGroupAvailable(roomId);
+      final groupIdBytes = utf8.encode(mlsGroupId);
+      final isAvailable = await _groupManager.ensureGroupAvailable(mlsGroupId);
       if (!isAvailable) {
-        _mlsLog('Group not active for room: $roomId');
+        _mlsLog('Group not active for room: $mlsGroupId');
         return null;
       }
 
       // Log epoch info for debugging
+      int localEpoch = 0;
       try {
-        final localEpoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+        localEpoch = (await engine.groupEpoch(
+          groupIdBytes: groupIdBytes,
+        )).toInt();
         _mlsLog(
-          'Decrypting: messageEpoch=$messageEpoch, localEpoch=$localEpoch, msgId=$messageId',
+          'Decrypting: messageEpoch=$messageEpoch, localEpoch=$localEpoch, msgId=$messageId, ciphertextLen=${ciphertext.length}',
         );
-      } catch (_) {}
+      } catch (e) {
+        _mlsLogWarn('Failed to get local epoch: $e');
+      }
 
       final ciphertextBytes = base64Decode(ciphertext);
+      _mlsLog('Ciphertext decoded: ${ciphertextBytes.length} bytes');
 
       // Detect content type before processing
       String contentType;
@@ -267,7 +299,7 @@ class MlsMessageHandler {
       // Handle Welcome messages (routed from pending envelopes, not via this path normally)
       if (contentType == 'welcome') {
         _mlsLog(
-          'Received Welcome content type in decryptMessage for room $roomId — '
+          'Received Welcome content type in decryptMessage for room $mlsGroupId — '
           'use processWelcome() instead',
         );
         return null;
@@ -292,29 +324,32 @@ class MlsMessageHandler {
 
         final errorStr = e.toString();
         _mlsLogError(
-          'Decrypt failed for room $roomId | messageId: $messageId | error: $errorStr',
+          'Decrypt failed for room $mlsGroupId | messageId: $messageId | error: $errorStr',
         );
 
         _mlsLog('Ciphertext length: ${ciphertext.length}');
+        int localEpoch = 0;
         try {
-          final epoch = await _groupManager.getCurrentEpoch(roomId);
-          _mlsLog('Current local epoch: $epoch');
+          localEpoch = await _groupManager.getCurrentEpoch(mlsGroupId);
+          _mlsLog(
+            'Current local epoch: $localEpoch, message epoch: $messageEpoch',
+          );
         } catch (_) {
           _mlsLog('Current local epoch: unknown');
         }
 
         if (errorStr.contains('AEAD')) {
           _mlsLogWarn(
-            'AEAD decryption failed → likely epoch mismatch or stale group state',
+            'AEAD decryption failed → likely epoch mismatch (message epoch: $messageEpoch vs local: $localEpoch)',
           );
         }
 
         if (!_isMissingGroupError(e)) rethrow;
 
         _mlsLogWarn(
-          'MLS group missing while decrypting room $roomId, re-bootstrapping and retrying...',
+          'MLS group missing while decrypting room $mlsGroupId, re-bootstrapping and retrying...',
         );
-        final recovered = await _groupManager.ensureGroupAvailable(roomId);
+        final recovered = await _groupManager.ensureGroupAvailable(mlsGroupId);
         if (!recovered) return null;
 
         result = await engine.processMessage(
@@ -334,29 +369,33 @@ class MlsMessageHandler {
         case ProcessedMessageType.stagedCommit:
           final epoch = result.epoch.toInt();
           _mlsLog(
-            'Processed staged commit for room $roomId (new epoch: $epoch)',
+            'Processed staged commit for room $mlsGroupId (new epoch: $epoch)',
           );
-          await _groupManager.handleEpochChanged(roomId, epoch);
 
-          // Save ratchet tree for external join support by other devices
+          // Save epoch and ratchet tree for external join support by other devices
           try {
             final ratchetTree = await engine.exportRatchetTree(
               groupIdBytes: groupIdBytes,
             );
-            await _groupManager.saveGroupState(roomId, {
-              ...?await _groupManager.getGroupState(roomId),
+            final existingState = await _groupManager.getGroupState(mlsGroupId);
+            await _groupManager.saveGroupState(mlsGroupId, {
+              ...?existingState,
+              'group_id': mlsGroupId,
               'epoch': epoch,
               'ratchet_tree': base64Encode(ratchetTree),
               'last_commit_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
             });
+            _mlsLog('Saved epoch=$epoch after processing commit');
           } catch (e) {
-            _mlsLog('Could not save ratchet tree (non-fatal): $e');
-            await _groupManager.handleEpochChanged(roomId, epoch);
+            _mlsLogWarn('Could not save ratchet tree after commit: $e');
+            // Still update epoch even if ratchet tree fails
+            await _groupManager.handleEpochChanged(mlsGroupId, epoch);
           }
           return null;
 
         case ProcessedMessageType.proposal:
-          _mlsLog('Processed proposal for room $roomId');
+          _mlsLog('Processed proposal for room $mlsGroupId');
           // Proposals don't change the epoch until committed
           return null;
       }
@@ -364,23 +403,25 @@ class MlsMessageHandler {
       // Final catch for any remaining errors
       if (e.toString().contains('Cannot decrypt') ||
           e.toString().contains('cannot decrypt')) {
-        _mlsLog('Cannot decrypt message for room $roomId (likely own message)');
+        _mlsLog(
+          'Cannot decrypt message for room $mlsGroupId (likely own message)',
+        );
         return null;
       }
-      _mlsLogError('Failed to decrypt message for room $roomId: $e');
+      _mlsLogError('Failed to decrypt message for room $mlsGroupId: $e');
       return null;
     }
   }
 
   Future<Map<String, dynamic>?> fanoutMessage({
-    required String roomId,
+    required String mlsGroupId,
     required Map<String, dynamic> encryptedPayload,
   }) async {
     try {
       final response = await _padlockClient.post(
         '/e2ee/mls/messages/fanout',
-        data: {'room_id': roomId, 'payload': encryptedPayload},
-        options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
+        data: {'room_id': mlsGroupId, 'payload': encryptedPayload},
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       if (response.data is Map<String, dynamic>) {
         return Map<String, dynamic>.from(response.data);
@@ -396,13 +437,13 @@ class MlsMessageHandler {
   ///
   /// The [welcomeBytes] should be the raw Welcome message bytes from
   /// the server (base64-decoded from the envelope payload).
-  /// [roomId] identifies which room this Welcome is for.
+  /// [mlsGroupId] identifies which room this Welcome is for.
   Future<Map<String, dynamic>?> processWelcomeEnvelope({
-    required String roomId,
+    required String mlsGroupId,
     required Uint8List welcomeBytes,
   }) async {
     return _groupManager.processWelcome(
-      roomId: roomId,
+      mlsGroupId: mlsGroupId,
       welcomeBytes: welcomeBytes,
     );
   }
@@ -414,12 +455,17 @@ class MlsMessageHandler {
       final response = await _padlockClient.get(
         '/e2ee/mls/envelopes/pending',
         queryParameters: {'device_id': deviceId},
-        options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       if (response.data is List) {
-        return (response.data as List)
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList();
+        return (response.data as List).map((e) {
+          final map = Map<String, dynamic>.from(e as Map);
+          final typeValue = map['type'];
+          if (typeValue is int) {
+            map['envelope_type'] = MlsEnvelopeType.fromInt(typeValue).name;
+          }
+          return map;
+        }).toList();
       }
       return [];
     } catch (e) {
@@ -433,7 +479,7 @@ class MlsMessageHandler {
       final response = await _padlockClient.post(
         '/e2ee/mls/envelopes/$envelopeId/ack',
         queryParameters: {'device_id': deviceId},
-        options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {

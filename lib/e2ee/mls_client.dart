@@ -72,6 +72,55 @@ class MlsClient {
         // Non-fatal: MLS operations will still work for existing groups
       }
     }
+
+    // Fetch and process pending E2EE envelopes (Welcome, Commit, Proposal)
+    if (deviceId != null) {
+      await _fetchAndProcessPendingEnvelopes(deviceId);
+    }
+  }
+
+  Future<void> _fetchAndProcessPendingEnvelopes(String deviceId) async {
+    try {
+      final envelopes = await getPendingEnvelopes(deviceId);
+      if (envelopes.isEmpty) return;
+
+      _mlsLog('Processing ${envelopes.length} pending envelope(s)');
+      for (final envelope in envelopes) {
+        final envelopeId = envelope['id']?.toString();
+        final envelopeType = envelope['envelope_type']?.toString();
+        final payload = envelope['payload']?.toString();
+        final mlsGroupId = envelope['mls_group_id']?.toString();
+
+        if (envelopeId == null || payload == null || mlsGroupId == null) {
+          _mlsLogWarn('Skipping envelope $envelopeId: missing required fields');
+          continue;
+        }
+
+        try {
+          if (envelopeType == 'welcome') {
+            final welcomeBytes = base64Decode(payload);
+            final result = await processWelcome(
+              mlsGroupId: mlsGroupId,
+              welcomeBytes: welcomeBytes,
+            );
+            if (result != null) {
+              _mlsLog(
+                'Processed welcome envelope $envelopeId for group $mlsGroupId',
+              );
+            }
+          }
+          // TODO: Handle commit and proposal envelopes
+          // For now, just ack them to remove from server
+        } catch (e) {
+          _mlsLogWarn('Failed to process envelope $envelopeId: $e');
+        }
+
+        // Ack envelope to remove from server
+        await ackEnvelope(envelopeId, deviceId);
+      }
+    } catch (e) {
+      _mlsLogWarn('Failed to fetch pending envelopes: $e');
+    }
   }
 
   Future<bool> isDeviceRegistered() async {
@@ -88,7 +137,7 @@ class MlsClient {
   }
 
   Future<Map<String, dynamic>> encryptMessage({
-    required String roomId,
+    required String mlsGroupId,
     required String content,
     required List<String> attachmentIds,
     required MlsMessageType messageType,
@@ -96,7 +145,7 @@ class MlsClient {
     String? forwardedMessageId,
   }) async {
     return _messageHandler.encryptMessage(
-      roomId: roomId,
+      mlsGroupId: mlsGroupId,
       content: content,
       attachmentIds: attachmentIds,
       messageType: messageType,
@@ -107,45 +156,49 @@ class MlsClient {
 
   Future<Map<String, dynamic>?> decryptMessage({
     required String messageId,
-    required String roomId,
+    required String mlsGroupId,
     required String ciphertext,
     required String? encryptionHeader,
+    String? encryptionScheme,
   }) async {
     return _messageHandler.decryptMessage(
       messageId: messageId,
-      roomId: roomId,
+      mlsGroupId: mlsGroupId,
       ciphertext: ciphertext,
       encryptionHeader: encryptionHeader,
+      encryptionScheme: encryptionScheme,
     );
   }
 
-  Future<int> getCurrentEpoch(String roomId) async {
-    return _groupManager.getCurrentEpoch(roomId);
+  Future<int> getCurrentEpoch(String mlsGroupId) async {
+    return _groupManager.getCurrentEpoch(mlsGroupId);
   }
 
   Future<Map<String, dynamic>?> bootstrapGroup(
-    String roomId, {
+    String mlsGroupId, {
     bool force = false,
   }) async {
-    final result = await _groupManager.bootstrapGroup(roomId, force: force);
+    final result = await _groupManager.bootstrapGroup(mlsGroupId, force: force);
     if (result != null) {
-      eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: 1));
+      eventBus.fire(MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: 1));
     }
     return result;
   }
 
-  Future<Map<String, dynamic>?> commitPending(String roomId) async {
-    final result = await _groupManager.commitPending(roomId);
+  Future<Map<String, dynamic>?> commitPending(String mlsGroupId) async {
+    final result = await _groupManager.commitPending(mlsGroupId);
     if (result != null) {
       final newEpoch = result['epoch'] as int? ?? 1;
-      eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: newEpoch));
+      eventBus.fire(
+        MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: newEpoch),
+      );
     }
     return result;
   }
 
-  Future<void> handleReshareRequired(String roomId) async {
-    await _groupManager.handleReshareRequired(roomId);
-    eventBus.fire(MlsReshareRequiredEvent(roomId: roomId));
+  Future<void> handleReshareRequired(String mlsGroupId) async {
+    await _groupManager.handleReshareRequired(mlsGroupId);
+    eventBus.fire(MlsReshareRequiredEvent(mlsGroupId: mlsGroupId));
   }
 
   Future<List<Map<String, dynamic>>> getPendingEnvelopes(
@@ -158,9 +211,11 @@ class MlsClient {
     return _messageHandler.ackEnvelope(envelopeId, deviceId);
   }
 
-  Future<void> handleEpochChanged(String roomId, int newEpoch) async {
-    await _groupManager.handleEpochChanged(roomId, newEpoch);
-    eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: newEpoch));
+  Future<void> handleEpochChanged(String mlsGroupId, int newEpoch) async {
+    await _groupManager.handleEpochChanged(mlsGroupId, newEpoch);
+    eventBus.fire(
+      MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: newEpoch),
+    );
   }
 
   /// Add members to an existing MLS group and fan out the Welcome message.
@@ -169,16 +224,18 @@ class MlsClient {
   /// calls `engine.addMembers()` to generate the commit + welcome,
   /// then sends the welcome to the server for distribution.
   Future<Uint8List?> addMembersAndFanoutWelcome(
-    String roomId,
+    String mlsGroupId,
     List<String> memberAccountIds,
   ) async {
     final result = await _groupManager.addMembersAndFanoutWelcome(
-      roomId,
+      mlsGroupId,
       memberAccountIds,
     );
     if (result != null) {
-      final newEpoch = await _groupManager.getCurrentEpoch(roomId);
-      eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: newEpoch));
+      final newEpoch = await _groupManager.getCurrentEpoch(mlsGroupId);
+      eventBus.fire(
+        MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: newEpoch),
+      );
     }
     return result;
   }
@@ -187,29 +244,36 @@ class MlsClient {
   ///
   /// Called when the device receives a MlsWelcome envelope from the server.
   Future<Map<String, dynamic>?> processWelcome({
-    required String roomId,
+    required String mlsGroupId,
     required Uint8List welcomeBytes,
   }) async {
     final result = await _groupManager.processWelcome(
-      roomId: roomId,
+      mlsGroupId: mlsGroupId,
       welcomeBytes: welcomeBytes,
     );
     if (result != null) {
-      final newEpoch = await _groupManager.getCurrentEpoch(roomId);
-      eventBus.fire(MlsEpochChangedEvent(roomId: roomId, newEpoch: newEpoch));
+      final newEpoch = await _groupManager.getCurrentEpoch(mlsGroupId);
+      eventBus.fire(
+        MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: newEpoch),
+      );
     }
     return result;
   }
 
   /// Process a Welcome envelope directly from the message handler.
   Future<Map<String, dynamic>?> processWelcomeEnvelope({
-    required String roomId,
+    required String mlsGroupId,
     required Uint8List welcomeBytes,
   }) async {
     return _messageHandler.processWelcomeEnvelope(
-      roomId: roomId,
+      mlsGroupId: mlsGroupId,
       welcomeBytes: welcomeBytes,
     );
+  }
+
+  /// Reset and re-bootstrap the MLS group for a room.
+  Future<void> resetAndRebootstrapGroup(String mlsGroupId) async {
+    await _groupManager.resetAndRebootstrapGroup(mlsGroupId);
   }
 }
 

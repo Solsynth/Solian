@@ -220,7 +220,7 @@ class MlsIdentityManager {
       final response = await _padlockClient.put(
         '/e2ee/mls/devices/me/key-packages',
         data: {'key_package': keyPackage},
-        options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       await _storage.addKeyPackage(keyPackage);
       _mlsLog('KeyPackage uploaded successfully');
@@ -250,7 +250,7 @@ class MlsIdentityManager {
     try {
       final response = await _padlockClient.get(
         '/e2ee/mls/keys/$accountId/devices',
-        options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       if (response.data is List) {
         return (response.data as List)
@@ -268,7 +268,7 @@ class MlsIdentityManager {
     try {
       final response = await _padlockClient.post(
         '/e2ee/mls/devices/$deviceId/revoke',
-        options: Options(headers: {'X-Client-Ability': 'chat-mls-v1'}),
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {

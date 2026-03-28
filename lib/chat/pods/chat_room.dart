@@ -577,6 +577,16 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final isEncrypted = message.meta['e2ee_is_encrypted'] == true;
     if (!isEncrypted) return message;
 
+    // Get mlsGroupId from room
+    final room = await db.getChatRoomById(message.chatRoomId);
+    final mlsGroupId = room?.mlsGroupId;
+    if (mlsGroupId == null) {
+      talker.debug(
+        'No mlsGroupId for room ${message.chatRoomId}, skipping decrypt',
+      );
+      return null;
+    }
+
     // Check if message already has content in DB - use it directly
     final existing = await db.getMessageById(message.id);
     if (existing != null &&
@@ -622,9 +632,10 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final mlsClient = ref.read(mlsClientProvider);
       final result = await mlsClient.decryptMessage(
         messageId: message.id,
-        roomId: message.chatRoomId,
+        mlsGroupId: mlsGroupId,
         ciphertext: message.meta['e2ee_ciphertext']?.toString() ?? '',
         encryptionHeader: headerStr,
+        encryptionScheme: message.meta['e2ee_scheme']?.toString(),
       );
       if (result != null) {
         final content = result['content']?.toString();

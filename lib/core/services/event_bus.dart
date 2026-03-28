@@ -128,17 +128,20 @@ class SolianDeepLinkEvent {
 
 /// Event fired when MLS epoch changes for a room
 class MlsEpochChangedEvent {
-  final String roomId;
+  final String mlsGroupId;
   final int newEpoch;
 
-  const MlsEpochChangedEvent({required this.roomId, required this.newEpoch});
+  const MlsEpochChangedEvent({
+    required this.mlsGroupId,
+    required this.newEpoch,
+  });
 }
 
 /// Event fired when MLS requires a reshare for a room
 class MlsReshareRequiredEvent {
-  final String roomId;
+  final String mlsGroupId;
 
-  const MlsReshareRequiredEvent({required this.roomId});
+  const MlsReshareRequiredEvent({required this.mlsGroupId});
 }
 
 /// Event fired when a key package is uploaded

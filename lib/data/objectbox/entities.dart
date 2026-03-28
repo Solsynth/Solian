@@ -55,6 +55,7 @@ class ChatRoomEntity {
     this.backgroundJson,
     this.realmId,
     this.accountId,
+    this.mlsGroupId,
     this.isPinned = false,
     required this.createdAtMs,
     required this.updatedAtMs,
@@ -76,6 +77,7 @@ class ChatRoomEntity {
   String? backgroundJson;
   String? realmId;
   String? accountId;
+  String? mlsGroupId;
   bool isPinned;
   int createdAtMs;
   int updatedAtMs;

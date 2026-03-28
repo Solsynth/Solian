@@ -207,7 +207,7 @@
     },
     {
       "id": "3:159387041528573252",
-      "lastPropertyId": "15:7628333420712445243",
+      "lastPropertyId": "16:6581081958776782926",
       "name": "ChatRoomEntity",
       "properties": [
         {
@@ -287,6 +287,11 @@
           "id": "15:7628333420712445243",
           "name": "deletedAtMs",
           "type": 6
+        },
+        {
+          "id": "16:6581081958776782926",
+          "name": "mlsGroupId",
+          "type": 9
         }
       ],
       "relations": []

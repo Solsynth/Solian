@@ -14,6 +14,7 @@ import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/e2ee/mls_client.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -500,6 +501,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
         chatRoom.value?.type == 1;
     final canEnableMls =
         isManagable && (chatRoom.value?.encryptionMode ?? 0) == 0;
+    final hasMls = !canEnableMls;
 
     return PopupMenuButton(
       icon: Icon(Icons.more_vert, shadows: [iconShadow]),
@@ -556,6 +558,45 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                 Icon(Icons.lock, color: Theme.of(context).colorScheme.primary),
                 const Gap(12),
                 const Text('Enable MLS'),
+              ],
+            ),
+          ),
+        if (hasMls)
+          PopupMenuItem(
+            onTap: () async {
+              final confirmed = await showConfirmAlert(
+                'Reset E2EE encryption for this chat room? All members will need to re-join.',
+                'Reset E2EE',
+              );
+              if (!confirmed) return;
+
+              final mlsGroupId = chatRoom.value?.mlsGroupId;
+              if (mlsGroupId == null) {
+                if (context.mounted) {
+                  showErrorAlert('Room has no MLS group ID');
+                }
+                return;
+              }
+
+              try {
+                final mlsClient = ref.read(mlsClientProvider);
+                await mlsClient.resetAndRebootstrapGroup(mlsGroupId);
+                ref.invalidate(chatRoomProvider(id));
+                if (context.mounted) {
+                  showSnackBar('E2EE reset successfully.');
+                }
+              } catch (err) {
+                showErrorAlert(err);
+              }
+            },
+            child: Row(
+              children: [
+                Icon(
+                  Icons.refresh,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const Gap(12),
+                const Text('Reset E2EE'),
               ],
             ),
           ),

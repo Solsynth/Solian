@@ -95,7 +95,7 @@ final userAgentProvider = FutureProvider<String>((ref) async {
 });
 
 const String _chatE2eeCapability = 'chat-e2ee-v1';
-const String _chatMlsCapability = 'chat-mls-v1';
+const String _chatMlsCapability = 'chat.mls.v2';
 const Duration _tokenExpirySkew = Duration(seconds: 30);
 
 Future<_StoredTokenPair?>? _tokenRefreshInFlight;

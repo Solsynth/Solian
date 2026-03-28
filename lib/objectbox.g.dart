@@ -253,7 +253,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 159387041528573252),
     name: 'ChatRoomEntity',
-    lastPropertyId: const obx_int.IdUid(15, 7628333420712445243),
+    lastPropertyId: const obx_int.IdUid(16, 6581081958776782926),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -345,6 +345,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(15, 7628333420712445243),
         name: 'deletedAtMs',
         type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 6581081958776782926),
+        name: 'mlsGroupId',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -890,7 +896,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final accountIdOffset = object.accountId == null
             ? null
             : fbb.writeString(object.accountId!);
-        fbb.startTable(16);
+        final mlsGroupIdOffset = object.mlsGroupId == null
+            ? null
+            : fbb.writeString(object.mlsGroupId!);
+        fbb.startTable(17);
         fbb.addInt64(0, object.obxId);
         fbb.addOffset(1, uidOffset);
         fbb.addOffset(2, nameOffset);
@@ -906,6 +915,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(12, object.createdAtMs);
         fbb.addInt64(13, object.updatedAtMs);
         fbb.addInt64(14, object.deletedAtMs);
+        fbb.addOffset(15, mlsGroupIdOffset);
         fbb.finish(fbb.endTable());
         return object.obxId;
       },
@@ -957,6 +967,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final accountIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 24);
+        final mlsGroupIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 34);
         final isPinnedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -992,6 +1005,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           backgroundJson: backgroundJsonParam,
           realmId: realmIdParam,
           accountId: accountIdParam,
+          mlsGroupId: mlsGroupIdParam,
           isPinned: isPinnedParam,
           createdAtMs: createdAtMsParam,
           updatedAtMs: updatedAtMsParam,
@@ -1482,6 +1496,11 @@ class ChatRoomEntity_ {
   /// See [ChatRoomEntity.deletedAtMs].
   static final deletedAtMs = obx.QueryIntegerProperty<ChatRoomEntity>(
     _entities[2].properties[14],
+  );
+
+  /// See [ChatRoomEntity.mlsGroupId].
+  static final mlsGroupId = obx.QueryStringProperty<ChatRoomEntity>(
+    _entities[2].properties[15],
   );
 }
 

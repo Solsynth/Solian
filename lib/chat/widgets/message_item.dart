@@ -717,6 +717,130 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                             ),
                           ],
                         ),
+                      const Gap(8),
+                      const Divider(height: 1),
+                      const Gap(8),
+                      // Debug info section
+                      Row(
+                        children: [
+                          Icon(
+                            Symbols.bug_report,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const Gap(6),
+                          Text(
+                            'Debug Info',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Gap(4),
+                      // Message ID (tap to copy)
+                      InkWell(
+                        onTap: () {
+                          Clipboard.setData(
+                            ClipboardData(text: widget.message.id),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Message ID copied'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.fingerprint,
+                              size: 14,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            Expanded(
+                              child: Text(
+                                'ID: ${widget.message.id}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontFamily: 'monospace',
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Icon(
+                              Icons.copy,
+                              size: 12,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Encryption header
+                      if (widget.message.meta['e2ee_header'] != null)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Gap(4),
+                            Row(
+                              spacing: 6,
+                              children: [
+                                Icon(
+                                  Symbols.key,
+                                  size: 14,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    'Header: ${widget.message.meta['e2ee_header']}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontFamily: 'monospace',
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      // Ciphertext length
+                      if (widget.message.meta['e2ee_ciphertext'] != null)
+                        Row(
+                          spacing: 6,
+                          children: [
+                            Icon(
+                              Symbols.terminal,
+                              size: 14,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            Text(
+                              'Ciphertext: ${widget.message.meta['e2ee_ciphertext'].toString().length} bytes',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ],
                 ),

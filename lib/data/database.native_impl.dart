@@ -757,6 +757,7 @@ class AppDatabase {
           : null,
       realmId: entity.realmId,
       accountId: entity.accountId,
+      mlsGroupId: entity.mlsGroupId,
       realm: null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
@@ -793,6 +794,7 @@ class AppDatabase {
         : jsonEncode(room.background!.toJson());
     entity.realmId = room.realmId;
     entity.accountId = room.accountId;
+    entity.mlsGroupId = room.mlsGroupId;
     entity.isPinned = isPinnedOverride;
     entity.createdAtMs = room.createdAt.millisecondsSinceEpoch;
     entity.updatedAtMs = room.updatedAt.millisecondsSinceEpoch;

@@ -14,6 +14,7 @@ sealed class SnChatRoom with _$SnChatRoom {
     required String? description,
     required int type,
     @JsonKey(name: 'encryption_mode') @Default(0) int encryptionMode,
+    @JsonKey(name: 'mls_group_id') String? mlsGroupId,
     @Default(false) bool isPublic,
     @Default(false) bool isCommunity,
     required SnCloudFile? picture,

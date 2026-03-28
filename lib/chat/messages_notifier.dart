@@ -35,6 +35,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   late SnChatMember _identity;
   bool _hasIdentity = false;
   int _roomEncryptionMode = 0;
+  String? _mlsGroupId;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, Map<int, double?>> _fileUploadProgress = {};
@@ -63,11 +64,14 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Options? _mlsWriteOptions() {
     if (!_isE2eeRoom) return null;
-    return Options(headers: {'X-Client-Ability': 'chat-mls-v1'});
+    return Options(headers: {'X-Client-Ability': 'chat.mls.v2'});
   }
 
-  E2eeMessageService get _e2eeService =>
-      E2eeMessageService(ref: ref, roomId: roomId, isE2eeRoom: _isE2eeRoom);
+  E2eeMessageService get _e2eeService => E2eeMessageService(
+    ref: ref,
+    mlsGroupId: _mlsGroupId,
+    isE2eeRoom: _isE2eeRoom,
+  );
 
   bool _isWebSocketConnected() => ref
       .read(websocketStateProvider)
@@ -363,23 +367,34 @@ class MessagesNotifier extends _$MessagesNotifier {
       throw Exception('Room not found');
     }
     _roomEncryptionMode = room.encryptionMode;
+    _mlsGroupId = room.mlsGroupId;
 
     // Ensure MLS group is bootstrapped for E2EE rooms
     if (_isE2eeRoom) {
-      try {
-        final mlsClient = ref.read(mlsClientProvider);
+      if (room.mlsGroupId == null) {
+        talker.info(
+          'Room $roomId has encryption mode 3 but no mlsGroupId - skipping MLS bootstrap',
+        );
+      } else {
+        try {
+          final mlsClient = ref.read(mlsClientProvider);
 
-        // Check current epoch for logging purposes
-        final currentEpoch = await mlsClient.getCurrentEpoch(roomId);
-        talker.debug('Current MLS epoch for room $roomId: $currentEpoch');
+          // Check current epoch for logging purposes
+          final currentEpoch = await mlsClient.getCurrentEpoch(
+            room.mlsGroupId!,
+          );
+          talker.debug(
+            'Current MLS epoch for room $roomId (group: ${room.mlsGroupId}): $currentEpoch',
+          );
 
-        // Note: epoch=0 is NORMAL for newly created MLS groups.
-        // Epoch only increases after a commit (adding/removing members).
-        // We should NOT force re-bootstrap based on epoch alone.
-        // Instead, let bootstrapGroup decide if a group needs to be created.
-        await mlsClient.bootstrapGroup(roomId, force: false);
-      } catch (e) {
-        talker.error('Failed to bootstrap MLS group for room $roomId: $e');
+          // Note: epoch=0 is NORMAL for newly created MLS groups.
+          // Epoch only increases after a commit (adding/removing members).
+          // We should NOT force re-bootstrap based on epoch alone.
+          // Instead, let bootstrapGroup decide if a group needs to be created.
+          await mlsClient.bootstrapGroup(room.mlsGroupId!, force: false);
+        } catch (e) {
+          talker.error('Failed to bootstrap MLS group for room $roomId: $e');
+        }
       }
     }
 

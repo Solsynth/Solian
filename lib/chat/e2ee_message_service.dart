@@ -9,15 +9,15 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 /// only handles state management and UI concerns.
 class E2eeMessageService {
   final Ref _ref;
-  final String _roomId;
+  final String? _mlsGroupId;
   final bool _isE2eeRoom;
 
   E2eeMessageService({
     required Ref ref,
-    required String roomId,
+    required String? mlsGroupId,
     required bool isE2eeRoom,
   }) : _ref = ref,
-       _roomId = roomId,
+       _mlsGroupId = mlsGroupId,
        _isE2eeRoom = isE2eeRoom;
 
   bool get isE2eeRoom => _isE2eeRoom;
@@ -127,7 +127,7 @@ class E2eeMessageService {
         normalizeEncryptionMessageType(messageType) ?? 'text';
     final mlsClient = _ref.read(mlsClientProvider);
     final encrypted = await mlsClient.encryptMessage(
-      roomId: _roomId,
+      mlsGroupId: _mlsGroupId!,
       content: content,
       attachmentIds: attachmentIds,
       messageType: MlsMessageType.fromString(normalizedMessageType),
@@ -136,10 +136,10 @@ class E2eeMessageService {
     );
 
     final plaintextEnvelope =
-        (encrypted['plaintextEnvelope'] as Map<String, dynamic>?) ?? {};
+        (encrypted['plaintext_envelope'] as Map<String, dynamic>?) ?? {};
 
     final serverPayload = Map<String, dynamic>.from(encrypted)
-      ..remove('plaintextEnvelope')
+      ..remove('plaintext_envelope')
       ..['client_message_id'] = clientMessageId;
 
     return (serverPayload: serverPayload, localEnvelope: plaintextEnvelope);
@@ -164,9 +164,10 @@ class E2eeMessageService {
       final mlsClient = _ref.read(mlsClientProvider);
       return await mlsClient.decryptMessage(
         messageId: message.id,
-        roomId: message.chatRoomId,
+        mlsGroupId: _mlsGroupId!,
         ciphertext: ciphertext,
         encryptionHeader: message.meta['e2ee_header']?.toString(),
+        encryptionScheme: message.meta['e2ee_scheme']?.toString(),
       );
     } catch (e) {
       talker.debug('E2EE decrypt failed for ${message.id}: $e');
