@@ -442,6 +442,20 @@ final backgroundImageProvider = Provider<File?>((ref) {
   return null;
 });
 
+final backgroundMemoryImageProvider = FutureProvider<MemoryImage?>((ref) async {
+  if (kIsWeb) return null;
+  
+  final file = ref.watch(backgroundImageProvider);
+  if (file == null) return null;
+  
+  try {
+    final bytes = await file.readAsBytes();
+    return MemoryImage(bytes);
+  } catch (e) {
+    return null;
+  }
+});
+
 class AppBackground extends ConsumerWidget {
   final Widget child;
   final bool isRoot;
@@ -450,13 +464,15 @@ class AppBackground extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final backgroundFile = ref.watch(backgroundImageProvider);
+    final backgroundMemoryImage = ref.watch(backgroundMemoryImageProvider);
     final showBackground = ref.watch(
       appSettingsProvider.select((s) => s.showBackgroundImage),
     );
 
     if (isRoot || !isWideScreen(context)) {
-      if (backgroundFile != null && showBackground) {
+      if (backgroundMemoryImage.hasValue && 
+          backgroundMemoryImage.value != null && 
+          showBackground) {
         return Material(
           color: Theme.of(context).colorScheme.surface,
           child: Container(
@@ -465,7 +481,7 @@ class AppBackground extends ConsumerWidget {
               color: Theme.of(context).colorScheme.surface,
               image: DecorationImage(
                 opacity: 0.2,
-                image: FileImage(backgroundFile),
+                image: backgroundMemoryImage.value!,
                 fit: BoxFit.cover,
               ),
             ),
