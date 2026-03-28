@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/progression_ws.dart';
@@ -10,6 +11,7 @@ import 'package:island/core/screens/e2ee_keypair_screen.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/e2ee/mls_engine.dart';
 import 'package:island/e2ee/mls_storage.dart';
+import 'package:island/e2ee/mls_client.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -282,12 +284,49 @@ class DebugSheet extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
-              leading: const Icon(Symbols.clear),
+              leading: const Icon(Symbols.info),
               trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              title: Text('Clear cache'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('MLS Diagnostics'),
               onTap: () async {
-                DefaultCacheManager().emptyCache();
+                try {
+                  final mlsClient = ref.read(mlsClientProvider);
+                  final deviceId = await mlsClient.getDeviceId();
+                  final signerPub = await mlsClient.identityManager
+                      .getSignerPublicKey();
+                  final kpCount = await mlsClient.identityManager
+                      .getKeyPackageUploadCount();
+                  final accountId = await mlsClient.identityManager
+                      .getCurrentAccountId();
+
+                  final info = StringBuffer();
+                  info.writeln('MLS Diagnostics');
+                  info.writeln('─' * 30);
+                  info.writeln('Device ID: ${deviceId ?? "null"}');
+                  info.writeln('Account ID: ${accountId ?? "null"}');
+                  final signerPubStr = base64Encode(signerPub);
+                  info.writeln(
+                    'Signer Public Key: ${signerPubStr.length > 20 ? "${signerPubStr.substring(0, 20)}..." : signerPubStr}',
+                  );
+                  info.writeln('Local KeyPackages: $kpCount');
+
+                  if (accountId != null) {
+                    final serverKps = await mlsClient.identityManager
+                        .getDeviceKeyPackages(accountId);
+                    info.writeln('Server KeyPackages: ${serverKps.length}');
+                    for (final kp in serverKps) {
+                      info.writeln(
+                        '  Device: ${kp['device_id']}, KP: ${kp['key_package'] != null ? "yes" : "no"}',
+                      );
+                    }
+                  }
+
+                  if (!context.mounted) return;
+                  showInfoAlert(info.toString(), 'MLS Diagnostics');
+                } catch (e) {
+                  if (!context.mounted) return;
+                  showErrorAlert(e);
+                }
               },
             ),
             ListTile(
@@ -325,6 +364,57 @@ class DebugSheet extends HookConsumerWidget {
                     'MLS storage cleared. Please restart the app.',
                     'Done',
                   );
+                }
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.mail),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Fetch pending E2EE envelopes'),
+              onTap: () async {
+                try {
+                  final mlsClient = ref.read(mlsClientProvider);
+                  await mlsClient.fetchAndProcessPendingEnvelopes();
+                  if (!context.mounted) return;
+                  showSnackBar('Pending envelopes processed');
+                } catch (e) {
+                  if (!context.mounted) return;
+                  showErrorAlert(e);
+                }
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.info),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('MLS Diagnostics'),
+              onTap: () async {
+                try {
+                  final mlsClient = ref.read(mlsClientProvider);
+                  final deviceId = await mlsClient.getDeviceId();
+                  final signerPub = await mlsClient.identityManager
+                      .getSignerPublicKey();
+                  final kpCount = await mlsClient.identityManager
+                      .getKeyPackageUploadCount();
+
+                  final info = StringBuffer();
+                  info.writeln('MLS Diagnostics');
+                  info.writeln('─' * 30);
+                  info.writeln('Device ID: ${deviceId ?? "null"}');
+                  final signerPubStr = base64Encode(signerPub);
+                  info.writeln(
+                    'Signer Public Key: ${signerPubStr.length > 20 ? "${signerPubStr.substring(0, 20)}..." : signerPubStr}',
+                  );
+                  info.writeln('Local KeyPackages: $kpCount');
+
+                  if (!context.mounted) return;
+                  showInfoAlert(info.toString(), 'MLS Diagnostics');
+                } catch (e) {
+                  if (!context.mounted) return;
+                  showErrorAlert(e);
                 }
               },
             ),

@@ -454,17 +454,12 @@ class MlsMessageHandler {
     try {
       final response = await _padlockClient.get(
         '/e2ee/mls/envelopes/pending',
-        queryParameters: {'device_id': deviceId},
+        queryParameters: {'deviceId': deviceId},
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       if (response.data is List) {
         return (response.data as List).map((e) {
-          final map = Map<String, dynamic>.from(e as Map);
-          final typeValue = map['type'];
-          if (typeValue is int) {
-            map['envelope_type'] = MlsEnvelopeType.fromInt(typeValue).name;
-          }
-          return map;
+          return Map<String, dynamic>.from(e as Map);
         }).toList();
       }
       return [];
@@ -478,7 +473,7 @@ class MlsMessageHandler {
     try {
       final response = await _padlockClient.post(
         '/e2ee/mls/envelopes/$envelopeId/ack',
-        queryParameters: {'device_id': deviceId},
+        queryParameters: {'deviceId': deviceId},
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       return response.statusCode == 200 || response.statusCode == 204;

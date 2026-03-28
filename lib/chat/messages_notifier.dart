@@ -373,6 +373,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (identity != null) {
       final mlsClient = ref.read(mlsClientProvider);
       await mlsClient.setCurrentAccountId(identity.accountId);
+      // Fetch pending E2EE envelopes (Welcome, Commit, Proposal)
+      await mlsClient.fetchAndProcessPendingEnvelopes();
     }
 
     // Ensure MLS group is bootstrapped for E2EE rooms

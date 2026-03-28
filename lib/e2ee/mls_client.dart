@@ -96,18 +96,18 @@ class MlsClient {
       _mlsLog('Processing ${envelopes.length} pending envelope(s)');
       for (final envelope in envelopes) {
         final envelopeId = envelope['id']?.toString();
-        final envelopeType = envelope['envelope_type']?.toString();
-        final payload = envelope['payload']?.toString();
-        final mlsGroupId = envelope['mls_group_id']?.toString();
+        final envelopeType = envelope['type'] as int?;
+        final ciphertext = envelope['ciphertext']?.toString();
+        final mlsGroupId = envelope['group_id']?.toString();
 
-        if (envelopeId == null || payload == null || mlsGroupId == null) {
+        if (envelopeId == null || ciphertext == null || mlsGroupId == null) {
           _mlsLogWarn('Skipping envelope $envelopeId: missing required fields');
           continue;
         }
 
         try {
-          if (envelopeType == 'welcome') {
-            final welcomeBytes = base64Decode(payload);
+          if (envelopeType == MlsEnvelopeType.welcome.value) {
+            final welcomeBytes = base64Decode(ciphertext);
             final result = await processWelcome(
               mlsGroupId: mlsGroupId,
               welcomeBytes: welcomeBytes,
@@ -210,6 +210,15 @@ class MlsClient {
     eventBus.fire(MlsReshareRequiredEvent(mlsGroupId: mlsGroupId));
   }
 
+  Future<void> fetchAndProcessPendingEnvelopes() async {
+    final deviceId = await _identityManager.getOrCreateDeviceId();
+    if (deviceId != null) {
+      await _fetchAndProcessPendingEnvelopes(deviceId);
+    } else {
+      _mlsLogWarn('Cannot fetch pending envelopes: device ID is null');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getPendingEnvelopes(
     String deviceId,
   ) async {
@@ -262,6 +271,9 @@ class MlsClient {
     );
     if (result != null) {
       final newEpoch = await _groupManager.getCurrentEpoch(mlsGroupId);
+      _mlsLog(
+        'Successfully processed welcome for group $mlsGroupId, new epoch $newEpoch',
+      );
       eventBus.fire(
         MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: newEpoch),
       );

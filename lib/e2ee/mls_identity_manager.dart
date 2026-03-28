@@ -219,7 +219,10 @@ class MlsIdentityManager {
     try {
       final response = await _padlockClient.put(
         '/e2ee/mls/devices/me/key-packages',
-        data: {'key_package': keyPackage},
+        data: {
+          'key_package': keyPackage,
+          'device_id': await getOrCreateDeviceId(),
+        },
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       await _storage.addKeyPackage(keyPackage);
