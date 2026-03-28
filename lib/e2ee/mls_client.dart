@@ -27,8 +27,11 @@ class MlsClient {
   late final MlsGroupManager _groupManager;
   late final MlsMessageHandler _messageHandler;
 
-  MlsClient({required MlsStorage storage, required Dio padlockClient})
-    : _storage = storage {
+  MlsClient({
+    required MlsStorage storage,
+    required Dio padlockClient,
+    required Dio apiClient,
+  }) : _storage = storage {
     _identityManager = MlsIdentityManager(
       storage: storage,
       padlockClient: padlockClient,
@@ -36,6 +39,7 @@ class MlsClient {
     _groupManager = MlsGroupManager(
       storage: storage,
       padlockClient: padlockClient,
+      apiClient: apiClient,
       identityManager: _identityManager,
     );
     _messageHandler = MlsMessageHandler(
@@ -49,6 +53,11 @@ class MlsClient {
   MlsIdentityManager get identityManager => _identityManager;
   MlsGroupManager get groupManager => _groupManager;
   MlsMessageHandler get messageHandler => _messageHandler;
+
+  Future<void> setCurrentAccountId(String accountId) async {
+    await _identityManager.setCurrentAccountId(accountId);
+    _mlsLog('MLS Client account ID set: $accountId');
+  }
 
   Future<void> initialize() async {
     await MlsEngineService.getInstance();
@@ -272,8 +281,16 @@ class MlsClient {
   }
 
   /// Reset and re-bootstrap the MLS group for a room.
-  Future<void> resetAndRebootstrapGroup(String mlsGroupId) async {
-    await _groupManager.resetAndRebootstrapGroup(mlsGroupId);
+  Future<void> resetAndRebootstrapGroup({
+    required String roomId,
+    required String mlsGroupId,
+    required String creatorAccountId,
+  }) async {
+    await _groupManager.resetAndRebootstrapGroup(
+      roomId: roomId,
+      mlsGroupId: mlsGroupId,
+      creatorAccountId: creatorAccountId,
+    );
   }
 }
 
@@ -284,7 +301,12 @@ final mlsStorageProvider = Provider<MlsStorage>((ref) {
 final mlsClientProvider = Provider<MlsClient>((ref) {
   final storage = ref.watch(mlsStorageProvider);
   final padlockClient = ref.watch(padlockApiClientProvider);
-  final client = MlsClient(storage: storage, padlockClient: padlockClient);
+  final apiClient = ref.watch(apiClientProvider);
+  final client = MlsClient(
+    storage: storage,
+    padlockClient: padlockClient,
+    apiClient: apiClient,
+  );
   client.initialize();
   return client;
 });

@@ -280,4 +280,20 @@ class MlsIdentityManager {
   Future<int> getKeyPackageUploadCount() async {
     return _storage.getKeyPackageCount();
   }
+
+  Future<void> setCurrentAccountId(String accountId) async {
+    await _storage.setAccountId(accountId);
+  }
+
+  Future<String?> getCurrentAccountId() async {
+    return _storage.getAccountId();
+  }
+
+  Future<List<String>> getDevicesForAccount(String accountId) async {
+    final devices = await getDeviceKeyPackages(accountId);
+    return devices
+        .map((d) => d['device_id']?.toString())
+        .whereType<String>()
+        .toList();
+  }
 }

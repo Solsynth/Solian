@@ -14,6 +14,15 @@ class MlsStorage {
   static const _keySignerKeyPair = 'mls_signer_keypair';
   static const _keySignerBytes = 'mls_signer_bytes';
   static const _keySignerPublicKey = 'mls_signer_public_key';
+  static const _keyAccountId = 'mls_account_id';
+
+  Future<void> setAccountId(String accountId) async {
+    await _storage.write(key: _keyAccountId, value: accountId);
+  }
+
+  Future<String?> getAccountId() async {
+    return _storage.read(key: _keyAccountId);
+  }
 
   Future<String?> getDeviceId() async {
     return _storage.read(key: _keyDeviceId);
