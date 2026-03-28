@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/fediverse/actor_profile.dart';
 
 // Shell route keys for nested navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -51,6 +52,10 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(page: PostDetailRoute.page, path: '/posts/:id'),
     AutoRoute(page: PublisherProfileRoute.page, path: '/publishers/:name'),
+    AutoRoute(
+      page: FediverseActorProfileRoute.page,
+      path: '/fediverse/actors/:id',
+    ),
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
     AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
 

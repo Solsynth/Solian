@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/data/database.dart';
@@ -9,6 +10,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/e2ee/e2ee.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/talker.dart';
@@ -566,6 +568,77 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     );
   }
 
+  /// Decrypts an E2EE message if needed, preserving plaintext for own messages.
+  /// Returns the message with plaintext content if available, or original if not E2EE.
+  Future<SnChatMessage?> _decryptSyncMessage(
+    SnChatMessage message,
+    AppDatabase db,
+  ) async {
+    final isEncrypted = message.meta['e2ee_is_encrypted'] == true;
+    if (!isEncrypted) return message;
+
+    // Check if message already has content in DB - use it directly
+    final existing = await db.getMessageById(message.id);
+    if (existing != null &&
+        existing.content != null &&
+        existing.content!.isNotEmpty) {
+      return message.copyWith(content: existing.content);
+    }
+
+    // Check if it's our own message by device ID
+    final headerStr = message.meta['e2ee_header']?.toString();
+    if (headerStr != null && headerStr.isNotEmpty) {
+      try {
+        final headerBytes = base64Decode(headerStr);
+        final headerJson = utf8.decode(headerBytes);
+        final header = jsonDecode(headerJson) as Map<String, dynamic>;
+        final senderDeviceId = header['deviceId']?.toString();
+
+        if (senderDeviceId != null) {
+          final currentDeviceId = await ref
+              .read(mlsClientProvider)
+              .getDeviceId();
+          if (currentDeviceId != null && senderDeviceId == currentDeviceId) {
+            // Our own message - check meta for existing decrypted content
+            final decryptedContent = message.meta['e2ee_decrypted_content']
+                ?.toString();
+            if (decryptedContent != null && decryptedContent.isNotEmpty) {
+              return message.copyWith(content: decryptedContent);
+            }
+            // No plaintext available - skip this message
+            talker.debug(
+              'Skipping sync for own message ${message.id} - no plaintext',
+            );
+            return null;
+          }
+        }
+      } catch (e) {
+        talker.debug('Failed to parse encryption header in sync: $e');
+      }
+    }
+
+    // Try to decrypt
+    try {
+      final mlsClient = ref.read(mlsClientProvider);
+      final result = await mlsClient.decryptMessage(
+        messageId: message.id,
+        roomId: message.chatRoomId,
+        ciphertext: message.meta['e2ee_ciphertext']?.toString() ?? '',
+        encryptionHeader: headerStr,
+      );
+      if (result != null) {
+        final content = result['content']?.toString();
+        if (content != null && content.isNotEmpty) {
+          return message.copyWith(content: content);
+        }
+      }
+    } catch (e) {
+      talker.debug('Failed to decrypt sync message ${message.id}: $e');
+    }
+
+    return null;
+  }
+
   /// Perform global sync to fetch messages from all chat rooms
   Future<void> syncAllMessages({bool force = false}) async {
     if (_ongoingSync != null) {
@@ -694,8 +767,19 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               reactionMessages.add(msg);
               continue;
             }
+
+            // Decrypt E2EE messages if needed
+            final decryptedMsg = await _decryptSyncMessage(msg, db);
+            if (decryptedMsg == null) {
+              // Skipped - own message without plaintext or decryption failed
+              continue;
+            }
+
             normalMessages.add(
-              LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+              LocalChatMessage.fromRemoteMessage(
+                decryptedMsg,
+                MessageStatus.sent,
+              ),
             );
             updatedRoomIds.add(msg.chatRoomId);
             roundSynced += 1;

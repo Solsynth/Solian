@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -649,6 +648,14 @@ class _AccountSearchTab extends HookConsumerWidget {
                                 left: 16,
                                 right: 12,
                               ),
+                              onTap: () {
+                                context.router.push(
+                                  FediverseActorProfileRoute(
+                                    id: actor.id,
+                                    fullHandle: actor.fullHandle,
+                                  ),
+                                );
+                              },
                               leading: Stack(
                                 children: [
                                   CircleAvatar(
@@ -726,9 +733,10 @@ class _AccountSearchTab extends HookConsumerWidget {
                                 ],
                               ),
                               subtitle:
-                                  actor.bio != null && actor.bio!.isNotEmpty
+                                  actor.summary != null &&
+                                      actor.summary!.isNotEmpty
                                   ? Text(
-                                      actor.bio!,
+                                      actor.summary!,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: Theme.of(
