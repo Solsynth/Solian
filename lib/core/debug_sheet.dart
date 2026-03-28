@@ -8,6 +8,8 @@ import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/screens/e2ee_keypair_screen.dart';
 import 'package:island/core/services/update_service.dart';
+import 'package:island/e2ee/mls_engine.dart';
+import 'package:island/e2ee/mls_storage.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -286,6 +288,44 @@ class DebugSheet extends HookConsumerWidget {
               title: Text('Clear cache'),
               onTap: () async {
                 DefaultCacheManager().emptyCache();
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.security),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Clear MLS storage'),
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Clear MLS Storage?'),
+                    content: const Text(
+                      'This will delete all MLS group states, credentials, and key packages. '
+                      'You will need to re-register your device and re-bootstrap all groups.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Clear'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  final storage = MlsStorage();
+                  await storage.clearAll();
+                  MlsEngineService.resetInstance();
+                  showInfoAlert(
+                    'MLS storage cleared. Please restart the app.',
+                    'Done',
+                  );
+                }
               },
             ),
           ],

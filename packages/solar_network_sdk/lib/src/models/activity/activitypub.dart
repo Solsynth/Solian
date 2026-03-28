@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'activitypub.freezed.dart';
 part 'activitypub.g.dart';
@@ -51,24 +52,35 @@ sealed class SnActivityPubUser with _$SnActivityPubUser {
 sealed class SnActivityPubActor with _$SnActivityPubActor {
   const factory SnActivityPubActor({
     required String id,
-    required String username,
-    required String instanceDomain,
-    required SnActivityPubInstance instance,
+    required String uri,
     @Default('Person') String type,
+    required String fullHandle,
     String? displayName,
-    String? bio,
+    required String username,
+    String? summary,
+    String? inboxUri,
+    String? outboxUri,
+    String? followersUri,
+    String? followingUri,
+    String? featuredUri,
     String? avatarUrl,
     String? headerUrl,
-    String? webUrl,
+    String? publicKeyId,
+    String? publicKey,
     @Default(false) bool isBot,
     @Default(false) bool isLocked,
     @Default(true) bool isDiscoverable,
-    @Default(0) int followersCount,
-    @Default(0) int followingCount,
-    DateTime? lastActivityAt,
-    DateTime? lastFetchedAt,
+    Map<String, dynamic>? endpoints,
+    Map<String, dynamic>? publicKeyData,
     Map<String, dynamic>? metadata,
+    DateTime? lastFetchedAt,
+    DateTime? lastActivityAt,
+    required SnActivityPubInstance instance,
+    required String instanceId,
     bool? isFollowing,
+    int? followersCount,
+    int? followingCount,
+    List<SnPost>? recentPosts,
   }) = _SnActivityPubActor;
 
   factory SnActivityPubActor.fromJson(Map<String, dynamic> json) =>

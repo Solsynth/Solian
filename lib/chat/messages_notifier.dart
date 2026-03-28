@@ -277,7 +277,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   /// Decrypts an E2EE message, applying decrypted content to the message.
-  /// Returns null if decryption fundamentally fails (should not happen for valid messages).
+  /// Returns null if:
+  /// - Decryption is skipped for own message (no plaintext available)
+  /// - Decryption fundamentally fails
   /// Skips decryption for messages sent by current device (identified by device ID in header)
   /// since MLS forward secrecy prevents self-decryption - plaintext is preserved from pending.
   Future<SnChatMessage?> _decryptMessageIfEncrypted(
@@ -319,7 +321,7 @@ class MessagesNotifier extends _$MessagesNotifier {
             talker.debug(
               'Skipping decrypt for own message ${message.id} (device: $senderDeviceId), no pending plaintext',
             );
-            return message;
+            return null; // Cannot show message without plaintext
           }
         }
       } catch (e) {
@@ -330,7 +332,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     final result = await _e2eeService.decryptMessage(message);
     if (result == null) {
-      return message; // decrypt failed but message is still valid
+      return null; // Decryption failed - cannot show message
     }
     final content = result['content']?.toString();
     if (content != null && content.isNotEmpty) {
@@ -338,7 +340,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       updatedMeta['e2ee_decrypted_content'] = content;
       return message.copyWith(content: content, meta: updatedMeta);
     }
-    return message;
+    return null; // Empty content after decrypt - cannot show meaningful message
   }
 
   @override
@@ -366,7 +368,16 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (_isE2eeRoom) {
       try {
         final mlsClient = ref.read(mlsClientProvider);
-        await mlsClient.bootstrapGroup(roomId);
+
+        // Check current epoch for logging purposes
+        final currentEpoch = await mlsClient.getCurrentEpoch(roomId);
+        talker.debug('Current MLS epoch for room $roomId: $currentEpoch');
+
+        // Note: epoch=0 is NORMAL for newly created MLS groups.
+        // Epoch only increases after a commit (adding/removing members).
+        // We should NOT force re-bootstrap based on epoch alone.
+        // Instead, let bootstrapGroup decide if a group needs to be created.
+        await mlsClient.bootstrapGroup(roomId, force: false);
       } catch (e) {
         talker.error('Failed to bootstrap MLS group for room $roomId: $e');
       }
@@ -651,12 +662,25 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       if (remoteMessage == null) continue;
 
+      // Check for existing message in DB first - if it has content, use it directly
+      // This handles resync of own messages after pending is removed
+      final existing = await _database.getMessageById(remoteMessage.id);
+      if (existing != null &&
+          existing.content != null &&
+          existing.content!.isNotEmpty) {
+        talker.debug(
+          'Using existing content from DB for message ${remoteMessage.id}',
+        );
+        messages.add(existing);
+        continue;
+      }
+
+      // No existing content - try to decrypt
       final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
       if (decryptedMessage == null) continue;
 
-      // Check for existing message (by ID or by nonce from pending)
-      final existing = await _database.getMessageById(decryptedMessage.id);
-      final pendingByNonce = decryptedMessage.clientMessageId != null
+      // Check for pending message (shouldn't exist for resync, but check anyway)
+      final pendingByClientId = decryptedMessage.clientMessageId != null
           ? _pendingMessages.values
                 .where(
                   (m) => m.clientMessageId == decryptedMessage.clientMessageId,
@@ -668,7 +692,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final messageToConvert = E2eeMessageService.preserveSenderPlaintext(
         decryptedMessage,
         existingDbContent: existing?.content,
-        pendingContent: pendingByNonce?.content,
+        pendingContent: pendingByClientId?.content,
       );
 
       var localMessage = LocalChatMessage.fromRemoteMessage(

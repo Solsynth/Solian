@@ -122,10 +122,10 @@ class ApActorListItem extends StatelessWidget {
         spacing: 8,
         children: [
           Text(username),
-          if (actor.bio?.isNotEmpty ?? false)
+          if (actor.summary?.isNotEmpty ?? false)
             Expanded(
               child: Text(
-                actor.bio!,
+                actor.summary!,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,
