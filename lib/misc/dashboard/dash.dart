@@ -31,7 +31,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:slide_countdown/slide_countdown.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:island/settings/dashboard/dash_customize.dart';
+import 'package:island/misc/dashboard/dash_customize.dart';
 import 'package:island/core/config.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -736,9 +736,9 @@ class FortuneCard extends HookConsumerWidget {
           child: ConfuseSpinner(
             size: 32,
             speed: 6,
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(
-              0.65,
-            ),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
           ),
         ),
         error: (error, stack) => Center(child: Text('Error: $error')),

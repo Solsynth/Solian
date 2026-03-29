@@ -199,6 +199,17 @@ class DebugSheet extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
+              leading: const Icon(Symbols.chat_bubble),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test snackbar'),
+              onTap: () {
+                showSnackBar('This is a test snackbar message.');
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
               leading: const Icon(Symbols.military_tech),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
