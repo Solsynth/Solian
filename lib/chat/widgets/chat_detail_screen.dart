@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/e2ee/mls_client.dart';
+import 'package:island/talker.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -744,12 +746,37 @@ class _ChatMemberListSheet extends HookConsumerWidget {
         builder: (context) => const AccountPickerSheet(),
       );
       if (result == null) return;
+
       try {
         final apiClient = ref.watch(apiClientProvider);
         await apiClient.post(
           '/messager/chat/invites/$roomId',
           data: {'related_user_id': result.id, 'role': 0},
         );
+
+        final mlsGroupId = chatRoom.value?.mlsGroupId;
+        final isEncrypted = (chatRoom.value?.encryptionMode ?? 0) == 3;
+        if (isEncrypted && mlsGroupId != null) {
+          try {
+            final padlockClient = ref.read(padlockApiClientProvider);
+            final readyResponse = await padlockClient.get(
+              '/e2ee/mls/users/${result.id}/ready',
+              options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+            );
+            final isReady = readyResponse.data['is_ready'] as bool? ?? false;
+
+            if (isReady) {
+              final mlsClient = ref.read(mlsClientProvider);
+              await mlsClient.groupManager.addMembersAndFanoutWelcome(
+                mlsGroupId,
+                [result.id],
+              );
+            }
+          } catch (e) {
+            talker.warning('Failed to fanout welcome to new member: $e');
+          }
+        }
+
         memberNotifier.refresh();
       } catch (err) {
         showErrorAlert(err);
