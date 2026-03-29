@@ -290,21 +290,21 @@ class ChatRoomScreen extends HookConsumerWidget {
       messages,
     );
 
+    final scrollControllerRef = useRef(scrollManager.scrollController);
     useEffect(() {
+      final controller = scrollControllerRef.value;
       void updateAtLatestState() {
-        final controller = scrollManager.scrollController;
         if (!controller.hasClients) return;
         final atLatest = controller.position.pixels <= 80;
         isAtLatestMessages.value = atLatest;
       }
 
-      scrollManager.scrollController.addListener(updateAtLatestState);
+      controller.addListener(updateAtLatestState);
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => updateAtLatestState(),
       );
-      return () =>
-          scrollManager.scrollController.removeListener(updateAtLatestState);
-    }, [scrollManager.scrollController]);
+      return () => controller.removeListener(updateAtLatestState);
+    }, []);
 
     final inputKey = useMemoized(() => GlobalKey(), []);
     final inputHeight = useState<double>(80.0);

@@ -50,25 +50,23 @@ RoomScrollManager useRoomScrollManager(
     flashingMessagesNotifier.update((set) => set.union({messageId}));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        try {
-          listController.animateToItem(
-            index: index,
-            scrollController: scrollController,
-            alignment: 0.5,
-            duration: (estimatedDistance) => Duration(
-              milliseconds: (estimatedDistance * 0.5).clamp(200, 800).toInt(),
-            ),
-            curve: (estimatedDistance) => Curves.easeOutCubic,
-          );
+      try {
+        listController.animateToItem(
+          index: index,
+          scrollController: scrollController,
+          alignment: 0.5,
+          duration: (estimatedDistance) => Duration(
+            milliseconds: (estimatedDistance * 0.5).clamp(200, 800).toInt(),
+          ),
+          curve: (estimatedDistance) => Curves.easeOutCubic,
+        );
 
-          Future.delayed(const Duration(milliseconds: 800), () {
-            isScrollingToMessage = false;
-          });
-        } catch (e) {
+        Future.delayed(const Duration(milliseconds: 800), () {
           isScrollingToMessage = false;
-        }
-      });
+        });
+      } catch (e) {
+        isScrollingToMessage = false;
+      }
     });
   }
 
@@ -137,15 +135,18 @@ RoomScrollManager useRoomScrollManager(
     return () => scrollController.removeListener(onScroll);
   }, [scrollController, messagesAsync]);
 
+  final scrollControllerRef = useRef(scrollController);
+  final scrollController0 = scrollControllerRef.value;
+
   useEffect(() {
     final items = messagesAsync.asData?.value;
     if (items == null) return null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!scrollController.hasClients) return;
+      if (!scrollController0.hasClients) return;
       if (isLoadingRef.value || autoFillInProgressRef.value) return;
 
-      final position = scrollController.position;
+      final position = scrollController0.position;
       final isScrollable = position.maxScrollExtent > 0;
       if (isScrollable) {
         autoFillPassesRef.value = 0;
@@ -175,7 +176,7 @@ RoomScrollManager useRoomScrollManager(
     });
 
     return null;
-  }, [messagesAsync.asData?.value.length, scrollController]);
+  }, [messagesAsync.asData?.value.length]);
 
   return RoomScrollManager(
     scrollController: scrollController,
