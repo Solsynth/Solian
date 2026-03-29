@@ -159,7 +159,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesProvider(id));
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
-    final isAtLatestMessages = useState(false);
+    final isAtLatestMessages = useState(true);
     final collapsedBotGroupIds = useState<Set<String>>({});
     final savedLastReadAt = useState<DateTime?>(null);
 
@@ -291,11 +291,14 @@ class ChatRoomScreen extends HookConsumerWidget {
     );
 
     final scrollControllerRef = useRef(scrollManager.scrollController);
+    final lastAtLatestRef = useRef<bool?>(true);
     useEffect(() {
       final controller = scrollControllerRef.value;
       void updateAtLatestState() {
         if (!controller.hasClients) return;
         final atLatest = controller.position.pixels <= 80;
+        if (lastAtLatestRef.value == atLatest) return;
+        lastAtLatestRef.value = atLatest;
         isAtLatestMessages.value = atLatest;
       }
 

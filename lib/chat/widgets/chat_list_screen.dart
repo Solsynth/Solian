@@ -362,7 +362,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
             },
             loading: () => Center(
               child: ConfuseSpinner(
-                size: 36,
+                size: 40,
                 speed: 6,
                 color: Theme.of(
                   context,
@@ -567,12 +567,12 @@ class _ChatListAppBar extends HookConsumerWidget {
               Padding(
                 padding: EdgeInsets.only(right: 8),
                 child: SizedBox(
-                  width: 20,
-                  height: 20,
+                  width: 24,
+                  height: 24,
                   child: ConfuseSpinner(
-                    size: 20,
+                    size: 24,
                     speed: 7,
-                    fontSize: 10,
+                    fontSize: 12,
                     color: Theme.of(
                       context,
                     ).colorScheme.onSurfaceVariant.withOpacity(0.65),
@@ -904,7 +904,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
       },
       loading: () => Center(
         child: ConfuseSpinner(
-          size: 36,
+          size: 40,
           speed: 6,
           color: Theme.of(
             context,
