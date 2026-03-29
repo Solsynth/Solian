@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -178,7 +177,6 @@ class ActivityListNotifier
   @override
   Future<List<SnTimelineEvent>> fetch({int retryCount = 0}) async {
     final client = ref.read(apiClientProvider);
-    final settings = ref.read(appSettingsProvider);
 
     final queryParameters = {
       if (cursor != null) 'cursor': cursor,
@@ -186,7 +184,6 @@ class ActivityListNotifier
       'mode': currentMode,
       'aggressive': isAggressiveMode,
       if (currentFilter != null) 'filter': currentFilter,
-      'showFediverse': settings.showFediverseContent,
     };
 
     final response = await client.get(

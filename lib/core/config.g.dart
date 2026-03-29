@@ -45,6 +45,36 @@ Map<String, dynamic> _$DashboardConfigToJson(_DashboardConfig instance) =>
       'show_clock_and_countdown': instance.showClockAndCountdown,
     };
 
+_ExploreSettings _$ExploreSettingsFromJson(Map<String, dynamic> json) =>
+    _ExploreSettings(
+      mode: json['mode'] as String? ?? 'personalized',
+      aggressiveMode: json['aggressive_mode'] as bool? ?? true,
+      selectedPublisherNames:
+          (json['selected_publisher_names'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+      selectedCategoryIds:
+          (json['selected_category_ids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+      selectedTagIds:
+          (json['selected_tag_ids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+    );
+
+Map<String, dynamic> _$ExploreSettingsToJson(_ExploreSettings instance) =>
+    <String, dynamic>{
+      'mode': instance.mode,
+      'aggressive_mode': instance.aggressiveMode,
+      'selected_publisher_names': instance.selectedPublisherNames,
+      'selected_category_ids': instance.selectedCategoryIds,
+      'selected_tag_ids': instance.selectedTagIds,
+    };
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
@@ -85,7 +115,7 @@ final class AppSettingsNotifierProvider
 }
 
 String _$appSettingsNotifierHash() =>
-    r'11b8715380408a7532c21c8b9611947d34b6c509';
+    r'3182423c50be0fa678f7e71c16a8b160c2cefc89';
 
 abstract class _$AppSettingsNotifier extends $Notifier<AppSettings> {
   AppSettings build();

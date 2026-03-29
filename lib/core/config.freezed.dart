@@ -561,6 +561,293 @@ as bool,
 
 }
 
+
+/// @nodoc
+mixin _$ExploreSettings {
+
+ String get mode; bool get aggressiveMode; List<String> get selectedPublisherNames; List<String> get selectedCategoryIds; List<String> get selectedTagIds;
+/// Create a copy of ExploreSettings
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ExploreSettingsCopyWith<ExploreSettings> get copyWith => _$ExploreSettingsCopyWithImpl<ExploreSettings>(this as ExploreSettings, _$identity);
+
+  /// Serializes this ExploreSettings to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExploreSettings&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.aggressiveMode, aggressiveMode) || other.aggressiveMode == aggressiveMode)&&const DeepCollectionEquality().equals(other.selectedPublisherNames, selectedPublisherNames)&&const DeepCollectionEquality().equals(other.selectedCategoryIds, selectedCategoryIds)&&const DeepCollectionEquality().equals(other.selectedTagIds, selectedTagIds));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,mode,aggressiveMode,const DeepCollectionEquality().hash(selectedPublisherNames),const DeepCollectionEquality().hash(selectedCategoryIds),const DeepCollectionEquality().hash(selectedTagIds));
+
+@override
+String toString() {
+  return 'ExploreSettings(mode: $mode, aggressiveMode: $aggressiveMode, selectedPublisherNames: $selectedPublisherNames, selectedCategoryIds: $selectedCategoryIds, selectedTagIds: $selectedTagIds)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ExploreSettingsCopyWith<$Res>  {
+  factory $ExploreSettingsCopyWith(ExploreSettings value, $Res Function(ExploreSettings) _then) = _$ExploreSettingsCopyWithImpl;
+@useResult
+$Res call({
+ String mode, bool aggressiveMode, List<String> selectedPublisherNames, List<String> selectedCategoryIds, List<String> selectedTagIds
+});
+
+
+
+
+}
+/// @nodoc
+class _$ExploreSettingsCopyWithImpl<$Res>
+    implements $ExploreSettingsCopyWith<$Res> {
+  _$ExploreSettingsCopyWithImpl(this._self, this._then);
+
+  final ExploreSettings _self;
+  final $Res Function(ExploreSettings) _then;
+
+/// Create a copy of ExploreSettings
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,Object? aggressiveMode = null,Object? selectedPublisherNames = null,Object? selectedCategoryIds = null,Object? selectedTagIds = null,}) {
+  return _then(_self.copyWith(
+mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
+as String,aggressiveMode: null == aggressiveMode ? _self.aggressiveMode : aggressiveMode // ignore: cast_nullable_to_non_nullable
+as bool,selectedPublisherNames: null == selectedPublisherNames ? _self.selectedPublisherNames : selectedPublisherNames // ignore: cast_nullable_to_non_nullable
+as List<String>,selectedCategoryIds: null == selectedCategoryIds ? _self.selectedCategoryIds : selectedCategoryIds // ignore: cast_nullable_to_non_nullable
+as List<String>,selectedTagIds: null == selectedTagIds ? _self.selectedTagIds : selectedTagIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ExploreSettings].
+extension ExploreSettingsPatterns on ExploreSettings {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ExploreSettings value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ExploreSettings() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ExploreSettings value)  $default,){
+final _that = this;
+switch (_that) {
+case _ExploreSettings():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ExploreSettings value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ExploreSettings() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String mode,  bool aggressiveMode,  List<String> selectedPublisherNames,  List<String> selectedCategoryIds,  List<String> selectedTagIds)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ExploreSettings() when $default != null:
+return $default(_that.mode,_that.aggressiveMode,_that.selectedPublisherNames,_that.selectedCategoryIds,_that.selectedTagIds);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String mode,  bool aggressiveMode,  List<String> selectedPublisherNames,  List<String> selectedCategoryIds,  List<String> selectedTagIds)  $default,) {final _that = this;
+switch (_that) {
+case _ExploreSettings():
+return $default(_that.mode,_that.aggressiveMode,_that.selectedPublisherNames,_that.selectedCategoryIds,_that.selectedTagIds);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String mode,  bool aggressiveMode,  List<String> selectedPublisherNames,  List<String> selectedCategoryIds,  List<String> selectedTagIds)?  $default,) {final _that = this;
+switch (_that) {
+case _ExploreSettings() when $default != null:
+return $default(_that.mode,_that.aggressiveMode,_that.selectedPublisherNames,_that.selectedCategoryIds,_that.selectedTagIds);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ExploreSettings implements ExploreSettings {
+  const _ExploreSettings({this.mode = 'personalized', this.aggressiveMode = true, final  List<String> selectedPublisherNames = const <String>[], final  List<String> selectedCategoryIds = const <String>[], final  List<String> selectedTagIds = const <String>[]}): _selectedPublisherNames = selectedPublisherNames,_selectedCategoryIds = selectedCategoryIds,_selectedTagIds = selectedTagIds;
+  factory _ExploreSettings.fromJson(Map<String, dynamic> json) => _$ExploreSettingsFromJson(json);
+
+@override@JsonKey() final  String mode;
+@override@JsonKey() final  bool aggressiveMode;
+ final  List<String> _selectedPublisherNames;
+@override@JsonKey() List<String> get selectedPublisherNames {
+  if (_selectedPublisherNames is EqualUnmodifiableListView) return _selectedPublisherNames;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_selectedPublisherNames);
+}
+
+ final  List<String> _selectedCategoryIds;
+@override@JsonKey() List<String> get selectedCategoryIds {
+  if (_selectedCategoryIds is EqualUnmodifiableListView) return _selectedCategoryIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_selectedCategoryIds);
+}
+
+ final  List<String> _selectedTagIds;
+@override@JsonKey() List<String> get selectedTagIds {
+  if (_selectedTagIds is EqualUnmodifiableListView) return _selectedTagIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_selectedTagIds);
+}
+
+
+/// Create a copy of ExploreSettings
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ExploreSettingsCopyWith<_ExploreSettings> get copyWith => __$ExploreSettingsCopyWithImpl<_ExploreSettings>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ExploreSettingsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExploreSettings&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.aggressiveMode, aggressiveMode) || other.aggressiveMode == aggressiveMode)&&const DeepCollectionEquality().equals(other._selectedPublisherNames, _selectedPublisherNames)&&const DeepCollectionEquality().equals(other._selectedCategoryIds, _selectedCategoryIds)&&const DeepCollectionEquality().equals(other._selectedTagIds, _selectedTagIds));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,mode,aggressiveMode,const DeepCollectionEquality().hash(_selectedPublisherNames),const DeepCollectionEquality().hash(_selectedCategoryIds),const DeepCollectionEquality().hash(_selectedTagIds));
+
+@override
+String toString() {
+  return 'ExploreSettings(mode: $mode, aggressiveMode: $aggressiveMode, selectedPublisherNames: $selectedPublisherNames, selectedCategoryIds: $selectedCategoryIds, selectedTagIds: $selectedTagIds)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ExploreSettingsCopyWith<$Res> implements $ExploreSettingsCopyWith<$Res> {
+  factory _$ExploreSettingsCopyWith(_ExploreSettings value, $Res Function(_ExploreSettings) _then) = __$ExploreSettingsCopyWithImpl;
+@override @useResult
+$Res call({
+ String mode, bool aggressiveMode, List<String> selectedPublisherNames, List<String> selectedCategoryIds, List<String> selectedTagIds
+});
+
+
+
+
+}
+/// @nodoc
+class __$ExploreSettingsCopyWithImpl<$Res>
+    implements _$ExploreSettingsCopyWith<$Res> {
+  __$ExploreSettingsCopyWithImpl(this._self, this._then);
+
+  final _ExploreSettings _self;
+  final $Res Function(_ExploreSettings) _then;
+
+/// Create a copy of ExploreSettings
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,Object? aggressiveMode = null,Object? selectedPublisherNames = null,Object? selectedCategoryIds = null,Object? selectedTagIds = null,}) {
+  return _then(_ExploreSettings(
+mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
+as String,aggressiveMode: null == aggressiveMode ? _self.aggressiveMode : aggressiveMode // ignore: cast_nullable_to_non_nullable
+as bool,selectedPublisherNames: null == selectedPublisherNames ? _self._selectedPublisherNames : selectedPublisherNames // ignore: cast_nullable_to_non_nullable
+as List<String>,selectedCategoryIds: null == selectedCategoryIds ? _self._selectedCategoryIds : selectedCategoryIds // ignore: cast_nullable_to_non_nullable
+as List<String>,selectedTagIds: null == selectedTagIds ? _self._selectedTagIds : selectedTagIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+
+}
+
 /// @nodoc
 mixin _$AppSettings {
 
@@ -568,7 +855,7 @@ mixin _$AppSettings {
  ThemeColors? get customColors; Size? get windowSize;// The window size for desktop platforms
  double get windowOpacity;// The window opacity for desktop platforms
  double get cardTransparency;// The card background opacity
- String? get defaultPoolId; String get messageDisplayStyle; String get attachmentsListStyle; String get linkCollapseMode; String? get themeMode; bool get disableAnimation; bool get groupedChatList; String? get firstLaunchAt; bool get askedReview; String? get dashSearchEngine; String? get defaultScreen; bool get showFediverseContent; String get realmDisplayMode; String get chatEventMessageMode; bool get showChatSystemMessages; DashboardConfig? get dashboardConfig;
+ String? get defaultPoolId; String get messageDisplayStyle; String get attachmentsListStyle; String get linkCollapseMode; String? get themeMode; bool get disableAnimation; bool get groupedChatList; String? get firstLaunchAt; bool get askedReview; String? get dashSearchEngine; String? get defaultScreen; String get realmDisplayMode; String get chatEventMessageMode; bool get showChatSystemMessages; DashboardConfig? get dashboardConfig; ExploreSettings get exploreSettings;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -579,16 +866,16 @@ $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.enableTts, enableTts) || other.enableTts == enableTts)&&(identical(other.ttsVoice, ttsVoice) || other.ttsVoice == ttsVoice)&&(identical(other.ttsSpeechRate, ttsSpeechRate) || other.ttsSpeechRate == ttsSpeechRate)&&(identical(other.ttsPitch, ttsPitch) || other.ttsPitch == ttsPitch)&&(identical(other.ttsVolume, ttsVolume) || other.ttsVolume == ttsVolume)&&(identical(other.ttsLanguage, ttsLanguage) || other.ttsLanguage == ttsLanguage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.attachmentsListStyle, attachmentsListStyle) || other.attachmentsListStyle == attachmentsListStyle)&&(identical(other.linkCollapseMode, linkCollapseMode) || other.linkCollapseMode == linkCollapseMode)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen)&&(identical(other.showFediverseContent, showFediverseContent) || other.showFediverseContent == showFediverseContent)&&(identical(other.realmDisplayMode, realmDisplayMode) || other.realmDisplayMode == realmDisplayMode)&&(identical(other.chatEventMessageMode, chatEventMessageMode) || other.chatEventMessageMode == chatEventMessageMode)&&(identical(other.showChatSystemMessages, showChatSystemMessages) || other.showChatSystemMessages == showChatSystemMessages)&&(identical(other.dashboardConfig, dashboardConfig) || other.dashboardConfig == dashboardConfig));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.enableTts, enableTts) || other.enableTts == enableTts)&&(identical(other.ttsVoice, ttsVoice) || other.ttsVoice == ttsVoice)&&(identical(other.ttsSpeechRate, ttsSpeechRate) || other.ttsSpeechRate == ttsSpeechRate)&&(identical(other.ttsPitch, ttsPitch) || other.ttsPitch == ttsPitch)&&(identical(other.ttsVolume, ttsVolume) || other.ttsVolume == ttsVolume)&&(identical(other.ttsLanguage, ttsLanguage) || other.ttsLanguage == ttsLanguage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.attachmentsListStyle, attachmentsListStyle) || other.attachmentsListStyle == attachmentsListStyle)&&(identical(other.linkCollapseMode, linkCollapseMode) || other.linkCollapseMode == linkCollapseMode)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen)&&(identical(other.realmDisplayMode, realmDisplayMode) || other.realmDisplayMode == realmDisplayMode)&&(identical(other.chatEventMessageMode, chatEventMessageMode) || other.chatEventMessageMode == chatEventMessageMode)&&(identical(other.showChatSystemMessages, showChatSystemMessages) || other.showChatSystemMessages == showChatSystemMessages)&&(identical(other.dashboardConfig, dashboardConfig) || other.dashboardConfig == dashboardConfig)&&(identical(other.exploreSettings, exploreSettings) || other.exploreSettings == exploreSettings));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,enableTts,ttsVoice,ttsSpeechRate,ttsPitch,ttsVolume,ttsLanguage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,attachmentsListStyle,linkCollapseMode,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,showFediverseContent,realmDisplayMode,chatEventMessageMode,showChatSystemMessages,dashboardConfig]);
+int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,enableTts,ttsVoice,ttsSpeechRate,ttsPitch,ttsVolume,ttsLanguage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,attachmentsListStyle,linkCollapseMode,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,realmDisplayMode,chatEventMessageMode,showChatSystemMessages,dashboardConfig,exploreSettings]);
 
 @override
 String toString() {
-  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, enableTts: $enableTts, ttsVoice: $ttsVoice, ttsSpeechRate: $ttsSpeechRate, ttsPitch: $ttsPitch, ttsVolume: $ttsVolume, ttsLanguage: $ttsLanguage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, attachmentsListStyle: $attachmentsListStyle, linkCollapseMode: $linkCollapseMode, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, showFediverseContent: $showFediverseContent, realmDisplayMode: $realmDisplayMode, chatEventMessageMode: $chatEventMessageMode, showChatSystemMessages: $showChatSystemMessages, dashboardConfig: $dashboardConfig)';
+  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, enableTts: $enableTts, ttsVoice: $ttsVoice, ttsSpeechRate: $ttsSpeechRate, ttsPitch: $ttsPitch, ttsVolume: $ttsVolume, ttsLanguage: $ttsLanguage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, attachmentsListStyle: $attachmentsListStyle, linkCollapseMode: $linkCollapseMode, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, realmDisplayMode: $realmDisplayMode, chatEventMessageMode: $chatEventMessageMode, showChatSystemMessages: $showChatSystemMessages, dashboardConfig: $dashboardConfig, exploreSettings: $exploreSettings)';
 }
 
 
@@ -599,11 +886,11 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
   factory $AppSettingsCopyWith(AppSettings value, $Res Function(AppSettings) _then) = _$AppSettingsCopyWithImpl;
 @useResult
 $Res call({
- bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, bool enableTts, String? ttsVoice, double ttsSpeechRate, double ttsPitch, double ttsVolume, String ttsLanguage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String attachmentsListStyle, String linkCollapseMode, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen, bool showFediverseContent, String realmDisplayMode, String chatEventMessageMode, bool showChatSystemMessages, DashboardConfig? dashboardConfig
+ bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, bool enableTts, String? ttsVoice, double ttsSpeechRate, double ttsPitch, double ttsVolume, String ttsLanguage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String attachmentsListStyle, String linkCollapseMode, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen, String realmDisplayMode, String chatEventMessageMode, bool showChatSystemMessages, DashboardConfig? dashboardConfig, ExploreSettings exploreSettings
 });
 
 
-$ThemeColorsCopyWith<$Res>? get customColors;$DashboardConfigCopyWith<$Res>? get dashboardConfig;
+$ThemeColorsCopyWith<$Res>? get customColors;$DashboardConfigCopyWith<$Res>? get dashboardConfig;$ExploreSettingsCopyWith<$Res> get exploreSettings;
 
 }
 /// @nodoc
@@ -616,7 +903,7 @@ class _$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? enableTts = null,Object? ttsVoice = freezed,Object? ttsSpeechRate = null,Object? ttsPitch = null,Object? ttsVolume = null,Object? ttsLanguage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? attachmentsListStyle = null,Object? linkCollapseMode = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,Object? showFediverseContent = null,Object? realmDisplayMode = null,Object? chatEventMessageMode = null,Object? showChatSystemMessages = null,Object? dashboardConfig = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? enableTts = null,Object? ttsVoice = freezed,Object? ttsSpeechRate = null,Object? ttsPitch = null,Object? ttsVolume = null,Object? ttsLanguage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? attachmentsListStyle = null,Object? linkCollapseMode = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,Object? realmDisplayMode = null,Object? chatEventMessageMode = null,Object? showChatSystemMessages = null,Object? dashboardConfig = freezed,Object? exploreSettings = null,}) {
   return _then(_self.copyWith(
 dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
@@ -648,12 +935,12 @@ as bool,firstLaunchAt: freezed == firstLaunchAt ? _self.firstLaunchAt : firstLau
 as String?,askedReview: null == askedReview ? _self.askedReview : askedReview // ignore: cast_nullable_to_non_nullable
 as bool,dashSearchEngine: freezed == dashSearchEngine ? _self.dashSearchEngine : dashSearchEngine // ignore: cast_nullable_to_non_nullable
 as String?,defaultScreen: freezed == defaultScreen ? _self.defaultScreen : defaultScreen // ignore: cast_nullable_to_non_nullable
-as String?,showFediverseContent: null == showFediverseContent ? _self.showFediverseContent : showFediverseContent // ignore: cast_nullable_to_non_nullable
-as bool,realmDisplayMode: null == realmDisplayMode ? _self.realmDisplayMode : realmDisplayMode // ignore: cast_nullable_to_non_nullable
+as String?,realmDisplayMode: null == realmDisplayMode ? _self.realmDisplayMode : realmDisplayMode // ignore: cast_nullable_to_non_nullable
 as String,chatEventMessageMode: null == chatEventMessageMode ? _self.chatEventMessageMode : chatEventMessageMode // ignore: cast_nullable_to_non_nullable
 as String,showChatSystemMessages: null == showChatSystemMessages ? _self.showChatSystemMessages : showChatSystemMessages // ignore: cast_nullable_to_non_nullable
 as bool,dashboardConfig: freezed == dashboardConfig ? _self.dashboardConfig : dashboardConfig // ignore: cast_nullable_to_non_nullable
-as DashboardConfig?,
+as DashboardConfig?,exploreSettings: null == exploreSettings ? _self.exploreSettings : exploreSettings // ignore: cast_nullable_to_non_nullable
+as ExploreSettings,
   ));
 }
 /// Create a copy of AppSettings
@@ -679,6 +966,15 @@ $DashboardConfigCopyWith<$Res>? get dashboardConfig {
 
   return $DashboardConfigCopyWith<$Res>(_self.dashboardConfig!, (value) {
     return _then(_self.copyWith(dashboardConfig: value));
+  });
+}/// Create a copy of AppSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExploreSettingsCopyWith<$Res> get exploreSettings {
+  
+  return $ExploreSettingsCopyWith<$Res>(_self.exploreSettings, (value) {
+    return _then(_self.copyWith(exploreSettings: value));
   });
 }
 }
@@ -759,10 +1055,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  bool enableTts,  String? ttsVoice,  double ttsSpeechRate,  double ttsPitch,  double ttsVolume,  String ttsLanguage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String attachmentsListStyle,  String linkCollapseMode,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  bool showFediverseContent,  String realmDisplayMode,  String chatEventMessageMode,  bool showChatSystemMessages,  DashboardConfig? dashboardConfig)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  bool enableTts,  String? ttsVoice,  double ttsSpeechRate,  double ttsPitch,  double ttsVolume,  String ttsLanguage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String attachmentsListStyle,  String linkCollapseMode,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  String realmDisplayMode,  String chatEventMessageMode,  bool showChatSystemMessages,  DashboardConfig? dashboardConfig,  ExploreSettings exploreSettings)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.enableTts,_that.ttsVoice,_that.ttsSpeechRate,_that.ttsPitch,_that.ttsVolume,_that.ttsLanguage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.attachmentsListStyle,_that.linkCollapseMode,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.showFediverseContent,_that.realmDisplayMode,_that.chatEventMessageMode,_that.showChatSystemMessages,_that.dashboardConfig);case _:
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.enableTts,_that.ttsVoice,_that.ttsSpeechRate,_that.ttsPitch,_that.ttsVolume,_that.ttsLanguage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.attachmentsListStyle,_that.linkCollapseMode,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.realmDisplayMode,_that.chatEventMessageMode,_that.showChatSystemMessages,_that.dashboardConfig,_that.exploreSettings);case _:
   return orElse();
 
 }
@@ -780,10 +1076,10 @@ return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  bool enableTts,  String? ttsVoice,  double ttsSpeechRate,  double ttsPitch,  double ttsVolume,  String ttsLanguage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String attachmentsListStyle,  String linkCollapseMode,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  bool showFediverseContent,  String realmDisplayMode,  String chatEventMessageMode,  bool showChatSystemMessages,  DashboardConfig? dashboardConfig)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  bool enableTts,  String? ttsVoice,  double ttsSpeechRate,  double ttsPitch,  double ttsVolume,  String ttsLanguage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String attachmentsListStyle,  String linkCollapseMode,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  String realmDisplayMode,  String chatEventMessageMode,  bool showChatSystemMessages,  DashboardConfig? dashboardConfig,  ExploreSettings exploreSettings)  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings():
-return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.enableTts,_that.ttsVoice,_that.ttsSpeechRate,_that.ttsPitch,_that.ttsVolume,_that.ttsLanguage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.attachmentsListStyle,_that.linkCollapseMode,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.showFediverseContent,_that.realmDisplayMode,_that.chatEventMessageMode,_that.showChatSystemMessages,_that.dashboardConfig);}
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.enableTts,_that.ttsVoice,_that.ttsSpeechRate,_that.ttsPitch,_that.ttsVolume,_that.ttsLanguage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.attachmentsListStyle,_that.linkCollapseMode,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.realmDisplayMode,_that.chatEventMessageMode,_that.showChatSystemMessages,_that.dashboardConfig,_that.exploreSettings);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -797,10 +1093,10 @@ return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  bool enableTts,  String? ttsVoice,  double ttsSpeechRate,  double ttsPitch,  double ttsVolume,  String ttsLanguage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String attachmentsListStyle,  String linkCollapseMode,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  bool showFediverseContent,  String realmDisplayMode,  String chatEventMessageMode,  bool showChatSystemMessages,  DashboardConfig? dashboardConfig)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dataSavingMode,  bool soundEffects,  bool festivalFeatures,  bool enterToSend,  bool appBarTransparent,  bool showBackgroundImage,  bool notifyWithHaptic,  bool enableTts,  String? ttsVoice,  double ttsSpeechRate,  double ttsPitch,  double ttsVolume,  String ttsLanguage,  String? customFonts,  int? appColorScheme,  ThemeColors? customColors,  Size? windowSize,  double windowOpacity,  double cardTransparency,  String? defaultPoolId,  String messageDisplayStyle,  String attachmentsListStyle,  String linkCollapseMode,  String? themeMode,  bool disableAnimation,  bool groupedChatList,  String? firstLaunchAt,  bool askedReview,  String? dashSearchEngine,  String? defaultScreen,  String realmDisplayMode,  String chatEventMessageMode,  bool showChatSystemMessages,  DashboardConfig? dashboardConfig,  ExploreSettings exploreSettings)?  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.enableTts,_that.ttsVoice,_that.ttsSpeechRate,_that.ttsPitch,_that.ttsVolume,_that.ttsLanguage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.attachmentsListStyle,_that.linkCollapseMode,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.showFediverseContent,_that.realmDisplayMode,_that.chatEventMessageMode,_that.showChatSystemMessages,_that.dashboardConfig);case _:
+return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_that.enterToSend,_that.appBarTransparent,_that.showBackgroundImage,_that.notifyWithHaptic,_that.enableTts,_that.ttsVoice,_that.ttsSpeechRate,_that.ttsPitch,_that.ttsVolume,_that.ttsLanguage,_that.customFonts,_that.appColorScheme,_that.customColors,_that.windowSize,_that.windowOpacity,_that.cardTransparency,_that.defaultPoolId,_that.messageDisplayStyle,_that.attachmentsListStyle,_that.linkCollapseMode,_that.themeMode,_that.disableAnimation,_that.groupedChatList,_that.firstLaunchAt,_that.askedReview,_that.dashSearchEngine,_that.defaultScreen,_that.realmDisplayMode,_that.chatEventMessageMode,_that.showChatSystemMessages,_that.dashboardConfig,_that.exploreSettings);case _:
   return null;
 
 }
@@ -812,7 +1108,7 @@ return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_
 
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({required this.dataSavingMode, required this.soundEffects, required this.festivalFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.notifyWithHaptic, required this.enableTts, required this.ttsVoice, required this.ttsSpeechRate, required this.ttsPitch, required this.ttsVolume, required this.ttsLanguage, required this.customFonts, required this.appColorScheme, required this.customColors, required this.windowSize, required this.windowOpacity, required this.cardTransparency, required this.defaultPoolId, required this.messageDisplayStyle, required this.attachmentsListStyle, required this.linkCollapseMode, required this.themeMode, required this.disableAnimation, required this.groupedChatList, required this.firstLaunchAt, required this.askedReview, required this.dashSearchEngine, required this.defaultScreen, required this.showFediverseContent, required this.realmDisplayMode, required this.chatEventMessageMode, required this.showChatSystemMessages, required this.dashboardConfig});
+  const _AppSettings({required this.dataSavingMode, required this.soundEffects, required this.festivalFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.notifyWithHaptic, required this.enableTts, required this.ttsVoice, required this.ttsSpeechRate, required this.ttsPitch, required this.ttsVolume, required this.ttsLanguage, required this.customFonts, required this.appColorScheme, required this.customColors, required this.windowSize, required this.windowOpacity, required this.cardTransparency, required this.defaultPoolId, required this.messageDisplayStyle, required this.attachmentsListStyle, required this.linkCollapseMode, required this.themeMode, required this.disableAnimation, required this.groupedChatList, required this.firstLaunchAt, required this.askedReview, required this.dashSearchEngine, required this.defaultScreen, required this.realmDisplayMode, required this.chatEventMessageMode, required this.showChatSystemMessages, required this.dashboardConfig, required this.exploreSettings});
   
 
 @override final  bool dataSavingMode;
@@ -849,11 +1145,11 @@ class _AppSettings implements AppSettings {
 @override final  bool askedReview;
 @override final  String? dashSearchEngine;
 @override final  String? defaultScreen;
-@override final  bool showFediverseContent;
 @override final  String realmDisplayMode;
 @override final  String chatEventMessageMode;
 @override final  bool showChatSystemMessages;
 @override final  DashboardConfig? dashboardConfig;
+@override final  ExploreSettings exploreSettings;
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -865,16 +1161,16 @@ _$AppSettingsCopyWith<_AppSettings> get copyWith => __$AppSettingsCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.enableTts, enableTts) || other.enableTts == enableTts)&&(identical(other.ttsVoice, ttsVoice) || other.ttsVoice == ttsVoice)&&(identical(other.ttsSpeechRate, ttsSpeechRate) || other.ttsSpeechRate == ttsSpeechRate)&&(identical(other.ttsPitch, ttsPitch) || other.ttsPitch == ttsPitch)&&(identical(other.ttsVolume, ttsVolume) || other.ttsVolume == ttsVolume)&&(identical(other.ttsLanguage, ttsLanguage) || other.ttsLanguage == ttsLanguage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.attachmentsListStyle, attachmentsListStyle) || other.attachmentsListStyle == attachmentsListStyle)&&(identical(other.linkCollapseMode, linkCollapseMode) || other.linkCollapseMode == linkCollapseMode)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen)&&(identical(other.showFediverseContent, showFediverseContent) || other.showFediverseContent == showFediverseContent)&&(identical(other.realmDisplayMode, realmDisplayMode) || other.realmDisplayMode == realmDisplayMode)&&(identical(other.chatEventMessageMode, chatEventMessageMode) || other.chatEventMessageMode == chatEventMessageMode)&&(identical(other.showChatSystemMessages, showChatSystemMessages) || other.showChatSystemMessages == showChatSystemMessages)&&(identical(other.dashboardConfig, dashboardConfig) || other.dashboardConfig == dashboardConfig));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.dataSavingMode, dataSavingMode) || other.dataSavingMode == dataSavingMode)&&(identical(other.soundEffects, soundEffects) || other.soundEffects == soundEffects)&&(identical(other.festivalFeatures, festivalFeatures) || other.festivalFeatures == festivalFeatures)&&(identical(other.enterToSend, enterToSend) || other.enterToSend == enterToSend)&&(identical(other.appBarTransparent, appBarTransparent) || other.appBarTransparent == appBarTransparent)&&(identical(other.showBackgroundImage, showBackgroundImage) || other.showBackgroundImage == showBackgroundImage)&&(identical(other.notifyWithHaptic, notifyWithHaptic) || other.notifyWithHaptic == notifyWithHaptic)&&(identical(other.enableTts, enableTts) || other.enableTts == enableTts)&&(identical(other.ttsVoice, ttsVoice) || other.ttsVoice == ttsVoice)&&(identical(other.ttsSpeechRate, ttsSpeechRate) || other.ttsSpeechRate == ttsSpeechRate)&&(identical(other.ttsPitch, ttsPitch) || other.ttsPitch == ttsPitch)&&(identical(other.ttsVolume, ttsVolume) || other.ttsVolume == ttsVolume)&&(identical(other.ttsLanguage, ttsLanguage) || other.ttsLanguage == ttsLanguage)&&(identical(other.customFonts, customFonts) || other.customFonts == customFonts)&&(identical(other.appColorScheme, appColorScheme) || other.appColorScheme == appColorScheme)&&(identical(other.customColors, customColors) || other.customColors == customColors)&&(identical(other.windowSize, windowSize) || other.windowSize == windowSize)&&(identical(other.windowOpacity, windowOpacity) || other.windowOpacity == windowOpacity)&&(identical(other.cardTransparency, cardTransparency) || other.cardTransparency == cardTransparency)&&(identical(other.defaultPoolId, defaultPoolId) || other.defaultPoolId == defaultPoolId)&&(identical(other.messageDisplayStyle, messageDisplayStyle) || other.messageDisplayStyle == messageDisplayStyle)&&(identical(other.attachmentsListStyle, attachmentsListStyle) || other.attachmentsListStyle == attachmentsListStyle)&&(identical(other.linkCollapseMode, linkCollapseMode) || other.linkCollapseMode == linkCollapseMode)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.disableAnimation, disableAnimation) || other.disableAnimation == disableAnimation)&&(identical(other.groupedChatList, groupedChatList) || other.groupedChatList == groupedChatList)&&(identical(other.firstLaunchAt, firstLaunchAt) || other.firstLaunchAt == firstLaunchAt)&&(identical(other.askedReview, askedReview) || other.askedReview == askedReview)&&(identical(other.dashSearchEngine, dashSearchEngine) || other.dashSearchEngine == dashSearchEngine)&&(identical(other.defaultScreen, defaultScreen) || other.defaultScreen == defaultScreen)&&(identical(other.realmDisplayMode, realmDisplayMode) || other.realmDisplayMode == realmDisplayMode)&&(identical(other.chatEventMessageMode, chatEventMessageMode) || other.chatEventMessageMode == chatEventMessageMode)&&(identical(other.showChatSystemMessages, showChatSystemMessages) || other.showChatSystemMessages == showChatSystemMessages)&&(identical(other.dashboardConfig, dashboardConfig) || other.dashboardConfig == dashboardConfig)&&(identical(other.exploreSettings, exploreSettings) || other.exploreSettings == exploreSettings));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,enableTts,ttsVoice,ttsSpeechRate,ttsPitch,ttsVolume,ttsLanguage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,attachmentsListStyle,linkCollapseMode,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,showFediverseContent,realmDisplayMode,chatEventMessageMode,showChatSystemMessages,dashboardConfig]);
+int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,enableTts,ttsVoice,ttsSpeechRate,ttsPitch,ttsVolume,ttsLanguage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,attachmentsListStyle,linkCollapseMode,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,realmDisplayMode,chatEventMessageMode,showChatSystemMessages,dashboardConfig,exploreSettings]);
 
 @override
 String toString() {
-  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, enableTts: $enableTts, ttsVoice: $ttsVoice, ttsSpeechRate: $ttsSpeechRate, ttsPitch: $ttsPitch, ttsVolume: $ttsVolume, ttsLanguage: $ttsLanguage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, attachmentsListStyle: $attachmentsListStyle, linkCollapseMode: $linkCollapseMode, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, showFediverseContent: $showFediverseContent, realmDisplayMode: $realmDisplayMode, chatEventMessageMode: $chatEventMessageMode, showChatSystemMessages: $showChatSystemMessages, dashboardConfig: $dashboardConfig)';
+  return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, enableTts: $enableTts, ttsVoice: $ttsVoice, ttsSpeechRate: $ttsSpeechRate, ttsPitch: $ttsPitch, ttsVolume: $ttsVolume, ttsLanguage: $ttsLanguage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, attachmentsListStyle: $attachmentsListStyle, linkCollapseMode: $linkCollapseMode, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, realmDisplayMode: $realmDisplayMode, chatEventMessageMode: $chatEventMessageMode, showChatSystemMessages: $showChatSystemMessages, dashboardConfig: $dashboardConfig, exploreSettings: $exploreSettings)';
 }
 
 
@@ -885,11 +1181,11 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
   factory _$AppSettingsCopyWith(_AppSettings value, $Res Function(_AppSettings) _then) = __$AppSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, bool enableTts, String? ttsVoice, double ttsSpeechRate, double ttsPitch, double ttsVolume, String ttsLanguage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String attachmentsListStyle, String linkCollapseMode, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen, bool showFediverseContent, String realmDisplayMode, String chatEventMessageMode, bool showChatSystemMessages, DashboardConfig? dashboardConfig
+ bool dataSavingMode, bool soundEffects, bool festivalFeatures, bool enterToSend, bool appBarTransparent, bool showBackgroundImage, bool notifyWithHaptic, bool enableTts, String? ttsVoice, double ttsSpeechRate, double ttsPitch, double ttsVolume, String ttsLanguage, String? customFonts, int? appColorScheme, ThemeColors? customColors, Size? windowSize, double windowOpacity, double cardTransparency, String? defaultPoolId, String messageDisplayStyle, String attachmentsListStyle, String linkCollapseMode, String? themeMode, bool disableAnimation, bool groupedChatList, String? firstLaunchAt, bool askedReview, String? dashSearchEngine, String? defaultScreen, String realmDisplayMode, String chatEventMessageMode, bool showChatSystemMessages, DashboardConfig? dashboardConfig, ExploreSettings exploreSettings
 });
 
 
-@override $ThemeColorsCopyWith<$Res>? get customColors;@override $DashboardConfigCopyWith<$Res>? get dashboardConfig;
+@override $ThemeColorsCopyWith<$Res>? get customColors;@override $DashboardConfigCopyWith<$Res>? get dashboardConfig;@override $ExploreSettingsCopyWith<$Res> get exploreSettings;
 
 }
 /// @nodoc
@@ -902,7 +1198,7 @@ class __$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? enableTts = null,Object? ttsVoice = freezed,Object? ttsSpeechRate = null,Object? ttsPitch = null,Object? ttsVolume = null,Object? ttsLanguage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? attachmentsListStyle = null,Object? linkCollapseMode = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,Object? showFediverseContent = null,Object? realmDisplayMode = null,Object? chatEventMessageMode = null,Object? showChatSystemMessages = null,Object? dashboardConfig = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dataSavingMode = null,Object? soundEffects = null,Object? festivalFeatures = null,Object? enterToSend = null,Object? appBarTransparent = null,Object? showBackgroundImage = null,Object? notifyWithHaptic = null,Object? enableTts = null,Object? ttsVoice = freezed,Object? ttsSpeechRate = null,Object? ttsPitch = null,Object? ttsVolume = null,Object? ttsLanguage = null,Object? customFonts = freezed,Object? appColorScheme = freezed,Object? customColors = freezed,Object? windowSize = freezed,Object? windowOpacity = null,Object? cardTransparency = null,Object? defaultPoolId = freezed,Object? messageDisplayStyle = null,Object? attachmentsListStyle = null,Object? linkCollapseMode = null,Object? themeMode = freezed,Object? disableAnimation = null,Object? groupedChatList = null,Object? firstLaunchAt = freezed,Object? askedReview = null,Object? dashSearchEngine = freezed,Object? defaultScreen = freezed,Object? realmDisplayMode = null,Object? chatEventMessageMode = null,Object? showChatSystemMessages = null,Object? dashboardConfig = freezed,Object? exploreSettings = null,}) {
   return _then(_AppSettings(
 dataSavingMode: null == dataSavingMode ? _self.dataSavingMode : dataSavingMode // ignore: cast_nullable_to_non_nullable
 as bool,soundEffects: null == soundEffects ? _self.soundEffects : soundEffects // ignore: cast_nullable_to_non_nullable
@@ -934,12 +1230,12 @@ as bool,firstLaunchAt: freezed == firstLaunchAt ? _self.firstLaunchAt : firstLau
 as String?,askedReview: null == askedReview ? _self.askedReview : askedReview // ignore: cast_nullable_to_non_nullable
 as bool,dashSearchEngine: freezed == dashSearchEngine ? _self.dashSearchEngine : dashSearchEngine // ignore: cast_nullable_to_non_nullable
 as String?,defaultScreen: freezed == defaultScreen ? _self.defaultScreen : defaultScreen // ignore: cast_nullable_to_non_nullable
-as String?,showFediverseContent: null == showFediverseContent ? _self.showFediverseContent : showFediverseContent // ignore: cast_nullable_to_non_nullable
-as bool,realmDisplayMode: null == realmDisplayMode ? _self.realmDisplayMode : realmDisplayMode // ignore: cast_nullable_to_non_nullable
+as String?,realmDisplayMode: null == realmDisplayMode ? _self.realmDisplayMode : realmDisplayMode // ignore: cast_nullable_to_non_nullable
 as String,chatEventMessageMode: null == chatEventMessageMode ? _self.chatEventMessageMode : chatEventMessageMode // ignore: cast_nullable_to_non_nullable
 as String,showChatSystemMessages: null == showChatSystemMessages ? _self.showChatSystemMessages : showChatSystemMessages // ignore: cast_nullable_to_non_nullable
 as bool,dashboardConfig: freezed == dashboardConfig ? _self.dashboardConfig : dashboardConfig // ignore: cast_nullable_to_non_nullable
-as DashboardConfig?,
+as DashboardConfig?,exploreSettings: null == exploreSettings ? _self.exploreSettings : exploreSettings // ignore: cast_nullable_to_non_nullable
+as ExploreSettings,
   ));
 }
 
@@ -966,6 +1262,15 @@ $DashboardConfigCopyWith<$Res>? get dashboardConfig {
 
   return $DashboardConfigCopyWith<$Res>(_self.dashboardConfig!, (value) {
     return _then(_self.copyWith(dashboardConfig: value));
+  });
+}/// Create a copy of AppSettings
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExploreSettingsCopyWith<$Res> get exploreSettings {
+  
+  return $ExploreSettingsCopyWith<$Res>(_self.exploreSettings, (value) {
+    return _then(_self.copyWith(exploreSettings: value));
   });
 }
 }
