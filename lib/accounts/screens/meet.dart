@@ -2182,6 +2182,7 @@ class _MeetDiscoverySection extends HookConsumerWidget {
                   ),
                   children: [
                     TileLayer(
+                      retinaMode: true,
                       urlTemplate:
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'dev.solsynth.solian',
@@ -3143,6 +3144,7 @@ class _MeetLocationMapCard extends StatelessWidget {
               ),
               children: [
                 TileLayer(
+                  retinaMode: true,
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'dev.solsynth.solian',
                 ),
