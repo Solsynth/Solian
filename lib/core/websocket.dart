@@ -155,7 +155,12 @@ class WebSocketService {
       if (connectionGeneration != _connectionGeneration || _isClosing) return;
       talker.error('[WebSocket] Failed to connect: $err');
       _statusStreamController.sink.add(WebSocketState.error(err.toString()));
-      _scheduleReconnect();
+      if (err is WebSocketChannelException &&
+          (err.message?.contains('handshake') ?? false)) {
+        connect(ref);
+      } else {
+        _scheduleReconnect();
+      }
     }
   }
 
