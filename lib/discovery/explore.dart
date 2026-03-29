@@ -508,68 +508,63 @@ class ExploreScreen extends HookConsumerWidget {
         (activityState.value?.items.isEmpty ?? true);
 
     return Row(
-      spacing: 12,
       children: [
         Flexible(
           flex: 3,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(
-                  color: Theme.of(context).colorScheme.outline,
-                  width: 1 / MediaQuery.devicePixelRatioOf(context),
+          child: ColoredBox(
+            color: Theme.of(context).colorScheme.surfaceContainer,
+            child: ColoredBox(
+              color: Theme.of(context).colorScheme.surface,
+              child: ExtendedRefreshIndicator(
+                onRefresh: () async {
+                  await notifier?.refresh();
+                },
+                child: CustomScrollView(
+                  slivers: [
+                    const SliverGap(12),
+                    if (usePostList) ...[
+                      _buildLiveStreamsOnTop(
+                        context,
+                        ref,
+                        selectedPublishers.value,
+                      ),
+                      _buildPostList(
+                        context,
+                        ref,
+                        selectedPublishers.value,
+                        selectedCategories.value,
+                        selectedTags.value,
+                      ),
+                    ] else if (isListInitialLoading)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: ConfuseSpinner(
+                            speed: 7,
+                            size: 72,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                          ),
+                        ),
+                      )
+                    else
+                      bodyView!,
+                  ],
                 ),
               ),
-            ),
-            child: ExtendedRefreshIndicator(
-              onRefresh: () async {
-                await notifier?.refresh();
-              },
-              child: CustomScrollView(
-                slivers: [
-                  const SliverGap(12),
-                  if (usePostList) ...[
-                    _buildLiveStreamsOnTop(
-                      context,
-                      ref,
-                      selectedPublishers.value,
-                    ),
-                    _buildPostList(
-                      context,
-                      ref,
-                      selectedPublishers.value,
-                      selectedCategories.value,
-                      selectedTags.value,
-                    ),
-                  ] else if (isListInitialLoading)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: ConfuseSpinner(
-                          speed: 7,
-                          size: 72,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-                        ),
-                      ),
-                    )
-                  else
-                    bodyView!,
-                ],
-              ),
-            ),
+            ).clipRRect(topRight: 12),
           ),
         ),
         if (user.value != null)
           Flexible(
             flex: 2,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: SingleChildScrollView(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  color: Theme.of(context).colorScheme.surfaceContainer,
+            child: Material(
+              elevation: 0,
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: 8,
@@ -659,41 +654,44 @@ class ExploreScreen extends HookConsumerWidget {
         else
           Flexible(
             flex: 2,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(Symbols.emoji_people_rounded, size: 40),
-                const Gap(8),
-                Text(
-                  'Welcome to\nthe Solar Network',
-                  style: Theme.of(context).textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ).bold(),
-                const Gap(2),
-                Text(
-                  'Login to explore more!',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const Gap(4),
-                TextButton.icon(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      useRootNavigator: true,
-                      isScrollControlled: true,
-                      builder: (context) => LoginModal(),
-                    );
-                  },
-                  icon: const Icon(Symbols.login),
-                  label: Text('login').tr(),
-                ),
-              ],
-            ).padding(horizontal: 36, vertical: 16).center(),
+            child: Container(
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(Symbols.emoji_people_rounded, size: 40),
+                  const Gap(8),
+                  Text(
+                    'Welcome to\nthe Solar Network',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ).bold(),
+                  const Gap(2),
+                  Text(
+                    'Login to explore more!',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const Gap(4),
+                  TextButton.icon(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        useRootNavigator: true,
+                        isScrollControlled: true,
+                        builder: (context) => LoginModal(),
+                      );
+                    },
+                    icon: const Icon(Symbols.login),
+                    label: Text('login').tr(),
+                  ),
+                ],
+              ).padding(horizontal: 36, vertical: 16).center(),
+            ),
           ),
       ],
-    ).padding(right: 12);
+    );
   }
 
   Widget _buildNarrowBodySliver(
