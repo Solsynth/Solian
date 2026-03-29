@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/message_item_wrapper.dart';
 import 'package:island/core/config.dart';
@@ -80,6 +82,7 @@ class RoomMessageList extends HookConsumerWidget {
   final DateTime roomOpenTime;
   final String? lastReadAnchorMessageId;
   final VoidCallback? onFollowBack;
+  final VoidCallback? onDismissLastReadMarker;
   final Set<String> collapsedBotGroupIds;
   final void Function(String groupId) toggleBotGroup;
 
@@ -101,6 +104,7 @@ class RoomMessageList extends HookConsumerWidget {
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
     this.onFollowBack,
+    this.onDismissLastReadMarker,
     this.collapsedBotGroupIds = const {},
     required this.toggleBotGroup,
   });
@@ -110,7 +114,21 @@ class RoomMessageList extends HookConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
     const messageKeyPrefix = 'message-';
 
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final lastReadMarkerKey = useState<String?>(null);
+    final isLastReadMarkerDismissed = useState(false);
+
+    useEffect(() {
+      if (lastReadAnchorMessageId != lastReadMarkerKey.value) {
+        lastReadMarkerKey.value = lastReadAnchorMessageId;
+        isLastReadMarkerDismissed.value = false;
+      }
+      return null;
+    }, [lastReadAnchorMessageId]);
+
+    final handleDismiss = useCallback(() {
+      isLastReadMarkerDismissed.value = true;
+      onDismissLastReadMarker?.call();
+    }, [onDismissLastReadMarker]);
 
     final botGroups = _computeBotGroups(messages);
     final botGroupMap = <int, BotGroupInfo>{};
@@ -129,7 +147,7 @@ class RoomMessageList extends HookConsumerWidget {
       listController: listController,
       controller: scrollController,
       reverse: true,
-      padding: EdgeInsets.only(top: 8, bottom: bottomPadding),
+      padding: EdgeInsets.only(top: 8),
       itemCount: messages.length,
       findChildIndexCallback: (key) {
         if (messages.isEmpty) return null;
@@ -189,40 +207,53 @@ class RoomMessageList extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (showLastReadMarker)
-              Container(
-                margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.bookmark_added,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Last read position',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: isLastReadMarkerDismissed.value ? 0.0 : 1.0,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.bookmark_added,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'newMessageBelow'.tr(),
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              ),
                         ),
                       ),
-                    ),
-                    if (onFollowBack != null)
-                      TextButton(
-                        onPressed: onFollowBack,
-                        child: const Text('Follow back'),
-                      ),
-                  ],
+                      if (onDismissLastReadMarker != null)
+                        IconButton(
+                          onPressed: handleDismiss,
+                          icon: Icon(
+                            Icons.close,
+                            size: 18,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             MessageItemWrapper(

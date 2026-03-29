@@ -95,6 +95,7 @@ sealed class SnChatMember with _$SnChatMember {
     required DateTime? joinedAt,
     required DateTime? breakUntil,
     required DateTime? timeoutUntil,
+    required DateTime? lastReadAt,
     required SnAccountStatus? status,
     // Realm related-content
     required String? realmNick,
