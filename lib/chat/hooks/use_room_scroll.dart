@@ -10,7 +10,6 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 class RoomScrollManager {
   final ScrollController scrollController;
   final ListController listController;
-  final ValueNotifier<double> bottomGradientOpacity;
   bool isScrollingToMessage;
   final void Function({
     required String messageId,
@@ -21,7 +20,6 @@ class RoomScrollManager {
   RoomScrollManager({
     required this.scrollController,
     required this.listController,
-    required this.bottomGradientOpacity,
     required this.scrollToMessage,
     this.isScrollingToMessage = false,
   });
@@ -35,7 +33,6 @@ RoomScrollManager useRoomScrollManager(
 ) {
   final scrollController = useScrollController();
   final listController = useMemoized(() => ListController(), []);
-  final bottomGradientOpacity = useState(ValueNotifier<double>(0.0));
 
   final isLoadingRef = useRef(false);
   final autoFillPassesRef = useRef(0);
@@ -117,14 +114,6 @@ RoomScrollManager useRoomScrollManager(
               });
             }
           }
-
-          final pixels = scrollController.position.pixels;
-          if (scrollController.hasClients) {
-            bottomGradientOpacity.value.value = (pixels / 500.0).clamp(
-              0.0,
-              1.0,
-            );
-          }
         },
         loading: () {},
         error: (_, _) {},
@@ -181,7 +170,6 @@ RoomScrollManager useRoomScrollManager(
   return RoomScrollManager(
     scrollController: scrollController,
     listController: listController,
-    bottomGradientOpacity: bottomGradientOpacity.value,
     scrollToMessage: scrollToMessageWrapper,
     isScrollingToMessage: isScrollingToMessage,
   );

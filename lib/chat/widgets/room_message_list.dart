@@ -130,16 +130,26 @@ class RoomMessageList extends HookConsumerWidget {
       onDismissLastReadMarker?.call();
     }, [onDismissLastReadMarker]);
 
-    final botGroups = _computeBotGroups(messages);
-    final botGroupMap = <int, BotGroupInfo>{};
-    for (final g in botGroups) {
-      for (int i = g.startIndex; i <= g.endIndex; i++) {
-        botGroupMap[i] = g;
+    final botGroups = useMemoized(() => _computeBotGroups(messages), [
+      messages,
+    ]);
+    final botGroupMap = useMemoized(() {
+      final map = <int, BotGroupInfo>{};
+      for (final g in botGroups) {
+        for (int i = g.startIndex; i <= g.endIndex; i++) {
+          map[i] = g;
+        }
       }
-    }
-    final allGroupIds = botGroups.map((g) => g.groupId).toSet();
-    final effectiveCollapsed = {...allGroupIds}
-      ..removeAll(collapsedBotGroupIds);
+      return map;
+    }, [botGroups]);
+    final allGroupIds = useMemoized(
+      () => botGroups.map((g) => g.groupId).toSet(),
+      [botGroups],
+    );
+    final effectiveCollapsed = useMemoized(
+      () => {...allGroupIds}..removeAll(collapsedBotGroupIds),
+      [allGroupIds, collapsedBotGroupIds],
+    );
 
     int lastReturnedIndex = -1;
 
