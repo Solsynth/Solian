@@ -43,6 +43,7 @@ class PostActionableItem extends HookConsumerWidget {
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
+  final VoidCallback? onTap;
   const PostActionableItem({
     super.key,
     required this.item,
@@ -58,6 +59,7 @@ class PostActionableItem extends HookConsumerWidget {
     this.onRefresh,
     this.onUpdate,
     this.onOpen,
+    this.onTap,
   });
 
   @override
@@ -90,6 +92,10 @@ class PostActionableItem extends HookConsumerWidget {
         onOpen: onOpen,
       ),
       onTap: () {
+        if (onTap != null) {
+          onTap!();
+          return;
+        }
         onOpen?.call();
         context.router.push(PostDetailRoute(id: item.id));
       },

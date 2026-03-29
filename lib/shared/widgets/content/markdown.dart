@@ -270,7 +270,8 @@ class MarkdownTextContent extends HookConsumerWidget {
 }
 
 class _MentionInlineSyntax extends markdown.InlineSyntax {
-  _MentionInlineSyntax() : super(r'(^|[^A-Za-z0-9._%+\-])(@[-A-Za-z0-9_./]+)');
+  _MentionInlineSyntax()
+    : super(r'(^|[^A-Za-z0-9._%+\-/\[])(@[-A-Za-z0-9_./]+)');
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {

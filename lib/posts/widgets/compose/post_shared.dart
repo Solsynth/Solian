@@ -1148,6 +1148,7 @@ class PostBody extends ConsumerWidget {
           children: [
             const Icon(Symbols.globe, size: 16),
             Text('fediversePostDescribe'.tr()).fontSize(13),
+            if (!item.isCached) Text('Uncached'),
           ],
         ),
       );
