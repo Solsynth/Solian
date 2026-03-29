@@ -474,3 +474,472 @@ final class PublisherActorStatusFamily extends $Family
   @override
   String toString() => r'publisherActorStatusProvider';
 }
+
+@ProviderFor(publisherFollow)
+final publisherFollowProvider = PublisherFollowFamily._();
+
+final class PublisherFollowProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPublisherFollowResponse>,
+          SnPublisherFollowResponse,
+          FutureOr<SnPublisherFollowResponse>
+        >
+    with
+        $FutureModifier<SnPublisherFollowResponse>,
+        $FutureProvider<SnPublisherFollowResponse> {
+  PublisherFollowProvider._({
+    required PublisherFollowFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherFollowProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherFollowHash();
+
+  @override
+  String toString() {
+    return r'publisherFollowProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnPublisherFollowResponse> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnPublisherFollowResponse> create(Ref ref) {
+    final argument = this.argument as String;
+    return publisherFollow(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherFollowProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherFollowHash() => r'a5779972315b0311209346e93a2e0234544d8e5b';
+
+final class PublisherFollowFamily extends $Family
+    with
+        $FunctionalFamilyOverride<FutureOr<SnPublisherFollowResponse>, String> {
+  PublisherFollowFamily._()
+    : super(
+        retry: null,
+        name: r'publisherFollowProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherFollowProvider call(String publisherName) =>
+      PublisherFollowProvider._(argument: publisherName, from: this);
+
+  @override
+  String toString() => r'publisherFollowProvider';
+}
+
+@ProviderFor(publisherUnfollow)
+final publisherUnfollowProvider = PublisherUnfollowFamily._();
+
+final class PublisherUnfollowProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  PublisherUnfollowProvider._({
+    required PublisherUnfollowFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherUnfollowProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherUnfollowHash();
+
+  @override
+  String toString() {
+    return r'publisherUnfollowProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as String;
+    return publisherUnfollow(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherUnfollowProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherUnfollowHash() => r'bd602901677e6087646753f21ef532889411d247';
+
+final class PublisherUnfollowFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<void>, String> {
+  PublisherUnfollowFamily._()
+    : super(
+        retry: null,
+        name: r'publisherUnfollowProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherUnfollowProvider call(String publisherName) =>
+      PublisherUnfollowProvider._(argument: publisherName, from: this);
+
+  @override
+  String toString() => r'publisherUnfollowProvider';
+}
+
+@ProviderFor(publisherFollowRequest)
+final publisherFollowRequestProvider = PublisherFollowRequestFamily._();
+
+final class PublisherFollowRequestProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPublisherFollowRequest?>,
+          SnPublisherFollowRequest?,
+          FutureOr<SnPublisherFollowRequest?>
+        >
+    with
+        $FutureModifier<SnPublisherFollowRequest?>,
+        $FutureProvider<SnPublisherFollowRequest?> {
+  PublisherFollowRequestProvider._({
+    required PublisherFollowRequestFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherFollowRequestProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherFollowRequestHash();
+
+  @override
+  String toString() {
+    return r'publisherFollowRequestProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnPublisherFollowRequest?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnPublisherFollowRequest?> create(Ref ref) {
+    final argument = this.argument as String;
+    return publisherFollowRequest(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherFollowRequestProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherFollowRequestHash() =>
+    r'292d4483d2295ea1ade6a3d5093c672d015d99c2';
+
+final class PublisherFollowRequestFamily extends $Family
+    with
+        $FunctionalFamilyOverride<FutureOr<SnPublisherFollowRequest?>, String> {
+  PublisherFollowRequestFamily._()
+    : super(
+        retry: null,
+        name: r'publisherFollowRequestProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherFollowRequestProvider call(String publisherName) =>
+      PublisherFollowRequestProvider._(argument: publisherName, from: this);
+
+  @override
+  String toString() => r'publisherFollowRequestProvider';
+}
+
+@ProviderFor(publisherFollowRequests)
+final publisherFollowRequestsProvider = PublisherFollowRequestsFamily._();
+
+final class PublisherFollowRequestsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnPublisherFollowRequest>>,
+          List<SnPublisherFollowRequest>,
+          FutureOr<List<SnPublisherFollowRequest>>
+        >
+    with
+        $FutureModifier<List<SnPublisherFollowRequest>>,
+        $FutureProvider<List<SnPublisherFollowRequest>> {
+  PublisherFollowRequestsProvider._({
+    required PublisherFollowRequestsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherFollowRequestsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherFollowRequestsHash();
+
+  @override
+  String toString() {
+    return r'publisherFollowRequestsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnPublisherFollowRequest>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnPublisherFollowRequest>> create(Ref ref) {
+    final argument = this.argument as String;
+    return publisherFollowRequests(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherFollowRequestsProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherFollowRequestsHash() =>
+    r'e9d62f9a97d899b4e2270ba3ed77a1353ddee3a5';
+
+final class PublisherFollowRequestsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<SnPublisherFollowRequest>>,
+          String
+        > {
+  PublisherFollowRequestsFamily._()
+    : super(
+        retry: null,
+        name: r'publisherFollowRequestsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherFollowRequestsProvider call(String publisherName) =>
+      PublisherFollowRequestsProvider._(argument: publisherName, from: this);
+
+  @override
+  String toString() => r'publisherFollowRequestsProvider';
+}
+
+@ProviderFor(publisherApproveFollow)
+final publisherApproveFollowProvider = PublisherApproveFollowFamily._();
+
+final class PublisherApproveFollowProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  PublisherApproveFollowProvider._({
+    required PublisherApproveFollowFamily super.from,
+    required (String, String) super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherApproveFollowProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherApproveFollowHash();
+
+  @override
+  String toString() {
+    return r'publisherApproveFollowProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as (String, String);
+    return publisherApproveFollow(ref, argument.$1, argument.$2);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherApproveFollowProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherApproveFollowHash() =>
+    r'db70b6569b129db194a1ab5b36056069e554848e';
+
+final class PublisherApproveFollowFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<void>, (String, String)> {
+  PublisherApproveFollowFamily._()
+    : super(
+        retry: null,
+        name: r'publisherApproveFollowProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherApproveFollowProvider call(String publisherName, String requestId) =>
+      PublisherApproveFollowProvider._(
+        argument: (publisherName, requestId),
+        from: this,
+      );
+
+  @override
+  String toString() => r'publisherApproveFollowProvider';
+}
+
+@ProviderFor(publisherRejectFollow)
+final publisherRejectFollowProvider = PublisherRejectFollowFamily._();
+
+final class PublisherRejectFollowProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  PublisherRejectFollowProvider._({
+    required PublisherRejectFollowFamily super.from,
+    required (String, String, {String? reason}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherRejectFollowProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherRejectFollowHash();
+
+  @override
+  String toString() {
+    return r'publisherRejectFollowProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as (String, String, {String? reason});
+    return publisherRejectFollow(
+      ref,
+      argument.$1,
+      argument.$2,
+      reason: argument.reason,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherRejectFollowProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherRejectFollowHash() =>
+    r'dab89d9f0a9e5f76ba3804c2a08a458443d6a916';
+
+final class PublisherRejectFollowFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<void>,
+          (String, String, {String? reason})
+        > {
+  PublisherRejectFollowFamily._()
+    : super(
+        retry: null,
+        name: r'publisherRejectFollowProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherRejectFollowProvider call(
+    String publisherName,
+    String requestId, {
+    String? reason,
+  }) => PublisherRejectFollowProvider._(
+    argument: (publisherName, requestId, reason: reason),
+    from: this,
+  );
+
+  @override
+  String toString() => r'publisherRejectFollowProvider';
+}

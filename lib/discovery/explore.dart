@@ -512,42 +512,52 @@ class ExploreScreen extends HookConsumerWidget {
       children: [
         Flexible(
           flex: 3,
-          child: ExtendedRefreshIndicator(
-            onRefresh: () async {
-              await notifier?.refresh();
-            },
-            child: CustomScrollView(
-              slivers: [
-                const SliverGap(12),
-                if (usePostList) ...[
-                  _buildLiveStreamsOnTop(
-                    context,
-                    ref,
-                    selectedPublishers.value,
-                  ),
-                  _buildPostList(
-                    context,
-                    ref,
-                    selectedPublishers.value,
-                    selectedCategories.value,
-                    selectedTags.value,
-                  ),
-                ] else if (isListInitialLoading)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(
-                      child: ConfuseSpinner(
-                        speed: 7,
-                        size: 72,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-                      ),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(
+                  color: Theme.of(context).colorScheme.outline,
+                  width: 1 / MediaQuery.devicePixelRatioOf(context),
+                ),
+              ),
+            ),
+            child: ExtendedRefreshIndicator(
+              onRefresh: () async {
+                await notifier?.refresh();
+              },
+              child: CustomScrollView(
+                slivers: [
+                  const SliverGap(12),
+                  if (usePostList) ...[
+                    _buildLiveStreamsOnTop(
+                      context,
+                      ref,
+                      selectedPublishers.value,
                     ),
-                  )
-                else
-                  bodyView!,
-              ],
+                    _buildPostList(
+                      context,
+                      ref,
+                      selectedPublishers.value,
+                      selectedCategories.value,
+                      selectedTags.value,
+                    ),
+                  ] else if (isListInitialLoading)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: ConfuseSpinner(
+                          speed: 7,
+                          size: 72,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                        ),
+                      ),
+                    )
+                  else
+                    bodyView!,
+                ],
+              ),
             ),
           ),
         ),
@@ -683,7 +693,7 @@ class ExploreScreen extends HookConsumerWidget {
             ).padding(horizontal: 36, vertical: 16).center(),
           ),
       ],
-    ).padding(horizontal: 12);
+    ).padding(right: 12);
   }
 
   Widget _buildNarrowBodySliver(

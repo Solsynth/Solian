@@ -230,6 +230,7 @@ class EditPublisherScreen extends HookConsumerWidget {
                   spacing: 16,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox.shrink(),
                     TextFormField(
                       controller: nameController,
                       decoration: InputDecoration(
