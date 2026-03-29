@@ -50,6 +50,9 @@ class ChatListBodyWidget extends HookConsumerWidget {
     final chats = ref.watch(chatRoomJoinedProvider);
     final settings = ref.watch(appSettingsProvider);
     final summaries = ref.watch(chatSummaryProvider);
+    ref.watch(
+      chatGlobalSyncProvider,
+    ); // Ensure global sync WebSocket listener is active
     final activeChatId = ref.watch(currentSubscribedChatIdProvider);
     final accountStatus = ref.watch(chatAccountStatusProvider);
     final selectedTabValue = selectedTab.value;

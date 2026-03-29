@@ -414,6 +414,18 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     talker.log('MessagesNotifier built for room $roomId');
 
+    // Direct WebSocket listener for real-time messages (bypasses event bus chain)
+    final ws = ref.watch(websocketProvider);
+    final wsSub = ws.dataStream.listen((pkt) {
+      if (pkt.type != 'messages.new' || pkt.data == null) return;
+      final message = _tryParseChatMessage(
+        pkt.data,
+        context: 'ws messages.new',
+      );
+      if (message == null || message.chatRoomId != roomId) return;
+      receiveMessage(message);
+    });
+
     _syncEventsSub?.cancel();
     _syncEventsSub = eventBus.on<ChatMessagesSyncedEvent>().listen((event) {
       if (!event.roomIds.contains(roomId)) return;
@@ -435,6 +447,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     ref.onDispose(() {
+      wsSub.cancel();
       _syncEventsSub?.cancel();
       _syncEventsSub = null;
     });

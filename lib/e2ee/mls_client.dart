@@ -118,8 +118,6 @@ class MlsClient {
               );
             }
           }
-          // TODO: Handle commit and proposal envelopes
-          // For now, just ack them to remove from server
         } catch (e) {
           _mlsLogWarn('Failed to process envelope $envelopeId: $e');
         }
