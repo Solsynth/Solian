@@ -1628,5 +1628,6 @@
   "fediverseProfileHint": "Este usuario es de la red Fediverse. La información puede estar incompleta.",
   "viewOnOriginalSite": "Ver en el sitio original",
   "tapToViewOriginal": "Toca para ver el original",
-  "noPosts": "Sin publicaciones"
+  "noPosts": "Sin publicaciones",
+  "profileFields": "Campos de perfil"
 }

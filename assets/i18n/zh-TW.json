@@ -1817,5 +1817,6 @@
   "fediverseProfileHint": "此使用者來自聯邦宇宙網路，資訊可能不完整。",
   "viewOnOriginalSite": "在原始站點查看",
   "tapToViewOriginal": "點擊查看原文",
-  "noPosts": "尚無貼文"
+  "noPosts": "尚無貼文",
+  "profileFields": "個人資料欄位"
 }

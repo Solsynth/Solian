@@ -1628,5 +1628,6 @@
   "fediverseProfileHint": "このユーザーはFediverseネットワークからのものです。情報が不完全な場合があります。",
   "viewOnOriginalSite": "元のサイトで見る",
   "tapToViewOriginal": "タップして元の投稿を表示",
-  "noPosts": "投稿なし"
+  "noPosts": "投稿なし",
+  "profileFields": "プロフィールフィールド"
 }

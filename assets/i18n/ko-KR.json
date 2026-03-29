@@ -1958,5 +1958,6 @@
   "fediverseProfileHint": "이 사용자는 페디버스 네트워크에서 왔습니다. 정보가 불완전할 수 있습니다.",
   "viewOnOriginalSite": "원본 사이트에서 보기",
   "tapToViewOriginal": "탭하여 원본 보기",
-  "noPosts": "게시물 없음"
+  "noPosts": "게시물 없음",
+  "profileFields": "프로필 필드"
 }

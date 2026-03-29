@@ -29,6 +29,8 @@ const kSearchPostListId = 'search';
 
 enum SearchTab { posts, accounts, realms }
 
+enum SearchScope { local, remote }
+
 @RoutePage()
 class UniversalSearchScreen extends HookConsumerWidget {
   final SearchTab initialTab;
@@ -413,7 +415,7 @@ class _AccountSearchTab extends HookConsumerWidget {
     final publisherResults = useState<List<SnPublisher>>([]);
     final fediverseResults = useState<List<SnActivityPubActor>>([]);
     final isSearching = useState(false);
-    final includeFediverse = useState(false);
+    final searchScope = useState(SearchScope.local);
     final requestToken = useRef(0);
 
     Future<void> performSearch(String query) async {
@@ -441,7 +443,7 @@ class _AccountSearchTab extends HookConsumerWidget {
 
         final futures = <Future>[accountFuture, publisherFuture];
 
-        if (includeFediverse.value) {
+        if (searchScope.value == SearchScope.remote) {
           futures.add(
             apiClient.get(
               '/sphere/fediverse/actors/search',
@@ -458,7 +460,7 @@ class _AccountSearchTab extends HookConsumerWidget {
               .map((json) => SnPublisher.fromJson(json))
               .toList();
 
-          if (includeFediverse.value && results.length > 2) {
+          if (searchScope.value == SearchScope.remote && results.length > 2) {
             fediverseResults.value = (results[2].data as List)
                 .map((json) => SnActivityPubActor.fromJson(json))
                 .toList();
@@ -481,7 +483,7 @@ class _AccountSearchTab extends HookConsumerWidget {
     useEffect(() {
       performSearch(searchQuery.value);
       return null;
-    }, [searchQuery.value, includeFediverse.value]);
+    }, [searchQuery.value, searchScope.value]);
 
     // Combine and display results - accounts first, then publishers, then fediverse.
     final allResults = [
@@ -498,25 +500,33 @@ class _AccountSearchTab extends HookConsumerWidget {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Row(
-            children: [
-              Checkbox(
-                value: includeFediverse.value,
-                onChanged: (value) {
-                  includeFediverse.value = value ?? false;
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: SegmentedButton<SearchScope>(
+                segments: [
+                  ButtonSegment(
+                    value: SearchScope.local,
+                    icon: const Icon(Symbols.home),
+                    label: Text('localOnly'.tr()),
+                  ),
+                  ButtonSegment(
+                    value: SearchScope.remote,
+                    icon: const Icon(Symbols.public),
+                    label: Text('includeFediverse'.tr()),
+                  ),
+                ],
+                selected: {searchScope.value},
+                onSelectionChanged: (selection) {
+                  searchScope.value = selection.first;
                 },
-                visualDensity: VisualDensity.compact,
+                showSelectedIcon: false,
               ),
-              Text(
-                'includeFediverse'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
+            ).width(double.infinity),
           ),
         ),
-        const Divider(height: 1),
         Expanded(
           child: isSearching.value
               ? const Center(child: CircularProgressIndicator())
@@ -733,10 +743,9 @@ class _AccountSearchTab extends HookConsumerWidget {
                                 ],
                               ),
                               subtitle:
-                                  actor.summary != null &&
-                                      actor.summary!.isNotEmpty
+                                  actor.bio != null && actor.bio!.isNotEmpty
                                   ? Text(
-                                      actor.summary!,
+                                      actor.bio!,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: Theme.of(

@@ -1731,5 +1731,6 @@
   "fediverseProfileHint": "此用户来自联邦宇宙网络，信息可能不完整。",
   "viewOnOriginalSite": "在原始站点查看",
   "tapToViewOriginal": "点击查看原文",
-  "noPosts": "暂无帖子"
+  "noPosts": "暂无帖子",
+  "profileFields": "个人资料字段"
 }
