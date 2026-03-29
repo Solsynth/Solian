@@ -1,3 +1,5 @@
+import 'dart:io' show HandshakeException;
+
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -171,13 +173,14 @@ class CachedImageErrorWidget extends StatelessWidget {
   int? _extractStatusCode(dynamic error) {
     if (error == null) return null;
     final errorString = error.toString();
-    // Check for HttpException with status code
     final httpExceptionRegex = RegExp(r'Invalid statusCode: (\d+)');
     final match = httpExceptionRegex.firstMatch(errorString);
     if (match != null) {
       return int.tryParse(match.group(1) ?? '');
     }
-    // Check if error has statusCode property (like DioError)
+    if (error is HandshakeException) {
+      return null;
+    }
     if (error.response?.statusCode != null) {
       return error.response.statusCode;
     }
