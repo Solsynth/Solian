@@ -209,6 +209,49 @@ class AuthFactorNewSheet extends HookConsumerWidget {
             }
             if (context.mounted) Navigator.pop(context, true);
           });
+        } else if (factor.type == 5) {
+          final secret = factor.createdResponse?['recovery_code'] as String?;
+          if (secret != null) {
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                title: Text('recoveryCodeCreated'.tr()),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'recoveryCodeSaveWarning'.tr(),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SelectableText(
+                        secret,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontFamily: 'monospace'),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('iHaveSavedIt'.tr()),
+                  ),
+                ],
+              ),
+            );
+          }
+          if (context.mounted) Navigator.pop(context, true);
         } else {
           Navigator.pop(context, true);
         }
@@ -251,7 +294,6 @@ class AuthFactorNewSheet extends HookConsumerWidget {
             TextField(
               controller: secretController,
               decoration: InputDecoration(
-                prefixIcon: const Icon(Symbols.password_2),
                 labelText: 'authFactorSecret'.tr(),
                 hintText: 'authFactorSecretHint'.tr(),
               ),
