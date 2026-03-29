@@ -58,7 +58,6 @@ const kAppFirstLaunchAt = 'app_first_launch_at';
 const kAppAskedReview = 'app_asked_review';
 const kAppDashSearchEngine = 'app_dash_search_engine';
 const kAppDefaultScreen = 'app_default_screen';
-const kAppShowFediverseContent = 'app_show_fediverse_content';
 const kAppShowChatSystemMessages = 'app_show_chat_system_messages';
 const kAppShowChatEventMessages = kAppShowChatSystemMessages;
 const kAppChatEventMessageMode = 'app_chat_event_message_mode';
@@ -70,6 +69,7 @@ const kChatEventMessageModeNone = 'none';
 const kAppDashboardConfig = 'app_dashboard_config';
 const kRealmDisplayModeList = 'list';
 const kRealmDisplayModeCard = 'card';
+const kAppExploreSettings = 'app_explore_settings';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -110,6 +110,20 @@ sealed class DashboardConfig with _$DashboardConfig {
 }
 
 @freezed
+sealed class ExploreSettings with _$ExploreSettings {
+  const factory ExploreSettings({
+    @Default('personalized') String mode,
+    @Default(true) bool aggressiveMode,
+    @Default(<String>[]) List<String> selectedPublisherNames,
+    @Default(<String>[]) List<String> selectedCategoryIds,
+    @Default(<String>[]) List<String> selectedTagIds,
+  }) = _ExploreSettings;
+
+  factory ExploreSettings.fromJson(Map<String, dynamic> json) =>
+      _$ExploreSettingsFromJson(json);
+}
+
+@freezed
 sealed class AppSettings with _$AppSettings {
   const factory AppSettings({
     required bool dataSavingMode,
@@ -142,11 +156,11 @@ sealed class AppSettings with _$AppSettings {
     required bool askedReview,
     required String? dashSearchEngine,
     required String? defaultScreen,
-    required bool showFediverseContent,
     required String realmDisplayMode,
     required String chatEventMessageMode,
     required bool showChatSystemMessages,
     required DashboardConfig? dashboardConfig,
+    required ExploreSettings exploreSettings,
   }) = _AppSettings;
 }
 
@@ -194,12 +208,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       firstLaunchAt: prefs.getString(kAppFirstLaunchAt),
       dashSearchEngine: prefs.getString(kAppDashSearchEngine),
       defaultScreen: prefs.getString(kAppDefaultScreen),
-      showFediverseContent: prefs.getBool(kAppShowFediverseContent) ?? true,
       realmDisplayMode:
           prefs.getString(kAppRealmDisplayMode) ?? kRealmDisplayModeCard,
       chatEventMessageMode: chatEventMessageMode,
       showChatSystemMessages: chatEventMessageMode != kChatEventMessageModeNone,
       dashboardConfig: _getDashboardConfigFromPrefs(prefs),
+      exploreSettings: _getExploreSettingsFromPrefs(prefs),
     );
   }
 
@@ -241,6 +255,18 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       return DashboardConfig.fromJson(json);
     } catch (e) {
       return null;
+    }
+  }
+
+  ExploreSettings _getExploreSettingsFromPrefs(SharedPreferences prefs) {
+    final jsonString = prefs.getString(kAppExploreSettings);
+    if (jsonString == null) return const ExploreSettings();
+
+    try {
+      final json = jsonDecode(jsonString);
+      return ExploreSettings.fromJson(json);
+    } catch (e) {
+      return const ExploreSettings();
     }
   }
 
@@ -457,12 +483,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(dashSearchEngine: value);
   }
 
-  void setShowFediverseContent(bool value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppShowFediverseContent, value);
-    state = state.copyWith(showFediverseContent: value);
-  }
-
   void setRealmDisplayMode(String value) {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setString(kAppRealmDisplayMode, value);
@@ -508,6 +528,13 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.remove(kAppDashboardConfig);
     state = state.copyWith(dashboardConfig: null);
+  }
+
+  void setExploreSettings(ExploreSettings value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final json = jsonEncode(value.toJson());
+    prefs.setString(kAppExploreSettings, json);
+    state = state.copyWith(exploreSettings: value);
   }
 }
 

@@ -160,7 +160,13 @@ class WebSocketService {
   }
 
   void _scheduleReconnect() {
-    if (_isClosing) return;
+    talker.info('[WebSocket] Scheduling reconnect...');
+    if (_isClosing) {
+      talker.debug(
+        '[WebSocket] Not scheduling reconnect because connection is closing',
+      );
+      return;
+    }
 
     // Check if we've exceeded the reconnect limit
     final now = DateTime.now();
