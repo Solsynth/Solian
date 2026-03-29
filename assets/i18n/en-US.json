@@ -1903,7 +1903,7 @@
   "liveChatMessageHint": "Chat with chat",
   "live": "LIVE",
   "liveChat": "Live Chat",
-  "watchToJoin":"Watch to Join",
+  "watchToJoin": "Watch to Join",
   "searchUsersEmpty": "Search for users..",
   "publisherQuotaSlotUsed": "Slot Used",
   "publisherQuotaInfoHint": "Publisher slots are used when you create a publisher. If you have no available slots, you won't be able to create new publishers until. It does not limit the number of publishers you can collaberate with others.",
@@ -2212,5 +2212,9 @@
   "forwards": "Forwards",
   "boosts": "Boosts",
   "searchUsersNoResults": "No users matches search",
-  "includeFediverse": "Include Fediverse"
+  "includeFediverse": "Include Fediverse",
+  "fediverseProfileHint": "This user is from the Fediverse network. Information may be incomplete.",
+  "viewOnOriginalSite": "View on original site",
+  "tapToViewOriginal": "Tap to view original",
+  "noPosts": "No posts yet"
 }

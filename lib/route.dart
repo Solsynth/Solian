@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/fediverse/actor_profile.dart';
 
 // Shell route keys for nested navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>();
