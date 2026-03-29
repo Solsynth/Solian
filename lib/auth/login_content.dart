@@ -49,8 +49,8 @@ Future<void> performPostLogin(BuildContext context, WidgetRef ref) async {
   await userNotifier.fetchUser();
   if (!context.mounted) return;
   final apiClient = ref.read(apiClientProvider);
-  await subscribePushNotification(apiClient, context: context);
   final wsNotifier = ref.read(websocketStateProvider.notifier);
+  await subscribePushNotification(apiClient, context: context);
   wsNotifier.connect();
   if (context.mounted && Navigator.canPop(context)) {
     Navigator.pop(context, true);
