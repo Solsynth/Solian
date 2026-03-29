@@ -51,10 +51,50 @@ bool shouldShowBottomNavForCurrentPath(
   });
 }
 
-class ConditionalBottomNav extends StatelessWidget {
+class ConditionalBottomNav extends StatefulWidget {
   final Widget child;
   final List<String>? routes;
   const ConditionalBottomNav({super.key, required this.child, this.routes});
+
+  @override
+  State<ConditionalBottomNav> createState() => _ConditionalBottomNavState();
+}
+
+class _ConditionalBottomNavState extends State<ConditionalBottomNav>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Offset> _slideAnimation;
+  bool _isVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: 1.0, // Start fully visible
+    );
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+        );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateVisibility(bool shouldShow) {
+    if (shouldShow == _isVisible) return;
+    _isVisible = shouldShow;
+    if (shouldShow) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +102,21 @@ class ConditionalBottomNav extends StatelessWidget {
       0,
       isWideScreen(context) ? null : kWideScreenRouteStart,
     );
-    final effectiveRoutes = routes ?? defaultRoutes;
+    final effectiveRoutes = widget.routes ?? defaultRoutes;
 
     final shouldShowBottomNav = shouldShowBottomNavForCurrentPath(
       context,
       routes: effectiveRoutes,
     );
 
-    return shouldShowBottomNav ? child : const SizedBox.shrink();
+    // Schedule visibility update after the frame to avoid build during build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _updateVisibility(shouldShowBottomNav);
+    });
+
+    return SlideTransition(
+      position: _slideAnimation,
+      child: ClipRect(child: widget.child),
+    );
   }
 }

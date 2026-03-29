@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
@@ -47,123 +46,117 @@ class TabsScreen extends StatelessWidget {
   }
 }
 
-class _TabsScreenContent extends HookConsumerWidget {
+class _TabsScreenContent extends ConsumerStatefulWidget {
   final Widget child;
 
   const _TabsScreenContent({required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TabsScreenContent> createState() => _TabsScreenContentState();
+}
+
+class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
+  late final GlobalKey<ScaffoldState> _scaffoldKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaffoldKey = GlobalKey<ScaffoldState>();
+  }
+
+  static List<_TabDestination> get _allDestinations => [
+    _TabDestination(
+      id: 'dashboard',
+      routeIndex: 0,
+      routePath: '/',
+      label: 'dashboard'.tr(),
+      navigationIcon: Symbols.dashboard_rounded,
+      iconBuilder: (selected) =>
+          Icon(Symbols.dashboard_rounded, fill: selected ? 1 : null),
+    ),
+    _TabDestination(
+      id: 'explore',
+      routeIndex: 1,
+      routePath: '/explore',
+      label: 'explore'.tr(),
+      navigationIcon: Symbols.explore_rounded,
+      iconBuilder: (selected) =>
+          Icon(Symbols.explore_rounded, fill: selected ? 1 : null),
+    ),
+    _TabDestination(
+      id: 'chat',
+      routeIndex: 2,
+      routePath: '/chat',
+      label: 'chat'.tr(),
+      navigationIcon: Symbols.forum_rounded,
+      iconBuilder: (_) => const Icon(Symbols.forum_rounded),
+    ),
+    _TabDestination(
+      id: 'realms',
+      routeIndex: 3,
+      routePath: '/realms',
+      label: 'realms'.tr(),
+      navigationIcon: Symbols.groups_3,
+      iconBuilder: (selected) =>
+          Icon(Symbols.groups_3, fill: selected ? 1 : null),
+    ),
+    _TabDestination(
+      id: 'account',
+      routeIndex: 4,
+      routePath: '/account',
+      label: 'account'.tr(),
+      navigationIcon: Symbols.account_circle_rounded,
+      iconBuilder: (_) => const Icon(Symbols.account_circle_rounded),
+    ),
+    _TabDestination(
+      id: 'files',
+      routeIndex: 5,
+      routePath: '/files',
+      label: 'files'.tr(),
+      navigationIcon: Symbols.folder_rounded,
+      iconBuilder: (selected) =>
+          Icon(Symbols.folder_rounded, fill: selected ? 1 : null),
+    ),
+    _TabDestination(
+      id: 'thought',
+      routeIndex: 6,
+      routePath: '/thought',
+      label: 'aiThought'.tr(),
+      navigationIcon: Symbols.bubble_chart,
+      iconBuilder: (selected) =>
+          Icon(Symbols.bubble_chart, fill: selected ? 1 : null),
+    ),
+    _TabDestination(
+      id: 'creators',
+      routeIndex: 7,
+      routePath: '/creators',
+      label: 'creatorHub'.tr(),
+      navigationIcon: Symbols.design_services_rounded,
+      iconBuilder: (selected) =>
+          Icon(Symbols.design_services_rounded, fill: selected ? 1 : null),
+    ),
+    _TabDestination(
+      id: 'developers',
+      routeIndex: 8,
+      routePath: '/developers',
+      label: 'developerHub'.tr(),
+      navigationIcon: Symbols.data_object_rounded,
+      iconBuilder: (selected) =>
+          Icon(Symbols.data_object_rounded, fill: selected ? 1 : null),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     final tabsRouter = AutoTabsRouter.of(context);
-    final scaffoldKey = GlobalKey<ScaffoldState>();
 
     final token = ref.watch(tokenProvider);
     final userInfo = ref.watch(userInfoProvider);
-    final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
-    final chatUnreadCount = ref.watch(chatUnreadCountProvider);
+    ref.watch(notificationUnreadCountProvider);
+    ref.watch(chatUnreadCountProvider);
     final wideScreen = isWideScreen(context);
 
-    final allDestinations = <_TabDestination>[
-      _TabDestination(
-        id: 'dashboard',
-        routeIndex: 0,
-        routePath: '/',
-        label: 'dashboard'.tr(),
-        navigationIcon: Symbols.dashboard_rounded,
-        iconBuilder: (selected) =>
-            Icon(Symbols.dashboard_rounded, fill: selected ? 1 : null),
-      ),
-      _TabDestination(
-        id: 'explore',
-        routeIndex: 1,
-        routePath: '/explore',
-        label: 'explore'.tr(),
-        navigationIcon: Symbols.explore_rounded,
-        iconBuilder: (selected) =>
-            Icon(Symbols.explore_rounded, fill: selected ? 1 : null),
-      ),
-      _TabDestination(
-        id: 'chat',
-        routeIndex: 2,
-        routePath: '/chat',
-        label: 'chat'.tr(),
-        navigationIcon: Symbols.forum_rounded,
-        iconBuilder: (_) => Badge.count(
-          count: chatUnreadCount.value ?? 0,
-          isLabelVisible: (chatUnreadCount.value ?? 0) > 0,
-          child: const Icon(Symbols.forum_rounded),
-        ),
-      ),
-      _TabDestination(
-        id: 'realms',
-        routeIndex: 3,
-        routePath: '/realms',
-        label: 'realms'.tr(),
-        navigationIcon: Symbols.groups_3,
-        iconBuilder: (selected) =>
-            Icon(Symbols.groups_3, fill: selected ? 1 : null),
-      ),
-      _TabDestination(
-        id: 'account',
-        routeIndex: 4,
-        routePath: '/account',
-        label: 'account'.tr(),
-        navigationIcon: Symbols.account_circle_rounded,
-        iconBuilder: (_) => Badge.count(
-          count: notificationUnreadCount.value ?? 0,
-          isLabelVisible: (notificationUnreadCount.value ?? 0) > 0,
-          child: Consumer(
-            child: const Icon(Symbols.account_circle_rounded),
-            builder: (context, ref, fallbackChild) {
-              final userInfo = ref.watch(userInfoProvider);
-              if (userInfo.value?.profile.picture != null) {
-                return ProfilePictureWidget(
-                  file: userInfo.value!.profile.picture,
-                  radius: 12,
-                );
-              }
-              return fallbackChild!;
-            },
-          ),
-        ),
-      ),
-      _TabDestination(
-        id: 'files',
-        routeIndex: 5,
-        routePath: '/files',
-        label: 'files'.tr(),
-        navigationIcon: Symbols.folder_rounded,
-        iconBuilder: (selected) =>
-            Icon(Symbols.folder_rounded, fill: selected ? 1 : null),
-      ),
-      _TabDestination(
-        id: 'thought',
-        routeIndex: 6,
-        routePath: '/thought',
-        label: 'aiThought'.tr(),
-        navigationIcon: Symbols.bubble_chart,
-        iconBuilder: (selected) =>
-            Icon(Symbols.bubble_chart, fill: selected ? 1 : null),
-      ),
-      _TabDestination(
-        id: 'creators',
-        routeIndex: 7,
-        routePath: '/creators',
-        label: 'creatorHub'.tr(),
-        navigationIcon: Symbols.design_services_rounded,
-        iconBuilder: (selected) =>
-            Icon(Symbols.design_services_rounded, fill: selected ? 1 : null),
-      ),
-      _TabDestination(
-        id: 'developers',
-        routeIndex: 8,
-        routePath: '/developers',
-        label: 'developerHub'.tr(),
-        navigationIcon: Symbols.data_object_rounded,
-        iconBuilder: (selected) =>
-            Icon(Symbols.data_object_rounded, fill: selected ? 1 : null),
-      ),
-    ];
+    final allDestinations = _allDestinations;
     final navCustomization = ref.watch(_navCustomizationProvider);
     final destinationById = {for (final d in allDestinations) d.id: d};
     final defaultBottomNavIds = ['dashboard', 'explore', 'chat', 'account'];
@@ -411,7 +404,7 @@ class _TabsScreenContent extends HookConsumerWidget {
     if (wideScreen) {
       if (railDestinations.isEmpty) {
         return Scaffold(
-          key: scaffoldKey,
+          key: _scaffoldKey,
           drawer: isDrawerEnabled
               ? Drawer(child: buildNavigationDrawerContent())
               : null,
@@ -419,11 +412,11 @@ class _TabsScreenContent extends HookConsumerWidget {
           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
           body: ClipRRect(
             borderRadius: const BorderRadius.only(topLeft: Radius.circular(16)),
-            child: child,
+            child: RepaintBoundary(child: widget.child),
           ),
           floatingActionButton: isDrawerEnabled
               ? FloatingActionButton.small(
-                  onPressed: () => scaffoldKey.currentState?.openDrawer(),
+                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                   child: const Icon(Symbols.menu_rounded),
                 )
               : null,
@@ -431,7 +424,7 @@ class _TabsScreenContent extends HookConsumerWidget {
         );
       }
       return Scaffold(
-        key: scaffoldKey,
+        key: _scaffoldKey,
         drawer: isDrawerEnabled
             ? Drawer(child: buildNavigationDrawerContent())
             : null,
@@ -454,7 +447,7 @@ class _TabsScreenContent extends HookConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: FloatingActionButton(
                   onPressed: isDrawerEnabled
-                      ? () => scaffoldKey.currentState?.openDrawer()
+                      ? () => _scaffoldKey.currentState?.openDrawer()
                       : null,
                   child: const Icon(Symbols.menu_rounded),
                 ),
@@ -465,7 +458,7 @@ class _TabsScreenContent extends HookConsumerWidget {
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                 ),
-                child: child,
+                child: RepaintBoundary(child: widget.child),
               ),
             ),
           ],
@@ -474,7 +467,7 @@ class _TabsScreenContent extends HookConsumerWidget {
     }
 
     final scaffold = Scaffold(
-      key: scaffoldKey,
+      key: _scaffoldKey,
       backgroundColor: Colors.transparent,
       extendBody: true,
       resizeToAvoidBottomInset: false,
@@ -487,67 +480,35 @@ class _TabsScreenContent extends HookConsumerWidget {
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
         ),
-        child: child,
+        child: widget.child,
       ),
       bottomNavigationBar: ConditionalBottomNav(
         routes: bottomNavRoutes,
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        child: NavigationBar(
+          height: 56,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+          selectedIndex: bottomNavCurrentIndex + 1,
+          onDestinationSelected: (index) {
+            if (index == 0) {
+              if (isDrawerEnabled) {
+                _scaffoldKey.currentState?.openDrawer();
+              }
+            } else {
+              onBottomNavDestinationSelected(index - 1);
+            }
+          },
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Symbols.menu_rounded),
+              label: MaterialLocalizations.of(context).openAppDrawerTooltip,
             ),
-            child: SafeArea(
-              top: false,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: SizedBox(
-                    height: 56,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _BottomNavButton(
-                            selected: false,
-                            icon: const Icon(Symbols.menu_rounded),
-                            label: MaterialLocalizations.of(
-                              context,
-                            ).openAppDrawerTooltip,
-                            onTap: isDrawerEnabled
-                                ? () => scaffoldKey.currentState?.openDrawer()
-                                : null,
-                          ),
-                        ),
-                        ...bottomNavDestinations.mapIndexed((idx, destination) {
-                          return Expanded(
-                            child: _BottomNavButton(
-                              selected: bottomNavCurrentIndex == idx,
-                              icon: destination.iconBuilder(
-                                bottomNavCurrentIndex == idx,
-                              ),
-                              label: destination.label,
-                              onTap: () => onBottomNavDestinationSelected(idx),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+            ...bottomNavDestinations.mapIndexed((idx, destination) {
+              return NavigationDestination(
+                icon: destination.iconBuilder(bottomNavCurrentIndex + 1 == idx),
+                label: destination.label,
+              );
+            }),
+          ],
         ),
       ),
     );
@@ -564,7 +525,7 @@ class _TabsScreenContent extends HookConsumerWidget {
           _OpenDrawerIntent: CallbackAction<_OpenDrawerIntent>(
             onInvoke: (_) {
               if (isDrawerEnabled) {
-                scaffoldKey.currentState?.openDrawer();
+                _scaffoldKey.currentState?.openDrawer();
               }
               return null;
             },
@@ -863,32 +824,4 @@ class _TabDestination {
     required this.navigationIcon,
     required this.iconBuilder,
   });
-}
-
-class _BottomNavButton extends StatelessWidget {
-  final bool selected;
-  final Widget icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  const _BottomNavButton({
-    required this.selected,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onTap,
-      tooltip: label,
-      style: IconButton.styleFrom(
-        backgroundColor: selected
-            ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-            : Colors.transparent,
-      ),
-      icon: icon,
-    );
-  }
 }
