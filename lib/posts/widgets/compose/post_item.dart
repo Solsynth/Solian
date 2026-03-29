@@ -6,11 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
+import 'package:island/discovery/discovery_feedback_service.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/posts/compose.dart';
@@ -26,7 +25,6 @@ import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:super_context_menu/super_context_menu.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -39,7 +37,6 @@ class PostActionableItem extends HookConsumerWidget {
   final bool isEmbedOpenable;
   final bool isCompact;
   final bool hideAttachments;
-  final bool showFeedback;
   final double? borderRadius;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
@@ -55,7 +52,6 @@ class PostActionableItem extends HookConsumerWidget {
     this.isEmbedOpenable = false,
     this.isCompact = false,
     this.hideAttachments = false,
-    this.showFeedback = false,
     this.borderRadius,
     this.onRefresh,
     this.onUpdate,
@@ -71,7 +67,310 @@ class PostActionableItem extends HookConsumerWidget {
       [user],
     );
 
-    final config = ref.watch(appSettingsProvider);
+    Widget buildMenuItem({required String label, required IconData icon}) {
+      return Row(
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 12),
+          Text(label),
+        ],
+      );
+    }
+
+    void Function() getMenuAction(String action) {
+      switch (action) {
+        case 'edit':
+          return () async {
+            final result = await PostComposeDialog.show(
+              context,
+              originalPost: item,
+            );
+            if (result != null) {
+              onRefresh?.call();
+            }
+          };
+        case 'delete':
+          return () {
+            showConfirmAlert(
+              'deletePostHint'.tr(),
+              'deletePost'.tr(),
+              isDanger: true,
+            ).then((confirm) {
+              if (confirm) {
+                final client = ref.watch(apiClientProvider);
+                client
+                    .delete('/sphere/posts/${item.id}')
+                    .catchError((err) {
+                      showErrorAlert(err);
+                      return err;
+                    })
+                    .then((_) {
+                      onRefresh?.call();
+                    });
+              }
+            });
+          };
+        case 'copyLink':
+          return () {
+            Clipboard.setData(
+              ClipboardData(text: 'https://solian.app/posts/${item.id}'),
+            );
+          };
+        case 'reply':
+          return () async {
+            final result = await PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(replyingTo: item),
+            );
+            if (result != null) {
+              onRefresh?.call();
+            }
+          };
+        case 'forward':
+          return () async {
+            final result = await PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(forwardingTo: item),
+            );
+            if (result != null) {
+              onRefresh?.call();
+            }
+          };
+        case 'pin':
+          return () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => PostPinSheet(post: item),
+            ).then((value) {
+              if (value is int) {
+                onUpdate?.call(item.copyWith(pinMode: value));
+              }
+            });
+          };
+        case 'unpin':
+          return () {
+            showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+              confirm,
+            ) async {
+              if (confirm) {
+                final client = ref.watch(apiClientProvider);
+                try {
+                  if (context.mounted) showLoadingModal(context);
+                  await client.delete('/sphere/posts/${item.id}/pin');
+                  onUpdate?.call(item.copyWith(pinMode: null));
+                } catch (err) {
+                  showErrorAlert(err);
+                } finally {
+                  if (context.mounted) hideLoadingModal(context);
+                }
+              }
+            });
+          };
+        case 'award':
+          return () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (context) => PostAwardSheet(post: item),
+            );
+          };
+        case 'boost':
+          return () async {
+            final client = ref.read(apiClientProvider);
+            try {
+              if (context.mounted) showLoadingModal(context);
+              await client.post('/sphere/posts/${item.id}/boost');
+              onRefresh?.call();
+            } catch (err) {
+              showErrorAlert(err);
+            } finally {
+              if (context.mounted) hideLoadingModal(context);
+            }
+          };
+        case 'share':
+          return () {
+            showShareSheetLink(
+              context: context,
+              link: 'https://solian.app/posts/${item.id}',
+              title: 'sharePost'.tr(),
+              toSystem: true,
+            );
+          };
+        case 'sharePhoto':
+          return () {
+            sharePostAsScreenshot(context, ref, item);
+          };
+        case 'openBrowser':
+          return () {
+            launchUrlString(item.fediverseUri!);
+          };
+        case 'showMoreLikeThis':
+          return () async {
+            try {
+              final service = ref.read(discoveryFeedbackServiceProvider);
+              await service.submitFeedback(
+                kind: DiscoveryFeedbackKind.post,
+                referenceId: item.id,
+                feedback: DiscoveryFeedbackValue.positive,
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Thanks for your feedback!').tr(),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            } catch (err) {
+              showErrorAlert(err);
+            }
+          };
+        case 'showLessLikeThis':
+          return () async {
+            try {
+              final service = ref.read(discoveryFeedbackServiceProvider);
+              await service.submitFeedback(
+                kind: DiscoveryFeedbackKind.post,
+                referenceId: item.id,
+                feedback: DiscoveryFeedbackValue.negative,
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Thanks for your feedback!').tr(),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            } catch (err) {
+              showErrorAlert(err);
+            }
+          };
+        case 'notInterested':
+          return () async {
+            try {
+              final service = ref.read(discoveryFeedbackServiceProvider);
+              await service.markUninterested(
+                kind: 'post',
+                referenceId: item.id,
+              );
+              onRefresh?.call();
+            } catch (err) {
+              showErrorAlert(err);
+            }
+          };
+        case 'report':
+          return () {
+            showAbuseReportSheet(
+              context,
+              resourceIdentifier: 'post:${item.id}',
+            );
+          };
+        default:
+          return () {};
+      }
+    }
+
+    final postMenuItems = <PopupMenuEntry<String>>[
+      if (isAuthor)
+        PopupMenuItem<String>(
+          value: 'edit',
+          child: buildMenuItem(label: 'edit'.tr(), icon: Symbols.edit),
+        ),
+      if (isAuthor)
+        PopupMenuItem<String>(
+          value: 'delete',
+          child: buildMenuItem(label: 'delete'.tr(), icon: Symbols.delete),
+        ),
+      if (isAuthor) const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'copyLink',
+        child: buildMenuItem(label: 'copyLink'.tr(), icon: Symbols.link),
+      ),
+      PopupMenuItem<String>(
+        value: 'reply',
+        child: buildMenuItem(label: 'reply'.tr(), icon: Symbols.reply),
+      ),
+      PopupMenuItem<String>(
+        value: 'forward',
+        child: buildMenuItem(label: 'forward'.tr(), icon: Symbols.forward),
+      ),
+      if (isAuthor && item.pinMode == null)
+        PopupMenuItem<String>(
+          value: 'pin',
+          child: buildMenuItem(label: 'pinPost'.tr(), icon: Symbols.keep),
+        )
+      else if (isAuthor && item.pinMode != null)
+        PopupMenuItem<String>(
+          value: 'unpin',
+          child: buildMenuItem(label: 'unpinPost'.tr(), icon: Symbols.keep_off),
+        ),
+      PopupMenuItem<String>(
+        value: 'award',
+        child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'boost',
+        child: buildMenuItem(label: 'boost'.tr(), icon: Symbols.repeat),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'share',
+        child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
+      ),
+      if (!kIsWeb)
+        PopupMenuItem<String>(
+          value: 'sharePhoto',
+          child: buildMenuItem(
+            label: 'sharePostPhoto'.tr(),
+            icon: Symbols.share_reviews,
+          ),
+        ),
+      if (item.fediverseUri != null)
+        PopupMenuItem<String>(
+          value: 'openBrowser',
+          child: buildMenuItem(
+            label: 'openInBrowser'.tr(),
+            icon: Symbols.open_in_new,
+          ),
+        ),
+      const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'showMoreLikeThis',
+        child: buildMenuItem(
+          label: 'showMoreLikeThis'.tr(),
+          icon: Symbols.thumb_up,
+        ),
+      ),
+      PopupMenuItem<String>(
+        value: 'showLessLikeThis',
+        child: buildMenuItem(
+          label: 'showLessLikeThis'.tr(),
+          icon: Symbols.thumb_down,
+        ),
+      ),
+      PopupMenuItem<String>(
+        value: 'notInterested',
+        child: buildMenuItem(
+          label: 'notInterested'.tr(),
+          icon: Symbols.hide_source,
+        ),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'report',
+        child: buildMenuItem(label: 'abuseReport'.tr(), icon: Symbols.flag),
+      ),
+    ];
+
+    final trailing = PopupMenuButton<String>(
+      icon: const Icon(Symbols.more_horiz),
+      itemBuilder: (context) => postMenuItems,
+      onSelected: (action) => getMenuAction(action)(),
+    );
 
     final widgetItem = InkWell(
       borderRadius: borderRadius != null
@@ -91,6 +390,7 @@ class PostActionableItem extends HookConsumerWidget {
         onRefresh: onRefresh,
         onUpdate: onUpdate,
         onOpen: onOpen,
+        trailing: trailing,
       ),
       onTap: () {
         if (onTap != null) {
@@ -102,242 +402,7 @@ class PostActionableItem extends HookConsumerWidget {
       },
     );
 
-    return ContextMenuWidget(
-      menuProvider: (_) {
-        return Menu(
-          children: [
-            if (isAuthor)
-              MenuAction(
-                title: 'edit'.tr(),
-                image: MenuImage.icon(Symbols.edit),
-                callback: () async {
-                  final result = await PostComposeDialog.show(
-                    context,
-                    originalPost: item,
-                  );
-                  if (result != null) {
-                    onRefresh?.call();
-                  }
-                },
-              ),
-            if (isAuthor)
-              MenuAction(
-                title: 'delete'.tr(),
-                image: MenuImage.icon(Symbols.delete),
-                callback: () {
-                  showConfirmAlert(
-                    'deletePostHint'.tr(),
-                    'deletePost'.tr(),
-                    isDanger: true,
-                  ).then((confirm) {
-                    if (confirm) {
-                      final client = ref.watch(apiClientProvider);
-                      client
-                          .delete('/sphere/posts/${item.id}')
-                          .catchError((err) {
-                            showErrorAlert(err);
-                            return err;
-                          })
-                          .then((_) {
-                            onRefresh?.call();
-                          });
-                    }
-                  });
-                },
-              ),
-            if (isAuthor) MenuSeparator(),
-            MenuAction(
-              title: 'copyLink'.tr(),
-              image: MenuImage.icon(Symbols.link),
-              callback: () {
-                Clipboard.setData(
-                  ClipboardData(text: 'https://solian.app/posts/${item.id}'),
-                );
-              },
-            ),
-            MenuAction(
-              title: 'reply'.tr(),
-              image: MenuImage.icon(Symbols.reply),
-              callback: () async {
-                final result = await PostComposeDialog.show(
-                  context,
-                  initialState: PostComposeInitialState(replyingTo: item),
-                );
-                if (result != null) {
-                  onRefresh?.call();
-                }
-              },
-            ),
-            MenuAction(
-              title: 'forward'.tr(),
-              image: MenuImage.icon(Symbols.forward),
-              callback: () async {
-                final result = await PostComposeDialog.show(
-                  context,
-                  initialState: PostComposeInitialState(forwardingTo: item),
-                );
-                if (result != null) {
-                  onRefresh?.call();
-                }
-              },
-            ),
-            if (isAuthor && item.pinMode == null)
-              MenuAction(
-                title: 'pinPost'.tr(),
-                image: MenuImage.icon(Symbols.keep),
-                callback: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => PostPinSheet(post: item),
-                  ).then((value) {
-                    if (value is int) {
-                      onUpdate?.call(item.copyWith(pinMode: value));
-                    }
-                  });
-                },
-              )
-            else if (isAuthor && item.pinMode != null)
-              MenuAction(
-                title: 'unpinPost'.tr(),
-                image: MenuImage.icon(Symbols.keep_off),
-                callback: () {
-                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then(
-                    (confirm) async {
-                      if (confirm) {
-                        final client = ref.watch(apiClientProvider);
-                        try {
-                          if (context.mounted) showLoadingModal(context);
-                          await client.delete('/sphere/posts/${item.id}/pin');
-                          onUpdate?.call(item.copyWith(pinMode: null));
-                        } catch (err) {
-                          showErrorAlert(err);
-                        } finally {
-                          if (context.mounted) hideLoadingModal(context);
-                        }
-                      }
-                    },
-                  );
-                },
-              ),
-            MenuAction(
-              title: 'award'.tr(),
-              image: MenuImage.icon(Symbols.star),
-              callback: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useRootNavigator: true,
-                  builder: (context) => PostAwardSheet(post: item),
-                );
-              },
-            ),
-            MenuSeparator(),
-            MenuAction(
-              title: 'boost'.tr(),
-              image: MenuImage.icon(Symbols.repeat),
-              callback: () async {
-                final client = ref.read(apiClientProvider);
-                try {
-                  if (context.mounted) showLoadingModal(context);
-                  await client.post('/sphere/posts/${item.id}/boost');
-                  onRefresh?.call();
-                } catch (err) {
-                  showErrorAlert(err);
-                } finally {
-                  if (context.mounted) hideLoadingModal(context);
-                }
-              },
-            ),
-            MenuSeparator(),
-            MenuAction(
-              title: 'share'.tr(),
-              image: MenuImage.icon(Symbols.share),
-              callback: () {
-                showShareSheetLink(
-                  context: context,
-                  link: 'https://solian.app/posts/${item.id}',
-                  title: 'sharePost'.tr(),
-                  toSystem: true,
-                );
-              },
-            ),
-            if (!kIsWeb)
-              MenuAction(
-                title: 'sharePostPhoto'.tr(),
-                image: MenuImage.icon(Symbols.share_reviews),
-                callback: () {
-                  sharePostAsScreenshot(context, ref, item);
-                },
-              ),
-            if (item.fediverseUri != null)
-              MenuAction(
-                title: 'openInBrowser'.tr(),
-                image: MenuImage.icon(Symbols.open_in_new),
-                callback: () {
-                  launchUrlString(item.fediverseUri!);
-                },
-              ),
-            MenuSeparator(),
-            MenuAction(
-              title: 'abuseReport'.tr(),
-              image: MenuImage.icon(Symbols.flag),
-              callback: () {
-                showAbuseReportSheet(
-                  context,
-                  resourceIdentifier: 'post:${item.id}',
-                );
-              },
-            ),
-          ],
-        );
-      },
-      child: Material(
-        color: config.cardTransparency < 1
-            ? Colors.transparent
-            : Theme.of(context).cardTheme.color,
-        borderRadius: borderRadius != null
-            ? BorderRadius.all(Radius.circular(borderRadius!))
-            : null,
-        child: showFeedback
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  widgetItem,
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        const Icon(Symbols.mindfulness, size: 20).opacity(0.75),
-                        Expanded(
-                          child: Text(
-                            "Are we recommending the content you like?",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ).tr().fontSize(13).opacity(0.75),
-                        ),
-                        DiscoveryFeedbackWidget(
-                          kind: 'post',
-                          referenceId: item.id,
-                          showNotInterested: true,
-                          showBackground: false,
-                        ),
-                      ],
-                    ),
-                  ).clipRRect(bottomLeft: 8, bottomRight: 8),
-                ],
-              )
-            : widgetItem,
-      ),
-    );
+    return widgetItem;
   }
 }
 
@@ -356,6 +421,7 @@ class PostItem extends HookConsumerWidget {
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
+  final Widget? trailing;
   const PostItem({
     super.key,
     required this.item,
@@ -372,6 +438,7 @@ class PostItem extends HookConsumerWidget {
     this.onRefresh,
     this.onUpdate,
     this.onOpen,
+    this.trailing,
   });
 
   @override
@@ -493,6 +560,7 @@ class PostItem extends HookConsumerWidget {
           showUpperLine:
               isShowReference &&
               (item.repliedPost != null || item.forwardedPost != null),
+          trailing: trailing,
         ),
         PostBody(
           item: item,

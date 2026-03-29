@@ -74,6 +74,8 @@ class MeetBluetoothService {
       !kIsWeb &&
       switch (defaultTargetPlatform) {
         TargetPlatform.android => true,
+        TargetPlatform.iOS => true,
+        TargetPlatform.macOS => true,
         _ => false,
       };
 

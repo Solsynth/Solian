@@ -114,8 +114,9 @@ class ExploreScreen extends HookConsumerWidget {
         selectedCategoryIds.value.isNotEmpty ||
         selectedTagIds.value.isNotEmpty;
 
-    final filterBar = Card(
+    final filterBar = Container(
       margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      color: Colors.transparent,
       child: _ExploreFilterToolbar(
         currentFilter: currentFilter.value,
         currentMode: currentMode.value,
@@ -556,8 +557,9 @@ class ExploreScreen extends HookConsumerWidget {
             child: Align(
               alignment: Alignment.topCenter,
               child: SingleChildScrollView(
-                child: Card(
+                child: Container(
                   margin: const EdgeInsets.symmetric(vertical: 12),
+                  color: Theme.of(context).colorScheme.surfaceContainer,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: 8,
@@ -824,96 +826,99 @@ class ExploreScreen extends HookConsumerWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: TabBar(
-                      indicatorColor: Theme.of(
-                        context,
-                      ).appBarTheme.foregroundColor,
-                      controller: filterTabController,
-                      dividerHeight: 0,
-                      onTap: hasSubscriptionFiltersApplied
-                          ? null
-                          : (index) {
-                              final filter = switch (index) {
-                                1 => 'subscriptions',
-                                2 => 'friends',
-                                _ => null,
-                              };
-                              handleFilterChange(filter);
-                            },
-                      tabs: [
-                        Tab(
-                          child: Row(
-                            spacing: 8,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Symbols.explore,
-                                size: 18,
-                                fill: filterTabController.index == 0 ? 1 : 0,
-                                color: Theme.of(
-                                  context,
-                                ).appBarTheme.foregroundColor,
-                              ),
-                              Text(
-                                'explore'.tr(),
-                                style: TextStyle(
+                    child: IgnorePointer(
+                      ignoring: hasSubscriptionFiltersApplied,
+                      child: TabBar(
+                        indicatorColor: Theme.of(
+                          context,
+                        ).appBarTheme.foregroundColor,
+                        controller: filterTabController,
+                        dividerHeight: 0,
+                        onTap: hasSubscriptionFiltersApplied
+                            ? null
+                            : (index) {
+                                final filter = switch (index) {
+                                  1 => 'subscriptions',
+                                  2 => 'friends',
+                                  _ => null,
+                                };
+                                handleFilterChange(filter);
+                              },
+                        tabs: [
+                          Tab(
+                            child: Row(
+                              spacing: 8,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Symbols.explore,
+                                  size: 18,
+                                  fill: filterTabController.index == 0 ? 1 : 0,
                                   color: Theme.of(
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  'explore'.tr(),
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        Tab(
-                          child: Row(
-                            spacing: 8,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Symbols.subscriptions,
-                                size: 18,
-                                fill: filterTabController.index == 1 ? 1 : 0,
-                                color: Theme.of(
-                                  context,
-                                ).appBarTheme.foregroundColor,
-                              ),
-                              Text(
-                                'exploreFilterSubscriptions'.tr(),
-                                style: TextStyle(
+                          Tab(
+                            child: Row(
+                              spacing: 8,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Symbols.subscriptions,
+                                  size: 18,
+                                  fill: filterTabController.index == 1 ? 1 : 0,
                                   color: Theme.of(
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  'exploreFilterSubscriptions'.tr(),
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        Tab(
-                          child: Row(
-                            spacing: 8,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Symbols.people,
-                                size: 18,
-                                fill: filterTabController.index == 2 ? 1 : 0,
-                                color: Theme.of(
-                                  context,
-                                ).appBarTheme.foregroundColor,
-                              ),
-                              Text(
-                                'exploreFilterFriends'.tr(),
-                                style: TextStyle(
+                          Tab(
+                            child: Row(
+                              spacing: 8,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Symbols.people,
+                                  size: 18,
+                                  fill: filterTabController.index == 2 ? 1 : 0,
                                   color: Theme.of(
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  'exploreFilterFriends'.tr(),
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).appBarTheme.foregroundColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   Padding(
@@ -945,7 +950,6 @@ class ExploreScreen extends HookConsumerWidget {
             floating: true,
             snap: true,
           ),
-          const SliverGap(8),
           if (usePostList) ...[
             _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
             _buildPostList(
@@ -1392,8 +1396,9 @@ class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileCard = Card(
+    final profileCard = Container(
       margin: const EdgeInsets.only(bottom: 8),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: ListTile(
         dense: true,
         leading: ProfilePictureWidget(file: publisher.picture, radius: 16),
@@ -1677,8 +1682,9 @@ class _DiscoveryActivityItem extends ConsumerWidget {
       ),
     };
 
-    return Card(
+    return Container(
       margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1799,8 +1805,12 @@ class AccountDiscoveryCard extends ConsumerWidget {
         ? CloudImageWidget(file: background, fit: BoxFit.cover)
         : ColoredBox(color: Theme.of(context).colorScheme.secondaryContainer);
 
-    final card = Card(
+    final card = Container(
       clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.zero,
+      ),
       margin: EdgeInsets.zero,
       child: InkWell(
         onTap: () {
@@ -1908,7 +1918,7 @@ class _ActivityListView extends HookConsumerWidget {
 
     return SliverList.separated(
       itemCount: data.length + 1,
-      separatorBuilder: (_, _) => const Gap(8),
+      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         if (index == data.length) {
           return footer;
@@ -1929,44 +1939,9 @@ class _ActivityListView extends HookConsumerWidget {
                 : (postData as Map).cast<String, dynamic>();
             final post = SnPost.fromJson(postJson);
 
-            final currentData = data;
-            final postsInBatch = currentData
-                .where(
-                  (e) => e.type == 'posts.new' || e.type == 'posts.new.replies',
-                )
-                .map((e) {
-                  final d = e.data;
-                  if (d is Map<String, dynamic>) return SnPost.fromJson(d);
-                  if (d is Map) {
-                    return SnPost.fromJson(Map<String, dynamic>.from(d));
-                  }
-                  return null;
-                })
-                .whereType<SnPost>()
-                .toList();
-
-            double? minRank;
-            double? maxRank;
-            if (postsInBatch.isNotEmpty) {
-              final ranks = postsInBatch
-                  .map((p) => p.debugRank)
-                  .whereType<double>()
-                  .toList();
-              if (ranks.isNotEmpty) {
-                minRank = ranks.reduce((a, b) => a < b ? a : b);
-                maxRank = ranks.reduce((a, b) => a > b ? a : b);
-              }
-            }
-
-            final isHighest =
-                post.debugRank != null && post.debugRank == maxRank;
-            final isLowest =
-                post.debugRank != null && post.debugRank == minRank;
-
             itemWidget = PostActionableItem(
               borderRadius: 8,
               item: post,
-              showFeedback: isHighest || isLowest,
               onRefresh: () {
                 notifier.refresh();
               },
@@ -1977,7 +1952,7 @@ class _ActivityListView extends HookConsumerWidget {
                 );
               },
             );
-            itemWidget = Card(margin: EdgeInsets.zero, child: itemWidget);
+            itemWidget = itemWidget;
             break;
           case 'discovery':
           case 'discovery.v2':

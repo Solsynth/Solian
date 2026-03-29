@@ -100,9 +100,13 @@ class WebArticleDiscoveryCard extends ConsumerWidget {
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
-      child: Card(
+      child: Container(
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.zero,
+        ),
         child: InkWell(
           onTap: () => _onTap(context),
           child: AspectRatio(

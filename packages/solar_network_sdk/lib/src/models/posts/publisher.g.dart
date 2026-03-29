@@ -37,6 +37,8 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
       : SnVerificationMark.fromJson(
           json['verification'] as Map<String, dynamic>,
         ),
+  followRequiresApproval: json['follow_requires_approval'] as bool? ?? false,
+  postsRequireFollow: json['posts_require_follow'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
@@ -55,6 +57,8 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'realm_id': instance.realmId,
       'verification': instance.verification?.toJson(),
+      'follow_requires_approval': instance.followRequiresApproval,
+      'posts_require_follow': instance.postsRequireFollow,
     };
 
 _SnPublisherMember _$SnPublisherMemberFromJson(Map<String, dynamic> json) =>
@@ -90,3 +94,73 @@ Map<String, dynamic> _$SnPublisherMemberToJson(_SnPublisherMember instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnPublisherFollowRequest _$SnPublisherFollowRequestFromJson(
+  Map<String, dynamic> json,
+) => _SnPublisherFollowRequest(
+  id: json['id'] as String,
+  publisherId: json['publisher_id'] as String,
+  accountId: json['account_id'] as String,
+  state: $enumDecode(_$FollowRequestStateEnumMap, json['state']),
+  rejectReason: json['reject_reason'] as String?,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  reviewedAt: json['reviewed_at'] == null
+      ? null
+      : DateTime.parse(json['reviewed_at'] as String),
+  reviewedByAccountId: json['reviewed_by_account_id'] as String?,
+  account: json['account'] == null
+      ? null
+      : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$SnPublisherFollowRequestToJson(
+  _SnPublisherFollowRequest instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'publisher_id': instance.publisherId,
+  'account_id': instance.accountId,
+  'state': _$FollowRequestStateEnumMap[instance.state]!,
+  'reject_reason': instance.rejectReason,
+  'created_at': instance.createdAt.toIso8601String(),
+  'reviewed_at': instance.reviewedAt?.toIso8601String(),
+  'reviewed_by_account_id': instance.reviewedByAccountId,
+  'account': instance.account?.toJson(),
+};
+
+const _$FollowRequestStateEnumMap = {
+  FollowRequestState.pending: 'Pending',
+  FollowRequestState.accepted: 'Accepted',
+  FollowRequestState.rejected: 'Rejected',
+};
+
+_SnPublisherFollowResponse _$SnPublisherFollowResponseFromJson(
+  Map<String, dynamic> json,
+) => _SnPublisherFollowResponse(
+  requestId: json['request_id'] as String?,
+  state: $enumDecodeNullable(_$FollowRequestStateEnumMap, json['state']),
+  message: json['message'] as String?,
+);
+
+Map<String, dynamic> _$SnPublisherFollowResponseToJson(
+  _SnPublisherFollowResponse instance,
+) => <String, dynamic>{
+  'request_id': instance.requestId,
+  'state': _$FollowRequestStateEnumMap[instance.state],
+  'message': instance.message,
+};
+
+_SnPublisherFollowRequestListResponse
+_$SnPublisherFollowRequestListResponseFromJson(Map<String, dynamic> json) =>
+    _SnPublisherFollowRequestListResponse(
+      requests: (json['requests'] as List<dynamic>)
+          .map(
+            (e) => SnPublisherFollowRequest.fromJson(e as Map<String, dynamic>),
+          )
+          .toList(),
+    );
+
+Map<String, dynamic> _$SnPublisherFollowRequestListResponseToJson(
+  _SnPublisherFollowRequestListResponse instance,
+) => <String, dynamic>{
+  'requests': instance.requests.map((e) => e.toJson()).toList(),
+};

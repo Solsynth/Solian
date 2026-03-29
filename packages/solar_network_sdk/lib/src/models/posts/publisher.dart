@@ -4,6 +4,15 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'publisher.freezed.dart';
 part 'publisher.g.dart';
 
+enum FollowRequestState {
+  @JsonValue('Pending')
+  pending,
+  @JsonValue('Accepted')
+  accepted,
+  @JsonValue('Rejected')
+  rejected,
+}
+
 @freezed
 sealed class SnPublisher with _$SnPublisher {
   const factory SnPublisher({
@@ -21,6 +30,8 @@ sealed class SnPublisher with _$SnPublisher {
     DateTime? deletedAt,
     String? realmId,
     SnVerificationMark? verification,
+    @Default(false) bool followRequiresApproval,
+    @Default(false) bool postsRequireFollow,
   }) = _SnPublisher;
 
   factory SnPublisher.fromJson(Map<String, dynamic> json) =>
@@ -43,4 +54,46 @@ sealed class SnPublisherMember with _$SnPublisherMember {
 
   factory SnPublisherMember.fromJson(Map<String, dynamic> json) =>
       _$SnPublisherMemberFromJson(json);
+}
+
+@freezed
+sealed class SnPublisherFollowRequest with _$SnPublisherFollowRequest {
+  const factory SnPublisherFollowRequest({
+    required String id,
+    required String publisherId,
+    required String accountId,
+    required FollowRequestState state,
+    String? rejectReason,
+    required DateTime createdAt,
+    DateTime? reviewedAt,
+    String? reviewedByAccountId,
+    SnAccount? account,
+  }) = _SnPublisherFollowRequest;
+
+  factory SnPublisherFollowRequest.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherFollowRequestFromJson(json);
+}
+
+@freezed
+sealed class SnPublisherFollowResponse with _$SnPublisherFollowResponse {
+  const factory SnPublisherFollowResponse({
+    String? requestId,
+    FollowRequestState? state,
+    String? message,
+  }) = _SnPublisherFollowResponse;
+
+  factory SnPublisherFollowResponse.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherFollowResponseFromJson(json);
+}
+
+@freezed
+sealed class SnPublisherFollowRequestListResponse
+    with _$SnPublisherFollowRequestListResponse {
+  const factory SnPublisherFollowRequestListResponse({
+    required List<SnPublisherFollowRequest> requests,
+  }) = _SnPublisherFollowRequestListResponse;
+
+  factory SnPublisherFollowRequestListResponse.fromJson(
+    Map<String, dynamic> json,
+  ) => _$SnPublisherFollowRequestListResponseFromJson(json);
 }

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPublisher {
 
- String get id; int get type; String get name; String get nick; String get bio; SnCloudFile? get picture; SnCloudFile? get background; SnAccount? get account; String? get accountId; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String? get realmId; SnVerificationMark? get verification;
+ String get id; int get type; String get name; String get nick; String get bio; SnCloudFile? get picture; SnCloudFile? get background; SnAccount? get account; String? get accountId; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String? get realmId; SnVerificationMark? get verification; bool get followRequiresApproval; bool get postsRequireFollow;
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPublisherCopyWith<SnPublisher> get copyWith => _$SnPublisherCopyWithImpl<SnPu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.followRequiresApproval, followRequiresApproval) || other.followRequiresApproval == followRequiresApproval)&&(identical(other.postsRequireFollow, postsRequireFollow) || other.postsRequireFollow == postsRequireFollow));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification);
+int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification,followRequiresApproval,postsRequireFollow);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification, followRequiresApproval: $followRequiresApproval, postsRequireFollow: $postsRequireFollow)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnPublisherCopyWith<$Res>  {
   factory $SnPublisherCopyWith(SnPublisher value, $Res Function(SnPublisher) _then) = _$SnPublisherCopyWithImpl;
 @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification
+ String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification, bool followRequiresApproval, bool postsRequireFollow
 });
 
 
@@ -65,7 +65,7 @@ class _$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,Object? followRequiresApproval = null,Object? postsRequireFollow = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,9 @@ as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ig
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,
+as SnVerificationMark?,followRequiresApproval: null == followRequiresApproval ? _self.followRequiresApproval : followRequiresApproval // ignore: cast_nullable_to_non_nullable
+as bool,postsRequireFollow: null == postsRequireFollow ? _self.postsRequireFollow : postsRequireFollow // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of SnPublisher
@@ -211,10 +213,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool followRequiresApproval,  bool postsRequireFollow)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublisher() when $default != null:
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification);case _:
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.followRequiresApproval,_that.postsRequireFollow);case _:
   return orElse();
 
 }
@@ -232,10 +234,10 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool followRequiresApproval,  bool postsRequireFollow)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisher():
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification);}
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.followRequiresApproval,_that.postsRequireFollow);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -249,10 +251,10 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool followRequiresApproval,  bool postsRequireFollow)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisher() when $default != null:
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification);case _:
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.followRequiresApproval,_that.postsRequireFollow);case _:
   return null;
 
 }
@@ -264,7 +266,7 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 @JsonSerializable()
 
 class _SnPublisher implements SnPublisher {
-  const _SnPublisher({this.id = '', this.type = 0, this.name = '', this.nick = '', this.bio = '', this.picture, this.background, this.account, this.accountId, this.createdAt = null, this.updatedAt = null, this.deletedAt, this.realmId, this.verification});
+  const _SnPublisher({this.id = '', this.type = 0, this.name = '', this.nick = '', this.bio = '', this.picture, this.background, this.account, this.accountId, this.createdAt = null, this.updatedAt = null, this.deletedAt, this.realmId, this.verification, this.followRequiresApproval = false, this.postsRequireFollow = false});
   factory _SnPublisher.fromJson(Map<String, dynamic> json) => _$SnPublisherFromJson(json);
 
 @override@JsonKey() final  String id;
@@ -281,6 +283,8 @@ class _SnPublisher implements SnPublisher {
 @override final  DateTime? deletedAt;
 @override final  String? realmId;
 @override final  SnVerificationMark? verification;
+@override@JsonKey() final  bool followRequiresApproval;
+@override@JsonKey() final  bool postsRequireFollow;
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
@@ -295,16 +299,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.followRequiresApproval, followRequiresApproval) || other.followRequiresApproval == followRequiresApproval)&&(identical(other.postsRequireFollow, postsRequireFollow) || other.postsRequireFollow == postsRequireFollow));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification);
+int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification,followRequiresApproval,postsRequireFollow);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification, followRequiresApproval: $followRequiresApproval, postsRequireFollow: $postsRequireFollow)';
 }
 
 
@@ -315,7 +319,7 @@ abstract mixin class _$SnPublisherCopyWith<$Res> implements $SnPublisherCopyWith
   factory _$SnPublisherCopyWith(_SnPublisher value, $Res Function(_SnPublisher) _then) = __$SnPublisherCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification
+ String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification, bool followRequiresApproval, bool postsRequireFollow
 });
 
 
@@ -332,7 +336,7 @@ class __$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,Object? followRequiresApproval = null,Object? postsRequireFollow = null,}) {
   return _then(_SnPublisher(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -348,7 +352,9 @@ as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ig
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,
+as SnVerificationMark?,followRequiresApproval: null == followRequiresApproval ? _self.followRequiresApproval : followRequiresApproval // ignore: cast_nullable_to_non_nullable
+as bool,postsRequireFollow: null == postsRequireFollow ? _self.postsRequireFollow : postsRequireFollow // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -730,6 +736,837 @@ $SnAccountCopyWith<$Res>? get account {
     return _then(_self.copyWith(account: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$SnPublisherFollowRequest {
+
+ String get id; String get publisherId; String get accountId; FollowRequestState get state; String? get rejectReason; DateTime get createdAt; DateTime? get reviewedAt; String? get reviewedByAccountId; SnAccount? get account;
+/// Create a copy of SnPublisherFollowRequest
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPublisherFollowRequestCopyWith<SnPublisherFollowRequest> get copyWith => _$SnPublisherFollowRequestCopyWithImpl<SnPublisherFollowRequest>(this as SnPublisherFollowRequest, _$identity);
+
+  /// Serializes this SnPublisherFollowRequest to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherFollowRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.state, state) || other.state == state)&&(identical(other.rejectReason, rejectReason) || other.rejectReason == rejectReason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewedByAccountId, reviewedByAccountId) || other.reviewedByAccountId == reviewedByAccountId)&&(identical(other.account, account) || other.account == account));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,publisherId,accountId,state,rejectReason,createdAt,reviewedAt,reviewedByAccountId,account);
+
+@override
+String toString() {
+  return 'SnPublisherFollowRequest(id: $id, publisherId: $publisherId, accountId: $accountId, state: $state, rejectReason: $rejectReason, createdAt: $createdAt, reviewedAt: $reviewedAt, reviewedByAccountId: $reviewedByAccountId, account: $account)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPublisherFollowRequestCopyWith<$Res>  {
+  factory $SnPublisherFollowRequestCopyWith(SnPublisherFollowRequest value, $Res Function(SnPublisherFollowRequest) _then) = _$SnPublisherFollowRequestCopyWithImpl;
+@useResult
+$Res call({
+ String id, String publisherId, String accountId, FollowRequestState state, String? rejectReason, DateTime createdAt, DateTime? reviewedAt, String? reviewedByAccountId, SnAccount? account
+});
+
+
+$SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class _$SnPublisherFollowRequestCopyWithImpl<$Res>
+    implements $SnPublisherFollowRequestCopyWith<$Res> {
+  _$SnPublisherFollowRequestCopyWithImpl(this._self, this._then);
+
+  final SnPublisherFollowRequest _self;
+  final $Res Function(SnPublisherFollowRequest) _then;
+
+/// Create a copy of SnPublisherFollowRequest
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? publisherId = null,Object? accountId = null,Object? state = null,Object? rejectReason = freezed,Object? createdAt = null,Object? reviewedAt = freezed,Object? reviewedByAccountId = freezed,Object? account = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as FollowRequestState,rejectReason: freezed == rejectReason ? _self.rejectReason : rejectReason // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,reviewedByAccountId: freezed == reviewedByAccountId ? _self.reviewedByAccountId : reviewedByAccountId // ignore: cast_nullable_to_non_nullable
+as String?,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,
+  ));
+}
+/// Create a copy of SnPublisherFollowRequest
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnPublisherFollowRequest].
+extension SnPublisherFollowRequestPatterns on SnPublisherFollowRequest {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherFollowRequest value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequest() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherFollowRequest value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequest():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherFollowRequest value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequest() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String publisherId,  String accountId,  FollowRequestState state,  String? rejectReason,  DateTime createdAt,  DateTime? reviewedAt,  String? reviewedByAccountId,  SnAccount? account)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequest() when $default != null:
+return $default(_that.id,_that.publisherId,_that.accountId,_that.state,_that.rejectReason,_that.createdAt,_that.reviewedAt,_that.reviewedByAccountId,_that.account);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String publisherId,  String accountId,  FollowRequestState state,  String? rejectReason,  DateTime createdAt,  DateTime? reviewedAt,  String? reviewedByAccountId,  SnAccount? account)  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequest():
+return $default(_that.id,_that.publisherId,_that.accountId,_that.state,_that.rejectReason,_that.createdAt,_that.reviewedAt,_that.reviewedByAccountId,_that.account);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String publisherId,  String accountId,  FollowRequestState state,  String? rejectReason,  DateTime createdAt,  DateTime? reviewedAt,  String? reviewedByAccountId,  SnAccount? account)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequest() when $default != null:
+return $default(_that.id,_that.publisherId,_that.accountId,_that.state,_that.rejectReason,_that.createdAt,_that.reviewedAt,_that.reviewedByAccountId,_that.account);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPublisherFollowRequest implements SnPublisherFollowRequest {
+  const _SnPublisherFollowRequest({required this.id, required this.publisherId, required this.accountId, required this.state, this.rejectReason, required this.createdAt, this.reviewedAt, this.reviewedByAccountId, this.account});
+  factory _SnPublisherFollowRequest.fromJson(Map<String, dynamic> json) => _$SnPublisherFollowRequestFromJson(json);
+
+@override final  String id;
+@override final  String publisherId;
+@override final  String accountId;
+@override final  FollowRequestState state;
+@override final  String? rejectReason;
+@override final  DateTime createdAt;
+@override final  DateTime? reviewedAt;
+@override final  String? reviewedByAccountId;
+@override final  SnAccount? account;
+
+/// Create a copy of SnPublisherFollowRequest
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPublisherFollowRequestCopyWith<_SnPublisherFollowRequest> get copyWith => __$SnPublisherFollowRequestCopyWithImpl<_SnPublisherFollowRequest>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPublisherFollowRequestToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherFollowRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.state, state) || other.state == state)&&(identical(other.rejectReason, rejectReason) || other.rejectReason == rejectReason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewedByAccountId, reviewedByAccountId) || other.reviewedByAccountId == reviewedByAccountId)&&(identical(other.account, account) || other.account == account));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,publisherId,accountId,state,rejectReason,createdAt,reviewedAt,reviewedByAccountId,account);
+
+@override
+String toString() {
+  return 'SnPublisherFollowRequest(id: $id, publisherId: $publisherId, accountId: $accountId, state: $state, rejectReason: $rejectReason, createdAt: $createdAt, reviewedAt: $reviewedAt, reviewedByAccountId: $reviewedByAccountId, account: $account)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPublisherFollowRequestCopyWith<$Res> implements $SnPublisherFollowRequestCopyWith<$Res> {
+  factory _$SnPublisherFollowRequestCopyWith(_SnPublisherFollowRequest value, $Res Function(_SnPublisherFollowRequest) _then) = __$SnPublisherFollowRequestCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String publisherId, String accountId, FollowRequestState state, String? rejectReason, DateTime createdAt, DateTime? reviewedAt, String? reviewedByAccountId, SnAccount? account
+});
+
+
+@override $SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class __$SnPublisherFollowRequestCopyWithImpl<$Res>
+    implements _$SnPublisherFollowRequestCopyWith<$Res> {
+  __$SnPublisherFollowRequestCopyWithImpl(this._self, this._then);
+
+  final _SnPublisherFollowRequest _self;
+  final $Res Function(_SnPublisherFollowRequest) _then;
+
+/// Create a copy of SnPublisherFollowRequest
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? publisherId = null,Object? accountId = null,Object? state = null,Object? rejectReason = freezed,Object? createdAt = null,Object? reviewedAt = freezed,Object? reviewedByAccountId = freezed,Object? account = freezed,}) {
+  return _then(_SnPublisherFollowRequest(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as FollowRequestState,rejectReason: freezed == rejectReason ? _self.rejectReason : rejectReason // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,reviewedByAccountId: freezed == reviewedByAccountId ? _self.reviewedByAccountId : reviewedByAccountId // ignore: cast_nullable_to_non_nullable
+as String?,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,
+  ));
+}
+
+/// Create a copy of SnPublisherFollowRequest
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnPublisherFollowResponse {
+
+ String? get requestId; FollowRequestState? get state; String? get message;
+/// Create a copy of SnPublisherFollowResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPublisherFollowResponseCopyWith<SnPublisherFollowResponse> get copyWith => _$SnPublisherFollowResponseCopyWithImpl<SnPublisherFollowResponse>(this as SnPublisherFollowResponse, _$identity);
+
+  /// Serializes this SnPublisherFollowResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherFollowResponse&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.state, state) || other.state == state)&&(identical(other.message, message) || other.message == message));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,requestId,state,message);
+
+@override
+String toString() {
+  return 'SnPublisherFollowResponse(requestId: $requestId, state: $state, message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPublisherFollowResponseCopyWith<$Res>  {
+  factory $SnPublisherFollowResponseCopyWith(SnPublisherFollowResponse value, $Res Function(SnPublisherFollowResponse) _then) = _$SnPublisherFollowResponseCopyWithImpl;
+@useResult
+$Res call({
+ String? requestId, FollowRequestState? state, String? message
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPublisherFollowResponseCopyWithImpl<$Res>
+    implements $SnPublisherFollowResponseCopyWith<$Res> {
+  _$SnPublisherFollowResponseCopyWithImpl(this._self, this._then);
+
+  final SnPublisherFollowResponse _self;
+  final $Res Function(SnPublisherFollowResponse) _then;
+
+/// Create a copy of SnPublisherFollowResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? requestId = freezed,Object? state = freezed,Object? message = freezed,}) {
+  return _then(_self.copyWith(
+requestId: freezed == requestId ? _self.requestId : requestId // ignore: cast_nullable_to_non_nullable
+as String?,state: freezed == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as FollowRequestState?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPublisherFollowResponse].
+extension SnPublisherFollowResponsePatterns on SnPublisherFollowResponse {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherFollowResponse value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowResponse() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherFollowResponse value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowResponse():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherFollowResponse value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowResponse() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? requestId,  FollowRequestState? state,  String? message)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowResponse() when $default != null:
+return $default(_that.requestId,_that.state,_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? requestId,  FollowRequestState? state,  String? message)  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowResponse():
+return $default(_that.requestId,_that.state,_that.message);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? requestId,  FollowRequestState? state,  String? message)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowResponse() when $default != null:
+return $default(_that.requestId,_that.state,_that.message);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPublisherFollowResponse implements SnPublisherFollowResponse {
+  const _SnPublisherFollowResponse({this.requestId, this.state, this.message});
+  factory _SnPublisherFollowResponse.fromJson(Map<String, dynamic> json) => _$SnPublisherFollowResponseFromJson(json);
+
+@override final  String? requestId;
+@override final  FollowRequestState? state;
+@override final  String? message;
+
+/// Create a copy of SnPublisherFollowResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPublisherFollowResponseCopyWith<_SnPublisherFollowResponse> get copyWith => __$SnPublisherFollowResponseCopyWithImpl<_SnPublisherFollowResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPublisherFollowResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherFollowResponse&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.state, state) || other.state == state)&&(identical(other.message, message) || other.message == message));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,requestId,state,message);
+
+@override
+String toString() {
+  return 'SnPublisherFollowResponse(requestId: $requestId, state: $state, message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPublisherFollowResponseCopyWith<$Res> implements $SnPublisherFollowResponseCopyWith<$Res> {
+  factory _$SnPublisherFollowResponseCopyWith(_SnPublisherFollowResponse value, $Res Function(_SnPublisherFollowResponse) _then) = __$SnPublisherFollowResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ String? requestId, FollowRequestState? state, String? message
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPublisherFollowResponseCopyWithImpl<$Res>
+    implements _$SnPublisherFollowResponseCopyWith<$Res> {
+  __$SnPublisherFollowResponseCopyWithImpl(this._self, this._then);
+
+  final _SnPublisherFollowResponse _self;
+  final $Res Function(_SnPublisherFollowResponse) _then;
+
+/// Create a copy of SnPublisherFollowResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? requestId = freezed,Object? state = freezed,Object? message = freezed,}) {
+  return _then(_SnPublisherFollowResponse(
+requestId: freezed == requestId ? _self.requestId : requestId // ignore: cast_nullable_to_non_nullable
+as String?,state: freezed == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as FollowRequestState?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnPublisherFollowRequestListResponse {
+
+ List<SnPublisherFollowRequest> get requests;
+/// Create a copy of SnPublisherFollowRequestListResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPublisherFollowRequestListResponseCopyWith<SnPublisherFollowRequestListResponse> get copyWith => _$SnPublisherFollowRequestListResponseCopyWithImpl<SnPublisherFollowRequestListResponse>(this as SnPublisherFollowRequestListResponse, _$identity);
+
+  /// Serializes this SnPublisherFollowRequestListResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherFollowRequestListResponse&&const DeepCollectionEquality().equals(other.requests, requests));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(requests));
+
+@override
+String toString() {
+  return 'SnPublisherFollowRequestListResponse(requests: $requests)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPublisherFollowRequestListResponseCopyWith<$Res>  {
+  factory $SnPublisherFollowRequestListResponseCopyWith(SnPublisherFollowRequestListResponse value, $Res Function(SnPublisherFollowRequestListResponse) _then) = _$SnPublisherFollowRequestListResponseCopyWithImpl;
+@useResult
+$Res call({
+ List<SnPublisherFollowRequest> requests
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPublisherFollowRequestListResponseCopyWithImpl<$Res>
+    implements $SnPublisherFollowRequestListResponseCopyWith<$Res> {
+  _$SnPublisherFollowRequestListResponseCopyWithImpl(this._self, this._then);
+
+  final SnPublisherFollowRequestListResponse _self;
+  final $Res Function(SnPublisherFollowRequestListResponse) _then;
+
+/// Create a copy of SnPublisherFollowRequestListResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? requests = null,}) {
+  return _then(_self.copyWith(
+requests: null == requests ? _self.requests : requests // ignore: cast_nullable_to_non_nullable
+as List<SnPublisherFollowRequest>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPublisherFollowRequestListResponse].
+extension SnPublisherFollowRequestListResponsePatterns on SnPublisherFollowRequestListResponse {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherFollowRequestListResponse value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequestListResponse() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherFollowRequestListResponse value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequestListResponse():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherFollowRequestListResponse value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequestListResponse() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<SnPublisherFollowRequest> requests)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequestListResponse() when $default != null:
+return $default(_that.requests);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<SnPublisherFollowRequest> requests)  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequestListResponse():
+return $default(_that.requests);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<SnPublisherFollowRequest> requests)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherFollowRequestListResponse() when $default != null:
+return $default(_that.requests);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPublisherFollowRequestListResponse implements SnPublisherFollowRequestListResponse {
+  const _SnPublisherFollowRequestListResponse({required final  List<SnPublisherFollowRequest> requests}): _requests = requests;
+  factory _SnPublisherFollowRequestListResponse.fromJson(Map<String, dynamic> json) => _$SnPublisherFollowRequestListResponseFromJson(json);
+
+ final  List<SnPublisherFollowRequest> _requests;
+@override List<SnPublisherFollowRequest> get requests {
+  if (_requests is EqualUnmodifiableListView) return _requests;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_requests);
+}
+
+
+/// Create a copy of SnPublisherFollowRequestListResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPublisherFollowRequestListResponseCopyWith<_SnPublisherFollowRequestListResponse> get copyWith => __$SnPublisherFollowRequestListResponseCopyWithImpl<_SnPublisherFollowRequestListResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPublisherFollowRequestListResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherFollowRequestListResponse&&const DeepCollectionEquality().equals(other._requests, _requests));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_requests));
+
+@override
+String toString() {
+  return 'SnPublisherFollowRequestListResponse(requests: $requests)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPublisherFollowRequestListResponseCopyWith<$Res> implements $SnPublisherFollowRequestListResponseCopyWith<$Res> {
+  factory _$SnPublisherFollowRequestListResponseCopyWith(_SnPublisherFollowRequestListResponse value, $Res Function(_SnPublisherFollowRequestListResponse) _then) = __$SnPublisherFollowRequestListResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ List<SnPublisherFollowRequest> requests
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPublisherFollowRequestListResponseCopyWithImpl<$Res>
+    implements _$SnPublisherFollowRequestListResponseCopyWith<$Res> {
+  __$SnPublisherFollowRequestListResponseCopyWithImpl(this._self, this._then);
+
+  final _SnPublisherFollowRequestListResponse _self;
+  final $Res Function(_SnPublisherFollowRequestListResponse) _then;
+
+/// Create a copy of SnPublisherFollowRequestListResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? requests = null,}) {
+  return _then(_SnPublisherFollowRequestListResponse(
+requests: null == requests ? _self._requests : requests // ignore: cast_nullable_to_non_nullable
+as List<SnPublisherFollowRequest>,
+  ));
+}
+
+
 }
 
 // dart format on
