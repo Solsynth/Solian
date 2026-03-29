@@ -30,6 +30,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/discovery/web_article_card.dart';
 import 'package:island/discovery/widgets/discovery_feedback_widget.dart';
+import 'package:island/discovery/widgets/discovery_profile_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
@@ -396,6 +397,28 @@ class ExploreScreen extends HookConsumerWidget {
                           },
                         ),
                       ),
+                      if (modeValue == 'personalized') ...[
+                        const Gap(16),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: BoxBorder.all(
+                              color: Theme.of(context).colorScheme.outline,
+                              width: 1 / MediaQuery.devicePixelRatioOf(context),
+                            ),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(12),
+                            ),
+                          ),
+                          child: ListTile(
+                            title: const Text('Discovery Profile'),
+                            subtitle: const Text(
+                              'View your personalized recommendation profile',
+                            ),
+                            trailing: const Icon(Symbols.chevron_right),
+                            onTap: () => showDiscoveryProfileSheet(context),
+                          ),
+                        ),
+                      ],
                       const Gap(16),
                       Container(
                         decoration: BoxDecoration(
@@ -632,6 +655,27 @@ class ExploreScreen extends HookConsumerWidget {
                           },
                         ),
                       ),
+                      if (currentMode == 'personalized')
+                        Container(
+                          decoration: BoxDecoration(
+                            border: BoxBorder.all(
+                              color: Theme.of(context).colorScheme.outline,
+                              width: 1 / MediaQuery.devicePixelRatioOf(context),
+                            ),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(12),
+                            ),
+                          ),
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          child: ListTile(
+                            title: const Text('Discovery Profile'),
+                            subtitle: const Text(
+                              'View your personalized recommendation profile',
+                            ),
+                            trailing: const Icon(Symbols.chevron_right),
+                            onTap: () => showDiscoveryProfileSheet(context),
+                          ),
+                        ),
                       PostSubscriptionFilterWidget(
                         initialSelectedPublishers: selectedPublishers.value,
                         initialSelectedCategories: selectedCategories.value,
