@@ -272,7 +272,7 @@ class _ProfileView extends StatelessWidget {
                           label: item.label,
                           score: item.score,
                           reasons: item.reasons,
-                          subtitle: item.data['nick'] ?? '',
+                          subtitle: item.data['nick'] ?? 'unknown'.tr(),
                         ),
                       )
                       .toList(),
@@ -300,7 +300,7 @@ class _ProfileView extends StatelessWidget {
                           label: item.label,
                           score: item.score,
                           reasons: item.reasons,
-                          subtitle: '@${item.data['name'] ?? ''}',
+                          subtitle: '@${item.data['name'] ?? 'unknown'.tr()}',
                         ),
                       )
                       .toList(),
@@ -328,7 +328,7 @@ class _ProfileView extends StatelessWidget {
                           label: item.label,
                           score: item.score,
                           reasons: item.reasons,
-                          subtitle: item.data['name'] ?? '',
+                          subtitle: item.data['name'] ?? 'unknown'.tr(),
                         ),
                       )
                       .toList(),
@@ -438,9 +438,6 @@ class _InterestTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final scorePercent = (interest.score * 100)
-        .clamp(0, 100)
-        .toStringAsFixed(0);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
@@ -464,7 +461,7 @@ class _InterestTile extends StatelessWidget {
               ),
               const Gap(6),
               Text(
-                '$scorePercent% · ${interest.interactionCount} interactions · ${interest.lastSignalType}',
+                'Score: ${interest.score.toStringAsFixed(2)} · ${interest.interactionCount} interactions · ${interest.lastSignalType}',
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -494,7 +491,6 @@ class _SuggestionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final scorePercent = (score * 100).clamp(0, 100).toStringAsFixed(0);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
@@ -514,7 +510,7 @@ class _SuggestionTile extends StatelessWidget {
             ? Tooltip(
                 message: reasons.join(', '),
                 child: Text(
-                  '$scorePercent%',
+                  score.toStringAsFixed(2),
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: colorScheme.primary,
                     fontFeatures: [const FontFeature.tabularFigures()],

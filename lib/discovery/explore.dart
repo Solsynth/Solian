@@ -416,6 +416,10 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () => showDiscoveryProfileSheet(context),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 28,
+                            ),
                           ),
                         ),
                       ],
@@ -674,6 +678,10 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () => showDiscoveryProfileSheet(context),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 28,
+                            ),
                           ),
                         ),
                       PostSubscriptionFilterWidget(
