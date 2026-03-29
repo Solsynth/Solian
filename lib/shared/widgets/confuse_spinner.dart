@@ -10,7 +10,7 @@ enum ConfuseSpinnerPlayState { running, paused }
 class ConfuseSpinner extends StatefulWidget {
   const ConfuseSpinner({
     super.key,
-    this.size = 40,
+    this.size = 48,
     this.speed = 5,
     this.color,
     this.text = 'o.0 0.o',

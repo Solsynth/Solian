@@ -270,6 +270,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
+                    'icon': Symbols.nfc,
+                    'title': 'nfcTags',
+                    'onTap': () {
+                      context.router.push(const NfcTagsRoute());
+                    },
+                  },
+                  {
                     'icon': Symbols.people,
                     'title': 'relationships',
                     'onTap': () {

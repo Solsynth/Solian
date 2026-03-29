@@ -681,7 +681,7 @@ class ChatListCard extends HookConsumerWidget {
             chatRooms.when(
               loading: () => Center(
                 child: ConfuseSpinner(
-                  size: 32,
+                  size: 40,
                   speed: 6,
                   color: Theme.of(
                     context,
@@ -734,7 +734,7 @@ class FortuneCard extends HookConsumerWidget {
       child: fortuneAsync.when(
         loading: () => Center(
           child: ConfuseSpinner(
-            size: 32,
+            size: 40,
             speed: 6,
             color: Theme.of(
               context,

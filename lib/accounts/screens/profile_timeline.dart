@@ -160,10 +160,10 @@ class _TimelineLoadMoreState extends State<_TimelineLoadMore> {
         height: 60,
         alignment: Alignment.center,
         child: ConfuseSpinner(
-          size: 24,
+          size: 32,
           speed: 3,
           text: 'o.O O.o',
-          fontSize: 14,
+          fontSize: 16,
         ),
       ),
     );

@@ -530,7 +530,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
             ),
             ...bottomNavDestinations.mapIndexed((idx, destination) {
               return NavigationDestination(
-                icon: destination.iconBuilder(bottomNavCurrentIndex + 1 == idx),
+                icon: destination.iconBuilder(bottomNavCurrentIndex == idx),
                 label: destination.label,
               );
             }),
