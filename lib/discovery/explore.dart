@@ -128,233 +128,78 @@ class ExploreScreen extends HookConsumerWidget {
 
     final userInfo = ref.watch(userInfoProvider);
 
-    final narrowAppBar = AppBar(
-      centerTitle: true,
-      title: SvgPicture.asset(
-        'assets/icons/icon-outline.svg',
-        color: Theme.of(context).appBarTheme.foregroundColor,
-        width: 32,
-        height: 32,
-      ).center(),
-      flexibleSpace: Row(
-        children: [
-          PopupMenuButton<_ExploreAction>(
-            icon: Icon(
-              Symbols.widgets,
-              color: Theme.of(context).appBarTheme.foregroundColor,
-            ),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _ExploreAction.articles,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.auto_stories,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('webArticlesStand').tr(),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: _ExploreAction.livestreams,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.live_tv,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('livestreams').tr(),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: _ExploreAction.categories,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.category,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('categoriesAndTags').tr(),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: _ExploreAction.shuffle,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.shuffle,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('postShuffle').tr(),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) {
-              switch (value) {
-                case _ExploreAction.articles:
-                  context.router.push(const ArticleStandRoute());
-                  break;
-                case _ExploreAction.livestreams:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ActiveLivestreamsScreen(),
+    if (isWide) {
+      return AppScaffold(
+        isNoBackground: false,
+        appBar: null,
+        floatingActionButton: userInfo.value != null
+            ? FloatingActionButton(
+                heroTag: 'explore-fab',
+                child: const Icon(Symbols.create),
+                onPressed: () {
+                  final parentContext = context;
+                  final router = context.router;
+                  showModalBottomSheet(
+                    context: parentContext,
+                    isScrollControlled: true,
+                    useRootNavigator: true,
+                    builder: (sheetContext) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Gap(40),
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          leading: const Icon(Symbols.post_add_rounded),
+                          title: Text('postCompose').tr(),
+                          onTap: () async {
+                            Navigator.of(sheetContext).pop();
+                            await PostComposeDialog.show(parentContext);
+                          },
+                        ),
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                          ),
+                          leading: const Icon(Symbols.article),
+                          title: Text('articleCompose').tr(),
+                          onTap: () async {
+                            Navigator.of(sheetContext).pop();
+                            await router.push(ArticleComposeRoute());
+                          },
+                        ),
+                        const Gap(16),
+                      ],
                     ),
                   );
-                  break;
-                case _ExploreAction.categories:
-                  context.router.push(PostCategoriesListRoute());
-                  break;
-                case _ExploreAction.shuffle:
-                  context.router.push(const PostShuffleRoute());
-                  break;
-                default:
-                  break;
-              }
-            },
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {
-              context.router.push(UniversalSearchRoute());
-            },
-            icon: Icon(
-              Symbols.search,
-              color: Theme.of(context).appBarTheme.foregroundColor,
-            ),
-            tooltip: 'search'.tr(),
-          ),
-        ],
-      ).padding(horizontal: 12, vertical: 8),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(48),
-        child: Row(
-          children: [
-            Expanded(
-              child: TabBar(
-                indicatorColor: Theme.of(context).appBarTheme.foregroundColor,
-                controller: filterTabController,
-                dividerHeight: 0,
-                onTap: hasSubscriptionFiltersApplied
-                    ? null
-                    : (index) {
-                        final filter = switch (index) {
-                          1 => 'subscriptions',
-                          2 => 'friends',
-                          _ => null,
-                        };
-                        handleFilterChange(filter);
-                      },
-                tabs: [
-                  Tab(
-                    child: Row(
-                      spacing: 8,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Symbols.explore,
-                          size: 18,
-                          fill: currentFilter.value == null ? 1 : 0,
-                          color: Theme.of(context).appBarTheme.foregroundColor,
-                        ),
-                        Text(
-                          'explore'.tr(),
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).appBarTheme.foregroundColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Tab(
-                    child: Row(
-                      spacing: 8,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Symbols.subscriptions,
-                          size: 18,
-                          fill: currentFilter.value == 'subscriptions' ? 1 : 0,
-                          color: Theme.of(context).appBarTheme.foregroundColor,
-                        ),
-                        Text(
-                          'exploreFilterSubscriptions'.tr(),
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).appBarTheme.foregroundColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Tab(
-                    child: Row(
-                      spacing: 8,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Symbols.people,
-                          size: 18,
-                          fill: currentFilter.value == 'friends' ? 1 : 0,
-                          color: Theme.of(context).appBarTheme.foregroundColor,
-                        ),
-                        Text(
-                          'exploreFilterFriends'.tr(),
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).appBarTheme.foregroundColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: IconButton(
-                onPressed: () => _showAlgorithmConfigSheet(
-                  context,
-                  selectedPublisherNames,
-                  selectedCategoryIds,
-                  selectedTagIds,
-                  currentAggressive,
-                  currentFilter,
-                  handleFilterChange,
-                  handleAggressiveChange,
-                  currentMode,
-                  handleModeChange,
-                  isWide: false,
-                ),
-                icon: Icon(
-                  Symbols.tune,
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
-                tooltip: 'settings'.tr(),
-              ),
-            ),
-          ],
+                },
+              ).padding(bottom: MediaQuery.of(context).padding.bottom)
+            : null,
+        body: _buildWideBody(
+          context,
+          ref,
+          filterBar,
+          user,
+          notificationCount,
+          query,
+          events,
+          selectedDay,
+          currentFilter.value,
+          currentMode.value,
+          selectedPublisherNames,
+          selectedCategoryIds,
+          selectedTagIds,
+          currentAggressive,
+          handleFilterChange,
+          handleModeChange,
+          handleAggressiveChange,
+          hasSubscriptionFiltersApplied,
         ),
-      ),
-    );
+      );
+    }
 
-    final appBar = isWide ? null : narrowAppBar;
-
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: appBar,
+    return Scaffold(
       floatingActionButton: userInfo.value != null
           ? FloatingActionButton(
               heroTag: 'explore-fab',
@@ -399,36 +244,21 @@ class ExploreScreen extends HookConsumerWidget {
               },
             ).padding(bottom: MediaQuery.of(context).padding.bottom)
           : null,
-      body: isWide
-          ? _buildWideBody(
-              context,
-              ref,
-              filterBar,
-              user,
-              notificationCount,
-              query,
-              events,
-              selectedDay,
-              currentFilter.value,
-              currentMode.value,
-              selectedPublisherNames,
-              selectedCategoryIds,
-              selectedTagIds,
-              currentAggressive,
-              handleFilterChange,
-              handleModeChange,
-              handleAggressiveChange,
-              hasSubscriptionFiltersApplied,
-            )
-          : _buildNarrowBody(
-              context,
-              ref,
-              selectedPublisherNames,
-              selectedCategoryIds,
-              selectedTagIds,
-              currentMode,
-              handleModeChange,
-            ),
+      body: _buildNarrowBodySliver(
+        context,
+        ref,
+        filterTabController,
+        selectedPublisherNames,
+        selectedCategoryIds,
+        selectedTagIds,
+        currentMode,
+        handleModeChange,
+        hasSubscriptionFiltersApplied,
+        handleFilterChange,
+        currentAggressive,
+        currentFilter,
+        handleAggressiveChange,
+      ),
     );
   }
 
@@ -854,14 +684,20 @@ class ExploreScreen extends HookConsumerWidget {
     ).padding(horizontal: 12);
   }
 
-  Widget _buildNarrowBody(
+  Widget _buildNarrowBodySliver(
     BuildContext context,
     WidgetRef ref,
+    TabController filterTabController,
     ValueNotifier<List<String>> selectedPublishers,
     ValueNotifier<List<String>> selectedCategoryIds,
     ValueNotifier<List<String>> selectedTagIds,
     ValueNotifier<String> currentMode,
     void Function(String?) handleModeChange,
+    bool hasSubscriptionFiltersApplied,
+    void Function(String?) handleFilterChange,
+    ValueNotifier<bool> currentAggressive,
+    ValueNotifier<String?> currentFilter,
+    void Function(bool) handleAggressiveChange,
   ) {
     final usePostList =
         selectedPublishers.value.isNotEmpty ||
@@ -872,46 +708,270 @@ class ExploreScreen extends HookConsumerWidget {
         (activityState.isLoading || activityState.value?.isLoading == true) &&
         (activityState.value?.items.isEmpty ?? true);
 
-    final bodyView = isListInitialLoading
-        ? SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: ConfuseSpinner(
-                speed: 7,
-                size: 72,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-              ),
-            ),
-          )
-        : _buildActivityList(context, ref);
-
     final notifier = ref.watch(activityListProvider.notifier);
 
-    return Expanded(
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        child: ExtendedRefreshIndicator(
-          onRefresh: usePostList ? () async {} : notifier.refresh,
-          child: CustomScrollView(
-            slivers: [
-              const SliverGap(8),
-              if (usePostList) ...[
-                _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
-                _buildPostList(
-                  context,
-                  ref,
-                  selectedPublishers.value,
-                  selectedCategoryIds.value,
-                  selectedTagIds.value,
+    return ExtendedRefreshIndicator(
+      onRefresh: usePostList ? () async {} : notifier.refresh,
+      child: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            flexibleSpace: Row(
+              children: [
+                PopupMenuButton<_ExploreAction>(
+                  icon: Icon(
+                    Symbols.widgets,
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: _ExploreAction.articles,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.auto_stories,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          const Gap(12),
+                          Text('webArticlesStand').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _ExploreAction.livestreams,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.live_tv,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          const Gap(12),
+                          Text('livestreams').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _ExploreAction.categories,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.category,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          const Gap(12),
+                          Text('categoriesAndTags').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _ExploreAction.shuffle,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.shuffle,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          const Gap(12),
+                          Text('postShuffle').tr(),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onSelected: (value) {
+                    switch (value) {
+                      case _ExploreAction.articles:
+                        context.router.push(const ArticleStandRoute());
+                        break;
+                      case _ExploreAction.livestreams:
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ActiveLivestreamsScreen(),
+                          ),
+                        );
+                        break;
+                      case _ExploreAction.categories:
+                        context.router.push(PostCategoriesListRoute());
+                        break;
+                      case _ExploreAction.shuffle:
+                        context.router.push(const PostShuffleRoute());
+                        break;
+                      default:
+                        break;
+                    }
+                  },
                 ),
-              ] else
-                bodyView,
-            ],
+                const Spacer(),
+                IconButton(
+                  onPressed: () {
+                    context.router.push(UniversalSearchRoute());
+                  },
+                  icon: Icon(
+                    Symbols.search,
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                  tooltip: 'search'.tr(),
+                ),
+              ],
+            ).padding(horizontal: 12, vertical: 8),
+            title: SvgPicture.asset(
+              'assets/icons/icon-outline.svg',
+              color: Theme.of(context).appBarTheme.foregroundColor,
+              width: 32,
+              height: 32,
+            ),
+            centerTitle: true,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TabBar(
+                      indicatorColor: Theme.of(
+                        context,
+                      ).appBarTheme.foregroundColor,
+                      controller: filterTabController,
+                      dividerHeight: 0,
+                      onTap: hasSubscriptionFiltersApplied
+                          ? null
+                          : (index) {
+                              final filter = switch (index) {
+                                1 => 'subscriptions',
+                                2 => 'friends',
+                                _ => null,
+                              };
+                              handleFilterChange(filter);
+                            },
+                      tabs: [
+                        Tab(
+                          child: Row(
+                            spacing: 8,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Symbols.explore,
+                                size: 18,
+                                fill: filterTabController.index == 0 ? 1 : 0,
+                                color: Theme.of(
+                                  context,
+                                ).appBarTheme.foregroundColor,
+                              ),
+                              Text(
+                                'explore'.tr(),
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).appBarTheme.foregroundColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Tab(
+                          child: Row(
+                            spacing: 8,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Symbols.subscriptions,
+                                size: 18,
+                                fill: filterTabController.index == 1 ? 1 : 0,
+                                color: Theme.of(
+                                  context,
+                                ).appBarTheme.foregroundColor,
+                              ),
+                              Text(
+                                'exploreFilterSubscriptions'.tr(),
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).appBarTheme.foregroundColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Tab(
+                          child: Row(
+                            spacing: 8,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Symbols.people,
+                                size: 18,
+                                fill: filterTabController.index == 2 ? 1 : 0,
+                                color: Theme.of(
+                                  context,
+                                ).appBarTheme.foregroundColor,
+                              ),
+                              Text(
+                                'exploreFilterFriends'.tr(),
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).appBarTheme.foregroundColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: IconButton(
+                      onPressed: () => _showAlgorithmConfigSheet(
+                        context,
+                        selectedPublishers,
+                        selectedCategoryIds,
+                        selectedTagIds,
+                        currentAggressive,
+                        currentFilter,
+                        handleFilterChange,
+                        handleAggressiveChange,
+                        currentMode,
+                        handleModeChange,
+                        isWide: false,
+                      ),
+                      icon: Icon(
+                        Symbols.tune,
+                        color: Theme.of(context).appBarTheme.foregroundColor,
+                      ),
+                      tooltip: 'settings'.tr(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            floating: true,
+            snap: true,
           ),
-        ),
-      ).padding(horizontal: 8),
+          const SliverGap(8),
+          if (usePostList) ...[
+            _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
+            _buildPostList(
+              context,
+              ref,
+              selectedPublishers.value,
+              selectedCategoryIds.value,
+              selectedTagIds.value,
+            ),
+          ] else if (isListInitialLoading)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: ConfuseSpinner(
+                  speed: 7,
+                  size: 72,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                ),
+              ),
+            )
+          else
+            _buildActivityList(context, ref),
+        ],
+      ),
     );
   }
 }
