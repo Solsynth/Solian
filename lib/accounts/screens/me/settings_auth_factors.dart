@@ -210,48 +210,15 @@ class AuthFactorNewSheet extends HookConsumerWidget {
             if (context.mounted) Navigator.pop(context, true);
           });
         } else if (factor.type == 5) {
-          final secret = factor.createdResponse?['recovery_code'] as String?;
-          if (secret != null) {
-            await showDialog(
+          if (context.mounted) {
+            showModalBottomSheet(
               context: context,
-              barrierDismissible: false,
-              builder: (context) => AlertDialog(
-                title: Text('recoveryCodeCreated'.tr()),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'recoveryCodeSaveWarning'.tr(),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SelectableText(
-                        secret,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontFamily: 'monospace'),
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('iHaveSavedIt'.tr()),
-                  ),
-                ],
-              ),
-            );
+              builder: (ctx) => RecoveryCodeCreatedSheet(factor: factor),
+            ).then((_) {
+              if (context.mounted) Navigator.pop(context, true);
+            });
           }
-          if (context.mounted) Navigator.pop(context, true);
+          return;
         } else {
           Navigator.pop(context, true);
         }
@@ -387,6 +354,70 @@ class AuthFactorNewAdditonalSheet extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Symbols.check),
               label: Text('next'.tr()),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class RecoveryCodeCreatedSheet extends StatelessWidget {
+  final SnAuthFactor factor;
+  const RecoveryCodeCreatedSheet({super.key, required this.factor});
+
+  @override
+  Widget build(BuildContext context) {
+    final secret = factor.createdResponse?['recovery_code'] as String?;
+
+    return SheetScaffold(
+      titleText: 'recoveryCodeCreated'.tr(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
+          Center(
+            child: Icon(
+              Symbols.key,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const Gap(16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'recoveryCodeSaveWarning'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          if (secret != null) ...[
+            const Gap(16),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: SelectableText(
+                  secret,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontFamily: 'monospace',
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const Gap(24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Symbols.check),
+              label: Text('iHaveSavedIt'.tr()),
             ),
           ),
         ],
