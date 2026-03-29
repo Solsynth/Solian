@@ -12,6 +12,13 @@
   "loginGreeting": "Welcome back!",
   "loginOr": "Or login with\nthird parties",
   "loginInProgress": "Logging you in...",
+  "useRecoveryCode": "Use Recovery Code",
+  "recoveryCodeHint": "Enter your account name and recovery code to recover your account.",
+  "recoveryCode": "Recovery Code",
+  "recover": "Recover",
+  "recoveryCodeCreated": "Recovery Code Created",
+  "recoveryCodeSaveWarning": "Save this recovery code securely. It cannot be retrieved again. Store it in a password manager or secure location.",
+  "iHaveSavedIt": "I Have Saved It",
   "username": "Username",
   "usernameCannotChangeHint": "Username cannot be updated after created.",
   "usernameLookupHint": "We also take your email address.",
@@ -66,6 +73,8 @@
   "authFactorInAppNotifyDescription": "A one-time code sent via in-app notification.",
   "authFactorPin": "Pin Code",
   "authFactorPinDescription": "It consists of 6 digits. It cannot be used to log in. When performing some dangerous operations, the system will ask you to enter this PIN for confirmation.",
+  "authFactorRecoveryCode": "Recovery Code",
+  "authFactorRecoveryCodeDescription": "A fallback code for account recovery. Generate this first before setting up other factors.",
   "realms": "Realms",
   "createRealm": "Create a Realm",
   "createRealmHint": "Meet friends with same interests, build communities, and more.",
@@ -2216,5 +2225,7 @@
   "fediverseProfileHint": "This user is from the Fediverse network. Information may be incomplete.",
   "viewOnOriginalSite": "View on original site",
   "tapToViewOriginal": "Tap to view original",
-  "noPosts": "No posts yet"
+  "noPosts": "No posts yet",
+  "localOnly": "Local Only",
+  "authFactorEnabled": "Enabled"
 }
