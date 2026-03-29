@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_devices.dart';
 import 'package:island/core/network.dart';
@@ -55,9 +51,6 @@ class AccountSettingsScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDesktop =
-        !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
-
     Future<void> requestAccountDeletion() async {
       final confirm = await showConfirmAlert(
         'accountDeletionHint'.tr(),
@@ -418,30 +411,6 @@ class AccountSettingsScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: Text('accountSettings').tr(),
         leading: const AutoLeadingButton(),
-        actions: isDesktop
-            ? [
-                IconButton(
-                  icon: const Icon(Symbols.help_outline),
-                  onPressed: () {
-                    // Show help dialog
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text('accountSettingsHelp').tr(),
-                        content: Text('accountSettingsHelpContent').tr(),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text('Close').tr(),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const Gap(8),
-              ]
-            : null,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 16),

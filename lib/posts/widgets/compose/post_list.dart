@@ -71,6 +71,7 @@ class SliverPostList extends HookConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: PostItemSkeleton(maxWidth: maxWidth ?? double.infinity),
       ),
+      seperatorBuilder: (context, index, post) => const Divider(height: 1),
       itemBuilder: (context, index, post) {
         if (maxWidth != null) {
           return Center(
@@ -98,11 +99,7 @@ class SliverPostList extends HookConsumerWidget {
           onUpdate: onUpdate,
         );
       case PostItemType.regular:
-        return Card(
-          margin:
-              itemPadding ?? EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: PostActionableItem(item: post, borderRadius: 8),
-        );
+        return PostActionableItem(item: post, borderRadius: 8);
     }
   }
 }
