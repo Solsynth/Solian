@@ -628,13 +628,13 @@ final publisherFollowRequestProvider = PublisherFollowRequestFamily._();
 final class PublisherFollowRequestProvider
     extends
         $FunctionalProvider<
-          AsyncValue<SnPublisherFollowRequest?>,
-          SnPublisherFollowRequest?,
-          FutureOr<SnPublisherFollowRequest?>
+          AsyncValue<SnPublisherSubscriptionStatus?>,
+          SnPublisherSubscriptionStatus?,
+          FutureOr<SnPublisherSubscriptionStatus?>
         >
     with
-        $FutureModifier<SnPublisherFollowRequest?>,
-        $FutureProvider<SnPublisherFollowRequest?> {
+        $FutureModifier<SnPublisherSubscriptionStatus?>,
+        $FutureProvider<SnPublisherSubscriptionStatus?> {
   PublisherFollowRequestProvider._({
     required PublisherFollowRequestFamily super.from,
     required String super.argument,
@@ -658,12 +658,12 @@ final class PublisherFollowRequestProvider
 
   @$internal
   @override
-  $FutureProviderElement<SnPublisherFollowRequest?> $createElement(
+  $FutureProviderElement<SnPublisherSubscriptionStatus?> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<SnPublisherFollowRequest?> create(Ref ref) {
+  FutureOr<SnPublisherSubscriptionStatus?> create(Ref ref) {
     final argument = this.argument as String;
     return publisherFollowRequest(ref, argument);
   }
@@ -681,11 +681,14 @@ final class PublisherFollowRequestProvider
 }
 
 String _$publisherFollowRequestHash() =>
-    r'292d4483d2295ea1ade6a3d5093c672d015d99c2';
+    r'dc0fd1f83ed0dd2658c23aeaecb434b12be1080c';
 
 final class PublisherFollowRequestFamily extends $Family
     with
-        $FunctionalFamilyOverride<FutureOr<SnPublisherFollowRequest?>, String> {
+        $FunctionalFamilyOverride<
+          FutureOr<SnPublisherSubscriptionStatus?>,
+          String
+        > {
   PublisherFollowRequestFamily._()
     : super(
         retry: null,
@@ -761,7 +764,7 @@ final class PublisherFollowRequestsProvider
 }
 
 String _$publisherFollowRequestsHash() =>
-    r'e9d62f9a97d899b4e2270ba3ed77a1353ddee3a5';
+    r'882f6c70adb96af83f94a724c7185436a7ecdad4';
 
 final class PublisherFollowRequestsFamily extends $Family
     with
@@ -836,7 +839,7 @@ final class PublisherApproveFollowProvider
 }
 
 String _$publisherApproveFollowHash() =>
-    r'db70b6569b129db194a1ab5b36056069e554848e';
+    r'd6873a0d4fdba0a292a9ab55bbdb61db046e4828';
 
 final class PublisherApproveFollowFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<void>, (String, String)> {
@@ -914,7 +917,7 @@ final class PublisherRejectFollowProvider
 }
 
 String _$publisherRejectFollowHash() =>
-    r'dab89d9f0a9e5f76ba3804c2a08a458443d6a916';
+    r'b46e58068e5b66a3b0b2fef5cb4827bb0504c252';
 
 final class PublisherRejectFollowFamily extends $Family
     with

@@ -149,6 +149,7 @@ class _PublisherBasisWidget extends HookWidget {
   final ValueNotifier<bool> subscribing;
   final VoidCallback subscribe;
   final VoidCallback unsubscribe;
+  final AsyncValue<SnPublisherSubscriptionStatus?> followRequest;
 
   const _PublisherBasisWidget({
     required this.data,
@@ -157,6 +158,7 @@ class _PublisherBasisWidget extends HookWidget {
     required this.subscribing,
     required this.subscribe,
     required this.unsubscribe,
+    required this.followRequest,
   });
 
   String _getFirstLine(String bio) {
@@ -321,22 +323,48 @@ class _PublisherBasisWidget extends HookWidget {
                         ),
                       subStatus
                           .when(
-                            data: (status) => FilledButton.icon(
-                              onPressed: subscribing.value
-                                  ? null
-                                  : (status != null ? unsubscribe : subscribe),
-                              icon: Icon(
-                                status != null
-                                    ? Symbols.remove_circle
-                                    : Symbols.add_circle,
-                              ),
-                              label: Text(
-                                status != null ? 'unsubscribe' : 'subscribe',
-                              ).tr(),
-                              style: ButtonStyle(
-                                visualDensity: VisualDensity(vertical: -2),
-                              ),
-                            ),
+                            data: (status) {
+                              final isPending = followRequest.maybeWhen(
+                                data: (data) =>
+                                    data?.followRequest?.state ==
+                                    FollowRequestState.pending,
+                                orElse: () => false,
+                              );
+                              if (isPending) {
+                                return OutlinedButton.icon(
+                                  onPressed: subscribing.value
+                                      ? null
+                                      : unsubscribe,
+                                  icon: const Icon(Symbols.hourglass_top),
+                                  label: Text(
+                                    'publisherFollowPendingHint'.tr(),
+                                  ),
+                                  style: ButtonStyle(
+                                    visualDensity: VisualDensity(vertical: -2),
+                                  ),
+                                );
+                              }
+                              final isSubscribed = followRequest.maybeWhen(
+                                data: (data) => data?.status == 'subscribed',
+                                orElse: () => false,
+                              );
+                              return FilledButton.icon(
+                                onPressed: subscribing.value
+                                    ? null
+                                    : (isSubscribed ? unsubscribe : subscribe),
+                                icon: Icon(
+                                  isSubscribed
+                                      ? Symbols.remove_circle
+                                      : Symbols.add_circle,
+                                ),
+                                label: Text(
+                                  isSubscribed ? 'unsubscribe' : 'subscribe',
+                                ).tr(),
+                                style: ButtonStyle(
+                                  visualDensity: VisualDensity(vertical: -2),
+                                ),
+                              );
+                            },
                             error: (_, _) => const SizedBox(),
                             loading: () => const SizedBox(
                               height: 36,
@@ -532,6 +560,33 @@ Future<SnPublisherSubscription?> publisherSubscriptionStatus(
 }
 
 @riverpod
+Future<SnPublisherSubscriptionStatus?> publisherFollowRequest(
+  Ref ref,
+  String pubName,
+) async {
+  final apiClient = ref.watch(apiClientProvider);
+  try {
+    final resp = await apiClient.get(
+      '/sphere/publishers/$pubName/subscription',
+    );
+    return SnPublisherSubscriptionStatus.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
+    }
+    rethrow;
+  }
+}
+
+@riverpod
+Future<Map<String, bool>> publisherFeatures(Ref ref, String? uname) async {
+  if (uname == null) return {};
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/sphere/publishers/$uname/features');
+  return Map<String, bool>.from(response.data);
+}
+
+@riverpod
 Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
   final apiClient = ref.watch(apiClientProvider);
   final resp = await apiClient.get('/sphere/publishers/$uname/heatmap');
@@ -570,6 +625,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final publisher = ref.watch(publisherProvider(name));
     final badges = ref.watch(publisherBadgesProvider(name));
     final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
+    final followRequest = ref.watch(publisherFollowRequestProvider(name));
     final heatmap = ref.watch(publisherHeatmapProvider(name));
 
     final categoryTabController = useTabController(initialLength: 3);
@@ -597,6 +653,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
           data: {'tier': 0},
         );
         ref.invalidate(publisherSubscriptionStatusProvider(name));
+        ref.invalidate(publisherFollowRequestProvider(name));
         HapticFeedback.heavyImpact();
       } catch (err) {
         showErrorAlert(err);
@@ -611,6 +668,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
       try {
         await apiClient.post("/sphere/publishers/$name/unsubscribe");
         ref.invalidate(publisherSubscriptionStatusProvider(name));
+        ref.invalidate(publisherFollowRequestProvider(name));
         HapticFeedback.heavyImpact();
       } catch (err) {
         showErrorAlert(err);
@@ -629,82 +687,82 @@ class PublisherProfileScreen extends HookConsumerWidget {
           appBar: AppBar(leading: AutoLeadingButton(), title: Text(data.nick)),
           body: isWideScreen(context)
               ? Row(
-                  spacing: 12,
                   children: [
                     Flexible(
                       flex: 4,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(
-                              color: Theme.of(context).colorScheme.outline,
-                              width: 1 / MediaQuery.devicePixelRatioOf(context),
-                            ),
-                          ),
-                        ),
+                      child: ColoredBox(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLow,
                         child: ColoredBox(
-                          color: Theme.of(context).colorScheme.surfaceContainer,
-                          child: ColoredBox(
-                            color: Theme.of(context).colorScheme.surface,
-                            child: CustomScrollView(
-                              slivers: [
-                                SliverGap(16),
-                                SliverToBoxAdapter(
-                                  child: _PinnedPostsPageView(pubName: name),
-                                ),
-                                SliverPostList(
-                                  maxWidth: double.infinity,
-                                  itemPadding: EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  query: queryState.value,
-                                  queryKey: 'publisher-$name',
-                                ),
-                                SliverGap(
-                                  MediaQuery.of(context).padding.bottom + 16,
-                                ),
-                              ],
-                            ),
+                          color: Theme.of(context).colorScheme.surface,
+                          child: CustomScrollView(
+                            slivers: [
+                              SliverGap(16),
+                              SliverToBoxAdapter(
+                                child: _PinnedPostsPageView(
+                                  pubName: name,
+                                ).padding(horizontal: 12),
+                              ),
+                              SliverPostList(
+                                maxWidth: double.infinity,
+                                itemPadding: EdgeInsets.symmetric(vertical: 4),
+                                query: queryState.value,
+                                queryKey: 'publisher-$name',
+                              ),
+                              SliverGap(
+                                MediaQuery.of(context).padding.bottom + 16,
+                              ),
+                            ],
                           ),
                         ).clipRRect(topRight: 12),
                       ),
                     ),
                     Flexible(
                       flex: 3,
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Column(
-                            spacing: 12,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _PublisherBasisWidget(
-                                data: data,
-                                subStatus: subStatus,
-                                liveStatus: liveStatus,
-                                subscribing: subscribing,
-                                subscribe: subscribe,
-                                unsubscribe: unsubscribe,
-                              ),
-                              if (data.account?.badges.isNotEmpty ?? false)
-                                _PublisherBadgesWidget(
+                      child: ColoredBox(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLow,
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 12,
+                            ),
+                            child: Column(
+                              spacing: 12,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _PublisherBasisWidget(
                                   data: data,
-                                  badges: badges,
+                                  subStatus: subStatus,
+                                  liveStatus: liveStatus,
+                                  subscribing: subscribing,
+                                  subscribe: subscribe,
+                                  unsubscribe: unsubscribe,
+                                  followRequest: followRequest,
                                 ),
-                              if (data.verification != null)
-                                _PublisherVerificationWidget(data: data),
-                              _PublisherHeatmapWidget(
-                                heatmap: heatmap,
-                                forceDense: true,
-                              ),
-                              PostFilterWidget(
-                                categoryTabController: categoryTabController,
-                                initialQuery: queryState.value,
-                                onQueryChanged: (newQuery) =>
-                                    queryState.value = newQuery,
-                              ),
-                            ],
+                                if (data.account?.badges.isNotEmpty ?? false)
+                                  _PublisherBadgesWidget(
+                                    data: data,
+                                    badges: badges,
+                                  ),
+                                if (data.verification != null)
+                                  _PublisherVerificationWidget(data: data),
+                                _PublisherHeatmapWidget(
+                                  heatmap: heatmap,
+                                  forceDense: true,
+                                ),
+                                PostFilterWidget(
+                                  categoryTabController: categoryTabController,
+                                  initialQuery: queryState.value,
+                                  onQueryChanged: (newQuery) =>
+                                      queryState.value = newQuery,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -722,6 +780,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         subscribing: subscribing,
                         subscribe: subscribe,
                         unsubscribe: unsubscribe,
+                        followRequest: followRequest,
                       ),
                     ),
                     const SliverGap(12),

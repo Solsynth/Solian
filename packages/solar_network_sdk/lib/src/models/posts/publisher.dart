@@ -5,11 +5,11 @@ part 'publisher.freezed.dart';
 part 'publisher.g.dart';
 
 enum FollowRequestState {
-  @JsonValue('Pending')
+  @JsonValue(0)
   pending,
-  @JsonValue('Accepted')
+  @JsonValue(1)
   accepted,
-  @JsonValue('Rejected')
+  @JsonValue(2)
   rejected,
 }
 
@@ -96,4 +96,31 @@ sealed class SnPublisherFollowRequestListResponse
   factory SnPublisherFollowRequestListResponse.fromJson(
     Map<String, dynamic> json,
   ) => _$SnPublisherFollowRequestListResponseFromJson(json);
+}
+
+@freezed
+sealed class SnPublisherFollowStatus with _$SnPublisherFollowStatus {
+  const factory SnPublisherFollowStatus({
+    @Default(false) bool isSubscribed,
+    FollowRequestState? followRequestState,
+    String? followRequestId,
+  }) = _SnPublisherFollowStatus;
+
+  factory SnPublisherFollowStatus.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherFollowStatusFromJson(json);
+}
+
+@freezed
+sealed class SnPublisherSubscriptionStatus
+    with _$SnPublisherSubscriptionStatus {
+  const factory SnPublisherSubscriptionStatus({
+    SnPublisherFollowStatus? subscription,
+    SnPublisherFollowRequest? followRequest,
+    @Default(false) bool requiresApproval,
+    @Default('none') String status,
+    @Default('') String message,
+  }) = _SnPublisherSubscriptionStatus;
+
+  factory SnPublisherSubscriptionStatus.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherSubscriptionStatusFromJson(json);
 }

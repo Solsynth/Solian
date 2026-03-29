@@ -241,6 +241,166 @@ final class PublisherSubscriptionStatusFamily extends $Family
   String toString() => r'publisherSubscriptionStatusProvider';
 }
 
+@ProviderFor(publisherFollowRequest)
+final publisherFollowRequestProvider = PublisherFollowRequestFamily._();
+
+final class PublisherFollowRequestProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPublisherSubscriptionStatus?>,
+          SnPublisherSubscriptionStatus?,
+          FutureOr<SnPublisherSubscriptionStatus?>
+        >
+    with
+        $FutureModifier<SnPublisherSubscriptionStatus?>,
+        $FutureProvider<SnPublisherSubscriptionStatus?> {
+  PublisherFollowRequestProvider._({
+    required PublisherFollowRequestFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherFollowRequestProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherFollowRequestHash();
+
+  @override
+  String toString() {
+    return r'publisherFollowRequestProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnPublisherSubscriptionStatus?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnPublisherSubscriptionStatus?> create(Ref ref) {
+    final argument = this.argument as String;
+    return publisherFollowRequest(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherFollowRequestProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherFollowRequestHash() =>
+    r'9b778b21df7d539c016282e7cf3b931b4334d7da';
+
+final class PublisherFollowRequestFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<SnPublisherSubscriptionStatus?>,
+          String
+        > {
+  PublisherFollowRequestFamily._()
+    : super(
+        retry: null,
+        name: r'publisherFollowRequestProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherFollowRequestProvider call(String pubName) =>
+      PublisherFollowRequestProvider._(argument: pubName, from: this);
+
+  @override
+  String toString() => r'publisherFollowRequestProvider';
+}
+
+@ProviderFor(publisherFeatures)
+final publisherFeaturesProvider = PublisherFeaturesFamily._();
+
+final class PublisherFeaturesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, bool>>,
+          Map<String, bool>,
+          FutureOr<Map<String, bool>>
+        >
+    with
+        $FutureModifier<Map<String, bool>>,
+        $FutureProvider<Map<String, bool>> {
+  PublisherFeaturesProvider._({
+    required PublisherFeaturesFamily super.from,
+    required String? super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherFeaturesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherFeaturesHash();
+
+  @override
+  String toString() {
+    return r'publisherFeaturesProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, bool>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, bool>> create(Ref ref) {
+    final argument = this.argument as String?;
+    return publisherFeatures(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherFeaturesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherFeaturesHash() => r'08bace2d9a3da227ecec0cbf8709e55ee0646ca2';
+
+final class PublisherFeaturesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Map<String, bool>>, String?> {
+  PublisherFeaturesFamily._()
+    : super(
+        retry: null,
+        name: r'publisherFeaturesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherFeaturesProvider call(String? uname) =>
+      PublisherFeaturesProvider._(argument: uname, from: this);
+
+  @override
+  String toString() => r'publisherFeaturesProvider';
+}
+
 @ProviderFor(publisherHeatmap)
 final publisherHeatmapProvider = PublisherHeatmapFamily._();
 

@@ -904,93 +904,82 @@ class RealmDetailScreen extends HookConsumerWidget {
                 children: [
                   Flexible(
                     flex: 3,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          right: BorderSide(
-                            color: Theme.of(context).colorScheme.outline,
-                            width: 1 / MediaQuery.devicePixelRatioOf(context),
-                          ),
-                        ),
-                      ),
+                    child: ColoredBox(
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
                       child: ColoredBox(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        child: ColoredBox(
-                          color: Theme.of(context).colorScheme.surface,
-                          child: CustomScrollView(
-                            slivers: [
-                              SliverToBoxAdapter(
-                                child: _RealmPinnedPostsPageView(
-                                  realmSlug: slug,
-                                ),
-                              ),
-                              SliverPostList(
-                                query: PostListQuery(
-                                  realm: slug,
-                                  pinned: false,
-                                ),
-                              ),
-                            ],
-                          ),
+                        color: Theme.of(context).colorScheme.surface,
+                        child: CustomScrollView(
+                          slivers: [
+                            const SliverGap(12),
+                            SliverToBoxAdapter(
+                              child: _RealmPinnedPostsPageView(realmSlug: slug),
+                            ),
+                            SliverPostList(
+                              query: PostListQuery(realm: slug, pinned: false),
+                            ),
+                          ],
                         ),
                       ).clipRRect(topRight: 12),
                     ),
                   ),
                   Flexible(
                     flex: 2,
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            realmDescriptionWidget(overview),
-                            realmBoostStatus.when(
-                              data: (boost) =>
-                                  realmBoostWidget(overview, boost),
-                              loading: () =>
-                                  realmBoostWidget(overview, boostFallback),
-                              error: (_, _) =>
-                                  realmBoostWidget(overview, boostFallback),
-                            ),
-                            realmIdentity.when(
-                              loading: () => const SizedBox.shrink(),
-                              error: (_, _) => const SizedBox.shrink(),
-                              data: (identity) {
-                                if (identity != null) {
-                                  return realmIdentityWidget(
-                                    overview,
-                                    identity,
-                                  );
-                                }
-                                if (overview.isCommunity) {
-                                  return realmActionWidget(overview);
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
-                            realmIdentity.when(
-                              loading: () => const SizedBox.shrink(),
-                              error: (_, _) => const SizedBox.shrink(),
-                              data: (identity) {
-                                if (identity == null) {
+                    child: ColoredBox(
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
+                      child: ListView(
+                        padding: const EdgeInsets.only(top: 12),
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              realmDescriptionWidget(overview),
+                              realmBoostStatus.when(
+                                data: (boost) =>
+                                    realmBoostWidget(overview, boost),
+                                loading: () =>
+                                    realmBoostWidget(overview, boostFallback),
+                                error: (_, _) =>
+                                    realmBoostWidget(overview, boostFallback),
+                              ),
+                              realmIdentity.when(
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, _) => const SizedBox.shrink(),
+                                data: (identity) {
+                                  if (identity != null) {
+                                    return realmIdentityWidget(
+                                      overview,
+                                      identity,
+                                    );
+                                  }
+                                  if (overview.isCommunity) {
+                                    return realmActionWidget(overview);
+                                  }
                                   return const SizedBox.shrink();
-                                }
-                                return realmBoostStatus.when(
-                                  data: (boost) => realmLabelsWidget(
-                                    overview,
-                                    identity,
-                                    boost,
-                                  ),
-                                  loading: () => const SizedBox.shrink(),
-                                  error: (_, _) => const SizedBox.shrink(),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        realmChatRoomListWidget(overview),
-                      ],
+                                },
+                              ),
+                              realmIdentity.when(
+                                loading: () => const SizedBox.shrink(),
+                                error: (_, _) => const SizedBox.shrink(),
+                                data: (identity) {
+                                  if (identity == null) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return realmBoostStatus.when(
+                                    data: (boost) => realmLabelsWidget(
+                                      overview,
+                                      identity,
+                                      boost,
+                                    ),
+                                    loading: () => const SizedBox.shrink(),
+                                    error: (_, _) => const SizedBox.shrink(),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          realmChatRoomListWidget(overview),
+                        ],
+                      ),
                     ),
                   ),
                 ],

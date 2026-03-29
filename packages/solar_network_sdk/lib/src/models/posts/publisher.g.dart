@@ -128,9 +128,9 @@ Map<String, dynamic> _$SnPublisherFollowRequestToJson(
 };
 
 const _$FollowRequestStateEnumMap = {
-  FollowRequestState.pending: 'Pending',
-  FollowRequestState.accepted: 'Accepted',
-  FollowRequestState.rejected: 'Rejected',
+  FollowRequestState.pending: 0,
+  FollowRequestState.accepted: 1,
+  FollowRequestState.rejected: 2,
 };
 
 _SnPublisherFollowResponse _$SnPublisherFollowResponseFromJson(
@@ -163,4 +163,52 @@ Map<String, dynamic> _$SnPublisherFollowRequestListResponseToJson(
   _SnPublisherFollowRequestListResponse instance,
 ) => <String, dynamic>{
   'requests': instance.requests.map((e) => e.toJson()).toList(),
+};
+
+_SnPublisherFollowStatus _$SnPublisherFollowStatusFromJson(
+  Map<String, dynamic> json,
+) => _SnPublisherFollowStatus(
+  isSubscribed: json['is_subscribed'] as bool? ?? false,
+  followRequestState: $enumDecodeNullable(
+    _$FollowRequestStateEnumMap,
+    json['follow_request_state'],
+  ),
+  followRequestId: json['follow_request_id'] as String?,
+);
+
+Map<String, dynamic> _$SnPublisherFollowStatusToJson(
+  _SnPublisherFollowStatus instance,
+) => <String, dynamic>{
+  'is_subscribed': instance.isSubscribed,
+  'follow_request_state':
+      _$FollowRequestStateEnumMap[instance.followRequestState],
+  'follow_request_id': instance.followRequestId,
+};
+
+_SnPublisherSubscriptionStatus _$SnPublisherSubscriptionStatusFromJson(
+  Map<String, dynamic> json,
+) => _SnPublisherSubscriptionStatus(
+  subscription: json['subscription'] == null
+      ? null
+      : SnPublisherFollowStatus.fromJson(
+          json['subscription'] as Map<String, dynamic>,
+        ),
+  followRequest: json['follow_request'] == null
+      ? null
+      : SnPublisherFollowRequest.fromJson(
+          json['follow_request'] as Map<String, dynamic>,
+        ),
+  requiresApproval: json['requires_approval'] as bool? ?? false,
+  status: json['status'] as String? ?? 'none',
+  message: json['message'] as String? ?? '',
+);
+
+Map<String, dynamic> _$SnPublisherSubscriptionStatusToJson(
+  _SnPublisherSubscriptionStatus instance,
+) => <String, dynamic>{
+  'subscription': instance.subscription?.toJson(),
+  'follow_request': instance.followRequest?.toJson(),
+  'requires_approval': instance.requiresApproval,
+  'status': instance.status,
+  'message': instance.message,
 };
