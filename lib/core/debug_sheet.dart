@@ -256,6 +256,28 @@ class DebugSheet extends HookConsumerWidget {
                 await _showSetTokenDialog(context, ref);
               },
             ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.refresh),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: EdgeInsets.symmetric(horizontal: 24),
+              title: Text('Force refresh token'),
+              onTap: () async {
+                try {
+                  await forceRefreshToken(
+                    prefs: ref.read(sharedPreferencesProvider),
+                    serverUrl: ref.read(serverUrlProvider),
+                  );
+                  if (!context.mounted) return;
+                  showSnackBar('Token refreshed');
+                } on RefreshTokenExpiredException catch (e) {
+                  showErrorAlert(e.message);
+                } catch (e) {
+                  if (!context.mounted) return;
+                  showErrorAlert(e);
+                }
+              },
+            ),
             const Divider(height: 8),
             ListTile(
               minTileHeight: 48,
