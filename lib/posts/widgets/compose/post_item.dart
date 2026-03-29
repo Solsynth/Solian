@@ -28,6 +28,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_context_menu/super_context_menu.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class PostActionableItem extends HookConsumerWidget {
   final SnPost item;
@@ -267,6 +268,14 @@ class PostActionableItem extends HookConsumerWidget {
                 image: MenuImage.icon(Symbols.share_reviews),
                 callback: () {
                   sharePostAsScreenshot(context, ref, item);
+                },
+              ),
+            if (item.fediverseUri != null)
+              MenuAction(
+                title: 'openInBrowser'.tr(),
+                image: MenuImage.icon(Symbols.open_in_new),
+                callback: () {
+                  launchUrlString(item.fediverseUri!);
                 },
               ),
             MenuSeparator(),

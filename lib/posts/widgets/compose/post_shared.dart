@@ -832,11 +832,21 @@ class PostHeader extends HookConsumerWidget {
                     color: Theme.of(context).dividerColor,
                   ).center().width(28),
                 GestureDetector(
-                  onTap: isInteractive && _getPublisherName(item) != null
+                  onTap:
+                      isInteractive &&
+                          (_getPublisherName(item) != null ||
+                              item.actor != null)
                       ? () {
                           if (item.publisher != null) {
                             context.router.push(
                               PublisherProfileRoute(name: item.publisher!.name),
+                            );
+                          } else if (item.actor != null) {
+                            context.router.push(
+                              FediverseActorProfileRoute(
+                                id: item.actor!.id,
+                                fullHandle: item.actor!.fullHandle,
+                              ),
                             );
                           }
                         }

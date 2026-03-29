@@ -57,7 +57,7 @@ sealed class SnActivityPubActor with _$SnActivityPubActor {
     required String fullHandle,
     String? displayName,
     required String username,
-    String? summary,
+    String? bio,
     String? inboxUri,
     String? outboxUri,
     String? followersUri,

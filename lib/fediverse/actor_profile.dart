@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
@@ -7,9 +9,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:html2md/html2md.dart' as html2md;
 import 'package:island/core/network.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
+import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/content/markdown.dart';
@@ -89,20 +94,49 @@ final fediverseActorRelationshipProvider =
       return null;
     });
 
-final fediverseActorPostsProvider = FutureProvider.family<List<SnPost>, String>(
-  (ref, actorId) async {
-    final apiClient = ref.watch(apiClientProvider);
-    final resp = await apiClient.get(
-      "/sphere/fediverse/actors/$actorId/posts",
-      queryParameters: {'take': 20, 'offset': 0},
+final fediverseActorPostsProvider = AsyncNotifierProvider.autoDispose
+    .family<FediverseActorPostsNotifier, PaginationState<SnPost>, String>(
+      FediverseActorPostsNotifier.new,
     );
-    final data = resp.data;
-    if (data is List) {
-      return data.map((json) => SnPost.fromJson(json)).toList();
+
+class FediverseActorPostsNotifier extends AsyncNotifier<PaginationState<SnPost>>
+    with AsyncPaginationController<SnPost> {
+  static const int pageSize = 20;
+
+  final String actorId;
+  FediverseActorPostsNotifier(this.actorId);
+
+  @override
+  Future<PaginationState<SnPost>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
+
+  @override
+  Future<List<SnPost>> fetch() async {
+    final client = ref.read(apiClientProvider);
+
+    final response = await client.get(
+      "/sphere/fediverse/actors/$actorId/posts",
+      queryParameters: {'offset': fetchedCount, 'take': pageSize},
+    );
+
+    totalCount = response.data is List ? (response.data as List).length : 0;
+    if (response.data is List) {
+      return (response.data as List)
+          .map((json) => SnPost.fromJson(json as Map<String, dynamic>))
+          .toList();
     }
     return [];
-  },
-);
+  }
+}
 
 class _ActorBasisWidget extends HookWidget {
   final SnActivityPubActor data;
@@ -166,22 +200,26 @@ class _ActorBasisWidget extends HookWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (data.isBot)
+                          if (data.isBot || (data.metadata?['isCat'] == true))
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.tertiaryContainer,
+                                color: data.isBot
+                                    ? theme.colorScheme.tertiaryContainer
+                                    : theme.colorScheme.primaryContainer,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'BOT',
+                                data.isBot ? 'BOT' : '🐱',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onTertiaryContainer,
+                                  color: data.isBot
+                                      ? theme.colorScheme.onTertiaryContainer
+                                      : theme.colorScheme.onPrimaryContainer,
                                 ),
                               ),
                             ),
@@ -190,13 +228,8 @@ class _ActorBasisWidget extends HookWidget {
                       Row(
                         spacing: 6,
                         children: [
-                          Icon(
-                            Symbols.alternate_email,
-                            size: 14,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
                           Text(
-                            data.fullHandle,
+                            '@${data.fullHandle}',
                             style: TextStyle(
                               fontSize: 14,
                               color: theme.colorScheme.onSurfaceVariant,
@@ -301,7 +334,7 @@ class _ActorBasisWidget extends HookWidget {
                 ),
               ],
             ),
-            if (data.summary?.isNotEmpty ?? false) ...[
+            if (data.bio?.isNotEmpty ?? false) ...[
               const Gap(12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -315,13 +348,15 @@ class _ActorBasisWidget extends HookWidget {
                           child: isBioExpanded.value
                               ? MarkdownTextContent(
                                   key: const ValueKey('expanded'),
-                                  content: data.summary!,
+                                  content: html2md.convert(data.bio!),
                                   linesMargin: EdgeInsets.zero,
                                 )
                               : Text(
-                                  data.summary!,
-                                  key: const ValueKey('collapsed'),
-                                  maxLines: 3,
+                                  html2md.convert(data.bio!),
+                                  key: const ValueKey('expanded'),
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  textAlign: TextAlign.left,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                         ).alignment(Alignment.centerLeft),
@@ -350,72 +385,6 @@ class _ActorBasisWidget extends HookWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ActorStatsWidget extends StatelessWidget {
-  final SnActivityPubActor data;
-
-  const _ActorStatsWidget({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _StatItem(
-              label: 'posts'.tr(),
-              value:
-                  data.totalPostCount?.toString() ??
-                  data.recentPosts?.length.toString() ??
-                  '0',
-            ),
-            _StatItem(
-              label: 'followers'.tr(),
-              value: data.followersCount?.toString() ?? '0',
-            ),
-            _StatItem(
-              label: 'following'.tr(),
-              value: data.followingCount?.toString() ?? '0',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatItem({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -451,7 +420,6 @@ class _FediverseHintWidget extends StatelessWidget {
                       ),
                     ),
                     if (data.webUrl != null) ...[
-                      const Gap(4),
                       Text(
                         'viewOnOriginalSite'.tr(),
                         style: theme.textTheme.labelSmall?.copyWith(
@@ -476,129 +444,245 @@ class _FediverseHintWidget extends StatelessWidget {
   }
 }
 
-class _UncachedPostItem extends StatelessWidget {
-  final SnPost post;
+class _ActorTagsWidget extends StatelessWidget {
+  final SnActivityPubActor data;
 
-  const _UncachedPostItem({required this.post});
+  const _ActorTagsWidget({required this.data});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final metadata = data.metadata;
+    if (metadata == null) return const SizedBox.shrink();
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () {
-        if (post.fediverseUri != null) {
-          launchUrlString(post.fediverseUri!);
-        }
-      },
+    final tagList = metadata['tag'];
+    if (tagList is! List || tagList.isEmpty) return const SizedBox.shrink();
+
+    final emojis = <Map<String, dynamic>>[];
+    final hashtags = <Map<String, dynamic>>[];
+    for (final item in tagList) {
+      if (item is! Map<String, dynamic>) continue;
+      final type = item['type'] as String?;
+      if (type == 'Emoji') {
+        emojis.add(item);
+      } else if (type == 'Hashtag') {
+        hashtags.add(item);
+      }
+    }
+
+    if (emojis.isEmpty && hashtags.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundImage: post.actor?.avatarUrl != null
-                      ? CachedNetworkImageProvider(post.actor!.avatarUrl!)
-                      : null,
-                  backgroundColor: theme.colorScheme.surfaceContainer,
-                  child: post.actor?.avatarUrl == null
-                      ? Icon(
-                          Symbols.person,
-                          size: 16,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        )
-                      : null,
-                ),
-                const Gap(8),
-                Expanded(
-                  child: Text(
-                    post.actor?.displayName ?? post.actor?.username ?? '',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Icon(
-                  Symbols.open_in_new,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ),
-            if (post.content != null && post.content!.isNotEmpty) ...[
-              const Gap(8),
-              Text(
-                post.content!,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: theme.colorScheme.onSurface,
-                ),
+            if (emojis.isNotEmpty) ...[
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: emojis.map((emoji) {
+                  final icon = emoji['icon'] as Map<String, dynamic>?;
+                  final url = icon?['url'] as String?;
+                  final name = emoji['name'] as String? ?? '';
+                  return Tooltip(
+                    message: name,
+                    child: url != null
+                        ? CachedNetworkImage(
+                            imageUrl: url,
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.contain,
+                            placeholder: (context, url) => Text(
+                              name,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            errorWidget: (context, url, error) => Text(
+                              name,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          )
+                        : Text(name, style: const TextStyle(fontSize: 16)),
+                  );
+                }).toList(),
               ),
             ],
-            const Gap(8),
-            Row(
-              children: [
-                Icon(
-                  Symbols.schedule,
-                  size: 12,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const Gap(4),
-                Text(
-                  post.publishedAt != null
-                      ? _formatDate(post.publishedAt!)
-                      : '',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  Symbols.cloud,
-                  size: 12,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const Gap(4),
-                Text(
-                  'tapToViewOriginal'.tr(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
+            if (emojis.isNotEmpty && hashtags.isNotEmpty) const Gap(8),
+            if (hashtags.isNotEmpty) ...[
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: hashtags.map((tag) {
+                  final href = tag['href'] as String?;
+                  final name = tag['name'] as String? ?? '';
+                  return ActionChip(
+                    label: Text(
+                      name,
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                    avatar: const Icon(Symbols.tag, size: 14),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: href != null
+                        ? () => launchUrlString(href)
+                        : null,
+                  );
+                }).toList(),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
+}
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-    if (diff.inDays > 30) {
-      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    } else if (diff.inDays > 0) {
-      return '${diff.inDays}d ago';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h ago';
-    } else if (diff.inMinutes > 0) {
-      return '${diff.inMinutes}m ago';
-    } else {
-      return 'justNow'.tr();
+class _ActorAttachmentsWidget extends StatelessWidget {
+  final SnActivityPubActor data;
+
+  const _ActorAttachmentsWidget({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final metadata = data.metadata;
+    if (metadata == null) return const SizedBox.shrink();
+
+    final attachments = metadata['attachment'];
+    if (attachments is! List || attachments.isEmpty) {
+      return const SizedBox.shrink();
     }
+
+    final validAttachments = attachments
+        .whereType<Map<String, dynamic>>()
+        .where((a) => a['type'] == 'PropertyValue')
+        .toList();
+
+    if (validAttachments.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('profileFields'.tr(), style: theme.textTheme.titleSmall),
+            const Gap(8),
+            ...validAttachments.map((attachment) {
+              final name = attachment['name'] as String? ?? '';
+              final value = attachment['value'] as String? ?? '';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Text(
+                        name,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: _PropertyValueRenderer(html: value)),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PropertyValueRenderer extends StatelessWidget {
+  final String html;
+
+  const _PropertyValueRenderer({required this.html});
+
+  @override
+  Widget build(BuildContext context) {
+    final plainText = _stripHtml(html);
+    final uri = _extractFirstLink(html);
+
+    final child = Text(
+      plainText,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: uri != null ? Theme.of(context).colorScheme.primary : null,
+      ),
+    );
+
+    if (uri != null) {
+      return InkWell(
+        onTap: () => launchUrlString(uri),
+        borderRadius: BorderRadius.circular(4),
+        child: child.padding(horizontal: 2),
+      );
+    }
+    return child;
+  }
+
+  String _stripHtml(String input) {
+    return input
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&nbsp;', ' ');
+  }
+
+  String? _extractFirstLink(String input) {
+    final match = RegExp(r'href="([^"]*)"').firstMatch(input);
+    return match?.group(1);
+  }
+}
+
+class _FollowedMessageWidget extends StatelessWidget {
+  final SnActivityPubActor data;
+
+  const _FollowedMessageWidget({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final metadata = data.metadata;
+    if (metadata == null) return const SizedBox.shrink();
+
+    final message = metadata['_misskey_followedMessage'] as String?;
+    if (message == null || message.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.favorite,
+              size: 16,
+              color: Theme.of(context).colorScheme.onSecondaryContainer,
+            ),
+            const Gap(8),
+            Expanded(
+              child: MarkdownTextContent(
+                content: message,
+                textStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -609,63 +693,29 @@ class _ActorPostsWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final actorPosts = ref.watch(fediverseActorPostsProvider(actorId));
+    final provider = fediverseActorPostsProvider(actorId);
 
-    return actorPosts.when(
-      data: (posts) {
-        if (posts.isEmpty) {
-          return Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Symbols.article,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const Gap(8),
-                    Text(
-                      'noPosts'.tr(),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
-
-        return Column(
-          children: posts.map((post) {
-            if (!post.isCached && post.fediverseUri != null) {
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                child: _UncachedPostItem(post: post),
-              );
-            }
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              child: PostActionableItem(item: post, borderRadius: 8),
-            );
-          }).toList(),
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isRefreshable: false,
+      isSliver: true,
+      footerSkeletonChild: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: PostItemSkeleton(maxWidth: double.infinity),
+      ),
+      itemBuilder: (context, index, post) {
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          child: PostActionableItem(
+            item: post,
+            borderRadius: 8,
+            onTap: !post.isCached && post.fediverseUri != null
+                ? () => launchUrlString(post.fediverseUri!)
+                : null,
+          ),
         );
       },
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(),
-        ),
-      ),
-      error: (err, _) => Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Center(child: Text(err.toString())),
-        ),
-      ),
     );
   }
 }
@@ -743,10 +793,8 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                       flex: 4,
                       child: CustomScrollView(
                         slivers: [
-                          const SliverGap(16),
-                          SliverToBoxAdapter(
-                            child: _ActorPostsWidget(actorId: data.id),
-                          ),
+                          const SliverGap(12),
+                          _ActorPostsWidget(actorId: data.id),
                           SliverGap(MediaQuery.of(context).padding.bottom + 16),
                         ],
                       ),
@@ -761,6 +809,28 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                             spacing: 12,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
+                              if (data.headerUrl != null)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: CachedNetworkImage(
+                                    imageUrl: data.headerUrl!,
+                                    height: 120,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    placeholder: (_, _) => Container(
+                                      height: 120,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
+                                    ),
+                                    errorWidget: (_, _, _) => Container(
+                                      height: 120,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
+                                    ),
+                                  ),
+                                ),
                               _ActorBasisWidget(
                                 data: data,
                                 relationship: relationship,
@@ -768,8 +838,11 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                                 follow: () => follow(data),
                                 unfollow: () => unfollow(data),
                               ),
-                              _ActorStatsWidget(data: data),
+                              Text(jsonEncode(data.metadata)),
+                              _FollowedMessageWidget(data: data),
                               _FediverseHintWidget(data: data),
+                              _ActorTagsWidget(data: data),
+                              _ActorAttachmentsWidget(data: data),
                               if (data.lastActivityAt != null)
                                 Card(
                                   margin: EdgeInsets.zero,
@@ -845,13 +918,19 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                       ),
                     ),
                     const SliverGap(12),
-                    SliverToBoxAdapter(child: _ActorStatsWidget(data: data)),
-                    const SliverGap(12),
                     SliverToBoxAdapter(child: _FediverseHintWidget(data: data)),
                     const SliverGap(12),
                     SliverToBoxAdapter(
-                      child: _ActorPostsWidget(actorId: data.id),
+                      child: _FollowedMessageWidget(data: data),
                     ),
+                    const SliverGap(12),
+                    SliverToBoxAdapter(child: _ActorTagsWidget(data: data)),
+                    const SliverGap(12),
+                    SliverToBoxAdapter(
+                      child: _ActorAttachmentsWidget(data: data),
+                    ),
+                    const SliverGap(12),
+                    _ActorPostsWidget(actorId: data.id),
                     SliverGap(MediaQuery.of(context).padding.bottom + 16),
                   ],
                 ).padding(horizontal: 8),

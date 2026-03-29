@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:html2md/html2md.dart' as html2md;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -122,10 +123,10 @@ class ApActorListItem extends StatelessWidget {
         spacing: 8,
         children: [
           Text(username),
-          if (actor.summary?.isNotEmpty ?? false)
+          if (actor.bio?.isNotEmpty ?? false)
             Expanded(
               child: Text(
-                actor.summary!,
+                html2md.convert(actor.bio!),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,

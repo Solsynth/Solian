@@ -2227,5 +2227,6 @@
   "tapToViewOriginal": "Tap to view original",
   "noPosts": "No posts yet",
   "localOnly": "Local Only",
-  "authFactorEnabled": "Enabled"
+  "authFactorEnabled": "Enabled",
+  "profileFields": "Profile Fields"
 }
