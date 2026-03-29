@@ -521,7 +521,6 @@ class ExploreScreen extends HookConsumerWidget {
                 },
                 child: CustomScrollView(
                   slivers: [
-                    const SliverGap(12),
                     if (usePostList) ...[
                       _buildLiveStreamsOnTop(
                         context,

@@ -128,6 +128,7 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
         child: InkWell(
           onTap: _launchUrl,
           child: Row(
+            spacing: 4,
             children: [
               if (hasImage) ...[
                 SizedBox(

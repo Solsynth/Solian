@@ -633,28 +633,40 @@ class PublisherProfileScreen extends HookConsumerWidget {
                   children: [
                     Flexible(
                       flex: 4,
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverGap(16),
-                          SliverToBoxAdapter(
-                            child: _PinnedPostsPageView(pubName: name),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            right: BorderSide(
+                              color: Theme.of(context).colorScheme.outline,
+                              width: 1 / MediaQuery.devicePixelRatioOf(context),
+                            ),
                           ),
-                          SliverToBoxAdapter(
-                            child: PostFilterWidget(
-                              categoryTabController: categoryTabController,
-                              initialQuery: queryState.value,
-                              onQueryChanged: (newQuery) =>
-                                  queryState.value = newQuery,
-                            ).padding(bottom: 4),
+                        ),
+                        child: ColoredBox(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          child: ColoredBox(
+                            color: Theme.of(context).colorScheme.surface,
+                            child: CustomScrollView(
+                              slivers: [
+                                SliverGap(16),
+                                SliverToBoxAdapter(
+                                  child: _PinnedPostsPageView(pubName: name),
+                                ),
+                                SliverPostList(
+                                  maxWidth: double.infinity,
+                                  itemPadding: EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  query: queryState.value,
+                                  queryKey: 'publisher-$name',
+                                ),
+                                SliverGap(
+                                  MediaQuery.of(context).padding.bottom + 16,
+                                ),
+                              ],
+                            ),
                           ),
-                          SliverPostList(
-                            maxWidth: double.infinity,
-                            itemPadding: EdgeInsets.symmetric(vertical: 4),
-                            query: queryState.value,
-                            queryKey: 'publisher-$name',
-                          ),
-                          SliverGap(MediaQuery.of(context).padding.bottom + 16),
-                        ],
+                        ).clipRRect(topRight: 12),
                       ),
                     ),
                     Flexible(
@@ -686,13 +698,19 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                 heatmap: heatmap,
                                 forceDense: true,
                               ),
+                              PostFilterWidget(
+                                categoryTabController: categoryTabController,
+                                initialQuery: queryState.value,
+                                onQueryChanged: (newQuery) =>
+                                    queryState.value = newQuery,
+                              ),
                             ],
                           ),
                         ),
                       ),
                     ),
                   ],
-                ).padding(horizontal: 12)
+                ).padding(right: 12)
               : CustomScrollView(
                   slivers: [
                     const SliverGap(12),
@@ -741,7 +759,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                     ),
                     SliverGap(MediaQuery.of(context).padding.bottom + 16),
                   ],
-                ).padding(horizontal: 8),
+                ),
         );
       },
       error: (error, stackTrace) => AppScaffold(

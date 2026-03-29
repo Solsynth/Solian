@@ -904,15 +904,36 @@ class RealmDetailScreen extends HookConsumerWidget {
                 children: [
                   Flexible(
                     flex: 3,
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: _RealmPinnedPostsPageView(realmSlug: slug),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 1 / MediaQuery.devicePixelRatioOf(context),
+                          ),
                         ),
-                        SliverPostList(
-                          query: PostListQuery(realm: slug, pinned: false),
+                      ),
+                      child: ColoredBox(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        child: ColoredBox(
+                          color: Theme.of(context).colorScheme.surface,
+                          child: CustomScrollView(
+                            slivers: [
+                              SliverToBoxAdapter(
+                                child: _RealmPinnedPostsPageView(
+                                  realmSlug: slug,
+                                ),
+                              ),
+                              SliverPostList(
+                                query: PostListQuery(
+                                  realm: slug,
+                                  pinned: false,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ).clipRRect(topRight: 12),
                     ),
                   ),
                   Flexible(
@@ -973,7 +994,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     ),
                   ),
                 ],
-              ).padding(horizontal: 8, top: 8)
+              ).padding(right: 8)
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(
