@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:easy_localization/easy_localization.dart';
@@ -40,8 +39,6 @@ import 'package:island/shared/widgets/sync_indicator.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-const kChatLastReadAnchorsStoreKey = 'chat_last_read_anchor_by_room';
 
 @RoutePage()
 class ChatRoomScreen extends HookConsumerWidget {
@@ -162,47 +159,23 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesProvider(id));
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
-    final prefs = ref.read(sharedPreferencesProvider);
-    final lastReadAnchorMessageId = useState<String?>(null);
     final isAtLatestMessages = useState(false);
     final collapsedBotGroupIds = useState<Set<String>>({});
-    final wasAtLatestMessagesRef = useRef(false);
-    final previousNewestMessageIdRef = useRef<String?>(null);
-    final pendingAnchorUpdateFromSendRef = useRef(false);
+    final savedLastReadAt = useState<DateTime?>(null);
 
-    Future<void> saveLastReadAnchor() async {
-      final latestId = lastReadAnchorMessageId.value;
-      if (latestId == null || latestId.isEmpty) return;
-
-      final raw = prefs.getString(kChatLastReadAnchorsStoreKey);
-      final Map<String, dynamic> anchors = raw == null || raw.isEmpty
-          ? <String, dynamic>{}
-          : (jsonDecode(raw) as Map<String, dynamic>);
-      anchors[id] = latestId;
-      await prefs.setString(kChatLastReadAnchorsStoreKey, jsonEncode(anchors));
-      lastReadAnchorMessageId.value = latestId;
-    }
-
-    Future<void> loadLastReadAnchor() async {
-      final raw = prefs.getString(kChatLastReadAnchorsStoreKey);
-      if (raw == null || raw.isEmpty) return;
-      final anchors = jsonDecode(raw) as Map<String, dynamic>;
-      final anchorId = anchors[id] as String?;
-      if (anchorId != null && anchorId.isNotEmpty) {
-        lastReadAnchorMessageId.value = anchorId;
+    useEffect(() {
+      final identity = chatIdentity.value;
+      if (identity != null) {
+        savedLastReadAt.value = identity.lastReadAt;
       }
-    }
+      return null;
+    }, [chatIdentity.value]);
 
     useEffect(() {
       Future.microtask(() async {
         if (!context.mounted) return;
         await messagesNotifier.syncMessages();
       });
-      return null;
-    }, [id]);
-
-    useEffect(() {
-      Future.microtask(loadLastReadAnchor);
       return null;
     }, [id]);
 
@@ -251,7 +224,6 @@ class ChatRoomScreen extends HookConsumerWidget {
           nextState == AppLifecycleState.hidden ||
           nextState == AppLifecycleState.detached) {
         wsDisconnectedSinceBackground.value = !checkWsConnected();
-        Future.microtask(saveLastReadAnchor);
       }
 
       if (resumedFromBackground && !isResyncingAfterResume.value) {
@@ -308,7 +280,6 @@ class ChatRoomScreen extends HookConsumerWidget {
             ref.read(currentSubscribedChatIdProvider.notifier).set(null);
           }
         });
-        saveLastReadAnchor();
       };
     }, []);
 
@@ -323,20 +294,8 @@ class ChatRoomScreen extends HookConsumerWidget {
       void updateAtLatestState() {
         final controller = scrollManager.scrollController;
         if (!controller.hasClients) return;
-        // In reverse list, pixels near 0 means user is at latest messages.
         final atLatest = controller.position.pixels <= 80;
         isAtLatestMessages.value = atLatest;
-
-        // Only advance the read anchor when user reaches latest messages,
-        // not when new data arrives from sync.
-        if (atLatest && !wasAtLatestMessagesRef.value) {
-          final list = messages.value;
-          if (list != null && list.isNotEmpty) {
-            lastReadAnchorMessageId.value = list.first.id;
-          }
-        }
-
-        wasAtLatestMessagesRef.value = atLatest;
       }
 
       scrollManager.scrollController.addListener(updateAtLatestState);
@@ -345,28 +304,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
       return () =>
           scrollManager.scrollController.removeListener(updateAtLatestState);
-    }, [scrollManager.scrollController, messages.value]);
-
-    useEffect(() {
-      final list = messages.value;
-      if (list == null || list.isEmpty) return null;
-
-      final newestId = list.first.id;
-      final previousNewestId = previousNewestMessageIdRef.value;
-      final hasNewTopMessage =
-          previousNewestId != null && previousNewestId != newestId;
-      final shouldAdvanceForVisibleNewMessage =
-          hasNewTopMessage && isAtLatestMessages.value;
-      final shouldAdvanceForSentMessage = pendingAnchorUpdateFromSendRef.value;
-
-      if (shouldAdvanceForVisibleNewMessage || shouldAdvanceForSentMessage) {
-        lastReadAnchorMessageId.value = newestId;
-        pendingAnchorUpdateFromSendRef.value = false;
-      }
-
-      previousNewestMessageIdRef.value = newestId;
-      return null;
-    }, [messages.value, isAtLatestMessages.value]);
+    }, [scrollManager.scrollController]);
 
     final inputKey = useMemoized(() => GlobalKey(), []);
     final inputHeight = useState<double>(80.0);
@@ -527,47 +465,56 @@ class ChatRoomScreen extends HookConsumerWidget {
     final filteredMessages = messages;
 
     final visibleLastReadAnchorMessageId = (() {
-      final anchorId = lastReadAnchorMessageId.value;
+      final anchorTime = savedLastReadAt.value;
       final list = messages.value;
-      if (anchorId == null || list == null || list.isEmpty) return null;
+      if (anchorTime == null || list == null || list.isEmpty) return null;
       if (isAtLatestMessages.value) return null;
-      final anchorIndex = list.indexWhere((m) => m.id == anchorId);
-      // Messages are sorted newest -> oldest.
-      // Show marker only when there are newer messages before the anchor.
-      if (anchorIndex > 0) return anchorId;
+      final anchorIndex = list.indexWhere(
+        (m) =>
+            m.createdAt.isBefore(anchorTime) ||
+            m.createdAt.isAtSameMomentAs(anchorTime),
+      );
+      if (anchorIndex == -1) return null;
+      if (anchorIndex > 0) return list[anchorIndex].id;
       return null;
     })();
 
-    final jumpToLastReadAnchor = useCallback(
-      () {
-        final targetId = lastReadAnchorMessageId.value;
-        if (targetId == null || targetId.isEmpty) return;
+    final jumpToLastReadAnchor = useCallback(() {
+      final anchorTime = savedLastReadAt.value;
+      final list = messages.value;
+      if (anchorTime == null || list == null || list.isEmpty) return;
 
-        messagesNotifier.jumpToMessage(targetId).then((index) {
-          if (index != -1 && context.mounted) {
-            ref
-                .read(flashingMessagesProvider.notifier)
-                .update((set) => set.union({targetId}));
-            messages.when(
-              data: (messageList) {
-                scrollManager.scrollToMessage(
-                  messageId: targetId,
-                  messageList: messageList,
-                );
-              },
-              loading: () {},
-              error: (_, _) {},
-            );
-          }
-        });
-      },
-      [
-        lastReadAnchorMessageId.value,
-        messagesNotifier,
-        messages,
-        scrollManager,
-      ],
-    );
+      final targetIndex = list.indexWhere(
+        (m) =>
+            m.createdAt.isBefore(anchorTime) ||
+            m.createdAt.isAtSameMomentAs(anchorTime),
+      );
+      if (targetIndex == -1) return;
+      final targetId = list[targetIndex].id;
+
+      messagesNotifier.jumpToMessage(targetId).then((index) {
+        if (index != -1 && context.mounted) {
+          ref
+              .read(flashingMessagesProvider.notifier)
+              .update((set) => set.union({targetId}));
+          messages.when(
+            data: (messageList) {
+              scrollManager.scrollToMessage(
+                messageId: targetId,
+                messageList: messageList,
+              );
+            },
+            loading: () {},
+            error: (_, _) {},
+          );
+        }
+      });
+    }, [savedLastReadAt.value, messagesNotifier, messages, scrollManager]);
+
+    final dismissLastReadMarker = useCallback(() {
+      ref.read(chatSubscribeProvider(id).notifier).sendReadReceipt();
+      ref.invalidate(chatRoomIdentityProvider(id));
+    }, [id]);
 
     return Stack(
       children: [
@@ -686,6 +633,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 lastReadAnchorMessageId:
                                     visibleLastReadAnchorMessageId,
                                 onFollowBack: jumpToLastReadAnchor,
+                                onDismissLastReadMarker: dismissLastReadMarker,
                                 disableAnimation: settings.disableAnimation,
                                 collapsedBotGroupIds:
                                     collapsedBotGroupIds.value,
@@ -743,16 +691,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                             messageController: inputManager.messageController,
                             chatRoom: room,
                             onSend: () {
-                              final hasPayload =
-                                  inputManager.messageController.text
-                                      .trim()
-                                      .isNotEmpty ||
-                                  inputManager.attachments.isNotEmpty ||
-                                  inputManager.selectedPoll != null ||
-                                  inputManager.selectedFund != null;
-                              if (hasPayload) {
-                                pendingAnchorUpdateFromSendRef.value = true;
-                              }
                               inputManager.sendMessage(ref);
                             },
                             onClear: () {

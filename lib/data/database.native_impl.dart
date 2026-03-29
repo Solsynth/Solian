@@ -829,6 +829,7 @@ class AppDatabase {
       realmLevelingProgress: null,
       realmLabel: null,
       lastTyped: null,
+      lastReadAt: null,
     );
   }
 
@@ -1060,6 +1061,7 @@ class AppDatabase {
       realmLevel: null,
       realmLevelingProgress: null,
       realmLabel: null,
+      lastReadAt: null,
     );
   }
 

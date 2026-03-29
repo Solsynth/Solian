@@ -172,6 +172,9 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
       timeoutUntil: json['timeout_until'] == null
           ? null
           : DateTime.parse(json['timeout_until'] as String),
+      lastReadAt: json['last_read_at'] == null
+          ? null
+          : DateTime.parse(json['last_read_at'] as String),
       status: json['status'] == null
           ? null
           : SnAccountStatus.fromJson(json['status'] as Map<String, dynamic>),
@@ -204,6 +207,7 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
       'joined_at': instance.joinedAt?.toIso8601String(),
       'break_until': instance.breakUntil?.toIso8601String(),
       'timeout_until': instance.timeoutUntil?.toIso8601String(),
+      'last_read_at': instance.lastReadAt?.toIso8601String(),
       'status': instance.status?.toJson(),
       'realm_nick': instance.realmNick,
       'realm_bio': instance.realmBio,

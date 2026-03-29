@@ -100,6 +100,7 @@ RoomScrollManager useRoomScrollManager(
 
   useEffect(() {
     void onScroll() {
+      if (!scrollController.hasClients) return;
       messagesAsync.when(
         data: (messageList) {
           if (scrollController.position.pixels >=
