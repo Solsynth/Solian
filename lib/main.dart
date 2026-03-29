@@ -246,6 +246,7 @@ void main(List<String> args) async {
 // Router will be provided through Riverpod
 
 final globalOverlay = GlobalKey<OverlayState>();
+final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 class IslandApp extends HookConsumerWidget {
   const IslandApp({super.key});
@@ -334,6 +335,7 @@ class IslandApp extends HookConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
+      scaffoldMessengerKey: globalScaffoldMessengerKey,
       color: Colors.transparent,
       theme: theme.light,
       darkTheme: theme.dark,

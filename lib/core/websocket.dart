@@ -59,6 +59,8 @@ class WebSocketService {
   int _reconnectCount = 0;
   DateTime? _reconnectWindowStart;
   static const int _maxReconnectsPerMinute = 5;
+  static const Duration _baseReconnectDelay = Duration(milliseconds: 500);
+  static const Duration _maxReconnectDelay = Duration(seconds: 30);
 
   Stream<WebSocketPacket> get dataStream => _streamController.stream;
   Stream<WebSocketState> get statusStream => _statusStreamController.stream;
@@ -173,14 +175,28 @@ class WebSocketService {
 
     if (_reconnectCount > _maxReconnectsPerMinute) {
       talker.error(
-        '[WebSocket] Reconnect limit exceeded: $_maxReconnectsPerMinute reconnections in the last minute. Stopping auto-reconnect.',
+        '[WebSocket] Reconnect limit exceeded: $_maxReconnectsPerMinute reconnections in the last minute. Retrying in 30s.',
       );
       _statusStreamController.sink.add(WebSocketState.serverDown());
+      _reconnectTimer?.cancel();
+      _reconnectTimer = Timer(const Duration(seconds: 30), () {
+        _reconnectWindowStart = null;
+        _reconnectCount = 0;
+        _statusStreamController.sink.add(WebSocketState.connecting());
+        connect(_ref);
+      });
       return;
     }
 
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(milliseconds: 500), () {
+    // Exponential backoff: 500ms, 1s, 2s, 4s, ... capped at 30s
+    final backoffMs =
+        (_baseReconnectDelay.inMilliseconds * (1 << (_reconnectCount - 1)))
+            .clamp(
+              _baseReconnectDelay.inMilliseconds,
+              _maxReconnectDelay.inMilliseconds,
+            );
+    _reconnectTimer = Timer(Duration(milliseconds: backoffMs), () {
       _statusStreamController.sink.add(WebSocketState.connecting());
       connect(_ref);
     });
