@@ -8,41 +8,45 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/main.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/talker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-void showSnackBar(String message, {SnackBarAction? action}) {
-  final context = globalOverlay.currentState!.context;
-  final screenWidth = MediaQuery.of(context).size.width;
-  final padding = 40.0;
-  final availableWidth = screenWidth - padding;
+const double kFloatingSnackBarWidth = 400.0;
 
-  showTopSnackBar(
-    globalOverlay.currentState!,
-    Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: availableWidth.clamp(0, 400),
-          maxWidth: availableWidth.clamp(0, 600),
-        ),
-        child: Card(
-          elevation: 2,
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          child: Text(message).padding(horizontal: 20, vertical: 16),
-        ),
-      ),
-    ),
-    displayDuration: const Duration(milliseconds: 1500),
-    animationDuration: const Duration(milliseconds: 300),
-    reverseAnimationDuration: const Duration(milliseconds: 300),
-    curve: Curves.fastLinearToSlowEaseIn,
-    dismissType: DismissType.onTap,
-    snackBarPosition: SnackBarPosition.bottom,
+void showSnackBar(String message, {SnackBarAction? action}) {
+  final messenger = globalScaffoldMessengerKey.currentState;
+  if (messenger == null) return;
+
+  final context = messenger.context;
+  final screenWidth = MediaQuery.of(context).size.width;
+  final wideScreen = screenWidth > kWideScreenWidth;
+
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
+    wideScreen
+        ? SnackBar(
+            content: Text(message),
+            action: action,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 1500),
+            margin: EdgeInsets.only(
+              left: screenWidth - kFloatingSnackBarWidth - 16,
+              right: 16,
+              bottom: 16,
+            ),
+          )
+        : SnackBar(
+            content: Text(message),
+            action: action,
+            behavior: SnackBarBehavior.fixed,
+            shape: RoundedRectangleBorder(),
+            duration: const Duration(milliseconds: 1500),
+          ),
   );
 }
 
