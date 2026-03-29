@@ -233,81 +233,120 @@ class ExploreScreen extends HookConsumerWidget {
           ),
         ],
       ).padding(horizontal: 12, vertical: 8),
-      bottom: TabBar(
-        indicatorColor: Theme.of(context).appBarTheme.foregroundColor,
-        controller: filterTabController,
-        onTap: hasSubscriptionFiltersApplied
-            ? null
-            : (index) {
-                final filter = switch (index) {
-                  1 => 'subscriptions',
-                  2 => 'friends',
-                  _ => null,
-                };
-                handleFilterChange(filter);
-              },
-        tabs: [
-          Tab(
-            child: Row(
-              spacing: 8,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Symbols.explore,
-                  size: 18,
-                  fill: currentFilter.value == null ? 1 : 0,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Row(
+          children: [
+            Expanded(
+              child: TabBar(
+                indicatorColor: Theme.of(context).appBarTheme.foregroundColor,
+                controller: filterTabController,
+                dividerHeight: 0,
+                onTap: hasSubscriptionFiltersApplied
+                    ? null
+                    : (index) {
+                        final filter = switch (index) {
+                          1 => 'subscriptions',
+                          2 => 'friends',
+                          _ => null,
+                        };
+                        handleFilterChange(filter);
+                      },
+                tabs: [
+                  Tab(
+                    child: Row(
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Symbols.explore,
+                          size: 18,
+                          fill: currentFilter.value == null ? 1 : 0,
+                          color: Theme.of(context).appBarTheme.foregroundColor,
+                        ),
+                        Text(
+                          'explore'.tr(),
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).appBarTheme.foregroundColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Row(
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Symbols.subscriptions,
+                          size: 18,
+                          fill: currentFilter.value == 'subscriptions' ? 1 : 0,
+                          color: Theme.of(context).appBarTheme.foregroundColor,
+                        ),
+                        Text(
+                          'exploreFilterSubscriptions'.tr(),
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).appBarTheme.foregroundColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Row(
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Symbols.people,
+                          size: 18,
+                          fill: currentFilter.value == 'friends' ? 1 : 0,
+                          color: Theme.of(context).appBarTheme.foregroundColor,
+                        ),
+                        Text(
+                          'exploreFilterFriends'.tr(),
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).appBarTheme.foregroundColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: IconButton(
+                onPressed: () => _showAlgorithmConfigSheet(
+                  context,
+                  selectedPublisherNames,
+                  selectedCategoryIds,
+                  selectedTagIds,
+                  currentAggressive,
+                  currentFilter,
+                  handleFilterChange,
+                  handleAggressiveChange,
+                  currentMode,
+                  handleModeChange,
+                  isWide: false,
+                ),
+                icon: Icon(
+                  Symbols.tune,
                   color: Theme.of(context).appBarTheme.foregroundColor,
                 ),
-                Text(
-                  'explore'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ],
+                tooltip: 'settings'.tr(),
+              ),
             ),
-          ),
-          Tab(
-            child: Row(
-              spacing: 8,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Symbols.subscriptions,
-                  size: 18,
-                  fill: currentFilter.value == 'subscriptions' ? 1 : 0,
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
-                Text(
-                  'exploreFilterSubscriptions'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Tab(
-            child: Row(
-              spacing: 8,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Symbols.people,
-                  size: 18,
-                  fill: currentFilter.value == 'friends' ? 1 : 0,
-                  color: Theme.of(context).appBarTheme.foregroundColor,
-                ),
-                Text(
-                  'exploreFilterFriends'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -430,7 +469,7 @@ class ExploreScreen extends HookConsumerWidget {
                       vertical: 12,
                     ),
                     children: [
-                      if (!isWide) ...[
+                      if (isWide) ...[
                         _ExploreFilterToolbar(
                           currentFilter: filterValue,
                           currentMode: modeValue,
@@ -916,8 +955,6 @@ class _ExploreFilterToolbar extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useSingleActionMenu = constraints.maxWidth < 540;
-
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -998,27 +1035,8 @@ class _ExploreFilterToolbar extends StatelessWidget {
                   ),
                 ),
                 const Gap(8),
-                if (!useSingleActionMenu)
-                  IconButton(
-                    onPressed: () {
-                      context.router.push(const ArticleStandRoute());
-                    },
-                    icon: const Icon(Symbols.auto_stories),
-                    tooltip: 'webArticlesStand'.tr(),
-                  ),
                 PopupMenuButton<_ExploreAction>(
                   itemBuilder: (context) => [
-                    if (useSingleActionMenu)
-                      PopupMenuItem(
-                        value: _ExploreAction.articles,
-                        child: Row(
-                          children: [
-                            const Icon(Symbols.auto_stories),
-                            const Gap(12),
-                            Text('webArticlesStand').tr(),
-                          ],
-                        ),
-                      ),
                     PopupMenuItem(
                       value: _ExploreAction.search,
                       child: Row(
@@ -1026,6 +1044,16 @@ class _ExploreFilterToolbar extends StatelessWidget {
                           const Icon(Symbols.search),
                           const Gap(12),
                           Text('search').tr(),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _ExploreAction.articles,
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.auto_stories),
+                          const Gap(12),
+                          Text('webArticlesStand').tr(),
                         ],
                       ),
                     ),
