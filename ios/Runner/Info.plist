@@ -82,6 +82,8 @@
 	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Grant access to Microphone will allow Solian record audio for your post.</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>Solian uses NFC to register and manage physical NFC tags for your account.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Grant access to Photo Library will allow Solian download photo to album for you.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

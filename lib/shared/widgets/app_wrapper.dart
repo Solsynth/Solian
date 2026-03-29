@@ -423,6 +423,15 @@ class AppWrapper extends HookConsumerWidget {
       return;
     }
 
+    // Handle NFC tag deep links: solian://phpass/<tag_id>
+    if (path.startsWith('/phpass/')) {
+      final tagId = path.substring('/phpass/'.length);
+      if (tagId.isNotEmpty) {
+        context.router.navigate(NfcTagsRoute());
+        return;
+      }
+    }
+
     // final router = ref.read(routerProvider);
     if (path == '/dashboard') {
       context.router.navigate(const DashboardRoute());
