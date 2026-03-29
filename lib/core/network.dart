@@ -18,6 +18,16 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'network.g.dart';
 
+class RefreshTokenExpiredException implements Exception {
+  final String message;
+  RefreshTokenExpiredException([
+    this.message = 'Session expired due to inactivity. Please login again.',
+  ]);
+
+  @override
+  String toString() => message;
+}
+
 // Network status enum to track different states
 enum NetworkStatus { online, notReady, maintenance, offline }
 
@@ -97,8 +107,10 @@ final userAgentProvider = FutureProvider<String>((ref) async {
 const String _chatE2eeCapability = 'chat-e2ee-v1';
 const String _chatMlsCapability = 'chat.mls.v2';
 const Duration _tokenExpirySkew = Duration(seconds: 30);
+const Duration _tokenRefreshInterval = Duration(minutes: 5);
 
 Future<_StoredTokenPair?>? _tokenRefreshInFlight;
+Future<_StoredTokenPair?>? _forceTokenRefreshInFlight;
 
 final padlockApiClientProvider = Provider<Dio>((ref) {
   final serverUrl = ref.watch(serverUrlProvider);
@@ -347,6 +359,42 @@ Future<String?> getValidAuthToken(Ref ref) async {
   return tokenPair?.token;
 }
 
+Future<void> forceRefreshToken({
+  required SharedPreferences prefs,
+  required String serverUrl,
+}) async {
+  if (_forceTokenRefreshInFlight != null) {
+    await _forceTokenRefreshInFlight;
+    return;
+  }
+
+  _forceTokenRefreshInFlight = () async {
+    final tokenPair = _readTokenPairFromPrefs(prefs);
+    if (tokenPair == null) return;
+    if (tokenPair.refreshToken == null || tokenPair.refreshToken!.isEmpty) {
+      throw RefreshTokenExpiredException();
+    }
+    if (!_isNotExpired(tokenPair.refreshExpiresAt)) {
+      throw RefreshTokenExpiredException();
+    }
+
+    final refreshed = await _refreshTokenPairInternal(
+      serverUrl: serverUrl,
+      prefs: prefs,
+      current: tokenPair,
+    );
+    if (refreshed != null) {
+      talker.debug('[Network] Force token refresh completed.');
+    }
+  }();
+
+  try {
+    await _forceTokenRefreshInFlight;
+  } finally {
+    _forceTokenRefreshInFlight = null;
+  }
+}
+
 Future<String?> getToken(AppToken? token) async {
   return token?.token;
 }
@@ -442,8 +490,17 @@ Future<void> _saveTokenPair(
 }
 
 bool _shouldRefreshToken(_StoredTokenPair tokenPair) {
+  final issuedAt = _decodeJwtIssuedAt(tokenPair.token);
+  final now = DateTime.now();
+
+  if (issuedAt != null) {
+    final timeSinceIssued = now.difference(issuedAt);
+    if (timeSinceIssued < _tokenRefreshInterval) {
+      return false;
+    }
+  }
+
   if (_isNotExpired(tokenPair.expiresAt)) return false;
-  // Legacy stored tokens may not have refresh token; skip refresh in that case.
   if (tokenPair.refreshToken == null || tokenPair.refreshToken!.isEmpty) {
     return false;
   }
@@ -455,6 +512,21 @@ Future<_StoredTokenPair?> _refreshTokenPair({
   required SharedPreferences prefs,
   required _StoredTokenPair current,
 }) async {
+  final serverUrl = ref.read(serverUrlProvider);
+  return _refreshTokenPairInternal(
+    serverUrl: serverUrl,
+    prefs: prefs,
+    current: current,
+    onRefreshed: () => ref.invalidate(tokenProvider),
+  );
+}
+
+Future<_StoredTokenPair?> _refreshTokenPairInternal({
+  required String serverUrl,
+  required SharedPreferences prefs,
+  required _StoredTokenPair current,
+  void Function()? onRefreshed,
+}) async {
   if (_tokenRefreshInFlight != null) {
     return _tokenRefreshInFlight;
   }
@@ -463,7 +535,7 @@ Future<_StoredTokenPair?> _refreshTokenPair({
     final refreshToken = current.refreshToken;
     final client = Dio(
       BaseOptions(
-        baseUrl: ref.read(serverUrlProvider),
+        baseUrl: serverUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {
@@ -508,7 +580,7 @@ Future<_StoredTokenPair?> _refreshTokenPair({
       );
 
       await _saveTokenPair(prefs, refreshed);
-      ref.invalidate(tokenProvider);
+      onRefreshed?.call();
       talker.debug('[Network] Access token refreshed.');
       return refreshed;
     } catch (err) {
@@ -554,6 +626,27 @@ DateTime? _decodeJwtExpiry(String token) {
     if (exp is int) {
       return DateTime.fromMillisecondsSinceEpoch(
         exp * 1000,
+        isUtc: true,
+      ).toLocal();
+    }
+  } catch (_) {
+    return null;
+  }
+  return null;
+}
+
+DateTime? _decodeJwtIssuedAt(String token) {
+  final parts = token.split('.');
+  if (parts.length < 2) return null;
+  try {
+    final normalized = base64Url.normalize(parts[1]);
+    final payload = utf8.decode(base64Url.decode(normalized));
+    final map = jsonDecode(payload);
+    if (map is! Map) return null;
+    final iat = map['iat'];
+    if (iat is int) {
+      return DateTime.fromMillisecondsSinceEpoch(
+        iat * 1000,
         isUtc: true,
       ).toLocal();
     }
