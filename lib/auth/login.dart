@@ -17,6 +17,11 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
   ),
   3: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
   4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
+  5: (
+    'authFactorRecoveryCode',
+    'authFactorRecoveryCodeDescription',
+    Symbols.key,
+  ),
 };
 
 @RoutePage()

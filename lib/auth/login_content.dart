@@ -35,6 +35,11 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
   ),
   3: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
   4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
+  5: (
+    'authFactorRecoveryCode',
+    'authFactorRecoveryCodeDescription',
+    Symbols.key,
+  ),
 };
 
 /// Performs post-login tasks including fetching user info, subscribing to push
@@ -485,6 +490,127 @@ class _LoginLookupScreen extends HookConsumerWidget {
     required this.onBusy,
   });
 
+  Future<void> _showRecoveryCodeDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final accountController = useTextEditingController();
+    final codeController = useTextEditingController();
+    final isRecovering = useState(false);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => HookBuilder(
+        builder: (context) {
+          return AlertDialog(
+            title: Text('useRecoveryCode'.tr()),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'recoveryCodeHint'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: accountController,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  decoration: InputDecoration(
+                    labelText: 'username'.tr(),
+                    prefixIcon: const Icon(Symbols.person),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: codeController,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  decoration: InputDecoration(
+                    labelText: 'recoveryCode'.tr(),
+                    prefixIcon: const Icon(Symbols.key),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text('cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: isRecovering.value
+                    ? null
+                    : () async {
+                        if (accountController.text.isEmpty ||
+                            codeController.text.isEmpty) {
+                          return;
+                        }
+                        isRecovering.value = true;
+                        try {
+                          final captchaTk = await CaptchaScreen.show(context);
+                          if (captchaTk == null) {
+                            isRecovering.value = false;
+                            return;
+                          }
+                          final client = ref.read(apiClientProvider);
+                          final resp = await client.post(
+                            '/padlock/auth/recover',
+                            data: {
+                              'account': accountController.text,
+                              'recovery_code': codeController.text,
+                              'captcha_token': captchaTk,
+                              'device_id': await getUdid(),
+                              'device_name': await getDeviceName(),
+                              'platform': kIsWeb
+                                  ? 1
+                                  : switch (defaultTargetPlatform) {
+                                      TargetPlatform.iOS => 2,
+                                      TargetPlatform.android => 3,
+                                      TargetPlatform.macOS => 4,
+                                      TargetPlatform.windows => 5,
+                                      TargetPlatform.linux => 6,
+                                      _ => 0,
+                                    },
+                            },
+                          );
+                          if (!context.mounted) return;
+                          final token = resp.data['token'];
+                          setToken(
+                            ref.watch(sharedPreferencesProvider),
+                            token,
+                            refreshToken: resp.data['refresh_token'] as String?,
+                            expiresIn: (resp.data['expires_in'] as num?)
+                                ?.toInt(),
+                            refreshExpiresIn:
+                                (resp.data['refresh_expires_in'] as num?)
+                                    ?.toInt(),
+                          );
+                          ref.invalidate(tokenProvider);
+                          if (!context.mounted) return;
+                          await performPostLogin(context, ref);
+                          if (!context.mounted) return;
+                          Navigator.of(dialogContext).pop(true);
+                        } catch (err) {
+                          showErrorAlert(err);
+                        } finally {
+                          isRecovering.value = false;
+                        }
+                      },
+                child: Text('recover'.tr()),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      Navigator.of(context).pop(true);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusy = useState(false);
@@ -755,6 +881,20 @@ class _LoginLookupScreen extends HookConsumerWidget {
                 Text('forgotPassword'.tr()),
                 const Icon(Symbols.key_off),
               ],
+            ),
+          ).padding(left: 12),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: isBusy.value
+                ? null
+                : () => _showRecoveryCodeDialog(context, ref),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [Text('useRecoveryCode'.tr()), const Icon(Symbols.key)],
             ),
           ).padding(left: 12),
         ),
