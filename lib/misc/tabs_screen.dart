@@ -89,7 +89,16 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       routePath: '/chat',
       label: 'chat'.tr(),
       navigationIcon: Symbols.forum_rounded,
-      iconBuilder: (_) => const Icon(Symbols.forum_rounded),
+      iconBuilder: (_) => Consumer(
+        builder: (context, ref, _) {
+          final chatUnreadCount = ref.watch(chatUnreadCountProvider);
+          return Badge.count(
+            count: chatUnreadCount.value ?? 0,
+            isLabelVisible: (chatUnreadCount.value ?? 0) > 0,
+            child: const Icon(Symbols.forum_rounded),
+          );
+        },
+      ),
     ),
     _TabDestination(
       id: 'realms',
@@ -106,7 +115,24 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       routePath: '/account',
       label: 'account'.tr(),
       navigationIcon: Symbols.account_circle_rounded,
-      iconBuilder: (_) => const Icon(Symbols.account_circle_rounded),
+      iconBuilder: (_) => Consumer(
+        builder: (context, ref, _) {
+          final notificationUnreadCount = ref.watch(
+            notificationUnreadCountProvider,
+          );
+          final userInfo = ref.watch(userInfoProvider);
+          return Badge.count(
+            count: notificationUnreadCount.value ?? 0,
+            isLabelVisible: (notificationUnreadCount.value ?? 0) > 0,
+            child: userInfo.value?.profile.picture != null
+                ? ProfilePictureWidget(
+                    file: userInfo.value!.profile.picture,
+                    radius: 12,
+                  )
+                : const Icon(Symbols.account_circle_rounded),
+          );
+        },
+      ),
     ),
     _TabDestination(
       id: 'files',
