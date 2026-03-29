@@ -38,6 +38,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:process_run/cmd_run.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -196,6 +197,38 @@ void main(List<String> args) async {
     FlutterNativeSplash.remove();
     talker.info("[SplashScreen] Now hiding splash screen...");
   }
+
+  Future<bool> isAlreadyRunning() async {
+    final lockFile = File(Platform.isWindows
+        ? r'C:\temp\island.lock'
+        : '/tmp/island.lock');
+    if (await lockFile.exists()) {
+      // 尝试读取 PID
+      try {
+        final pid = int.parse(await lockFile.readAsString().trim());
+        // 检查进程是否存在
+        if (Platform.isWindows) {
+          final result = await run(['tasklist', '/FI', 'PID eq $pid']);
+          return result.stdout.contains('$pid');
+        } else {
+          final result = await Process.run('kill', ['-0', '$pid']);
+          return result.exitCode == 0;
+        }
+      } catch (e) {
+        await lockFile.delete();
+      }
+    }
+    // 创建锁文件
+    await lockFile.writeAsString('${Process.pid}');
+    return false;
+  }
+  void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    if (await isAlreadyRunning()) {
+      debugPrint('A example was already running');
+      exit(0);
+    }
+
 
   runApp(
     ProviderScope(
