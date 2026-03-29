@@ -63,6 +63,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
       : SnActivityPubActor.fromJson(json['actor'] as Map<String, dynamic>),
   fediverseUri: json['fediverse_uri'] as String?,
   fediverseType: (json['fediverse_type'] as num?)?.toInt(),
+  isCached: json['is_cached'] as bool? ?? true,
   contentType: (json['content_type'] as num?)?.toInt() ?? 0,
   attachments:
       (json['attachments'] as List<dynamic>?)
@@ -153,6 +154,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'actor': instance.actor?.toJson(),
   'fediverse_uri': instance.fediverseUri,
   'fediverse_type': instance.fediverseType,
+  'is_cached': instance.isCached,
   'content_type': instance.contentType,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
   'reactions_count': instance.reactionsCount,

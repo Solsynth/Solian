@@ -16,6 +16,7 @@ import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class FediverseActorRelationship {
   final String actorId;
@@ -276,7 +277,7 @@ class _ActorBasisWidget extends HookWidget {
                             visualDensity: VisualDensity(vertical: -2),
                           ),
                         ),
-                        error: (_, __) => FilledButton.icon(
+                        error: (_, _) => FilledButton.icon(
                           onPressed: acting.value ? null : follow,
                           icon: const Icon(Icons.person_add_outlined),
                           label: Text('follow').tr(),
@@ -369,7 +370,10 @@ class _ActorStatsWidget extends StatelessWidget {
           children: [
             _StatItem(
               label: 'posts'.tr(),
-              value: data.recentPosts?.length.toString() ?? '0',
+              value:
+                  data.totalPostCount?.toString() ??
+                  data.recentPosts?.length.toString() ??
+                  '0',
             ),
             _StatItem(
               label: 'followers'.tr(),
@@ -416,6 +420,188 @@ class _StatItem extends StatelessWidget {
   }
 }
 
+class _FediverseHintWidget extends StatelessWidget {
+  final SnActivityPubActor data;
+
+  const _FediverseHintWidget({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: data.webUrl != null ? () => launchUrlString(data.webUrl!) : null,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Icon(Symbols.hub, size: 20, color: theme.colorScheme.primary),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'fediverseProfileHint'.tr(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (data.webUrl != null) ...[
+                      const Gap(4),
+                      Text(
+                        'viewOnOriginalSite'.tr(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (data.webUrl != null)
+                Icon(
+                  Symbols.open_in_new,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UncachedPostItem extends StatelessWidget {
+  final SnPost post;
+
+  const _UncachedPostItem({required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () {
+        if (post.fediverseUri != null) {
+          launchUrlString(post.fediverseUri!);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: post.actor?.avatarUrl != null
+                      ? CachedNetworkImageProvider(post.actor!.avatarUrl!)
+                      : null,
+                  backgroundColor: theme.colorScheme.surfaceContainer,
+                  child: post.actor?.avatarUrl == null
+                      ? Icon(
+                          Symbols.person,
+                          size: 16,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        )
+                      : null,
+                ),
+                const Gap(8),
+                Expanded(
+                  child: Text(
+                    post.actor?.displayName ?? post.actor?.username ?? '',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(
+                  Symbols.open_in_new,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+            if (post.content != null && post.content!.isNotEmpty) ...[
+              const Gap(8),
+              Text(
+                post.content!,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+            const Gap(8),
+            Row(
+              children: [
+                Icon(
+                  Symbols.schedule,
+                  size: 12,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const Gap(4),
+                Text(
+                  post.publishedAt != null
+                      ? _formatDate(post.publishedAt!)
+                      : '',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Symbols.cloud,
+                  size: 12,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const Gap(4),
+                Text(
+                  'tapToViewOriginal'.tr(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    if (diff.inDays > 30) {
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    } else if (diff.inDays > 0) {
+      return '${diff.inDays}d ago';
+    } else if (diff.inHours > 0) {
+      return '${diff.inHours}h ago';
+    } else if (diff.inMinutes > 0) {
+      return '${diff.inMinutes}m ago';
+    } else {
+      return 'justNow'.tr();
+    }
+  }
+}
+
 class _ActorPostsWidget extends ConsumerWidget {
   final String actorId;
 
@@ -454,6 +640,12 @@ class _ActorPostsWidget extends ConsumerWidget {
 
         return Column(
           children: posts.map((post) {
+            if (!post.isCached && post.fediverseUri != null) {
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                child: _UncachedPostItem(post: post),
+              );
+            }
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
               child: PostActionableItem(item: post, borderRadius: 8),
@@ -577,6 +769,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                                 unfollow: () => unfollow(data),
                               ),
                               _ActorStatsWidget(data: data),
+                              _FediverseHintWidget(data: data),
                               if (data.lastActivityAt != null)
                                 Card(
                                   margin: EdgeInsets.zero,
@@ -627,13 +820,13 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                               height: 180,
                               width: double.infinity,
                               fit: BoxFit.cover,
-                              placeholder: (_, __) => Container(
+                              placeholder: (_, _) => Container(
                                 height: 180,
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHighest,
                               ),
-                              errorWidget: (_, __, ___) => Container(
+                              errorWidget: (_, _, _) => Container(
                                 height: 180,
                                 color: Theme.of(
                                   context,
@@ -653,6 +846,8 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                     ),
                     const SliverGap(12),
                     SliverToBoxAdapter(child: _ActorStatsWidget(data: data)),
+                    const SliverGap(12),
+                    SliverToBoxAdapter(child: _FediverseHintWidget(data: data)),
                     const SliverGap(12),
                     SliverToBoxAdapter(
                       child: _ActorPostsWidget(actorId: data.id),

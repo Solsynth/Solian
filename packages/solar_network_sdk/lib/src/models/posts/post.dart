@@ -43,6 +43,7 @@ sealed class SnPost with _$SnPost {
     SnActivityPubActor? actor,
     String? fediverseUri,
     int? fediverseType,
+    @Default(true) bool isCached,
     @Default(0) int contentType,
     @Default([]) List<SnCloudFile> attachments,
     @Default({}) Map<String, int> reactionsCount,

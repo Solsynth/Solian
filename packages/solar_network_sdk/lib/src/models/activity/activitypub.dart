@@ -80,6 +80,8 @@ sealed class SnActivityPubActor with _$SnActivityPubActor {
     bool? isFollowing,
     int? followersCount,
     int? followingCount,
+    int? totalPostCount,
+    String? webUrl,
     List<SnPost>? recentPosts,
   }) = _SnActivityPubActor;
 

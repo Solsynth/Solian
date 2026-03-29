@@ -119,6 +119,8 @@ _SnActivityPubActor _$SnActivityPubActorFromJson(Map<String, dynamic> json) =>
       isFollowing: json['is_following'] as bool?,
       followersCount: (json['followers_count'] as num?)?.toInt(),
       followingCount: (json['following_count'] as num?)?.toInt(),
+      totalPostCount: (json['total_post_count'] as num?)?.toInt(),
+      webUrl: json['web_url'] as String?,
       recentPosts: (json['recent_posts'] as List<dynamic>?)
           ?.map((e) => SnPost.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -155,6 +157,8 @@ Map<String, dynamic> _$SnActivityPubActorToJson(_SnActivityPubActor instance) =>
       'is_following': instance.isFollowing,
       'followers_count': instance.followersCount,
       'following_count': instance.followingCount,
+      'total_post_count': instance.totalPostCount,
+      'web_url': instance.webUrl,
       'recent_posts': instance.recentPosts?.map((e) => e.toJson()).toList(),
     };
 
