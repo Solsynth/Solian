@@ -1123,14 +1123,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.6.2"
-  flutter_otp_text_field:
-    dependency: "direct main"
-    description:
-      name: flutter_otp_text_field
-      sha256: e7e589dc51cde120d63da6db55f3cef618f5d013d12adba76137ca1a51ce1390
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.5.1+1"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -2365,6 +2357,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.15.0"
+  pinput:
+    dependency: "direct main"
+    description:
+      name: pinput
+      sha256: "4c3f1b84768b47a56a1abdaca551bd7cef4ac673b882209039ecdf803a5d6e68"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.2"
   pixel_snap:
     dependency: transitive
     description:

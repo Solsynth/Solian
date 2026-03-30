@@ -15,10 +15,10 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/payments/payment_overlay.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:pinput/pinput.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/services/responsive.dart';
 
@@ -438,26 +438,15 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
                           textAlign: TextAlign.center,
                         ),
                         const Gap(24),
-                        OtpTextField(
-                          numberOfFields: 6,
-                          borderColor: Theme.of(context).colorScheme.outline,
-                          focusedBorderColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          showFieldAsBox: true,
+                        Pinput(
+                          length: 6,
                           obscureText: true,
                           keyboardType: TextInputType.number,
-                          fieldWidth: 48,
-                          fieldHeight: 56,
-                          borderRadius: BorderRadius.circular(8),
-                          borderWidth: 1,
-                          textStyle: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                          onSubmit: (pin) {
+                          onSubmitted: (pin) {
                             enteredPin = pin;
                             Navigator.of(context).pop(pin);
                           },
-                          onCodeChanged: (String code) {
+                          onChanged: (String code) {
                             enteredPin = code;
                           },
                         ),
@@ -848,26 +837,15 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                           textAlign: TextAlign.center,
                         ),
                         const Gap(24),
-                        OtpTextField(
-                          numberOfFields: 6,
-                          borderColor: Theme.of(context).colorScheme.outline,
-                          focusedBorderColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          showFieldAsBox: true,
+                        Pinput(
+                          length: 6,
                           obscureText: true,
                           keyboardType: TextInputType.number,
-                          fieldWidth: 48,
-                          fieldHeight: 56,
-                          borderRadius: BorderRadius.circular(8),
-                          borderWidth: 1,
-                          textStyle: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                          onSubmit: (pin) {
+                          onSubmitted: (pin) {
                             enteredPin = pin;
                             Navigator.of(context).pop(pin);
                           },
-                          onCodeChanged: (String code) {
+                          onChanged: (String code) {
                             enteredPin = code;
                           },
                         ),

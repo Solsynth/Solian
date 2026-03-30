@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
@@ -12,6 +10,7 @@ import 'package:island/auth/login.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:pinput/pinput.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -61,7 +60,7 @@ class AuthFactorSheet extends HookConsumerWidget {
 
     Future<void> enableFactor() async {
       String? password;
-      if ([3].contains(factor.type)) {
+      if ([3, 4].contains(factor.type)) {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -71,16 +70,16 @@ class AuthFactorSheet extends HookConsumerWidget {
               children: [
                 Text('authFactorEnableHint').tr(),
                 const SizedBox(height: 16),
-                OtpTextField(
+                Pinput(
                   showCursor: false,
-                  numberOfFields: 6,
+                  length: 6,
                   obscureText: false,
-                  showFieldAsBox: true,
-                  focusedBorderColor: Theme.of(context).colorScheme.primary,
-                  onSubmit: (String verificationCode) {
+                  onSubmitted: (String verificationCode) {
                     password = verificationCode;
                   },
-                  textStyle: Theme.of(context).textTheme.titleLarge!,
+                  onChanged: (String verificationCode) {
+                    password = verificationCode;
+                  },
                 ),
               ],
             ),
@@ -202,6 +201,7 @@ class AuthFactorNewSheet extends HookConsumerWidget {
         if (factor.type == 3) {
           showModalBottomSheet(
             context: context,
+            isScrollControlled: true,
             builder: (context) => AuthFactorNewAdditonalSheet(factor: factor),
           ).then((_) {
             if (context.mounted) {
@@ -213,6 +213,7 @@ class AuthFactorNewSheet extends HookConsumerWidget {
           if (context.mounted) {
             showModalBottomSheet(
               context: context,
+              isScrollControlled: true,
               builder: (ctx) => RecoveryCodeCreatedSheet(factor: factor),
             ).then((_) {
               if (context.mounted) Navigator.pop(context, true);
@@ -228,9 +229,8 @@ class AuthFactorNewSheet extends HookConsumerWidget {
       }
     }
 
-    final width = math.min(400, MediaQuery.of(context).size.width);
-
     return SheetScaffold(
+      heightFactor: 0.7,
       titleText: 'authFactorNew'.tr(),
       child: Column(
         spacing: 16,
@@ -268,18 +268,15 @@ class AuthFactorNewSheet extends HookConsumerWidget {
                   FocusManager.instance.primaryFocus?.unfocus(),
             )
           else if ([4].contains(factorType.value))
-            OtpTextField(
+            Pinput(
+              controller: secretController,
               showCursor: false,
-              numberOfFields: 6,
+              length: 6,
               obscureText: false,
-              showFieldAsBox: true,
-              focusedBorderColor: Theme.of(context).colorScheme.primary,
-              fieldWidth: (width / 6) - 10,
               keyboardType: TextInputType.number,
-              onSubmit: (String verificationCode) {
+              onSubmitted: (String verificationCode) {
                 secretController.text = verificationCode;
               },
-              textStyle: Theme.of(context).textTheme.titleLarge!,
             ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -310,6 +307,7 @@ class AuthFactorNewAdditonalSheet extends StatelessWidget {
     final uri = factor.createdResponse?['uri'];
 
     return SheetScaffold(
+      heightFactor: 0.6,
       titleText: 'authFactorAdditional'.tr(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -371,6 +369,7 @@ class RecoveryCodeCreatedSheet extends StatelessWidget {
     final secret = factor.createdResponse?['recovery_code'] as String?;
 
     return SheetScaffold(
+      heightFactor: 0.6,
       titleText: 'recoveryCodeCreated'.tr(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

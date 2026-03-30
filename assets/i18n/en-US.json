@@ -2257,6 +2257,7 @@
   "noPosts": "No posts yet",
   "localOnly": "Local Only",
   "authFactorEnabled": "Enabled",
+  "authFactorDisabled": "Disabled",
   "profileFields": "Profile Fields",
   "nfcTags": "NFC Tags",
   "addNfcTag": "Add NFC Tag",

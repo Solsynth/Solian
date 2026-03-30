@@ -264,6 +264,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
                   onTap: () {
                     showModalBottomSheet(
                       context: context,
+                      isScrollControlled: true,
                       builder: (context) => const AuthFactorNewSheet(),
                     ).then((value) {
                       if (value == true) {

@@ -1,11 +1,9 @@
-import 'dart:math' as math;
 import 'package:animations/animations.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:island/core/config.dart';
@@ -18,6 +16,7 @@ import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:pinput/pinput.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -165,8 +164,6 @@ class _LoginCheckScreen extends HookConsumerWidget {
       }
     }
 
-    final width = math.min(380, MediaQuery.of(context).size.width);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -197,18 +194,15 @@ class _LoginCheckScreen extends HookConsumerWidget {
             onSubmitted: isBusy.value ? null : (_) => performCheckTicket(),
           ).padding(horizontal: 7)
         else
-          OtpTextField(
+          Pinput(
             showCursor: false,
-            numberOfFields: 6,
+            length: 6,
             obscureText: false,
-            showFieldAsBox: true,
-            focusedBorderColor: Theme.of(context).colorScheme.primary,
-            fieldWidth: (width / 6) - 10,
-            onSubmit: (value) {
+            onSubmitted: (value) {
               passwordController.text = value;
               performCheckTicket();
             },
-            textStyle: Theme.of(context).textTheme.titleLarge!,
+            onChanged: (value) => passwordController.text = value,
           ),
         const Gap(12),
         ListTile(
