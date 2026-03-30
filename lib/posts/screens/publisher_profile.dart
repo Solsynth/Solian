@@ -62,77 +62,85 @@ class _PinnedPostsPageView extends HookConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Card(
-            margin: EdgeInsets.zero,
-            child: Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                initiallyExpanded: true,
-                leading: const Icon(Symbols.push_pin),
-                title: Text('pinnedPosts'.tr()),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                ),
-                collapsedShape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                ),
-                children: [
-                  SizedBox(
-                    height: 400,
-                    child: Stack(
-                      children: [
-                        PageView.builder(
-                          controller: pageController,
-                          itemCount: data.items.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: SingleChildScrollView(
-                                child: Card(
-                                  child: PostActionableItem(
-                                    item: data.items[index],
-                                    borderRadius: 8,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        Positioned(
-                          bottom: 16,
-                          left: 0,
-                          right: 0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              data.items.length,
-                              (index) => AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                margin: EdgeInsets.symmetric(horizontal: 4),
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: index == currentPage.value
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(
-                                          context,
-                                        ).colorScheme.primary.withOpacity(0.5),
-                                ),
+        final contentWidget = Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            initiallyExpanded: true,
+            leading: const Icon(Symbols.push_pin),
+            title: Text('pinnedPosts'.tr()),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            collapsedShape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            children: [
+              SizedBox(
+                height: 400,
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: pageController,
+                      itemCount: data.items.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: SingleChildScrollView(
+                            child: Card(
+                              child: PostActionableItem(
+                                item: data.items[index],
+                                borderRadius: 8,
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: 16,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          data.items.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: EdgeInsets.symmetric(horizontal: 4),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: index == currentPage.value
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
+          ),
+        );
+
+        if (!isWideScreen(context)) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Card(margin: EdgeInsets.zero, child: contentWidget),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Card.outlined(
+            margin: EdgeInsets.zero,
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
+            child: contentWidget,
           ),
         );
       },
@@ -687,88 +695,82 @@ class PublisherProfileScreen extends HookConsumerWidget {
           appBar: AppBar(leading: AutoLeadingButton(), title: Text(data.nick)),
           body: isWideScreen(context)
               ? Row(
+                  spacing: 12,
                   children: [
                     Flexible(
                       flex: 4,
-                      child: ColoredBox(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLow,
-                        child: ColoredBox(
-                          color: Theme.of(context).colorScheme.surface,
-                          child: CustomScrollView(
-                            slivers: [
-                              SliverGap(16),
-                              SliverToBoxAdapter(
-                                child: _PinnedPostsPageView(
-                                  pubName: name,
-                                ).padding(horizontal: 12),
-                              ),
-                              SliverPostList(
-                                maxWidth: double.infinity,
-                                itemPadding: EdgeInsets.symmetric(vertical: 4),
-                                query: queryState.value,
-                                queryKey: 'publisher-$name',
-                              ),
-                              SliverGap(
-                                MediaQuery.of(context).padding.bottom + 16,
-                              ),
-                            ],
+                      child: Card(
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            topRight: Radius.circular(8),
                           ),
+                        ),
+                        margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
+                        child: CustomScrollView(
+                          slivers: [
+                            SliverGap(16),
+                            SliverToBoxAdapter(
+                              child: _PinnedPostsPageView(
+                                pubName: name,
+                              ).padding(horizontal: 12),
+                            ),
+                            SliverPostList(
+                              maxWidth: double.infinity,
+                              itemPadding: EdgeInsets.symmetric(vertical: 4),
+                              query: queryState.value,
+                              queryKey: 'publisher-$name',
+                            ),
+                            SliverGap(
+                              MediaQuery.of(context).padding.bottom + 16,
+                            ),
+                          ],
                         ).clipRRect(topRight: 12),
                       ),
                     ),
                     Flexible(
                       flex: 3,
-                      child: ColoredBox(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLow,
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 12,
-                            ),
-                            child: Column(
-                              spacing: 12,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _PublisherBasisWidget(
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Column(
+                            spacing: 12,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _PublisherBasisWidget(
+                                data: data,
+                                subStatus: subStatus,
+                                liveStatus: liveStatus,
+                                subscribing: subscribing,
+                                subscribe: subscribe,
+                                unsubscribe: unsubscribe,
+                                followRequest: followRequest,
+                              ),
+                              if (data.account?.badges.isNotEmpty ?? false)
+                                _PublisherBadgesWidget(
                                   data: data,
-                                  subStatus: subStatus,
-                                  liveStatus: liveStatus,
-                                  subscribing: subscribing,
-                                  subscribe: subscribe,
-                                  unsubscribe: unsubscribe,
-                                  followRequest: followRequest,
+                                  badges: badges,
                                 ),
-                                if (data.account?.badges.isNotEmpty ?? false)
-                                  _PublisherBadgesWidget(
-                                    data: data,
-                                    badges: badges,
-                                  ),
-                                if (data.verification != null)
-                                  _PublisherVerificationWidget(data: data),
-                                _PublisherHeatmapWidget(
-                                  heatmap: heatmap,
-                                  forceDense: true,
-                                ),
-                                PostFilterWidget(
-                                  categoryTabController: categoryTabController,
-                                  initialQuery: queryState.value,
-                                  onQueryChanged: (newQuery) =>
-                                      queryState.value = newQuery,
-                                ),
-                              ],
-                            ),
+                              if (data.verification != null)
+                                _PublisherVerificationWidget(data: data),
+                              _PublisherHeatmapWidget(
+                                heatmap: heatmap,
+                                forceDense: true,
+                              ),
+                              PostFilterWidget(
+                                categoryTabController: categoryTabController,
+                                initialQuery: queryState.value,
+                                onQueryChanged: (newQuery) =>
+                                    queryState.value = newQuery,
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                      ).padding(right: 12),
                     ),
                   ],
-                ).padding(right: 12)
+                )
               : CustomScrollView(
                   slivers: [
                     const SliverGap(12),
@@ -781,23 +783,38 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         subscribe: subscribe,
                         unsubscribe: unsubscribe,
                         followRequest: followRequest,
-                      ),
+                      ).padding(horizontal: 12),
+                    ),
+                    const SliverGap(12),
+                    if (data.account?.badges.isNotEmpty ?? false)
+                      ...([
+                        SliverToBoxAdapter(
+                          child: _PublisherBadgesWidget(
+                            data: data,
+                            badges: badges,
+                          ).padding(horizontal: 12),
+                        ),
+                        const SliverGap(12),
+                      ]),
+                    if (data.verification != null)
+                      ...([
+                        SliverToBoxAdapter(
+                          child: _PublisherVerificationWidget(
+                            data: data,
+                          ).padding(horizontal: 12),
+                        ),
+                        const SliverGap(12),
+                      ]),
+                    SliverToBoxAdapter(
+                      child: _PublisherHeatmapWidget(
+                        heatmap: heatmap,
+                      ).padding(horizontal: 12),
                     ),
                     const SliverGap(12),
                     SliverToBoxAdapter(
-                      child: _PublisherBadgesWidget(data: data, badges: badges),
-                    ),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _PublisherVerificationWidget(data: data),
-                    ),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _PublisherHeatmapWidget(heatmap: heatmap),
-                    ),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _PinnedPostsPageView(pubName: name),
+                      child: _PinnedPostsPageView(
+                        pubName: name,
+                      ).padding(horizontal: 12),
                     ),
                     const SliverGap(12),
                     SliverToBoxAdapter(
@@ -806,7 +823,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         initialQuery: queryState.value,
                         onQueryChanged: (newQuery) =>
                             queryState.value = newQuery,
-                      ),
+                      ).padding(horizontal: 12),
                     ),
                     const SliverGap(12),
                     SliverPostList(

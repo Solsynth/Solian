@@ -200,7 +200,7 @@ class ExploreScreen extends HookConsumerWidget {
       );
     }
 
-    return Scaffold(
+    return AppScaffold(
       floatingActionButton: userInfo.value != null
           ? FloatingActionButton(
               heroTag: 'explore-fab',
@@ -508,62 +508,65 @@ class ExploreScreen extends HookConsumerWidget {
         (activityState.value?.items.isEmpty ?? true);
 
     return Row(
+      spacing: 12,
       children: [
         Flexible(
           flex: 3,
-          child: ColoredBox(
-            color: Theme.of(context).colorScheme.surfaceContainer,
-            child: ColoredBox(
-              color: Theme.of(context).colorScheme.surface,
-              child: ExtendedRefreshIndicator(
-                onRefresh: () async {
-                  await notifier?.refresh();
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    if (usePostList) ...[
-                      _buildLiveStreamsOnTop(
-                        context,
-                        ref,
-                        selectedPublishers.value,
-                      ),
-                      _buildPostList(
-                        context,
-                        ref,
-                        selectedPublishers.value,
-                        selectedCategories.value,
-                        selectedTags.value,
-                      ),
-                    ] else if (isListInitialLoading)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: ConfuseSpinner(
-                            speed: 7,
-                            size: 72,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-                          ),
-                        ),
-                      )
-                    else
-                      bodyView!,
-                  ],
-                ),
+          child: Card(
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
               ),
-            ).clipRRect(topRight: 12),
+            ),
+            margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
+            child: ExtendedRefreshIndicator(
+              onRefresh: () async {
+                await notifier?.refresh();
+              },
+              child: CustomScrollView(
+                slivers: [
+                  if (usePostList) ...[
+                    _buildLiveStreamsOnTop(
+                      context,
+                      ref,
+                      selectedPublishers.value,
+                    ),
+                    _buildPostList(
+                      context,
+                      ref,
+                      selectedPublishers.value,
+                      selectedCategories.value,
+                      selectedTags.value,
+                    ),
+                  ] else if (isListInitialLoading)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: ConfuseSpinner(
+                          speed: 7,
+                          size: 72,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                        ),
+                      ),
+                    )
+                  else
+                    bodyView!,
+                ],
+              ),
+            ),
           ),
         ),
         if (user.value != null)
           Flexible(
             flex: 2,
-            child: Material(
-              elevation: 0,
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: SingleChildScrollView(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: SingleChildScrollView(
+                child: Card(
+                  margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: 8,
@@ -653,8 +656,8 @@ class ExploreScreen extends HookConsumerWidget {
         else
           Flexible(
             flex: 2,
-            child: Container(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            child: Card(
+              margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -724,103 +727,108 @@ class ExploreScreen extends HookConsumerWidget {
       child: CustomScrollView(
         slivers: [
           SliverAppBar(
-            flexibleSpace: Row(
-              children: [
-                PopupMenuButton<_ExploreAction>(
-                  icon: Icon(
-                    Symbols.widgets,
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: _ExploreAction.articles,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Symbols.auto_stories,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          const Gap(12),
-                          Text('webArticlesStand').tr(),
-                        ],
+            flexibleSpace:
+                Row(
+                  children: [
+                    PopupMenuButton<_ExploreAction>(
+                      icon: Icon(
+                        Symbols.widgets,
+                        color: Theme.of(context).appBarTheme.foregroundColor,
                       ),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: _ExploreAction.articles,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Symbols.auto_stories,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                              const Gap(12),
+                              Text('webArticlesStand').tr(),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: _ExploreAction.livestreams,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Symbols.live_tv,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                              const Gap(12),
+                              Text('livestreams').tr(),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: _ExploreAction.categories,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Symbols.category,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                              const Gap(12),
+                              Text('categoriesAndTags').tr(),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: _ExploreAction.shuffle,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Symbols.shuffle,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                              const Gap(12),
+                              Text('postShuffle').tr(),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onSelected: (value) {
+                        switch (value) {
+                          case _ExploreAction.articles:
+                            context.router.push(const ArticleStandRoute());
+                            break;
+                          case _ExploreAction.livestreams:
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ActiveLivestreamsScreen(),
+                              ),
+                            );
+                            break;
+                          case _ExploreAction.categories:
+                            context.router.push(PostCategoriesListRoute());
+                            break;
+                          case _ExploreAction.shuffle:
+                            context.router.push(const PostShuffleRoute());
+                            break;
+                          default:
+                            break;
+                        }
+                      },
                     ),
-                    PopupMenuItem(
-                      value: _ExploreAction.livestreams,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Symbols.live_tv,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          const Gap(12),
-                          Text('livestreams').tr(),
-                        ],
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () {
+                        context.router.push(UniversalSearchRoute());
+                      },
+                      icon: Icon(
+                        Symbols.search,
+                        color: Theme.of(context).appBarTheme.foregroundColor,
                       ),
-                    ),
-                    PopupMenuItem(
-                      value: _ExploreAction.categories,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Symbols.category,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          const Gap(12),
-                          Text('categoriesAndTags').tr(),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: _ExploreAction.shuffle,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Symbols.shuffle,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          const Gap(12),
-                          Text('postShuffle').tr(),
-                        ],
-                      ),
+                      tooltip: 'search'.tr(),
                     ),
                   ],
-                  onSelected: (value) {
-                    switch (value) {
-                      case _ExploreAction.articles:
-                        context.router.push(const ArticleStandRoute());
-                        break;
-                      case _ExploreAction.livestreams:
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ActiveLivestreamsScreen(),
-                          ),
-                        );
-                        break;
-                      case _ExploreAction.categories:
-                        context.router.push(PostCategoriesListRoute());
-                        break;
-                      case _ExploreAction.shuffle:
-                        context.router.push(const PostShuffleRoute());
-                        break;
-                      default:
-                        break;
-                    }
-                  },
+                ).padding(
+                  horizontal: 12,
+                  bottom: 8,
+                  top: MediaQuery.paddingOf(context).top + 8,
                 ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () {
-                    context.router.push(UniversalSearchRoute());
-                  },
-                  icon: Icon(
-                    Symbols.search,
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                  tooltip: 'search'.tr(),
-                ),
-              ],
-            ).padding(horizontal: 12, vertical: 8),
             title: SvgPicture.asset(
               'assets/icons/icon-outline.svg',
               color: Theme.of(context).appBarTheme.foregroundColor,
@@ -865,12 +873,16 @@ class ExploreScreen extends HookConsumerWidget {
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                                Text(
-                                  'explore'.tr(),
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).appBarTheme.foregroundColor,
+                                Expanded(
+                                  child: Text(
+                                    'explore'.tr(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).appBarTheme.foregroundColor,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -889,12 +901,16 @@ class ExploreScreen extends HookConsumerWidget {
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                                Text(
-                                  'exploreFilterSubscriptions'.tr(),
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).appBarTheme.foregroundColor,
+                                Expanded(
+                                  child: Text(
+                                    'exploreFilterSubscriptions'.tr(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).appBarTheme.foregroundColor,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -913,12 +929,16 @@ class ExploreScreen extends HookConsumerWidget {
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                                Text(
-                                  'exploreFilterFriends'.tr(),
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).appBarTheme.foregroundColor,
+                                Expanded(
+                                  child: Text(
+                                    'exploreFilterFriends'.tr(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).appBarTheme.foregroundColor,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1631,7 +1651,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
             _buildDiscoveryCard(type, itemData, maxWidth: double.infinity),
             if (reasons.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -1651,7 +1671,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
               ),
             if (shouldShowRank)
               Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   spacing: 8,
                   children: [
@@ -1691,7 +1711,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
 
     return Container(
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainer,
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1713,10 +1733,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
               ).padding(top: 1),
             ],
           ).padding(horizontal: 20, top: 8, bottom: 4),
-          SizedBox(
-            height: height,
-            child: contentWidget,
-          ).padding(bottom: 8, horizontal: 8),
+          SizedBox(height: height, child: contentWidget).padding(bottom: 8),
         ],
       ),
     );

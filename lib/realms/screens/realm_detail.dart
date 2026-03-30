@@ -141,73 +141,83 @@ class _RealmPinnedPostsPageView extends HookConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return Card(
-          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              initiallyExpanded: true,
-              leading: const Icon(Symbols.push_pin),
-              title: Text('pinnedPosts'.tr()),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-              ),
-              collapsedShape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-              ),
-              children: [
-                SizedBox(
-                  height: 400,
-                  child: Stack(
-                    children: [
-                      PageView.builder(
-                        controller: pageController,
-                        itemCount: data.items.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: SingleChildScrollView(
-                              child: Card(
-                                child: PostActionableItem(
-                                  item: data.items[index],
-                                  borderRadius: 8,
-                                ),
+        final contentWidget = Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            initiallyExpanded: true,
+            leading: const Icon(Symbols.push_pin),
+            title: Text('pinnedPosts'.tr()),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            collapsedShape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            children: [
+              SizedBox(
+                height: 400,
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: pageController,
+                      itemCount: data.items.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: SingleChildScrollView(
+                            child: Card(
+                              child: PostActionableItem(
+                                item: data.items[index],
+                                borderRadius: 8,
                               ),
                             ),
-                          );
-                        },
-                      ),
-                      Positioned(
-                        bottom: 16,
-                        left: 0,
-                        right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            data.items.length,
-                            (index) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              margin: EdgeInsets.symmetric(horizontal: 4),
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: index == currentPage.value
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withOpacity(0.5),
-                              ),
+                          ),
+                        );
+                      },
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          data.items.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: EdgeInsets.symmetric(horizontal: 4),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: index == currentPage.value
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.5),
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        );
+
+        if (!isWideScreen(context)) {
+          return Card(
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: contentWidget,
+          );
+        }
+
+        return Card.outlined(
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          child: contentWidget,
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -901,89 +911,92 @@ class RealmDetailScreen extends HookConsumerWidget {
         error: (error, _) => Center(child: Text('Error: $error')),
         data: (overview) => isWideScreen(context)
             ? Row(
+                spacing: 12,
                 children: [
                   Flexible(
                     flex: 3,
-                    child: ColoredBox(
-                      color: Theme.of(context).colorScheme.surfaceContainerLow,
-                      child: ColoredBox(
-                        color: Theme.of(context).colorScheme.surface,
-                        child: CustomScrollView(
-                          slivers: [
-                            const SliverGap(12),
-                            SliverToBoxAdapter(
-                              child: _RealmPinnedPostsPageView(realmSlug: slug),
-                            ),
-                            SliverPostList(
-                              query: PostListQuery(realm: slug, pinned: false),
-                            ),
-                          ],
+                    child: Card(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
                         ),
-                      ).clipRRect(topRight: 12),
-                    ),
-                  ),
-                  Flexible(
-                    flex: 2,
-                    child: ColoredBox(
-                      color: Theme.of(context).colorScheme.surfaceContainerLow,
-                      child: ListView(
-                        padding: const EdgeInsets.only(top: 12),
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              realmDescriptionWidget(overview),
-                              realmBoostStatus.when(
-                                data: (boost) =>
-                                    realmBoostWidget(overview, boost),
-                                loading: () =>
-                                    realmBoostWidget(overview, boostFallback),
-                                error: (_, _) =>
-                                    realmBoostWidget(overview, boostFallback),
-                              ),
-                              realmIdentity.when(
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, _) => const SizedBox.shrink(),
-                                data: (identity) {
-                                  if (identity != null) {
-                                    return realmIdentityWidget(
-                                      overview,
-                                      identity,
-                                    );
-                                  }
-                                  if (overview.isCommunity) {
-                                    return realmActionWidget(overview);
-                                  }
-                                  return const SizedBox.shrink();
-                                },
-                              ),
-                              realmIdentity.when(
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, _) => const SizedBox.shrink(),
-                                data: (identity) {
-                                  if (identity == null) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return realmBoostStatus.when(
-                                    data: (boost) => realmLabelsWidget(
-                                      overview,
-                                      identity,
-                                      boost,
-                                    ),
-                                    loading: () => const SizedBox.shrink(),
-                                    error: (_, _) => const SizedBox.shrink(),
-                                  );
-                                },
-                              ),
-                            ],
+                      ),
+                      margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
+                      child: CustomScrollView(
+                        slivers: [
+                          const SliverGap(12),
+                          SliverToBoxAdapter(
+                            child: _RealmPinnedPostsPageView(
+                              realmSlug: slug,
+                            ).padding(horizontal: 8),
                           ),
-                          realmChatRoomListWidget(overview),
+                          SliverPostList(
+                            query: PostListQuery(realm: slug, pinned: false),
+                          ),
                         ],
                       ),
                     ),
                   ),
+                  Flexible(
+                    flex: 2,
+                    child: ListView(
+                      padding: const EdgeInsets.only(top: 8),
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            realmDescriptionWidget(overview),
+                            realmBoostStatus.when(
+                              data: (boost) =>
+                                  realmBoostWidget(overview, boost),
+                              loading: () =>
+                                  realmBoostWidget(overview, boostFallback),
+                              error: (_, _) =>
+                                  realmBoostWidget(overview, boostFallback),
+                            ),
+                            realmIdentity.when(
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, _) => const SizedBox.shrink(),
+                              data: (identity) {
+                                if (identity != null) {
+                                  return realmIdentityWidget(
+                                    overview,
+                                    identity,
+                                  );
+                                }
+                                if (overview.isCommunity) {
+                                  return realmActionWidget(overview);
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                            realmIdentity.when(
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, _) => const SizedBox.shrink(),
+                              data: (identity) {
+                                if (identity == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                return realmBoostStatus.when(
+                                  data: (boost) => realmLabelsWidget(
+                                    overview,
+                                    identity,
+                                    boost,
+                                  ),
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, _) => const SizedBox.shrink(),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        realmChatRoomListWidget(overview),
+                      ],
+                    ),
+                  ),
                 ],
-              ).padding(right: 8)
+              ).padding(horizontal: 8)
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(

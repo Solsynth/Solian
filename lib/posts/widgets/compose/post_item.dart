@@ -69,11 +69,7 @@ class PostActionableItem extends HookConsumerWidget {
 
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 12),
-          Text(label),
-        ],
+        children: [Icon(icon), const SizedBox(width: 12), Text(label)],
       );
     }
 
@@ -314,7 +310,7 @@ class PostActionableItem extends HookConsumerWidget {
       const PopupMenuDivider(),
       PopupMenuItem<String>(
         value: 'boost',
-        child: buildMenuItem(label: 'boost'.tr(), icon: Symbols.repeat),
+        child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
       ),
       const PopupMenuDivider(),
       PopupMenuItem<String>(
@@ -368,6 +364,11 @@ class PostActionableItem extends HookConsumerWidget {
 
     final trailing = PopupMenuButton<String>(
       icon: const Icon(Symbols.more_horiz),
+      style: ButtonStyle(
+        visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+        minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
+      ),
       itemBuilder: (context) => postMenuItems,
       onSelected: (action) => getMenuAction(action)(),
     );
