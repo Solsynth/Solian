@@ -129,7 +129,10 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: MeetRoute.page, path: 'me/meet'),
             AutoRoute(page: MeetDetailRoute.page, path: 'me/meet/:id'),
             AutoRoute(page: ActionLogsRoute.page, path: 'me/action-logs'),
-            // AutoRoute(page: NfcTagsRoute.page, path: 'me/nfc-tags'),
+            AutoRoute(
+              page: PhysicalPassportRoute.page,
+              path: 'me/physical-passports',
+            ),
             // Ticket routes
             AutoRoute(page: TicketListRoute.page, path: 'tickets'),
             AutoRoute(page: TicketDetailRoute.page, path: 'tickets/:ticketId'),
