@@ -87,6 +87,7 @@ class PhysicalPassportScreen extends HookConsumerWidget {
             tooltip: 'scanPhysicalPassport'.tr(),
             onPressed: () => _showScanSheet(context),
           ),
+          const Gap(8),
         ],
       ),
       body: RefreshIndicator(
