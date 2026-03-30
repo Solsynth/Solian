@@ -494,15 +494,15 @@ class _LoginLookupScreen extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final accountController = useTextEditingController();
-    final codeController = useTextEditingController();
-    final isRecovering = useState(false);
-
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => HookBuilder(
         builder: (context) {
+          final accountController = useTextEditingController();
+          final codeController = useTextEditingController();
+          final isRecovering = useState(false);
+
           return AlertDialog(
             title: Text('useRecoveryCode'.tr()),
             content: Column(
