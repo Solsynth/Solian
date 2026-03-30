@@ -3,11 +3,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/config.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -236,12 +235,6 @@ class _FriendTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final serverUrl = ref.watch(serverUrlProvider);
-
-    String? uri;
-    if (friend.account.profile.picture != null) {
-      uri = '$serverUrl/drive/files/${friend.account.profile.picture!.id}';
-    }
 
     return Container(
       width: 60,
@@ -252,21 +245,9 @@ class _FriendTile extends ConsumerWidget {
           // Avatar with online indicator
           Stack(
             children: [
-              CircleAvatar(
+              ProfilePictureWidget(
+                file: friend.account.profile.picture,
                 radius: 24,
-                backgroundImage: uri != null
-                    ? CachedNetworkImageProvider(uri)
-                    : null,
-                child: uri == null
-                    ? Text(
-                        friend.account.nick.isNotEmpty
-                            ? friend.account.nick[0].toUpperCase()
-                            : friend.account.name[0].toUpperCase(),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                        ),
-                      )
-                    : null,
               ),
               // Online indicator - show play arrow if user has activities, otherwise green dot
               Positioned(
@@ -301,7 +282,7 @@ class _FriendTile extends ConsumerWidget {
                         ? Symbols.play_arrow
                         : getStatusIndicatorIcon(friend.status),
                     size: 10,
-                    color: Colors.white,
+                    color: getStatusIndicatorColor(friend.status),
                     fill: friend.activities.isNotEmpty
                         ? 1
                         : getStatusIndicatorFill(friend.status),
