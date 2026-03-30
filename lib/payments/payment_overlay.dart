@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -11,6 +10,7 @@ import 'package:dio/dio.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:pinput/pinput.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -388,22 +388,12 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           textAlign: TextAlign.center,
         ),
         const Gap(24),
-        OtpTextField(
-          numberOfFields: 6,
-          borderColor: Theme.of(context).colorScheme.outline,
-          focusedBorderColor: Theme.of(context).colorScheme.primary,
-          showFieldAsBox: true,
+        Pinput(
+          length: 6,
           obscureText: true,
           keyboardType: TextInputType.number,
-          fieldWidth: 48,
-          fieldHeight: 56,
-          borderRadius: BorderRadius.circular(8),
-          borderWidth: 1,
-          textStyle: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
-          onSubmit: _onPinSubmit,
-          onCodeChanged: (String code) {
+          onSubmitted: _onPinSubmit,
+          onChanged: (String code) {
             _pin = code;
             setState(() {});
           },
