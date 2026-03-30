@@ -350,11 +350,12 @@ class PostReplyPreview extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 8,
                   children: [
-                    _buildProfilePicture(
-                      context,
-                      data.value!,
-                      radius: 12,
-                    ).padding(top: 4),
+                    if (data.value != null)
+                      _buildProfilePicture(
+                        context,
+                        data.value!,
+                        radius: 12,
+                      ).padding(top: 4),
                     if (data.value?.content?.isNotEmpty ?? false)
                       Expanded(
                         child: MarkdownTextContent(
