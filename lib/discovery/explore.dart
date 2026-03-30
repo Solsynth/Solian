@@ -36,6 +36,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/core/config.dart';
 
 @RoutePage()
 class ExploreScreen extends HookConsumerWidget {
@@ -63,12 +64,19 @@ class ExploreScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final exploreSettings = ref.watch(appSettingsProvider).exploreSettings;
     final currentFilter = useState<String?>(null);
-    final currentMode = useState('personalized');
-    final currentAggressive = useState(true);
-    final selectedPublisherNames = useState<List<String>>([]);
-    final selectedCategoryIds = useState<List<String>>([]);
-    final selectedTagIds = useState<List<String>>([]);
+    final currentMode = useState(exploreSettings.mode);
+    final currentAggressive = useState(exploreSettings.aggressiveMode);
+    final selectedPublisherNames = useState<List<String>>(
+      List<String>.from(exploreSettings.selectedPublisherNames),
+    );
+    final selectedCategoryIds = useState<List<String>>(
+      List<String>.from(exploreSettings.selectedCategoryIds),
+    );
+    final selectedTagIds = useState<List<String>>(
+      List<String>.from(exploreSettings.selectedTagIds),
+    );
     final notifier = ref.watch(activityListProvider.notifier);
     final filterTabController = useTabController(initialLength: 3);
 
@@ -86,11 +94,19 @@ class ExploreScreen extends HookConsumerWidget {
       if (mode == null) return;
       currentMode.value = mode;
       notifier.applyMode(mode);
+      ref
+          .read(appSettingsProvider.notifier)
+          .setExploreSettings(exploreSettings.copyWith(mode: mode));
     }
 
     void handleAggressiveChange(bool isAggressive) {
       currentAggressive.value = isAggressive;
       notifier.applyAggressiveMode(isAggressive);
+      ref
+          .read(appSettingsProvider.notifier)
+          .setExploreSettings(
+            exploreSettings.copyWith(aggressiveMode: isAggressive),
+          );
     }
 
     final now = DateTime.now();
@@ -196,6 +212,8 @@ class ExploreScreen extends HookConsumerWidget {
           handleModeChange,
           handleAggressiveChange,
           hasSubscriptionFiltersApplied,
+          exploreSettings,
+          ref.read(appSettingsProvider.notifier),
         ),
       );
     }
@@ -259,6 +277,8 @@ class ExploreScreen extends HookConsumerWidget {
         currentAggressive,
         currentFilter,
         handleAggressiveChange,
+        exploreSettings,
+        ref.read(appSettingsProvider.notifier),
       ),
     );
   }
@@ -273,7 +293,9 @@ class ExploreScreen extends HookConsumerWidget {
     void Function(String?) handleFilterChange,
     void Function(bool) handleAggressiveChange,
     ValueNotifier<String> mode,
-    void Function(String?) onModeChange, {
+    void Function(String?) onModeChange,
+    ExploreSettings exploreSettings,
+    AppSettingsNotifier appSettingsNotifier, {
     required bool isWide,
   }) async {
     await showModalBottomSheet(
@@ -381,12 +403,25 @@ class ExploreScreen extends HookConsumerWidget {
                           initialSelectedTags: selectedTags.value,
                           onSelectedPublishersChanged: (names) {
                             selectedPublishers.value = names;
+                            appSettingsNotifier.setExploreSettings(
+                              exploreSettings.copyWith(
+                                selectedPublisherNames: names,
+                              ),
+                            );
                           },
                           onSelectedCategoriesChanged: (ids) {
                             selectedCategories.value = ids;
+                            appSettingsNotifier.setExploreSettings(
+                              exploreSettings.copyWith(
+                                selectedCategoryIds: ids,
+                              ),
+                            );
                           },
                           onSelectedTagsChanged: (ids) {
                             selectedTags.value = ids;
+                            appSettingsNotifier.setExploreSettings(
+                              exploreSettings.copyWith(selectedTagIds: ids),
+                            );
                           },
                         ),
                       ),
@@ -490,6 +525,8 @@ class ExploreScreen extends HookConsumerWidget {
     void Function(String?) handleModeChange,
     void Function(bool) handleAggressiveChange,
     bool hasSubscriptionFiltersApplied,
+    ExploreSettings exploreSettings,
+    AppSettingsNotifier appSettingsNotifier,
   ) {
     // Use post list when subscription filter is active and publishers are selected
     final usePostList =
@@ -639,12 +676,23 @@ class ExploreScreen extends HookConsumerWidget {
                         initialSelectedTags: selectedTags.value,
                         onSelectedPublishersChanged: (names) {
                           selectedPublishers.value = names;
+                          appSettingsNotifier.setExploreSettings(
+                            exploreSettings.copyWith(
+                              selectedPublisherNames: names,
+                            ),
+                          );
                         },
                         onSelectedCategoriesChanged: (ids) {
                           selectedCategories.value = ids;
+                          appSettingsNotifier.setExploreSettings(
+                            exploreSettings.copyWith(selectedCategoryIds: ids),
+                          );
                         },
                         onSelectedTagsChanged: (ids) {
                           selectedTags.value = ids;
+                          appSettingsNotifier.setExploreSettings(
+                            exploreSettings.copyWith(selectedTagIds: ids),
+                          );
                         },
                       ),
                     ],
@@ -710,6 +758,8 @@ class ExploreScreen extends HookConsumerWidget {
     ValueNotifier<bool> currentAggressive,
     ValueNotifier<String?> currentFilter,
     void Function(bool) handleAggressiveChange,
+    ExploreSettings exploreSettings,
+    AppSettingsNotifier appSettingsNotifier,
   ) {
     final usePostList =
         selectedPublishers.value.isNotEmpty ||
@@ -727,6 +777,8 @@ class ExploreScreen extends HookConsumerWidget {
       child: CustomScrollView(
         slivers: [
           SliverAppBar(
+            automaticallyImplyLeading: false,
+            automaticallyImplyActions: false,
             flexibleSpace:
                 Row(
                   children: [
@@ -962,6 +1014,8 @@ class ExploreScreen extends HookConsumerWidget {
                         handleAggressiveChange,
                         currentMode,
                         handleModeChange,
+                        exploreSettings,
+                        appSettingsNotifier,
                         isWide: false,
                       ),
                       icon: Icon(
