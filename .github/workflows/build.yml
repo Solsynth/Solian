@@ -105,22 +105,23 @@ jobs:
         with:
           name: build-output-linux-appimage
           path: ./artifacts/linux
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Upload Windows to R2
+        uses: ryand56/r2-upload-action@latest
         with:
-          aws-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          aws-region: auto
-      - name: Upload to R2
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          if [ -z "$TAG_NAME" ]; then
-            TAG_NAME="latest"
-          fi
-          aws --endpoint-url ${{ secrets.R2_ENDPOINT }} s3 cp ./artifacts/windows/ s3://${{ secrets.S3_BUCKET_NAME }}/solian/${TAG_NAME}/windows/ --recursive
-          aws --endpoint-url ${{ secrets.R2_ENDPOINT }} s3 cp ./artifacts/linux/ s3://${{ secrets.S3_BUCKET_NAME }}/solian/${TAG_NAME}/linux/ --recursive
-      - name: Upload to R2 (latest)
-        if: github.ref_type == 'tag'
-        run: |
-          aws --endpoint-url ${{ secrets.R2_ENDPOINT }} s3 cp ./artifacts/windows/ s3://${{ secrets.S3_BUCKET_NAME }}/solian/latest/windows/ --recursive
-          aws --endpoint-url ${{ secrets.R2_ENDPOINT }} s3 cp ./artifacts/linux/ s3://${{ secrets.S3_BUCKET_NAME }}/solian/latest/linux/ --recursive
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.S3_BUCKET_NAME }}
+          source-dir: ./artifacts/windows
+          destination-dir: solian
+          keep-file-fresh: true
+      - name: Upload Linux to R2
+        uses: ryand56/r2-upload-action@latest
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.S3_BUCKET_NAME }}
+          source-dir: ./artifacts/linux
+          destination-dir: solian
+          keep-file-fresh: true
