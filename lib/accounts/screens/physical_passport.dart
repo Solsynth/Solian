@@ -7,8 +7,9 @@ import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/accounts/widgets/account/account_name.dart';
+import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/core/network.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -109,9 +110,6 @@ class PhysicalPassportScreen extends HookConsumerWidget {
                 return _PhysicalPassportListItem(
                   passport: passport,
                   onTap: () => _showDetailSheet(context, ref, passport),
-                  onDelete: passport.isLocked
-                      ? null
-                      : () => _confirmDelete(context, ref, passport),
                 );
               },
             );
@@ -169,35 +167,6 @@ class PhysicalPassportScreen extends HookConsumerWidget {
       useRootNavigator: true,
       builder: (context) => const _PhysicalPassportScanSheet(),
     );
-  }
-
-  Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    SnPhysicalPassport passport,
-  ) async {
-    final confirm = await showConfirmAlert(
-      'physicalPassportDeleteConfirm'.tr(),
-      'physicalPassportDelete'.tr(),
-      isDanger: true,
-    );
-    if (!confirm || !context.mounted) return;
-
-    try {
-      showLoadingModal(context);
-      final client = ref.read(apiClientProvider);
-      await client.delete('/passport/nfc/tags/${passport.id}');
-      ref.invalidate(physicalPassportsProvider);
-      if (context.mounted) {
-        hideLoadingModal(context);
-        showSnackBar('physicalPassportDeleted'.tr());
-      }
-    } catch (e) {
-      if (context.mounted) {
-        hideLoadingModal(context);
-        showErrorAlert(e);
-      }
-    }
   }
 }
 
@@ -258,12 +227,10 @@ class _PhysicalPassportsEmptyState extends StatelessWidget {
 class _PhysicalPassportListItem extends StatelessWidget {
   final SnPhysicalPassport passport;
   final VoidCallback onTap;
-  final VoidCallback? onDelete;
 
   const _PhysicalPassportListItem({
     required this.passport,
     required this.onTap,
-    this.onDelete,
   });
 
   @override
@@ -340,12 +307,6 @@ class _PhysicalPassportListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              if (onDelete != null)
-                IconButton(
-                  icon: const Icon(Symbols.delete),
-                  onPressed: onDelete,
-                  color: colorScheme.error,
-                ),
               Icon(Symbols.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
@@ -728,12 +689,13 @@ class _PhysicalPassportScanSheetState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'scanPhysicalPassportDescription'.tr(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+            if (_scanResult == null)
+              Text(
+                'scanPhysicalPassportDescription'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
             const Gap(24),
             if (_scanResult == null) ...[
               FilledButton.tonalIcon(
@@ -880,27 +842,20 @@ class _PhysicalPassportScanResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Card(
-          elevation: 0,
-          clipBehavior: Clip.antiAlias,
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.primaryContainer,
-                  colorScheme.secondaryContainer,
-                ],
-              ),
+          child: InkWell(
+            child: AccountNameplate(
+              name: passport.user.name,
+              isOutlined: false,
             ),
-            padding: const EdgeInsets.all(24),
-            child: Column(children: [AccountName(account: passport.user)]),
+            onTap: () {
+              context.router.push(
+                AccountProfileRoute(name: passport.user.name),
+              );
+            },
           ),
         ),
         const Gap(24),
@@ -1069,6 +1024,21 @@ class _PhysicalPassportDetailSheetState
                 icon: const Icon(Symbols.edit),
                 label: Text('editPhysicalPassport'.tr()),
               ),
+              const Gap(8),
+              OutlinedButton.icon(
+                onPressed: _isSubmitting ? null : _deletePassport,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(Symbols.delete, color: colorScheme.error),
+                label: Text(
+                  'physicalPassportDelete'.tr(),
+                  style: TextStyle(color: colorScheme.error),
+                ),
+              ),
             ],
             if (_isEditing) ...[
               Row(
@@ -1157,6 +1127,35 @@ class _PhysicalPassportDetailSheetState
       ref.invalidate(physicalPassportsProvider);
       if (mounted) {
         showSnackBar('physicalPassportLocked'.tr());
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorAlert(e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> _deletePassport() async {
+    final confirm = await showConfirmAlert(
+      'physicalPassportDeleteConfirm'.tr(),
+      'physicalPassportDelete'.tr(),
+      isDanger: true,
+    );
+    if (!confirm) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final client = ref.read(apiClientProvider);
+      await client.delete('/passport/nfc/tags/${widget.passport.id}');
+      ref.invalidate(physicalPassportsProvider);
+      if (mounted) {
+        showSnackBar('physicalPassportDeleted'.tr());
         Navigator.of(context).pop();
       }
     } catch (e) {
