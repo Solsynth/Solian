@@ -886,14 +886,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
-  flutter_expandable_fab:
-    dependency: "direct main"
-    description:
-      name: flutter_expandable_fab
-      sha256: "2a488600924fd2a041679ad889807ee5670414a7a518cf11d4854b9898b3504f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.5.2"
   flutter_highlight:
     dependency: "direct main"
     description:
@@ -1148,13 +1140,13 @@ packages:
     source: hosted
     version: "3.3.1"
   flutter_rust_bridge:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_rust_bridge
-      sha256: e87d6b9ee934dcd24a128ccb2bd91905d2d5fe5c06245d6a8f5477d4907a437a
+      sha256: "37ef40bc6f863652e865f0b2563ea07f0d3c58d8efad803cc01933a4b2ee067e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.11.1"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -3154,14 +3146,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.1"
-  swipe_to:
-    dependency: "direct main"
-    description:
-      name: swipe_to
-      sha256: "58f61031803ece9b0efe09006809e78904c640c6d42d48715d1d1c3c28f8499a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.6"
   syncfusion_flutter_core:
     dependency: transitive
     description:
@@ -3330,14 +3314,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.0"
-  top_snackbar_flutter:
-    dependency: "direct main"
-    description:
-      name: top_snackbar_flutter
-      sha256: ad3f93062450e8c7db97b271d405c180536408cc2be4380a59da7022eb1d750c
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.3.0"
   tray_manager:
     dependency: "direct main"
     description:
