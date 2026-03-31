@@ -241,9 +241,7 @@ class DashboardGrid extends HookConsumerWidget {
                         SingleChildScrollView(
                               padding: isWide
                                   ? const EdgeInsets.symmetric(horizontal: 24)
-                                  : EdgeInsets.only(
-                                      bottom: 64 + devicePadding.bottom,
-                                    ),
+                                  : const EdgeInsets.symmetric(horizontal: 16),
                               scrollDirection: isWide
                                   ? Axis.horizontal
                                   : Axis.vertical,
@@ -264,42 +262,43 @@ class DashboardGrid extends HookConsumerWidget {
               ],
             ),
           ),
-          // Customize button
-          Positioned(
-            bottom: isWide ? 16 : 16 + devicePadding.bottom,
-            right: 16,
-            child: TextButton.icon(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useRootNavigator: true,
-                  builder: (context) => const DashboardCustomizationSheet(),
-                );
-              },
-              icon: Icon(
-                Symbols.tune,
-                size: 16,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              label: Text(
-                'customize',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          // Customize button (positioned for wide screens only)
+          if (isWide)
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: TextButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useRootNavigator: true,
+                    builder: (context) => const DashboardCustomizationSheet(),
+                  );
+                },
+                icon: Icon(
+                  Symbols.tune,
+                  size: 16,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-              ).tr(),
-              style: TextButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.surface,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                label: Text(
+                  'customize',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ).tr(),
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
             ),
-          ),
           if (dragging.value)
             Positioned.fill(
               child: Container(
@@ -399,6 +398,40 @@ class _DashboardGridNarrow extends HookConsumerWidget {
     for (final cardId in verticalLayouts) {
       children.add(DashboardRenderer.buildCard(cardId, ref));
     }
+
+    // Add customize button at the end
+    children.add(
+      Center(
+        child: TextButton.icon(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (context) => const DashboardCustomizationSheet(),
+            );
+          },
+          icon: Icon(
+            Symbols.tune,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          label: Text(
+            'customize',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ).tr(),
+          style: TextButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+        ).padding(bottom: 80),
+      ),
+    );
 
     return Column(spacing: 16, children: children);
   }
