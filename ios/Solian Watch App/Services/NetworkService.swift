@@ -93,7 +93,7 @@ class NetworkService {
         // The response has an "items" wrapper
         let responseWrapper = try decoder.decode(TimelineResponseWrapper.self, from: data)
         
-        let activities = responseWrapper.items.map { SnTimelineEvent(from: $0) }
+        let activities = responseWrapper.items
         
         let hasMore = responseWrapper.nextCursor != nil && !responseWrapper.nextCursor!.isEmpty
         let nextCursor = responseWrapper.nextCursor

@@ -44,8 +44,12 @@ struct ActivityListView: View {
                             }
                         case .discovery(let discoveryData):
                             DiscoveryView(discoveryData: discoveryData)
-                        case .unknown, .none:
-                            Text("Unknown activity type: \(activity.type)")
+                        case .unknown(_):
+                            Text("Unknown activity")
+                        case .none:
+                            Text("No data")
+                        case .some(.none):
+                            Text("No data")
                         }
                     }
                     if viewModel.hasMore {

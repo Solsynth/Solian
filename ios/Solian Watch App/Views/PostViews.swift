@@ -56,14 +56,14 @@ struct PostRowView: View {
                     .font(.body)
             }
             
-            if !post.attachments.isEmpty {
-                AttachmentView(attachment: post.attachments[0])
-                if post.attachments.count > 1 {
+            if let attachments = post.attachments, !attachments.isEmpty {
+                AttachmentView(attachment: attachments[0])
+                if attachments.count > 1 {
                     HStack(spacing: 8) {
                         Image(systemName: "paperclip.circle.fill")
                             .frame(width: 12, height: 12)
                             .foregroundStyle(.gray)
-                        Text("\(post.attachments.count - 1)+ attachments")
+                        Text("\(attachments.count - 1)+ attachments")
                             .font(.footnote)
                             .foregroundStyle(.gray)
                     }
@@ -123,17 +123,17 @@ struct PostDetailView: View {
                         .font(.body)
                 }
                 
-                if !post.attachments.isEmpty {
+                if let attachments = post.attachments, !attachments.isEmpty {
                     Text("Attachments").font(.headline)
-                    ForEach(post.attachments) { attachment in
+                    ForEach(attachments) { attachment in
                         AttachmentView(attachment: attachment)
                     }
                 }
                 
-                if !post.tags.isEmpty {
+                if let tags = post.tags, !tags.isEmpty {
                     Text("Tags").font(.headline)
                     FlowLayout(alignment: .leading, spacing: 4) {
-                        ForEach(post.tags) { tag in
+                        ForEach(tags) { tag in
                             Text("#\(tag.name ?? tag.slug)")
                                 .font(.caption)
                                 .padding(.horizontal, 8)
