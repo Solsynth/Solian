@@ -333,6 +333,16 @@ class ExploreScreen extends HookConsumerWidget {
                           hideSubscriptionsTab: false,
                         ),
                         const Gap(16),
+                      ] else if (filterValue == null) ...[
+                        _RankingToolbar(
+                          currentMode: modeValue,
+                          onModeChange: onModeChange,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withOpacity(0.55),
+                        ),
+                        const Gap(16),
                       ],
                       Container(
                         decoration: BoxDecoration(
