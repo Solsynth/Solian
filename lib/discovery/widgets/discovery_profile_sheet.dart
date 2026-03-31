@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -80,16 +81,10 @@ class _DiscoveryProfileContentState
       await ref.read(discoveryProfileResetProvider.future);
       ref.invalidate(discoveryProfileProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Discovery profile reset successfully')),
-        );
+        showSnackBar('Discovery profile reset successfully');
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to reset: $e')));
-      }
+      showErrorAlert(e);
     } finally {
       if (mounted) setState(() => _isResetting = false);
     }

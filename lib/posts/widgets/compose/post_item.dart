@@ -212,12 +212,7 @@ class PostActionableItem extends HookConsumerWidget {
                 feedback: DiscoveryFeedbackValue.positive,
               );
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Thanks for your feedback!').tr(),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                showSnackBar('Thanks for your feedback!');
               }
             } catch (err) {
               showErrorAlert(err);
@@ -233,12 +228,7 @@ class PostActionableItem extends HookConsumerWidget {
                 feedback: DiscoveryFeedbackValue.negative,
               );
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Thanks for your feedback!').tr(),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                showSnackBar('Thanks for your feedback!');
               }
             } catch (err) {
               showErrorAlert(err);

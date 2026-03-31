@@ -14,6 +14,7 @@ import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/drive/widgets/upload_menu.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/tickets/ticket_models.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -117,11 +118,7 @@ class TicketDetailScreen extends HookConsumerWidget {
             );
           }
         } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to send message: $e')),
-            );
-          }
+          showErrorAlert(e);
         } finally {
           isSubmitting.value = false;
         }
@@ -184,11 +181,7 @@ class TicketDetailScreen extends HookConsumerWidget {
             .updateTicketStatus(ticketId, status);
         ref.invalidate(ticketServiceProvider);
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update status: $e')),
-          );
-        }
+        showErrorAlert(e);
       }
     }, [ref, ticketId]);
 

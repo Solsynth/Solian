@@ -160,7 +160,6 @@ class ThoughtScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      isNoBackground: false,
       appBar: AppBar(
         title: Text(initialTopic ?? 'aiThought'.tr()),
         automaticallyImplyLeading: false,

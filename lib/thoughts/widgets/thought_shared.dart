@@ -418,11 +418,7 @@ class ThoughtInput extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: 16 + MediaQuery.of(context).padding.bottom,
-      ),
+      margin: EdgeInsets.only(left: 16, right: 16, bottom: 16),
       child: Material(
         elevation: 2,
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
