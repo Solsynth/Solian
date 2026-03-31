@@ -376,6 +376,7 @@ class _AddPhysicalPassportSheetState
   bool _isSubmitting = false;
   bool _isScanning = false;
   String? _scannedUid;
+  NFCTag? _scannedTag;
 
   @override
   void dispose() {
@@ -452,6 +453,14 @@ class _AddPhysicalPassportSheetState
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(fontFamily: 'monospace'),
                         ),
+                        const Gap(12),
+                        Text(
+                          'Tag Type: ${_scannedTag?.type}',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontFamily: 'monospace'),
+                        ),
+                        const Gap(12),
+                        Text('NDEF Type: ${_scannedTag?.ndefType}'),
                       ],
                     ),
                   ),
@@ -516,6 +525,7 @@ class _AddPhysicalPassportSheetState
 
       setState(() {
         _scannedUid = uid;
+        _scannedTag = tag;
         _uidController.text = uid;
       });
 
