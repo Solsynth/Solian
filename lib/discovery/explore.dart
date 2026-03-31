@@ -1488,8 +1488,10 @@ class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileCard = Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: Theme.of(context).colorScheme.surfaceContainer,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+      ),
       child: ListTile(
         dense: true,
         leading: ProfilePictureWidget(file: publisher.picture, radius: 16),
@@ -1511,24 +1513,27 @@ class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
     final streamAsync = ref.watch(
       ExploreScreen.publisherActiveLivestreamProvider(publisher.id),
     );
-    return streamAsync.when(
-      data: (stream) {
-        if (stream == null) return profileCard;
-        return Column(
-          children: [
-            profileCard,
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: LivestreamEmbedWidget(
-                livestreamId: stream.id,
-                margin: EdgeInsets.zero,
-              ),
-            ),
-          ],
-        );
-      },
-      loading: () => profileCard,
-      error: (_, _) => profileCard,
+    return Column(
+      children: [
+        streamAsync.when(
+          data: (stream) {
+            if (stream == null) return profileCard;
+            return Column(
+              children: [
+                profileCard,
+                const Divider(height: 1),
+                LivestreamEmbedWidget(
+                  livestreamId: stream.id,
+                  margin: EdgeInsets.zero,
+                ),
+              ],
+            );
+          },
+          loading: () => profileCard,
+          error: (_, _) => profileCard,
+        ),
+        const Divider(height: 1),
+      ],
     );
   }
 }

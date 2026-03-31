@@ -33,9 +33,12 @@ class PublisherDiscoveryCard extends ConsumerWidget {
       );
     }
 
-    Widget card = Card(
+    Widget card = Container(
       clipBehavior: Clip.antiAlias,
-      margin: EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.zero,
+      ),
       child: InkWell(
         onTap: () {
           context.router.push(PublisherProfileRoute(name: publisher.name));
