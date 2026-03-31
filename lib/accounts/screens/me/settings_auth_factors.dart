@@ -2,10 +2,9 @@ import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/auth/login.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -59,55 +58,90 @@ class AuthFactorSheet extends HookConsumerWidget {
     }
 
     Future<void> enableFactor() async {
-      String? password;
-      if ([3, 4].contains(factor.type)) {
+      final needsVerification = factor.type != 5;
+      String? verificationCode;
+
+      if (needsVerification) {
         final confirmed = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text('authFactorEnable').tr(),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('authFactorEnableHint').tr(),
-                const SizedBox(height: 16),
-                Pinput(
-                  showCursor: false,
-                  length: 6,
-                  obscureText: false,
-                  onSubmitted: (String verificationCode) {
-                    password = verificationCode;
+          builder: (context) {
+            final controller = TextEditingController();
+            return AlertDialog(
+              title: Text('authFactorEnable').tr(),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('authFactorEnableHint'.tr()),
+                  const SizedBox(height: 16),
+                  if (factor.type == 4)
+                    TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: InputDecoration(
+                        labelText: 'authFactorPin'.tr(),
+                        border: const OutlineInputBorder(),
+                      ),
+                    )
+                  else
+                    Pinput(
+                      controller: controller,
+                      showCursor: false,
+                      length: 6,
+                      obscureText: false,
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('cancel'.tr()),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    verificationCode = controller.text;
+                    Navigator.of(context).pop(true);
                   },
-                  onChanged: (String verificationCode) {
-                    password = verificationCode;
-                  },
+                  child: Text('confirm'.tr()),
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text('cancel').tr(),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text('confirm').tr(),
-              ),
-            ],
-          ),
+            );
+          },
         );
-        if (confirmed == false ||
-            (password?.isEmpty ?? true) ||
-            !context.mounted) {
+
+        if (confirmed != true ||
+            verificationCode == null ||
+            verificationCode!.isEmpty) {
           return;
         }
       }
+
       try {
         showLoadingModal(context);
         final client = ref.read(apiClientProvider);
-        await client.post(
+        final response = await client.post(
           '/padlock/factors/${factor.id}/enable',
-          data: jsonEncode(password),
+          data: verificationCode != null ? jsonEncode(verificationCode) : null,
         );
+        if (!context.mounted) return;
+        hideLoadingModal(context);
+
+        if (factor.type == 5) {
+          final newCode =
+              response.data['createdResponse']?['recovery_code'] as String?;
+          if (newCode != null && context.mounted) {
+            final updatedFactor = SnAuthFactor.fromJson(response.data);
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (ctx) => RecoveryCodeCreatedSheet(factor: updatedFactor),
+            ).then((_) {
+              if (context.mounted) Navigator.pop(context, true);
+            });
+            return;
+          }
+        }
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -121,57 +155,129 @@ class AuthFactorSheet extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(kFactorTypes[factor.type]!.$3, size: 32),
-              const Gap(8),
-              Text(kFactorTypes[factor.type]!.$1).tr(),
-              const Gap(4),
-              Text(
-                kFactorTypes[factor.type]!.$2,
-                style: Theme.of(context).textTheme.bodySmall,
-              ).tr(),
-              const Gap(10),
-              Row(
+          Card(
+            margin: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (factor.enabledAt == null)
-                    Badge(
-                      label: Text('authFactorDisabled').tr(),
-                      textColor: Theme.of(context).colorScheme.onSecondary,
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                    )
-                  else
-                    Badge(
-                      label: Text('authFactorEnabled').tr(),
-                      textColor: Theme.of(context).colorScheme.onPrimary,
-                      backgroundColor: Theme.of(context).colorScheme.primary,
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          kFactorTypes[factor.type]!.$3,
+                          size: 28,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              kFactorTypes[factor.type]!.$1,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ).tr(),
+                            const SizedBox(height: 2),
+                            Text(
+                              kFactorTypes[factor.type]!.$2,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ).tr(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
+                    decoration: BoxDecoration(
+                      color: factor.enabledAt != null
+                          ? Theme.of(context).colorScheme.primaryContainer
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          factor.enabledAt != null
+                              ? Symbols.check_circle
+                              : Symbols.disabled_by_default,
+                          size: 16,
+                          color: factor.enabledAt != null
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          factor.enabledAt != null
+                              ? 'authFactorEnabled'
+                              : 'authFactorDisabled',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: factor.enabledAt != null
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimaryContainer
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                              ),
+                        ).tr(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ],
-          ).padding(all: 20),
+            ),
+          ),
           const Divider(height: 1),
           if (factor.enabledAt != null)
             ListTile(
               leading: const Icon(Symbols.disabled_by_default),
               title: Text('authFactorDisable').tr(),
               onTap: disableFactor,
-              contentPadding: EdgeInsets.symmetric(horizontal: 20),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             )
           else
             ListTile(
               leading: const Icon(Symbols.check_circle),
               title: Text('authFactorEnable').tr(),
               onTap: enableFactor,
-              contentPadding: EdgeInsets.symmetric(horizontal: 20),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             ),
           ListTile(
-            leading: const Icon(Symbols.delete),
-            title: Text('authFactorDelete').tr(),
+            leading: Icon(
+              Symbols.delete,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: Text(
+              'authFactorDelete'.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
             onTap: deleteFactor,
-            contentPadding: EdgeInsets.symmetric(horizontal: 20),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
           ),
         ],
       ),
@@ -179,121 +285,208 @@ class AuthFactorSheet extends HookConsumerWidget {
   }
 }
 
-class AuthFactorNewSheet extends HookConsumerWidget {
+class AuthFactorNewSheet extends ConsumerStatefulWidget {
   const AuthFactorNewSheet({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final factorType = useState<int>(0);
-    final secretController = useTextEditingController();
+  ConsumerState<AuthFactorNewSheet> createState() => _AuthFactorNewSheetState();
+}
 
-    Future<void> addFactor() async {
-      try {
-        showLoadingModal(context);
-        final apiClient = ref.read(apiClientProvider);
-        final resp = await apiClient.post(
-          '/padlock/factors',
-          data: {'type': factorType.value, 'secret': secretController.text},
-        );
-        final factor = SnAuthFactor.fromJson(resp.data);
-        if (!context.mounted) return;
-        hideLoadingModal(context);
-        if (factor.type == 3) {
+class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
+  int _selectedType = 0;
+  final _secretController = TextEditingController();
+  final _pinController = TextEditingController();
+
+  @override
+  void dispose() {
+    _secretController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addFactor() async {
+    try {
+      showLoadingModal(context);
+      final apiClient = ref.read(apiClientProvider);
+      final resp = await apiClient.post(
+        '/padlock/factors',
+        data: {
+          'type': _selectedType,
+          if (_selectedType == 0 || _selectedType == 4)
+            'secret': _selectedType == 4
+                ? _pinController.text
+                : _secretController.text,
+        },
+      );
+      final factor = SnAuthFactor.fromJson(resp.data);
+      if (!mounted) return;
+      hideLoadingModal(context);
+      if (factor.type == 3) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => AuthFactorNewAdditonalSheet(factor: factor),
+        ).then((_) {
+          if (mounted) {
+            showSnackBar('contactMethodVerificationNeeded'.tr());
+          }
+          if (mounted) Navigator.pop(context, true);
+        });
+      } else if (factor.type == 5) {
+        if (mounted) {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => AuthFactorNewAdditonalSheet(factor: factor),
+            builder: (ctx) => RecoveryCodeCreatedSheet(factor: factor),
           ).then((_) {
-            if (context.mounted) {
-              showSnackBar('contactMethodVerificationNeeded'.tr());
-            }
-            if (context.mounted) Navigator.pop(context, true);
+            if (mounted) Navigator.pop(context, true);
           });
-        } else if (factor.type == 5) {
-          if (context.mounted) {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (ctx) => RecoveryCodeCreatedSheet(factor: factor),
-            ).then((_) {
-              if (context.mounted) Navigator.pop(context, true);
-            });
-          }
-          return;
-        } else {
-          Navigator.pop(context, true);
         }
-      } catch (err) {
-        showErrorAlert(err);
-        if (context.mounted) hideLoadingModal(context);
+        return;
+      } else {
+        Navigator.pop(context, true);
       }
+    } catch (err) {
+      showErrorAlert(err);
+      if (mounted) hideLoadingModal(context);
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authFactorsAsync = ref.watch(authFactorsProvider);
+    final hasRecoveryCode = authFactorsAsync.maybeWhen(
+      data: (factors) => factors.any((f) => f.type == 5),
+      orElse: () => false,
+    );
+
+    final canAddFactor = hasRecoveryCode || _selectedType == 5;
 
     return SheetScaffold(
-      heightFactor: 0.7,
+      heightFactor: 0.75,
       titleText: 'authFactorNew'.tr(),
-      child: Column(
-        spacing: 16,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DropdownButtonFormField<int>(
-            value: factorType.value,
-            decoration: InputDecoration(labelText: 'authFactor'.tr()),
-            items: kFactorTypes.entries.map((entry) {
-              return DropdownMenuItem<int>(
-                value: entry.key,
-                child: Row(
-                  children: [
-                    Icon(entry.value.$3),
-                    const Gap(8),
-                    Text(entry.value.$1).tr(),
-                  ],
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                factorType.value = value;
-              }
-            },
-          ),
-          if ([0].contains(factorType.value))
-            TextField(
-              controller: secretController,
-              decoration: InputDecoration(
-                labelText: 'authFactorSecret'.tr(),
-                hintText: 'authFactorSecretHint'.tr(),
-              ),
-              onTapOutside: (_) =>
-                  FocusManager.instance.primaryFocus?.unfocus(),
-            )
-          else if ([4].contains(factorType.value))
-            Pinput(
-              controller: secretController,
-              showCursor: false,
-              length: 6,
-              obscureText: false,
-              keyboardType: TextInputType.number,
-              onSubmitted: (String verificationCode) {
-                secretController.text = verificationCode;
-              },
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(kFactorTypes[factorType.value]!.$2).tr(),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+      child: authFactorsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('error'.tr())),
+        data: (factors) {
+          final availableTypes = kFactorTypes.entries.where((entry) {
+            if (entry.key == 0) return false;
+            if (entry.key == 5) return true;
+            return !factors.any((f) => f.type == entry.key);
+          }).toList();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextButton.icon(
-                onPressed: addFactor,
-                icon: Icon(Symbols.add),
-                label: Text('create').tr(),
+              if (!hasRecoveryCode) ...[
+                Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.warning,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'authFactorRecoveryCodeRequired'.tr(),
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (availableTypes.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'authFactorAllAdded'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                DropdownButtonFormField<int>(
+                  value: _selectedType,
+                  decoration: InputDecoration(
+                    labelText: 'authFactor'.tr(),
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: availableTypes.map((entry) {
+                    return DropdownMenuItem<int>(
+                      value: entry.key,
+                      child: Row(
+                        children: [
+                          Icon(entry.value.$3),
+                          const SizedBox(width: 12),
+                          Text(entry.value.$1).tr(),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedType = value);
+                    }
+                  },
+                ),
+              const SizedBox(height: 16),
+              if (_selectedType == 0)
+                TextField(
+                  controller: _secretController,
+                  decoration: InputDecoration(
+                    labelText: 'authFactorSecret'.tr(),
+                    hintText: 'authFactorSecretHint'.tr(),
+                    border: const OutlineInputBorder(),
+                  ),
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                )
+              else if (_selectedType == 4)
+                TextField(
+                  controller: _pinController,
+                  decoration: InputDecoration(
+                    labelText: 'authFactorPin'.tr(),
+                    hintText: 'authFactorPinHint'.tr(),
+                    border: const OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  kFactorTypes[_selectedType]?.$2 ?? '',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ).tr(),
               ),
+              const Spacer(),
+              FilledButton.icon(
+                onPressed: canAddFactor ? _addFactor : null,
+                icon: const Icon(Symbols.add),
+                label: Text('create').tr(),
+              ).padding(bottom: 8),
             ],
-          ),
-        ],
-      ).padding(horizontal: 20, vertical: 24),
+          ).padding(horizontal: 20, vertical: 16);
+        },
+      ),
     );
   }
 }
@@ -305,50 +498,70 @@ class AuthFactorNewAdditonalSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uri = factor.createdResponse?['uri'];
+    final theme = Theme.of(context);
 
     return SheetScaffold(
-      heightFactor: 0.6,
+      heightFactor: 0.7,
       titleText: 'authFactorAdditional'.tr(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SizedBox(height: 24),
           if (uri != null) ...[
-            const SizedBox(height: 16),
-            Center(
-              child: ClipRRect(
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                child: QrImageView(
-                  data: uri,
-                  version: QrVersions.auto,
-                  size: 200,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                ),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
+              ),
+              child: QrImageView(
+                data: uri,
+                version: QrVersions.auto,
+                size: 180,
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
               ),
             ),
-            const Gap(16),
+            const SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'authFactorQrCodeScan'.tr(),
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ] else ...[
-            const SizedBox(height: 16),
-            Center(
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Symbols.qr_code,
+                size: 48,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'authFactorNoQrCode'.tr(),
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],
-          const Gap(16),
+          const Spacer(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextButton.icon(
+            padding: const EdgeInsets.all(16),
+            child: FilledButton.icon(
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Symbols.check),
               label: Text('next'.tr()),
@@ -367,53 +580,62 @@ class RecoveryCodeCreatedSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final secret = factor.createdResponse?['recovery_code'] as String?;
+    final theme = Theme.of(context);
 
     return SheetScaffold(
-      heightFactor: 0.6,
+      heightFactor: 0.7,
       titleText: 'recoveryCodeCreated'.tr(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 16),
-          Center(
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
             child: Icon(
               Symbols.key,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
+              size: 48,
+              color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
-          const Gap(16),
+          const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
               'recoveryCodeSaveWarning'.tr(),
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           if (secret != null) ...[
-            const Gap(16),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: SelectableText(
-                  secret,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontFamily: 'monospace',
-                    letterSpacing: 2,
-                  ),
+            const SizedBox(height: 24),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: SelectableText(
+                secret,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontFamily: 'monospace',
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ),
           ],
-          const Gap(24),
+          const Spacer(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextButton.icon(
+            padding: const EdgeInsets.all(16),
+            child: FilledButton.icon(
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Symbols.check),
               label: Text('iHaveSavedIt'.tr()),
