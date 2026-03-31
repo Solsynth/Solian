@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPhysicalPassport {
 
- String get id; String? get label; bool get isActive; bool get isLocked; DateTime? get lastSeenAt; DateTime get createdAt; String? get uid;
+ String get id; String? get label; bool get isActive; bool get isLocked; bool get isEncrypted; DateTime? get lastSeenAt; DateTime get createdAt; String? get uid;
 /// Create a copy of SnPhysicalPassport
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPhysicalPassportCopyWith<SnPhysicalPassport> get copyWith => _$SnPhysicalPass
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPhysicalPassport&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.uid, uid) || other.uid == uid));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPhysicalPassport&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.isEncrypted, isEncrypted) || other.isEncrypted == isEncrypted)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.uid, uid) || other.uid == uid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,isActive,isLocked,lastSeenAt,createdAt,uid);
+int get hashCode => Object.hash(runtimeType,id,label,isActive,isLocked,isEncrypted,lastSeenAt,createdAt,uid);
 
 @override
 String toString() {
-  return 'SnPhysicalPassport(id: $id, label: $label, isActive: $isActive, isLocked: $isLocked, lastSeenAt: $lastSeenAt, createdAt: $createdAt, uid: $uid)';
+  return 'SnPhysicalPassport(id: $id, label: $label, isActive: $isActive, isLocked: $isLocked, isEncrypted: $isEncrypted, lastSeenAt: $lastSeenAt, createdAt: $createdAt, uid: $uid)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnPhysicalPassportCopyWith<$Res>  {
   factory $SnPhysicalPassportCopyWith(SnPhysicalPassport value, $Res Function(SnPhysicalPassport) _then) = _$SnPhysicalPassportCopyWithImpl;
 @useResult
 $Res call({
- String id, String? label, bool isActive, bool isLocked, DateTime? lastSeenAt, DateTime createdAt, String? uid
+ String id, String? label, bool isActive, bool isLocked, bool isEncrypted, DateTime? lastSeenAt, DateTime createdAt, String? uid
 });
 
 
@@ -65,12 +65,13 @@ class _$SnPhysicalPassportCopyWithImpl<$Res>
 
 /// Create a copy of SnPhysicalPassport
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? isActive = null,Object? isLocked = null,Object? lastSeenAt = freezed,Object? createdAt = null,Object? uid = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = freezed,Object? isActive = null,Object? isLocked = null,Object? isEncrypted = null,Object? lastSeenAt = freezed,Object? createdAt = null,Object? uid = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,isLocked: null == isLocked ? _self.isLocked : isLocked // ignore: cast_nullable_to_non_nullable
+as bool,isEncrypted: null == isEncrypted ? _self.isEncrypted : isEncrypted // ignore: cast_nullable_to_non_nullable
 as bool,lastSeenAt: freezed == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,uid: freezed == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? label,  bool isActive,  bool isLocked,  DateTime? lastSeenAt,  DateTime createdAt,  String? uid)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? label,  bool isActive,  bool isLocked,  bool isEncrypted,  DateTime? lastSeenAt,  DateTime createdAt,  String? uid)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPhysicalPassport() when $default != null:
-return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.lastSeenAt,_that.createdAt,_that.uid);case _:
+return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.isEncrypted,_that.lastSeenAt,_that.createdAt,_that.uid);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.lastSee
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? label,  bool isActive,  bool isLocked,  DateTime? lastSeenAt,  DateTime createdAt,  String? uid)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? label,  bool isActive,  bool isLocked,  bool isEncrypted,  DateTime? lastSeenAt,  DateTime createdAt,  String? uid)  $default,) {final _that = this;
 switch (_that) {
 case _SnPhysicalPassport():
-return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.lastSeenAt,_that.createdAt,_that.uid);}
+return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.isEncrypted,_that.lastSeenAt,_that.createdAt,_that.uid);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -194,10 +195,10 @@ return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.lastSee
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? label,  bool isActive,  bool isLocked,  DateTime? lastSeenAt,  DateTime createdAt,  String? uid)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? label,  bool isActive,  bool isLocked,  bool isEncrypted,  DateTime? lastSeenAt,  DateTime createdAt,  String? uid)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPhysicalPassport() when $default != null:
-return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.lastSeenAt,_that.createdAt,_that.uid);case _:
+return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.isEncrypted,_that.lastSeenAt,_that.createdAt,_that.uid);case _:
   return null;
 
 }
@@ -209,13 +210,14 @@ return $default(_that.id,_that.label,_that.isActive,_that.isLocked,_that.lastSee
 @JsonSerializable()
 
 class _SnPhysicalPassport implements SnPhysicalPassport {
-  const _SnPhysicalPassport({required this.id, this.label, required this.isActive, required this.isLocked, this.lastSeenAt, required this.createdAt, this.uid});
+  const _SnPhysicalPassport({required this.id, this.label, required this.isActive, required this.isLocked, required this.isEncrypted, this.lastSeenAt, required this.createdAt, this.uid});
   factory _SnPhysicalPassport.fromJson(Map<String, dynamic> json) => _$SnPhysicalPassportFromJson(json);
 
 @override final  String id;
 @override final  String? label;
 @override final  bool isActive;
 @override final  bool isLocked;
+@override final  bool isEncrypted;
 @override final  DateTime? lastSeenAt;
 @override final  DateTime createdAt;
 @override final  String? uid;
@@ -233,16 +235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPhysicalPassport&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.uid, uid) || other.uid == uid));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPhysicalPassport&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isLocked, isLocked) || other.isLocked == isLocked)&&(identical(other.isEncrypted, isEncrypted) || other.isEncrypted == isEncrypted)&&(identical(other.lastSeenAt, lastSeenAt) || other.lastSeenAt == lastSeenAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.uid, uid) || other.uid == uid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,label,isActive,isLocked,lastSeenAt,createdAt,uid);
+int get hashCode => Object.hash(runtimeType,id,label,isActive,isLocked,isEncrypted,lastSeenAt,createdAt,uid);
 
 @override
 String toString() {
-  return 'SnPhysicalPassport(id: $id, label: $label, isActive: $isActive, isLocked: $isLocked, lastSeenAt: $lastSeenAt, createdAt: $createdAt, uid: $uid)';
+  return 'SnPhysicalPassport(id: $id, label: $label, isActive: $isActive, isLocked: $isLocked, isEncrypted: $isEncrypted, lastSeenAt: $lastSeenAt, createdAt: $createdAt, uid: $uid)';
 }
 
 
@@ -253,7 +255,7 @@ abstract mixin class _$SnPhysicalPassportCopyWith<$Res> implements $SnPhysicalPa
   factory _$SnPhysicalPassportCopyWith(_SnPhysicalPassport value, $Res Function(_SnPhysicalPassport) _then) = __$SnPhysicalPassportCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? label, bool isActive, bool isLocked, DateTime? lastSeenAt, DateTime createdAt, String? uid
+ String id, String? label, bool isActive, bool isLocked, bool isEncrypted, DateTime? lastSeenAt, DateTime createdAt, String? uid
 });
 
 
@@ -270,12 +272,13 @@ class __$SnPhysicalPassportCopyWithImpl<$Res>
 
 /// Create a copy of SnPhysicalPassport
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? isActive = null,Object? isLocked = null,Object? lastSeenAt = freezed,Object? createdAt = null,Object? uid = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = freezed,Object? isActive = null,Object? isLocked = null,Object? isEncrypted = null,Object? lastSeenAt = freezed,Object? createdAt = null,Object? uid = freezed,}) {
   return _then(_SnPhysicalPassport(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,isLocked: null == isLocked ? _self.isLocked : isLocked // ignore: cast_nullable_to_non_nullable
+as bool,isEncrypted: null == isEncrypted ? _self.isEncrypted : isEncrypted // ignore: cast_nullable_to_non_nullable
 as bool,lastSeenAt: freezed == lastSeenAt ? _self.lastSeenAt : lastSeenAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,uid: freezed == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable

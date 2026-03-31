@@ -2313,5 +2313,6 @@
   "timeHoursAgo": "{} hours ago",
   "timeMinutesAgo": "{} minutes ago",
   "timeJustNow": "Just now",
-  "newMessageBelow": "New message below"
+  "newMessageBelow": "New message below",
+  "physicalPassportEncrypted": "Encrypted"
 }

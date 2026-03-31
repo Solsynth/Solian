@@ -12,6 +12,7 @@ _SnPhysicalPassport _$SnPhysicalPassportFromJson(Map<String, dynamic> json) =>
       label: json['label'] as String?,
       isActive: json['is_active'] as bool,
       isLocked: json['is_locked'] as bool,
+      isEncrypted: json['is_encrypted'] as bool,
       lastSeenAt: json['last_seen_at'] == null
           ? null
           : DateTime.parse(json['last_seen_at'] as String),
@@ -25,6 +26,7 @@ Map<String, dynamic> _$SnPhysicalPassportToJson(_SnPhysicalPassport instance) =>
       'label': instance.label,
       'is_active': instance.isActive,
       'is_locked': instance.isLocked,
+      'is_encrypted': instance.isEncrypted,
       'last_seen_at': instance.lastSeenAt?.toIso8601String(),
       'created_at': instance.createdAt.toIso8601String(),
       'uid': instance.uid,
