@@ -55,18 +55,26 @@ class NetworkService {
     // Add a serial queue for WebSocket operations
     private let webSocketQueue = DispatchQueue(label: "com.solian.websocketQueue")
     
-    func fetchActivities(filter: String, cursor: String? = nil, token: String, serverUrl: String) async throws -> ActivityResponse {
+    func fetchTimeline(filter: String?, cursor: String? = nil, mode: String = "personalized", aggressive: Bool = true, token: String, serverUrl: String) async throws -> ActivityResponse {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
-        var components = URLComponents(url: baseURL.appendingPathComponent("/sphere/activities"), resolvingAgainstBaseURL: false)!
-        var queryItems = [URLQueryItem(name: "take", value: "20")]
-        if filter.lowercased() != "explore" {
-            queryItems.append(URLQueryItem(name: "filter", value: filter.lowercased()))
-        }
+        var components = URLComponents(url: baseURL.appendingPathComponent("/sphere/timeline"), resolvingAgainstBaseURL: false)!
+        var queryItems = [
+            URLQueryItem(name: "take", value: "20"),
+            URLQueryItem(name: "mode", value: mode),
+            URLQueryItem(name: "aggressive", value: aggressive ? "true" : "false")
+        ]
+        
         if let cursor = cursor {
             queryItems.append(URLQueryItem(name: "cursor", value: cursor))
         }
+        
+        // filter is optional - only add if not nil and not "explore"
+        if let filter = filter, filter.lowercased() != "explore" {
+            queryItems.append(URLQueryItem(name: "filter", value: filter.lowercased()))
+        }
+        
         components.queryItems = queryItems
         
         var request = URLRequest(url: components.url!)
@@ -82,10 +90,13 @@ class NetworkService {
         decoder.dateDecodingStrategy = .iso8601
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
-        let activities = try decoder.decode([SnActivity].self, from: data)
+        // The response has an "items" wrapper
+        let responseWrapper = try decoder.decode(TimelineResponseWrapper.self, from: data)
         
-        let hasMore = (activities.first?.type ?? "empty") != "empty"
-        let nextCursor = activities.isEmpty ? nil : activities.map { $0.createdAt }.min()?.ISO8601Format()
+        let activities = responseWrapper.items.map { SnTimelineEvent(from: $0) }
+        
+        let hasMore = responseWrapper.nextCursor != nil && !responseWrapper.nextCursor!.isEmpty
+        let nextCursor = responseWrapper.nextCursor
         
         return ActivityResponse(activities: activities, hasMore: hasMore, nextCursor: nextCursor)
     }

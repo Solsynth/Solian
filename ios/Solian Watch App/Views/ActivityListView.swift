@@ -13,7 +13,7 @@ struct ActivityListView: View {
     @StateObject private var viewModel: ActivityViewModel
     @EnvironmentObject var appState: AppState
 
-    init(filter: String, mockActivities: [SnActivity]? = nil) {
+    init(filter: String?, mockActivities: [SnTimelineEvent]? = nil) {
         _viewModel = StateObject(wrappedValue: ActivityViewModel(filter: filter, mockActivities: mockActivities))
     }
 
@@ -35,20 +35,16 @@ struct ActivityListView: View {
             } else {
                 List {
                     ForEach(viewModel.activities) { activity in
-                        switch activity.type {
-                        case "posts.new", "posts.new.replies":
-                            if case .post(let post) = activity.data {
-                                NavigationLink(
-                                    destination: PostDetailView(post: post).environmentObject(appState)
-                                ) {
-                                    PostRowView(post: post)
-                                }
+                        switch activity.data {
+                        case .post(let post):
+                            NavigationLink(
+                                destination: PostDetailView(post: post).environmentObject(appState)
+                            ) {
+                                PostRowView(post: post)
                             }
-                        case "discovery":
-                            if case .discovery(let discoveryData) = activity.data {
-                                DiscoveryView(discoveryData: discoveryData)
-                            }
-                        default:
+                        case .discovery(let discoveryData):
+                            DiscoveryView(discoveryData: discoveryData)
+                        case .unknown, .none:
                             Text("Unknown activity type: \(activity.type)")
                         }
                     }
@@ -80,7 +76,7 @@ struct ActivityListView: View {
                 }
             }
         }
-        .navigationTitle(viewModel.filter)
+        .navigationTitle(viewModel.filter ?? "Explore")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

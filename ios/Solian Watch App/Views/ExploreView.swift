@@ -17,21 +17,21 @@ struct ExploreView: View {
         NavigationStack {
             if appState.isReady {
                 TabView(selection: $selectedTab) {
-                    ActivityListView(filter: "Explore")
+                    ActivityListView(filter: nil)
                         .tag("Explore")
                         .tabItem {
                             Label("Explore", systemImage: "safari")
                         }
                         .labelStyle(.titleOnly)
 
-                    ActivityListView(filter: "Subscriptions")
+                    ActivityListView(filter: "subscriptions")
                         .tag("Subscriptions")
                         .tabItem {
                             Label("Subscriptions", systemImage: "star")
                         }
                         .labelStyle(.titleOnly)
 
-                    ActivityListView(filter: "Friends")
+                    ActivityListView(filter: "friends")
                         .tag("Friends")
                         .tabItem {
                             Label("Friends", systemImage: "person.2")

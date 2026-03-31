@@ -12,19 +12,21 @@ import Combine
 
 @MainActor
 class ActivityViewModel: ObservableObject {
-    @Published var activities: [SnActivity] = []
+    @Published var activities: [SnTimelineEvent] = []
     @Published var isLoading = false
     @Published var isLoadingMore = false
     @Published var errorMessage: String?
     @Published var hasMore = false
 
     private let networkService = NetworkService()
-    let filter: String
+    let filter: String?
     private var isMock = false
     private var hasFetched = false
     private var nextCursor: String?
+    private let mode: String = "personalized"
+    private let aggressive: Bool = true
 
-    init(filter: String, mockActivities: [SnActivity]? = nil) {
+    init(filter: String?, mockActivities: [SnTimelineEvent]? = nil) {
         self.filter = filter
         if let mockActivities = mockActivities {
             self.activities = mockActivities
@@ -41,13 +43,20 @@ class ActivityViewModel: ObservableObject {
         nextCursor = nil
 
         do {
-            let response = try await networkService.fetchActivities(filter: filter, cursor: nil, token: token, serverUrl: serverUrl)
+            let response = try await networkService.fetchTimeline(
+                filter: filter,
+                cursor: nil,
+                mode: mode,
+                aggressive: aggressive,
+                token: token,
+                serverUrl: serverUrl
+            )
             self.activities = response.activities
             self.hasMore = response.hasMore
             self.nextCursor = response.nextCursor
         } catch {
             self.errorMessage = error.localizedDescription
-            print("[watchOS] fetchActivities failed with error: \(error)")
+            print("[watchOS] fetchTimeline failed with error: \(error)")
             hasFetched = false
         }
 
@@ -59,7 +68,14 @@ class ActivityViewModel: ObservableObject {
         isLoadingMore = true
 
         do {
-            let response = try await networkService.fetchActivities(filter: filter, cursor: nextCursor, token: token, serverUrl: serverUrl)
+            let response = try await networkService.fetchTimeline(
+                filter: filter,
+                cursor: nextCursor,
+                mode: mode,
+                aggressive: aggressive,
+                token: token,
+                serverUrl: serverUrl
+            )
             self.activities.append(contentsOf: response.activities)
             self.hasMore = response.hasMore
             self.nextCursor = response.nextCursor

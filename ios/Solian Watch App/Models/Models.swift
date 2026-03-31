@@ -45,10 +45,25 @@ enum ActivityData: Codable {
 struct SnPost: Codable, Identifiable {
     let id: String
     let title: String?
+    let description: String?
     let content: String?
     let publisher: SnPublisher
-    let attachments: [SnCloudFile]
-    let tags: [SnPostTag]
+    let tags: [SnPostTag]?
+    let createdAt: Date?
+    let updatedAt: Date?
+    let attachments: [SnCloudFile]?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case description
+        case content
+        case publisher
+        case tags
+        case createdAt = "createdAt"
+        case updatedAt = "updatedAt"
+        case attachments
+    }
 }
 
 struct DiscoveryData: Codable {
@@ -109,7 +124,16 @@ struct SnPublisher: Codable, Identifiable {
 
 struct SnCloudFile: Codable, Identifiable {
     let id: String
+    let url: String?
+    let thumbnail: String?
     let mimeType: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case url
+        case thumbnail
+        case mimeType = "mimetype"
+    }
 }
 
 struct SnPostTag: Codable, Identifiable {
@@ -207,8 +231,75 @@ struct NotificationResponse {
     let hasMore: Bool
 }
 
+// MARK: - Timeline Models
+
+struct SnTimelineEvent: Codable, Identifiable {
+    let id: String
+    let type: String
+    let resourceIdentifier: String?
+    let data: TimelineEventData?
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case type
+        case resourceIdentifier = "resourceIdentifier"
+        case data
+        case createdAt = "createdAt"
+        case updatedAt = "updatedAt"
+        case deletedAt = "deletedAt"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        type = try container.decode(String.self, forKey: .type)
+        resourceIdentifier = try container.decodeIfPresent(String.self, forKey: .resourceIdentifier)
+        
+        // Try to decode data as SnPost first
+        if let post = try? container.decode(SnPost.self, forKey: .data) {
+            data = .post(post)
+        } else if let discoveryData = try? container.decode(DiscoveryData.self, forKey: .data) {
+            data = .discovery(discoveryData)
+        } else if let map = try? container.decode([String: AnyCodable].self, forKey: .data) {
+            data = .unknown(map)
+        } else {
+            data = .none
+        }
+        
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
+    }
+}
+
+enum TimelineEventData: Codable {
+    case post(SnPost)
+    case discovery(DiscoveryData)
+    case unknown([String: AnyCodable])
+    case none
+    
+    func encode(to encoder: Encoder) throws {
+        // Not needed for decoding
+    }
+}
+
+struct TimelineResponseWrapper: Codable {
+    let items: [SnTimelineEvent]
+    let nextCursor: String?
+    let mode: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case items
+        case nextCursor = "nextCursor"
+        case mode
+    }
+}
+
 struct ActivityResponse {
-    let activities: [SnActivity]
+    let activities: [SnTimelineEvent]
     let hasMore: Bool
     let nextCursor: String?
 }
