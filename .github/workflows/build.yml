@@ -105,6 +105,14 @@ jobs:
         with:
           name: build-output-linux-appimage
           path: ./artifacts/linux
+      - name: Zip Windows installer
+        run: |
+          cd ./artifacts/windows
+          zip -r ../build-output-windows-installer.zip .
+      - name: Zip Linux AppImage
+        run: |
+          cd ./artifacts/linux
+          zip -r ../build-output-linux-appimage.zip .
       - name: Upload Windows to R2
         uses: ryand56/r2-upload-action@latest
         with:
@@ -112,9 +120,8 @@ jobs:
           r2-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.S3_BUCKET_NAME }}
-          source-dir: ./artifacts/windows
+          source-dir: ./artifacts/build-output-windows-installer.zip
           destination-dir: solian
-          keep-file-fresh: true
       - name: Upload Linux to R2
         uses: ryand56/r2-upload-action@latest
         with:
@@ -122,6 +129,5 @@ jobs:
           r2-access-key-id: ${{ secrets.S3_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.S3_BUCKET_NAME }}
-          source-dir: ./artifacts/linux
+          source-dir: ./artifacts/build-output-linux-appimage.zip
           destination-dir: solian
-          keep-file-fresh: true
