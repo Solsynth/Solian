@@ -725,6 +725,8 @@ class _PhysicalPassportScanSheetState
   bool _isScanning = false;
   SnScanResult? _scanResult;
   String? _error;
+  String? _scannedUid; // For claim flow
+  bool _isClaiming = false;
 
   @override
   Widget build(BuildContext context) {
@@ -798,9 +800,24 @@ class _PhysicalPassportScanSheetState
                   setState(() {
                     _scanResult = null;
                     _error = null;
+                    _scannedUid = null;
                   });
                 },
               ),
+              if (!_scanResult!.isClaimed && _scannedUid != null) ...[
+                const Gap(8),
+                FilledButton.icon(
+                  onPressed: (_isScanning || _isClaiming) ? null : _claimTag,
+                  icon: _isClaiming
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Symbols.card_membership),
+                  label: Text('claimTag').tr(),
+                ),
+              ],
             ],
             const Gap(16),
           ],
@@ -853,73 +870,40 @@ class _PhysicalPassportScanSheetState
         return;
       }
       final uri = firstRecord.uri!;
-
-      String? remoteTagId;
-      if (uri.host == 'phpass' && uri.pathSegments.isNotEmpty) {
-        remoteTagId = uri.pathSegments.first;
-      }
-
-      final uriString = uri.toString();
-      final queryStart = uriString.indexOf('?');
-      final queryString = queryStart != -1
-          ? uriString.substring(queryStart + 1)
-          : '';
-
-      String? e, c, mac, uid;
-
-      if (queryString.isNotEmpty) {
-        for (final param in queryString.split('&')) {
-          final keyValue = param.split('=');
-          if (keyValue.length == 2) {
-            final key = keyValue[0];
-            final value = Uri.decodeComponent(keyValue[1]);
-            switch (key) {
-              case 'e':
-                e = value;
-                break;
-              case 'c':
-                c = value;
-                break;
-              case 'mac':
-                mac = value;
-                break;
-              case 'uid':
-                uid = value;
-                break;
-            }
-          }
-        }
-      }
+      String? uidFromUri;
 
       final client = ref.read(apiClientProvider);
       SnScanResult? result;
 
-      if (e != null && c != null && mac != null) {
-        final response = await client.get(
-          '/passport/nfc',
-          queryParameters: {'e': e, 'c': c, 'mac': mac},
-        );
-        result = SnScanResult.fromJson(response.data);
-      } else if (uid != null) {
-        final response = await client.get(
-          '/passport/nfc',
-          queryParameters: {'uid': uid},
-        );
-        result = SnScanResult.fromJson(response.data);
-      } else if (remoteTagId != null) {
-        final response = await client.get('/passport/nfc/tags/$remoteTagId');
+      // Check if URI has a path segment (unencrypted tag with entry ID)
+      // e.g., solian://phpass/{tag_id}
+      if (uri.host == 'phpass' && uri.pathSegments.isNotEmpty) {
+        final tagId = uri.pathSegments.first;
+        final response = await client.get('/passport/nfc/tags/$tagId');
         result = SnScanResult.fromJson(response.data);
       } else {
-        setState(() {
-          _error = 'nfcTagInvalid'.tr();
-          _isScanning = false;
-        });
-        return;
+        // Forward all query parameters directly to /passport/nfc
+        // This handles both encrypted (e, c, mac) and unencrypted (uid) tags
+        final queryParams = uri.queryParameters;
+        uidFromUri = queryParams['uid']; // Store UID for potential claim
+        if (queryParams.isEmpty) {
+          setState(() {
+            _error = 'nfcTagInvalid'.tr();
+            _isScanning = false;
+          });
+          return;
+        }
+        final response = await client.get(
+          '/passport/nfc',
+          queryParameters: queryParams,
+        );
+        result = SnScanResult.fromJson(response.data);
       }
 
       setState(() {
         _scanResult = result;
         _isScanning = false;
+        _scannedUid = uidFromUri;
       });
 
       await FlutterNfcKit.finish();
@@ -928,6 +912,39 @@ class _PhysicalPassportScanSheetState
         _error = e.toString();
         _isScanning = false;
       });
+    }
+  }
+
+  Future<void> _claimTag() async {
+    if (_scannedUid == null) return;
+
+    setState(() => _isClaiming = true);
+
+    try {
+      final client = ref.read(apiClientProvider);
+      await client.post('/passport/nfc/tags/claim', data: {'uid': _scannedUid});
+
+      // Refresh the scan result to show claimed status
+      final response = await client.get(
+        '/passport/nfc',
+        queryParameters: {'uid': _scannedUid},
+      );
+      final result = SnScanResult.fromJson(response.data);
+
+      setState(() {
+        _scanResult = result;
+        _isClaiming = false;
+        _scannedUid = null; // Clear so claim button disappears
+      });
+
+      if (mounted) {
+        showSnackBar('tagClaimed'.tr());
+      }
+    } catch (e) {
+      setState(() => _isClaiming = false);
+      if (mounted) {
+        showErrorAlert(e);
+      }
     }
   }
 }
@@ -1602,6 +1619,109 @@ class _AdminRegisterEncryptedTagSheetState
 
       Navigator.of(context).pop();
       showSnackBar('encryptedTagRegistered'.tr());
+    } catch (e) {
+      if (mounted) {
+        showErrorAlert(e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+}
+
+class _ClaimByUidSheet extends ConsumerStatefulWidget {
+  const _ClaimByUidSheet();
+
+  @override
+  ConsumerState<_ClaimByUidSheet> createState() => _ClaimByUidSheetState();
+}
+
+class _ClaimByUidSheetState extends ConsumerState<_ClaimByUidSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _uidController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _uidController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SheetScaffold(
+      titleText: 'claimEncryptedTag'.tr(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'claimEncryptedTagDescription'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Gap(24),
+              TextFormField(
+                controller: _uidController,
+                decoration: InputDecoration(
+                  labelText: 'tagUid'.tr(),
+                  hintText: 'claimTagUidHint'.tr(),
+                  prefixIcon: const Icon(Symbols.tag),
+                ),
+                textCapitalization: TextCapitalization.characters,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'tagUidRequired'.tr();
+                  }
+                  return null;
+                },
+              ),
+              const Gap(32),
+              FilledButton.icon(
+                onPressed: _isSubmitting ? null : _claimTag,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Symbols.card_membership),
+                label: Text('claimTag').tr(),
+              ),
+              const Gap(16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _claimTag() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final client = ref.read(apiClientProvider);
+      await client.post(
+        '/passport/nfc/tags/claim',
+        data: {'uid': _uidController.text.trim().toUpperCase()},
+      );
+      ref.invalidate(physicalPassportsProvider);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+      showSnackBar('tagClaimed'.tr());
     } catch (e) {
       if (mounted) {
         showErrorAlert(e);
