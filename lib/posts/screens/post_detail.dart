@@ -31,6 +31,7 @@ import 'package:island/sharing/share_sheet.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -322,49 +323,236 @@ class PostActionButtons extends HookConsumerWidget {
       );
     }
 
-    actions.add(
-      PopupMenuButton<String>(
-        tooltip: 'more'.tr(),
-        icon: const Icon(Symbols.more_vert, size: 18),
-        onSelected: (value) {
-          switch (value) {
-            case 'copy':
-              Clipboard.setData(
-                ClipboardData(text: 'https://solian.app/posts/${post.id}'),
-              );
-              break;
-            case 'report':
-              showAbuseReportSheet(
-                context,
-                resourceIdentifier: 'post/${post.id}',
-              );
-              break;
-          }
-        },
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            value: 'copy',
-            child: Row(
-              children: [
-                const Icon(Symbols.link, size: 18),
-                const Gap(8),
-                Text('copyLink'.tr()),
-              ],
-            ),
-          ),
-          PopupMenuItem(
-            value: 'report',
-            child: Row(
-              children: [
-                const Icon(Symbols.flag, size: 18),
-                const Gap(8),
-                Text('abuseReport'.tr()),
-              ],
-            ),
-          ),
-        ],
+    Widget buildMenuItem({required String label, required IconData icon}) {
+      return Row(
+        children: [Icon(icon, size: 18), const SizedBox(width: 12), Text(label)],
+      );
+    }
+
+    void Function() getMenuAction(String action) {
+      switch (action) {
+        case 'edit':
+          return () async {
+            final result = await PostComposeDialog.show(
+              context,
+              originalPost: post,
+            );
+            if (result != null) {
+              onRefresh?.call();
+            }
+          };
+        case 'delete':
+          return () {
+            showConfirmAlert(
+              'deletePostHint'.tr(),
+              'deletePost'.tr(),
+              isDanger: true,
+            ).then((confirm) {
+              if (confirm) {
+                final client = ref.watch(apiClientProvider);
+                client
+                    .delete('/sphere/posts/${post.id}')
+                    .catchError((err) {
+                      showErrorAlert(err);
+                      return err;
+                    })
+                    .then((_) {
+                      onRefresh?.call();
+                    });
+              }
+            });
+          };
+        case 'copyLink':
+          return () {
+            Clipboard.setData(
+              ClipboardData(text: 'https://solian.app/posts/${post.id}'),
+            );
+          };
+        case 'reply':
+          return () async {
+            final result = await PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(replyingTo: post),
+            );
+            if (result != null) {
+              onRefresh?.call();
+            }
+          };
+        case 'forward':
+          return () async {
+            final result = await PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(forwardingTo: post),
+            );
+            if (result != null) {
+              onRefresh?.call();
+            }
+          };
+        case 'pin':
+          return () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => PostPinSheet(post: post),
+            ).then((value) {
+              if (value is int) {
+                onUpdate?.call(post.copyWith(pinMode: value));
+              }
+            });
+          };
+        case 'unpin':
+          return () {
+            showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+              confirm,
+            ) async {
+              if (confirm) {
+                final client = ref.watch(apiClientProvider);
+                try {
+                  if (context.mounted) showLoadingModal(context);
+                  await client.delete('/sphere/posts/${post.id}/pin');
+                  onUpdate?.call(post.copyWith(pinMode: null));
+                } catch (err) {
+                  showErrorAlert(err);
+                } finally {
+                  if (context.mounted) hideLoadingModal(context);
+                }
+              }
+            });
+          };
+        case 'award':
+          return () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (context) => PostAwardSheet(post: post),
+            );
+          };
+        case 'boost':
+          return () async {
+            final client = ref.read(apiClientProvider);
+            try {
+              if (context.mounted) showLoadingModal(context);
+              await client.post('/sphere/posts/${post.id}/boost');
+              onRefresh?.call();
+            } catch (err) {
+              showErrorAlert(err);
+            } finally {
+              if (context.mounted) hideLoadingModal(context);
+            }
+          };
+        case 'share':
+          return () {
+            showShareSheetLink(
+              context: context,
+              link: 'https://solian.app/posts/${post.id}',
+              title: 'sharePost'.tr(),
+              toSystem: true,
+            );
+          };
+        case 'sharePhoto':
+          return () {
+            sharePostAsScreenshot(context, ref, post);
+          };
+        case 'openBrowser':
+          return () {
+            launchUrlString(post.fediverseUri!);
+          };
+        case 'report':
+          return () {
+            showAbuseReportSheet(
+              context,
+              resourceIdentifier: 'post:${post.id}',
+            );
+          };
+        default:
+          return () {};
+      }
+    }
+
+    final postMenuItems = <PopupMenuEntry<String>>[
+      if (isAuthor)
+        PopupMenuItem<String>(
+          value: 'edit',
+          child: buildMenuItem(label: 'edit'.tr(), icon: Symbols.edit),
+        ),
+      if (isAuthor)
+        PopupMenuItem<String>(
+          value: 'delete',
+          child: buildMenuItem(label: 'delete'.tr(), icon: Symbols.delete),
+        ),
+      if (isAuthor) const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'copyLink',
+        child: buildMenuItem(label: 'copyLink'.tr(), icon: Symbols.link),
       ),
+      PopupMenuItem<String>(
+        value: 'reply',
+        child: buildMenuItem(label: 'reply'.tr(), icon: Symbols.reply),
+      ),
+      PopupMenuItem<String>(
+        value: 'forward',
+        child: buildMenuItem(label: 'forward'.tr(), icon: Symbols.forward),
+      ),
+      if (isAuthor && post.pinMode == null)
+        PopupMenuItem<String>(
+          value: 'pin',
+          child: buildMenuItem(label: 'pinPost'.tr(), icon: Symbols.keep),
+        )
+      else if (isAuthor && post.pinMode != null)
+        PopupMenuItem<String>(
+          value: 'unpin',
+          child: buildMenuItem(label: 'unpinPost'.tr(), icon: Symbols.keep_off),
+        ),
+      PopupMenuItem<String>(
+        value: 'award',
+        child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'boost',
+        child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'share',
+        child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
+      ),
+      if (!kIsWeb)
+        PopupMenuItem<String>(
+          value: 'sharePhoto',
+          child: buildMenuItem(
+            label: 'sharePostPhoto'.tr(),
+            icon: Symbols.share_reviews,
+          ),
+        ),
+      if (post.fediverseUri != null)
+        PopupMenuItem<String>(
+          value: 'openBrowser',
+          child: buildMenuItem(
+            label: 'openInBrowser'.tr(),
+            icon: Symbols.open_in_new,
+          ),
+        ),
+      const PopupMenuDivider(),
+      PopupMenuItem<String>(
+        value: 'report',
+        child: buildMenuItem(label: 'abuseReport'.tr(), icon: Symbols.flag),
+      ),
+    ];
+
+    final trailing = PopupMenuButton<String>(
+      icon: const Icon(Symbols.more_horiz, size: 18),
+      style: ButtonStyle(
+        visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+        padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+        minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
+      ),
+      itemBuilder: (context) => postMenuItems,
+      onSelected: (action) => getMenuAction(action)(),
     );
+
+    actions.add(trailing);
 
     return Padding(
       padding: noBottomPadding
