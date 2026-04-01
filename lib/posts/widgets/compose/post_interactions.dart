@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
@@ -536,113 +537,7 @@ class ReactionListItemSkeleton extends StatelessWidget {
   }
 }
 
-class PostInteractionsTabs extends StatelessWidget {
-  final String postId;
-  final double? maxWidth;
-
-  const PostInteractionsTabs({super.key, required this.postId, this.maxWidth});
-
-  @override
-  Widget build(BuildContext context) {
-    final isWideMode = maxWidth != null;
-
-    Widget tabsContent = Column(
-      children: [
-        Container(
-          margin: isWideMode
-              ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
-              : EdgeInsets.zero,
-          decoration: isWideMode
-              ? BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(24),
-                )
-              : null,
-          child: TabBar(
-            dividerColor: Colors.transparent,
-            indicatorSize: TabBarIndicatorSize.tab,
-            splashBorderRadius: BorderRadius.circular(20),
-            indicator: isWideMode
-                ? BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(20),
-                  )
-                : null,
-            labelColor: isWideMode ? Colors.white : null,
-            unselectedLabelColor: isWideMode
-                ? Theme.of(context).colorScheme.onSurfaceVariant
-                : null,
-            tabs: [
-              Tab(text: 'replies'.tr()),
-              Tab(text: 'forwards'.tr()),
-              Tab(text: 'boosts'.tr()),
-              Tab(text: 'reactions'.plural(0)),
-            ],
-          ),
-        ),
-        const Gap(4),
-        Expanded(
-          child: _TabContent(postId: postId, maxWidth: maxWidth),
-        ),
-      ],
-    );
-
-    if (maxWidth != null) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth!),
-          child: tabsContent,
-        ),
-      );
-    }
-
-    return tabsContent;
-  }
-}
-
-class _TabContent extends HookConsumerWidget {
-  final String postId;
-  final double? maxWidth;
-
-  const _TabContent({required this.postId, this.maxWidth});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tabController = DefaultTabController.of(context);
-
-    return AnimatedBuilder(
-      animation: tabController,
-      builder: (context, child) {
-        final index = tabController.index;
-
-        Widget content;
-        switch (index) {
-          case 0:
-            content = PostRepliesListNonSliver(
-              postId: postId,
-              maxWidth: maxWidth,
-            );
-          case 1:
-            content = PostForwardsList(postId: postId, maxWidth: maxWidth);
-          case 2:
-            content = PostBoostsList(postId: postId, maxWidth: maxWidth);
-          case 3:
-            content = PostReactionsList(postId: postId, maxWidth: maxWidth);
-          default:
-            content = PostRepliesListNonSliver(
-              postId: postId,
-              maxWidth: maxWidth,
-            );
-        }
-
-        return CustomScrollView(
-          slivers: [SliverFillRemaining(hasScrollBody: true, child: content)],
-        );
-      },
-    );
-  }
-}
-
+/// Non-sliver replies list for use with PaginationList
 class PostRepliesListNonSliver extends HookConsumerWidget {
   final String postId;
   final double? maxWidth;
@@ -688,6 +583,535 @@ class PostRepliesListNonSliver extends HookConsumerWidget {
               notifier.updatePost(newPost);
             },
           ),
+        );
+
+        if (maxWidth == null) return contentWidget;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth!),
+            child: contentWidget,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Widget for use in SliverFillRemaining - uses TabBarView with regular lists.
+/// Suitable for large screen layout where tabs have independent scroll.
+class PostInteractionsTabs extends StatelessWidget {
+  final String postId;
+  final double? maxWidth;
+
+  const PostInteractionsTabs({super.key, required this.postId, this.maxWidth});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _TabBarWidget(maxWidth: maxWidth),
+        const Gap(4),
+        Expanded(
+          child: _TabViews(postId: postId, maxWidth: maxWidth),
+        ),
+      ],
+    );
+  }
+}
+
+class _TabBarWidget extends StatelessWidget {
+  final double? maxWidth;
+  const _TabBarWidget({this.maxWidth});
+
+  @override
+  Widget build(BuildContext context) {
+    final isWideMode = maxWidth != null && isWideScreen(context);
+
+    final tabBarWidget = Container(
+      margin: isWideMode
+          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+          : EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: isWideMode
+            ? BorderRadius.circular(24)
+            : BorderRadius.zero,
+      ),
+      child: TabBar(
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        splashBorderRadius: BorderRadius.circular(20),
+        indicator: isWideMode
+            ? BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(20),
+              )
+            : BoxDecoration(),
+        labelColor: isWideMode ? Colors.white : null,
+        unselectedLabelColor: isWideMode
+            ? Theme.of(context).colorScheme.onSurfaceVariant
+            : null,
+        tabs: [
+          Tab(text: 'replies'.tr()),
+          Tab(text: 'forwards'.tr()),
+          Tab(text: 'boosts'.tr()),
+          Tab(text: 'reactions'.plural(0)),
+        ],
+      ),
+    );
+
+    if (isWideMode) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth!),
+          child: tabBarWidget,
+        ),
+      );
+    }
+
+    return tabBarWidget;
+  }
+}
+
+class _TabViews extends HookConsumerWidget {
+  final String postId;
+  final double? maxWidth;
+  const _TabViews({required this.postId, this.maxWidth});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return TabBarView(
+      children: [
+        PostRepliesListNonSliver(postId: postId, maxWidth: maxWidth),
+        PostForwardsList(postId: postId, maxWidth: maxWidth),
+        PostBoostsList(postId: postId, maxWidth: maxWidth),
+        PostReactionsList(postId: postId, maxWidth: maxWidth),
+      ],
+    );
+  }
+}
+
+/// Sliver-based interactions for unified scrolling.
+/// The TabBar is a SliverToBoxAdapter and the tab content integrates
+/// with the parent CustomScrollView directly.
+class PostInteractionsSlivers extends HookConsumerWidget {
+  final String postId;
+  final double? maxWidth;
+  final TabController tabController;
+
+  const PostInteractionsSlivers({
+    super.key,
+    required this.postId,
+    this.maxWidth,
+    required this.tabController,
+  });
+
+  Widget _buildTabBar(BuildContext context) {
+    final isWideMode = maxWidth != null;
+
+    final tabBarWidget = Container(
+      margin: isWideMode
+          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+          : EdgeInsets.zero,
+      decoration: isWideMode
+          ? BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(24),
+            )
+          : null,
+      child: TabBar(
+        controller: tabController,
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        splashBorderRadius: BorderRadius.circular(20),
+        indicator: isWideMode
+            ? BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(20),
+              )
+            : null,
+        labelColor: isWideMode ? Colors.white : null,
+        unselectedLabelColor: isWideMode
+            ? Theme.of(context).colorScheme.onSurfaceVariant
+            : null,
+        tabs: [
+          Tab(text: 'replies'.tr()),
+          Tab(text: 'forwards'.tr()),
+          Tab(text: 'boosts'.tr()),
+          Tab(text: 'reactions'.plural(0)),
+        ],
+      ),
+    );
+
+    if (isWideMode) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth!),
+          child: tabBarWidget,
+        ),
+      );
+    }
+
+    return tabBarWidget;
+  }
+
+  Widget _buildTabContent(BuildContext context) {
+    final tabIndex = tabController.index;
+
+    switch (tabIndex) {
+      case 0:
+        return PostRepliesListSliver(postId: postId, maxWidth: maxWidth);
+      case 1:
+        return PostForwardsListSliver(postId: postId, maxWidth: maxWidth);
+      case 2:
+        return PostBoostsListSliver(postId: postId, maxWidth: maxWidth);
+      case 3:
+        return PostReactionsListSliver(postId: postId, maxWidth: maxWidth);
+      default:
+        return PostRepliesListSliver(postId: postId, maxWidth: maxWidth);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _PostInteractionsSliverGroup(
+      tabBar: _buildTabBar(context),
+      tabContent: _buildTabContent(context),
+    );
+  }
+}
+
+/// Internal widget to group tabBar and tab content slivers together
+class _PostInteractionsSliverGroup extends StatelessWidget {
+  final Widget tabBar;
+  final Widget tabContent;
+
+  const _PostInteractionsSliverGroup({
+    required this.tabBar,
+    required this.tabContent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // This widget returns a list of slivers that should be added to the parent scroll view
+    // We use a custom sliver grouping approach
+    return tabContent;
+  }
+}
+
+/// Provides the TabBar as a sliver for use in CustomScrollView
+class PostInteractionsSliverTabBar extends StatelessWidget {
+  final double? maxWidth;
+  final TabController tabController;
+
+  const PostInteractionsSliverTabBar({
+    super.key,
+    this.maxWidth,
+    required this.tabController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isWideMode = maxWidth != null;
+
+    final tabBarWidget = Container(
+      margin: isWideMode
+          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+          : EdgeInsets.zero,
+      decoration: isWideMode
+          ? BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(24),
+            )
+          : null,
+      child: TabBar(
+        controller: tabController,
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        splashBorderRadius: BorderRadius.circular(20),
+        indicator: isWideMode
+            ? BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(20),
+              )
+            : null,
+        labelColor: isWideMode ? Colors.white : null,
+        unselectedLabelColor: isWideMode
+            ? Theme.of(context).colorScheme.onSurfaceVariant
+            : null,
+        tabs: [
+          Tab(text: 'replies'.tr()),
+          Tab(text: 'forwards'.tr()),
+          Tab(text: 'boosts'.tr()),
+          Tab(text: 'reactions'.plural(0)),
+        ],
+      ),
+    );
+
+    if (isWideMode) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth!),
+          child: tabBarWidget,
+        ),
+      );
+    }
+
+    return tabBarWidget;
+  }
+}
+
+/// Provides the tab content as a sliver for use in CustomScrollView
+class PostInteractionsSliverContent extends HookConsumerWidget {
+  final String postId;
+  final double? maxWidth;
+  final TabController tabController;
+
+  const PostInteractionsSliverContent({
+    super.key,
+    required this.postId,
+    this.maxWidth,
+    required this.tabController,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabIndex = tabController.index;
+
+    switch (tabIndex) {
+      case 0:
+        return PostRepliesListSliver(postId: postId, maxWidth: maxWidth);
+      case 1:
+        return PostForwardsListSliver(postId: postId, maxWidth: maxWidth);
+      case 2:
+        return PostBoostsListSliver(postId: postId, maxWidth: maxWidth);
+      case 3:
+        return PostReactionsListSliver(postId: postId, maxWidth: maxWidth);
+      default:
+        return PostRepliesListSliver(postId: postId, maxWidth: maxWidth);
+    }
+  }
+}
+
+/// Sliver version of replies list
+class PostRepliesListSliver extends HookConsumerWidget {
+  final String postId;
+  final double? maxWidth;
+  const PostRepliesListSliver({super.key, required this.postId, this.maxWidth});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = postRepliesProvider(postId);
+    final notifier = ref.read(provider.notifier);
+
+    final skeletonItem = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: PostItemSkeleton(maxWidth: maxWidth ?? double.infinity),
+    );
+
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isRefreshable: false,
+      isSliver: true,
+      padding: EdgeInsets.zero,
+      footerSkeletonChild: maxWidth == null
+          ? skeletonItem
+          : Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth!),
+                child: skeletonItem,
+              ),
+            ),
+      itemBuilder: (context, index, item) {
+        final contentWidget = Card(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: PostActionableItem(
+            borderRadius: 8,
+            item: item,
+            isShowReference: false,
+            isEmbedOpenable: true,
+            onUpdate: (newPost) {
+              notifier.updatePost(newPost);
+            },
+          ),
+        );
+
+        if (maxWidth == null) return contentWidget;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth!),
+            child: contentWidget,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Sliver version of forwards list
+class PostForwardsListSliver extends HookConsumerWidget {
+  final String postId;
+  final double? maxWidth;
+  const PostForwardsListSliver({
+    super.key,
+    required this.postId,
+    this.maxWidth,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = postForwardsProvider(postId);
+
+    final skeletonItem = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: PostItemSkeleton(maxWidth: maxWidth ?? double.infinity),
+    );
+
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isRefreshable: false,
+      isSliver: true,
+      padding: EdgeInsets.zero,
+      footerSkeletonChild: maxWidth == null
+          ? skeletonItem
+          : Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth!),
+                child: skeletonItem,
+              ),
+            ),
+      itemBuilder: (context, index, item) {
+        final contentWidget = Card(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: PostActionableItem(
+            borderRadius: 8,
+            item: item,
+            isShowReference: false,
+            isEmbedOpenable: true,
+            onUpdate: (newPost) {
+              // Forward posts are separate posts, not replies
+            },
+          ),
+        );
+
+        if (maxWidth == null) return contentWidget;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth!),
+            child: contentWidget,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Sliver version of boosts list
+class PostBoostsListSliver extends HookConsumerWidget {
+  final String postId;
+  final double? maxWidth;
+  const PostBoostsListSliver({super.key, required this.postId, this.maxWidth});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = postBoostsProvider(postId);
+
+    final skeletonItem = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Skeletonizer(
+        enabled: true,
+        effect: ShimmerEffect(
+          baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+          highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        ),
+        containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+        child: const BoostListItemSkeleton(),
+      ),
+    );
+
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isRefreshable: false,
+      isSliver: true,
+      padding: EdgeInsets.zero,
+      footerSkeletonChild: maxWidth == null
+          ? skeletonItem
+          : Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth!),
+                child: skeletonItem,
+              ),
+            ),
+      itemBuilder: (context, index, item) {
+        final contentWidget = Card(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: BoostListItem(boost: item),
+        );
+
+        if (maxWidth == null) return contentWidget;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth!),
+            child: contentWidget,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Sliver version of reactions list
+class PostReactionsListSliver extends HookConsumerWidget {
+  final String postId;
+  final double? maxWidth;
+  const PostReactionsListSliver({
+    super.key,
+    required this.postId,
+    this.maxWidth,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = postReactionsProvider(postId);
+
+    final skeletonItem = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Skeletonizer(
+        enabled: true,
+        effect: ShimmerEffect(
+          baseColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+          highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        ),
+        containersColor: Theme.of(context).colorScheme.surfaceContainerLow,
+        child: const ReactionListItemSkeleton(),
+      ),
+    );
+
+    return PaginationList(
+      provider: provider,
+      notifier: provider.notifier,
+      isRefreshable: false,
+      isSliver: true,
+      padding: EdgeInsets.zero,
+      footerSkeletonChild: maxWidth == null
+          ? skeletonItem
+          : Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth!),
+                child: skeletonItem,
+              ),
+            ),
+      itemBuilder: (context, index, item) {
+        final contentWidget = Card(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: ReactionListItem(reaction: item),
         );
 
         if (maxWidth == null) return contentWidget;
