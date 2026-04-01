@@ -95,7 +95,7 @@ class UniversalImage extends HookConsumerWidget {
               memCacheHeight: cacheHeight,
               memCacheWidth: cacheWidth,
               imageBuilder: (context, imageProvider) => Image(
-                image: imageProvider,
+                image: CachedNetworkImageProvider(uri, headers: httpHeaders),
                 fit: fit,
                 width: width,
                 height: height,
@@ -133,7 +133,10 @@ class UniversalImage extends HookConsumerWidget {
                   opacity: loaded.value ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 300),
                   child: Image(
-                    image: imageProvider,
+                    image: CachedNetworkImageProvider(
+                      uri,
+                      headers: httpHeaders,
+                    ),
                     fit: fit,
                     width: width,
                     height: height,
