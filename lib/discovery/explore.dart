@@ -935,7 +935,7 @@ class ExploreScreen extends HookConsumerWidget {
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                                Expanded(
+                                Flexible(
                                   child: Text(
                                     'explore'.tr(),
                                     maxLines: 1,
@@ -963,7 +963,7 @@ class ExploreScreen extends HookConsumerWidget {
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                                Expanded(
+                                Flexible(
                                   child: Text(
                                     'exploreFilterSubscriptions'.tr(),
                                     maxLines: 1,
@@ -991,7 +991,7 @@ class ExploreScreen extends HookConsumerWidget {
                                     context,
                                   ).appBarTheme.foregroundColor,
                                 ),
-                                Expanded(
+                                Flexible(
                                   child: Text(
                                     'exploreFilterFriends'.tr(),
                                     maxLines: 1,

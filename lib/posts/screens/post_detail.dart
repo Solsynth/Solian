@@ -513,9 +513,13 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                               ),
                             ),
                             SliverFillRemaining(
-                              child: PostInteractionsTabs(
-                                postId: postId,
-                                maxWidth: _postDetailMaxWidth,
+                              hasScrollBody: true,
+                              child: DefaultTabController(
+                                length: 4,
+                                child: PostInteractionsTabs(
+                                  postId: postId,
+                                  maxWidth: _postDetailMaxWidth,
+                                ),
                               ),
                             ),
                           ],
@@ -596,7 +600,6 @@ class PostDetailScreen extends HookConsumerWidget {
                         },
                       )
                     : CustomScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
                           if (postItem.type == 1 && thumbnail != null)
                             SliverToBoxAdapter(
@@ -671,6 +674,7 @@ class PostDetailScreen extends HookConsumerWidget {
                             ),
                           ),
                           SliverFillRemaining(
+                            hasScrollBody: true,
                             child: DefaultTabController(
                               length: 4,
                               child: PostInteractionsTabs(
