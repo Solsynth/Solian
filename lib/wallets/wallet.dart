@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -1278,7 +1279,7 @@ class WalletScreen extends HookConsumerWidget {
       return () => tabController.removeListener(listener);
     }, [tabController]);
 
-    // Trigger animation when wallet data loads or currency changes
+    // Trigger animation only when wallet data loads (not on currency change)
     useEffect(() {
       wallet.whenData((data) {
         if (data != null) {
@@ -1299,7 +1300,30 @@ class WalletScreen extends HookConsumerWidget {
         }
       });
       return null;
-    }, [wallet, selectedCurrency.value]);
+    }, [wallet]);
+
+    // Update animated balance when currency changes (without animation)
+    useEffect(() {
+      wallet.whenData((data) {
+        if (data != null) {
+          final pocket = data.pockets.firstWhere(
+            (p) => p.currency == selectedCurrency.value,
+            orElse: () => SnWalletPocket(
+              id: '',
+              currency: selectedCurrency.value,
+              amount: 0.0,
+              walletId: '',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              deletedAt: null,
+            ),
+          );
+          // Update the value directly without animation
+          animatedBalance.value = pocket.amount;
+        }
+      });
+      return null;
+    }, [selectedCurrency.value]);
 
     Future<void> createWallet() async {
       final client = ref.read(apiClientProvider);
@@ -1399,6 +1423,7 @@ class WalletScreen extends HookConsumerWidget {
                       isFullAmountVisible,
                       balanceAnimationController,
                       animatedBalance,
+                      data.id,
                     ).padding(horizontal: 16, top: 16),
                     _buildBalanceStats(context, ref, selectedCurrency),
                   ],
@@ -1490,61 +1515,77 @@ class WalletScreen extends HookConsumerWidget {
     required List<SnWalletPocket> pockets,
     required ThemeData theme,
   }) {
-    return PopupMenuButton<String>(
-      initialValue: selectedCurrency.value,
-      onSelected: (value) => selectedCurrency.value = value,
-      offset: const Offset(0, 40),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimaryContainer.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              kCurrencyIconData[selectedCurrency.value] ??
-                  Symbols.monetization_on,
-              size: 16,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-            const Gap(4),
-            Text(
-              'walletCurrency${selectedCurrency.value[0].toUpperCase()}${selectedCurrency.value.substring(1).toLowerCase()}'
-                  .tr(),
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Gap(4),
-            Icon(
-              Symbols.keyboard_arrow_down,
-              size: 16,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-          ],
-        ),
-      ),
-      itemBuilder: (context) => pockets.map((pocket) {
-        return PopupMenuItem(
-          value: pocket.currency,
+    return DropdownButtonHideUnderline(
+      child: DropdownButton2<String>(
+        valueListenable: selectedCurrency,
+        onChanged: (value) {
+          if (value != null) {
+            selectedCurrency.value = value;
+          }
+        },
+        customButton: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.onPrimaryContainer.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                kCurrencyIconData[pocket.currency] ?? Symbols.monetization_on,
-                size: 18,
+                kCurrencyIconData[selectedCurrency.value] ??
+                    Symbols.monetization_on,
+                size: 16,
+                color: theme.colorScheme.onPrimaryContainer,
               ),
-              const Gap(8),
+              const Gap(4),
               Text(
-                'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
+                'walletCurrency${selectedCurrency.value[0].toUpperCase()}${selectedCurrency.value.substring(1).toLowerCase()}'
                     .tr(),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Gap(4),
+              Icon(
+                Symbols.keyboard_arrow_down,
+                size: 16,
+                color: theme.colorScheme.onPrimaryContainer,
               ),
             ],
           ),
-        );
-      }).toList(),
+        ),
+        dropdownStyleData: DropdownStyleData(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          offset: const Offset(0, -4),
+          padding: const EdgeInsets.symmetric(vertical: 4),
+        ),
+        menuItemStyleData: MenuItemStyleData(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+        ),
+        items: pockets.map((pocket) {
+          return DropdownItem<String>(
+            value: pocket.currency,
+            child: Row(
+              children: [
+                Icon(
+                  kCurrencyIconData[pocket.currency] ?? Symbols.monetization_on,
+                  size: 18,
+                ),
+                const Gap(8),
+                Text(
+                  'walletCurrency${pocket.currency[0].toUpperCase()}${pocket.currency.substring(1).toLowerCase()}'
+                      .tr(),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -1603,6 +1644,7 @@ class WalletScreen extends HookConsumerWidget {
     ValueNotifier<bool> isFullAmountVisible,
     AnimationController balanceAnimationController,
     ValueNotifier<double> animatedBalance,
+    String? walletId,
   ) {
     final theme = Theme.of(context);
     final isWide = isWideScreen(context);

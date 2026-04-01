@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 3.7.0+192
+version: 3.7.0+193
 
 environment:
   sdk: ">3.10.0"
@@ -81,7 +81,7 @@ dependencies:
   flutter_udid: ^4.1.2
   firebase_core: ^4.6.0
   web_socket_channel: ^3.0.3
-  material_symbols_icons: ^4.2928.0
+  material_symbols_icons: ^4.2928.1
   objectbox: ^5.3.1
   objectbox_flutter_libs: ^5.3.1
   path: ^1.9.1
@@ -116,7 +116,7 @@ dependencies:
   native_exif: ^0.7.0
   local_auth: ^3.0.1
   flutter_secure_storage: ^10.0.0
-  openmls: ^1.2.0
+  openmls: ^1.3.0
   flutter_math_fork: ^0.7.4
   flutter_nfc_kit: ^3.6.2
   ndef: ^0.4.0
@@ -189,7 +189,7 @@ dependencies:
   flutter_tts: ^4.2.5
   pinput: ^6.0.2
   # https://github.com/djx-y-z/openmls_dart/issues/4
-  flutter_rust_bridge: 2.11.1
+  flutter_rust_bridge: ^2.12.0
 
 dev_dependencies:
   flutter_test:
