@@ -151,6 +151,8 @@ PODS:
   - flutter_secure_storage_darwin (10.0.0):
     - Flutter
     - FlutterMacOS
+  - flutter_sharing_intent (1.0.1):
+    - Flutter
   - flutter_timezone (0.0.1):
     - Flutter
   - flutter_tts (0.0.1):
@@ -239,7 +241,7 @@ PODS:
     - Flutter
     - FlutterMacOS
   - KeychainAccess (4.2.2)
-  - Kingfisher (8.8.0)
+  - Kingfisher (8.8.1)
   - KingfisherWebP (1.7.3):
     - Kingfisher (~> 8.0)
     - libwebp (>= 1.1.0)
@@ -292,8 +294,6 @@ PODS:
   - protocol_handler_ios (0.0.1):
     - Flutter
   - quick_actions_ios (0.0.1):
-    - Flutter
-  - receive_sharing_intent (1.8.1):
     - Flutter
   - record_ios (1.2.0):
     - Flutter
@@ -350,6 +350,7 @@ DEPENDENCIES:
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - flutter_nfc_kit (from `.symlinks/plugins/flutter_nfc_kit/ios`)
   - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
+  - flutter_sharing_intent (from `.symlinks/plugins/flutter_sharing_intent/ios`)
   - flutter_timezone (from `.symlinks/plugins/flutter_timezone/ios`)
   - flutter_tts (from `.symlinks/plugins/flutter_tts/ios`)
   - flutter_udid (from `.symlinks/plugins/flutter_udid/ios`)
@@ -376,7 +377,6 @@ DEPENDENCIES:
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
   - protocol_handler_ios (from `.symlinks/plugins/protocol_handler_ios/ios`)
   - quick_actions_ios (from `.symlinks/plugins/quick_actions_ios/ios`)
-  - receive_sharing_intent (from `.symlinks/plugins/receive_sharing_intent/ios`)
   - record_ios (from `.symlinks/plugins/record_ios/ios`)
   - sensors_plus (from `.symlinks/plugins/sensors_plus/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -461,6 +461,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_nfc_kit/ios"
   flutter_secure_storage_darwin:
     :path: ".symlinks/plugins/flutter_secure_storage_darwin/darwin"
+  flutter_sharing_intent:
+    :path: ".symlinks/plugins/flutter_sharing_intent/ios"
   flutter_timezone:
     :path: ".symlinks/plugins/flutter_timezone/ios"
   flutter_tts:
@@ -509,8 +511,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/protocol_handler_ios/ios"
   quick_actions_ios:
     :path: ".symlinks/plugins/quick_actions_ios/ios"
-  receive_sharing_intent:
-    :path: ".symlinks/plugins/receive_sharing_intent/ios"
   record_ios:
     :path: ".symlinks/plugins/record_ios/ios"
   sensors_plus:
@@ -569,6 +569,7 @@ SPEC CHECKSUMS:
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
   flutter_nfc_kit: e1b71583eafd2c9650bc86844a7f2d185fb414f6
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
+  flutter_sharing_intent: 0c1e53949f09fa8df8ac2268505687bde8ff264c
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
   flutter_tts: 35ac3c7d42412733e795ea96ad2d7e05d0a75113
   flutter_udid: 92a5d31fe0526b7b6002a2318df702e12e7eb300
@@ -586,7 +587,7 @@ SPEC CHECKSUMS:
   irondash_engine_context: 8e58ca8e0212ee9d1c7dc6a42121849986c88486
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
   KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
-  Kingfisher: beeaf65ed57dfa710d416aea4093277e8a9b1968
+  Kingfisher: b6c16059112dd6bdadf3d7ae01472ea1ef01a6b8
   KingfisherWebP: 064869d5f1201396ec121dcc4c9cfbdba6ecb900
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   livekit_client: 53ca658779b78710fb458cccee28b53a13356c15
@@ -606,7 +607,6 @@ SPEC CHECKSUMS:
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   protocol_handler_ios: 59f23ee71f3ec602d67902ca7f669a80957888d5
   quick_actions_ios: 500fcc11711d9f646739093395c4ae8eec25f779
-  receive_sharing_intent: 222384f00ffe7e952bbfabaa9e3967cb87e5fe00
   record_ios: 412daca2350b228e698fffcd08f1f94ceb1e3844
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b

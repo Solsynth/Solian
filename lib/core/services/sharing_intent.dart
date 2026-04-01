@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/route.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
+import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -14,7 +15,7 @@ class SharingIntentService {
   factory SharingIntentService() => _instance;
   SharingIntentService._internal();
 
-  StreamSubscription<List<SharedMediaFile>>? _intentSub;
+  StreamSubscription<List<SharedFile>>? _intentSub;
 
   /// Initialize the sharing intent service
   void initialize(BuildContext _) {
@@ -28,8 +29,8 @@ class SharingIntentService {
     debugPrint("SharingIntentService: Setting up sharing listeners");
 
     // Listen to media sharing coming from outside the app while the app is in memory
-    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen(
-      (List<SharedMediaFile> value) {
+    _intentSub = FlutterSharingIntent.instance.getMediaStream().listen(
+      (List<SharedFile> value) {
         debugPrint(
           "SharingIntentService: Media stream received ${value.length} files",
         );
@@ -43,8 +44,8 @@ class SharingIntentService {
     );
 
     // Get the media sharing coming from outside the app while the app is closed
-    ReceiveSharingIntent.instance.getInitialMedia().then((
-      List<SharedMediaFile> value,
+    FlutterSharingIntent.instance.getInitialSharing().then((
+      List<SharedFile> value,
     ) {
       debugPrint(
         "SharingIntentService: Initial media received ${value.length} files",
@@ -52,14 +53,14 @@ class SharingIntentService {
       if (value.isNotEmpty) {
         _handleSharedContent(value);
         // Tell the library that we are done processing the intent
-        ReceiveSharingIntent.instance.reset();
+        FlutterSharingIntent.instance.reset();
       }
     });
   }
 
   /// Handle shared media files
   void _handleSharedContent(
-    List<SharedMediaFile> sharedFiles, {
+    List<SharedFile> sharedFiles, {
     int retryCount = 0,
   }) {
     debugPrint(
@@ -67,25 +68,25 @@ class SharingIntentService {
     );
     for (final file in sharedFiles) {
       debugPrint(
-        "SharingIntentService: File path: ${file.path}, type: ${file.type}",
+        "SharingIntentService: File path: ${file.value}, type: ${file.type}",
       );
     }
 
-    // Convert SharedMediaFile to XFile for files
+    // Convert SharedFile to XFile for files
     final List<XFile> files = sharedFiles
         .where(
           (file) =>
-              file.type == SharedMediaType.file ||
-              file.type == SharedMediaType.video ||
-              file.type == SharedMediaType.image,
+              file.type == SharedMediaType.IMAGE ||
+              file.type == SharedMediaType.VIDEO ||
+              file.type == SharedMediaType.FILE,
         )
-        .map((file) => XFile(file.path, name: file.path.split('/').last))
+        .map((file) => XFile(file.value!, name: file.value!.split('/').last))
         .toList();
 
     // Extract links from shared content
     final List<String> links = sharedFiles
-        .where((file) => file.type == SharedMediaType.url)
-        .map((file) => file.path)
+        .where((file) => file.type == SharedMediaType.URL)
+        .map((file) => file.value!)
         .toList();
 
     // Treat solian:// URLs as deep links, not share payload.
@@ -100,7 +101,9 @@ class SharingIntentService {
     if (solianDeepLink != null) {
       final uri = Uri.tryParse(solianDeepLink);
       if (uri != null) {
-        debugPrint("SharingIntentService: Dispatching deep link $solianDeepLink");
+        debugPrint(
+          "SharingIntentService: Dispatching deep link $solianDeepLink",
+        );
         eventBus.fire(SolianDeepLinkEvent(uri));
         return;
       }
@@ -133,7 +136,7 @@ class SharingIntentService {
         context: ctx,
         content: ShareContent.text(
           sharedFiles
-              .where((file) => file.type == SharedMediaType.text)
+              .where((file) => file.type == SharedMediaType.TEXT)
               .map((text) => text.message)
               .join('\n'),
         ),
