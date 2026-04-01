@@ -5,10 +5,7 @@
 //  Created by LittleSheep on 2025/6/25.
 //
 
-import receive_sharing_intent
+import flutter_sharing_intent
 
-class ShareViewController: RSIShareViewController {
-    override func shouldAutoRedirect() -> Bool {
-        return true
-    }
+class ShareViewController: FSIShareViewController {
 }
