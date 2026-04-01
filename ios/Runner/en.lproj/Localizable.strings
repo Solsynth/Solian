@@ -1,10 +1,15 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "Open Chat";
 "intent_open_chat_desc" = "Open a specific chat room";
+"intent_chat_room_title" = "Chat Room";
+"intent_chat_room_parameter" = "Chat Room";
+"intent_message_parameter" = "Message";
 
 /* App Intents - Post */
 "intent_open_post_title" = "Open Post";
 "intent_open_post_desc" = "Open a specific post";
+"intent_post_title" = "Post";
+"intent_post_parameter" = "Post";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "Open Compose";
@@ -15,6 +20,7 @@
 /* App Intents - Search */
 "intent_search_title" = "Search Content";
 "intent_search_desc" = "Search for content";
+"intent_search_query_parameter" = "Search Query";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "View Notifications";
@@ -31,3 +37,4 @@
 "intent_unread_chats_desc" = "Check number of unread chat messages";
 "intent_mark_read_title" = "Mark Notifications Read";
 "intent_mark_read_desc" = "Mark all notifications as read";
+"intent_message_count_parameter" = "Number of Messages";

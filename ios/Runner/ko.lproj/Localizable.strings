@@ -1,10 +1,15 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "채팅 열기";
 "intent_open_chat_desc" = "특정 채팅방 열기";
+"intent_chat_room_title" = "채팅방";
+"intent_chat_room_parameter" = "채팅방";
+"intent_message_parameter" = "메시지";
 
 /* App Intents - Post */
 "intent_open_post_title" = "게시물 열기";
 "intent_open_post_desc" = "특정 게시물 열기";
+"intent_post_title" = "게시물";
+"intent_post_parameter" = "게시물";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "글쓰기 열기";
@@ -15,6 +20,7 @@
 /* App Intents - Search */
 "intent_search_title" = "검색";
 "intent_search_desc" = "콘텐츠 검색";
+"intent_search_query_parameter" = "검색어";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "알림 보기";
@@ -31,3 +37,4 @@
 "intent_unread_chats_desc" = "읽지 않은 채팅 메시지 수 확인";
 "intent_mark_read_title" = "알림 읽음 처리";
 "intent_mark_read_desc" = "모든 알림을 읽음으로 처리";
+"intent_message_count_parameter" = "메시지 수";

@@ -6,7 +6,149 @@
 //
 
 import AppIntents
-import UIKit
+
+// MARK: - Chat Room Entity
+
+@available(iOS 16.0, *)
+struct ChatRoomEntity: AppEntity {
+    let id: String
+    let name: String?
+    let type: Int
+    let picture: NetworkService.SnCloudFile?
+
+    static var typeDisplayName: LocalizedStringResource = "intent_chat_room_title"
+    static var defaultQuery = ChatRoomEntityQuery()
+
+    var displayRepresentation: DisplayRepresentation {
+        let title = name ?? "Chat Room \(id.prefix(8))"
+        let subtitle = type == 0 ? "Direct Message" : (type == 1 ? "Group Chat" : "Chat")
+        return DisplayRepresentation(
+            title: "\(title)",
+            subtitle: "\(subtitle)",
+            image: picture?.url.flatMap { URL(string: $0) }.map { .init(url: $0) }
+        )
+    }
+}
+
+@available(iOS 16.0, *)
+struct ChatRoomEntityQuery: EntityQuery {
+    private var cachedRooms: [ChatRoomEntity] = []
+    private var cacheTimestamp: Date?
+
+    func entities(for identifiers: [String]) async throws -> [ChatRoomEntity] {
+        let rooms = try await fetchRooms()
+        return rooms.filter { identifiers.contains($0.id) }
+    }
+
+    func suggestedEntities() async throws -> [ChatRoomEntity] {
+        let rooms = try await fetchRooms()
+        return Array(rooms.prefix(20))
+    }
+
+    func entities(matching string: String) async throws -> [ChatRoomEntity] {
+        let rooms = try await fetchRooms()
+        let lowercased = string.lowercased()
+        return rooms.filter { room in
+            room.name?.lowercased().contains(lowercased) ?? false
+        }
+    }
+
+    private func fetchRooms() async throws -> [ChatRoomEntity] {
+        let now = Date()
+        if let cache = cacheTimestamp, now.timeIntervalSince(cache) < 300, !cachedRooms.isEmpty {
+            return cachedRooms
+        }
+
+        let rooms = try await NetworkService.shared.getChatRooms()
+        let entities = rooms.map { room in
+            ChatRoomEntity(
+                id: room.id,
+                name: room.name ?? room.description,
+                type: room.type,
+                picture: room.picture
+            )
+        }
+        cachedRooms = entities
+        cacheTimestamp = now
+        return entities
+    }
+}
+
+// MARK: - Post Entity
+
+@available(iOS 16.0, *)
+struct PostEntity: AppEntity {
+    let id: String
+    let content: String?
+    let authorName: String?
+    let authorPicture: NetworkService.SnCloudFile?
+    let createdAt: String
+
+    static var typeDisplayName: LocalizedStringResource = "intent_post_title"
+    static var defaultQuery = PostEntityQuery()
+
+    var displayRepresentation: DisplayRepresentation {
+        let title = content?.prefix(50).description ?? "Post \(id.prefix(8))"
+        let subtitle = authorName.map { "by \($0)" } ?? ""
+        return DisplayRepresentation(
+            title: "\(title)",
+            subtitle: "\(subtitle)",
+            image: authorPicture?.url.flatMap { URL(string: $0) }.map { .init(url: $0) }
+        )
+    }
+}
+
+@available(iOS 16.0, *)
+struct PostEntityQuery: EntityQuery {
+    private var cachedPosts: [PostEntity] = []
+    private var cacheTimestamp: Date?
+
+    func entities(for identifiers: [String]) async throws -> [PostEntity] {
+        let posts = try await fetchPosts()
+        return posts.filter { identifiers.contains($0.id) }
+    }
+
+    func suggestedEntities() async throws -> [PostEntity] {
+        let posts = try await fetchPosts()
+        return Array(posts.prefix(10))
+    }
+
+    func entities(matching string: String) async throws -> [PostEntity] {
+        let posts = try await NetworkService.shared.searchPosts(query: string)
+        return posts.map { post in
+            PostEntity(
+                id: post.id,
+                content: post.content,
+                authorName: post.author?.name,
+                authorPicture: post.author?.picture,
+                createdAt: post.createdAt
+            )
+        }
+    }
+
+    private func fetchPosts() async throws -> [PostEntity] {
+        let now = Date()
+        if let cache = cacheTimestamp, now.timeIntervalSince(cache) < 300, !cachedPosts.isEmpty {
+            return cachedPosts
+        }
+
+        let posts = try await NetworkService.shared.searchPosts(query: "", limit: 10)
+        let entities = posts.map { post in
+            PostEntity(
+                id: post.id,
+                content: post.content,
+                authorName: post.author?.name,
+                authorPicture: post.author?.picture,
+                createdAt: post.createdAt
+            )
+        }
+        cachedPosts = entities
+        cacheTimestamp = now
+        return entities
+    }
+}
+
+// MARK: - Open Chat Intent
 
 @available(iOS 16.0, *)
 struct OpenChatIntent: AppIntent {
@@ -15,19 +157,25 @@ struct OpenChatIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
-    @Parameter(title: "Channel ID")
-    var channelId: String?
+    @Parameter(title: "intent_chat_room_parameter", description: "The chat room to open")
+    var chatRoom: ChatRoomEntity?
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Open chat with \(\.$chatRoom)")
+    }
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        guard let channelId = channelId, !channelId.isEmpty else {
-            throw AppIntentError.requiredParameter("Channel ID")
+        if let chatRoom = chatRoom {
+            DeepLinkHandler.shared.handle(url: URL(string: "solian://chat/\(chatRoom.id)")!)
+            return .result(value: "Opening chat \(chatRoom.name ?? chatRoom.id)")
+        } else {
+            DeepLinkHandler.shared.handle(url: URL(string: "solian://chat")!)
+            return .result(value: "Opening chat list")
         }
-
-        DeepLinkHandler.shared.handle(url: URL(string: "solian://chat/\(channelId)")!)
-
-        return .result(value: "Opening chat \(channelId)")
     }
 }
+
+// MARK: - Open Post Intent
 
 @available(iOS 16.0, *)
 struct OpenPostIntent: AppIntent {
@@ -36,19 +184,25 @@ struct OpenPostIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
-    @Parameter(title: "Post ID")
-    var postId: String?
+    @Parameter(title: "intent_post_parameter", description: "The post to open")
+    var post: PostEntity?
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Open post \(\.$post)")
+    }
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        guard let postId = postId, !postId.isEmpty else {
-            throw AppIntentError.requiredParameter("Post ID")
+        guard let post = post else {
+            throw AppIntentError.requiredParameter("Post")
         }
 
-        DeepLinkHandler.shared.handle(url: URL(string: "solian://posts/\(postId)")!)
+        DeepLinkHandler.shared.handle(url: URL(string: "solian://posts/\(post.id)")!)
 
-        return .result(value: "Opening post \(postId)")
+        return .result(value: "Opening post \(post.id)")
     }
 }
+
+// MARK: - Open Compose Intent
 
 @available(iOS 16.0, *)
 struct OpenComposeIntent: AppIntent {
@@ -64,6 +218,8 @@ struct OpenComposeIntent: AppIntent {
     }
 }
 
+// MARK: - Compose Post Intent
+
 @available(iOS 16.0, *)
 struct ComposePostIntent: AppIntent {
     static var title: LocalizedStringResource = "intent_compose_post_title"
@@ -78,6 +234,8 @@ struct ComposePostIntent: AppIntent {
     }
 }
 
+// MARK: - Search Content Intent
+
 @available(iOS 16.0, *)
 struct SearchContentIntent: AppIntent {
     static var title: LocalizedStringResource = "intent_search_title"
@@ -85,8 +243,12 @@ struct SearchContentIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = true
 
-    @Parameter(title: "Search Query")
+    @Parameter(title: "intent_search_query_parameter")
     var query: String?
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Search for \(\.$query)")
+    }
 
     func perform() async throws -> some IntentResult & OpensIntent {
         guard let query = query, !query.isEmpty else {
@@ -99,6 +261,8 @@ struct SearchContentIntent: AppIntent {
         return .result(value: "Searching for \"\(query)\"")
     }
 }
+
+// MARK: - View Notifications Intent
 
 @available(iOS 16.0, *)
 struct ViewNotificationsIntent: AppIntent {
@@ -113,6 +277,8 @@ struct ViewNotificationsIntent: AppIntent {
         return .result(value: "Opening notifications")
     }
 }
+
+// MARK: - Check Notifications Intent
 
 @available(iOS 16.0, *)
 struct CheckNotificationsIntent: AppIntent {
@@ -144,6 +310,8 @@ struct CheckNotificationsIntent: AppIntent {
     }
 }
 
+// MARK: - Send Message Intent
+
 @available(iOS 16.0, *)
 struct SendMessageIntent: AppIntent {
     static var title: LocalizedStringResource = "intent_send_message_title"
@@ -151,26 +319,22 @@ struct SendMessageIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
-    @Parameter(title: "Channel ID")
-    var channelId: String?
+    @Parameter(title: "intent_chat_room_parameter")
+    var chatRoom: ChatRoomEntity
 
-    @Parameter(title: "Message Content")
-    var content: String?
+    @Parameter(title: "intent_message_parameter")
+    var message: String
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Send \"\(.$message)\" to \(.$chatRoom)")
+    }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard let channelId = channelId, !channelId.isEmpty else {
-            throw AppIntentError.requiredParameter("Channel ID")
-        }
-
-        guard let content = content, !content.isEmpty else {
-            throw AppIntentError.requiredParameter("Message Content")
-        }
-
         do {
-            try await NetworkService.shared.sendMessage(channelId: channelId, content: content)
+            try await NetworkService.shared.sendMessage(channelId: chatRoom.id, content: message)
 
             return .result(
-                value: "Message sent to channel \(channelId)",
+                value: "Message sent to \(chatRoom.name ?? chatRoom.id)",
                 dialog: "Message sent successfully"
             )
         } catch {
@@ -179,6 +343,8 @@ struct SendMessageIntent: AppIntent {
     }
 }
 
+// MARK: - Read Messages Intent
+
 @available(iOS 16.0, *)
 struct ReadMessagesIntent: AppIntent {
     static var title: LocalizedStringResource = "intent_read_messages_title"
@@ -186,30 +352,29 @@ struct ReadMessagesIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
-    @Parameter(title: "Channel ID")
-    var channelId: String?
+    @Parameter(title: "intent_chat_room_parameter")
+    var chatRoom: ChatRoomEntity
 
-    @Parameter(title: "Number of Messages", default: "5")
-    var limit: String?
+    @Parameter(title: "intent_message_count_parameter", default: 5)
+    var limit: Int
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Read \(.$limit) messages from \(.$chatRoom)")
+    }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard let channelId = channelId, !channelId.isEmpty else {
-            throw AppIntentError.requiredParameter("Channel ID")
-        }
-
-        let limitValue = Int(limit ?? "5") ?? 5
-        let safeLimit = max(1, min(20, limitValue))
+        let safeLimit = max(1, min(20, limit))
 
         do {
             let messages = try await NetworkService.shared.getMessages(
-                channelId: channelId,
+                channelId: chatRoom.id,
                 offset: 0,
                 take: safeLimit
             )
 
             if messages.isEmpty {
                 return .result(
-                    value: "No messages found in channel \(channelId)",
+                    value: "No messages found in \(chatRoom.name ?? chatRoom.id)",
                     dialog: "No messages found"
                 )
             }
@@ -229,6 +394,8 @@ struct ReadMessagesIntent: AppIntent {
         }
     }
 }
+
+// MARK: - Check Unread Chats Intent
 
 @available(iOS 16.0, *)
 struct CheckUnreadChatsIntent: AppIntent {
@@ -260,6 +427,8 @@ struct CheckUnreadChatsIntent: AppIntent {
     }
 }
 
+// MARK: - Mark Notifications Read Intent
+
 @available(iOS 16.0, *)
 struct MarkNotificationsReadIntent: AppIntent {
     static var title: LocalizedStringResource = "intent_mark_read_title"
@@ -280,6 +449,8 @@ struct MarkNotificationsReadIntent: AppIntent {
         }
     }
 }
+
+// MARK: - Error Handling
 
 enum AppIntentError: Error, CustomLocalizedStringResourceConvertible {
     case requiredParameter(String)

@@ -1,10 +1,15 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "打开聊天";
 "intent_open_chat_desc" = "打开特定聊天室";
+"intent_chat_room_title" = "聊天室";
+"intent_chat_room_parameter" = "聊天室";
+"intent_message_parameter" = "消息内容";
 
 /* App Intents - Post */
 "intent_open_post_title" = "打开帖子";
 "intent_open_post_desc" = "打开特定帖子";
+"intent_post_title" = "帖子";
+"intent_post_parameter" = "帖子";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "打开撰写";
@@ -15,6 +20,7 @@
 /* App Intents - Search */
 "intent_search_title" = "搜索内容";
 "intent_search_desc" = "搜索内容";
+"intent_search_query_parameter" = "搜索关键词";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "查看通知";
@@ -31,3 +37,4 @@
 "intent_unread_chats_desc" = "检查未读聊天消息数量";
 "intent_mark_read_title" = "标记通知已读";
 "intent_mark_read_desc" = "将所有通知标记为已读";
+"intent_message_count_parameter" = "消息数量";
