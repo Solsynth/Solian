@@ -118,7 +118,7 @@ class AuthFactorSheet extends HookConsumerWidget {
       }
 
       try {
-        showLoadingModal(context);
+        if (context.mounted) showLoadingModal(context);
         final client = ref.read(apiClientProvider);
         final response = await client.post(
           '/padlock/factors/${factor.id}/enable',
