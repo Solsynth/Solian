@@ -2328,5 +2328,11 @@
   "assignedUserIdHint": "Leave empty for first-scan claim",
   "assignedUserIdDescription": "If set, only this user can claim the tag. If empty, the first authenticated scanner will claim it.",
   "registerEncryptedTag": "Register Encrypted Tag",
-  "encryptedTagRegistered": "Encrypted tag registered successfully"
+  "encryptedTagRegistered": "Encrypted tag registered successfully",
+  "claimEncryptedTag": "Claim Encrypted Tag",
+  "claimEncryptedTagDescription": "Enter the UID of a factory-produced encrypted tag to claim it. The UID is usually printed on the tag.",
+  "claimTagUidHint": "Enter the tag UID (e.g., 04A1B2C3D4E5F6)",
+  "tagUidRequired": "Tag UID is required",
+  "claimTag": "Claim Tag",
+  "tagClaimed": "Tag claimed successfully"
 }
