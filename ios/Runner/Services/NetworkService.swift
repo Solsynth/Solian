@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppIntents
 
 final class NetworkService {
     static let shared = NetworkService()
@@ -24,7 +25,7 @@ final class NetworkService {
     }
 
     private var baseUrl: String {
-        UserDefaults.shared.getServerUrl()
+        UserDefaults.standard.getServerUrl()
     }
 
     private var baseHeaders: [String: String] {
@@ -36,7 +37,7 @@ final class NetworkService {
 
     private func applyAuthHeaders(to request: inout URLRequest) async {
         baseHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        if let token = await UserDefaults.shared.getValidFlutterToken() {
+        if let token = UserDefaults.standard.getAuthToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
     }
@@ -73,6 +74,30 @@ final class NetworkService {
         let url = try buildUrl(path: path)
         let body = SendMessageBody(content: content, nonce: generateNonce())
         let _: EmptyResponse = try await post(url: url, body: body)
+    }
+
+    func getChatRooms() async throws -> [ChatRoomResponse] {
+        let url = try buildUrl(path: SharedConstants.API.chatRooms)
+        let response: ChatRoomsResponse = try await get(url: url)
+        return response.rooms
+    }
+
+    func searchChatRooms(query: String) async throws -> [ChatRoomResponse] {
+        let url = try buildUrl(path: SharedConstants.API.chatRooms, queryItems: [
+            URLQueryItem(name: "query", value: query)
+        ])
+        let response: ChatRoomsResponse = try await get(url: url)
+        return response.rooms
+    }
+
+    func searchPosts(query: String, limit: Int = 20) async throws -> [PostResponse] {
+        let url = try buildUrl(path: SharedConstants.API.searchPosts, queryItems: [
+            URLQueryItem(name: "query", value: query),
+            URLQueryItem(name: "take", value: String(limit)),
+            URLQueryItem(name: "mode", value: "personalized")
+        ])
+        let response: PostsResponse = try await get(url: url)
+        return response.items.compactMap { $0.post }
     }
 
     private func buildUrl(path: String, queryItems: [URLQueryItem]? = nil) throws -> URL {
@@ -178,3 +203,54 @@ struct SendMessageBody: Encodable {
 }
 
 struct EmptyResponse: Decodable {}
+
+struct ChatRoomsResponse: Decodable {
+    let rooms: [ChatRoomResponse]
+}
+
+struct ChatRoomResponse: Decodable {
+    let id: String
+    let name: String?
+    let description: String?
+    let type: Int
+    let isPublic: Bool
+    let isCommunity: Bool
+    let picture: SnCloudFile?
+    let background: SnCloudFile?
+    let realmId: String?
+    let accountId: String?
+    let createdAt: String
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, description, type, isPublic, isCommunity, picture, background, realmId, accountId, createdAt, updatedAt
+    }
+}
+
+struct SnCloudFile: Codable {
+    let url: String?
+    let mime: String?
+    let size: Int?
+}
+
+struct PostsResponse: Decodable {
+    let items: [TimelineItemResponse]
+}
+
+struct TimelineItemResponse: Decodable {
+    let post: PostResponse?
+}
+
+struct PostResponse: Decodable {
+    let id: String
+    let content: String?
+    let author: AuthorResponse?
+    let createdAt: String
+    let updatedAt: String
+
+    struct AuthorResponse: Decodable {
+        let id: String
+        let name: String
+        let picture: SnCloudFile?
+    }
+}

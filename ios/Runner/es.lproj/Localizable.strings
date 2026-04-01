@@ -1,10 +1,15 @@
 /* App Intents - Chat */
 "intent_open_chat_title" = "Abrir chat";
 "intent_open_chat_desc" = "Abrir sala de chat específica";
+"intent_chat_room_title" = "Sala de chat";
+"intent_chat_room_parameter" = "Sala de chat";
+"intent_message_parameter" = "Mensaje";
 
 /* App Intents - Post */
 "intent_open_post_title" = "Abrir publicación";
 "intent_open_post_desc" = "Abrir publicación específica";
+"intent_post_title" = "Publicación";
+"intent_post_parameter" = "Publicación";
 
 /* App Intents - Compose */
 "intent_open_compose_title" = "Abrir compose";
@@ -15,6 +20,7 @@
 /* App Intents - Search */
 "intent_search_title" = "Buscar contenido";
 "intent_search_desc" = "Buscar contenido";
+"intent_search_query_parameter" = "Consulta de búsqueda";
 
 /* App Intents - Notifications */
 "intent_notifications_title" = "Ver notificaciones";
@@ -31,3 +37,4 @@
 "intent_unread_chats_desc" = "Ver mensajes no leídos";
 "intent_mark_read_title" = "Marcar notificaciones leídas";
 "intent_mark_read_desc" = "Marcar todas como leídas";
+"intent_message_count_parameter" = "Número de mensajes";
