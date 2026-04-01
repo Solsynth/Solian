@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -36,11 +37,13 @@ sealed class WebSocketPacket with _$WebSocketPacket {
 }
 
 final websocketProvider = Provider<WebSocketService>((ref) {
-  return WebSocketService();
+  final service = WebSocketService();
+  ref.onDispose(() => service.close());
+  return service;
 });
 
 class WebSocketService {
-  late Ref _ref;
+  Ref? _ref;
   WebSocketChannel? _channel;
   StreamSubscription? _channelSubscription;
   final StreamController<WebSocketPacket> _streamController =
@@ -55,22 +58,38 @@ class WebSocketService {
   DateTime? _heartbeatAt;
   Duration? heartbeatDelay;
 
-  // Reconnection tracking
   int _reconnectCount = 0;
   DateTime? _reconnectWindowStart;
   static const int _maxReconnectsPerMinute = 5;
   static const Duration _baseReconnectDelay = Duration(milliseconds: 500);
   static const Duration _maxReconnectDelay = Duration(seconds: 30);
 
+  bool _isConnecting = false;
+
   Stream<WebSocketPacket> get dataStream => _streamController.stream;
   Stream<WebSocketState> get statusStream => _statusStreamController.stream;
 
   Future<void> connect(Ref ref) async {
+    if (_isConnecting) {
+      talker.debug(
+        '[WebSocket] Connection attempt already in progress, skipping',
+      );
+      return;
+    }
+    _isConnecting = true;
+    try {
+      await _connectInternal(ref);
+    } finally {
+      _isConnecting = false;
+    }
+  }
+
+  Future<void> _connectInternal(Ref ref) async {
     _ref = ref;
     _isClosing = false;
     final connectionGeneration = ++_connectionGeneration;
-    await _disposeActiveChannel();
-    _statusStreamController.sink.add(WebSocketState.connecting());
+    await _disposeActiveChannel(suppressReconnect: true);
+    _addStatus(WebSocketState.connecting());
 
     final baseUrl = ref.read(serverUrlProvider);
     final token = await getValidAuthToken(ref);
@@ -84,7 +103,7 @@ class WebSocketService {
         _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
       } else {
         final headers = token?.isNotEmpty ?? false
-            ? {'Authorization': 'Bearer ${token!}'}
+            ? {'Authorization': 'Bearer $token'}
             : null;
         _channel = IOWebSocketChannel.connect(Uri.parse(url), headers: headers);
       }
@@ -95,37 +114,51 @@ class WebSocketService {
       }
       _reconnectCount = 0;
       _reconnectWindowStart = null;
-      _statusStreamController.sink.add(WebSocketState.connected());
+      _addStatus(WebSocketState.connected());
       _scheduleHeartbeat();
       _channelSubscription = _channel!.stream.listen(
         (data) {
           if (connectionGeneration != _connectionGeneration) return;
-          final dataStr = data is Uint8List
-              ? utf8.decode(data)
-              : data.toString();
-          final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
-          talker.info('[WebSocket] Received packet: ${packet.type}');
-          if (packet.type == 'error.dupe') {
-            talker.info(
-              '[WebSocket] Duplicate device found: ${packet.errorMessage}',
-            );
-            _statusStreamController.sink.add(WebSocketState.duplicateDevice());
-            _channel!.sink.close();
+          String dataStr;
+          try {
+            dataStr = data is Uint8List ? utf8.decode(data) : data.toString();
+          } catch (e) {
+            talker.error('[WebSocket] Failed to decode data: $e');
             return;
-          } else if (packet.type == 'error') {
-            talker.info('[WebSocket] Connect error: ${packet.errorMessage}');
-            _statusStreamController.sink.add(
-              WebSocketState.error(packet.errorMessage ?? 'error'),
-            );
-            _channel!.sink.close();
           }
-          _streamController.sink.add(packet);
-          if (packet.type == 'pong' && _heartbeatAt != null) {
-            var now = DateTime.now();
-            heartbeatDelay = now.difference(_heartbeatAt!);
-            talker.info(
-              "[WebSocket] Server respond last heartbeat for ${heartbeatDelay!.inMilliseconds} ms",
-            );
+          try {
+            final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
+            talker.info('[WebSocket] Received packet: ${packet.type}');
+
+            if (packet.type == 'error.dupe') {
+              talker.info(
+                '[WebSocket] Duplicate device found: ${packet.errorMessage}',
+              );
+              _isClosing = true;
+              _cancelTimers();
+              _addStatus(WebSocketState.duplicateDevice());
+              _channel!.sink.close();
+              return;
+            } else if (packet.type == 'error') {
+              talker.info('[WebSocket] Connect error: ${packet.errorMessage}');
+              _isClosing = true;
+              _cancelTimers();
+              _addStatus(WebSocketState.error(packet.errorMessage ?? 'error'));
+              _channel!.sink.close();
+              return;
+            }
+
+            _streamController.sink.add(packet);
+            if (packet.type == 'pong' && _heartbeatAt != null) {
+              final now = DateTime.now();
+              final delay = now.difference(_heartbeatAt!);
+              heartbeatDelay = delay;
+              talker.info(
+                "[WebSocket] Server respond last heartbeat for ${delay.inMilliseconds} ms",
+              );
+            }
+          } catch (e) {
+            talker.error('[WebSocket] Failed to parse packet: $e');
           }
         },
         onDone: () {
@@ -135,7 +168,7 @@ class WebSocketService {
           talker.info(
             '[WebSocket] Connection closed, attempting to reconnect...',
           );
-          _statusStreamController.sink.add(WebSocketState.disconnected());
+          _addStatus(WebSocketState.disconnected());
           _scheduleReconnect();
         },
         onError: (error) {
@@ -145,23 +178,31 @@ class WebSocketService {
           talker.error(
             '[WebSocket] Error occurred: $error, attempting to reconnect...',
           );
-          _statusStreamController.sink.add(
-            WebSocketState.error(error.toString()),
-          );
+          _addStatus(WebSocketState.error(error.toString()));
           _scheduleReconnect();
         },
       );
     } catch (err) {
       if (connectionGeneration != _connectionGeneration || _isClosing) return;
       talker.error('[WebSocket] Failed to connect: $err');
-      _statusStreamController.sink.add(WebSocketState.error(err.toString()));
-      if (err is WebSocketChannelException &&
-          (err.message?.contains('handshake') ?? false)) {
-        connect(ref);
-      } else {
-        _scheduleReconnect();
-      }
+      _addStatus(WebSocketState.error(err.toString()));
+      _scheduleReconnect();
     }
+  }
+
+  void _addStatus(WebSocketState state) {
+    if (!_statusStreamController.isClosed) {
+      _statusStreamController.sink.add(state);
+    }
+  }
+
+  void _cancelTimers() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    _heartbeatAt = null;
+    heartbeatDelay = null;
   }
 
   void _scheduleReconnect() {
@@ -173,11 +214,17 @@ class WebSocketService {
       return;
     }
 
-    // Check if we've exceeded the reconnect limit
+    final ref = _ref;
+    if (ref == null) {
+      talker.error(
+        '[WebSocket] Cannot schedule reconnect: ref not initialized',
+      );
+      return;
+    }
+
     final now = DateTime.now();
     if (_reconnectWindowStart == null ||
         now.difference(_reconnectWindowStart!).inMinutes >= 1) {
-      // Reset window if it's been more than 1 minute since the window started
       _reconnectWindowStart = now;
       _reconnectCount = 0;
     }
@@ -188,38 +235,49 @@ class WebSocketService {
       talker.error(
         '[WebSocket] Reconnect limit exceeded: $_maxReconnectsPerMinute reconnections in the last minute. Retrying in 30s.',
       );
-      _statusStreamController.sink.add(WebSocketState.serverDown());
+      _addStatus(WebSocketState.serverDown());
       _reconnectTimer?.cancel();
       _reconnectTimer = Timer(const Duration(seconds: 30), () {
+        if (_isClosing) return;
         _reconnectWindowStart = null;
         _reconnectCount = 0;
-        _statusStreamController.sink.add(WebSocketState.connecting());
-        connect(_ref);
+        _addStatus(WebSocketState.connecting());
+        connect(ref);
       });
       return;
     }
 
     _reconnectTimer?.cancel();
-    // Exponential backoff: 500ms, 1s, 2s, 4s, ... capped at 30s
     final backoffMs =
         (_baseReconnectDelay.inMilliseconds * (1 << (_reconnectCount - 1)))
             .clamp(
               _baseReconnectDelay.inMilliseconds,
               _maxReconnectDelay.inMilliseconds,
             );
-    _reconnectTimer = Timer(Duration(milliseconds: backoffMs), () {
-      _statusStreamController.sink.add(WebSocketState.connecting());
-      connect(_ref);
+    final jitter = Random().nextInt(200) - 100;
+    final delayMs = (backoffMs + jitter).clamp(
+      100,
+      _maxReconnectDelay.inMilliseconds,
+    );
+    _reconnectTimer = Timer(Duration(milliseconds: delayMs), () {
+      if (_isClosing) return;
+      _addStatus(WebSocketState.connecting());
+      connect(ref);
     });
   }
 
   void manualReconnect() {
-    _statusStreamController.sink.add(WebSocketState.connecting());
+    final ref = _ref;
+    if (ref == null) {
+      talker.error('[WebSocket] Cannot manual reconnect: ref not initialized');
+      return;
+    }
     talker.info('[WebSocket] Manual reconnect triggered by user');
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(const Duration(milliseconds: 500), () {
-      _statusStreamController.sink.add(WebSocketState.connecting());
-      connect(_ref);
+      if (_isClosing) return;
+      _addStatus(WebSocketState.connecting());
+      connect(ref);
     });
   }
 
@@ -231,6 +289,7 @@ class WebSocketService {
   }
 
   void _beatTheHeart() {
+    if (_channel == null || _isClosing) return;
     _heartbeatAt = DateTime.now();
     talker.info('[WebSocket] We\'re beating the heart! $_heartbeatAt');
     sendMessage(jsonEncode(WebSocketPacket(type: 'ping', data: null)));
@@ -238,27 +297,35 @@ class WebSocketService {
 
   WebSocketChannel? get ws => _channel;
 
-  void sendMessage(String message) {
-    _channel?.sink.add(message);
+  bool sendMessage(String message) {
+    if (_channel == null || _isClosing) {
+      talker.info(
+        '[WebSocket] Cannot send message: channel is null or closing',
+      );
+      return false;
+    }
+    try {
+      _channel!.sink.add(message);
+      return true;
+    } catch (e) {
+      talker.error('[WebSocket] Failed to send message: $e');
+      return false;
+    }
   }
 
   void close() {
     _isClosing = true;
-    _reconnectTimer?.cancel();
-    _heartbeatTimer?.cancel();
-    _heartbeatAt = null;
-    heartbeatDelay = null;
+    _cancelTimers();
     _channelSubscription?.cancel();
     _channelSubscription = null;
     _channel?.sink.close();
     _channel = null;
+    _streamController.close();
+    _statusStreamController.close();
   }
 
-  Future<void> _disposeActiveChannel() async {
-    _reconnectTimer?.cancel();
-    _heartbeatTimer?.cancel();
-    _heartbeatAt = null;
-    heartbeatDelay = null;
+  Future<void> _disposeActiveChannel({bool suppressReconnect = false}) async {
+    _cancelTimers();
     await _channelSubscription?.cancel();
     _channelSubscription = null;
     await _channel?.sink.close();
@@ -272,7 +339,6 @@ final websocketStateProvider =
     );
 
 class WebSocketStateNotifier extends Notifier<WebSocketState> {
-  Timer? _reconnectTimer;
   StreamSubscription<WebSocketState>? _statusSubscription;
 
   @override
@@ -284,28 +350,16 @@ class WebSocketStateNotifier extends Notifier<WebSocketState> {
     });
 
     ref.onDispose(() {
-      _reconnectTimer?.cancel();
       _statusSubscription?.cancel();
+      final service = ref.read(websocketProvider);
+      service.close();
     });
     return const WebSocketState.disconnected();
   }
 
   Future<void> connect() async {
-    state = const WebSocketState.connecting();
-    try {
-      final service = ref.read(websocketProvider);
-      await service.connect(ref);
-    } catch (err) {
-      state = WebSocketState.error('Failed to connect: $err');
-      _scheduleReconnect();
-    }
-  }
-
-  void _scheduleReconnect() {
-    _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(milliseconds: 500), () {
-      connect();
-    });
+    final service = ref.read(websocketProvider);
+    await service.connect(ref);
   }
 
   void sendMessage(String message) {
@@ -316,7 +370,6 @@ class WebSocketStateNotifier extends Notifier<WebSocketState> {
   void close() {
     final service = ref.read(websocketProvider);
     service.close();
-    _reconnectTimer?.cancel();
     state = const WebSocketState.disconnected();
   }
 
