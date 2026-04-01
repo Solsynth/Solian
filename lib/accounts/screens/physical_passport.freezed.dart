@@ -293,7 +293,7 @@ as String?,
 /// @nodoc
 mixin _$SnScanResult {
 
- SnAccount get user; bool get isFriend; List<String> get actions;
+ SnAccount get user; bool get isFriend; bool get isClaimed; List<String> get actions;
 /// Create a copy of SnScanResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -306,16 +306,16 @@ $SnScanResultCopyWith<SnScanResult> get copyWith => _$SnScanResultCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnScanResult&&(identical(other.user, user) || other.user == user)&&(identical(other.isFriend, isFriend) || other.isFriend == isFriend)&&const DeepCollectionEquality().equals(other.actions, actions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnScanResult&&(identical(other.user, user) || other.user == user)&&(identical(other.isFriend, isFriend) || other.isFriend == isFriend)&&(identical(other.isClaimed, isClaimed) || other.isClaimed == isClaimed)&&const DeepCollectionEquality().equals(other.actions, actions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,user,isFriend,const DeepCollectionEquality().hash(actions));
+int get hashCode => Object.hash(runtimeType,user,isFriend,isClaimed,const DeepCollectionEquality().hash(actions));
 
 @override
 String toString() {
-  return 'SnScanResult(user: $user, isFriend: $isFriend, actions: $actions)';
+  return 'SnScanResult(user: $user, isFriend: $isFriend, isClaimed: $isClaimed, actions: $actions)';
 }
 
 
@@ -326,7 +326,7 @@ abstract mixin class $SnScanResultCopyWith<$Res>  {
   factory $SnScanResultCopyWith(SnScanResult value, $Res Function(SnScanResult) _then) = _$SnScanResultCopyWithImpl;
 @useResult
 $Res call({
- SnAccount user, bool isFriend, List<String> actions
+ SnAccount user, bool isFriend, bool isClaimed, List<String> actions
 });
 
 
@@ -343,10 +343,11 @@ class _$SnScanResultCopyWithImpl<$Res>
 
 /// Create a copy of SnScanResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? isFriend = null,Object? actions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? user = null,Object? isFriend = null,Object? isClaimed = null,Object? actions = null,}) {
   return _then(_self.copyWith(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as SnAccount,isFriend: null == isFriend ? _self.isFriend : isFriend // ignore: cast_nullable_to_non_nullable
+as bool,isClaimed: null == isClaimed ? _self.isClaimed : isClaimed // ignore: cast_nullable_to_non_nullable
 as bool,actions: null == actions ? _self.actions : actions // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
@@ -439,10 +440,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnAccount user,  bool isFriend,  List<String> actions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnAccount user,  bool isFriend,  bool isClaimed,  List<String> actions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnScanResult() when $default != null:
-return $default(_that.user,_that.isFriend,_that.actions);case _:
+return $default(_that.user,_that.isFriend,_that.isClaimed,_that.actions);case _:
   return orElse();
 
 }
@@ -460,10 +461,10 @@ return $default(_that.user,_that.isFriend,_that.actions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnAccount user,  bool isFriend,  List<String> actions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnAccount user,  bool isFriend,  bool isClaimed,  List<String> actions)  $default,) {final _that = this;
 switch (_that) {
 case _SnScanResult():
-return $default(_that.user,_that.isFriend,_that.actions);}
+return $default(_that.user,_that.isFriend,_that.isClaimed,_that.actions);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -477,10 +478,10 @@ return $default(_that.user,_that.isFriend,_that.actions);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnAccount user,  bool isFriend,  List<String> actions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnAccount user,  bool isFriend,  bool isClaimed,  List<String> actions)?  $default,) {final _that = this;
 switch (_that) {
 case _SnScanResult() when $default != null:
-return $default(_that.user,_that.isFriend,_that.actions);case _:
+return $default(_that.user,_that.isFriend,_that.isClaimed,_that.actions);case _:
   return null;
 
 }
@@ -492,11 +493,12 @@ return $default(_that.user,_that.isFriend,_that.actions);case _:
 @JsonSerializable()
 
 class _SnScanResult implements SnScanResult {
-  const _SnScanResult({required this.user, this.isFriend = false, final  List<String> actions = const []}): _actions = actions;
+  const _SnScanResult({required this.user, this.isFriend = false, this.isClaimed = false, final  List<String> actions = const []}): _actions = actions;
   factory _SnScanResult.fromJson(Map<String, dynamic> json) => _$SnScanResultFromJson(json);
 
 @override final  SnAccount user;
 @override@JsonKey() final  bool isFriend;
+@override@JsonKey() final  bool isClaimed;
  final  List<String> _actions;
 @override@JsonKey() List<String> get actions {
   if (_actions is EqualUnmodifiableListView) return _actions;
@@ -518,16 +520,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnScanResult&&(identical(other.user, user) || other.user == user)&&(identical(other.isFriend, isFriend) || other.isFriend == isFriend)&&const DeepCollectionEquality().equals(other._actions, _actions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnScanResult&&(identical(other.user, user) || other.user == user)&&(identical(other.isFriend, isFriend) || other.isFriend == isFriend)&&(identical(other.isClaimed, isClaimed) || other.isClaimed == isClaimed)&&const DeepCollectionEquality().equals(other._actions, _actions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,user,isFriend,const DeepCollectionEquality().hash(_actions));
+int get hashCode => Object.hash(runtimeType,user,isFriend,isClaimed,const DeepCollectionEquality().hash(_actions));
 
 @override
 String toString() {
-  return 'SnScanResult(user: $user, isFriend: $isFriend, actions: $actions)';
+  return 'SnScanResult(user: $user, isFriend: $isFriend, isClaimed: $isClaimed, actions: $actions)';
 }
 
 
@@ -538,7 +540,7 @@ abstract mixin class _$SnScanResultCopyWith<$Res> implements $SnScanResultCopyWi
   factory _$SnScanResultCopyWith(_SnScanResult value, $Res Function(_SnScanResult) _then) = __$SnScanResultCopyWithImpl;
 @override @useResult
 $Res call({
- SnAccount user, bool isFriend, List<String> actions
+ SnAccount user, bool isFriend, bool isClaimed, List<String> actions
 });
 
 
@@ -555,10 +557,11 @@ class __$SnScanResultCopyWithImpl<$Res>
 
 /// Create a copy of SnScanResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? isFriend = null,Object? actions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? user = null,Object? isFriend = null,Object? isClaimed = null,Object? actions = null,}) {
   return _then(_SnScanResult(
 user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as SnAccount,isFriend: null == isFriend ? _self.isFriend : isFriend // ignore: cast_nullable_to_non_nullable
+as bool,isClaimed: null == isClaimed ? _self.isClaimed : isClaimed // ignore: cast_nullable_to_non_nullable
 as bool,actions: null == actions ? _self._actions : actions // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -46,6 +48,7 @@ sealed class SnScanResult with _$SnScanResult {
   const factory SnScanResult({
     required SnAccount user,
     @Default(false) bool isFriend,
+    @Default(false) bool isClaimed,
     @Default([]) List<String> actions,
   }) = _SnScanResult;
 
@@ -89,12 +92,19 @@ class PhysicalPassportScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final passportsAsync = ref.watch(physicalPassportsProvider);
     final user = ref.watch(userInfoProvider);
+    final isAdmin = user.value?.isSuperuser == true;
 
     return AppScaffold(
       appBar: AppBar(
         title: Text('physicalPassports').tr(),
         leading: const AutoLeadingButton(),
         actions: [
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Symbols.admin_panel_settings),
+              tooltip: 'adminRegisterEncryptedTag'.tr(),
+              onPressed: () => _showAdminRegisterSheet(context, ref),
+            ),
           IconButton(
             icon: const Icon(Symbols.nfc),
             tooltip: 'scanPhysicalPassport'.tr(),
@@ -179,6 +189,17 @@ class PhysicalPassportScreen extends HookConsumerWidget {
       useRootNavigator: true,
       builder: (context) => const _PhysicalPassportScanSheet(),
     );
+  }
+
+  void _showAdminRegisterSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => const _AdminRegisterEncryptedTagSheet(),
+    ).then((_) {
+      ref.invalidate(physicalPassportsProvider);
+    });
   }
 }
 
@@ -394,7 +415,6 @@ class _AddPhysicalPassportSheetState
   bool _isScanning = false;
   String? _scannedUid;
   NFCTag? _scannedTag;
-  bool _isEncrypted = false;
 
   @override
   void dispose() {
@@ -479,27 +499,6 @@ class _AddPhysicalPassportSheetState
                         ),
                         const Gap(12),
                         Text('NDEF Type: ${_scannedTag?.ndefType}'),
-                        const Gap(12),
-                        Row(
-                          children: [
-                            Icon(
-                              _isEncrypted ? Symbols.lock : Symbols.lock_open,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                            const Gap(4),
-                            Text(
-                              _isEncrypted
-                                  ? 'Encrypted (NTAG424)'
-                                  : 'Unencrypted',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
@@ -559,15 +558,12 @@ class _AddPhysicalPassportSheetState
       }
 
       final tag = await FlutterNfcKit.poll();
-
       final uid = tag.id;
-      final isEncrypted = tag.type == NFCTagType.iso7816;
 
       setState(() {
         _scannedUid = uid;
         _scannedTag = tag;
         _uidController.text = uid;
-        _isEncrypted = isEncrypted;
       });
 
       await FlutterNfcKit.finish();
@@ -594,7 +590,6 @@ class _AddPhysicalPassportSheetState
         '/passport/nfc/tags',
         data: {
           'uid': _scannedUid,
-          'is_encrypted': _isEncrypted,
           if (_labelController.text.trim().isNotEmpty)
             'label': _labelController.text.trim(),
         },
@@ -624,7 +619,6 @@ class _AddPhysicalPassportSheetState
   ) async {
     bool isWriting = true;
     bool writeSuccess = false;
-    final isEncrypted = passport.isEncrypted;
 
     showModalBottomSheet(
       context: context,
@@ -635,7 +629,7 @@ class _AddPhysicalPassportSheetState
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) {
           if (isWriting) {
-            _performWrite(tag, passport, isEncrypted)
+            _performWrite(tag, passport)
                 .then((result) {
                   if (ctx.mounted) {
                     setSheetState(() {
@@ -696,11 +690,7 @@ class _AddPhysicalPassportSheetState
     );
   }
 
-  Future<bool> _performWrite(
-    NFCTag tag,
-    SnPhysicalPassport passport,
-    bool isEncrypted,
-  ) async {
+  Future<bool> _performWrite(NFCTag tag, SnPhysicalPassport passport) async {
     try {
       final availability = await FlutterNfcKit.nfcAvailability;
       if (availability != NFCAvailability.available) {
@@ -709,12 +699,7 @@ class _AddPhysicalPassportSheetState
 
       await FlutterNfcKit.poll(iosAlertMessage: 'nfcTapToWrite'.tr());
 
-      String deepLink;
-      if (isEncrypted) {
-        deepLink = 'solian://phpass/${passport.id}?e=ENC&c=CNT&mac=MAC';
-      } else {
-        deepLink = 'solian://phpass/${passport.id}';
-      }
+      final deepLink = 'solian://phpass/${passport.id}';
       final uriRecord = ndef.UriRecord.fromUri(Uri.parse(deepLink));
       await FlutterNfcKit.writeNDEFRecords([uriRecord]);
 
@@ -740,7 +725,6 @@ class _PhysicalPassportScanSheetState
   bool _isScanning = false;
   SnScanResult? _scanResult;
   String? _error;
-  bool _isEncrypted = false;
 
   @override
   Widget build(BuildContext context) {
@@ -810,7 +794,6 @@ class _PhysicalPassportScanSheetState
             ] else ...[
               _PhysicalPassportScanResultCard(
                 passport: _scanResult!,
-                isEncrypted: _isEncrypted,
                 onScanAgain: () {
                   setState(() {
                     _scanResult = null;
@@ -830,7 +813,6 @@ class _PhysicalPassportScanSheetState
     setState(() {
       _isScanning = true;
       _error = null;
-      _isEncrypted = false;
     });
 
     try {
@@ -913,21 +895,18 @@ class _PhysicalPassportScanSheetState
       SnScanResult? result;
 
       if (e != null && c != null && mac != null) {
-        setState(() => _isEncrypted = true);
         final response = await client.get(
           '/passport/nfc',
           queryParameters: {'e': e, 'c': c, 'mac': mac},
         );
         result = SnScanResult.fromJson(response.data);
       } else if (uid != null) {
-        setState(() => _isEncrypted = false);
         final response = await client.get(
           '/passport/nfc',
           queryParameters: {'uid': uid},
         );
         result = SnScanResult.fromJson(response.data);
       } else if (remoteTagId != null) {
-        setState(() => _isEncrypted = false);
         final response = await client.get('/passport/nfc/tags/$remoteTagId');
         result = SnScanResult.fromJson(response.data);
       } else {
@@ -956,12 +935,10 @@ class _PhysicalPassportScanSheetState
 class _PhysicalPassportScanResultCard extends StatelessWidget {
   final SnScanResult passport;
   final VoidCallback onScanAgain;
-  final bool isEncrypted;
 
   const _PhysicalPassportScanResultCard({
     required this.passport,
     required this.onScanAgain,
-    required this.isEncrypted,
   });
 
   @override
@@ -984,8 +961,8 @@ class _PhysicalPassportScanResultCard extends StatelessWidget {
             },
           ),
         ),
-        const Gap(8),
-        if (isEncrypted)
+        if (passport.isClaimed) ...[
+          const Gap(8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -996,13 +973,13 @@ class _PhysicalPassportScanResultCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Symbols.lock,
+                  Symbols.check_circle,
                   size: 16,
                   color: colorScheme.onPrimaryContainer,
                 ),
                 const Gap(4),
                 Text(
-                  'Encrypted',
+                  'physicalPassportClaimed'.tr(),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.bold,
@@ -1011,6 +988,7 @@ class _PhysicalPassportScanResultCard extends StatelessWidget {
               ],
             ),
           ),
+        ],
         const Gap(24),
         OutlinedButton.icon(
           onPressed: onScanAgain,
@@ -1142,16 +1120,17 @@ class _PhysicalPassportDetailSheetState
             const Gap(24),
             const Divider(),
             const Gap(16),
-            if (!passport.isLocked) ...[
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text('physicalPassportActive'.tr()),
-                subtitle: Text('physicalPassportActiveDescription'.tr()),
-                value: _isActive,
-                onChanged: (value) async {
-                  setState(() => _isActive = value);
-                  await _saveChanges();
-                },
+            if (!passport.isLocked && !passport.isEncrypted) ...[
+              OutlinedButton.icon(
+                onPressed: _isSubmitting ? null : _writePassport,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Symbols.edit),
+                label: Text('writePhysicalPassport'.tr()),
               ),
               const Gap(8),
             ],
@@ -1358,12 +1337,7 @@ class _PhysicalPassportDetailSheetState
 
       await FlutterNfcKit.poll(iosAlertMessage: 'nfcTapToWrite'.tr());
 
-      String deepLink;
-      if (widget.passport.isEncrypted) {
-        deepLink = 'solian://phpass/${widget.passport.id}?e=ENC&c=CNT&mac=MAC';
-      } else {
-        deepLink = 'solian://phpass/${widget.passport.id}';
-      }
+      final deepLink = 'solian://phpass/${widget.passport.id}';
       final uriRecord = ndef.UriRecord.fromUri(Uri.parse(deepLink));
       await FlutterNfcKit.writeNDEFRecords([uriRecord]);
 
@@ -1387,5 +1361,255 @@ class _PhysicalPassportDetailSheetState
 
   String _formatDateTime(DateTime dateTime) {
     return DateFormat.yMMMd().add_Hm().format(dateTime.toLocal());
+  }
+}
+
+class _AdminRegisterEncryptedTagSheet extends ConsumerStatefulWidget {
+  const _AdminRegisterEncryptedTagSheet();
+
+  @override
+  ConsumerState<_AdminRegisterEncryptedTagSheet> createState() =>
+      _AdminRegisterEncryptedTagSheetState();
+}
+
+class _AdminRegisterEncryptedTagSheetState
+    extends ConsumerState<_AdminRegisterEncryptedTagSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _uidController = TextEditingController();
+  final _sunKeyController = TextEditingController();
+  final _assignedUserIdController = TextEditingController();
+  bool _isSubmitting = false;
+  bool _isScanning = false;
+  String? _scannedUid;
+  NFCTag? _scannedTag;
+
+  @override
+  void dispose() {
+    _uidController.dispose();
+    _sunKeyController.dispose();
+    _assignedUserIdController.dispose();
+    super.dispose();
+  }
+
+  void _generateSunKey() {
+    final rng = Random.secure();
+    final key = List.generate(16, (_) => rng.nextInt(256));
+    _sunKeyController.text = base64Encode(key);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SheetScaffold(
+      titleText: 'adminRegisterEncryptedTag'.tr(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'adminRegisterEncryptedTagDescription'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Gap(24),
+              FilledButton.tonalIcon(
+                onPressed: _isScanning ? null : _scanTag,
+                icon: _isScanning
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Symbols.nfc),
+                label: Text(_isScanning ? 'scanning'.tr() : 'scanTag'.tr()),
+              ),
+              if (_scannedUid != null) ...[
+                const Gap(16),
+                Card(
+                  elevation: 0,
+                  color: colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Symbols.check_circle,
+                              color: colorScheme.primary,
+                              size: 20,
+                            ),
+                            const Gap(8),
+                            Text(
+                              'tagScanned'.tr(),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const Gap(12),
+                        Text(
+                          'UID: $_scannedUid',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontFamily: 'monospace'),
+                        ),
+                        const Gap(12),
+                        Text(
+                          'Tag Type: ${_scannedTag?.type}',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontFamily: 'monospace'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              const Gap(24),
+              TextFormField(
+                controller: _uidController,
+                decoration: InputDecoration(
+                  labelText: 'tagUid'.tr(),
+                  hintText: 'tagUidHint'.tr(),
+                  prefixIcon: const Icon(Symbols.tag),
+                ),
+                enabled: false,
+              ),
+              const Gap(16),
+              TextFormField(
+                controller: _sunKeyController,
+                decoration: InputDecoration(
+                  labelText: 'physicalPassportSunKey'.tr(),
+                  hintText: 'physicalPassportSunKeyHint'.tr(),
+                  prefixIcon: const Icon(Symbols.key),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Symbols.autorenew),
+                    tooltip: 'generateKey'.tr(),
+                    onPressed: _generateSunKey,
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'sunKeyRequired'.tr();
+                  }
+                  return null;
+                },
+              ),
+              Text(
+                'physicalPassportSunKeyDescription'.tr(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ).padding(horizontal: 8, top: 4),
+              const Gap(16),
+              TextFormField(
+                controller: _assignedUserIdController,
+                decoration: InputDecoration(
+                  labelText: 'assignedUserId'.tr(),
+                  hintText: 'assignedUserIdHint'.tr(),
+                  prefixIcon: const Icon(Symbols.person),
+                ),
+              ),
+              Text(
+                'assignedUserIdDescription'.tr(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ).padding(horizontal: 8, top: 4),
+              const Gap(32),
+              FilledButton(
+                onPressed: _isSubmitting || _scannedUid == null
+                    ? null
+                    : _registerEncryptedTag,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text('registerEncryptedTag').tr(),
+              ),
+              const Gap(16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _scanTag() async {
+    setState(() => _isScanning = true);
+
+    try {
+      final availability = await FlutterNfcKit.nfcAvailability;
+      if (availability != NFCAvailability.available) {
+        if (mounted) {
+          showErrorAlert(Exception('nfcNotAvailable'.tr()));
+        }
+        return;
+      }
+
+      final tag = await FlutterNfcKit.poll();
+      final uid = tag.id;
+
+      setState(() {
+        _scannedUid = uid;
+        _scannedTag = tag;
+        _uidController.text = uid;
+      });
+
+      await FlutterNfcKit.finish();
+    } catch (e) {
+      if (mounted) {
+        showErrorAlert(e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isScanning = false);
+      }
+    }
+  }
+
+  Future<void> _registerEncryptedTag() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_scannedUid == null) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final client = ref.read(apiClientProvider);
+      await client.post(
+        '/passport/admin/nfc/tags',
+        data: {
+          'uid': _scannedUid,
+          'sun_key': _sunKeyController.text.trim(),
+          if (_assignedUserIdController.text.trim().isNotEmpty)
+            'assigned_user_id': _assignedUserIdController.text.trim(),
+        },
+      );
+      ref.invalidate(physicalPassportsProvider);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+      showSnackBar('encryptedTagRegistered'.tr());
+    } catch (e) {
+      if (mounted) {
+        showErrorAlert(e);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 }

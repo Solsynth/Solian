@@ -36,6 +36,7 @@ _SnScanResult _$SnScanResultFromJson(Map<String, dynamic> json) =>
     _SnScanResult(
       user: SnAccount.fromJson(json['user'] as Map<String, dynamic>),
       isFriend: json['is_friend'] as bool? ?? false,
+      isClaimed: json['is_claimed'] as bool? ?? false,
       actions:
           (json['actions'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -47,5 +48,6 @@ Map<String, dynamic> _$SnScanResultToJson(_SnScanResult instance) =>
     <String, dynamic>{
       'user': instance.user.toJson(),
       'is_friend': instance.isFriend,
+      'is_claimed': instance.isClaimed,
       'actions': instance.actions,
     };
