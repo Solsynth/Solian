@@ -55,7 +55,7 @@ class PollListNotifier extends AsyncNotifier<PaginationState<SnPollWithStats>>
 
 @riverpod
 Future<SnPollWithStats> pollWithStats(Ref ref, String id) async {
-  final apiClient = ref.watch(apiClientProvider);
+  final apiClient = ref.watch(solarNetworkClientProvider).dio;
   final resp = await apiClient.get('/sphere/polls/$id');
   return SnPollWithStats.fromJson(resp.data);
 }

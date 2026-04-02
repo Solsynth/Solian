@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/network.dart';
 import 'package:island/developers/screens/hub.dart';
 import 'package:island/developers/models/dev_project.dart';
-import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -16,7 +16,7 @@ part 'edit_project.g.dart';
 
 @riverpod
 Future<SnDevProject?> devProject(Ref ref, String pubName, String id) async {
-  final client = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider).dio;
   final resp = await client.get('/develop/developers/$pubName/projects/$id');
   return SnDevProject.fromJson(resp.data);
 }
@@ -51,7 +51,7 @@ class DeveloperProjectEditScreen extends HookConsumerWidget {
     }, [projectData]);
 
     void performAction() async {
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider).dio;
       final data = {
         'name': nameController.text,
         'slug': slugController.text,

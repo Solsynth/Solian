@@ -100,7 +100,7 @@ class StickerPacksNotifier extends AsyncNotifier<PaginationState<SnStickerPack>>
 
   @override
   Future<List<SnStickerPack>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider).dio;
 
     try {
       final response = await client.get(
@@ -128,7 +128,7 @@ class StickerPacksNotifier extends AsyncNotifier<PaginationState<SnStickerPack>>
 @riverpod
 Future<SnStickerPack?> stickerPack(Ref ref, String? packId) async {
   if (packId == null) return null;
-  final apiClient = ref.watch(apiClientProvider);
+  final apiClient = ref.watch(solarNetworkClientProvider).dio;
   final resp = await apiClient.get('/sphere/stickers/$packId');
   return SnStickerPack.fromJson(resp.data);
 }

@@ -27,7 +27,7 @@ Future<Bot?> bot(
   String projectId,
   String id,
 ) async {
-  final client = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider).dio;
   final resp = await client.get(
     '/develop/developers/$publisherName/projects/$projectId/bots/$id',
   );
@@ -154,7 +154,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
     }
 
     void performAction() async {
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider).dio;
       final data = {
         'name': nameController.text,
         'nick': nickController.text,

@@ -26,14 +26,14 @@ part 'hub.g.dart';
 @riverpod
 Future<DeveloperStats?> developerStats(Ref ref, String? uname) async {
   if (uname == null) return null;
-  final apiClient = ref.watch(apiClientProvider);
+  final apiClient = ref.watch(solarNetworkClientProvider).dio;
   final resp = await apiClient.get('/develop/developers/$uname/stats');
   return DeveloperStats.fromJson(resp.data);
 }
 
 @riverpod
 Future<List<SnDeveloper>> developers(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider).dio;
   final resp = await client.get('/develop/developers');
   return resp.data
       .map((e) => SnDeveloper.fromJson(e))
@@ -44,7 +44,7 @@ Future<List<SnDeveloper>> developers(Ref ref) async {
 @riverpod
 Future<List<SnDevProject>> devProjects(Ref ref, String pubName) async {
   if (pubName.isEmpty) return [];
-  final client = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider).dio;
   final resp = await client.get('/develop/developers/$pubName/projects');
   return (resp.data as List)
       .map((e) => SnDevProject.fromJson(e))
@@ -514,7 +514,7 @@ class _ProjectListTile extends HookConsumerWidget {
               isDanger: true,
             ).then((confirm) {
               if (confirm) {
-                final client = ref.read(apiClientProvider);
+                final client = ref.read(solarNetworkClientProvider).dio;
                 client.delete(
                   '/develop/developers/$publisherName/projects/${project.id}',
                 );

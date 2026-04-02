@@ -1017,18 +1017,14 @@ Future<SnAccount> account(Ref ref, String uname) async {
       return userInfo.value!;
     }
   }
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/passport/accounts/$uname");
-  return SnAccount.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getAccountByUsername(uname);
 }
 
 @riverpod
 Future<List<SnAccountBadge>> accountBadges(Ref ref, String uname) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/passport/accounts/$uname/badges");
-  return List<SnAccountBadge>.from(
-    resp.data.map((x) => SnAccountBadge.fromJson(x)),
-  );
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getAccountBadges(uname);
 }
 
 @riverpod
@@ -1053,10 +1049,9 @@ Future<SnRelationship?> accountRelationship(Ref ref, String uname) async {
   final userInfo = ref.watch(userInfoProvider);
   if (userInfo.value == null) return null;
   final account = await ref.watch(accountProvider(uname).future);
-  final apiClient = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await apiClient.get("/passport/relationships/${account.id}");
-    return SnRelationship.fromJson(resp.data);
+    return await client.accounts.getRelationship(account.id);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
       return null;
@@ -1174,10 +1169,8 @@ class AccountProfileScreen extends HookConsumerWidget {
       if (accountRelationship.value != null) return;
       showLoadingModal(context);
       try {
-        final client = ref.watch(apiClientProvider);
-        await client.post(
-          '/passport/relationships/${account.value!.id}/friends',
-        );
+        final client = ref.watch(solarNetworkClientProvider);
+        await client.accounts.followAccount(account.value!.id);
         ref.invalidate(accountRelationshipProvider(name));
       } catch (err) {
         showErrorAlert(err);
@@ -1189,15 +1182,11 @@ class AccountProfileScreen extends HookConsumerWidget {
     Future<void> blockAction() async {
       showLoadingModal(context);
       try {
-        final client = ref.watch(apiClientProvider);
+        final client = ref.watch(solarNetworkClientProvider);
         if (accountRelationship.value == null) {
-          await client.post(
-            '/passport/relationships/${account.value!.id}/block',
-          );
+          await client.accounts.blockAccount(account.value!.id);
         } else {
-          await client.delete(
-            '/passport/relationships/${account.value!.id}/block',
-          );
+          await client.accounts.unblockAccount(account.value!.id);
         }
         ref.invalidate(accountRelationshipProvider(name));
       } catch (err) {

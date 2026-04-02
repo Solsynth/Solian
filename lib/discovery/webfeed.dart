@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/core/network.dart' show solarNetworkClientProvider;
 import 'package:island/discovery/models/webfeed.dart';
-import 'package:island/core/network.dart';
 
 final webFeedListProvider = FutureProvider.autoDispose
     .family<List<SnWebFeed>, String>((ref, pubName) async {
-      final client = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider).dio;
       final response = await client.get('/insight/publishers/$pubName/feeds');
       return (response.data as List)
           .map((json) => SnWebFeed.fromJson(json))
@@ -33,10 +33,10 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
     }
 
     try {
-      final client = ref.read(apiClientProvider);
-      final response = await client.get(
-        '/insight/publishers/${arg.pubName}/feeds/${arg.feedId}',
-      );
+      final response = await ref
+          .read(solarNetworkClientProvider)
+          .dio
+          .get('/insight/publishers/${arg.pubName}/feeds/${arg.feedId}');
       return SnWebFeed.fromJson(response.data);
     } catch (e) {
       rethrow;
@@ -46,7 +46,7 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
   Future<void> saveFeed(SnWebFeed feed) async {
     state = const AsyncValue.loading();
     try {
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider).dio;
       final url = '/insight/publishers/${feed.publisherId}/feeds';
 
       final response = feed.id.isEmpty
@@ -66,7 +66,7 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
 
     state = const AsyncValue.loading();
     try {
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider).dio;
       await client.delete('/insight/publishers/${arg.pubName}/feeds/$feedId');
       state = AsyncValue.data(
         SnWebFeed(
@@ -91,7 +91,7 @@ class WebFeedNotifier extends AsyncNotifier<SnWebFeed> {
 
     state = const AsyncValue.loading();
     try {
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider).dio;
       await client.post(
         '/insight/publishers/${arg.pubName}/feeds/$feedId/scrap',
         options: Options(
