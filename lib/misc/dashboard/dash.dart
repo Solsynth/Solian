@@ -252,8 +252,7 @@ class DashboardGrid extends HookConsumerWidget {
                             .clipRRect(
                               topLeft: isWide ? 0 : 12,
                               topRight: isWide ? 0 : 12,
-                            )
-                            .padding(horizontal: isWide ? 0 : 16),
+                            ),
                   )
                 else
                   Center(
