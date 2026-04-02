@@ -12,13 +12,16 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/core/network.dart' show solarNetworkClientProvider;
 import 'package:styled_widget/styled_widget.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 final livestreamDetailProvider = FutureProvider.family
     .autoDispose<SnLiveStream, String>((ref, livestreamId) async {
-      final client = ref.watch(apiClientProvider);
-      final response = await client.get('/sphere/livestreams/$livestreamId');
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get(
+        '/sphere/livestreams/$livestreamId',
+      );
       return SnLiveStream.fromJson(Map<String, dynamic>.from(response.data));
     });
 

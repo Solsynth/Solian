@@ -30,7 +30,7 @@ class PollListNotifier extends AsyncNotifier<PaginationState<SnPollWithStats>>
 
   @override
   Future<List<SnPollWithStats>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider).dio;
 
     // read the current family argument passed to provider
     final queryParams = {
@@ -206,7 +206,7 @@ class _CreatorPollItem extends HookConsumerWidget {
                 );
                 if (confirmed == true) {
                   try {
-                    final client = ref.read(apiClientProvider);
+                    final client = ref.read(solarNetworkClientProvider).dio;
                     await client.delete('/sphere/polls/${pollWithStats.id}');
                     ref.invalidate(pollListNotifierProvider(pubName));
                     showSnackBar('Poll deleted successfully');

@@ -282,14 +282,11 @@ final realmLabelsProvider = FutureProvider.autoDispose
 final realmIdentityProvider = FutureProvider.autoDispose
     .family<SnRealmMember?, String>((ref, realmSlug) async {
       try {
-        final apiClient = ref.watch(apiClientProvider);
-        final response = await apiClient.get(
-          '/passport/realms/$realmSlug/members/me',
-        );
-        return SnRealmMember.fromJson(response.data as Map<String, dynamic>);
+        final client = ref.watch(solarNetworkClientProvider);
+        return await client.realms.getMyMembership(realmSlug);
       } catch (err) {
         if (err is DioException && err.response?.statusCode == 404) {
-          return null; // No identity found, user is not a member
+          return null;
         }
         rethrow;
       }
@@ -297,11 +294,9 @@ final realmIdentityProvider = FutureProvider.autoDispose
 
 final realmChatRoomsProvider = FutureProvider.autoDispose
     .family<List<SnChatRoom>, String>((ref, realmSlug) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get('/messager/realms/$realmSlug/chat');
-      return (response.data as List)
-          .map((e) => SnChatRoom.fromJson(e))
-          .toList();
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.realms.getRealmChat(realmSlug);
+      return [SnChatRoom.fromJson(response)];
     });
 
 @RoutePage()
@@ -366,8 +361,8 @@ class RealmDetailScreen extends HookConsumerWidget {
       child: FilledButton.tonalIcon(
         onPressed: () async {
           try {
-            final apiClient = ref.read(apiClientProvider);
-            await apiClient.post('/passport/realms/$slug/members/me');
+            final client = ref.read(solarNetworkClientProvider);
+            await client.realms.joinRealm(slug);
             ref.invalidate(realmIdentityProvider(slug));
             ref.invalidate(realmOverviewProvider(slug));
             ref.invalidate(realmsJoinedProvider);
@@ -777,11 +772,12 @@ class RealmDetailScreen extends HookConsumerWidget {
                                     ).then((confirm) async {
                                       if (confirm != true) return;
                                       try {
-                                        final apiClient = ref.read(
-                                          apiClientProvider,
+                                        final client = ref.read(
+                                          solarNetworkClientProvider,
                                         );
-                                        await apiClient.delete(
-                                          '/passport/realms/$slug/labels/${label.id}',
+                                        await client.realms.deleteLabel(
+                                          slug: slug,
+                                          labelId: label.id,
                                         );
                                         ref.invalidate(
                                           realmLabelsProvider(slug),
@@ -1149,8 +1145,8 @@ class _RealmActionMenu extends HookConsumerWidget {
                       isDanger: true,
                     ).then((confirm) {
                       if (confirm) {
-                        final client = ref.watch(apiClientProvider);
-                        client.delete('/passport/realms/$realmSlug');
+                        final client = ref.watch(solarNetworkClientProvider);
+                        client.realms.deleteRealm(realmSlug);
                         ref.invalidate(realmsJoinedProvider);
                         ref.invalidate(realmOverviewProvider(realmSlug));
                         if (context.mounted) {
@@ -1182,10 +1178,8 @@ class _RealmActionMenu extends HookConsumerWidget {
                       'leaveRealm'.tr(),
                     ).then((confirm) async {
                       if (confirm) {
-                        final client = ref.watch(apiClientProvider);
-                        await client.delete(
-                          '/passport/realms/$realmSlug/members/me',
-                        );
+                        final client = ref.watch(solarNetworkClientProvider);
+                        await client.realms.leaveRealm(realmSlug);
                         ref.invalidate(realmsJoinedProvider);
                         ref.invalidate(realmIdentityProvider(realmSlug));
                         ref.invalidate(realmOverviewProvider(realmSlug));
@@ -1219,8 +1213,8 @@ class _RealmActionMenu extends HookConsumerWidget {
                 confirm,
               ) async {
                 if (confirm) {
-                  final client = ref.watch(apiClientProvider);
-                  await client.delete('/passport/realms/$realmSlug/members/me');
+                  final client = ref.watch(solarNetworkClientProvider);
+                  await client.realms.leaveRealm(realmSlug);
                   ref.invalidate(realmsJoinedProvider);
                   ref.invalidate(realmIdentityProvider(realmSlug));
                   ref.invalidate(realmOverviewProvider(realmSlug));
@@ -1250,20 +1244,16 @@ class RealmMemberListNotifier
 
   @override
   Future<List<SnRealmMember>> fetch() async {
-    final apiClient = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await apiClient.get(
-      '/passport/realms/$arg/members',
-      queryParameters: {
-        'offset': fetchedCount,
-        'take': pageSize,
-        'withStatus': true,
-      },
+    final result = await client.realms.getMembers(
+      slug: arg,
+      offset: fetchedCount,
+      take: pageSize,
     );
 
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    return data.map((e) => SnRealmMember.fromJson(e)).toList();
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 
@@ -1288,8 +1278,8 @@ class _RealmMemberListSheet extends HookConsumerWidget {
       );
       if (result == null) return;
       try {
-        final apiClient = ref.watch(apiClientProvider);
-        await apiClient.post(
+        final client = ref.watch(solarNetworkClientProvider);
+        await client.realms.dio.post(
           '/passport/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
@@ -1433,9 +1423,12 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                         ).then((confirm) async {
                           if (confirm != true) return;
                           try {
-                            final apiClient = ref.watch(apiClientProvider);
-                            await apiClient.delete(
-                              '/passport/realms/$realmSlug/members/${member.accountId}',
+                            final client = ref.watch(
+                              solarNetworkClientProvider,
+                            );
+                            await client.realms.kickMember(
+                              slug: realmSlug,
+                              accountId: member.accountId,
                             );
                             // Refresh the provider
                             ref.invalidate(memberListProvider);
@@ -1558,10 +1551,11 @@ class _RealmMemberRoleSheet extends HookConsumerWidget {
                         throw 'Role must be between 0 and 100';
                       }
 
-                      final apiClient = ref.read(apiClientProvider);
-                      await apiClient.patch(
-                        '/passport/realms/$realmSlug/members/${member.accountId}/role',
-                        data: newRole,
+                      final client = ref.read(solarNetworkClientProvider);
+                      await client.realms.updateMemberRole(
+                        slug: realmSlug,
+                        accountId: member.accountId,
+                        role: newRole,
                       );
 
                       if (context.mounted) Navigator.pop(context, true);
@@ -1624,9 +1618,9 @@ class _RealmIdentityEditorSheet extends HookConsumerWidget {
             FilledButton.icon(
               onPressed: () async {
                 try {
-                  final apiClient = ref.read(apiClientProvider);
-                  await apiClient.patch(
-                    '/passport/realms/$realmSlug/members/me/profile',
+                  final client = ref.read(solarNetworkClientProvider);
+                  await client.realms.updateMyMembership(
+                    slug: realmSlug,
                     data: {
                       'nick': nickController.text.trim().isEmpty
                           ? null
@@ -1707,11 +1701,19 @@ class _RealmMemberLabelSheet extends HookConsumerWidget {
               FilledButton.icon(
                 onPressed: () async {
                   try {
-                    final apiClient = ref.read(apiClientProvider);
-                    await apiClient.patch(
-                      '/passport/realms/$realmSlug/members/${member.accountId}/label',
-                      data: {'label_id': selectedLabelId.value},
-                    );
+                    final client = ref.read(solarNetworkClientProvider);
+                    if (selectedLabelId.value == null) {
+                      await client.realms.removeLabel(
+                        slug: realmSlug,
+                        accountId: member.accountId,
+                      );
+                    } else {
+                      await client.realms.assignLabel(
+                        slug: realmSlug,
+                        accountId: member.accountId,
+                        labelId: selectedLabelId.value!,
+                      );
+                    }
                     if (context.mounted) Navigator.pop(context, true);
                   } catch (err) {
                     showErrorAlert(err);
@@ -1791,28 +1793,34 @@ class _RealmLabelEditorSheet extends HookConsumerWidget {
                 }
 
                 try {
-                  final apiClient = ref.read(apiClientProvider);
-                  final payload = {
-                    'name': nameController.text.trim(),
-                    'description': descriptionController.text.trim().isEmpty
-                        ? null
-                        : descriptionController.text.trim(),
-                    'color': colorController.text.trim().isEmpty
-                        ? null
-                        : colorController.text.trim(),
-                    'icon': iconController.text.trim().isEmpty
-                        ? null
-                        : iconController.text.trim(),
-                  };
+                  final client = ref.read(solarNetworkClientProvider);
                   if (label == null) {
-                    await apiClient.post(
-                      '/passport/realms/$realmSlug/labels',
-                      data: payload,
+                    await client.realms.createLabel(
+                      slug: realmSlug,
+                      name: nameController.text.trim(),
+                      description: descriptionController.text.trim().isEmpty
+                          ? null
+                          : descriptionController.text.trim(),
+                      color: colorController.text.trim().isEmpty
+                          ? null
+                          : colorController.text.trim(),
                     );
                   } else {
-                    await apiClient.patch(
-                      '/passport/realms/$realmSlug/labels/${label!.id}',
-                      data: payload,
+                    await client.realms.updateLabel(
+                      slug: realmSlug,
+                      labelId: label!.id,
+                      data: {
+                        'name': nameController.text.trim(),
+                        'description': descriptionController.text.trim().isEmpty
+                            ? null
+                            : descriptionController.text.trim(),
+                        'color': colorController.text.trim().isEmpty
+                            ? null
+                            : colorController.text.trim(),
+                        'icon': iconController.text.trim().isEmpty
+                            ? null
+                            : iconController.text.trim(),
+                      },
                     );
                   }
                   ref.invalidate(realmLabelsProvider(realmSlug));
@@ -1973,21 +1981,14 @@ class _RealmBoostSheet extends HookConsumerWidget {
                 try {
                   showLoadingModal(context);
 
-                  final client = ref.read(apiClientProvider);
-                  final response = await client.post(
-                    '/passport/realms/$realmSlug/boosts',
-                    data: {
-                      'shares': value,
-                      if (selectedCurrency.value != null)
-                        'currency': selectedCurrency.value,
-                    },
+                  final client = ref.read(solarNetworkClientProvider);
+                  final response = await client.realms.boostRealm(
+                    slug: realmSlug,
+                    amount: value.toDouble(),
                   );
 
-                  final orderId = response.data['order_id'] as String;
-                  final orderResponse = await client.get(
-                    '/wallet/orders/$orderId',
-                  );
-                  final order = SnWalletOrder.fromJson(orderResponse.data);
+                  final orderId = response['order_id'] as String;
+                  final order = await client.wallet.getOrder(orderId);
 
                   if (!context.mounted) return;
                   hideLoadingModal(context);

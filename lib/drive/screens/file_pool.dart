@@ -4,7 +4,7 @@ import 'package:island/core/network.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final poolsProvider = FutureProvider<List<SnFilePool>>((ref) async {
-  final dio = ref.watch(apiClientProvider);
+  final dio = ref.watch(solarNetworkClientProvider).dio;
   final response = await dio.get('/drive/pools');
   return response.data
       .map((e) => SnFilePool.fromJson(e))

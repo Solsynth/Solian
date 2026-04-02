@@ -56,11 +56,11 @@ class FediverseActorRelationship {
 
 final fediverseActorProvider =
     FutureProvider.family<SnActivityPubActor, String>((ref, idOrHandle) async {
-      final apiClient = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       final isHandle = idOrHandle.contains('@');
 
       try {
-        final resp = await apiClient.get(
+        final resp = await client.dio.get(
           '/sphere/fediverse/actors/$idOrHandle',
         );
         return SnActivityPubActor.fromJson(resp.data);
@@ -79,9 +79,9 @@ final fediverseActorRelationshipProvider =
       ref,
       actorId,
     ) async {
-      final apiClient = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       try {
-        final resp = await apiClient.get(
+        final resp = await client.dio.get(
           "/sphere/fediverse/actors/$actorId/relationship",
         );
         return FediverseActorRelationship.fromJson(resp.data);
@@ -121,9 +121,9 @@ class FediverseActorPostsNotifier extends AsyncNotifier<PaginationState<SnPost>>
 
   @override
   Future<List<SnPost>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       "/sphere/fediverse/actors/$actorId/posts",
       queryParameters: {'offset': fetchedCount, 'take': pageSize},
     );
@@ -744,10 +744,12 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
     final acting = useState(false);
 
     Future<void> follow(SnActivityPubActor actorData) async {
-      final apiClient = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       acting.value = true;
       try {
-        await apiClient.post("/sphere/fediverse/actors/${actorData.id}/follow");
+        await client.dio.post(
+          "/sphere/fediverse/actors/${actorData.id}/follow",
+        );
         ref.invalidate(fediverseActorRelationshipProvider(actorData.id));
         HapticFeedback.heavyImpact();
       } catch (err) {
@@ -758,10 +760,10 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
     }
 
     Future<void> unfollow(SnActivityPubActor actorData) async {
-      final apiClient = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       acting.value = true;
       try {
-        await apiClient.post(
+        await client.dio.post(
           "/sphere/fediverse/actors/${actorData.id}/unfollow",
         );
         ref.invalidate(fediverseActorRelationshipProvider(actorData.id));

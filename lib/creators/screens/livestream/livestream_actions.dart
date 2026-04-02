@@ -117,8 +117,8 @@ Future<void> _startRtmpEgress(
   if (submitted == null) return;
 
   try {
-    final client = ref.read(apiClientProvider);
-    await client.post(
+    final client = ref.read(solarNetworkClientProvider);
+    await client.dio.post(
       '/sphere/livestreams/$livestreamId/egress',
       data: submitted,
     );
@@ -136,8 +136,8 @@ Future<void> _stopRtmpEgress(
   VoidCallback? onSuccess,
 }) async {
   try {
-    final client = ref.read(apiClientProvider);
-    await client.post('/sphere/livestreams/$livestreamId/egress/stop');
+    final client = ref.read(solarNetworkClientProvider);
+    await client.dio.post('/sphere/livestreams/$livestreamId/egress/stop');
     showSnackBar('rtmpEgressStopped'.tr());
     onSuccess?.call();
   } catch (e) {
@@ -159,8 +159,11 @@ Future<void> _startHlsEgress(
   if (submitted == null) return;
 
   try {
-    final client = ref.read(apiClientProvider);
-    await client.post('/sphere/livestreams/$livestreamId/hls', data: submitted);
+    final client = ref.read(solarNetworkClientProvider);
+    await client.dio.post(
+      '/sphere/livestreams/$livestreamId/hls',
+      data: submitted,
+    );
     showSnackBar('hlsEgressStarted'.tr());
     onSuccess?.call();
   } catch (e) {
@@ -175,8 +178,8 @@ Future<void> _stopHlsEgress(
   VoidCallback? onSuccess,
 }) async {
   try {
-    final client = ref.read(apiClientProvider);
-    await client.post('/sphere/livestreams/$livestreamId/hls/stop');
+    final client = ref.read(solarNetworkClientProvider);
+    await client.dio.post('/sphere/livestreams/$livestreamId/hls/stop');
     showSnackBar('hlsEgressStopped'.tr());
     onSuccess?.call();
   } catch (e) {

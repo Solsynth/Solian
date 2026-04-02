@@ -7,7 +7,7 @@ part 'file_list.g.dart';
 
 @riverpod
 Future<Map<String, dynamic>?> billingUsage(Ref ref) async {
-  final client = ref.read(apiClientProvider);
+  final client = ref.read(solarNetworkClientProvider).dio;
   final response = await client.get('/drive/billing/usage');
   return response.data;
 }
@@ -65,7 +65,7 @@ class IndexedCloudFileListNotifier
 
   @override
   Future<List<FileListItem>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider).dio;
 
     final queryParameters = <String, String>{'path': _currentPath};
 
@@ -159,7 +159,7 @@ class UnindexedFileListNotifier
 
   @override
   Future<List<FileListItem>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider).dio;
 
     final queryParameters = <String, String>{
       'take': pageSize.toString(),
@@ -205,7 +205,7 @@ class UnindexedFileListNotifier
 
 @riverpod
 Future<Map<String, dynamic>?> billingQuota(Ref ref) async {
-  final client = ref.read(apiClientProvider);
+  final client = ref.read(solarNetworkClientProvider).dio;
   final response = await client.get('/drive/billing/quota');
   return response.data;
 }

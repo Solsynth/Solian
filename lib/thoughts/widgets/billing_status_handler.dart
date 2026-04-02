@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 

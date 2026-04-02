@@ -65,8 +65,8 @@ class StartupSplashScreen extends HookConsumerWidget {
               stageLabel: 'Health check',
               subtitle: subtitle,
               action: (timeout) async {
-                final apiClient = ref.read(apiClientProvider);
-                final response = await apiClient.get(
+                final apiClient = ref.read(solarNetworkClientProvider);
+                final response = await apiClient.dio.get(
                   '/health',
                   options: Options(
                     validateStatus: (_) => true,
@@ -109,7 +109,7 @@ class StartupSplashScreen extends HookConsumerWidget {
           action: () async {
             final user = await ref.read(userInfoProvider.future);
             if (!context.mounted || user == null) return;
-            final apiClient = ref.read(apiClientProvider);
+            final apiClient = ref.read(solarNetworkClientProvider).dio;
             await subscribePushNotification(apiClient, context: context);
           },
         ),

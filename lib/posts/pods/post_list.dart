@@ -73,8 +73,9 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
     });
 
     // Listen to real-time reaction update events
-    _postReactionSubscription =
-        eventBus.on<PostReactionUpdateEvent>().listen((event) {
+    _postReactionSubscription = eventBus.on<PostReactionUpdateEvent>().listen((
+      event,
+    ) {
       _handleReactionUpdate(event);
     });
 
@@ -108,9 +109,9 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
     if (index == -1) return;
 
     final post = currentState.items[index];
-    final updatedReactionsCount =
-        Map<String, int>.from(post.reactionsCount);
-    updatedReactionsCount[symbol] = (updatedReactionsCount[symbol] ?? 0) + delta;
+    final updatedReactionsCount = Map<String, int>.from(post.reactionsCount);
+    updatedReactionsCount[symbol] =
+        (updatedReactionsCount[symbol] ?? 0) + delta;
 
     // Remove the reaction count if it becomes 0 or less
     if (updatedReactionsCount[symbol]! <= 0) {
@@ -123,7 +124,7 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
 
   @override
   Future<List<SnPost>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
     // Handle multiple publishers by making separate requests and combining results
     if (currentFilter.publishers != null &&
@@ -154,7 +155,7 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
           if (currentFilter.mediaOnly != null) 'media': currentFilter.mediaOnly,
         };
 
-        final response = await client.get(
+        final response = await client.dio.get(
           '/sphere/posts',
           queryParameters: queryParams,
         );
@@ -208,7 +209,7 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
         if (currentFilter.mediaOnly != null) 'media': currentFilter.mediaOnly,
       };
 
-      final response = await client.get(
+      final response = await client.dio.get(
         '/sphere/posts',
         queryParameters: queryParams,
       );

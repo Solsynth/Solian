@@ -311,11 +311,11 @@ final mlsStorageProvider = Provider<MlsStorage>((ref) {
 final mlsClientProvider = Provider<MlsClient>((ref) {
   final storage = ref.watch(mlsStorageProvider);
   final padlockClient = ref.watch(padlockApiClientProvider);
-  final apiClient = ref.watch(apiClientProvider);
+  final solarClient = ref.watch(solarNetworkClientProvider);
   final client = MlsClient(
     storage: storage,
     padlockClient: padlockClient,
-    apiClient: apiClient,
+    apiClient: solarClient.dio,
   );
   client.initialize();
   return client;

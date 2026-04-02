@@ -27,7 +27,7 @@ class PollFeedbackNotifier extends AsyncNotifier<PaginationState<SnPollAnswer>>
 
   @override
   Future<List<SnPollAnswer>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider).dio;
 
     final queryParams = {'offset': fetchedCount, 'take': pageSize};
 

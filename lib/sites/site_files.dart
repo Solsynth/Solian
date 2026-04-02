@@ -4,8 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/discovery/models/site_file.dart';
 import 'package:island/core/network.dart';
+import 'package:island/discovery/models/site_file.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'site_files.g.dart';
@@ -16,9 +16,9 @@ Future<List<SnSiteFileEntry>> siteFiles(
   required String siteId,
   String? path,
 }) async {
-  final apiClient = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   final queryParams = path != null ? {'path': path} : null;
-  final resp = await apiClient.get(
+  final resp = await client.dio.get(
     '/zone/sites/$siteId/files',
     queryParameters: queryParams,
   );
@@ -32,8 +32,8 @@ Future<SnFileContent> siteFileContent(
   required String siteId,
   required String relativePath,
 }) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get(
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get(
     '/zone/sites/$siteId/files/content/$relativePath',
   );
   final content = resp.data is String
@@ -48,8 +48,8 @@ Future<String> siteFileContentRaw(
   required String siteId,
   required String relativePath,
 }) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get(
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get(
     '/zone/sites/$siteId/files/content/$relativePath',
   );
   return resp.data is String ? resp.data : resp.data['content'] as String;
@@ -66,9 +66,9 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
 
   Future<List<SnSiteFileEntry>> fetchFiles() async {
     try {
-      final apiClient = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
       final queryParams = arg.path != null ? {'path': arg.path} : null;
-      final resp = await apiClient.get(
+      final resp = await client.dio.get(
         '/zone/sites/${arg.siteId}/files',
         queryParameters: queryParams,
       );
@@ -85,7 +85,7 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
       debugPrint('[SiteFiles] Uploading file: $filePath from: ${file.path}');
       debugPrint('[SiteFiles] Site ID: ${arg.siteId}');
 
-      final apiClient = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
 
       // Create multipart form data
       final formData = FormData.fromMap({
@@ -104,7 +104,7 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
         '[SiteFiles] FormData: filePath=$filePath, filename=${file.path.split('/').last}',
       );
 
-      final response = await apiClient.post(
+      final response = await client.dio.post(
         '/zone/sites/${arg.siteId}/files/upload',
         data: formData,
       );
@@ -127,8 +127,8 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
   Future<void> updateFileContent(String relativePath, String newContent) async {
     state = const AsyncValue.loading();
     try {
-      final apiClient = ref.read(apiClientProvider);
-      await apiClient.put(
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.put(
         '/zone/sites/${arg.siteId}/files/edit/$relativePath',
         data: {'new_content': newContent},
       );
@@ -146,8 +146,8 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
   Future<void> deleteFile(String relativePath) async {
     state = const AsyncValue.loading();
     try {
-      final apiClient = ref.read(apiClientProvider);
-      await apiClient.delete(
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.delete(
         '/zone/sites/${arg.siteId}/files/delete/$relativePath',
       );
 
@@ -164,8 +164,8 @@ class SiteFilesNotifier extends AsyncNotifier<List<SnSiteFileEntry>> {
   Future<void> createDirectory(String directoryPath) async {
     state = const AsyncValue.loading();
     try {
-      final apiClient = ref.read(apiClientProvider);
-      await apiClient.post(
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.post(
         '/zone/sites/${arg.siteId}/files/folder',
         data: {'path': directoryPath},
       );

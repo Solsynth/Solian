@@ -176,7 +176,7 @@ class ActivityListNotifier
 
   @override
   Future<List<SnTimelineEvent>> fetch({int retryCount = 0}) async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
     final queryParameters = {
       if (cursor != null) 'cursor': cursor,
@@ -186,7 +186,7 @@ class ActivityListNotifier
       if (currentFilter != null) 'filter': currentFilter,
     };
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/timeline',
       queryParameters: queryParameters,
     );

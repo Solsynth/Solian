@@ -11,7 +11,6 @@ import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/sites/site_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class FileManagementActionSection extends HookConsumerWidget {

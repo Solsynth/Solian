@@ -115,7 +115,7 @@ class PollEditor extends Notifier<PollEditorState> {
     if (id == null || id.isEmpty) return;
 
     showLoadingModal(context);
-    final dio = ref.read(apiClientProvider);
+    final dio = ref.read(solarNetworkClientProvider).dio;
     try {
       final res = await dio.get('/sphere/polls/$id');
 
@@ -412,7 +412,7 @@ class _PollEditorScreenState extends ConsumerState<PollEditorScreen> {
 
   Future<void> _submitPoll(BuildContext context) async {
     final model = ref.read(pollEditorProvider);
-    final dio = ref.read(apiClientProvider);
+    final dio = ref.read(solarNetworkClientProvider).dio;
 
     // Build payload
     final body = {

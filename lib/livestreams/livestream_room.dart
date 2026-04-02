@@ -10,6 +10,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/network.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/core/network.dart' show solarNetworkClientProvider;
 import 'package:easy_localization/easy_localization.dart';
 
 part 'livestream_room.freezed.dart';
@@ -504,8 +505,8 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
     );
 
     try {
-      final client = ref.read(apiClientProvider);
-      final streamResponse = await client.get(
+      final client = ref.read(solarNetworkClientProvider);
+      final streamResponse = await client.dio.get(
         '/sphere/livestreams/$livestreamId',
       );
       final stream = SnLiveStream.fromJson(
@@ -527,7 +528,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
         return;
       }
 
-      final tokenResponse = await client.get(
+      final tokenResponse = await client.dio.get(
         '/sphere/livestreams/$livestreamId/token',
         queryParameters: {'streamer': streamer},
       );
@@ -544,7 +545,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       List<ChatMessage> chatHistory = [];
       try {
         final userInfo = ref.read(userInfoProvider).value;
-        final chatResponse = await client.get(
+        final chatResponse = await client.dio.get(
           '/sphere/livestreams/$livestreamId/chat',
           queryParameters: {'limit': 50, 'offset': 0},
         );
@@ -566,7 +567,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
       } catch (_) {}
 
       try {
-        final activeAwardsResponse = await client.get(
+        final activeAwardsResponse = await client.dio.get(
           '/sphere/livestreams/$livestreamId/awards/active',
         );
         final activeAwards = _extractObjectList(activeAwardsResponse.data);
@@ -821,7 +822,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
   }
 
   Future<void> sendMessage([String? rawMessage]) async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     final message = (rawMessage ?? _chatInputController.text).trim();
     if (state.isSendingChat) {
       return;
@@ -832,7 +833,7 @@ class LivestreamRoomNotifier extends Notifier<LivestreamRoomState> {
 
     state = state.copyWith(isSendingChat: true, clearError: true);
     try {
-      final response = await client.post(
+      final response = await client.dio.post(
         '/sphere/livestreams/$livestreamId/chat',
         data: {'content': message},
       );

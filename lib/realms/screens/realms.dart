@@ -25,17 +25,16 @@ part 'realms.g.dart';
 
 @riverpod
 Future<List<SnRealm>> realmsJoined(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/passport/realms');
-  return resp.data.map((e) => SnRealm.fromJson(e)).cast<SnRealm>().toList();
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.realms.getRealms();
+  return resp.items;
 }
 
 @riverpod
 Future<SnRealm?> realm(Ref ref, String? identifier) async {
   if (identifier == null) return null;
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/passport/realms/$identifier');
-  return SnRealm.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.realms.getRealm(identifier);
 }
 
 @RoutePage()
@@ -179,12 +178,9 @@ class RealmListScreen extends HookConsumerWidget {
 
 @riverpod
 Future<List<SnRealmMember>> realmInvites(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/passport/realms/invites');
-  return resp.data
-      .map((e) => SnRealmMember.fromJson(e))
-      .cast<SnRealmMember>()
-      .toList();
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get('/passport/realms/invites');
+  return (resp.data as List).map((e) => SnRealmMember.fromJson(e)).toList();
 }
 
 class _RealmInviteSheet extends HookConsumerWidget {
@@ -196,8 +192,8 @@ class _RealmInviteSheet extends HookConsumerWidget {
 
     Future<void> acceptInvite(SnRealmMember invite) async {
       try {
-        final client = ref.read(apiClientProvider);
-        await client.post(
+        final client = ref.read(solarNetworkClientProvider);
+        await client.dio.post(
           '/passport/realms/invites/${invite.realm!.slug}/accept',
         );
         ref.invalidate(realmInvitesProvider);
@@ -209,8 +205,8 @@ class _RealmInviteSheet extends HookConsumerWidget {
 
     Future<void> declineInvite(SnRealmMember invite) async {
       try {
-        final client = ref.read(apiClientProvider);
-        await client.post(
+        final client = ref.read(solarNetworkClientProvider);
+        await client.dio.post(
           '/passport/realms/invites/${invite.realm!.slug}/decline',
         );
         ref.invalidate(realmInvitesProvider);

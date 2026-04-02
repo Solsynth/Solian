@@ -25,8 +25,8 @@ typedef RealmMemberLookup = ({String realmId, String accountId});
 
 final realmMemberDetailsProvider = FutureProvider.autoDispose
     .family<SnRealmMember?, RealmMemberLookup>((ref, lookup) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get(
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get(
         '/realms/${lookup.realmId}/members/${lookup.accountId}',
         queryParameters: {'withStatus': true},
       );
@@ -68,7 +68,7 @@ class RealmMemberCard extends HookConsumerWidget {
       )),
     );
     final effectiveMember = remoteMemberAsync.value ?? member;
-    final apiClient = ref.watch(apiClientProvider);
+    final client = ref.watch(solarNetworkClientProvider);
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final role = effectiveMember.role;
     final isSelf = currentUserId == effectiveMember.accountId;
@@ -97,7 +97,7 @@ class RealmMemberCard extends HookConsumerWidget {
 
       loading.value = true;
       try {
-        await apiClient.delete(
+        await client.dio.delete(
           '/realms/$realmId/members/${effectiveMember.accountId}',
         );
         await refreshAfterAction();
@@ -116,7 +116,7 @@ class RealmMemberCard extends HookConsumerWidget {
       if (!canManageTarget) return;
       loading.value = true;
       try {
-        await apiClient.put(
+        await client.dio.put(
           '/realms/$realmId/members/${effectiveMember.accountId}',
           data: {'role': newRole},
         );

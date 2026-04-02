@@ -34,7 +34,7 @@ class RealmListNotifier extends AsyncNotifier<PaginationState<SnRealm>>
 
   @override
   Future<List<SnRealm>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
     final queryParams = {
       'offset': fetchedCount,
@@ -42,7 +42,7 @@ class RealmListNotifier extends AsyncNotifier<PaginationState<SnRealm>>
       if (arg != null && arg!.isNotEmpty) 'query': arg,
     };
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/passport/realms/public',
       queryParameters: queryParams,
     );

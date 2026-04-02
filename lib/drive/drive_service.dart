@@ -383,7 +383,7 @@ FileUploader driveFileUploader(Ref ref) {
 
 class FileUploader {
   final Ref ref;
-  late final Dio _client = ref.watch(apiClientProvider);
+  late final _client = ref.watch(solarNetworkClientProvider).dio;
   FileUploader(this.ref);
 
   bool shouldUseDirectUpload({required int totalSize, int? customChunkSize}) {
@@ -1265,7 +1265,7 @@ class FileDownloadService {
       return filePath;
     }
 
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider).dio;
     final tempDir = await getTemporaryDirectory();
     final filePath = '${tempDir.path}/${item.id}.$extName';
 
@@ -1328,7 +1328,7 @@ class FileDownloadService {
     try {
       showSnackBar('Downloading file...');
 
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider).dio;
       final extName = _getFileExtension(item);
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/${item.id}.$extName';

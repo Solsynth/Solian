@@ -234,7 +234,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     });
 
     try {
-      final dio = ref.read(apiClientProvider);
+      final dio = ref.read(solarNetworkClientProvider).dio;
 
       await dio.post(
         '/sphere/polls/${poll.id}/answer',

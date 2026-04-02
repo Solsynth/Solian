@@ -29,8 +29,8 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
 
     try {
       if (!ref.mounted) return;
-      final client = ref.read(apiClientProvider);
-      final response = await client.get('/sphere/posts/drafts');
+      final client = ref.read(solarNetworkClientProvider);
+      final response = await client.dio.get('/sphere/posts/drafts');
       if (!ref.mounted) return;
       final cloudDrafts = (response.data as List)
           .map((e) => SnPost.fromJson(e as Map<String, dynamic>))
@@ -87,8 +87,8 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
 
     if (oldDraft?.draftedAt != null) {
       try {
-        final client = ref.read(apiClientProvider);
-        await client.delete('/sphere/posts/$id');
+        final client = ref.read(solarNetworkClientProvider);
+        await client.dio.delete('/sphere/posts/$id');
       } catch (_) {
         // Ignore cloud delete errors to avoid blocking local cleanup.
       }
@@ -134,7 +134,7 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
       throw Exception('Cannot upload draft: missing publisher');
     }
 
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     final isCloudDraft = draft.draftedAt != null;
     final endpoint = isCloudDraft ? '/sphere/posts/$id' : '/sphere/posts';
     final payload = {
@@ -155,7 +155,7 @@ class ComposeStorageNotifier extends _$ComposeStorageNotifier {
       'published_at': null,
     };
 
-    final response = await client.request(
+    final response = await client.dio.request(
       endpoint,
       queryParameters: {'pub': publisherName},
       data: payload,

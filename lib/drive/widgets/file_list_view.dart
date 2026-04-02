@@ -521,7 +521,9 @@ class FileListView extends HookConsumerWidget {
                                   showLoadingModal(context);
                                 }
                                 try {
-                                  final client = ref.read(apiClientProvider);
+                                  final client = ref
+                                      .read(solarNetworkClientProvider)
+                                      .dio;
                                   final resp = await client.post(
                                     '/drive/files/batches/delete',
                                     data: {
@@ -764,7 +766,7 @@ class FileListView extends HookConsumerWidget {
               showLoadingModal(context);
             }
             try {
-              final client = ref.read(apiClientProvider);
+              final client = ref.read(solarNetworkClientProvider).dio;
               await client.delete(
                 '/drive/index/remove/${fileItem.fileIndex.id}',
               );
@@ -801,7 +803,7 @@ class FileListView extends HookConsumerWidget {
         : 1.0;
     final itemType = file.mimeType?.split('/').first;
     final uri =
-        '${ref.read(apiClientProvider).options.baseUrl}/drive/files/${file.id}';
+        '${ref.read(solarNetworkClientProvider).dio.options.baseUrl}/drive/files/${file.id}';
 
     Widget previewWidget;
     switch (itemType) {
@@ -823,7 +825,8 @@ class FileListView extends HookConsumerWidget {
           color: Theme.of(context).colorScheme.surfaceContainer,
           child: FutureBuilder<String>(
             future: ref
-                .read(apiClientProvider)
+                .read(solarNetworkClientProvider)
+                .dio
                 .get(uri)
                 .then((response) => response.data as String),
             builder: (context, snapshot) => snapshot.hasData
@@ -1124,7 +1127,7 @@ class FileListView extends HookConsumerWidget {
             showLoadingModal(context);
           }
           try {
-            final client = ref.read(apiClientProvider);
+            final client = ref.read(solarNetworkClientProvider).dio;
             await client.delete('/drive/index/remove/${fileItem.fileIndex.id}');
             ref.invalidate(indexedCloudFileListProvider);
           } catch (e) {
@@ -1192,7 +1195,7 @@ class FileListView extends HookConsumerWidget {
             showLoadingModal(context);
           }
           try {
-            final client = ref.read(apiClientProvider);
+            final client = ref.read(solarNetworkClientProvider).dio;
             await client.delete('/drive/files/${file.id}');
             ref.invalidate(unindexedFileListProvider);
           } catch (e) {
@@ -1235,7 +1238,7 @@ class FileListView extends HookConsumerWidget {
               showLoadingModal(context);
             }
             try {
-              final client = ref.read(apiClientProvider);
+              final client = ref.read(solarNetworkClientProvider).dio;
               await client.delete('/drive/files/${unindexedFileItem.file.id}');
               ref.invalidate(unindexedFileListProvider);
             } catch (e) {
@@ -1321,7 +1324,7 @@ class FileListView extends HookConsumerWidget {
                   showLoadingModal(ref.context);
                 }
                 try {
-                  final client = ref.read(apiClientProvider);
+                  final client = ref.read(solarNetworkClientProvider).dio;
                   final response = await client.delete(
                     '/drive/files/me/recycle',
                   );

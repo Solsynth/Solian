@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/creators/publication_site.dart';
 import 'package:island/core/network.dart';
+import 'package:island/creators/publication_site.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'site_pages.g.dart';
@@ -12,16 +12,16 @@ Future<List<SnPublicationPage>> sitePages(
   String pubName,
   String siteSlug,
 ) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/zone/sites/$pubName/$siteSlug/pages');
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get('/zone/sites/$pubName/$siteSlug/pages');
   final data = resp.data as List<dynamic>;
   return data.map((json) => SnPublicationPage.fromJson(json)).toList();
 }
 
 @riverpod
 Future<SnPublicationPage> sitePage(Ref ref, String pageId) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/zone/sites/pages/$pageId');
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get('/zone/sites/pages/$pageId');
   return SnPublicationPage.fromJson(resp.data);
 }
 
@@ -36,8 +36,8 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
 
   Future<List<SnPublicationPage>> fetchPages() async {
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final resp = await apiClient.get(
+      final client = ref.read(solarNetworkClientProvider);
+      final resp = await client.dio.get(
         '/zone/sites/${arg.pubName}/${arg.siteSlug}/pages',
       );
       final data = resp.data as List<dynamic>;
@@ -50,8 +50,8 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
   Future<SnPublicationPage?> createPage(Map<String, dynamic> pageData) async {
     state = const AsyncValue.loading();
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final resp = await apiClient.post(
+      final client = ref.read(solarNetworkClientProvider);
+      final resp = await client.dio.post(
         '/zone/sites/${arg.pubName}/${arg.siteSlug}/pages',
         data: pageData,
       );
@@ -70,8 +70,8 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
   ) async {
     state = const AsyncValue.loading();
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final resp = await apiClient.patch(
+      final client = ref.read(solarNetworkClientProvider);
+      final resp = await client.dio.patch(
         '/zone/sites/pages/$pageId',
         data: pageData,
       );
@@ -87,8 +87,8 @@ class SitePagesNotifier extends AsyncNotifier<List<SnPublicationPage>> {
   Future<void> deletePage(String pageId) async {
     state = const AsyncValue.loading();
     try {
-      final apiClient = ref.read(apiClientProvider);
-      await apiClient.delete('/zone/sites/pages/$pageId');
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.delete('/zone/sites/pages/$pageId');
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;

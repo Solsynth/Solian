@@ -47,9 +47,9 @@ Future<void> performPostLogin(BuildContext context, WidgetRef ref) async {
   final userNotifier = ref.read(userInfoProvider.notifier);
   await userNotifier.fetchUser();
   if (!context.mounted) return;
-  final apiClient = ref.read(apiClientProvider);
+  final client = ref.read(solarNetworkClientProvider);
   final wsNotifier = ref.read(websocketStateProvider.notifier);
-  await subscribePushNotification(apiClient, context: context);
+  await subscribePushNotification(client.dio, context: context);
   wsNotifier.connect();
   if (context.mounted && Navigator.canPop(context)) {
     Navigator.pop(context, true);
@@ -139,9 +139,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
       if (pwd.isEmpty) return;
       isBusy.value = true;
       try {
-        // Pass challenge
-        final client = ref.watch(apiClientProvider);
-        final resp = await client.patch(
+        final client = ref.watch(solarNetworkClientProvider);
+        final resp = await client.dio.patch(
           '/padlock/auth/challenge/${challenge!.id}',
           data: {'factor_id': factor!.id, 'password': pwd},
         );
@@ -372,10 +371,10 @@ class _LoginPickerScreen extends HookConsumerWidget {
       if (factorPicked.value == null) return;
 
       isBusy.value = true;
-      final client = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
 
       try {
-        await client.post(
+        await client.dio.post(
           '/padlock/auth/challenge/${challenge!.id}/factors/${factorPicked.value!.id}',
         );
         onPickFactor(factors!.where((x) => x == factorPicked.value).first);
@@ -546,8 +545,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
                             isRecovering.value = false;
                             return;
                           }
-                          final client = ref.read(apiClientProvider);
-                          final resp = await client.post(
+                          final client = ref.read(solarNetworkClientProvider);
+                          final resp = await client.dio.post(
                             '/padlock/auth/recover',
                             data: {
                               'account': accountController.text,
@@ -619,14 +618,14 @@ class _LoginLookupScreen extends HookConsumerWidget {
       ) async {
         if (!waitingForOidc.value || !context.mounted) return;
         waitingForOidc.value = false;
-        final client = ref.watch(apiClientProvider);
+        final client = ref.watch(solarNetworkClientProvider);
         try {
-          final resp = await client.get(
+          final resp = await client.dio.get(
             '/padlock/auth/challenge/${event.challengeId}',
           );
           final challenge = SnAuthChallenge.fromJson(resp.data);
           onChallenge(challenge);
-          final factorResp = await client.get(
+          final factorResp = await client.dio.get(
             '/padlock/auth/challenge/${challenge.id}/factors',
           );
           onFactor(
@@ -652,8 +651,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
       if (captchaTk == null) return;
       isBusy.value = true;
       try {
-        final client = ref.watch(apiClientProvider);
-        await client.post(
+        final client = ref.watch(solarNetworkClientProvider);
+        await client.dio.post(
           '/passport/accounts/recovery/password',
           data: {'account': uname, 'captcha_token': captchaTk},
         );
@@ -670,8 +669,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
       if (uname.isEmpty) return;
       isBusy.value = true;
       try {
-        final client = ref.watch(apiClientProvider);
-        final resp = await client.post(
+        final client = ref.watch(solarNetworkClientProvider);
+        final resp = await client.dio.post(
           '/padlock/auth/challenge',
           data: {
             'account': uname,
@@ -691,7 +690,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
         );
         final result = SnAuthChallenge.fromJson(resp.data);
         onChallenge(result);
-        final factorResp = await client.get(
+        final factorResp = await client.dio.get(
           '/padlock/auth/challenge/${result.id}/factors',
         );
         onFactor(
@@ -709,7 +708,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
     }
 
     Future<void> withApple() async {
-      final client = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       try {
         final credential = await SignInWithApple.getAppleIDCredential(
           scopes: [AppleIDAuthorizationScopes.email],
@@ -720,7 +719,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
         );
 
         if (context.mounted) showLoadingModal(context);
-        final resp = await client.post(
+        final resp = await client.dio.post(
           '/padlock/auth/login/apple/mobile',
           data: {
             'identity_token': credential.identityToken!,

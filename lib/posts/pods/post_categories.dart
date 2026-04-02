@@ -29,9 +29,9 @@ class PostCategoriesNotifier
 
   @override
   Future<List<SnPostCategory>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/posts/categories',
       queryParameters: {'offset': fetchedCount, 'take': 20, 'order': 'usage'},
     );
@@ -66,9 +66,9 @@ class PostTagsNotifier extends AsyncNotifier<PaginationState<SnPostTag>>
 
   @override
   Future<List<SnPostTag>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/posts/tags',
       queryParameters: {'offset': fetchedCount, 'take': 20, 'order': 'usage'},
     );

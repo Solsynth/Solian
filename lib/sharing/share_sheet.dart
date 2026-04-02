@@ -194,7 +194,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   Future<void> _shareToSpecificChat(SnChatRoom chatRoom) async {
     setState(() => _isLoading = true);
     try {
-      final apiClient = ref.read(apiClientProvider);
+      final apiClient = ref.read(solarNetworkClientProvider).dio;
 
       String content = _messageController.text.trim();
       List<String> attachmentIds = [];

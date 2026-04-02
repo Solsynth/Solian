@@ -24,8 +24,8 @@ part 'realm_form.g.dart';
 
 @riverpod
 Future<RealmQuotaInfo> realmQuotaInfo(Ref ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/passport/realms/quota');
+  final client = ref.watch(solarNetworkClientProvider);
+  final response = await client.dio.get('/passport/realms/quota');
   return RealmQuotaInfo.fromJson(response.data);
 }
 
@@ -134,9 +134,11 @@ class RealmEditScreen extends HookConsumerWidget {
 
       submitting.value = true;
       try {
-        final client = ref.watch(apiClientProvider);
-        final resp = await client.request(
-          '/pass${slug == null ? '/realms' : '/realms/$slug'}',
+        final client = ref.watch(solarNetworkClientProvider);
+        final realm = await ref.watch(realmProvider(slug).future);
+        final isCreate = realm == null;
+        final resp = await client.dio.request(
+          '/pass${isCreate ? '' : ''}/realms${isCreate ? '' : '/$slug'}',
           data: {
             'slug': slugController.text,
             'name': nameController.text,
@@ -146,7 +148,7 @@ class RealmEditScreen extends HookConsumerWidget {
             'is_public': isPublic.value,
             'is_community': isCommunity.value,
           },
-          options: Options(method: slug == null ? 'POST' : 'PATCH'),
+          options: Options(method: isCreate ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
           context.router.pop(SnRealm.fromJson(resp.data));

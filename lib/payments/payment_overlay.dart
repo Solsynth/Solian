@@ -238,8 +238,8 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   /// Unified method for making payment requests with PIN
   Future<void> _makePaymentRequest(String pin) async {
     try {
-      final client = ref.read(apiClientProvider);
-      final response = await client.post(
+      final client = ref.read(solarNetworkClientProvider);
+      final response = await client.dio.post(
         '/wallet/orders/${widget.order.id}/pay',
         data: {'pin_code': pin},
       );

@@ -17,15 +17,15 @@ part 'post_category_detail.g.dart';
 
 @riverpod
 Future<SnPostCategory> postCategory(Ref ref, String slug) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/posts/categories/$slug');
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get('/sphere/posts/categories/$slug');
   return SnPostCategory.fromJson(resp.data);
 }
 
 @riverpod
 Future<SnPostTag> postTag(Ref ref, String slug) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/posts/tags/$slug');
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get('/sphere/posts/tags/$slug');
   return SnPostTag.fromJson(resp.data);
 }
 
@@ -35,9 +35,9 @@ Future<SnCategorySubscription?> postCategorySubscription(
   String slug,
   bool isCategory,
 ) async {
-  final apiClient = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await apiClient.get(
+    final resp = await client.dio.get(
       '/sphere/posts/${isCategory ? 'categories' : 'tags'}/$slug/subscription',
     );
     if (resp.data == 200) return SnCategorySubscription.fromJson(resp.data);
@@ -52,8 +52,8 @@ Future<void> _subscribeToCategoryOrTag(
   required String slug,
   required bool isCategory,
 }) async {
-  final apiClient = ref.read(apiClientProvider);
-  await apiClient.post(
+  final client = ref.read(solarNetworkClientProvider);
+  await client.dio.post(
     '/sphere/posts/${isCategory ? 'categories' : 'tags'}/$slug/subscribe',
   );
   // Invalidate the subscription status to refresh it
@@ -65,8 +65,8 @@ Future<void> _unsubscribeFromCategoryOrTag(
   required String slug,
   required bool isCategory,
 }) async {
-  final apiClient = ref.read(apiClientProvider);
-  await apiClient.post(
+  final client = ref.read(solarNetworkClientProvider);
+  await client.dio.post(
     '/sphere/posts/${isCategory ? 'categories' : 'tags'}/$slug/unsubscribe',
   );
   // Invalidate the subscription status to refresh it
