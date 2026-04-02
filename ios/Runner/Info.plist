@@ -68,9 +68,9 @@
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
 	<key>NSBluetoothWhileInUseUsageDescription</key>
-  <string>Bluetooth is used to exchange nearby meet identifiers.</string>
-  <key>NSBluetoothPeripheralUsageDescription</key>
-  <string>Bluetooth is used to exchange nearby meet identifiers.</string>
+	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Grant access to Calander help us to shows Solar Calander with your own events.</string>
 	<key>NSCameraUsageDescription</key>
@@ -129,5 +129,26 @@
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UlWindowScene</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 </dict>
 </plist>
