@@ -45,7 +45,7 @@ import flutter_sharing_intent
     func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
         GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
         
-        setupWidgetSyncChannel(engineBridge: FlutterImplicitEngineBridge)
+        setupWidgetSyncChannel(engineBridge: engineBridge)
     }
     
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {

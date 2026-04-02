@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Kingfisher
-import KingfisherWebP
 import Combine
 
 // MARK: - Image Loader
@@ -39,15 +38,11 @@ class ImageLoader: ObservableObject {
             return r
         }
 
-        // Use WebP processor as default since the app seems to handle WebP images
-        let processor = WebPProcessor.default
-
         // Use KingfisherManager to retrieve image with caching
         currentTask = KingfisherManager.shared.retrieveImage(
             with: initialUrl,
             options: [
                 .requestModifier(modifier),
-                .processor(processor),
                 .cacheOriginalImage, // Cache the original image data
                 .loadDiskFileSynchronously // Load from disk cache synchronously if available
             ]

@@ -9,7 +9,6 @@
 import Intents
 import Kingfisher
 import UniformTypeIdentifiers
-import KingfisherWebP
 
 enum ParseNotificationPayloadError: Error {
     case missingMetadata(String)
@@ -25,11 +24,6 @@ class NotificationService: UNNotificationServiceExtension {
         _ request: UNNotificationRequest,
         withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
     ) {
-        KingfisherManager.shared.defaultOptions += [
-          .processor(WebPProcessor.default),
-          .cacheSerializer(WebPSerializer.default)
-        ]
-        
         self.contentHandler = contentHandler
         guard let bestAttemptContent = request.content.mutableCopy() as? UNMutableNotificationContent else {
             contentHandler(request.content)

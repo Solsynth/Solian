@@ -30,33 +30,11 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  pod 'Alamofire'
-  pod 'Kingfisher', '~> 8.0'
-  pod 'KingfisherWebP'
-
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-
-  target 'RunnerTests' do
-    inherit! :search_paths
-  end
-
-  target 'SolianNotificationService' do
-    inherit! :search_paths
-  end
 
   target 'SolianShareExtension' do
     inherit! :search_paths
   end
-end
-
-target 'Solian Watch App' do
-  platform :watchos, '11.0'
-
-  use_frameworks!
-  use_modular_headers!
-
-  pod 'Kingfisher', '~> 8.0'
-  pod 'KingfisherWebP'
 end
 
 post_install do |installer|
