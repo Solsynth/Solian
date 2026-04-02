@@ -64,7 +64,7 @@ final class DeveloperStatsProvider
   }
 }
 
-String _$developerStatsHash() => r'45546f29ec7cd1a9c3a4e0f4e39275e78bf34755';
+String _$developerStatsHash() => r'cfc03d0a7a5eb5316f890a4e33d3c06901dcb104';
 
 final class DeveloperStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<DeveloperStats?>, String?> {
@@ -123,7 +123,7 @@ final class DevelopersProvider
   }
 }
 
-String _$developersHash() => r'252341098617ac398ce133994453f318dd3edbd2';
+String _$developersHash() => r'aa493079dac7c9eb3034826fd6730c3b7e37bd36';
 
 @ProviderFor(devProjects)
 final devProjectsProvider = DevProjectsFamily._();
@@ -182,7 +182,7 @@ final class DevProjectsProvider
   }
 }
 
-String _$devProjectsHash() => r'746bb10ccd198eaec456af840ffef38b4f688310';
+String _$devProjectsHash() => r'ac61b492da91d945252b27b954616b326e61084c';
 
 final class DevProjectsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnDevProject>>, String> {

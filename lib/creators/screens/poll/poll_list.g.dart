@@ -64,7 +64,7 @@ final class PollWithStatsProvider
   }
 }
 
-String _$pollWithStatsHash() => r'6bb910046ce1e09368f9922dbec52fdc2cc86740';
+String _$pollWithStatsHash() => r'7d4d112fbec0b604abdca9425e7ec25b2e242dd9';
 
 final class PollWithStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPollWithStats>, String> {

@@ -55,4 +55,4 @@ final class MyStickerPacksProvider
   }
 }
 
-String _$myStickerPacksHash() => r'1e19832e8ab1cb139ad18aebfa5aebdf4fdea499';
+String _$myStickerPacksHash() => r'f5bfe912a2efd7f03b185cb00f98053ada9cf22b';

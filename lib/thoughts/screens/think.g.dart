@@ -41,7 +41,7 @@ final class ThoughtAvailableStausProvider
 }
 
 String _$thoughtAvailableStausHash() =>
-    r'720e04e56bff8c4d4ca6854ce997da4e7926c84c';
+    r'b7c259086b30d4ca01639953b3d6a852d4e076cb';
 
 @ProviderFor(thoughtSequence)
 final thoughtSequenceProvider = ThoughtSequenceFamily._();
@@ -100,7 +100,7 @@ final class ThoughtSequenceProvider
   }
 }
 
-String _$thoughtSequenceHash() => r'87cf578c336fe566575033a498950dcbb2a962be';
+String _$thoughtSequenceHash() => r'46a48c98d9ffad6d8c85930c8bb9ce7a23482a00';
 
 final class ThoughtSequenceFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnThinkingThought>>, String> {
@@ -159,4 +159,4 @@ final class ThoughtServicesProvider
   }
 }
 
-String _$thoughtServicesHash() => r'0ddeaec713ecfcdc9786c197f3d4cb41d36c26a5';
+String _$thoughtServicesHash() => r'e3e69c83f407b9c5b946f199a1cff5f989d730f0';

@@ -66,7 +66,7 @@ final class SitePagesProvider
   }
 }
 
-String _$sitePagesHash() => r'5e084e9694ad665e9b238c6a747c6c6e99c5eb03';
+String _$sitePagesHash() => r'9f0c54a4e172ea7d9b71d42c83652bdb7b866485';
 
 final class SitePagesFamily extends $Family
     with
@@ -147,7 +147,7 @@ final class SitePageProvider
   }
 }
 
-String _$sitePageHash() => r'542f70c5b103fe34d7cf7eb0821d52f017022efc';
+String _$sitePageHash() => r'ec4aed328e7e110c632a0ec887aaa00142964c67';
 
 final class SitePageFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublicationPage>, String> {

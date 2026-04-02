@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -12,163 +10,318 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/info_row.dart';
+import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:styled_widget/styled_widget.dart';
-import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 part 'account_devices.g.dart';
 
 @riverpod
 Future<List<SnAuthDeviceWithSession>> authDevices(Ref ref) async {
-  final resp = await ref.watch(apiClientProvider).get('/padlock/devices');
+  final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
+  final resp = await padlockApi.getDevices();
   final currentId = await getUdid();
-  final data = resp.data.map<SnAuthDeviceWithSession>((e) {
-    final ele = SnAuthDeviceWithSession.fromJson(e);
+  return resp.map((ele) {
     return ele.copyWith(isCurrent: ele.deviceId == currentId);
   }).toList();
-  return data;
 }
 
-class _DeviceListTile extends StatelessWidget {
+@riverpod
+Future<PaginatedResult<SnAuthSession>> authSessions(Ref ref) async {
+  final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
+  return padlockApi.getSessions();
+}
+
+class _DeviceCard extends StatelessWidget {
   final SnAuthDeviceWithSession device;
   final Function(String) updateDeviceLabel;
   final Function(String) logoutDevice;
-  final Function(String) logoutSession;
 
-  const _DeviceListTile({
+  const _DeviceCard({
     required this.device,
     required this.updateDeviceLabel,
     required this.logoutDevice,
-    required this.logoutSession,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      title: Row(
-        spacing: 8,
-        children: [
-          Flexible(child: Text(device.deviceLabel ?? device.deviceName)),
-          if (device.isCurrent)
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Row(
               children: [
-                Badge(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  label: Text(
-                    'authDeviceCurrent'.tr(),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  child: Icon(switch (device.platform) {
+                    0 => Icons.device_unknown,
+                    1 => Icons.web,
+                    2 => Icons.phone_iphone,
+                    3 => Icons.phone_android,
+                    4 => Icons.laptop_mac,
+                    5 => Icons.window,
+                    6 => Icons.computer,
+                    _ => Icons.device_unknown,
+                  }, color: colorScheme.onPrimaryContainer),
                 ),
-              ],
-            ),
-        ],
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (device.sessions.isNotEmpty)
-            Text(
-              'lastActiveAt'.tr(
-                args: [device.sessions.first.createdAt.formatSystem()],
-              ),
-            ),
-        ],
-      ),
-      leading: Icon(switch (device.platform) {
-        0 => Icons.device_unknown, // Unidentified
-        1 => Icons.web, // Web
-        2 => Icons.phone_iphone, // iOS
-        3 => Icons.phone_android, // Android
-        4 => Icons.laptop_mac, // macOS
-        5 => Icons.window, // Windows
-        6 => Icons.computer, // Linux
-        _ => Icons.device_unknown, // fallback
-      }).padding(top: 4),
-      trailing: isWideScreen(context)
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  tooltip: 'authDeviceEditLabel'.tr(),
-                  onPressed: () => updateDeviceLabel(device.deviceId),
-                ),
-                if (!device.isCurrent)
-                  IconButton(
-                    icon: Icon(Icons.logout),
-                    tooltip: 'authDeviceLogout'.tr(),
-                    onPressed: () => logoutDevice(device.deviceId),
-                  ),
-              ],
-            )
-          : null,
-      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant,
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text('authDeviceChallenges'.tr()),
-        ),
-        if (device.sessions.isNotEmpty) ...[
-          ...device.sessions
-              .map(
-                (session) => Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 4,
+                Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          InfoRow(
-                            label: 'createdAt'.tr(
-                              args: [
-                                session.createdAt.toLocal().formatSystem(),
-                              ],
+                          Flexible(
+                            child: Text(
+                              device.deviceLabel ?? device.deviceName,
+                              style: Theme.of(context).textTheme.titleMedium,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            icon: Symbols.join,
                           ),
-                          InfoRow(
-                            label: 'lastActiveAt'.tr(
-                              args: [
-                                session.lastGrantedAt.toLocal().formatSystem(),
-                              ],
+                          if (device.isCurrent) ...[
+                            Gap(8),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'authDeviceCurrent'.tr(),
+                                style: TextStyle(
+                                  color: colorScheme.onPrimary,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
-                            icon: Symbols.refresh_rounded,
-                          ),
-                          InfoRow(
-                            label:
-                                '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
-                            icon: Symbols.pin_drop,
-                          ),
-                          InfoRow(
-                            label:
-                                '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
-                            icon: Symbols.dns,
-                          ),
+                          ],
                         ],
                       ),
-                    ),
+                      if (device.sessions.isNotEmpty)
+                        Text(
+                          'lastActiveAt'.tr(
+                            args: [
+                              device.sessions.first.createdAt.formatSystem(),
+                            ],
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     IconButton(
-                      icon: Icon(Icons.logout),
-                      tooltip: 'authSessionLogout'.tr(),
-                      onPressed: () => logoutSession(session.id),
+                      icon: Icon(Icons.edit),
+                      tooltip: 'authDeviceEditLabel'.tr(),
+                      onPressed: () => updateDeviceLabel(device.deviceId),
                     ),
-                    const Gap(4),
+                    if (!device.isCurrent && isWideScreen(context))
+                      IconButton(
+                        icon: Icon(Icons.logout),
+                        tooltip: 'authDeviceLogout'.tr(),
+                        onPressed: () => logoutDevice(device.deviceId),
+                      ),
                   ],
-                ).padding(horizontal: 20, vertical: 8),
-              )
-              .expand((element) => [element, const Divider(height: 1)])
-              .toList()
-            ..removeLast(),
-        ],
-      ],
+                ),
+              ],
+            ),
+            if (device.sessions.isNotEmpty) ...[
+              Gap(12),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'authDeviceChallenges'.tr(),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Gap(8),
+                    ...device.sessions.map(
+                      (session) => Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    session.userAgent ?? 'unknown'.tr(),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    '${session.ipAddress ?? 'unknown'.tr()} • ${session.location?.city ?? 'unknown'.tr()}',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionListTile extends StatelessWidget {
+  final SnAuthSession session;
+  final Function(String) logoutSession;
+
+  const _SessionListTile({required this.session, required this.logoutSession});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: session.isCurrent
+                        ? colorScheme.primaryContainer
+                        : colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.key,
+                    color: session.isCurrent
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              session.label ??
+                                  session.userAgent ??
+                                  'unknown'.tr(),
+                              style: Theme.of(context).textTheme.titleMedium,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (session.isCurrent) ...[
+                            Gap(8),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'authCurrentSession'.tr(),
+                                style: TextStyle(
+                                  color: colorScheme.onPrimary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      Text(
+                        'lastActiveAt'.tr(
+                          args: [
+                            session.lastGrantedAt.toLocal().formatSystem(),
+                          ],
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!session.isCurrent)
+                  IconButton(
+                    icon: Icon(Icons.logout),
+                    tooltip: 'authSessionLogout'.tr(),
+                    onPressed: () => logoutSession(session.id),
+                  ),
+              ],
+            ),
+            Gap(12),
+            InfoRow(
+              label: 'createdAt'.tr(
+                args: [session.createdAt.toLocal().formatSystem()],
+              ),
+              icon: Symbols.join,
+            ),
+            Gap(4),
+            InfoRow(
+              label:
+                  '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
+              icon: Symbols.pin_drop,
+            ),
+            Gap(4),
+            InfoRow(
+              label:
+                  '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
+              icon: Symbols.dns,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -179,8 +332,9 @@ class AccountSessionSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authDevices = ref.watch(authDevicesProvider);
+    final authSessions = ref.watch(authSessionsProvider);
 
-    void logoutDevice(String sessionId) async {
+    void logoutDevice(String deviceId) async {
       final confirm = await showConfirmAlert(
         'authDeviceLogoutHint'.tr(),
         'authDeviceLogout'.tr(),
@@ -188,8 +342,8 @@ class AccountSessionSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/padlock/devices/$sessionId');
+        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
+        await padlockApi.revokeDevice(deviceId);
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -204,15 +358,33 @@ class AccountSessionSheet extends HookConsumerWidget {
       );
       if (!confirm || !context.mounted) return;
       try {
-        final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/padlock/sessions/$sessionId');
+        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
+        await padlockApi.revokeSession(sessionId);
+        ref.invalidate(authSessionsProvider);
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
       }
     }
 
-    void updateDeviceLabel(String sessionId) async {
+    void logoutAllOtherSessions() async {
+      final confirm = await showConfirmAlert(
+        'authLogoutAllOtherSessionsHint'.tr(),
+        'authLogoutAllOtherSessions'.tr(),
+        isDanger: true,
+      );
+      if (!confirm || !context.mounted) return;
+      try {
+        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
+        await padlockApi.revokeAllOtherSessions();
+        ref.invalidate(authSessionsProvider);
+        ref.invalidate(authDevicesProvider);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    void updateDeviceLabel(String deviceId) async {
       final controller = TextEditingController();
       final label = await showDialog<String>(
         context: context,
@@ -231,7 +403,7 @@ class AccountSessionSheet extends HookConsumerWidget {
               onPressed: () => Navigator.pop(context),
               child: Text('cancel'.tr()),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.pop(context, controller.text),
               child: Text('confirm'.tr()),
             ),
@@ -240,11 +412,8 @@ class AccountSessionSheet extends HookConsumerWidget {
       );
       if (label == null || label.isEmpty || !context.mounted) return;
       try {
-        final apiClient = ref.watch(apiClientProvider);
-        await apiClient.patch(
-          '/padlock/devices/$sessionId/label',
-          data: jsonEncode(label),
-        );
+        final padlockApi = ref.read(solarNetworkClientProvider).padlock;
+        await padlockApi.updateDeviceLabel(deviceId, label);
         ref.invalidate(authDevicesProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -255,114 +424,260 @@ class AccountSessionSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'authSessions'.tr(),
-      child: Column(
-        children: [
-          if (!wideScreen)
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8,
+      child: DefaultTabController(
+        length: 2,
+        child: Column(
+          children: [
+            TabBar(
+              tabs: [
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Symbols.devices, size: 18),
+                      Gap(8),
+                      Text('authDevicesTab'.tr()),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Symbols.key, size: 18),
+                      Gap(8),
+                      Text('authSessionsTab'.tr()),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
                 children: [
-                  const Icon(Symbols.info, size: 16).padding(top: 2),
-                  Flexible(
-                    child: Text(
-                      'authDeviceHint'.tr(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                  _DevicesTab(
+                    authDevices: authDevices,
+                    wideScreen: wideScreen,
+                    logoutDevice: logoutDevice,
+                    updateDeviceLabel: updateDeviceLabel,
+                    ref: ref,
+                  ),
+                  _SessionsTab(
+                    authSessions: authSessions,
+                    logoutSession: logoutSession,
+                    logoutAllOtherSessions: logoutAllOtherSessions,
+                    ref: ref,
                   ),
                 ],
               ),
             ),
-          Expanded(
-            child: authDevices.when(
-              data: (data) => ExtendedRefreshIndicator(
-                onRefresh: () =>
-                    Future.sync(() => ref.invalidate(authDevicesProvider)),
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: data.length,
-                  itemBuilder: (context, index) {
-                    final device = data[index];
-                    if (wideScreen) {
-                      return _DeviceListTile(
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DevicesTab extends StatelessWidget {
+  final AsyncValue<List<SnAuthDeviceWithSession>> authDevices;
+  final bool wideScreen;
+  final Function(String) logoutDevice;
+  final Function(String) updateDeviceLabel;
+  final WidgetRef ref;
+
+  const _DevicesTab({
+    required this.authDevices,
+    required this.wideScreen,
+    required this.logoutDevice,
+    required this.updateDeviceLabel,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return authDevices.when(
+      data: (data) => ExtendedRefreshIndicator(
+        onRefresh: () => Future.sync(() => ref.invalidate(authDevicesProvider)),
+        child: data.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.devices_other,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    Gap(16),
+                    Text(
+                      'dataEmpty'.tr(),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                padding: EdgeInsets.only(bottom: 16),
+                itemCount: data.length,
+                itemBuilder: (context, index) {
+                  final device = data[index];
+                  if (!wideScreen) {
+                    return Dismissible(
+                      key: Key('device-${device.id}'),
+                      direction: device.isCurrent
+                          ? DismissDirection.none
+                          : DismissDirection.horizontal,
+                      background: Container(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Icon(
+                          Icons.edit,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      secondaryBackground: Container(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        alignment: Alignment.centerRight,
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Icon(
+                          Icons.logout,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                      confirmDismiss: (direction) async {
+                        if (direction == DismissDirection.startToEnd) {
+                          updateDeviceLabel(device.deviceId);
+                          return false;
+                        } else {
+                          final confirm = await showConfirmAlert(
+                            'authDeviceLogoutHint'.tr(),
+                            'authDeviceLogout'.tr(),
+                            isDanger: true,
+                          );
+                          if (confirm && context.mounted) {
+                            try {
+                              showLoadingModal(context);
+                              final padlockApi = ref
+                                  .read(solarNetworkClientProvider)
+                                  .padlock;
+                              await padlockApi.revokeDevice(device.deviceId);
+                              ref.invalidate(authDevicesProvider);
+                            } catch (err) {
+                              showErrorAlert(err);
+                            } finally {
+                              if (context.mounted) {
+                                hideLoadingModal(context);
+                              }
+                            }
+                          }
+                          return confirm;
+                        }
+                      },
+                      child: _DeviceCard(
                         device: device,
                         updateDeviceLabel: updateDeviceLabel,
                         logoutDevice: logoutDevice,
-                        logoutSession: logoutSession,
-                      );
-                    } else {
-                      return Dismissible(
-                        key: Key('device-${device.id}'),
-                        direction: device.isCurrent
-                            ? DismissDirection.startToEnd
-                            : DismissDirection.horizontal,
-                        background: Container(
-                          color: Colors.blue,
-                          alignment: Alignment.centerLeft,
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Icon(Icons.edit, color: Colors.white),
-                        ),
-                        secondaryBackground: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Icon(Icons.logout, color: Colors.white),
-                        ),
-                        confirmDismiss: (direction) async {
-                          if (direction == DismissDirection.startToEnd) {
-                            updateDeviceLabel(device.deviceId);
-                            return false;
-                          } else {
-                            final confirm = await showConfirmAlert(
-                              'authDeviceLogoutHint'.tr(),
-                              'authDeviceLogout'.tr(),
-                              isDanger: true,
-                            );
-                            if (confirm && context.mounted) {
-                              try {
-                                showLoadingModal(context);
-                                final apiClient = ref.watch(apiClientProvider);
-                                await apiClient.delete(
-                                  '/padlock/devices/${device.deviceId}',
-                                );
-                                ref.invalidate(authDevicesProvider);
-                              } catch (err) {
-                                showErrorAlert(err);
-                              } finally {
-                                if (context.mounted) {
-                                  hideLoadingModal(context);
-                                }
-                              }
-                            }
-                            return confirm;
-                          }
-                        },
-                        child: _DeviceListTile(
-                          device: device,
-                          updateDeviceLabel: updateDeviceLabel,
-                          logoutDevice: logoutDevice,
+                      ),
+                    );
+                  }
+                  return _DeviceCard(
+                    device: device,
+                    updateDeviceLabel: updateDeviceLabel,
+                    logoutDevice: logoutDevice,
+                  );
+                },
+              ),
+      ),
+      error: (err, _) => ResponseErrorWidget(
+        error: err,
+        onRetry: () => ref.invalidate(authDevicesProvider),
+      ),
+      loading: () => ResponseLoadingWidget(),
+    );
+  }
+}
+
+class _SessionsTab extends StatelessWidget {
+  final AsyncValue<PaginatedResult<SnAuthSession>> authSessions;
+  final Function(String) logoutSession;
+  final Function() logoutAllOtherSessions;
+  final WidgetRef ref;
+
+  const _SessionsTab({
+    required this.authSessions,
+    required this.logoutSession,
+    required this.logoutAllOtherSessions,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return authSessions.when(
+      data: (data) => Column(
+        children: [
+          if (data.items.where((s) => !s.isCurrent).isNotEmpty)
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: logoutAllOtherSessions,
+                icon: Icon(Icons.logout),
+                label: Text('authLogoutAllOtherSessions'.tr()),
+              ),
+            ).padding(horizontal: 16, top: 16, bottom: 8),
+          Expanded(
+            child: ExtendedRefreshIndicator(
+              onRefresh: () =>
+                  Future.sync(() => ref.invalidate(authSessionsProvider)),
+              child: data.items.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.key_off,
+                            size: 64,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          Gap(16),
+                          Text(
+                            'dataEmpty'.tr(),
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.only(bottom: 16),
+                      itemCount: data.items.length,
+                      itemBuilder: (context, index) {
+                        final session = data.items[index];
+                        return _SessionListTile(
+                          session: session,
                           logoutSession: logoutSession,
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ),
-              error: (err, _) => ResponseErrorWidget(
-                error: err,
-                onRetry: () => ref.invalidate(authDevicesProvider),
-              ),
-              loading: () => ResponseLoadingWidget(),
+                        );
+                      },
+                    ),
             ),
           ),
         ],
       ),
+      error: (err, _) => ResponseErrorWidget(
+        error: err,
+        onRetry: () => ref.invalidate(authSessionsProvider),
+      ),
+      loading: () => ResponseLoadingWidget(),
     );
   }
 }

@@ -58,7 +58,7 @@ final class BotProvider
   }
 }
 
-String _$botHash() => r'7bec47bb2a4061a5babc6d6d19c3d4c320c91188';
+String _$botHash() => r'a5e5d3cbc4fa122d2a83872be83792c8fc09f3e8';
 
 final class BotFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Bot?>, (String, String, String)> {
