@@ -13,11 +13,9 @@ struct AppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: OpenChatIntent(),
             phrases: [
-                "Open chat with \(\.$chatRoom) in \(.applicationName)",
-                "Open \(\.$chatRoom) chat in \(.applicationName)",
-                "Open conversation with \(\.$chatRoom) using \(.applicationName)",
-                "在 \(.applicationName) 打开 \(\.$chatRoom) 聊天",
-                "在 \(.applicationName) 和 \(\.$chatRoom) 聊天"
+                "Open chat in \(.applicationName)",
+                "Open conversation in \(.applicationName)",
+                "在 \(.applicationName) 打开聊天"
             ],
             shortTitle: "Open Chat",
             systemImageName: "bubble.left.and.bubble.right.fill"
@@ -25,10 +23,9 @@ struct AppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: OpenPostIntent(),
             phrases: [
-                "Open post \(\.$post) in \(.applicationName)",
-                "View \(\.$post) post using \(.applicationName)",
-                "在 \(.applicationName) 打开帖子 \(\.$post)",
-                "在 \(.applicationName) 查看 \(\.$post)"
+                "Open post in \(.applicationName)",
+                "View post using \(.applicationName)",
+                "在 \(.applicationName) 打开帖子"
             ],
             shortTitle: "Open Post",
             systemImageName: "doc.text.fill"
@@ -39,8 +36,7 @@ struct AppShortcuts: AppShortcutsProvider {
                 "Open compose with \(.applicationName)",
                 "New post using \(.applicationName)",
                 "Write post in \(.applicationName)",
-                "在 \(.applicationName) 撰写新帖子",
-                "用 \(.applicationName) 发帖子"
+                "在 \(.applicationName) 撰写新帖子"
             ],
             shortTitle: "New Post",
             systemImageName: "square.and.pencil"
@@ -48,10 +44,9 @@ struct AppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: SearchContentIntent(),
             phrases: [
-                "Search in \(.applicationName) for \(\.$query)",
-                "Find \(\.$query) using \(.applicationName)",
-                "在 \(.applicationName) 搜索 \(\.$query)",
-                "用 \(.applicationName) 找 \(\.$query)"
+                "Search in \(.applicationName)",
+                "Find content using \(.applicationName)",
+                "在 \(.applicationName) 搜索"
             ],
             shortTitle: "Search",
             systemImageName: "magnifyingglass"
@@ -62,8 +57,7 @@ struct AppShortcuts: AppShortcutsProvider {
                 "Check notifications with \(.applicationName)",
                 "Get notifications using \(.applicationName)",
                 "Do I have notifications in \(.applicationName)",
-                "查看 \(.applicationName) 通知",
-                "\(.applicationName) 有新通知吗"
+                "查看 \(.applicationName) 通知"
             ],
             shortTitle: "Check Notifications",
             systemImageName: "bell.fill"
@@ -71,11 +65,9 @@ struct AppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: SendMessageIntent(),
             phrases: [
-                "Send message to \(\.$chatRoom) in \(.applicationName)",
-                "Message \(\.$message) to \(\.$chatRoom) using \(.applicationName)",
-                "Send \"\(\.$message)\" to \(\.$chatRoom) with \(.applicationName)",
-                "在 \(.applicationName) 给 \(\.$chatRoom) 发送消息",
-                "用 \(.applicationName) 发消息给 \(\.$chatRoom)"
+                "Send message with \(.applicationName)",
+                "Send message in \(.applicationName)",
+                "在 \(.applicationName) 发送消息"
             ],
             shortTitle: "Send Message",
             systemImageName: "paperplane.fill"
@@ -83,10 +75,9 @@ struct AppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: ReadMessagesIntent(),
             phrases: [
-                "Read messages from \(\.$chatRoom) in \(.applicationName)",
-                "Get chat messages from \(\.$chatRoom) using \(.applicationName)",
-                "在 \(.applicationName) 读取 \(\.$chatRoom) 的消息",
-                "查看 \(\.$chatRoom) 的聊天记录"
+                "Read messages with \(.applicationName)",
+                "Get chat messages using \(.applicationName)",
+                "在 \(.applicationName) 读取消息"
             ],
             shortTitle: "Read Messages",
             systemImageName: "text.bubble.fill"
@@ -97,8 +88,7 @@ struct AppShortcuts: AppShortcutsProvider {
                 "Check unread chats with \(.applicationName)",
                 "Do I have messages using \(.applicationName)",
                 "Get unread messages with \(.applicationName)",
-                "查看 \(.applicationName) 未读消息",
-                "\(.applicationName) 有多少未读"
+                "查看 \(.applicationName) 未读消息"
             ],
             shortTitle: "Unread Chats",
             systemImageName: "envelope.badge.fill"
@@ -109,8 +99,7 @@ struct AppShortcuts: AppShortcutsProvider {
                 "Mark notifications read with \(.applicationName)",
                 "Clear notifications using \(.applicationName)",
                 "Mark all read with \(.applicationName)",
-                "标记 \(.applicationName) 通知为已读",
-                "清除 \(.applicationName) 通知"
+                "标记 \(.applicationName) 通知为已读"
             ],
             shortTitle: "Mark Read",
             systemImageName: "checkmark.circle.fill"

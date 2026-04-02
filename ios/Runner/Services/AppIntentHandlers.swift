@@ -7,6 +7,32 @@
 
 import AppIntents
 
+// MARK: - Cache Helper
+
+@available(iOS 16.0, *)
+final class EntityCache<T> {
+    private var cachedItems: [T] = []
+    private var cacheTimestamp: Date?
+    private let expirySeconds: TimeInterval
+
+    init(expirySeconds: TimeInterval = 300) {
+        self.expirySeconds = expirySeconds
+    }
+
+    func getItems() -> [T]? {
+        let now = Date()
+        if let cache = cacheTimestamp, now.timeIntervalSince(cache) < expirySeconds, !cachedItems.isEmpty {
+            return cachedItems
+        }
+        return nil
+    }
+
+    func setItems(_ items: [T]) {
+        cachedItems = items
+        cacheTimestamp = Date()
+    }
+}
+
 // MARK: - Chat Room Entity
 
 @available(iOS 16.0, *)
@@ -14,9 +40,12 @@ struct ChatRoomEntity: AppEntity {
     let id: String
     let name: String?
     let type: Int
-    let picture: NetworkService.SnCloudFile?
+    let pictureURL: String?
 
-    static var typeDisplayName: LocalizedStringResource = "intent_chat_room_title"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation {
+        TypeDisplayRepresentation(name: "intent_chat_room_title")
+    }
+
     static var defaultQuery = ChatRoomEntityQuery()
 
     var displayRepresentation: DisplayRepresentation {
@@ -25,38 +54,36 @@ struct ChatRoomEntity: AppEntity {
         return DisplayRepresentation(
             title: "\(title)",
             subtitle: "\(subtitle)",
-            image: picture?.url.flatMap { URL(string: $0) }.map { .init(url: $0) }
+            image: pictureURL.flatMap { URL(string: $0) }.map { .init(url: $0) }
         )
     }
 }
 
 @available(iOS 16.0, *)
 struct ChatRoomEntityQuery: EntityQuery {
-    private var cachedRooms: [ChatRoomEntity] = []
-    private var cacheTimestamp: Date?
+    private static var cache = EntityCache<ChatRoomEntity>()
 
     func entities(for identifiers: [String]) async throws -> [ChatRoomEntity] {
-        let rooms = try await fetchRooms()
+        let rooms = try await Self.fetchRooms()
         return rooms.filter { identifiers.contains($0.id) }
     }
 
     func suggestedEntities() async throws -> [ChatRoomEntity] {
-        let rooms = try await fetchRooms()
+        let rooms = try await Self.fetchRooms()
         return Array(rooms.prefix(20))
     }
 
     func entities(matching string: String) async throws -> [ChatRoomEntity] {
-        let rooms = try await fetchRooms()
+        let rooms = try await Self.fetchRooms()
         let lowercased = string.lowercased()
         return rooms.filter { room in
             room.name?.lowercased().contains(lowercased) ?? false
         }
     }
 
-    private func fetchRooms() async throws -> [ChatRoomEntity] {
-        let now = Date()
-        if let cache = cacheTimestamp, now.timeIntervalSince(cache) < 300, !cachedRooms.isEmpty {
-            return cachedRooms
+    private static func fetchRooms() async throws -> [ChatRoomEntity] {
+        if let cached = cache.getItems() {
+            return cached
         }
 
         let rooms = try await NetworkService.shared.getChatRooms()
@@ -65,11 +92,10 @@ struct ChatRoomEntityQuery: EntityQuery {
                 id: room.id,
                 name: room.name ?? room.description,
                 type: room.type,
-                picture: room.picture
+                pictureURL: room.picture?.url
             )
         }
-        cachedRooms = entities
-        cacheTimestamp = now
+        cache.setItems(entities)
         return entities
     }
 }
@@ -81,10 +107,13 @@ struct PostEntity: AppEntity {
     let id: String
     let content: String?
     let authorName: String?
-    let authorPicture: NetworkService.SnCloudFile?
+    let authorPictureURL: String?
     let createdAt: String
 
-    static var typeDisplayName: LocalizedStringResource = "intent_post_title"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation {
+        TypeDisplayRepresentation(name: "intent_post_title")
+    }
+
     static var defaultQuery = PostEntityQuery()
 
     var displayRepresentation: DisplayRepresentation {
@@ -93,23 +122,22 @@ struct PostEntity: AppEntity {
         return DisplayRepresentation(
             title: "\(title)",
             subtitle: "\(subtitle)",
-            image: authorPicture?.url.flatMap { URL(string: $0) }.map { .init(url: $0) }
+            image: authorPictureURL.flatMap { URL(string: $0) }.map { .init(url: $0) }
         )
     }
 }
 
 @available(iOS 16.0, *)
 struct PostEntityQuery: EntityQuery {
-    private var cachedPosts: [PostEntity] = []
-    private var cacheTimestamp: Date?
+    private static var cache = EntityCache<PostEntity>()
 
     func entities(for identifiers: [String]) async throws -> [PostEntity] {
-        let posts = try await fetchPosts()
+        let posts = try await Self.fetchPosts()
         return posts.filter { identifiers.contains($0.id) }
     }
 
     func suggestedEntities() async throws -> [PostEntity] {
-        let posts = try await fetchPosts()
+        let posts = try await Self.fetchPosts()
         return Array(posts.prefix(10))
     }
 
@@ -120,16 +148,15 @@ struct PostEntityQuery: EntityQuery {
                 id: post.id,
                 content: post.content,
                 authorName: post.author?.name,
-                authorPicture: post.author?.picture,
+                authorPictureURL: post.author?.picture?.url,
                 createdAt: post.createdAt
             )
         }
     }
 
-    private func fetchPosts() async throws -> [PostEntity] {
-        let now = Date()
-        if let cache = cacheTimestamp, now.timeIntervalSince(cache) < 300, !cachedPosts.isEmpty {
-            return cachedPosts
+    private static func fetchPosts() async throws -> [PostEntity] {
+        if let cached = cache.getItems() {
+            return cached
         }
 
         let posts = try await NetworkService.shared.searchPosts(query: "", limit: 10)
@@ -138,12 +165,11 @@ struct PostEntityQuery: EntityQuery {
                 id: post.id,
                 content: post.content,
                 authorName: post.author?.name,
-                authorPicture: post.author?.picture,
+                authorPictureURL: post.author?.picture?.url,
                 createdAt: post.createdAt
             )
         }
-        cachedPosts = entities
-        cacheTimestamp = now
+        cache.setItems(entities)
         return entities
     }
 }
@@ -326,7 +352,7 @@ struct SendMessageIntent: AppIntent {
     var message: String
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Send \"\(.$message)\" to \(.$chatRoom)")
+        Summary("Send message to \(\.$chatRoom)")
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
@@ -359,7 +385,7 @@ struct ReadMessagesIntent: AppIntent {
     var limit: Int
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Read \(.$limit) messages from \(.$chatRoom)")
+        Summary("Read messages from \(\.$chatRoom)")
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
