@@ -11,6 +11,7 @@ import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/sites/site_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class FileManagementActionSection extends HookConsumerWidget {
@@ -81,8 +82,8 @@ class FileManagementActionSection extends HookConsumerWidget {
     if (confirmed != true) return;
 
     try {
-      final apiClient = ref.read(apiClientProvider);
-      await apiClient.delete('/zone/sites/${site.id}/files/purge');
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.delete('/zone/sites/${site.id}/files/purge');
       if (context.mounted) {
         showSnackBar('allFilesPurgedSuccess'.tr());
         // Refresh the file management section
@@ -109,7 +110,7 @@ class FileManagementActionSection extends HookConsumerWidget {
     final file = File(result.files.first.path!);
 
     try {
-      final apiClient = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
 
       // Create multipart form data
       final formData = FormData.fromMap({
@@ -120,7 +121,7 @@ class FileManagementActionSection extends HookConsumerWidget {
         ),
       });
 
-      await apiClient.post(
+      await client.dio.post(
         '/zone/sites/${site.id}/files/deploy',
         data: formData,
       );

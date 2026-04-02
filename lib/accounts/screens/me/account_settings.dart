@@ -22,27 +22,20 @@ part 'account_settings.g.dart';
 
 @riverpod
 Future<List<SnAuthFactor>> authFactors(Ref ref) async {
-  final client = ref.read(apiClientProvider);
-  final res = await client.get('/padlock/factors');
-  return res.data.map<SnAuthFactor>((e) => SnAuthFactor.fromJson(e)).toList();
+  final client = ref.read(solarNetworkClientProvider);
+  return await client.auth.getFactors();
 }
 
 @riverpod
 Future<List<SnContactMethod>> contactMethods(Ref ref) async {
-  final client = ref.read(apiClientProvider);
-  final resp = await client.get('/padlock/contacts');
-  return resp.data
-      .map<SnContactMethod>((e) => SnContactMethod.fromJson(e))
-      .toList();
+  final client = ref.read(solarNetworkClientProvider);
+  return await client.auth.getContacts();
 }
 
 @riverpod
 Future<List<SnAccountConnection>> accountConnections(Ref ref) async {
-  final client = ref.read(apiClientProvider);
-  final resp = await client.get('/padlock/connections');
-  return resp.data
-      .map<SnAccountConnection>((e) => SnAccountConnection.fromJson(e))
-      .toList();
+  final client = ref.read(solarNetworkClientProvider);
+  return await client.auth.getConnections();
 }
 
 @RoutePage()
@@ -60,8 +53,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         showLoadingModal(context);
-        final client = ref.read(apiClientProvider);
-        await client.delete('/passport/accounts/me');
+        final client = ref.read(solarNetworkClientProvider);
+        await client.accounts.deleteCurrentAccount();
         if (context.mounted) {
           showSnackBar('accountDeletionSent'.tr());
         }
@@ -83,8 +76,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
       try {
         if (context.mounted) showLoadingModal(context);
         final userInfo = ref.read(userInfoProvider);
-        final client = ref.read(apiClientProvider);
-        await client.post(
+        // Note: Password reset is not yet in the typed API, using raw Dio
+        final dio = ref.read(apiClientProvider);
+        await dio.post(
           '/passport/accounts/recovery/password',
           data: {'account': userInfo.value!.name, 'captcha_token': captchaTk},
         );

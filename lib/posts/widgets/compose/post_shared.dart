@@ -106,9 +106,9 @@ class RepliesNotifier extends _$RepliesNotifier {
   Future<void> fetchMore(int pageSize) async {
     state = state.copyWith(loading: true);
 
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/posts/$parentId/replies/threaded',
       queryParameters: {'offset': state.flatNodes.length, 'take': pageSize},
     );
@@ -145,9 +145,9 @@ class RepliesNotifier extends _$RepliesNotifier {
 
 @riverpod
 Future<SnPost?> postFeaturedReply(Ref ref, String id) async {
-  final client = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await client.get('/sphere/posts/$id/replies/featured');
+    final resp = await client.dio.get('/sphere/posts/$id/replies/featured');
     return SnPost.fromJson(resp.data);
   } catch (_) {
     return null;

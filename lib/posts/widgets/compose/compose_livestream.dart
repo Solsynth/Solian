@@ -7,8 +7,10 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final composeLivestreamListProvider = FutureProvider.family
     .autoDispose<List<SnLiveStream>, String>((ref, publisherId) async {
-      final client = ref.watch(apiClientProvider);
-      final response = await client.get(
+      final client = ref.watch(solarNetworkClientProvider);
+      // Note: LivestreamsApi doesn't have a method for publisher livestreams
+      // We fall back to raw Dio call
+      final response = await client.dio.get(
         '/sphere/livestreams/publisher/$publisherId',
         queryParameters: {'limit': 50, 'offset': 0},
       );

@@ -215,7 +215,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
 
   Future<void> loadMichanCanonicalThread() async {
     try {
-      final apiClient = ref.read(apiClientProvider);
+      final apiClient = ref.read(solarNetworkClientProvider).dio;
       final sequenceResponse = await apiClient.get(
         '/insight/thought/michan/sequence',
       );
@@ -445,7 +445,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     try {
       state = state.copyWith(isStreaming: true, streamingItems: []);
 
-      final apiClient = ref.read(apiClientProvider);
+      final apiClient = ref.read(solarNetworkClientProvider).dio;
       final response = await apiClient.post(
         '/insight/thought',
         data: request.toJson(),

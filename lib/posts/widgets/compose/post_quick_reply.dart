@@ -49,8 +49,9 @@ class PostQuickReply extends HookConsumerWidget {
 
       submitting.value = true;
       try {
-        final client = ref.watch(apiClientProvider);
-        await client.post(
+        final client = ref.watch(solarNetworkClientProvider);
+        // Use raw Dio call since we need to pass publisher name as query param
+        await client.dio.post(
           '/sphere/posts',
           data: {
             'content': contentController.text,

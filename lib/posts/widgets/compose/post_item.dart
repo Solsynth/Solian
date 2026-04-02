@@ -93,9 +93,9 @@ class PostActionableItem extends HookConsumerWidget {
               isDanger: true,
             ).then((confirm) {
               if (confirm) {
-                final client = ref.watch(apiClientProvider);
-                client
-                    .delete('/sphere/posts/${item.id}')
+                final client = ref.watch(solarNetworkClientProvider);
+                client.posts
+                    .deletePost(item.id)
                     .catchError((err) {
                       showErrorAlert(err);
                       return err;
@@ -150,10 +150,10 @@ class PostActionableItem extends HookConsumerWidget {
               confirm,
             ) async {
               if (confirm) {
-                final client = ref.watch(apiClientProvider);
+                final client = ref.watch(solarNetworkClientProvider);
                 try {
                   if (context.mounted) showLoadingModal(context);
-                  await client.delete('/sphere/posts/${item.id}/pin');
+                  await client.posts.unpinPost(item.id);
                   onUpdate?.call(item.copyWith(pinMode: null));
                 } catch (err) {
                   showErrorAlert(err);
@@ -174,10 +174,10 @@ class PostActionableItem extends HookConsumerWidget {
           };
         case 'boost':
           return () async {
-            final client = ref.read(apiClientProvider);
+            final client = ref.read(solarNetworkClientProvider);
             try {
               if (context.mounted) showLoadingModal(context);
-              await client.post('/sphere/posts/${item.id}/boost');
+              await client.posts.boostPost(item.id);
               onRefresh?.call();
             } catch (err) {
               showErrorAlert(err);
@@ -622,9 +622,9 @@ class PostReactionList extends HookConsumerWidget {
     final submitting = useState(false);
 
     Future<void> reactPost(String symbol, int attitude) async {
-      final client = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       submitting.value = true;
-      await client
+      await client.dio
           .post(
             '/sphere/posts/$parentId/reactions',
             data: {'symbol': symbol, 'attitude': attitude},

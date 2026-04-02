@@ -76,9 +76,9 @@ class PostItemCreator extends HookConsumerWidget {
                   isDanger: true,
                 ).then((confirm) {
                   if (confirm) {
-                    final client = ref.watch(apiClientProvider);
-                    client
-                        .delete('/sphere/posts/${item.id}')
+                    final client = ref.watch(solarNetworkClientProvider);
+                    client.posts
+                        .deletePost(item.id)
                         .catchError((err) {
                           showErrorAlert(err);
                           return err;

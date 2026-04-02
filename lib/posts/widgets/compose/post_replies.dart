@@ -19,16 +19,14 @@ class PostRepliesNotifier extends AsyncNotifier<PaginationState<SnPost>>
 
   @override
   Future<List<SnPost>> fetch() async {
-    final client = ref.read(apiClientProvider);
-
-    final response = await client.get(
-      '/sphere/posts/$arg/replies',
-      queryParameters: {'offset': fetchedCount, 'take': pageSize},
+    final client = ref.read(solarNetworkClientProvider);
+    final result = await client.posts.getPostReplies(
+      postId: arg,
+      offset: fetchedCount,
+      take: pageSize,
     );
-
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    return data.map((json) => SnPost.fromJson(json)).toList();
+    totalCount = result.totalCount;
+    return result.items;
   }
 
   void updatePost(SnPost updatedPost) {

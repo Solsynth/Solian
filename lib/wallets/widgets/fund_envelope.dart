@@ -11,9 +11,8 @@ part 'fund_envelope.g.dart';
 
 @riverpod
 Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/wallet/wallets/funds/$fundId');
-  return SnWalletFund.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.wallet.getFund(fundId);
 }
 
 class FundEnvelopeWidget extends HookConsumerWidget {
@@ -226,8 +225,8 @@ class FundEnvelopeWidget extends HookConsumerWidget {
         fund: fund,
         onClaim: () async {
           try {
-            final apiClient = ref.read(apiClientProvider);
-            await apiClient.post('/wallet/wallets/funds/${fund.id}/receive');
+            final client = ref.read(solarNetworkClientProvider);
+            await client.dio.post('/wallet/wallets/funds/${fund.id}/receive');
 
             // Refresh the fund data after claiming
             ref.invalidate(walletFundProvider(fund.id));

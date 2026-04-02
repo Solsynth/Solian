@@ -529,17 +529,16 @@ class _PublisherHeatmapWidget extends StatelessWidget {
 
 @riverpod
 Future<SnPublisher> publisher(Ref ref, String uname) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get("/sphere/publishers/$uname");
-  return SnPublisher.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.posts.getPublisher(uname);
 }
 
 @riverpod
 Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
   final pub = await ref.watch(publisherProvider(pubName).future);
   if (pub.type != 0 || pub.account == null) return [];
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get(
+  final client = ref.watch(solarNetworkClientProvider);
+  final resp = await client.dio.get(
     "/passport/accounts/${pub.account!.name}/badges",
   );
   return List<SnAccountBadge>.from(
@@ -552,9 +551,9 @@ Future<SnPublisherSubscription?> publisherSubscriptionStatus(
   Ref ref,
   String pubName,
 ) async {
-  final apiClient = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await apiClient.get(
+    final resp = await client.dio.get(
       "/sphere/publishers/$pubName/subscription",
     );
     return SnPublisherSubscription.fromJson(resp.data);
@@ -572,12 +571,9 @@ Future<SnPublisherSubscriptionStatus?> publisherFollowRequest(
   Ref ref,
   String pubName,
 ) async {
-  final apiClient = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await apiClient.get(
-      '/sphere/publishers/$pubName/subscription',
-    );
-    return SnPublisherSubscriptionStatus.fromJson(resp.data);
+    return await client.posts.getPublisherSubscriptionStatus(pubName);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
       return null;
@@ -589,22 +585,21 @@ Future<SnPublisherSubscriptionStatus?> publisherFollowRequest(
 @riverpod
 Future<Map<String, bool>> publisherFeatures(Ref ref, String? uname) async {
   if (uname == null) return {};
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/sphere/publishers/$uname/features');
+  final client = ref.watch(solarNetworkClientProvider);
+  final response = await client.dio.get('/sphere/publishers/$uname/features');
   return Map<String, bool>.from(response.data);
 }
 
 @riverpod
 Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/publishers/$uname/heatmap');
-  return SnHeatmap.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.posts.getPublisherHeatmap(uname);
 }
 
 final publisherActiveLivestreamProvider = FutureProvider.family
     .autoDispose<SnLiveStream?, String>((ref, publisherId) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final resp = await apiClient.get(
+      final client = ref.watch(solarNetworkClientProvider);
+      final resp = await client.dio.get(
         '/sphere/livestreams/publisher/$publisherId',
         queryParameters: {'limit': 50, 'offset': 0},
       );
@@ -653,13 +648,10 @@ class PublisherProfileScreen extends HookConsumerWidget {
     }, []);
 
     Future<void> subscribe() async {
-      final apiClient = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       subscribing.value = true;
       try {
-        await apiClient.post(
-          "/sphere/publishers/$name/subscribe",
-          data: {'tier': 0},
-        );
+        await client.posts.subscribeToPublisher(name);
         ref.invalidate(publisherSubscriptionStatusProvider(name));
         ref.invalidate(publisherFollowRequestProvider(name));
         HapticFeedback.heavyImpact();
@@ -671,10 +663,10 @@ class PublisherProfileScreen extends HookConsumerWidget {
     }
 
     Future<void> unsubscribe() async {
-      final apiClient = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       subscribing.value = true;
       try {
-        await apiClient.post("/sphere/publishers/$name/unsubscribe");
+        await client.posts.unsubscribeFromPublisher(name);
         ref.invalidate(publisherSubscriptionStatusProvider(name));
         ref.invalidate(publisherFollowRequestProvider(name));
         HapticFeedback.heavyImpact();

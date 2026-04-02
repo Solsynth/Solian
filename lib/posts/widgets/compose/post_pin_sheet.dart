@@ -20,8 +20,9 @@ class PostPinSheet extends HookConsumerWidget {
     Future<void> pinPost() async {
       try {
         showLoadingModal(context);
-        final client = ref.watch(apiClientProvider);
-        await client.post(
+        final client = ref.watch(solarNetworkClientProvider);
+        // Use raw Dio call since pinPost doesn't support mode parameter in typed API
+        await client.dio.post(
           '/sphere/posts/${post.id}/pin',
           data: {'mode': mode.value},
         );

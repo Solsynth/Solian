@@ -228,9 +228,8 @@ class _RealmPinnedPostsPageView extends HookConsumerWidget {
 
 final realmOverviewProvider = FutureProvider.autoDispose
     .family<SnRealm, String>((ref, realmSlug) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get('/passport/realms/$realmSlug');
-      return SnRealm.fromJson(response.data as Map<String, dynamic>);
+      final client = ref.watch(solarNetworkClientProvider);
+      return await client.realms.getRealm(realmSlug);
     });
 
 final realmAppbarForegroundColorProvider = FutureProvider.autoDispose
@@ -252,21 +251,18 @@ final realmAppbarForegroundColorProvider = FutureProvider.autoDispose
 
 final realmBoostStatusProvider = FutureProvider.autoDispose
     .family<RealmBoostStatus, String>((ref, realmSlug) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get(
-        '/passport/realms/$realmSlug/boosts',
-      );
-      return RealmBoostStatus.fromJson(response.data as Map<String, dynamic>);
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.realms.getBoostStatus(realmSlug);
+      return RealmBoostStatus.fromJson(response);
     });
 
 final realmBoostLeaderboardProvider = FutureProvider.autoDispose
     .family<List<RealmBoostLeaderboardEntry>, String>((ref, realmSlug) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get(
-        '/passport/realms/$realmSlug/boosts/leaderboard',
-        queryParameters: {'take': 20},
+      final client = ref.watch(solarNetworkClientProvider);
+      final data = await client.realms.getBoostLeaderboard(
+        slug: realmSlug,
+        take: 20,
       );
-      final data = response.data as List;
       return data
           .map(
             (e) => RealmBoostLeaderboardEntry.fromJson(
@@ -278,14 +274,9 @@ final realmBoostLeaderboardProvider = FutureProvider.autoDispose
 
 final realmLabelsProvider = FutureProvider.autoDispose
     .family<List<RealmLabel>, String>((ref, realmSlug) async {
-      final apiClient = ref.watch(apiClientProvider);
-      final response = await apiClient.get(
-        '/passport/realms/$realmSlug/labels',
-      );
-      final data = response.data as List;
-      return data
-          .map((e) => RealmLabel.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      final client = ref.watch(solarNetworkClientProvider);
+      final labels = await client.realms.getLabels(realmSlug);
+      return labels.map((e) => RealmLabel.fromJson(e.toJson())).toList();
     });
 
 final realmIdentityProvider = FutureProvider.autoDispose

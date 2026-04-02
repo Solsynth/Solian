@@ -18,11 +18,12 @@ class PostAwardListNotifier extends AsyncNotifier<PaginationState<SnPostAward>>
 
   @override
   Future<List<SnPostAward>> fetch() async {
-    final client = ref.read(apiClientProvider);
-
+    final client = ref.read(solarNetworkClientProvider);
+    // Note: PostsApi.getPostAwards doesn't support pagination parameters
+    // We fall back to raw Dio call for pagination
     final queryParams = {'offset': fetchedCount, 'take': pageSize};
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/posts/$arg/awards',
       queryParameters: queryParams,
     );

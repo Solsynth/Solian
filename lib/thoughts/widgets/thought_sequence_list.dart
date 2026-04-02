@@ -18,7 +18,7 @@ class ThoughtSequenceListNotifier
 
   @override
   Future<List<SnThinkingSequence>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
     final queryParams = {
       'offset': fetchedCount,
@@ -27,7 +27,7 @@ class ThoughtSequenceListNotifier
       'sort_order': 'desc',
     };
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/insight/thought/sequences',
       queryParameters: queryParams,
     );
@@ -38,16 +38,16 @@ class ThoughtSequenceListNotifier
 
   /// Deletes a sequence and refreshes the list
   Future<void> deleteSequence(String sequenceId) async {
-    final client = ref.read(apiClientProvider);
-    await client.delete('/insight/thought/sequences/$sequenceId');
+    final client = ref.read(solarNetworkClientProvider);
+    await client.thoughts.deleteSequence(sequenceId);
     refresh();
   }
 
   /// Updates the sharing settings of a sequence
   Future<void> updateSharing(String sequenceId, bool isPublic) async {
-    final client = ref.read(apiClientProvider);
-    await client.patch(
-      '/insight/thought/sequences/$sequenceId/sharing',
+    final client = ref.read(solarNetworkClientProvider);
+    await client.thoughts.updateSequence(
+      sequenceId: sequenceId,
       data: {'is_public': isPublic},
     );
     refresh();
@@ -55,8 +55,8 @@ class ThoughtSequenceListNotifier
 
   /// Marks a sequence as read
   Future<void> markAsRead(String sequenceId) async {
-    final client = ref.read(apiClientProvider);
-    await client.post('/insight/thought/sequences/$sequenceId/read');
+    final client = ref.read(solarNetworkClientProvider);
+    await client.thoughts.markSequenceAsRead(sequenceId);
     refresh();
   }
 }

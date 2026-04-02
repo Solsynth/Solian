@@ -227,11 +227,12 @@ class ComposeFundSheet extends HookConsumerWidget {
                                       if (!context.mounted) return;
 
                                       final client = ref.read(
-                                        apiClientProvider,
+                                        solarNetworkClientProvider,
                                       );
                                       showLoadingModal(context);
 
-                                      final resp = await client.post(
+                                      // Use raw Dio call for custom headers
+                                      final resp = await client.dio.post(
                                         '/wallet/wallets/funds',
                                         data: result,
                                         options: Options(
@@ -252,12 +253,16 @@ class ComposeFundSheet extends HookConsumerWidget {
                                         return;
                                       }
 
-                                      final orderResp = await client.post(
-                                        '/wallet/wallets/funds/${fund.id}/order',
-                                      );
-                                      final order = SnWalletOrder.fromJson(
-                                        orderResp.data,
-                                      );
+                                      // Use typed API for order creation
+                                      final order = await client.wallet.dio
+                                          .post(
+                                            '/wallet/wallets/funds/${fund.id}/order',
+                                          )
+                                          .then(
+                                            (resp) => SnWalletOrder.fromJson(
+                                              resp.data,
+                                            ),
+                                          );
 
                                       if (context.mounted) {
                                         hideLoadingModal(context);
@@ -282,14 +287,9 @@ class ComposeFundSheet extends HookConsumerWidget {
                                         );
                                         ref.invalidate(walletFundsProvider);
 
-                                        // Return the created fund
-                                        final updatedResp = await client.get(
-                                          '/wallet/wallets/funds/${fund.id}',
-                                        );
-                                        final updatedFund =
-                                            SnWalletFund.fromJson(
-                                              updatedResp.data,
-                                            );
+                                        // Return the created fund using typed API
+                                        final updatedFund = await client.wallet
+                                            .getFund(fund.id);
 
                                         if (context.mounted) {
                                           hideLoadingModal(context);

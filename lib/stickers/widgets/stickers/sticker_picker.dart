@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:island/core/network.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,15 +21,11 @@ part 'sticker_picker.g.dart';
 /// GET /sphere/stickers/me
 @riverpod
 Future<List<SnStickerPack>> myStickerPacks(Ref ref) async {
-  final api = ref.watch(apiClientProvider);
-  final resp = await api.get('/sphere/stickers/me');
-  final data = resp.data;
-  if (data is List) {
-    return data
-        .map((e) => SnStickerPack.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-  return const <SnStickerPack>[];
+  final client = ref.watch(solarNetworkClientProvider);
+  final data = await client.stickers.getUserPacks();
+  return data
+      .map((e) => SnStickerPack.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
 
 /// Sticker Picker popover dialog

@@ -28,9 +28,10 @@ class PublisherSubscriptionLiveItem {
 
 @riverpod
 Future<List<SnPublisherSubscription>> publishersSubscriptions(Ref ref) async {
-  final client = ref.read(apiClientProvider);
-
-  final response = await client.get('/sphere/publishers/subscriptions');
+  final client = ref.read(solarNetworkClientProvider);
+  // Note: No typed API for publisher subscriptions
+  // We fall back to raw Dio call
+  final response = await client.dio.get('/sphere/publishers/subscriptions');
 
   return (response.data as List)
       .whereType<Map>()
@@ -49,8 +50,8 @@ final publishersSubscriptionsLiveProvider =
     FutureProvider.autoDispose<List<PublisherSubscriptionLiveItem>>((
       ref,
     ) async {
-      final client = ref.read(apiClientProvider);
-      final response = await client.get('/sphere/publishers/subscriptions');
+      final client = ref.read(solarNetworkClientProvider);
+      final response = await client.dio.get('/sphere/publishers/subscriptions');
 
       return (response.data as List).whereType<Map>().map((raw) {
         final json = Map<String, dynamic>.from(raw);
@@ -75,9 +76,10 @@ final publishersSubscriptionsLiveProvider =
 
 @riverpod
 Future<List<SnCategorySubscription>> categoriesSubscriptions(Ref ref) async {
-  final client = ref.read(apiClientProvider);
-
-  final response = await client.get('/sphere/categories/subscriptions');
+  final client = ref.read(solarNetworkClientProvider);
+  // Note: No typed API for category subscriptions
+  // We fall back to raw Dio call
+  final response = await client.dio.get('/sphere/categories/subscriptions');
 
   return response.data
       .map((json) => SnCategorySubscription.fromJson(json))
@@ -90,9 +92,10 @@ Future<DateTime?> publisherSubscriptionReadStatus(
   Ref ref,
   String publisherName,
 ) async {
-  final client = ref.read(apiClientProvider);
-
-  final response = await client.get(
+  final client = ref.read(solarNetworkClientProvider);
+  // Note: No typed API for subscription read status
+  // We fall back to raw Dio call
+  final response = await client.dio.get(
     '/sphere/publishers/$publisherName/subscription/read-status',
   );
 
@@ -105,9 +108,10 @@ Future<DateTime?> publisherSubscriptionReadStatus(
 }
 
 Future<void> markPublisherAsRead(WidgetRef ref, String publisherName) async {
-  final client = ref.read(apiClientProvider);
-
-  await client.put(
+  final client = ref.read(solarNetworkClientProvider);
+  // Note: No typed API for marking publisher as read
+  // We fall back to raw Dio call
+  await client.dio.put(
     '/sphere/publishers/$publisherName/subscription/read-status',
     data: {},
   );
