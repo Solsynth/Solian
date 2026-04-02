@@ -9,7 +9,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   flutter_secure_storage_linux
   flutter_timezone
-  flutter_udid
   flutter_webrtc
   hotkey_manager_linux
   irondash_engine_context

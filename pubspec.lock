@@ -1256,14 +1256,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.2.0"
-  flutter_udid:
-    dependency: "direct main"
-    description:
-      name: flutter_udid
-      sha256: fc599671cbe8b328e509c961ec121880406ed994dde659cc9ece9c7503cd31c7
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.1.2"
   flutter_web_plugins:
     dependency: "direct main"
     description: flutter
