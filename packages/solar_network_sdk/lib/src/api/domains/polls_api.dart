@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/posts/poll.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/posts/poll.dart';
 
 /// API for poll-related endpoints (/poll).
 ///

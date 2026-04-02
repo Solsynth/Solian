@@ -1,14 +1,10 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/posts/post.dart';
-import '../../models/posts/publisher.dart';
-import '../../models/posts/post_category.dart';
-import '../../models/posts/post_tag.dart';
-import '../../models/posts/embed.dart';
-import '../../models/posts/poll.dart';
-import '../../models/posts/heatmap.dart';
-import '../../pagination/pagination.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/posts/post.dart';
+import 'package:solar_network_sdk/src/models/posts/publisher.dart';
+import 'package:solar_network_sdk/src/models/posts/post_category.dart';
+import 'package:solar_network_sdk/src/models/posts/post_tag.dart';
+import 'package:solar_network_sdk/src/models/posts/embed.dart';
+import 'package:solar_network_sdk/src/models/posts/heatmap.dart';
 
 /// API for posts-related endpoints (/sphere).
 ///
@@ -45,11 +41,7 @@ class PostsApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/posts',
-      queryParameters: {
-        'offset': offset,
-        'take': take,
-        if (sort != null) 'sort': sort,
-      },
+      queryParameters: {'offset': offset, 'take': take, 'sort': ?sort},
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnPost.fromJson);
@@ -229,11 +221,7 @@ class PostsApi extends BaseApi {
   }) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/posts/heatmap',
-      queryParameters: {
-        if (username != null) 'username': username,
-        if (year != null) 'year': year,
-        if (month != null) 'month': month,
-      },
+      queryParameters: {'username': ?username, 'year': ?year, 'month': ?month},
     );
     return SnHeatmap.fromJson(response.data!);
   }

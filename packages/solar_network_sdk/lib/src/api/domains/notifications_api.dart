@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/accounts/account.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/accounts/account.dart';
 
 /// API for notification endpoints (/notification).
 ///

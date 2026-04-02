@@ -1,8 +1,5 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/realms/realm.dart';
-import '../../models/accounts/account.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/realms/realm.dart';
 
 /// API for realm-related endpoints (/passport/realms).
 ///
@@ -59,7 +56,7 @@ class RealmsApi extends BaseApi {
       data: {
         'slug': slug,
         'name': name,
-        if (description != null) 'description': description,
+        'description': ?description,
         'is_public': isPublic,
       },
     );
@@ -204,11 +201,7 @@ class RealmsApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/$slug/labels',
-      data: {
-        'name': name,
-        if (description != null) 'description': description,
-        if (color != null) 'color': color,
-      },
+      data: {'name': name, 'description': ?description, 'color': ?color},
     );
     return SnRealmLabel.fromJson(response.data!);
   }

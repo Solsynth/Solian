@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for ticket/support endpoints (/ticket).
 ///
@@ -27,11 +25,7 @@ class TicketsApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/tickets',
-      queryParameters: {
-        if (status != null) 'status': status,
-        'offset': offset,
-        'take': take,
-      },
+      queryParameters: {'status': ?status, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
     return PaginatedResult(items: response.data ?? [], totalCount: totalCount);
@@ -65,7 +59,7 @@ class TicketsApi extends BaseApi {
         'subject': subject,
         'description': description,
         'category': category,
-        if (priority != null) 'priority': priority,
+        'priority': ?priority,
       },
     );
     return response.data!;
@@ -140,10 +134,7 @@ class TicketsApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/tickets/$ticketId/messages',
-      data: {
-        'message': message,
-        if (attachments != null) 'attachments': attachments,
-      },
+      data: {'message': message, 'attachments': ?attachments},
     );
     return response.data!;
   }
@@ -238,11 +229,7 @@ class TicketsApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/feedback',
-      data: {
-        'type': type,
-        'content': content,
-        if (rating != null) 'rating': rating,
-      },
+      data: {'type': type, 'content': content, 'rating': ?rating},
     );
     return response.data!;
   }

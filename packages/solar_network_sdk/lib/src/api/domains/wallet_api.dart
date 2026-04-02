@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../base_api.dart';
-import '../../models/wallets/wallet.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/wallets/wallet.dart';
 
 /// API for wallet-related endpoints (/wallet).
 ///
@@ -129,11 +129,7 @@ class WalletApi extends BaseApi {
   }) async {
     await post(
       '$_basePath/wallets/transfer',
-      data: {
-        'to_wallet_id': toWalletId,
-        'amount': amount,
-        if (message != null) 'message': message,
-      },
+      data: {'to_wallet_id': toWalletId, 'amount': amount, 'message': ?message},
     );
   }
 
@@ -278,7 +274,7 @@ class WalletApi extends BaseApi {
       data: {
         'to_wallet_id': toWalletId,
         'gift_id': giftId,
-        if (message != null) 'message': message,
+        'message': ?message,
       },
     );
     return SnWalletGift.fromJson(response.data!);
@@ -331,7 +327,7 @@ class WalletApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/wallets/pockets',
-      data: {'name': name, if (color != null) 'color': color},
+      data: {'name': name, 'color': ?color},
     );
     return SnWalletPocket.fromJson(response.data!);
   }

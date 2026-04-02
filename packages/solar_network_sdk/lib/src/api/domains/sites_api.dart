@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for site-related endpoints (/site).
 ///
@@ -43,11 +41,7 @@ class SitesApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/sites',
-      data: {
-        'name': name,
-        'slug': slug,
-        if (description != null) 'description': description,
-      },
+      data: {'name': name, 'slug': slug, 'description': ?description},
     );
     return response.data!;
   }
@@ -129,11 +123,7 @@ class SitesApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/sites/$siteId/pages',
-      data: {
-        'title': title,
-        'slug': slug,
-        if (content != null) 'content': content,
-      },
+      data: {'title': title, 'slug': slug, 'content': ?content},
     );
     return response.data!;
   }

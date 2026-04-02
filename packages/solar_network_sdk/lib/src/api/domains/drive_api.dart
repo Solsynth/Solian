@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import '../base_api.dart';
-import '../../models/drive/file.dart';
-import '../../models/drive/file_pool.dart';
-import '../../models/drive/folder.dart';
-import '../../models/drive/drive_task.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/drive/file.dart';
+import 'package:solar_network_sdk/src/models/drive/file_pool.dart';
+import 'package:solar_network_sdk/src/models/drive/folder.dart';
+import 'package:solar_network_sdk/src/models/drive/drive_task.dart';
 
 /// API for cloud drive/storage endpoints (/drive).
 ///
@@ -33,11 +33,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/files',
-      queryParameters: {
-        if (folderId != null) 'folder_id': folderId,
-        'offset': offset,
-        'take': take,
-      },
+      queryParameters: {'folder_id': ?folderId, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnCloudFile.fromJson);
@@ -66,7 +62,7 @@ class DriveApi extends BaseApi {
   }) async {
     final formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(file.path),
-      if (folderId != null) 'folder_id': folderId,
+      'folder_id': ?folderId,
     });
     final response = await post<Map<String, dynamic>>(
       '$_basePath/files',
@@ -210,7 +206,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/folders',
-      data: {'name': name, if (parentId != null) 'parent_id': parentId},
+      data: {'name': name, 'parent_id': ?parentId},
     );
     return SnCloudFolder.fromJson(response.data!);
   }
@@ -297,7 +293,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/pools',
-      data: {'name': name, if (description != null) 'description': description},
+      data: {'name': name, 'description': ?description},
     );
     return SnFilePool.fromJson(response.data!);
   }

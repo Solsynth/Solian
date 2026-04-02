@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for developer-related endpoints (/developer).
 ///
@@ -41,7 +39,7 @@ class DevelopersApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/projects',
-      data: {'name': name, if (description != null) 'description': description},
+      data: {'name': name, 'description': ?description},
     );
     return response.data!;
   }
@@ -102,7 +100,7 @@ class DevelopersApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/projects/$projectId/bots',
-      data: {'name': name, if (description != null) 'description': description},
+      data: {'name': name, 'description': ?description},
     );
     return response.data!;
   }
@@ -233,7 +231,7 @@ class DevelopersApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/bots/$botId/keys',
-      data: {'name': name, if (permissions != null) 'permissions': permissions},
+      data: {'name': name, 'permissions': ?permissions},
     );
     return response.data!;
   }
@@ -311,11 +309,7 @@ class DevelopersApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/apps/$appId/webhooks',
-      data: {
-        'url': url,
-        'events': events,
-        if (secret != null) 'secret': secret,
-      },
+      data: {'url': url, 'events': events, 'secret': ?secret},
     );
     return response.data!;
   }
