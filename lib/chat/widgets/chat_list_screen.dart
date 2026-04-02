@@ -411,7 +411,7 @@ class ChatScreen extends HookConsumerWidget {
                 children: [
                   const ChatListWidget(
                     isAside: true,
-                  ).padding(left: 16, top: 16, bottom: 16),
+                  ).padding(left: 16, top: 16),
                   const Gap(8),
                   Expanded(
                     child: ClipRRect(
@@ -1004,6 +1004,12 @@ class ChatListWidget extends HookConsumerWidget {
         width: currentWidth,
         child: Card(
           margin: EdgeInsets.zero,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(8),
+              topLeft: Radius.circular(8),
+            ),
+          ),
           child: MouseRegion(
             onEnter: (_) => isSidebarHovering.value = true,
             onExit: (_) => isSidebarHovering.value = false,

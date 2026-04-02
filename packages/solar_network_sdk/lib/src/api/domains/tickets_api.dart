@@ -1,3 +1,4 @@
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for ticket/support endpoints (/ticket).
@@ -7,7 +8,7 @@ class TicketsApi extends BaseApi {
   TicketsApi(super.dio);
 
   /// Base path for all ticket endpoints.
-  static const String _basePath = '/ticket';
+  static const String _basePath = '/passport';
 
   // ==========================================
   // Ticket endpoints
@@ -18,66 +19,86 @@ class TicketsApi extends BaseApi {
   /// [status] - Optional status filter.
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<PaginatedResult<dynamic>> getTickets({
-    String? status,
+  Future<PaginatedResult<SnTicket>> getTickets({
+    int? status,
     int offset = 0,
     int take = 20,
+    bool mime = false,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/tickets',
+      mime ? '$_basePath/tickets/me' : '$_basePath/tickets',
       queryParameters: {'status': ?status, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
-    return PaginatedResult(items: response.data ?? [], totalCount: totalCount);
+    return PaginatedResult(
+      items: (response.data ?? [])
+          .map((json) => SnTicket.fromJson(json))
+          .toList(),
+      totalCount: totalCount,
+    );
   }
 
   /// Gets a specific ticket by ID.
   ///
   /// [ticketId] - The ticket ID.
-  Future<Map<String, dynamic>> getTicket(String ticketId) async {
+  Future<SnTicket> getTicket(String ticketId) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/tickets/$ticketId',
     );
-    return response.data!;
+    return SnTicket.fromJson(response.data!);
   }
 
   /// Creates a new ticket.
   ///
-  /// [subject] - The ticket subject.
-  /// [description] - The ticket description.
-  /// [category] - The ticket category.
-  /// [priority] - Optional priority (e.g., 'low', 'medium', 'high').
-  Future<Map<String, dynamic>> createTicket({
-    required String subject,
-    required String description,
-    required String category,
-    String? priority,
+  /// [title] - The ticket title.
+  /// [content] - The ticket content / description.
+  /// [type] - The ticket type identifier.
+  /// [priority] - Optional priority (0 = low, 1 = medium, 2 = high).
+  /// [fileIds] - Optional list of attached file IDs.
+  Future<SnTicket> createTicket({
+    required String title,
+    String? content,
+    required int type,
+    int? priority,
+    List<String>? fileIds,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/tickets',
       data: {
-        'subject': subject,
-        'description': description,
-        'category': category,
+        'title': title,
+        'content': content,
+        'type': type,
         'priority': ?priority,
+        'file_ids': ?fileIds,
       },
     );
-    return response.data!;
+    return SnTicket.fromJson(response.data!);
   }
 
   /// Updates a ticket.
   ///
   /// [ticketId] - The ticket ID.
-  /// [data] - The data to update.
-  Future<Map<String, dynamic>> updateTicket({
+  /// [title] - Optional new ticket title.
+  /// [content] - Optional new ticket content / description.
+  /// [type] - Optional new ticket type identifier.
+  /// [priority] - Optional new priority.
+  Future<SnTicket> updateTicket({
     required String ticketId,
-    required Map<String, dynamic> data,
+    String? title,
+    String? content,
+    int? type,
+    int? priority,
   }) async {
-    final response = await patch<Map<String, dynamic>>(
+    final response = await put<Map<String, dynamic>>(
       '$_basePath/tickets/$ticketId',
-      data: data,
+      data: {
+        'title': ?title,
+        'content': ?content,
+        'type': ?type,
+        'priority': ?priority,
+      },
     );
-    return response.data!;
+    return SnTicket.fromJson(response.data!);
   }
 
   /// Closes a ticket.
@@ -125,18 +146,21 @@ class TicketsApi extends BaseApi {
   /// Adds a message to a ticket.
   ///
   /// [ticketId] - The ticket ID.
-  /// [message] - The message content.
-  /// [attachments] - Optional attachments.
-  Future<Map<String, dynamic>> addTicketMessage({
+  /// [content] - The message content.
+  /// [fileIds] - Optional list of attached file IDs.
+  Future<SnTicketMessage> addTicketMessage({
     required String ticketId,
-    required String message,
-    List<Map<String, dynamic>>? attachments,
+    required String content,
+    List<String>? fileIds,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/tickets/$ticketId/messages',
-      data: {'message': message, 'attachments': ?attachments},
+      data: {
+        'content': content,
+        if (fileIds != null) 'file_ids': fileIds,
+      },
     );
-    return response.data!;
+    return SnTicketMessage.fromJson(response.data!);
   }
 
   /// Updates a ticket message.
@@ -167,80 +191,48 @@ class TicketsApi extends BaseApi {
     await delete('$_basePath/tickets/$ticketId/messages/$messageId');
   }
 
-  // ==========================================
-  // Category endpoints
-  // ==========================================
-
-  /// Gets all ticket categories.
-  Future<List<dynamic>> getCategories() async {
-    final response = await get<List<dynamic>>('$_basePath/categories');
-    return response.data ?? [];
-  }
-
-  /// Gets a specific category by ID.
+  /// Updates ticket status.
   ///
-  /// [categoryId] - The category ID.
-  Future<Map<String, dynamic>> getCategory(String categoryId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/categories/$categoryId',
-    );
-    return response.data!;
-  }
-
-  // ==========================================
-  // FAQ endpoints
-  // ==========================================
-
-  /// Gets FAQ items.
-  ///
-  /// [category] - Optional category filter.
-  Future<List<dynamic>> getFAQ({String? category}) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/faq',
-      queryParameters: category != null ? {'category': category} : null,
-    );
-    return response.data ?? [];
-  }
-
-  /// Searches FAQ items.
-  ///
-  /// [query] - The search query.
-  Future<List<dynamic>> searchFAQ(String query) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/faq/search',
-      queryParameters: {'q': query},
-    );
-    return response.data ?? [];
-  }
-
-  // ==========================================
-  // Feedback endpoints
-  // ==========================================
-
-  /// Submits feedback.
-  ///
-  /// [type] - The feedback type (e.g., 'bug', 'feature', 'general').
-  /// [content] - The feedback content.
-  /// [rating] - Optional rating (1-5).
-  Future<Map<String, dynamic>> submitFeedback({
-    required String type,
-    required String content,
-    int? rating,
+  /// [ticketId] - The ticket ID.
+  /// [status] - New status value.
+  Future<SnTicket> updateTicketStatus({
+    required String ticketId,
+    required int status,
   }) async {
     final response = await post<Map<String, dynamic>>(
-      '$_basePath/feedback',
-      data: {'type': type, 'content': content, 'rating': ?rating},
+      '$_basePath/tickets/$ticketId/status',
+      data: {'status': status},
     );
-    return response.data!;
+    return SnTicket.fromJson(response.data!);
   }
 
-  /// Gets feedback status.
+  /// Assigns ticket to an assignee.
   ///
-  /// [feedbackId] - The feedback ID.
-  Future<Map<String, dynamic>> getFeedbackStatus(String feedbackId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/feedback/$feedbackId',
+  /// [ticketId] - The ticket ID.
+  /// [assigneeId] - User ID to assign to, null to unassign.
+  Future<SnTicket> assignTicket({
+    required String ticketId,
+    String? assigneeId,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/tickets/$ticketId/assign',
+      data: {'assignee_id': assigneeId},
     );
-    return response.data!;
+    return SnTicket.fromJson(response.data!);
+  }
+
+  /// Gets total ticket count with optional status filter.
+  ///
+  /// [status] - Optional status filter.
+  Future<int> getTicketCount({
+    int? status,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/tickets/count',
+      queryParameters: {
+        if (status != null) 'status': status,
+      },
+    );
+    return response.data!['count'] as int;
   }
 }

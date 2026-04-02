@@ -7,9 +7,9 @@ import 'package:island/accounts/abuse_report_service.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
-import 'package:island/tickets/ticket_models.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/route.gr.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()

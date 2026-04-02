@@ -16,40 +16,9 @@ import 'package:styled_widget/styled_widget.dart';
 final badgesProvider = FutureProvider.autoDispose<List<SnAccountBadge>>((
   ref,
 ) async {
-  final client = ref.watch(apiClientProvider);
-  final response = await client.get('/passport/accounts/me/badges');
-  final data = response.data;
-  if (data is List) {
-    return data
-        .whereType<Map>()
-        .map((e) => SnAccountBadge.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
-  }
-  return const [];
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getMyBadges();
 });
-
-class ActivateBadgeNotifier extends AsyncNotifier<void> {
-  @override
-  FutureOr<void> build() {}
-
-  Future<void> activate(String badgeId) async {
-    state = const AsyncValue.loading();
-    try {
-      final client = ref.read(apiClientProvider);
-      await client.post('/passport/accounts/me/badges/$badgeId/active');
-      ref.invalidate(badgesProvider);
-      state = const AsyncValue.data(null);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-      rethrow;
-    }
-  }
-}
-
-final activateBadgeProvider =
-    AsyncNotifierProvider<ActivateBadgeNotifier, void>(
-      ActivateBadgeNotifier.new,
-    );
 
 @RoutePage()
 class BadgesScreen extends ConsumerWidget {
@@ -58,7 +27,6 @@ class BadgesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final badgesAsync = ref.watch(badgesProvider);
-    final activateState = ref.watch(activateBadgeProvider);
 
     return AppScaffold(
       appBar: AppBar(title: Text('badges').tr()),
@@ -79,7 +47,7 @@ class BadgesScreen extends ConsumerWidget {
                     final badge = badges[index];
                     return _BadgeCard(
                       badge: badge,
-                      isLoading: activateState.isLoading,
+                      isLoading: false,
                       onActivate: () => _activateBadge(context, ref, badge.id),
                     );
                   },
@@ -161,9 +129,16 @@ class BadgesScreen extends ConsumerWidget {
   ) async {
     try {
       showLoadingModal(context);
-      await ref.read(activateBadgeProvider.notifier).activate(badgeId);
-      if (context.mounted) {
-        hideLoadingModal(context);
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        await client.accounts.activateBadge(badgeId);
+        ref.invalidate(badgesProvider);
+      } catch (e) {
+        showErrorAlert(e);
+      } finally {
+        if (context.mounted) {
+          hideLoadingModal(context);
+        }
       }
     } catch (e) {
       if (context.mounted) {

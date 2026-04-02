@@ -34,25 +34,15 @@ class ActionLogsNotifier extends AsyncNotifier<PaginationState<SnActionLog>>
 
   @override
   Future<List<SnActionLog>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final queryParams = {
-      'offset': fetchedCount.toString(),
-      'take': pageSize.toString(),
-    };
-
-    final response = await client.get(
-      '/padlock/actions',
-      queryParameters: queryParams,
+    final result = await client.padlock.getActionLogs(
+      offset: fetchedCount,
+      take: pageSize,
     );
 
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-
-    final records = response.data
-        .map<SnActionLog>((json) => SnActionLog.fromJson(json))
-        .toList();
-
-    return records;
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 

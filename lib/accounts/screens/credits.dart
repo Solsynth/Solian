@@ -16,12 +16,8 @@ part 'credits.g.dart';
 
 @riverpod
 Future<double> socialCredits(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  final response = await client.get('/passport/accounts/me/credits');
-  if (response.statusCode != 200) {
-    throw Exception('Failed to load social credits');
-  }
-  return response.data?.toDouble() ?? 0.0;
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getSocialCredits();
 }
 
 final socialCreditHistoryNotifierProvider = AsyncNotifierProvider.autoDispose(
@@ -48,23 +44,15 @@ class SocialCreditHistoryNotifier
 
   @override
   Future<List<SnSocialCreditRecord>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final queryParams = {'offset': fetchedCount.toString(), 'take': pageSize};
-
-    final response = await client.get(
-      '/passport/accounts/me/credits/history',
-      queryParameters: queryParams,
+    final result = await client.accounts.getSocialCreditHistory(
+      offset: fetchedCount,
+      take: pageSize,
     );
 
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-
-    final records = response.data
-        .map((json) => SnSocialCreditRecord.fromJson(json))
-        .cast<SnSocialCreditRecord>()
-        .toList();
-
-    return records;
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 

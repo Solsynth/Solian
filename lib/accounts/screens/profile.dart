@@ -1032,16 +1032,8 @@ Future<SnChatRoom?> accountDirectChat(Ref ref, String uname) async {
   final userInfo = ref.watch(userInfoProvider);
   if (userInfo.value == null) return null;
   final account = await ref.watch(accountProvider(uname).future);
-  final apiClient = ref.watch(apiClientProvider);
-  try {
-    final resp = await apiClient.get("/messager/chat/direct/${account.id}");
-    return SnChatRoom.fromJson(resp.data);
-  } catch (err) {
-    if (err is DioException && err.response?.statusCode == 404) {
-      return null;
-    }
-    rethrow;
-  }
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.chat.getDirectChat(account.id);
 }
 
 @riverpod
@@ -1080,13 +1072,9 @@ Future<SnDeveloper?> accountBotDeveloper(Ref ref, String uname) async {
 
 @riverpod
 Future<List<SnPublisher>> accountPublishers(Ref ref, String id) async {
-  final apiClient = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await apiClient.get('/sphere/publishers/of/$id');
-    return resp.data
-        .map((e) => SnPublisher.fromJson(e))
-        .cast<SnPublisher>()
-        .toList();
+    return await client.posts.getAccountPublishers(id);
   } catch (err) {
     return [];
   }
@@ -1122,24 +1110,16 @@ class AccountTimelineNotifier
 
   @override
   Future<List<SnAccountTimelineItem>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final queryParams = {
-      'offset': fetchedCount.toString(),
-      'take': pageSize.toString(),
-    };
-
-    final response = await client.get(
-      '/passport/accounts/$arg/timeline',
-      queryParameters: queryParams,
+    final result = await client.accounts.getAccountTimeline(
+      username: arg,
+      offset: fetchedCount,
+      take: pageSize,
     );
 
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-
-    return (response.data as List<dynamic>)
-        .map((e) => SnAccountTimelineItem.fromJson(e))
-        .cast<SnAccountTimelineItem>()
-        .toList();
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 
@@ -1204,12 +1184,8 @@ class AccountProfileScreen extends HookConsumerWidget {
       }
       showLoadingModal(context);
       try {
-        final client = ref.watch(apiClientProvider);
-        final resp = await client.post(
-          '/messager/chat/direct',
-          data: {'related_user_id': account.value!.id},
-        );
-        final chat = SnChatRoom.fromJson(resp.data);
+        final client = ref.watch(solarNetworkClientProvider);
+        final chat = await client.chat.createDirectChat(account.value!.id);
         if (context.mounted) {
           context.router.push(ChatRoomRoute(id: chat.id));
         }

@@ -29,7 +29,7 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
   }
 
   Future<SnAccount> _requestUser({Duration? timeout}) async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     final options = timeout == null
         ? null
         : Options(
@@ -37,11 +37,7 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
             sendTimeout: timeout,
             receiveTimeout: timeout,
           );
-    final response = await client.get(
-      '/passport/accounts/me',
-      options: options,
-    );
-    final user = SnAccount.fromJson(response.data);
+    final user = await client.accounts.getCurrentAccount(options: options);
     AnalyticsService().setUserId(user.id);
     return user;
   }
@@ -161,10 +157,9 @@ final userInfoProvider = AsyncNotifierProvider<UserInfoNotifier, SnAccount?>(
 
 final accountInfoProvider = FutureProvider.family
     .autoDispose<SnAccount?, String>((ref, accountRef) async {
-      final client = ref.watch(apiClientProvider);
+      final client = ref.watch(solarNetworkClientProvider);
       try {
-        final response = await client.get('/passport/accounts/$accountRef');
-        return SnAccount.fromJson(Map<String, dynamic>.from(response.data));
+        return await client.accounts.getAccountByUsername(accountRef);
       } catch (_) {
         return null;
       }

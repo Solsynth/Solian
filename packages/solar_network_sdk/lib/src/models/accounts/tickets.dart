@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-part 'ticket_models.freezed.dart';
-part 'ticket_models.g.dart';
+part 'tickets.g.dart';
+part 'tickets.freezed.dart';
 
 @freezed
 sealed class SnTicket with _$SnTicket {

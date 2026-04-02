@@ -1,6 +1,5 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/tickets/ticket_models.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final ticketServiceProvider = Provider<TicketService>((ref) {
@@ -12,10 +11,8 @@ class TicketService {
   TicketService(this.ref);
 
   Future<SnTicket> getTicket(String id) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .get('/passport/tickets/$id');
-    return SnTicket.fromJson(response.data);
+    final client = ref.watch(solarNetworkClientProvider);
+    return client.tickets.getTicket(id);
   }
 
   Future<List<SnTicket>> getTickets({
@@ -24,15 +21,14 @@ class TicketService {
     int take = 20,
     bool isAdmin = false,
   }) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .get(
-          isAdmin ? '/passport/tickets' : '/passport/tickets/me',
-          queryParameters: {'status': ?status, 'offset': offset, 'take': take},
-        );
-    return (response.data as List)
-        .map((json) => SnTicket.fromJson(json))
-        .toList();
+    final client = ref.watch(solarNetworkClientProvider);
+    final tickets = await client.tickets.getTickets(
+      offset: offset,
+      take: take,
+      status: status,
+      mime: isAdmin,
+    );
+    return tickets.items;
   }
 
   Future<SnTicket> createTicket({
@@ -42,19 +38,14 @@ class TicketService {
     int priority = 1,
     List<String>? fileIds,
   }) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .post(
-          '/passport/tickets',
-          data: {
-            'title': title,
-            'content': content,
-            'type': type,
-            'priority': priority,
-            'file_ids': fileIds,
-          },
-        );
-    return SnTicket.fromJson(response.data);
+    final client = ref.watch(solarNetworkClientProvider);
+    return await client.tickets.createTicket(
+      title: title,
+      content: content,
+      type: type,
+      priority: priority,
+      fileIds: fileIds,
+    );
   }
 
   Future<SnTicket> updateTicket(
@@ -64,22 +55,19 @@ class TicketService {
     int? type,
     int? priority,
   }) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .put(
-          '/passport/tickets/$id',
-          data: {
-            'title': ?title,
-            'content': ?content,
-            'type': ?type,
-            'priority': ?priority,
-          },
-        );
-    return SnTicket.fromJson(response.data);
+    final client = ref.watch(solarNetworkClientProvider);
+    return await client.tickets.updateTicket(
+      ticketId: id,
+      title: title,
+      content: content,
+      type: type,
+      priority: priority,
+    );
   }
 
   Future<void> deleteTicket(String id) async {
-    await ref.read(apiClientProvider).delete('/passport/tickets/$id');
+    final client = ref.watch(solarNetworkClientProvider);
+    await client.tickets.deleteTicket(id);
   }
 
   Future<SnTicketMessage> addMessage(
@@ -87,62 +75,34 @@ class TicketService {
     String content, {
     List<String>? fileIds,
   }) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .post(
-          '/passport/tickets/$ticketId/messages',
-          data: {'content': content, 'file_ids': fileIds},
-        );
-    return SnTicketMessage.fromJson(response.data);
+    final client = ref.watch(solarNetworkClientProvider);
+    return await client.tickets.addTicketMessage(
+      ticketId: ticketId,
+      content: content,
+      fileIds: fileIds,
+    );
   }
 
   Future<SnTicket> updateTicketStatus(String ticketId, int status) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .post('/passport/tickets/$ticketId/status', data: {'status': status});
-    return SnTicket.fromJson(response.data);
+    final client = ref.watch(solarNetworkClientProvider);
+    return await client.tickets.updateTicketStatus(
+      ticketId: ticketId,
+      status: status,
+    );
   }
 
   Future<SnTicket> assignTicket(String ticketId, String? assigneeId) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .post(
-          '/passport/tickets/$ticketId/assign',
-          data: {'assignee_id': assigneeId},
-        );
-    return SnTicket.fromJson(response.data);
+    final client = ref.watch(solarNetworkClientProvider);
+    return await client.tickets.assignTicket(
+      ticketId: ticketId,
+      assigneeId: assigneeId,
+    );
   }
 
-  Future<int> getTicketCount({String? status}) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .get('/passport/tickets/count', queryParameters: {'status': ?status});
-    return response.data['count'] as int;
-  }
-}
-
-// Provider for backward compatibility
-final abuseReportServiceProvider = Provider<AbuseReportService>((ref) {
-  return AbuseReportService(ref);
-});
-
-class AbuseReportService {
-  final Ref ref;
-  AbuseReportService(this.ref);
-
-  Future<SnAbuseReport> getReport(String id) async {
-    final response = await ref
-        .read(apiClientProvider)
-        .get('/passport/safety/reports/me/$id');
-    return SnAbuseReport.fromJson(response.data);
-  }
-
-  Future<List<SnAbuseReport>> getReports() async {
-    final response = await ref
-        .read(apiClientProvider)
-        .get('/passport/safety/reports/me');
-    return (response.data as List)
-        .map((json) => SnAbuseReport.fromJson(json))
-        .toList();
+  Future<int> getTicketCount({int? status}) async {
+    final client = ref.watch(solarNetworkClientProvider);
+    return await client.tickets.getTicketCount(
+      status: status,
+    );
   }
 }

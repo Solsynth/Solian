@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'ticket_models.dart';
+part of 'tickets.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

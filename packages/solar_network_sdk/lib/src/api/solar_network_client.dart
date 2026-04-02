@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:solar_network_sdk/src/api/domains/padlock_api.dart';
 
 import 'domains/auth_api.dart';
 import 'domains/accounts_api.dart';
@@ -95,6 +96,9 @@ class SolarNetworkClient {
   /// Realms API (realm endpoints).
   late final RealmsApi realms;
 
+  /// Padlock API (security endpoints)
+  late final PadlockApi padlock;
+
   /// Creates a new SolarNetworkClient with the given configuration.
   ///
   /// [baseUrl] - The base URL for all API requests.
@@ -154,6 +158,7 @@ class SolarNetworkClient {
     developers = DevelopersApi(dio);
     payments = PaymentsApi(dio);
     realms = RealmsApi(dio);
+    padlock = PadlockApi(dio);
   }
 
   /// Closes the Dio client and releases resources.

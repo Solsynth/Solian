@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -23,67 +22,50 @@ part 'check_in.g.dart';
 
 @riverpod
 Future<SnCheckInResult?> checkInResultToday(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  try {
-    final resp = await client.get('/passport/accounts/me/check-in');
-    return SnCheckInResult.fromJson(resp.data);
-  } catch (err) {
-    if (err is DioException) {
-      if (err.response?.statusCode == 404) {
-        return null;
-      }
-    }
-    rethrow;
-  }
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getCheckInResultToday();
 }
 
 @riverpod
 Future<SnNotableDay?> nextNotableDay(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  try {
-    final resp = await client.get('/passport/notable/me/next');
-    final day = SnNotableDay.fromJson(resp.data);
-    if (day.localizableKey != null) {
-      final key = 'notableDay${day.localizableKey}';
-      if (key.trExists()) {
-        return day.copyWith(
-          localName: key.tr(),
-          date: day.date.toLocal().copyWith(hour: 0, second: 0),
-        );
-      }
+  final client = ref.watch(solarNetworkClientProvider);
+  final day = await client.accounts.getNextNotableDay();
+  if (day == null) return null;
+
+  if (day.localizableKey != null) {
+    final key = 'notableDay${day.localizableKey}';
+    if (key.trExists()) {
+      return day.copyWith(
+        localName: key.tr(),
+        date: day.date.toLocal().copyWith(hour: 0, second: 0),
+      );
     }
-    return day.copyWith(date: day.date.toLocal().copyWith(hour: 0, second: 0));
-  } catch (err) {
-    return null;
   }
+  return day.copyWith(date: day.date.toLocal().copyWith(hour: 0, second: 0));
 }
 
 @riverpod
 Future<SnNotableDay?> recentNotableDay(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  try {
-    final resp = await client.get('/passport/notable/me/recent');
-    final day = SnNotableDay.fromJson(resp.data[0]);
-    if (day.localizableKey != null) {
-      final key = 'notableDay${day.localizableKey}';
-      if (key.trExists()) {
-        return day.copyWith(
-          localName: key.tr(),
-          date: day.date.toLocal().copyWith(hour: 0, second: 0),
-        );
-      }
+  final client = ref.watch(solarNetworkClientProvider);
+  final day = await client.accounts.getRecentNotableDay();
+  if (day == null) return null;
+
+  if (day.localizableKey != null) {
+    final key = 'notableDay${day.localizableKey}';
+    if (key.trExists()) {
+      return day.copyWith(
+        localName: key.tr(),
+        date: day.date.toLocal().copyWith(hour: 0, second: 0),
+      );
     }
-    return day.copyWith(date: day.date.toLocal().copyWith(hour: 0, second: 0));
-  } catch (err) {
-    return null;
   }
+  return day.copyWith(date: day.date.toLocal().copyWith(hour: 0, second: 0));
 }
 
 @riverpod
 Future<SnFortuneSaying> randomFortuneSaying(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/passport/fortune/random');
-  return SnFortuneSaying.fromJson(resp.data[0]);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getRandomFortuneSaying();
 }
 
 class CheckInWidget extends HookConsumerWidget {
@@ -105,12 +87,9 @@ class CheckInWidget extends HookConsumerWidget {
     }, []);
 
     Future<void> checkIn({String? captchatTk}) async {
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
       try {
-        await client.post(
-          '/passport/accounts/me/check-in',
-          data: captchatTk == null ? null : jsonEncode(captchatTk),
-        );
+        await client.accounts.checkIn(captchaToken: captchatTk);
         ref.invalidate(checkInResultTodayProvider);
         final userNotifier = ref.read(userInfoProvider.notifier);
         userNotifier.fetchUser();

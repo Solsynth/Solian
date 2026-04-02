@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
 import 'package:solar_network_sdk/src/models/accounts/relationship.dart';
@@ -7,6 +8,7 @@ import 'package:solar_network_sdk/src/models/accounts/discovery.dart';
 import 'package:solar_network_sdk/src/models/accounts/action_log.dart';
 import 'package:solar_network_sdk/src/models/accounts/abuse_report.dart';
 import 'package:solar_network_sdk/src/models/accounts/abuse_report_type.dart';
+import 'package:solar_network_sdk/src/models/activity/activity.dart';
 
 /// API for account-related endpoints (/passport).
 ///
@@ -22,8 +24,11 @@ class AccountsApi extends BaseApi {
   // ==========================================
 
   /// Gets the current user's account information.
-  Future<SnAccount> getCurrentAccount() async {
-    final response = await get<Map<String, dynamic>>('$_basePath/accounts/me');
+  Future<SnAccount> getCurrentAccount({Options? options}) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/accounts/me',
+      options: options,
+    );
     return SnAccount.fromJson(response.data!);
   }
 
@@ -83,6 +88,23 @@ class AccountsApi extends BaseApi {
       '$_basePath/accounts/$username/badges',
     );
     return parseList(response, SnAccountBadge.fromJson);
+  }
+
+  /// Gets current user's badges.
+  Future<List<SnAccountBadge>> getMyBadges() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/badges',
+    );
+    return parseList(response, SnAccountBadge.fromJson);
+  }
+
+  /// Activates a badge for current user.
+  ///
+  /// [badgeId] - ID of the badge to activate.
+  Future<void> activateBadge(String badgeId) async {
+    await post(
+      '$_basePath/accounts/me/badges/$badgeId/active',
+    );
   }
 
   // ==========================================
@@ -269,6 +291,14 @@ class AccountsApi extends BaseApi {
     return SnFortuneSaying.fromJson(response.data!);
   }
 
+  /// Gets a random fortune saying.
+  Future<SnFortuneSaying> getRandomFortuneSaying() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/fortune/random',
+    );
+    return SnFortuneSaying.fromJson(response.data![0]);
+  }
+
   /// Gets fortune history.
   ///
   /// [offset] - Pagination offset.
@@ -282,6 +312,132 @@ class AccountsApi extends BaseApi {
       queryParameters: {'offset': offset, 'take': take},
     );
     return parseList(response, SnFortuneSaying.fromJson);
+  }
+
+  // ==========================================
+  // Check-in endpoints
+  // ==========================================
+
+  /// Gets today's check-in result.
+  /// Returns null if not checked in yet.
+  Future<SnCheckInResult?> getCheckInResultToday() async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '$_basePath/accounts/me/check-in',
+      );
+      return SnCheckInResult.fromJson(response.data!);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  /// Performs daily check-in.
+  ///
+  /// [captchaToken] - Optional captcha token if required.
+  Future<void> checkIn({
+    String? captchaToken,
+  }) async {
+    await post(
+      '$_basePath/accounts/me/check-in',
+      data: captchaToken != null ? {'token': captchaToken} : null,
+    );
+  }
+
+  // ==========================================
+  // Notable day endpoints
+  // ==========================================
+
+  /// Gets next upcoming notable day.
+  Future<SnNotableDay?> getNextNotableDay() async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '$_basePath/notable/me/next',
+      );
+      return SnNotableDay.fromJson(response.data!);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Gets most recent notable day.
+  Future<SnNotableDay?> getRecentNotableDay() async {
+    try {
+      final response = await get<List<dynamic>>(
+        '$_basePath/notable/me/recent',
+      );
+      if (response.data == null || response.data!.isEmpty) return null;
+      return SnNotableDay.fromJson(response.data![0]);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Gets event calendar entries for a user.
+  ///
+  /// [username] - Username to fetch calendar for, null for current user.
+  /// [year] - Year to fetch.
+  /// [month] - Month to fetch (1-12).
+  Future<List<SnEventCalendarEntry>> getEventCalendar({
+    String? username,
+    required int year,
+    required int month,
+  }) async {
+    final path = username != null
+        ? '$_basePath/accounts/$username/calendar'
+        : '$_basePath/accounts/me/calendar';
+    
+    final response = await get<List<dynamic>>(
+      path,
+      queryParameters: {
+        'year': year,
+        'month': month,
+      },
+    );
+
+    return parseList(response, SnEventCalendarEntry.fromJson);
+  }
+
+  // ==========================================
+  // Social Credit endpoints
+  // ==========================================
+
+  /// Gets current user's social credit balance.
+  Future<double> getSocialCredits() async {
+    final response = await get<dynamic>(
+      '$_basePath/accounts/me/credits',
+    );
+    
+    final value = response.data;
+    if (value is num) {
+      return value.toDouble();
+    }
+    return 0.0;
+  }
+
+  /// Gets social credit transaction history.
+  ///
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  Future<PaginatedResult<SnSocialCreditRecord>> getSocialCreditHistory({
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/credits/history',
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+      },
+    );
+    
+    final totalCount = getTotalCount(response.headers);
+    return PaginatedResult(
+      items: parseList(response, SnSocialCreditRecord.fromJson),
+      totalCount: totalCount,
+    );
   }
 
   // ==========================================
@@ -339,6 +495,28 @@ class AccountsApi extends BaseApi {
       queryParameters: {'offset': offset, 'take': take},
     );
     return parseList(response, SnActionLog.fromJson);
+  }
+
+  /// Gets account timeline events.
+  ///
+  /// [username] - The username / account ID.
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  Future<PaginatedResult<SnAccountTimelineItem>> getAccountTimeline({
+    required String username,
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/$username/timeline',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+
+    final totalCount = getTotalCount(response.headers);
+    return PaginatedResult(
+      items: parseList(response, SnAccountTimelineItem.fromJson),
+      totalCount: totalCount,
+    );
   }
 
   // ==========================================

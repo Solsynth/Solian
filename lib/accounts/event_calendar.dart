@@ -41,13 +41,10 @@ Future<List<SnEventCalendarEntry>> eventCalendar(
   Ref ref,
   EventCalendarQuery query,
 ) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get(
-    '/passport/accounts/${query.uname ?? 'me'}/calendar',
-    queryParameters: {'year': query.year, 'month': query.month},
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getEventCalendar(
+    username: query.uname,
+    year: query.year,
+    month: query.month,
   );
-  return resp.data
-      .map((e) => SnEventCalendarEntry.fromJson(e))
-      .cast<SnEventCalendarEntry>()
-      .toList();
 }

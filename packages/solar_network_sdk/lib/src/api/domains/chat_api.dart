@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/chat/chat.dart';
 
@@ -279,6 +280,34 @@ class ChatApi extends BaseApi {
   // ==========================================
   // Direct chat endpoints
   // ==========================================
+
+  /// Gets or creates a direct chat with another user.
+  ///
+  /// [accountId] - The other user's account ID.
+  Future<SnChatRoom?> getDirectChat(String accountId) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '$_basePath/chat/direct/$accountId',
+      );
+      return SnChatRoom.fromJson(response.data!);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  /// Creates a new direct chat with another user.
+  ///
+  /// [accountId] - The other user's account ID.
+  Future<SnChatRoom> createDirectChat(String accountId) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/chat/direct',
+      data: {'related_user_id': accountId},
+    );
+    return SnChatRoom.fromJson(response.data!);
+  }
 
   /// Gets or creates a direct chat with another user.
   ///

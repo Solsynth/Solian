@@ -537,4 +537,14 @@ class PostsApi extends BaseApi {
     );
     return SnScrappedLink.fromJson(response.data!);
   }
+
+  /// Gets publishers associated with an account.
+  ///
+  /// [accountId] - The account ID.
+  Future<List<SnPublisher>> getAccountPublishers(String accountId) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/publishers/of/$accountId',
+    );
+    return parseList(response, SnPublisher.fromJson);
+  }
 }
