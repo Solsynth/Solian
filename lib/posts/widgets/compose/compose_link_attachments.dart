@@ -20,12 +20,14 @@ class CloudFileListNotifier extends AsyncNotifier<PaginationState<SnCloudFile>>
     with AsyncPaginationController<SnCloudFile> {
   @override
   Future<List<SnCloudFile>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
+    // Note: DriveApi.getFiles doesn't have a 'me' filter
+    // We fall back to raw Dio call
     final take = 20;
 
     final queryParameters = {'offset': fetchedCount, 'take': take};
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/drive/files/me',
       queryParameters: queryParameters,
     );
@@ -148,12 +150,13 @@ class ComposeLinkAttachment extends HookConsumerWidget {
                               }
 
                               try {
-                                final client = ref.read(apiClientProvider);
-                                final response = await client.get(
-                                  '/drive/files/$fileId/info',
+                                final client = ref.read(
+                                  solarNetworkClientProvider,
                                 );
-                                final SnCloudFile cloudFile =
-                                    SnCloudFile.fromJson(response.data);
+                                // Note: DriveApi.getFile is the correct method
+                                final cloudFile = await client.drive.getFile(
+                                  fileId,
+                                );
 
                                 if (context.mounted) {
                                   Navigator.of(context).pop(cloudFile);

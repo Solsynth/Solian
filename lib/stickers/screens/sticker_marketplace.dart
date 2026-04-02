@@ -47,12 +47,12 @@ class MarketplaceStickerPacksNotifier
 
   @override
   Future<List<SnStickerPack>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/stickers',
       queryParameters: {
-        'offset': fetchedCount.toString(),
+        'offset': fetchedCount,
         'take': pageSize,
         'order': currentFilter.byUsage ? 'usage' : 'date',
         if (currentFilter.query != null && currentFilter.query!.isNotEmpty)

@@ -1,5 +1,8 @@
 export 'src/pagination/pagination.dart';
 
+// API classes
+export 'src/api/api.dart';
+
 // Accounts models
 export 'src/models/accounts/account.dart';
 export 'src/models/accounts/abuse_report.dart';

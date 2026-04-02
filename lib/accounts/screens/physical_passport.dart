@@ -58,8 +58,8 @@ sealed class SnScanResult with _$SnScanResult {
 
 final physicalPassportsProvider =
     FutureProvider.autoDispose<List<SnPhysicalPassport>>((ref) async {
-      final client = ref.watch(apiClientProvider);
-      final response = await client.get('/passport/nfc/tags');
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get('/passport/nfc/tags');
       return (response.data as List)
           .map((e) => SnPhysicalPassport.fromJson(e))
           .toList();
@@ -67,15 +67,15 @@ final physicalPassportsProvider =
 
 final scanPhysicalPassportProvider = FutureProvider.autoDispose
     .family<SnScanResult, String>((ref, id) async {
-      final client = ref.watch(apiClientProvider);
-      final response = await client.get('/passport/nfc/tags/$id');
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get('/passport/nfc/tags/$id');
       return SnScanResult.fromJson(response.data);
     });
 
 final scanPhysicalPassportByParamsProvider = FutureProvider.autoDispose
     .family<SnScanResult, Map<String, String>>((ref, params) async {
-      final client = ref.watch(apiClientProvider);
-      final response = await client.get(
+      final client = ref.watch(solarNetworkClientProvider);
+      final response = await client.dio.get(
         '/passport/nfc',
         queryParameters: params,
       );
@@ -585,8 +585,8 @@ class _AddPhysicalPassportSheetState
     setState(() => _isSubmitting = true);
 
     try {
-      final client = ref.read(apiClientProvider);
-      final response = await client.post(
+      final client = ref.read(solarNetworkClientProvider);
+      final response = await client.dio.post(
         '/passport/nfc/tags',
         data: {
           'uid': _scannedUid,
@@ -872,14 +872,14 @@ class _PhysicalPassportScanSheetState
       final uri = firstRecord.uri!;
       String? uidFromUri;
 
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
       SnScanResult? result;
 
       // Check if URI has a path segment (unencrypted tag with entry ID)
       // e.g., solian://phpass/{tag_id}
       if (uri.host == 'phpass' && uri.pathSegments.isNotEmpty) {
         final tagId = uri.pathSegments.first;
-        final response = await client.get('/passport/nfc/tags/$tagId');
+        final response = await client.dio.get('/passport/nfc/tags/$tagId');
         result = SnScanResult.fromJson(response.data);
       } else {
         // Forward all query parameters directly to /passport/nfc
@@ -893,7 +893,7 @@ class _PhysicalPassportScanSheetState
           });
           return;
         }
-        final response = await client.get(
+        final response = await client.dio.get(
           '/passport/nfc',
           queryParameters: queryParams,
         );
@@ -921,11 +921,14 @@ class _PhysicalPassportScanSheetState
     setState(() => _isClaiming = true);
 
     try {
-      final client = ref.read(apiClientProvider);
-      await client.post('/passport/nfc/tags/claim', data: {'uid': _scannedUid});
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.post(
+        '/passport/nfc/tags/claim',
+        data: {'uid': _scannedUid},
+      );
 
       // Refresh the scan result to show claimed status
-      final response = await client.get(
+      final response = await client.dio.get(
         '/passport/nfc',
         queryParameters: {'uid': _scannedUid},
       );
@@ -1256,8 +1259,8 @@ class _PhysicalPassportDetailSheetState
     setState(() => _isSubmitting = true);
 
     try {
-      final client = ref.read(apiClientProvider);
-      await client.patch(
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.patch(
         '/passport/nfc/tags/${widget.passport.id}',
         data: {
           'label': _labelController.text.trim().isEmpty
@@ -1293,8 +1296,8 @@ class _PhysicalPassportDetailSheetState
     setState(() => _isSubmitting = true);
 
     try {
-      final client = ref.read(apiClientProvider);
-      await client.post('/passport/nfc/tags/${widget.passport.id}/lock');
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.post('/passport/nfc/tags/${widget.passport.id}/lock');
       ref.invalidate(physicalPassportsProvider);
       if (mounted) {
         showSnackBar('physicalPassportLocked'.tr());
@@ -1322,8 +1325,8 @@ class _PhysicalPassportDetailSheetState
     setState(() => _isSubmitting = true);
 
     try {
-      final client = ref.read(apiClientProvider);
-      await client.delete('/passport/nfc/tags/${widget.passport.id}');
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.delete('/passport/nfc/tags/${widget.passport.id}');
       ref.invalidate(physicalPassportsProvider);
       if (mounted) {
         showSnackBar('physicalPassportDeleted'.tr());
@@ -1603,8 +1606,8 @@ class _AdminRegisterEncryptedTagSheetState
     setState(() => _isSubmitting = true);
 
     try {
-      final client = ref.read(apiClientProvider);
-      await client.post(
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.post(
         '/passport/admin/nfc/tags',
         data: {
           'uid': _scannedUid,
@@ -1711,8 +1714,8 @@ class _ClaimByUidSheetState extends ConsumerState<_ClaimByUidSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      final client = ref.read(apiClientProvider);
-      await client.post(
+      final client = ref.read(solarNetworkClientProvider);
+      await client.dio.post(
         '/passport/nfc/tags/claim',
         data: {'uid': _uidController.text.trim().toUpperCase()},
       );

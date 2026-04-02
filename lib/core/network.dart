@@ -669,3 +669,21 @@ class _StoredTokenPair {
     this.refreshExpiresAt,
   });
 }
+
+// ==========================================
+// Solar Network SDK Client Provider
+// ==========================================
+
+/// Provider for the SolarNetworkClient instance.
+/// This client wraps all typed API classes for different domains.
+final solarNetworkClientProvider = Provider<SolarNetworkClient>((ref) {
+  final dio = ref.watch(apiClientProvider);
+  final client = SolarNetworkClient.fromDio(dio);
+
+  // Clean up when the provider is disposed
+  ref.onDispose(() {
+    client.close();
+  });
+
+  return client;
+});

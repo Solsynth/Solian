@@ -398,9 +398,9 @@ class AccountFeatureWidget extends HookConsumerWidget {
               dense: true,
               onTap: () async {
                 final ws = ref.watch(websocketStateProvider.notifier);
-                final apiClient = ref.watch(apiClientProvider);
+                final client = ref.watch(solarNetworkClientProvider);
                 showLoadingModal(context);
-                await apiClient.delete('/padlock/sessions/current');
+                await client.auth.revokeCurrentSession();
                 await resetDatabase(ref);
                 if (!context.mounted) return;
                 hideLoadingModal(context);

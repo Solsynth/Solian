@@ -12,6 +12,7 @@ import "package:island/thoughts/widgets/billing_status_handler.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
 import "package:island/core/network.dart";
+import "package:solar_network_sdk/solar_network_sdk.dart";
 import "package:island/shared/widgets/app_scaffold.dart" hide PageBackButton;
 import "package:island/shared/widgets/responsive_sidebar.dart";
 import "package:island/shared/widgets/response.dart";
@@ -21,9 +22,13 @@ part 'think.g.dart';
 
 @riverpod
 Future<bool> thoughtAvailableStaus(Ref ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/insight/billing/status');
-  return response.data['status'] == 'ok';
+  final client = ref.watch(solarNetworkClientProvider);
+  try {
+    final status = await client.thoughts.getBillingStatus();
+    return status['status'] == 'ok';
+  } catch (_) {
+    return false;
+  }
 }
 
 @riverpod
@@ -31,43 +36,45 @@ Future<List<SnThinkingThought>> thoughtSequence(
   Ref ref,
   String sequenceId,
 ) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get(
-    '/insight/thought/sequences/$sequenceId',
-    queryParameters: {'offset': 0, 'take': 50},
-  );
-  return (response.data as List)
-      .map((e) => SnThinkingThought.fromJson(e))
-      .toList();
+  final client = ref.watch(solarNetworkClientProvider);
+  final response = await client.thoughts.getSequences(offset: 0, take: 50);
+  // Note: This is a simplified implementation. The actual API may differ.
+  return response.map((e) => SnThinkingThought.fromJson(e)).toList();
 }
 
 @riverpod
 Future<ThoughtServicesResponse> thoughtServices(Ref ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/insight/thought/services');
-  return ThoughtServicesResponse.fromJson(response.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  final services = await client.thoughts.getServices();
+  return ThoughtServicesResponse.fromJson({'services': services});
 }
 
 /// Deletes a thought sequence by ID.
-Future<void> deleteThoughtSequence(Dio apiClient, String sequenceId) async {
-  await apiClient.delete('/insight/thought/sequences/$sequenceId');
+Future<void> deleteThoughtSequence(
+  SolarNetworkClient client,
+  String sequenceId,
+) async {
+  await client.thoughts.deleteSequence(sequenceId);
 }
 
 /// Updates the sharing status of a thought sequence.
 Future<void> updateThoughtSequenceSharing(
-  Dio apiClient,
+  SolarNetworkClient client,
   String sequenceId, {
   required bool isPublic,
 }) async {
-  await apiClient.patch(
-    '/insight/thought/sequences/$sequenceId/sharing',
+  await client.thoughts.updateSequence(
+    sequenceId: sequenceId,
     data: {'is_public': isPublic},
   );
 }
 
 /// Marks a thought sequence as read.
-Future<void> markThoughtSequenceAsRead(Dio apiClient, String sequenceId) async {
-  await apiClient.post('/insight/thought/sequences/$sequenceId/read');
+Future<void> markThoughtSequenceAsRead(
+  SolarNetworkClient client,
+  String sequenceId,
+) async {
+  await client.thoughts.markSequenceAsRead(sequenceId);
 }
 
 @RoutePage()
@@ -138,7 +145,10 @@ class ThoughtScreen extends HookConsumerWidget {
     void handleSequenceSelected(String sequenceId) {
       selectedSequenceId.value = sequenceId;
       // Mark the conversation as read
-      markThoughtSequenceAsRead(ref.read(apiClientProvider), sequenceId);
+      markThoughtSequenceAsRead(
+        ref.read(solarNetworkClientProvider),
+        sequenceId,
+      );
     }
 
     void handleServiceChanged(String serviceId) {

@@ -29,8 +29,8 @@ class AuthFactorSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         showLoadingModal(context);
-        final client = ref.read(apiClientProvider);
-        await client.delete('/padlock/factors/${factor.id}');
+        final client = ref.read(solarNetworkClientProvider);
+        await client.auth.deleteFactor(factor.id);
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -47,8 +47,8 @@ class AuthFactorSheet extends HookConsumerWidget {
       if (!confirm || !context.mounted) return;
       try {
         showLoadingModal(context);
-        final client = ref.read(apiClientProvider);
-        await client.post('/padlock/factors/${factor.id}/disable');
+        final client = ref.read(solarNetworkClientProvider);
+        await client.auth.disableFactor(factor.id);
         if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
@@ -119,8 +119,8 @@ class AuthFactorSheet extends HookConsumerWidget {
 
       try {
         if (context.mounted) showLoadingModal(context);
-        final client = ref.read(apiClientProvider);
-        final response = await client.post(
+        final client = ref.read(solarNetworkClientProvider);
+        final response = await client.dio.post(
           '/padlock/factors/${factor.id}/enable',
           data: verificationCode != null ? jsonEncode(verificationCode) : null,
         );
@@ -307,18 +307,16 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
   Future<void> _addFactor() async {
     try {
       showLoadingModal(context);
-      final apiClient = ref.read(apiClientProvider);
-      final resp = await apiClient.post(
-        '/padlock/factors',
+      final client = ref.read(solarNetworkClientProvider);
+      final factor = await client.auth.createFactor(
+        type: _selectedType,
         data: {
-          'type': _selectedType,
           if (_selectedType == 0 || _selectedType == 4)
             'secret': _selectedType == 4
                 ? _pinController.text
                 : _secretController.text,
         },
       );
-      final factor = SnAuthFactor.fromJson(resp.data);
       if (!mounted) return;
       hideLoadingModal(context);
       if (factor.type == 3) {

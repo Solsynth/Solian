@@ -44,20 +44,16 @@ class ExploreScreen extends HookConsumerWidget {
 
   static final publisherActiveLivestreamProvider = FutureProvider.family
       .autoDispose<SnLiveStream?, String>((ref, publisherId) async {
-        final client = ref.watch(apiClientProvider);
-        final response = await client.get(
-          '/sphere/livestreams/publisher/$publisherId',
-          queryParameters: {'limit': 20, 'offset': 0},
+        final client = ref.watch(solarNetworkClientProvider);
+        final response = await client.livestreams.getActiveLivestreams(
+          offset: 0,
+          take: 20,
         );
-        final raw = response.data;
-        final list = switch (raw) {
-          List value => value,
-          Map value when value['items'] is List => value['items'] as List,
-          _ => const <dynamic>[],
-        };
-        for (final item in list.whereType<Map>()) {
-          final stream = SnLiveStream.fromJson(Map<String, dynamic>.from(item));
-          if (stream.status == SnLiveStreamStatus.active) return stream;
+        for (final stream in response.items) {
+          if (stream.publisherId == publisherId &&
+              stream.status == SnLiveStreamStatus.active) {
+            return stream;
+          }
         }
         return null;
       });

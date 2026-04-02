@@ -15,8 +15,10 @@ part 'post_featured.g.dart';
 
 @riverpod
 Future<List<SnPost>> featuredPosts(Ref ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/posts/featured');
+  final client = ref.watch(solarNetworkClientProvider);
+  // Note: There's no typed API for featured posts in PostsApi
+  // We fall back to raw Dio call
+  final resp = await client.dio.get('/sphere/posts/featured');
   return resp.data.map((e) => SnPost.fromJson(e)).cast<SnPost>().toList();
 }
 

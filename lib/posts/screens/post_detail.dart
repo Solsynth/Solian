@@ -39,9 +39,8 @@ part 'post_detail.g.dart';
 
 @riverpod
 Future<SnPost?> post(Ref ref, String id) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/sphere/posts/$id');
-  return SnPost.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.posts.getPost(id);
 }
 
 final postStateProvider =
@@ -165,9 +164,9 @@ class PostActionButtons extends HookConsumerWidget {
                 isDanger: true,
               ).then((confirm) {
                 if (confirm) {
-                  final client = ref.watch(apiClientProvider);
-                  client
-                      .delete('/sphere/posts/${post.id}')
+                  final client = ref.watch(solarNetworkClientProvider);
+                  client.posts
+                      .deletePost(post.id)
                       .catchError((err) {
                         showErrorAlert(err);
                         return err;
@@ -203,10 +202,10 @@ class PostActionButtons extends HookConsumerWidget {
                   confirm,
                 ) async {
                   if (confirm) {
-                    final client = ref.watch(apiClientProvider);
+                    final client = ref.watch(solarNetworkClientProvider);
                     try {
                       if (context.mounted) showLoadingModal(context);
-                      await client.delete('/sphere/posts/${post.id}/pin');
+                      await client.posts.unpinPost(post.id);
                       onUpdate?.call(post.copyWith(pinMode: null));
                     } catch (err) {
                       showErrorAlert(err);
@@ -325,7 +324,11 @@ class PostActionButtons extends HookConsumerWidget {
 
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
-        children: [Icon(icon, size: 18), const SizedBox(width: 12), Text(label)],
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 12),
+          Text(label),
+        ],
       );
     }
 
@@ -349,9 +352,9 @@ class PostActionButtons extends HookConsumerWidget {
               isDanger: true,
             ).then((confirm) {
               if (confirm) {
-                final client = ref.watch(apiClientProvider);
-                client
-                    .delete('/sphere/posts/${post.id}')
+                final client = ref.watch(solarNetworkClientProvider);
+                client.posts
+                    .deletePost(post.id)
                     .catchError((err) {
                       showErrorAlert(err);
                       return err;
@@ -406,10 +409,10 @@ class PostActionButtons extends HookConsumerWidget {
               confirm,
             ) async {
               if (confirm) {
-                final client = ref.watch(apiClientProvider);
+                final client = ref.watch(solarNetworkClientProvider);
                 try {
                   if (context.mounted) showLoadingModal(context);
-                  await client.delete('/sphere/posts/${post.id}/pin');
+                  await client.posts.unpinPost(post.id);
                   onUpdate?.call(post.copyWith(pinMode: null));
                 } catch (err) {
                   showErrorAlert(err);
@@ -430,10 +433,10 @@ class PostActionButtons extends HookConsumerWidget {
           };
         case 'boost':
           return () async {
-            final client = ref.read(apiClientProvider);
+            final client = ref.read(solarNetworkClientProvider);
             try {
               if (context.mounted) showLoadingModal(context);
-              await client.post('/sphere/posts/${post.id}/boost');
+              await client.posts.boostPost(post.id);
               onRefresh?.call();
             } catch (err) {
               showErrorAlert(err);

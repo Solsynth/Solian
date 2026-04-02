@@ -8,6 +8,7 @@ import 'package:island/creators/publication_site.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 class SiteActionMenu extends HookConsumerWidget {
@@ -67,8 +68,8 @@ class SiteActionMenu extends HookConsumerWidget {
 
             if (confirmed == true) {
               try {
-                final client = ref.read(apiClientProvider);
-                await client.delete('/zone/sites/$pubName/${site.slug}');
+                final client = ref.read(solarNetworkClientProvider);
+                await client.dio.delete('/zone/sites/$pubName/${site.slug}');
                 if (context.mounted) {
                   showSnackBar('siteDeletedSuccess'.tr());
                   Navigator.of(context).pop();

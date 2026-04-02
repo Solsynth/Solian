@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/stickers/stickers.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:island/core/network.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -25,9 +26,11 @@ Future<List<SnSticker>> marketplaceStickerPackContent(
   Ref ref, {
   required String packId,
 }) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/sphere/stickers/$packId/content');
-  return (resp.data as List).map((e) => SnSticker.fromJson(e)).toList();
+  final client = ref.watch(solarNetworkClientProvider);
+  final data = await client.stickers.getPackStickers(packId);
+  return data
+      .map((e) => SnSticker.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
 
 @riverpod
@@ -35,9 +38,9 @@ Future<bool> marketplaceStickerPackOwnership(
   Ref ref, {
   required String packId,
 }) async {
-  final api = ref.watch(apiClientProvider);
+  final client = ref.watch(solarNetworkClientProvider);
   try {
-    await api.get('/sphere/stickers/$packId/own');
+    await client.dio.get('/sphere/stickers/$packId/own');
     // If not 404, consider owned
     return true;
   } on Object catch (e) {
@@ -66,8 +69,8 @@ class StickerMarketplacePackDetailScreen extends HookConsumerWidget {
 
     // Add entire pack to user's collection
     Future<void> addPackToMyCollection() async {
-      final apiClient = ref.watch(apiClientProvider);
-      await apiClient.post('/sphere/stickers/$id/own');
+      final client = ref.watch(solarNetworkClientProvider);
+      await client.stickers.addPackToCollection(id);
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceStickerPackOwnershipProvider(packId: id));
       if (!context.mounted) return;
@@ -76,8 +79,8 @@ class StickerMarketplacePackDetailScreen extends HookConsumerWidget {
 
     // Remove ownership of the pack
     Future<void> removePackFromMyCollection() async {
-      final apiClient = ref.watch(apiClientProvider);
-      await apiClient.delete('/sphere/stickers/$id/own');
+      final client = ref.watch(solarNetworkClientProvider);
+      await client.stickers.removePackFromCollection(id);
       HapticFeedback.selectionClick();
       ref.invalidate(marketplaceStickerPackOwnershipProvider(packId: id));
       if (!context.mounted) return;

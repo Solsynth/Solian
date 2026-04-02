@@ -27,8 +27,10 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     if (query.isEmpty) return [];
 
     try {
-      final client = ref.read(apiClientProvider);
-      final response = await client.get(
+      final client = ref.read(solarNetworkClientProvider);
+      // Note: No typed API for tag search
+      // We fall back to raw Dio call
+      final response = await client.dio.get(
         '/sphere/posts/tags',
         queryParameters: {'query': query},
       );

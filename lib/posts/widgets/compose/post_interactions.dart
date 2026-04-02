@@ -104,9 +104,9 @@ class PostForwardsNotifier extends AsyncNotifier<PaginationState<SnPost>>
 
   @override
   Future<List<SnPost>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/posts/$arg/forwards',
       queryParameters: {'offset': fetchedCount, 'take': pageSize},
     );
@@ -132,9 +132,9 @@ class PostBoostsNotifier extends AsyncNotifier<PaginationState<SnBoost>>
 
   @override
   Future<List<SnBoost>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/posts/$arg/boosts',
       queryParameters: {'offset': fetchedCount, 'take': pageSize},
     );
@@ -161,9 +161,9 @@ class PostReactionsNotifier
 
   @override
   Future<List<SnPostReaction>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
 
-    final response = await client.get(
+    final response = await client.dio.get(
       '/sphere/posts/$arg/reactions',
       queryParameters: {'offset': fetchedCount, 'take': pageSize},
     );

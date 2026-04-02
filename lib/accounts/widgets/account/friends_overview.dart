@@ -18,11 +18,9 @@ part 'friends_overview.g.dart';
 
 @riverpod
 Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final resp = await apiClient.get('/passport/friends/overview');
-  return (resp.data as List<dynamic>)
-      .map((e) => SnFriendOverviewItem.fromJson(e))
-      .toList();
+  final client = ref.watch(solarNetworkClientProvider);
+  final friends = await client.accounts.getFriendsOverview();
+  return friends.map((e) => SnFriendOverviewItem.fromJson(e.toJson())).toList();
 }
 
 class FriendsOverviewWidget extends HookConsumerWidget {

@@ -358,7 +358,7 @@ class ComposeLogic {
     final publisherName = state.currentPublisher.value?.name;
     if (publisherName == null || publisherName.isEmpty) return;
 
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     final endpoint = state.cloudDraftId.value == null
         ? '/sphere/posts'
         : '/sphere/posts/${state.cloudDraftId.value}';
@@ -390,7 +390,8 @@ class ComposeLogic {
       'published_at': null,
     };
 
-    final response = await client.request(
+    // Use raw Dio call since we need custom endpoint and query parameters
+    final response = await client.dio.request(
       endpoint,
       queryParameters: {'pub': publisherName},
       data: payload,
@@ -637,8 +638,8 @@ class ComposeLogic {
   ) async {
     final attachment = state.attachments.value[index];
     if (attachment.isOnCloud && !attachment.isLink) {
-      final client = ref.watch(apiClientProvider);
-      await client.delete('/drive/files/${attachment.data.id}');
+      final client = ref.watch(solarNetworkClientProvider);
+      await client.drive.deleteFile(attachment.data.id);
     }
     final clone = List.of(state.attachments.value);
     clone.removeAt(index);
@@ -784,7 +785,7 @@ class ComposeLogic {
             ),
       );
 
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
       final isNewPost = originalPost == null;
       final endpoint =
           '/sphere${isNewPost ? '/posts' : '/posts/${originalPost.id}'}';
@@ -832,7 +833,7 @@ class ComposeLogic {
 
       // Publish server-side draft directly when available.
       if (isNewPost && state.cloudDraftId.value != null) {
-        await client.request(
+        await client.dio.request(
           '/sphere/posts/${state.cloudDraftId.value}',
           queryParameters: {'pub': publisherName},
           data: {
@@ -842,13 +843,13 @@ class ComposeLogic {
           },
           options: Options(method: 'PATCH'),
         );
-        final publishResp = await client.post(
+        final publishResp = await client.dio.post(
           '/sphere/posts/${state.cloudDraftId.value}/publish',
           queryParameters: {'pub': publisherName},
         );
         post = SnPost.fromJson(publishResp.data);
       } else {
-        final response = await client.request(
+        final response = await client.dio.request(
           endpoint,
           queryParameters: {'pub': publisherName},
           data: payload,

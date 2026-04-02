@@ -44,9 +44,10 @@ class ReactionListNotifier
 
   @override
   Future<List<SnPostReaction>> fetch() async {
-    final client = ref.read(apiClientProvider);
-
-    final response = await client.get(
+    final client = ref.read(solarNetworkClientProvider);
+    // Note: The typed API for reactions doesn't support pagination with symbol filter
+    // We fall back to raw Dio call for now
+    final response = await client.dio.get(
       '/sphere/posts/${arg.postId}/reactions',
       queryParameters: {
         'symbol': arg.symbol,

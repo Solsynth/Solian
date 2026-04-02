@@ -28,9 +28,8 @@ part 'wallet.g.dart';
 @riverpod
 Future<SnWallet?> walletCurrent(Ref ref) async {
   try {
-    final apiClient = ref.watch(apiClientProvider);
-    final resp = await apiClient.get('/wallet/wallets');
-    return SnWallet.fromJson(resp.data);
+    final client = ref.watch(solarNetworkClientProvider);
+    return await client.wallet.getWallet();
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
       return null;
@@ -41,9 +40,8 @@ Future<SnWallet?> walletCurrent(Ref ref) async {
 
 @riverpod
 Future<SnWalletStats> walletStats(Ref ref) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/wallet/wallets/stats');
-  return SnWalletStats.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.wallet.getWalletStats();
 }
 
 class CreateFundSheet extends StatefulWidget {
@@ -930,22 +928,15 @@ class TransactionListNotifier
 
   @override
   Future<List<SnTransaction>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     final offset = fetchedCount;
 
-    final queryParams = {'offset': offset, 'take': pageSize};
-
-    final response = await client.get(
-      '/wallet/wallets/transactions',
-      queryParameters: queryParams,
+    final result = await client.wallet.getTransactions(
+      offset: offset,
+      take: pageSize,
     );
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    final transactions = data
-        .map((json) => SnTransaction.fromJson(json))
-        .toList();
-
-    return transactions;
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 
@@ -959,20 +950,12 @@ class WalletFundsNotifier extends AsyncNotifier<PaginationState<SnWalletFund>>
 
   @override
   Future<List<SnWalletFund>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     final offset = fetchedCount;
 
-    final response = await client.get(
-      '/wallet/wallets/funds?offset=$offset&take=$pageSize',
-    );
-    // Assuming total count header is present or we just check if list is empty
-    final list = (response.data as List)
-        .map((e) => SnWalletFund.fromJson(e))
-        .toList();
-    if (list.length < pageSize) {
-      totalCount = fetchedCount + list.length;
-    }
-    return list;
+    final result = await client.wallet.getFunds(offset: offset, take: pageSize);
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 
@@ -987,11 +970,12 @@ class WalletFundRecipientsNotifier
 
   @override
   Future<List<SnWalletFundRecipient>> fetch() async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     final offset = fetchedCount;
 
-    final response = await client.get(
-      '/wallet/wallets/funds/recipients?offset=$offset&take=$_pageSize',
+    final response = await client.dio.get(
+      '/wallet/wallets/funds/recipients',
+      queryParameters: {'offset': offset, 'take': _pageSize},
     );
     final list = (response.data as List)
         .map((e) => SnWalletFundRecipient.fromJson(e))
@@ -1006,9 +990,8 @@ class WalletFundRecipientsNotifier
 
 @riverpod
 Future<SnWalletFund> walletFund(Ref ref, String fundId) async {
-  final client = ref.watch(apiClientProvider);
-  final resp = await client.get('/wallet/wallets/funds/$fundId');
-  return SnWalletFund.fromJson(resp.data);
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.wallet.getFund(fundId);
 }
 
 class TransactionDetailSheet extends StatelessWidget {
@@ -1326,9 +1309,9 @@ class WalletScreen extends HookConsumerWidget {
     }, [selectedCurrency.value]);
 
     Future<void> createWallet() async {
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
       try {
-        await client.post('/wallet/wallets');
+        await client.wallet.createWallet();
         ref.invalidate(walletCurrentProvider);
       } catch (err) {
         showErrorAlert(err);
@@ -2147,10 +2130,10 @@ class WalletScreen extends HookConsumerWidget {
     WidgetRef ref,
     Map<String, dynamic> fundData,
   ) async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     try {
       showLoadingModal(context);
-      final resp = await client.post(
+      final resp = await client.dio.post(
         '/wallet/wallets/funds',
         data: fundData,
         options: Options(headers: {'X-Noop': true}),
@@ -2158,7 +2141,7 @@ class WalletScreen extends HookConsumerWidget {
       final fund = SnWalletFund.fromJson(resp.data);
       if (fund.status == 0) return; // Already created
 
-      final orderResp = await client.post(
+      final orderResp = await client.dio.post(
         '/wallet/wallets/funds/${fund.id}/order',
       );
       final order = SnWalletOrder.fromJson(orderResp.data);
@@ -2196,10 +2179,10 @@ class WalletScreen extends HookConsumerWidget {
     WidgetRef ref,
     Map<String, dynamic> transferData,
   ) async {
-    final client = ref.read(apiClientProvider);
+    final client = ref.read(solarNetworkClientProvider);
     try {
       showLoadingModal(context);
-      await client.post('/wallet/wallets/transfer', data: transferData);
+      await client.dio.post('/wallet/wallets/transfer', data: transferData);
 
       if (context.mounted) hideLoadingModal(context);
 

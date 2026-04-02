@@ -288,10 +288,10 @@ class PostAwardSheet extends HookConsumerWidget {
     try {
       showLoadingModal(context);
 
-      final client = ref.read(apiClientProvider);
+      final client = ref.read(solarNetworkClientProvider);
 
-      // Send award request
-      final awardResponse = await client.post(
+      // Send award request (use raw Dio call for award with amount)
+      final awardResponse = await client.dio.post(
         '/sphere/posts/${post.id}/awards',
         data: {'amount': amount, if (message.isNotEmpty) 'message': message},
       );
@@ -299,8 +299,7 @@ class PostAwardSheet extends HookConsumerWidget {
       final orderId = awardResponse.data['order_id'] as String;
 
       // Fetch order details
-      final orderResponse = await client.get('/wallet/orders/$orderId');
-      final order = SnWalletOrder.fromJson(orderResponse.data);
+      final order = await client.wallet.getOrder(orderId);
 
       if (context.mounted) {
         hideLoadingModal(context);
