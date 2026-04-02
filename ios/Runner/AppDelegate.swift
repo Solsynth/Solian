@@ -6,7 +6,7 @@ import AppIntents
 import flutter_sharing_intent
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
     let notifyDelegate = NotifyDelegate()
     private static var sharedWatchConnectivityService: WatchConnectivityService?
 
@@ -33,9 +33,6 @@ import flutter_sharing_intent
         )
         UNUserNotificationCenter.current().setNotificationCategories([replyableMessageCategory])
 
-        GeneratedPluginRegistrant.register(with: self)
-
-        setupWidgetSyncChannel()
         if WCSession.isSupported() {
             AppDelegate.sharedWatchConnectivityService = WatchConnectivityService.shared
         } else {
@@ -43,6 +40,12 @@ import flutter_sharing_intent
         }
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+    
+    func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+        GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+        
+        setupWidgetSyncChannel(engineBridge: FlutterImplicitEngineBridge)
     }
     
     override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
@@ -56,9 +59,11 @@ import flutter_sharing_intent
          return super.application(app, open: url, options:options)
        }
 
-    private func setupWidgetSyncChannel() {
-        let controller = window?.rootViewController as? FlutterViewController
-        let channel = FlutterMethodChannel(name: "dev.solsynth.solian/widget", binaryMessenger: controller!.binaryMessenger)
+    private func setupWidgetSyncChannel(engineBridge: FlutterImplicitEngineBridge) {
+        let channel = FlutterMethodChannel(
+            name: "dev.solsynth.solian/widget",
+            binaryMessenger: engineBridge.applicationRegistrar.messenger()
+        )
 
         channel.setMethodCallHandler { [weak self] (call, result) in
             if call.method == "syncToWidget" {
