@@ -1,10 +1,8 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/auth/auth_session.dart';
-import '../../models/auth/auth_challenge.dart';
-import '../../models/auth/misc.dart';
-import '../../models/accounts/account.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/auth/auth_session.dart';
+import 'package:solar_network_sdk/src/models/auth/auth_challenge.dart';
+import 'package:solar_network_sdk/src/models/auth/misc.dart';
+import 'package:solar_network_sdk/src/models/accounts/account.dart';
 
 /// API for authentication-related endpoints (/padlock).
 ///
@@ -252,11 +250,7 @@ class AuthApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/auth/web',
-      data: {
-        'app': appSlug,
-        'redirect_uri': redirectUri,
-        if (state != null) 'state': state,
-      },
+      data: {'app': appSlug, 'redirect_uri': redirectUri, 'state': ?state},
     );
     return response.data!;
   }
@@ -275,8 +269,8 @@ class AuthApi extends BaseApi {
       '$_basePath/auth/web/exchange',
       data: {
         'signed_challenge': signedChallenge,
-        if (deviceInfo != null) 'device_info': deviceInfo,
-        if (secretId != null) 'secret_id': secretId,
+        'device_info': ?deviceInfo,
+        'secret_id': ?secretId,
       },
     );
     return response.data!;
@@ -304,7 +298,7 @@ class AuthApi extends BaseApi {
         'app_id': appId,
         'redirect_uri': redirectUri,
         'scope': scopes.join(','),
-        if (state != null) 'state': state,
+        'state': ?state,
       },
     );
     return response.data!['url'] as String;

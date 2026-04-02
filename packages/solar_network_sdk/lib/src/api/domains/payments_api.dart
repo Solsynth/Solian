@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../base_api.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for payment-related endpoints (/payment).
 ///
@@ -27,11 +27,7 @@ class PaymentsApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/payments',
-      queryParameters: {
-        if (status != null) 'status': status,
-        'offset': offset,
-        'take': take,
-      },
+      queryParameters: {'status': ?status, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
     return PaginatedResult(items: response.data ?? [], totalCount: totalCount);
@@ -67,8 +63,8 @@ class PaymentsApi extends BaseApi {
         'amount': amount,
         'currency': currency,
         'method_id': methodId,
-        if (description != null) 'description': description,
-        if (metadata != null) 'metadata': metadata,
+        'description': ?description,
+        'metadata': ?metadata,
       },
     );
     return response.data!;
@@ -96,10 +92,7 @@ class PaymentsApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/payments/$paymentId/refund',
-      data: {
-        if (amount != null) 'amount': amount,
-        if (reason != null) 'reason': reason,
-      },
+      data: {'amount': ?amount, 'reason': ?reason},
     );
     return response.data!;
   }
@@ -201,11 +194,7 @@ class PaymentsApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/invoices',
-      queryParameters: {
-        if (status != null) 'status': status,
-        'offset': offset,
-        'take': take,
-      },
+      queryParameters: {'status': ?status, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
     return PaginatedResult(items: response.data ?? [], totalCount: totalCount);
@@ -302,7 +291,7 @@ class PaymentsApi extends BaseApi {
       data: {
         'plan_id': planId,
         'payment_method_id': paymentMethodId,
-        if (metadata != null) 'metadata': metadata,
+        'metadata': ?metadata,
       },
     );
     return response.data!;

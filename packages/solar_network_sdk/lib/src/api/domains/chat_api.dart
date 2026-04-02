@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/chat/chat.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/chat/chat.dart';
 
 /// API for chat/messaging endpoints (/messager).
 ///
@@ -55,11 +53,7 @@ class ChatApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/chat/rooms',
-      data: {
-        'name': name,
-        'type': type,
-        if (memberIds != null) 'member_ids': memberIds,
-      },
+      data: {'name': name, 'type': type, 'member_ids': ?memberIds},
     );
     return SnChatRoom.fromJson(response.data!);
   }
@@ -127,10 +121,7 @@ class ChatApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/chat/rooms/$roomId/messages',
-      data: {
-        'content': content,
-        if (attachments != null) 'attachments': attachments,
-      },
+      data: {'content': content, 'attachments': ?attachments},
     );
     return SnChatMessage.fromJson(response.data!);
   }

@@ -1,14 +1,12 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/accounts/account.dart';
-import '../../models/accounts/relationship.dart';
-import '../../models/accounts/progression.dart';
-import '../../models/accounts/fortune.dart';
-import '../../models/accounts/discovery.dart';
-import '../../models/accounts/action_log.dart';
-import '../../models/accounts/abuse_report.dart';
-import '../../models/accounts/abuse_report_type.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/accounts/account.dart';
+import 'package:solar_network_sdk/src/models/accounts/relationship.dart';
+import 'package:solar_network_sdk/src/models/accounts/progression.dart';
+import 'package:solar_network_sdk/src/models/accounts/fortune.dart';
+import 'package:solar_network_sdk/src/models/accounts/discovery.dart';
+import 'package:solar_network_sdk/src/models/accounts/action_log.dart';
+import 'package:solar_network_sdk/src/models/accounts/abuse_report.dart';
+import 'package:solar_network_sdk/src/models/accounts/abuse_report_type.dart';
 
 /// API for account-related endpoints (/passport).
 ///
@@ -318,7 +316,7 @@ class AccountsApi extends BaseApi {
         'target_id': targetId,
         'target_type': targetType,
         'report_type': reportType.value,
-        if (description != null) 'description': description,
+        'description': ?description,
       },
     );
     return SnAbuseReport.fromJson(response.data!);

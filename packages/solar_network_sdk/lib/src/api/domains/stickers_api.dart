@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for sticker-related endpoints (/sticker).
 ///
@@ -97,7 +95,7 @@ class StickersApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/packs',
-      data: {'name': name, if (description != null) 'description': description},
+      data: {'name': name, 'description': ?description},
     );
     return response.data!;
   }

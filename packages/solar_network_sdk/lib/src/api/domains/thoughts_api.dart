@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for thoughts/insight endpoints (/insight).
 ///

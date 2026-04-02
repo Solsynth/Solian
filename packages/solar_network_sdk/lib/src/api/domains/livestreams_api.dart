@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
-
-import '../base_api.dart';
-import '../../models/live/livestream.dart';
+import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/live/livestream.dart';
 
 /// API for livestream-related endpoints (/livestream).
 ///
@@ -57,8 +55,8 @@ class LivestreamsApi extends BaseApi {
       '$_basePath/streams',
       data: {
         'title': title,
-        if (description != null) 'description': description,
-        if (category != null) 'category': category,
+        'description': ?description,
+        'category': ?category,
       },
     );
     return SnLiveStream.fromJson(response.data!);
