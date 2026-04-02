@@ -48,7 +48,7 @@ final class BillingUsageProvider
   }
 }
 
-String _$billingUsageHash() => r'58d8bc774868d60781574c85d6b25869a79c57aa';
+String _$billingUsageHash() => r'4afb516c6142c9150e01ff68c4b9fe16ed66af1b';
 
 @ProviderFor(billingQuota)
 final billingQuotaProvider = BillingQuotaProvider._();
@@ -89,4 +89,4 @@ final class BillingQuotaProvider
   }
 }
 
-String _$billingQuotaHash() => r'4ec5d728e439015800abb2d0d673b5a7329cc654';
+String _$billingQuotaHash() => r'78ec481be6860e8c1165572a4b21e38a738cffc2';

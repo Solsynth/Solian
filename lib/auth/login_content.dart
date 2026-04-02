@@ -4,8 +4,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/auth/login.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -16,6 +18,7 @@ import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:ndef/records/well_known/uri.dart';
 import 'package:pinput/pinput.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -23,23 +26,6 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'captcha.dart';
-
-final Map<int, (String, String, IconData)> kFactorTypes = {
-  0: ('authFactorPassword', 'authFactorPasswordDescription', Symbols.password),
-  1: ('authFactorEmail', 'authFactorEmailDescription', Symbols.email),
-  2: (
-    'authFactorInAppNotify',
-    'authFactorInAppNotifyDescription',
-    Symbols.notifications_active,
-  ),
-  3: ('authFactorTOTP', 'authFactorTOTPDescription', Symbols.timer),
-  4: ('authFactorPin', 'authFactorPinDescription', Symbols.nest_secure_alarm),
-  5: (
-    'authFactorRecoveryCode',
-    'authFactorRecoveryCodeDescription',
-    Symbols.key,
-  ),
-};
 
 /// Performs post-login tasks including fetching user info, subscribing to push
 /// notifications, connecting websocket, and closing the login dialog.
@@ -76,6 +62,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusy = useState(false);
     final passwordController = useTextEditingController();
+    final isScanning = useState(false);
+    final scanError = useState<String?>(null);
 
     useEffect(() {
       onBusy.call(isBusy.value);
@@ -83,18 +71,16 @@ class _LoginCheckScreen extends HookConsumerWidget {
     }, [isBusy]);
 
     Future<void> getToken({String? code}) async {
-      // Get token if challenge is completed
       final client = ref.watch(solarNetworkClientProvider);
       final tokenResp = await client.auth.exchangeOAuthCode(
         code: code ?? challenge!.id,
-        redirectUri: '', // This may need to be provided
+        redirectUri: '',
       );
       final token = tokenResp['token'];
       setToken(ref.watch(sharedPreferencesProvider), token);
       ref.invalidate(tokenProvider);
       if (!context.mounted) return;
 
-      // Do post login tasks
       await performPostLogin(context, ref);
     }
 
@@ -113,7 +99,6 @@ class _LoginCheckScreen extends HookConsumerWidget {
     }, [challenge]);
 
     if (factor == null) {
-      // Logging in by third parties
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -160,6 +145,56 @@ class _LoginCheckScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> scanNfcTag() async {
+      if (factor?.type != 6) return;
+
+      isScanning.value = true;
+      scanError.value = null;
+
+      try {
+        final availability = await FlutterNfcKit.nfcAvailability;
+        if (availability != NFCAvailability.available) {
+          scanError.value = 'nfcNotAvailable'.tr();
+          isScanning.value = false;
+          return;
+        }
+
+        final tag = await FlutterNfcKit.poll();
+
+        if (tag.ndefAvailable != true) {
+          final uidHex = tag.id;
+          passwordController.text = uidHex;
+          isScanning.value = false;
+          await FlutterNfcKit.finish();
+          performCheckTicket();
+          return;
+        }
+
+        final records = await FlutterNfcKit.readNDEFRecords(cached: false);
+        String? uidHex;
+
+        if (records.isNotEmpty) {
+          final firstRecord = records.first;
+          if (firstRecord is UriRecord && firstRecord.uri != null) {
+            final uri = firstRecord.uri!;
+            uidHex = uri.queryParameters['uid'];
+          }
+        }
+
+        if (uidHex == null) {
+          uidHex = tag.id;
+        }
+
+        passwordController.text = uidHex;
+        isScanning.value = false;
+        await FlutterNfcKit.finish();
+        performCheckTicket();
+      } catch (e) {
+        scanError.value = e.toString();
+        isScanning.value = false;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -174,7 +209,51 @@ class _LoginCheckScreen extends HookConsumerWidget {
           'loginEnterPassword'.tr(),
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
         ).padding(left: 4, bottom: 16),
-        if ([0].contains(factor!.type))
+        if (factor!.type == 6) ...[
+          FilledButton.tonalIcon(
+            onPressed: isBusy.value || isScanning.value ? null : scanNfcTag,
+            icon: isScanning.value
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Symbols.nfc),
+            label: Text(
+              isScanning.value
+                  ? 'scanning'.tr()
+                  : 'physicalPassportScanToAuthenticate'.tr(),
+            ),
+          ),
+          if (scanError.value != null) ...[
+            const Gap(12),
+            Card(
+              elevation: 0,
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Symbols.error,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      size: 20,
+                    ),
+                    const Gap(8),
+                    Expanded(
+                      child: Text(
+                        scanError.value!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ] else if ([0].contains(factor!.type))
           TextField(
             autocorrect: false,
             enableSuggestions: false,
@@ -209,21 +288,22 @@ class _LoginCheckScreen extends HookConsumerWidget {
           subtitle: Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
         ),
         const Gap(12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: isBusy.value ? null : () => performCheckTicket(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('next').tr(),
-                  const Icon(Symbols.chevron_right),
-                ],
+        if (factor!.type != 6)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: isBusy.value ? null : () => performCheckTicket(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('next').tr(),
+                    const Icon(Symbols.chevron_right),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
       ],
     );
   }

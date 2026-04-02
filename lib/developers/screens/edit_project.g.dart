@@ -64,7 +64,7 @@ final class DevProjectProvider
   }
 }
 
-String _$devProjectHash() => r'8dd964acd519b058b022ace611db8c4419f90cb6';
+String _$devProjectHash() => r'7e800945aea2a716502d0eda75a7228a26a4b619';
 
 final class DevProjectFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnDevProject?>, (String, String)> {

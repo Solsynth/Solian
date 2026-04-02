@@ -58,7 +58,7 @@ final class PostProvider
   }
 }
 
-String _$postHash() => r'66c2eb074c6d7467fef81cab70a13356e648e661';
+String _$postHash() => r'b4e330ef567a367c9433607287979f560e9fd05e';
 
 final class PostFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPost?>, String> {

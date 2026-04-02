@@ -20,3 +20,4 @@ export 'domains/sites_api.dart';
 export 'domains/developers_api.dart';
 export 'domains/payments_api.dart';
 export 'domains/realms_api.dart';
+export 'domains/padlock_api.dart';

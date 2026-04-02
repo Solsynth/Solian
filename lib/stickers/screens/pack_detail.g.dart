@@ -77,7 +77,7 @@ final class MarketplaceStickerPackContentProvider
 }
 
 String _$marketplaceStickerPackContentHash() =>
-    r'886f8305c978dbea6e5d990a7d555048ac704a5d';
+    r'b5c9e3e25e0cca7fc2022edce656246bb48a7415';
 
 /// Marketplace version of sticker pack detail page (no publisher dependency).
 /// Shows all stickers in the pack and provides a button to add the sticker.
@@ -157,7 +157,7 @@ final class MarketplaceStickerPackOwnershipProvider
 }
 
 String _$marketplaceStickerPackOwnershipHash() =>
-    r'e5dd301c309fac958729d13d984ce7a77edbe7e6';
+    r'7d71ddcff83b1e01c593c59f5c9b80b6d691bd30';
 
 final class MarketplaceStickerPackOwnershipFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<bool>, String> {

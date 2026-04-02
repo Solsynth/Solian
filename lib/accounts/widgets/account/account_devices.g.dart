@@ -48,4 +48,45 @@ final class AuthDevicesProvider
   }
 }
 
-String _$authDevicesHash() => r'5f53b5a28a76e5af9d0177d369ebf2734b5d987f';
+String _$authDevicesHash() => r'bd259f30579b30dc40b41fade45343667be28c6f';
+
+@ProviderFor(authSessions)
+final authSessionsProvider = AuthSessionsProvider._();
+
+final class AuthSessionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<PaginatedResult<SnAuthSession>>,
+          PaginatedResult<SnAuthSession>,
+          FutureOr<PaginatedResult<SnAuthSession>>
+        >
+    with
+        $FutureModifier<PaginatedResult<SnAuthSession>>,
+        $FutureProvider<PaginatedResult<SnAuthSession>> {
+  AuthSessionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authSessionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authSessionsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<PaginatedResult<SnAuthSession>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<PaginatedResult<SnAuthSession>> create(Ref ref) {
+    return authSessions(ref);
+  }
+}
+
+String _$authSessionsHash() => r'5dc9131c00c0951191f305ff0c175c33b6a19f2d';

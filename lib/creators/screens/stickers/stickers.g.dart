@@ -64,7 +64,7 @@ final class StickerPackProvider
   }
 }
 
-String _$stickerPackHash() => r'71ef84471237c8191918095094bdfc87d3920e77';
+String _$stickerPackHash() => r'14039e6d1ad38a78e7e8c01b2ec7016d89a96619';
 
 final class StickerPackFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnStickerPack?>, String?> {

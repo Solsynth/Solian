@@ -45,7 +45,7 @@ final class WalletCurrentProvider
   }
 }
 
-String _$walletCurrentHash() => r'6a654d34aa7e3002edf97749e386b0bd3db641bb';
+String _$walletCurrentHash() => r'6a341edcd278520b3dca52de000c948762088779';
 
 @ProviderFor(walletStats)
 final walletStatsProvider = WalletStatsProvider._();
@@ -84,7 +84,7 @@ final class WalletStatsProvider
   }
 }
 
-String _$walletStatsHash() => r'fa265e0fa6e59e1687f6e00c2f9579aa619fcefd';
+String _$walletStatsHash() => r'7490ae7eef524ca09903ace510b0424d3bc51806';
 
 @ProviderFor(walletFund)
 final walletFundProvider = WalletFundFamily._();
@@ -141,7 +141,7 @@ final class WalletFundProvider
   }
 }
 
-String _$walletFundHash() => r'adbbc98e0054ee3687c93b7905dabaa84bfeaf1f';
+String _$walletFundHash() => r'e81c5dad1d2906c8285f3e08c2501f758d51ea1c';
 
 final class WalletFundFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWalletFund>, String> {

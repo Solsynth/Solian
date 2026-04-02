@@ -64,7 +64,7 @@ final class PublisherProvider
   }
 }
 
-String _$publisherHash() => r'a1da21f0275421382e2882fd52c4e061c4675cf7';
+String _$publisherHash() => r'cd53ce9eed00594df7b7e2dd9ca4ee3b2765d0b4';
 
 final class PublisherFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisher>, String> {
@@ -141,7 +141,7 @@ final class PublisherBadgesProvider
   }
 }
 
-String _$publisherBadgesHash() => r'a355f0d1d150e820464cd23eaf8acfdc76992991';
+String _$publisherBadgesHash() => r'1c6bee1a43870030042f5ee38e5a619e5025b268';
 
 final class PublisherBadgesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnAccountBadge>>, String> {
@@ -221,7 +221,7 @@ final class PublisherSubscriptionStatusProvider
 }
 
 String _$publisherSubscriptionStatusHash() =>
-    r'688bf38554afea9e68b2cb59c5f08c6e8dd31b62';
+    r'4edf724aa5115dd566800ed890b81b23fb9f3150';
 
 final class PublisherSubscriptionStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisherSubscription?>, String> {
@@ -300,7 +300,7 @@ final class PublisherFollowRequestProvider
 }
 
 String _$publisherFollowRequestHash() =>
-    r'9b778b21df7d539c016282e7cf3b931b4334d7da';
+    r'88987ac0c9e477de4cddb3146bce739f27d1e37d';
 
 final class PublisherFollowRequestFamily extends $Family
     with
@@ -381,7 +381,7 @@ final class PublisherFeaturesProvider
   }
 }
 
-String _$publisherFeaturesHash() => r'08bace2d9a3da227ecec0cbf8709e55ee0646ca2';
+String _$publisherFeaturesHash() => r'5e6d5102c9f3b6a062fffa960ecb1a6b24302516';
 
 final class PublisherFeaturesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Map<String, bool>>, String?> {
@@ -455,7 +455,7 @@ final class PublisherHeatmapProvider
   }
 }
 
-String _$publisherHeatmapHash() => r'86db275ce3861a2855b5ec35fbfef85fc47b23a6';
+String _$publisherHeatmapHash() => r'14a8ad7cee866b4985908295d052d0a751d989bb';
 
 final class PublisherHeatmapFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnHeatmap?>, String> {

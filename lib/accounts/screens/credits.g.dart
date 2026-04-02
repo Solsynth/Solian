@@ -40,4 +40,4 @@ final class SocialCreditsProvider
   }
 }
 
-String _$socialCreditsHash() => r'523ca19108237345335d3fc48c8107092128f2b4';
+String _$socialCreditsHash() => r'09dc8034b93773ed4c17a85af09d51a4c581a29a';

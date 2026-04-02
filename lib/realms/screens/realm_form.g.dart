@@ -46,4 +46,4 @@ final class RealmQuotaInfoProvider
   }
 }
 
-String _$realmQuotaInfoHash() => r'2fdc4ea5cd68de667f82d97d67b483226a9b45f3';
+String _$realmQuotaInfoHash() => r'b3df729241c93bae08fd777318525cd6850784cd';

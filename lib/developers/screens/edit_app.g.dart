@@ -63,7 +63,7 @@ final class CustomAppProvider
   }
 }
 
-String _$customAppHash() => r'8e1b38f3dc9b04fad362ee1141fcbfc53f008c09';
+String _$customAppHash() => r'652966f93149b95f81996f18fad633a968628408';
 
 final class CustomAppFamily extends $Family
     with

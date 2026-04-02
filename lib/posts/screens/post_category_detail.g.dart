@@ -64,7 +64,7 @@ final class PostCategoryProvider
   }
 }
 
-String _$postCategoryHash() => r'0df2de729ba96819ee37377314615abef0c99547';
+String _$postCategoryHash() => r'e7e69d5fcae11f276d027b766b7edbe334e6543f';
 
 final class PostCategoryFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPostCategory>, String> {
@@ -138,7 +138,7 @@ final class PostTagProvider
   }
 }
 
-String _$postTagHash() => r'e050fdf9af81a843a9abd9cf979dd2672e0a2b93';
+String _$postTagHash() => r'a3744795d38f11d104ffcb4d289c655c62adcbb2';
 
 final class PostTagFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPostTag>, String> {
@@ -217,7 +217,7 @@ final class PostCategorySubscriptionProvider
 }
 
 String _$postCategorySubscriptionHash() =>
-    r'60fe0a68ab3d8d493eac3577187d7adcfc0244b9';
+    r'a733eb108957e35696aef18361dd0f71392955da';
 
 final class PostCategorySubscriptionFamily extends $Family
     with

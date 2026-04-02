@@ -49,7 +49,7 @@ final class PublishersSubscriptionsProvider
 }
 
 String _$publishersSubscriptionsHash() =>
-    r'756a24e3be7f7d1471ce783df06cea6fd8b75ade';
+    r'5cbc7ef904132cfe3b5e30b46d0d27fd3d604d4b';
 
 @ProviderFor(categoriesSubscriptions)
 final categoriesSubscriptionsProvider = CategoriesSubscriptionsProvider._();
@@ -91,7 +91,7 @@ final class CategoriesSubscriptionsProvider
 }
 
 String _$categoriesSubscriptionsHash() =>
-    r'14a8f04d258d1a10aae20ca959495926840c9386';
+    r'31303e3ff0df36b07a5b29e797aae16f0cec5ca8';
 
 @ProviderFor(publisherSubscriptionReadStatus)
 final publisherSubscriptionReadStatusProvider =
@@ -150,7 +150,7 @@ final class PublisherSubscriptionReadStatusProvider
 }
 
 String _$publisherSubscriptionReadStatusHash() =>
-    r'b5c03eded3c24d5f4aaac56bd87e9ba762379b2f';
+    r'a9a7771f74b02f77a2466ea4eb5cd4e8b0731a35';
 
 final class PublisherSubscriptionReadStatusFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<DateTime?>, String> {

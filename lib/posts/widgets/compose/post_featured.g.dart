@@ -46,4 +46,4 @@ final class FeaturedPostsProvider
   }
 }
 
-String _$featuredPostsHash() => r'4b7fffb02eac72f5861b02af1b1e5da36b571698';
+String _$featuredPostsHash() => r'535c670bb3eb3007889f6e5f041c1546eb65e2ac';

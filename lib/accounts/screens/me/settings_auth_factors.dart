@@ -358,7 +358,10 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
       orElse: () => false,
     );
 
-    final canAddFactor = hasRecoveryCode || _selectedType == 5;
+    final hasntDuplicate =
+        authFactorsAsync.value?.any((e) => e.type == _selectedType) != true;
+    final canAddFactor =
+        (hasRecoveryCode || _selectedType == 5) && hasntDuplicate;
 
     return SheetScaffold(
       heightFactor: 0.75,
@@ -367,20 +370,18 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('error'.tr())),
         data: (factors) {
-          final availableTypes = kFactorTypes.entries.where((entry) {
-            if (entry.key == 0) return false;
-            if (entry.key == 5) return true;
-            return !factors.any((f) => f.type == entry.key);
-          }).toList();
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (!hasRecoveryCode) ...[
                 Card(
                   color: Theme.of(context).colorScheme.primaryContainer,
+                  margin: const EdgeInsets.only(bottom: 4),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         Icon(
@@ -406,40 +407,62 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                 ),
                 const SizedBox(height: 16),
               ],
-              if (availableTypes.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'authFactorAllAdded'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              else
-                DropdownButtonFormField<int>(
-                  value: _selectedType,
-                  decoration: InputDecoration(
-                    labelText: 'authFactor'.tr(),
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: availableTypes.map((entry) {
-                    return DropdownMenuItem<int>(
-                      value: entry.key,
+              if (!hasntDuplicate)
+                ...([
+                  Card(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    margin: const EdgeInsets.only(bottom: 4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Row(
                         children: [
-                          Icon(entry.value.$3),
+                          Icon(
+                            Symbols.warning,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
                           const SizedBox(width: 12),
-                          Text(entry.value.$1).tr(),
+                          Expanded(
+                            child: Text(
+                              'authFactorExisted'.tr(),
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedType = value);
-                    }
-                  },
-                ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ]),
+              DropdownButtonFormField<int>(
+                value: _selectedType,
+                decoration: InputDecoration(labelText: 'authFactor'.tr()),
+                items: kFactorTypes.entries.map((entry) {
+                  return DropdownMenuItem<int>(
+                    value: entry.key,
+                    child: Row(
+                      children: [
+                        Icon(entry.value.$3),
+                        const SizedBox(width: 12),
+                        Text(entry.value.$1).tr(),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedType = value);
+                  }
+                },
+              ),
               const SizedBox(height: 16),
               if (_selectedType == 0)
                 TextField(
@@ -447,7 +470,6 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                   decoration: InputDecoration(
                     labelText: 'authFactorSecret'.tr(),
                     hintText: 'authFactorSecretHint'.tr(),
-                    border: const OutlineInputBorder(),
                   ),
                   onTapOutside: (_) =>
                       FocusManager.instance.primaryFocus?.unfocus(),
@@ -458,14 +480,12 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                   decoration: InputDecoration(
                     labelText: 'authFactorPin'.tr(),
                     hintText: 'authFactorPinHint'.tr(),
-                    border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                   maxLength: 6,
                   onTapOutside: (_) =>
                       FocusManager.instance.primaryFocus?.unfocus(),
                 ),
-              const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Text(

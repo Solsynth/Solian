@@ -64,7 +64,7 @@ final class WalletFundProvider
   }
 }
 
-String _$walletFundHash() => r'566b74f1338de8825c19edbc987f942e05f65f49';
+String _$walletFundHash() => r'e81c5dad1d2906c8285f3e08c2501f758d51ea1c';
 
 final class WalletFundFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnWalletFund>, String> {

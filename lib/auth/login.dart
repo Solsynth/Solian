@@ -22,6 +22,11 @@ final Map<int, (String, String, IconData)> kFactorTypes = {
     'authFactorRecoveryCodeDescription',
     Symbols.key,
   ),
+  6: (
+    'authFactorPhysicalPassport',
+    'authFactorPhysicalPassportDescription',
+    Symbols.badge,
+  ),
 };
 
 @RoutePage()

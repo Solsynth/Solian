@@ -58,7 +58,7 @@ final class RepliesNotifierProvider
   }
 }
 
-String _$repliesNotifierHash() => r'd1385005e4a8e386adb2c20336fdb9ff5541d148';
+String _$repliesNotifierHash() => r'562381791882da6cba5824f16a81440a1948a9e6';
 
 final class RepliesNotifierFamily extends $Family
     with
@@ -155,7 +155,7 @@ final class PostFeaturedReplyProvider
   }
 }
 
-String _$postFeaturedReplyHash() => r'3f0ac0d51ad21f8754a63dd94109eb8ac4812293';
+String _$postFeaturedReplyHash() => r'5ed52920f34484ad3bccdc565856a4957659a182';
 
 final class PostFeaturedReplyFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPost?>, String> {
