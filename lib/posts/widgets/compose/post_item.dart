@@ -94,7 +94,7 @@ class PostActionableItem extends HookConsumerWidget {
             ).then((confirm) {
               if (confirm) {
                 final client = ref.watch(solarNetworkClientProvider);
-                client.posts
+                client.sphere
                     .deletePost(item.id)
                     .catchError((err) {
                       showErrorAlert(err);
@@ -153,7 +153,7 @@ class PostActionableItem extends HookConsumerWidget {
                 final client = ref.watch(solarNetworkClientProvider);
                 try {
                   if (context.mounted) showLoadingModal(context);
-                  await client.posts.unpinPost(item.id);
+                  await client.sphere.unpinPost(item.id);
                   onUpdate?.call(item.copyWith(pinMode: null));
                 } catch (err) {
                   showErrorAlert(err);
@@ -177,7 +177,7 @@ class PostActionableItem extends HookConsumerWidget {
             final client = ref.read(solarNetworkClientProvider);
             try {
               if (context.mounted) showLoadingModal(context);
-              await client.posts.boostPost(item.id);
+              await client.sphere.boostPost(item.id);
               onRefresh?.call();
             } catch (err) {
               showErrorAlert(err);

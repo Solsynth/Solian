@@ -5,7 +5,7 @@ export 'solar_network_client.dart';
 // Domain APIs
 export 'domains/auth_api.dart';
 export 'domains/accounts_api.dart';
-export 'domains/posts_api.dart';
+export 'domains/sphere_api.dart';
 export 'domains/wallet_api.dart';
 export 'domains/chat_api.dart';
 export 'domains/thoughts_api.dart';

@@ -7,7 +7,7 @@ class StickersApi extends BaseApi {
   StickersApi(super.dio);
 
   /// Base path for all sticker endpoints.
-  static const String _basePath = '/sticker';
+  static const String _basePath = '/sphere';
 
   // ==========================================
   // Sticker endpoints

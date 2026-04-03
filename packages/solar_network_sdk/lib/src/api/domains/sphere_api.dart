@@ -1,16 +1,16 @@
 import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/accounts/discovery.dart';
 import 'package:solar_network_sdk/src/models/posts/post.dart';
 import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 import 'package:solar_network_sdk/src/models/posts/post_category.dart';
-import 'package:solar_network_sdk/src/models/posts/post_tag.dart';
 import 'package:solar_network_sdk/src/models/posts/embed.dart';
 import 'package:solar_network_sdk/src/models/posts/heatmap.dart';
 
 /// API for posts-related endpoints (/sphere).
 ///
 /// Handles posts, publishers, categories, tags, and related functionality.
-class PostsApi extends BaseApi {
-  PostsApi(super.dio);
+class SphereApi extends BaseApi {
+  SphereApi(super.dio);
 
   /// Base path for all sphere endpoints.
   static const String _basePath = '/sphere';
@@ -432,17 +432,6 @@ class PostsApi extends BaseApi {
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Gets trending tags.
-  ///
-  /// [limit] - Number of tags to return.
-  Future<List<SnPostTag>> getTrendingTags({int limit = 10}) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/tags/trending',
-      queryParameters: {'limit': limit},
-    );
-    return parseList(response, SnPostTag.fromJson);
-  }
-
   // ==========================================
   // Timeline endpoints
   // ==========================================
@@ -457,23 +446,6 @@ class PostsApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/timeline/home',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-    final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnPost.fromJson);
-    return PaginatedResult(items: items, totalCount: totalCount);
-  }
-
-  /// Gets the discovery timeline.
-  ///
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<PaginatedResult<SnPost>> getDiscoveryTimeline({
-    int offset = 0,
-    int take = 20,
-  }) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/timeline/discovery',
       queryParameters: {'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
@@ -546,5 +518,22 @@ class PostsApi extends BaseApi {
       '$_basePath/publishers/of/$accountId',
     );
     return parseList(response, SnPublisher.fromJson);
+  }
+
+  // ==========================================
+  // Discovery endpoints
+  // ==========================================
+
+  /// Gets the discovery profile.
+  Future<SnDiscoveryProfile> getDiscoveryProfile() async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/timeline/discovery/profile',
+    );
+    return SnDiscoveryProfile.fromJson(response.data!);
+  }
+
+  /// Resets the discovery profile.
+  Future<void> resetDiscoveryProfile() async {
+    await post('$_basePath/timeline/discovery/reset');
   }
 }

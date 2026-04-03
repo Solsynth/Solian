@@ -530,7 +530,7 @@ class _PublisherHeatmapWidget extends StatelessWidget {
 @riverpod
 Future<SnPublisher> publisher(Ref ref, String uname) async {
   final client = ref.watch(solarNetworkClientProvider);
-  return await client.posts.getPublisher(uname);
+  return await client.sphere.getPublisher(uname);
 }
 
 @riverpod
@@ -573,7 +573,7 @@ Future<SnPublisherSubscriptionStatus?> publisherFollowRequest(
 ) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
-    return await client.posts.getPublisherSubscriptionStatus(pubName);
+    return await client.sphere.getPublisherSubscriptionStatus(pubName);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
       return null;
@@ -593,7 +593,7 @@ Future<Map<String, bool>> publisherFeatures(Ref ref, String? uname) async {
 @riverpod
 Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
   final client = ref.watch(solarNetworkClientProvider);
-  return await client.posts.getPublisherHeatmap(uname);
+  return await client.sphere.getPublisherHeatmap(uname);
 }
 
 final publisherActiveLivestreamProvider = FutureProvider.family
@@ -651,7 +651,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
       final client = ref.watch(solarNetworkClientProvider);
       subscribing.value = true;
       try {
-        await client.posts.subscribeToPublisher(name);
+        await client.sphere.subscribeToPublisher(name);
         ref.invalidate(publisherSubscriptionStatusProvider(name));
         ref.invalidate(publisherFollowRequestProvider(name));
         HapticFeedback.heavyImpact();
@@ -666,7 +666,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
       final client = ref.watch(solarNetworkClientProvider);
       subscribing.value = true;
       try {
-        await client.posts.unsubscribeFromPublisher(name);
+        await client.sphere.unsubscribeFromPublisher(name);
         ref.invalidate(publisherSubscriptionStatusProvider(name));
         ref.invalidate(publisherFollowRequestProvider(name));
         HapticFeedback.heavyImpact();

@@ -1074,7 +1074,7 @@ Future<SnDeveloper?> accountBotDeveloper(Ref ref, String uname) async {
 Future<List<SnPublisher>> accountPublishers(Ref ref, String id) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
-    return await client.posts.getAccountPublishers(id);
+    return await client.sphere.getAccountPublishers(id);
   } catch (err) {
     return [];
   }

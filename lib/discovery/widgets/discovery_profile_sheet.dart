@@ -12,7 +12,7 @@ import 'package:styled_widget/styled_widget.dart';
 final discoveryProfileProvider = FutureProvider.autoDispose<SnDiscoveryProfile>(
   (ref) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return await client.accounts.getDiscoveryProfile();
+    return await client.sphere.getDiscoveryProfile();
   },
 );
 
@@ -20,7 +20,7 @@ final discoveryProfileResetProvider = FutureProvider.autoDispose<bool>((
   ref,
 ) async {
   final client = ref.watch(solarNetworkClientProvider);
-  await client.accounts.resetDiscoveryProfile();
+  await client.sphere.resetDiscoveryProfile();
   return true;
 });
 

@@ -3,7 +3,7 @@ import 'package:solar_network_sdk/src/api/domains/padlock_api.dart';
 
 import 'domains/auth_api.dart';
 import 'domains/accounts_api.dart';
-import 'domains/posts_api.dart';
+import 'domains/sphere_api.dart';
 import 'domains/wallet_api.dart';
 import 'domains/chat_api.dart';
 import 'domains/thoughts_api.dart';
@@ -52,7 +52,7 @@ class SolarNetworkClient {
   late final AccountsApi accounts;
 
   /// Posts API (sphere endpoints).
-  late final PostsApi posts;
+  late final SphereApi sphere;
 
   /// Wallet API (wallet endpoints).
   late final WalletApi wallet;
@@ -143,7 +143,7 @@ class SolarNetworkClient {
   void _initializeApis() {
     auth = AuthApi(dio);
     accounts = AccountsApi(dio);
-    posts = PostsApi(dio);
+    sphere = SphereApi(dio);
     wallet = WalletApi(dio);
     chat = ChatApi(dio);
     thoughts = ThoughtsApi(dio);

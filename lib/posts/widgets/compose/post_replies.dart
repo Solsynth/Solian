@@ -20,7 +20,7 @@ class PostRepliesNotifier extends AsyncNotifier<PaginationState<SnPost>>
   @override
   Future<List<SnPost>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
-    final result = await client.posts.getPostReplies(
+    final result = await client.sphere.getPostReplies(
       postId: arg,
       offset: fetchedCount,
       take: pageSize,

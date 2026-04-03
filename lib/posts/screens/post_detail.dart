@@ -40,7 +40,7 @@ part 'post_detail.g.dart';
 @riverpod
 Future<SnPost?> post(Ref ref, String id) async {
   final client = ref.watch(solarNetworkClientProvider);
-  return await client.posts.getPost(id);
+  return await client.sphere.getPost(id);
 }
 
 final postStateProvider =
@@ -165,7 +165,7 @@ class PostActionButtons extends HookConsumerWidget {
               ).then((confirm) {
                 if (confirm) {
                   final client = ref.watch(solarNetworkClientProvider);
-                  client.posts
+                  client.sphere
                       .deletePost(post.id)
                       .catchError((err) {
                         showErrorAlert(err);
@@ -205,7 +205,7 @@ class PostActionButtons extends HookConsumerWidget {
                     final client = ref.watch(solarNetworkClientProvider);
                     try {
                       if (context.mounted) showLoadingModal(context);
-                      await client.posts.unpinPost(post.id);
+                      await client.sphere.unpinPost(post.id);
                       onUpdate?.call(post.copyWith(pinMode: null));
                     } catch (err) {
                       showErrorAlert(err);
@@ -353,7 +353,7 @@ class PostActionButtons extends HookConsumerWidget {
             ).then((confirm) {
               if (confirm) {
                 final client = ref.watch(solarNetworkClientProvider);
-                client.posts
+                client.sphere
                     .deletePost(post.id)
                     .catchError((err) {
                       showErrorAlert(err);
@@ -412,7 +412,7 @@ class PostActionButtons extends HookConsumerWidget {
                 final client = ref.watch(solarNetworkClientProvider);
                 try {
                   if (context.mounted) showLoadingModal(context);
-                  await client.posts.unpinPost(post.id);
+                  await client.sphere.unpinPost(post.id);
                   onUpdate?.call(post.copyWith(pinMode: null));
                 } catch (err) {
                   showErrorAlert(err);
@@ -436,7 +436,7 @@ class PostActionButtons extends HookConsumerWidget {
             final client = ref.read(solarNetworkClientProvider);
             try {
               if (context.mounted) showLoadingModal(context);
-              await client.posts.boostPost(post.id);
+              await client.sphere.boostPost(post.id);
               onRefresh?.call();
             } catch (err) {
               showErrorAlert(err);
