@@ -35,6 +35,10 @@ target 'Runner' do
   target 'SolianShareExtension' do
     inherit! :search_paths
   end
+
+  target 'SolianNotificationService' do
+    inherit! :search_paths
+  end
 end
 
 post_install do |installer|

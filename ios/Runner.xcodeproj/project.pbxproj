@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -27,6 +27,9 @@
 		73ACDFAD2E3D0E6100B63535 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73ACDFAC2E3D0E6100B63535 /* ReplayKit.framework */; };
 		73ACDFC32E3D0E6100B63535 /* SolianBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73ACDFAB2E3D0E6100B63535 /* SolianBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73C305D82E0BE878009035B9 /* SolianShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73C305CE2E0BE878009035B9 /* SolianShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		73CA95E42F8019B000AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E32F8019B000AECCC0 /* KingfisherWebP */; };
+		73CA95E62F8019C400AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E52F8019C400AECCC0 /* KingfisherWebP */; };
+		73CA95E82F8019CB00AECCC0 /* KingfisherWebP in Frameworks */ = {isa = PBXBuildFile; productRef = 73CA95E72F8019CB00AECCC0 /* KingfisherWebP */; };
 		73CDD6812DEC00480059D95D /* SolianNotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 73CDD67A2DEC00480059D95D /* SolianNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		73D4264B2DEB815D006C0AAE /* NotifyDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */; };
 		73D801DE2F65CF6900AC3735 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73D801DD2F65CF6900AC3735 /* StoreKit.framework */; };
@@ -216,8 +219,6 @@
 		};
 		7310A7D52EB10962002C0FD3 /* Solian Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "Solian Watch App";
 			sourceTree = "<group>";
 		};
@@ -276,6 +277,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73CA95E82F8019CB00AECCC0 /* KingfisherWebP in Frameworks */,
 				7359B4512F7ED45E002F2C19 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -301,6 +303,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73CA95E62F8019C400AECCC0 /* KingfisherWebP in Frameworks */,
 				7359B44F2F7ED451002F2C19 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -311,6 +314,7 @@
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				7359B44A2F7ED2E9002F2C19 /* Alamofire in Frameworks */,
+				73CA95E42F8019B000AECCC0 /* KingfisherWebP in Frameworks */,
 				B87C0E607033790E71B54D73 /* Pods_Runner.framework in Frameworks */,
 				73D801DE2F65CF6900AC3735 /* StoreKit.framework in Frameworks */,
 				7359B44D2F7ED3E2002F2C19 /* Kingfisher in Frameworks */,
@@ -582,6 +586,7 @@
 				78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */,
 				7359B4492F7ED2E9002F2C19 /* Alamofire */,
 				7359B44C2F7ED3E2002F2C19 /* Kingfisher */,
+				73CA95E32F8019B000AECCC0 /* KingfisherWebP */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -637,9 +642,10 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
 				7359B4482F7ED2E9002F2C19 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				7359B44B2F7ED3E2002F2C19 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				73CA95E22F8019B000AECCC0 /* XCRemoteSwiftPackageReference "KingfisherWebP" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
@@ -765,9 +771,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -782,9 +792,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -2001,7 +2015,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
@@ -2022,6 +2036,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 8.8.1;
+			};
+		};
+		73CA95E22F8019B000AECCC0 /* XCRemoteSwiftPackageReference "KingfisherWebP" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/yeatse/KingfisherWebP";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.7.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -2050,6 +2072,21 @@
 		7359B4D22F7ED7C3002F2C19 /* FlutterGeneratedPluginSwiftPackage */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FlutterGeneratedPluginSwiftPackage;
+		};
+		73CA95E32F8019B000AECCC0 /* KingfisherWebP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73CA95E22F8019B000AECCC0 /* XCRemoteSwiftPackageReference "KingfisherWebP" */;
+			productName = KingfisherWebP;
+		};
+		73CA95E52F8019C400AECCC0 /* KingfisherWebP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73CA95E22F8019B000AECCC0 /* XCRemoteSwiftPackageReference "KingfisherWebP" */;
+			productName = KingfisherWebP;
+		};
+		73CA95E72F8019CB00AECCC0 /* KingfisherWebP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73CA95E22F8019B000AECCC0 /* XCRemoteSwiftPackageReference "KingfisherWebP" */;
+			productName = KingfisherWebP;
 		};
 		78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */ = {
 			isa = XCSwiftPackageProductDependency;

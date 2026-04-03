@@ -8,6 +8,7 @@
 @preconcurrency import UserNotifications
 import Intents
 import Kingfisher
+import KingfisherWebP
 import UniformTypeIdentifiers
 
 enum ParseNotificationPayloadError: Error {
@@ -19,6 +20,14 @@ class NotificationService: UNNotificationServiceExtension {
     
     private var contentHandler: ((UNNotificationContent) -> Void)?
     private var bestAttemptContent: UNMutableNotificationContent?
+    
+    override class func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        KingfisherManager.shared.defaultOptions += [
+            .processor(WebPProcessor.default),
+            .cacheSerializer(WebPSerializer.default)
+        ]
+        super.didReceive(request, withContentHandler: contentHandler)
+    }
     
     override func didReceive(
         _ request: UNNotificationRequest,

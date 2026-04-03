@@ -101,7 +101,7 @@ class NetworkService {
         return ActivityResponse(activities: activities, hasMore: hasMore, nextCursor: nextCursor)
     }
     
-    func createPost(title: String, content: String, token: String, serverUrl: String) async throws {
+    func createPost(content: String, visibility: Int = 0, token: String, serverUrl: String) async throws {
         guard let baseURL = URL(string: serverUrl) else {
             throw URLError(.badURL)
         }
@@ -114,15 +114,59 @@ class NetworkService {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
         
-        let body: [String: Any] = ["title": title, "content": content]
+        let body: [String: Any] = [
+            "content": content,
+            "visibility": visibility
+        ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        print("[watchOS] POST createPost - URL: \(url.absoluteString), body: \(body)")
+        print("[watchOS] createPost - token prefix: \(String(token.prefix(20)))...")
         
         let (data, response) = try await session.data(for: request)
         
-        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 201 {
-            let responseBody = String(data: data, encoding: .utf8) ?? ""
-            print("[watchOS] createPost failed with status code: \(httpResponse.statusCode), body: \(responseBody)")
-            throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[watchOS] createPost response - status: \(httpResponse.statusCode)")
+            if httpResponse.statusCode != 201 {
+                let responseBody = String(data: data, encoding: .utf8) ?? ""
+                print("[watchOS] createPost failed - body: \(responseBody)")
+                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+            }
+        }
+    }
+    
+    func replyToPost(postId: String, content: String, visibility: Int = 0, token: String, serverUrl: String) async throws {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/posts")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        
+        let body: [String: Any] = [
+            "content": content,
+            "visibility": visibility,
+            "reply_to": postId
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        print("[watchOS] POST replyToPost - URL: \(url.absoluteString), body: \(body)")
+        print("[watchOS] replyToPost - token prefix: \(String(token.prefix(20)))...")
+        
+        let (data, response) = try await session.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[watchOS] replyToPost response - status: \(httpResponse.statusCode)")
+            if httpResponse.statusCode != 201 {
+                let responseBody = String(data: data, encoding: .utf8) ?? ""
+                print("[watchOS] replyToPost failed - body: \(responseBody)")
+                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+            }
         }
     }
     
@@ -264,6 +308,38 @@ class NetworkService {
             print("[watchOS] clearStatus failed with status code: \(httpResponse.statusCode), body: \(responseBody)")
             throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
         }
+    }
+    
+    // MARK: - Reactions API
+    
+    func reactToPost(postId: String, symbol: String, attitude: Int, token: String, serverUrl: String) async throws -> Bool {
+        guard let baseURL = URL(string: serverUrl) else {
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/sphere/posts/\(postId)/reactions")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        
+        let body: [String: Any] = ["symbol": symbol, "attitude": attitude]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        print("[watchOS] reactToPost - symbol: \(symbol)")
+        
+        let (data, response) = try await session.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[watchOS] reactToPost response - status: \(httpResponse.statusCode)")
+            if let responseBody = String(data: data, encoding: .utf8), !responseBody.isEmpty {
+                print("[watchOS] reactToPost response body: \(responseBody)")
+            }
+            return httpResponse.statusCode == 201
+        }
+        return false
     }
     
     // MARK: - Chat API Methods
