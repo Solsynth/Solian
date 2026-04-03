@@ -76,17 +76,13 @@ class WebSocketService {
       );
       return;
     }
-    _isConnecting = true;
-    try {
-      await _connectInternal(ref);
-    } finally {
-      _isConnecting = false;
-    }
+    await _connectInternal(ref);
   }
 
   Future<void> _connectInternal(Ref ref) async {
     _ref = ref;
     _isClosing = false;
+    _isConnecting = true;
     final connectionGeneration = ++_connectionGeneration;
     await _disposeActiveChannel(suppressReconnect: true);
     _addStatus(WebSocketState.connecting());
@@ -108,6 +104,7 @@ class WebSocketService {
         _channel = IOWebSocketChannel.connect(Uri.parse(url), headers: headers);
       }
       await _channel!.ready;
+      _isConnecting = false;
       if (connectionGeneration != _connectionGeneration) {
         await _channel!.sink.close();
         return;
@@ -273,12 +270,42 @@ class WebSocketService {
       return;
     }
     talker.info('[WebSocket] Manual reconnect triggered by user');
+
+    // Cancel any pending reconnect timers
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(milliseconds: 500), () {
-      if (_isClosing) return;
-      _addStatus(WebSocketState.connecting());
-      connect(ref);
-    });
+    _reconnectTimer = null;
+    talker.debug('[WebSocket] Cancelled pending reconnect timers');
+
+    // Immediately disconnect current connection
+    _isClosing = false;
+    _reconnectCount = 0;
+    _reconnectWindowStart = null;
+    talker.debug('[WebSocket] Reset reconnect counters and state');
+
+    // Fire and forget dispose - do NOT wait for it to complete
+    // This avoids hanging if socket is in broken state
+    talker.debug('[WebSocket] Closing existing WebSocket connection');
+
+    // Increment connection generation first to invalidate any existing connection
+    _connectionGeneration++;
+
+    // Dispose without waiting
+    _disposeActiveChannel(suppressReconnect: true)
+        .timeout(const Duration(milliseconds: 1000))
+        .then((_) {
+          talker.debug('[WebSocket] Dispose completed normally');
+          _addStatus(WebSocketState.disconnected());
+          Future.delayed(const Duration(milliseconds: 100), () {
+            talker.debug('[WebSocket] Reconnecting after manual trigger...');
+            _addStatus(WebSocketState.connecting());
+            connect(ref);
+          });
+        })
+        .catchError((err) {
+          talker.warning(
+            '[WebSocket] Dispose had error (this is normal): $err',
+          );
+        });
   }
 
   void _scheduleHeartbeat() {
@@ -322,14 +349,37 @@ class WebSocketService {
     _channel = null;
     _streamController.close();
     _statusStreamController.close();
+    _isClosing = false;
   }
 
   Future<void> _disposeActiveChannel({bool suppressReconnect = false}) async {
     _cancelTimers();
-    await _channelSubscription?.cancel();
-    _channelSubscription = null;
-    await _channel?.sink.close();
-    _channel = null;
+
+    // Cancel stream subscription with timeout
+    try {
+      await _channelSubscription?.cancel().timeout(
+        const Duration(milliseconds: 200),
+      );
+      talker.debug('[WebSocket] Stream subscription cancelled successfully');
+    } catch (e) {
+      talker.warning(
+        '[WebSocket] Stream subscription cancel timed out, forcing null',
+      );
+    } finally {
+      _channelSubscription = null;
+    }
+
+    // Close websocket sink with timeout
+    try {
+      await _channel?.sink.close().timeout(const Duration(milliseconds: 300));
+      talker.debug('[WebSocket] WebSocket sink closed successfully');
+    } catch (e) {
+      talker.warning('[WebSocket] WebSocket close timed out, forcing null');
+    } finally {
+      _channel = null;
+    }
+
+    _isConnecting = false;
   }
 }
 
