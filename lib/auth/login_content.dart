@@ -164,20 +164,9 @@ class _LoginCheckScreen extends HookConsumerWidget {
           return;
         }
 
-        final tag = await FlutterNfcKit.poll();
-
-        if (tag.ndefAvailable != true) {
-          final uidHex = tag.id;
-          passwordController.text = uidHex;
-          isScanning.value = false;
-          await FlutterNfcKit.finish();
-          performCheckTicket();
-          return;
-        }
-
+        await FlutterNfcKit.poll();
         final records = await FlutterNfcKit.readNDEFRecords(cached: false);
         String? uidHex;
-
         if (records.isNotEmpty) {
           final firstRecord = records.first;
           if (firstRecord is UriRecord && firstRecord.uri != null) {
@@ -187,7 +176,8 @@ class _LoginCheckScreen extends HookConsumerWidget {
         }
 
         if (uidHex == null) {
-          uidHex = tag.id;
+          showErrorAlert("No acceptable data found.");
+          return;
         }
 
         passwordController.text = uidHex;
