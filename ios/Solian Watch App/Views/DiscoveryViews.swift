@@ -89,8 +89,8 @@ struct PublisherDetailView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(publisher.name).font(.headline)
-            if let description = publisher.description {
-                Text(description).font(.body)
+            if let bio = publisher.bio, !bio.isEmpty {
+                Text(bio).font(.body)
             }
         }
         .navigationTitle("Publisher")

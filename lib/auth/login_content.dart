@@ -71,16 +71,21 @@ class _LoginCheckScreen extends HookConsumerWidget {
     }, [isBusy]);
 
     Future<void> getToken({String? code}) async {
-      final client = ref.watch(solarNetworkClientProvider);
-      final tokenResp = await client.auth.exchangeOAuthCode(
-        code: code ?? challenge!.id,
-        redirectUri: '',
+      // Get token if challenge is completed
+      final client = ref.watch(apiClientProvider);
+      final tokenResp = await client.post(
+        '/padlock/auth/token',
+        data: {
+          'grant_type': 'authorization_code',
+          'code': code ?? challenge!.id,
+        },
       );
-      final token = tokenResp['token'];
+      final token = tokenResp.data['token'];
       setToken(ref.watch(sharedPreferencesProvider), token);
       ref.invalidate(tokenProvider);
       if (!context.mounted) return;
 
+      // Do post login tasks
       await performPostLogin(context, ref);
     }
 

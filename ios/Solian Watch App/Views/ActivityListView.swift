@@ -35,21 +35,24 @@ struct ActivityListView: View {
             } else {
                 List {
                     ForEach(viewModel.activities) { activity in
-                        switch activity.data {
-                        case .post(let post):
-                            NavigationLink(
-                                destination: PostDetailView(post: post).environmentObject(appState)
-                            ) {
-                                PostRowView(post: post)
+                        if activity.isPost {
+                            if let post = activity.decodePost() {
+                                NavigationLink(
+                                    destination: PostDetailView(post: post).environmentObject(appState)
+                                ) {
+                                    PostRowView(post: post)
+                                }
+                            } else {
+                                Text("Unknown activity")
                             }
-                        case .discovery(let discoveryData):
-                            DiscoveryView(discoveryData: discoveryData)
-                        case .unknown(_):
+                        } else if activity.isDiscovery {
+                            if let discovery = activity.decodeDiscovery() {
+                                DiscoveryView(discoveryData: discovery)
+                            } else {
+                                Text("Unknown activity")
+                            }
+                        } else {
                             Text("Unknown activity")
-                        case .none:
-                            Text("No data")
-                        case .some(.none):
-                            Text("No data")
                         }
                     }
                     if viewModel.hasMore {

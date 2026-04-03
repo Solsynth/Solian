@@ -189,8 +189,8 @@ struct AccountView: View {
                     }
                     
                     // Bio
-                    if let bio = user.profile.bio, !bio.isEmpty {
-                        Text(bio)
+                    if !user.profile.bio.isEmpty {
+                        Text(user.profile.bio)
                             .font(.body)
                             .multilineTextAlignment(.center)
                             .foregroundColor(.secondary)

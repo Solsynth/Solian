@@ -36,12 +36,12 @@ struct PostRowView: View {
                         .clipShape(Circle())
                         .foregroundColor(.gray)
                 }
-                Text(post.publisher.nick ?? post.publisher.name)
+                Text(post.publisher?.nick ?? post.publisher?.name ?? "Unknown")
                     .font(.subheadline)
                     .bold()
             }
-            .task(id: post.publisher.picture?.id) { // Use task(id:) to reload image when pictureId changes
-                if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
+            .task(id: post.publisher?.picture?.id) {
+                if let serverUrl = appState.serverUrl, let pictureId = post.publisher?.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
                     await imageLoader.loadImage(from: imageUrl, token: token)
                 }
             }
@@ -102,12 +102,11 @@ struct PostDetailView: View {
                             .clipShape(Circle())
                             .foregroundColor(.gray)
                     }
-                    Text("@\(post.publisher.name)")
+                    Text("@\(post.publisher?.name ?? "Unknown")")
                         .font(.headline)
                 }
-                // Use task(id:) to reload image when pictureId changes
-                .task(id: post.publisher.picture?.id) {
-                    if let serverUrl = appState.serverUrl, let pictureId = post.publisher.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
+                .task(id: post.publisher?.picture?.id) {
+                    if let serverUrl = appState.serverUrl, let pictureId = post.publisher?.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
                         await publisherImageLoader.loadImage(from: imageUrl, token: token)
                     }
                 }
