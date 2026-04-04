@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/action_log.dart';
 import 'package:solar_network_sdk/src/models/auth/auth_session.dart';
@@ -32,17 +34,26 @@ class PadlockApi extends BaseApi {
     );
   }
 
-  /// Gets all sessions for the current user with pagination.
+  /// Gets all sessions for the current user with pagination and filtering.
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
+  /// [type] - Filter by session type (0=Login, 1=OAuth, 2=Oidc).
+  /// [clientId] - Filter by client/device ID.
   Future<PaginatedResult<SnAuthSession>> getSessions({
     int offset = 0,
     int take = 20,
+    int? type,
+    String? clientId,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/sessions',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (type != null) 'type': type,
+        if (clientId != null) 'clientId': clientId,
+      },
     );
 
     final totalCount = getTotalCount(response.headers);
@@ -64,10 +75,24 @@ class PadlockApi extends BaseApi {
     await delete('$_basePath/sessions/other');
   }
 
-  /// Gets all authenticated devices.
-  Future<List<SnAuthDeviceWithSession>> getDevices() async {
-    final response = await get<List<dynamic>>('$_basePath/devices');
-    return parseList(response, SnAuthDeviceWithSession.fromJson);
+  /// Gets all authenticated devices with pagination.
+  ///
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  Future<PaginatedResult<SnAuthDeviceWithSession>> getDevices({
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/devices',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+
+    final totalCount = getTotalCount(response.headers);
+    return PaginatedResult(
+      items: parseList(response, SnAuthDeviceWithSession.fromJson),
+      totalCount: totalCount,
+    );
   }
 
   /// Revokes a specific device.
@@ -87,6 +112,6 @@ class PadlockApi extends BaseApi {
   /// [deviceId] - The ID of the device.
   /// [label] - The new label for the device.
   Future<void> updateDeviceLabel(String deviceId, String label) async {
-    await patch('$_basePath/devices/$deviceId/label', data: {'label': label});
+    await patch('$_basePath/devices/$deviceId/label', data: jsonEncode(label));
   }
 }

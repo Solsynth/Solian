@@ -250,7 +250,7 @@ class WalletApi extends BaseApi {
   /// [orderId] - The order ID.
   Future<SnWalletOrder> getOrder(String orderId) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/wallets/orders/$orderId',
+      '$_basePath/orders/$orderId',
     );
     return SnWalletOrder.fromJson(response.data!);
   }
@@ -270,7 +270,7 @@ class WalletApi extends BaseApi {
     String? message,
   }) async {
     final response = await post<Map<String, dynamic>>(
-      '$_basePath/wallets/gifts',
+      '$_basePath/gifts',
       data: {
         'to_wallet_id': toWalletId,
         'gift_id': giftId,
@@ -289,96 +289,11 @@ class WalletApi extends BaseApi {
     int take = 20,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/wallets/gifts',
+      '$_basePath/gifts',
       queryParameters: {'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnWalletGift.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
-  }
-
-  // ==========================================
-  // Pocket endpoints
-  // ==========================================
-
-  /// Gets all pockets.
-  Future<List<SnWalletPocket>> getPockets() async {
-    final response = await get<List<dynamic>>('$_basePath/wallets/pockets');
-    return parseList(response, SnWalletPocket.fromJson);
-  }
-
-  /// Gets a specific pocket by ID.
-  ///
-  /// [pocketId] - The pocket ID.
-  Future<SnWalletPocket> getPocket(String pocketId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/wallets/pockets/$pocketId',
-    );
-    return SnWalletPocket.fromJson(response.data!);
-  }
-
-  /// Creates a new pocket.
-  ///
-  /// [name] - The pocket name.
-  /// [color] - Optional color code.
-  Future<SnWalletPocket> createPocket({
-    required String name,
-    String? color,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/wallets/pockets',
-      data: {'name': name, 'color': ?color},
-    );
-    return SnWalletPocket.fromJson(response.data!);
-  }
-
-  /// Updates a pocket.
-  ///
-  /// [pocketId] - The pocket ID.
-  /// [data] - The data to update.
-  Future<SnWalletPocket> updatePocket({
-    required String pocketId,
-    required Map<String, dynamic> data,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/wallets/pockets/$pocketId',
-      data: data,
-    );
-    return SnWalletPocket.fromJson(response.data!);
-  }
-
-  /// Deletes a pocket.
-  ///
-  /// [pocketId] - The pocket ID.
-  Future<void> deletePocket(String pocketId) async {
-    await delete('$_basePath/wallets/pockets/$pocketId');
-  }
-
-  /// Moves funds to a pocket.
-  ///
-  /// [pocketId] - The pocket ID.
-  /// [amount] - The amount to move.
-  Future<void> moveToPocket({
-    required String pocketId,
-    required double amount,
-  }) async {
-    await post(
-      '$_basePath/wallets/pockets/$pocketId/move',
-      data: {'amount': amount},
-    );
-  }
-
-  /// Withdraws funds from a pocket.
-  ///
-  /// [pocketId] - The pocket ID.
-  /// [amount] - The amount to withdraw.
-  Future<void> withdrawFromPocket({
-    required String pocketId,
-    required double amount,
-  }) async {
-    await post(
-      '$_basePath/wallets/pockets/$pocketId/withdraw',
-      data: {'amount': amount},
-    );
   }
 }

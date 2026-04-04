@@ -19,38 +19,70 @@ import 'package:styled_widget/styled_widget.dart';
 part 'account_devices.g.dart';
 
 @riverpod
-Future<List<SnAuthDeviceWithSession>> authDevices(Ref ref) async {
+Future<PaginatedResult<SnAuthDeviceWithSession>> authDevices(Ref ref) async {
   final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
-  final resp = await padlockApi.getDevices();
   final currentId = await getUdid();
-  return resp.map((ele) {
-    return ele.copyWith(isCurrent: ele.deviceId == currentId);
-  }).toList();
+  final resp = await padlockApi.getDevices();
+  return PaginatedResult(
+    items: resp.items.map((ele) {
+      return ele.copyWith(isCurrent: ele.deviceId == currentId);
+    }).toList(),
+    totalCount: resp.totalCount,
+    hasMore: resp.hasMore,
+    cursor: resp.cursor,
+  );
 }
 
 @riverpod
-Future<PaginatedResult<SnAuthSession>> authSessions(Ref ref) async {
+Future<PaginatedResult<SnAuthSession>> authSessions(
+  Ref ref, {
+  int? type,
+}) async {
   final padlockApi = ref.watch(solarNetworkClientProvider).padlock;
-  return padlockApi.getSessions();
+  return padlockApi.getSessions(type: type);
 }
 
-class _DeviceCard extends StatelessWidget {
+@riverpod
+class SessionTypeFilter extends _$SessionTypeFilter {
+  @override
+  int? build() => null;
+
+  void setType(int? type) {
+    state = type;
+  }
+}
+
+class _DeviceCard extends StatefulWidget {
   final SnAuthDeviceWithSession device;
   final Function(String) updateDeviceLabel;
   final Function(String) logoutDevice;
+  final Function(String) logoutSession;
 
   const _DeviceCard({
     required this.device,
     required this.updateDeviceLabel,
     required this.logoutDevice,
+    required this.logoutSession,
   });
+
+  @override
+  State<_DeviceCard> createState() => _DeviceCardState();
+}
+
+class _DeviceCardState extends State<_DeviceCard> {
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Card(
+    return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -64,7 +96,7 @@ class _DeviceCard extends StatelessWidget {
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(switch (device.platform) {
+                  child: Icon(switch (widget.device.platform) {
                     0 => Icons.device_unknown,
                     1 => Icons.web,
                     2 => Icons.phone_iphone,
@@ -84,12 +116,13 @@ class _DeviceCard extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              device.deviceLabel ?? device.deviceName,
+                              widget.device.deviceLabel ??
+                                  widget.device.deviceName,
                               style: Theme.of(context).textTheme.titleMedium,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (device.isCurrent) ...[
+                          if (widget.device.isCurrent) ...[
                             Gap(8),
                             Container(
                               padding: EdgeInsets.symmetric(
@@ -111,11 +144,12 @@ class _DeviceCard extends StatelessWidget {
                           ],
                         ],
                       ),
-                      if (device.sessions.isNotEmpty)
+                      if (widget.device.sessions.isNotEmpty)
                         Text(
                           'lastActiveAt'.tr(
                             args: [
-                              device.sessions.first.createdAt.formatSystem(),
+                              widget.device.sessions.first.createdAt
+                                  .formatSystem(),
                             ],
                           ),
                           style: Theme.of(context).textTheme.bodySmall
@@ -127,76 +161,116 @@ class _DeviceCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      tooltip: 'authDeviceEditLabel'.tr(),
-                      onPressed: () => updateDeviceLabel(device.deviceId),
-                    ),
-                    if (!device.isCurrent && isWideScreen(context))
+                    if (isWideScreen(context))
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        tooltip: 'authDeviceEditLabel'.tr(),
+                        onPressed: () =>
+                            widget.updateDeviceLabel(widget.device.deviceId),
+                      ),
+                    if (!widget.device.isCurrent && isWideScreen(context))
                       IconButton(
                         icon: Icon(Icons.logout),
                         tooltip: 'authDeviceLogout'.tr(),
-                        onPressed: () => logoutDevice(device.deviceId),
+                        onPressed: () =>
+                            widget.logoutDevice(widget.device.deviceId),
                       ),
                   ],
                 ),
               ],
             ),
-            if (device.sessions.isNotEmpty) ...[
+            if (widget.device.sessions.isNotEmpty) ...[
               Gap(12),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'authDeviceChallenges'.tr(),
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              GestureDetector(
+                onTap: () => setState(() => _isExpanded = !_isExpanded),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.key,
+                        size: 18,
                         color: colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                    Gap(8),
-                    ...device.sessions.map(
-                      (session) => Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      Gap(8),
+                      Text(
+                        '${widget.device.sessions.length} ${'sessions'.tr()}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Spacer(),
+                      AnimatedRotation(
+                        turns: _isExpanded ? 0.5 : 0,
+                        duration: Duration(milliseconds: 200),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ).padding(horizontal: 4),
+                ),
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                clipBehavior: Clip.hardEdge,
+                child: _isExpanded ? Column(
+                  children: [
+                    const Gap(8),
+                    Card.outlined(
+                      child: Column(
+                        children: [
+                          ...widget.device.sessions.map(
+                            (session) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    session.userAgent ?? 'unknown'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    '${session.ipAddress ?? 'unknown'.tr()} • ${session.location?.city ?? 'unknown'.tr()}',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          session.userAgent ?? 'unknown'.tr(),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
+                                        Text(
+                                          '${session.ipAddress ?? 'unknown'.tr()} • ${session.location?.city ?? 'unknown'.tr()}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  if (!session.isCurrent)
+                                    IconButton(
+                                      icon: const Icon(Icons.logout, size: 20),
+                                      tooltip: 'authSessionLogout'.tr(),
+                                      onPressed: () =>
+                                          widget.logoutSession(session.id),
+                                    ),
                                 ],
                               ),
                             ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        ],
+                      ).padding(left: 16, right: 8, vertical: 8),
                     ),
                   ],
-                ),
+                ) : const SizedBox.shrink(),
               ),
             ],
           ],
@@ -216,8 +290,13 @@ class _SessionListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Card(
+    return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -332,7 +411,8 @@ class AccountSessionSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authDevices = ref.watch(authDevicesProvider);
-    final authSessions = ref.watch(authSessionsProvider);
+    final sessionType = ref.watch(sessionTypeFilterProvider);
+    final authSessions = ref.watch(authSessionsProvider(type: sessionType));
 
     void logoutDevice(String deviceId) async {
       final confirm = await showConfirmAlert(
@@ -460,6 +540,7 @@ class AccountSessionSheet extends HookConsumerWidget {
                     wideScreen: wideScreen,
                     logoutDevice: logoutDevice,
                     updateDeviceLabel: updateDeviceLabel,
+                    logoutSession: logoutSession,
                     ref: ref,
                   ),
                   _SessionsTab(
@@ -467,6 +548,10 @@ class AccountSessionSheet extends HookConsumerWidget {
                     logoutSession: logoutSession,
                     logoutAllOtherSessions: logoutAllOtherSessions,
                     ref: ref,
+                    selectedType: sessionType,
+                    onTypeChanged: (type) => ref
+                        .read(sessionTypeFilterProvider.notifier)
+                        .setType(type),
                   ),
                 ],
               ),
@@ -479,10 +564,11 @@ class AccountSessionSheet extends HookConsumerWidget {
 }
 
 class _DevicesTab extends StatelessWidget {
-  final AsyncValue<List<SnAuthDeviceWithSession>> authDevices;
+  final AsyncValue<PaginatedResult<SnAuthDeviceWithSession>> authDevices;
   final bool wideScreen;
   final Function(String) logoutDevice;
   final Function(String) updateDeviceLabel;
+  final Function(String) logoutSession;
   final WidgetRef ref;
 
   const _DevicesTab({
@@ -490,6 +576,7 @@ class _DevicesTab extends StatelessWidget {
     required this.wideScreen,
     required this.logoutDevice,
     required this.updateDeviceLabel,
+    required this.logoutSession,
     required this.ref,
   });
 
@@ -498,7 +585,7 @@ class _DevicesTab extends StatelessWidget {
     return authDevices.when(
       data: (data) => ExtendedRefreshIndicator(
         onRefresh: () => Future.sync(() => ref.invalidate(authDevicesProvider)),
-        child: data.isEmpty
+        child: data.items.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -519,10 +606,10 @@ class _DevicesTab extends StatelessWidget {
                 ),
               )
             : ListView.builder(
-                padding: EdgeInsets.only(bottom: 16),
-                itemCount: data.length,
+                padding: EdgeInsets.only(bottom: 16, top: 8),
+                itemCount: data.items.length,
                 itemBuilder: (context, index) {
-                  final device = data[index];
+                  final device = data.items[index];
                   if (!wideScreen) {
                     return Dismissible(
                       key: Key('device-${device.id}'),
@@ -582,6 +669,7 @@ class _DevicesTab extends StatelessWidget {
                         device: device,
                         updateDeviceLabel: updateDeviceLabel,
                         logoutDevice: logoutDevice,
+                        logoutSession: logoutSession,
                       ),
                     );
                   }
@@ -589,6 +677,7 @@ class _DevicesTab extends StatelessWidget {
                     device: device,
                     updateDeviceLabel: updateDeviceLabel,
                     logoutDevice: logoutDevice,
+                    logoutSession: logoutSession,
                   );
                 },
               ),
@@ -607,12 +696,16 @@ class _SessionsTab extends StatelessWidget {
   final Function(String) logoutSession;
   final Function() logoutAllOtherSessions;
   final WidgetRef ref;
+  final int? selectedType;
+  final Function(int?) onTypeChanged;
 
   const _SessionsTab({
     required this.authSessions,
     required this.logoutSession,
     required this.logoutAllOtherSessions,
     required this.ref,
+    required this.selectedType,
+    required this.onTypeChanged,
   });
 
   @override
@@ -629,6 +722,34 @@ class _SessionsTab extends StatelessWidget {
                 label: Text('authLogoutAllOtherSessions'.tr()),
               ),
             ).padding(horizontal: 16, top: 16, bottom: 8),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Wrap(
+              spacing: 8,
+              children: [
+                FilterChip(
+                  label: Text('all'.tr()),
+                  selected: selectedType == null,
+                  onSelected: (_) => onTypeChanged(null),
+                ),
+                FilterChip(
+                  label: Text('sessionTypeLogin'.tr()),
+                  selected: selectedType == 0,
+                  onSelected: (_) => onTypeChanged(0),
+                ),
+                FilterChip(
+                  label: Text('sessionTypeOAuth'.tr()),
+                  selected: selectedType == 1,
+                  onSelected: (_) => onTypeChanged(1),
+                ),
+                FilterChip(
+                  label: Text('sessionTypeOidc'.tr()),
+                  selected: selectedType == 2,
+                  onSelected: (_) => onTypeChanged(2),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: ExtendedRefreshIndicator(
               onRefresh: () =>

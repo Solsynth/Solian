@@ -400,7 +400,8 @@ class AccountFeatureWidget extends HookConsumerWidget {
                 final ws = ref.watch(websocketStateProvider.notifier);
                 final client = ref.watch(solarNetworkClientProvider);
                 showLoadingModal(context);
-                await client.auth.revokeCurrentSession();
+                // Fire and forgot
+                client.auth.revokeCurrentSession();
                 await resetDatabase(ref);
                 if (!context.mounted) return;
                 hideLoadingModal(context);

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnAuthSession {
 
- String get id; String? get label; DateTime get lastGrantedAt; DateTime? get expiredAt; List<dynamic> get audiences; List<dynamic> get scopes; String? get ipAddress; String? get userAgent; GeoIpLocation? get location; int get type; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; bool get isCurrent;
+ String get id; String? get label; DateTime get lastGrantedAt; DateTime? get expiredAt; List<String> get audiences; List<String> get scopes; String? get ipAddress; String? get userAgent; GeoIpLocation? get location; int get type; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; bool get isCurrent;
 /// Create a copy of SnAuthSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SnAuthSessionCopyWith<$Res>  {
   factory $SnAuthSessionCopyWith(SnAuthSession value, $Res Function(SnAuthSession) _then) = _$SnAuthSessionCopyWithImpl;
 @useResult
 $Res call({
- String id, String? label, DateTime lastGrantedAt, DateTime? expiredAt, List<dynamic> audiences, List<dynamic> scopes, String? ipAddress, String? userAgent, GeoIpLocation? location, int type, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, bool isCurrent
+ String id, String? label, DateTime lastGrantedAt, DateTime? expiredAt, List<String> audiences, List<String> scopes, String? ipAddress, String? userAgent, GeoIpLocation? location, int type, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, bool isCurrent
 });
 
 
@@ -72,8 +72,8 @@ as String,label: freezed == label ? _self.label : label // ignore: cast_nullable
 as String?,lastGrantedAt: null == lastGrantedAt ? _self.lastGrantedAt : lastGrantedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,audiences: null == audiences ? _self.audiences : audiences // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,scopes: null == scopes ? _self.scopes : scopes // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,ipAddress: freezed == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
+as List<String>,scopes: null == scopes ? _self.scopes : scopes // ignore: cast_nullable_to_non_nullable
+as List<String>,ipAddress: freezed == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
 as String?,userAgent: freezed == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
 as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as GeoIpLocation?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -176,7 +176,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  List<dynamic> audiences,  List<dynamic> scopes,  String? ipAddress,  String? userAgent,  GeoIpLocation? location,  int type,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  List<String> audiences,  List<String> scopes,  String? ipAddress,  String? userAgent,  GeoIpLocation? location,  int type,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  bool isCurrent)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAuthSession() when $default != null:
 return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.location,_that.type,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isCurrent);case _:
@@ -197,7 +197,7 @@ return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  List<dynamic> audiences,  List<dynamic> scopes,  String? ipAddress,  String? userAgent,  GeoIpLocation? location,  int type,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  bool isCurrent)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  List<String> audiences,  List<String> scopes,  String? ipAddress,  String? userAgent,  GeoIpLocation? location,  int type,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  bool isCurrent)  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthSession():
 return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.location,_that.type,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isCurrent);}
@@ -214,7 +214,7 @@ return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  List<dynamic> audiences,  List<dynamic> scopes,  String? ipAddress,  String? userAgent,  GeoIpLocation? location,  int type,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  bool isCurrent)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? label,  DateTime lastGrantedAt,  DateTime? expiredAt,  List<String> audiences,  List<String> scopes,  String? ipAddress,  String? userAgent,  GeoIpLocation? location,  int type,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  bool isCurrent)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAuthSession() when $default != null:
 return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.audiences,_that.scopes,_that.ipAddress,_that.userAgent,_that.location,_that.type,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.isCurrent);case _:
@@ -229,22 +229,22 @@ return $default(_that.id,_that.label,_that.lastGrantedAt,_that.expiredAt,_that.a
 @JsonSerializable()
 
 class _SnAuthSession implements SnAuthSession {
-  const _SnAuthSession({required this.id, this.label, required this.lastGrantedAt, this.expiredAt, required final  List<dynamic> audiences, required final  List<dynamic> scopes, this.ipAddress, this.userAgent, this.location, required this.type, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt, this.isCurrent = false}): _audiences = audiences,_scopes = scopes;
+  const _SnAuthSession({required this.id, this.label, required this.lastGrantedAt, this.expiredAt, final  List<String> audiences = const [], final  List<String> scopes = const [], this.ipAddress, this.userAgent, this.location, required this.type, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt, this.isCurrent = false}): _audiences = audiences,_scopes = scopes;
   factory _SnAuthSession.fromJson(Map<String, dynamic> json) => _$SnAuthSessionFromJson(json);
 
 @override final  String id;
 @override final  String? label;
 @override final  DateTime lastGrantedAt;
 @override final  DateTime? expiredAt;
- final  List<dynamic> _audiences;
-@override List<dynamic> get audiences {
+ final  List<String> _audiences;
+@override@JsonKey() List<String> get audiences {
   if (_audiences is EqualUnmodifiableListView) return _audiences;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_audiences);
 }
 
- final  List<dynamic> _scopes;
-@override List<dynamic> get scopes {
+ final  List<String> _scopes;
+@override@JsonKey() List<String> get scopes {
   if (_scopes is EqualUnmodifiableListView) return _scopes;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_scopes);
@@ -293,7 +293,7 @@ abstract mixin class _$SnAuthSessionCopyWith<$Res> implements $SnAuthSessionCopy
   factory _$SnAuthSessionCopyWith(_SnAuthSession value, $Res Function(_SnAuthSession) _then) = __$SnAuthSessionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? label, DateTime lastGrantedAt, DateTime? expiredAt, List<dynamic> audiences, List<dynamic> scopes, String? ipAddress, String? userAgent, GeoIpLocation? location, int type, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, bool isCurrent
+ String id, String? label, DateTime lastGrantedAt, DateTime? expiredAt, List<String> audiences, List<String> scopes, String? ipAddress, String? userAgent, GeoIpLocation? location, int type, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, bool isCurrent
 });
 
 
@@ -317,8 +317,8 @@ as String,label: freezed == label ? _self.label : label // ignore: cast_nullable
 as String?,lastGrantedAt: null == lastGrantedAt ? _self.lastGrantedAt : lastGrantedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,audiences: null == audiences ? _self._audiences : audiences // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,scopes: null == scopes ? _self._scopes : scopes // ignore: cast_nullable_to_non_nullable
-as List<dynamic>,ipAddress: freezed == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
+as List<String>,scopes: null == scopes ? _self._scopes : scopes // ignore: cast_nullable_to_non_nullable
+as List<String>,ipAddress: freezed == ipAddress ? _self.ipAddress : ipAddress // ignore: cast_nullable_to_non_nullable
 as String?,userAgent: freezed == userAgent ? _self.userAgent : userAgent // ignore: cast_nullable_to_non_nullable
 as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
 as GeoIpLocation?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
