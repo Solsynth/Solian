@@ -64,7 +64,7 @@ final class PublisherProvider
   }
 }
 
-String _$publisherHash() => r'cd53ce9eed00594df7b7e2dd9ca4ee3b2765d0b4';
+String _$publisherHash() => r'eacb38403fab1c185b80172160f8bc1d4ad12f03';
 
 final class PublisherFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnPublisher>, String> {
@@ -300,7 +300,7 @@ final class PublisherFollowRequestProvider
 }
 
 String _$publisherFollowRequestHash() =>
-    r'88987ac0c9e477de4cddb3146bce739f27d1e37d';
+    r'f402599a9d51aa951df7fc4a1c2ff038705a2160';
 
 final class PublisherFollowRequestFamily extends $Family
     with
@@ -455,7 +455,7 @@ final class PublisherHeatmapProvider
   }
 }
 
-String _$publisherHeatmapHash() => r'14a8ad7cee866b4985908295d052d0a751d989bb';
+String _$publisherHeatmapHash() => r'2ff6ae15f79f8709ba0a5bf61d0fb99451762b02';
 
 final class PublisherHeatmapFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnHeatmap?>, String> {
