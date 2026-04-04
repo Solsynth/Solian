@@ -326,7 +326,7 @@ class IslandApp extends HookConsumerWidget {
       });
       ref.listen(userInfoProvider, (_, user) {
         if (user.value != null) {
-          WidgetSyncService().syncToWidget();
+          WidgetSyncService().sendCfgToAppGroup();
         }
       });
       return null;

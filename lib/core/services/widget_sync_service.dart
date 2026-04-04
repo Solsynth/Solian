@@ -12,11 +12,11 @@ class WidgetSyncService {
 
   bool get _isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
-  Future<void> syncToWidget() async {
+  Future<void> sendCfgToAppGroup() async {
     if (!_isSupported) return;
 
     try {
-      await _channel.invokeMethod('syncToWidget');
+      await _channel.invokeMethod('sendCfgToAppGroup');
     } catch (e) {
       debugPrint('Failed to sync to widget: $e');
     }

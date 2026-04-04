@@ -11,7 +11,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class PaymentOverlay extends HookConsumerWidget {
@@ -32,15 +31,14 @@ class PaymentOverlay extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
+        padding: EdgeInsets.only(bottom: bottomPadding),
         child: SheetScaffold(
           titleText: 'Solarpay',
           heightFactor: 0.7,
@@ -289,7 +287,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Order Summary
           _buildOrderSummary(),
@@ -309,70 +307,68 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   Widget _buildOrderSummary() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Symbols.receipt,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const Gap(8),
-              Text(
-                'paymentSummary'.tr(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const Gap(12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'amount'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                _formatCurrency(widget.order.amount, widget.order.currency),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          if (widget.order.remarks != null) ...[
-            const Gap(8),
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: colorScheme.surfaceContainerHigh,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Icon(Symbols.receipt, color: colorScheme.primary),
+                const Gap(8),
                 Text(
-                  'description'.tr(),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const Spacer(),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    widget.order.remarks!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.end,
+                  'paymentSummary'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
+            const Gap(12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'amount'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  _formatCurrency(widget.order.amount, widget.order.currency),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            if (widget.order.remarks != null) ...[
+              const Gap(8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'description'.tr(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      widget.order.remarks!,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -403,43 +399,43 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   Widget _buildBiometricAuth() {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(Symbols.fingerprint, size: 48),
-          const Gap(16),
-          Text(
-            'useBiometricToConfirm'.tr(),
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            'The biometric data will only be processed on your device',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontSize: 11,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(Symbols.fingerprint, size: 48, color: colorScheme.primary),
+            const Gap(16),
+            Text(
+              'useBiometricToConfirm'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ).opacity(0.75),
-          const Gap(28),
-          ElevatedButton.icon(
-            onPressed: _authenticateWithBiometric,
-            icon: const Icon(Symbols.fingerprint),
-            label: Text('authenticateNow'.tr()),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            const Gap(4),
+            Text(
+              'The biometric data will only be processed on your device',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          TextButton(
-            onPressed: () => _fallbackToPinMode(null),
-            child: Text('usePinInstead'.tr()),
-          ),
-        ],
-      ).center(),
+            const Gap(28),
+            FilledButton.tonalIcon(
+              onPressed: _authenticateWithBiometric,
+              icon: const Icon(Symbols.fingerprint),
+              label: Text('authenticateNow'.tr()),
+            ),
+            TextButton(
+              onPressed: () => _fallbackToPinMode(null),
+              child: Text('usePinInstead'.tr()),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -455,7 +451,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
         if (_isPinMode && _pin.length == 6) ...[
           const Gap(12),
           Expanded(
-            child: ElevatedButton(
+            child: FilledButton(
               onPressed: () => _processPaymentWithPin(_pin),
               child: Text('confirm'.tr()),
             ),
