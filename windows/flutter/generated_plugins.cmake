@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   dart_ipc
   desktop_drop
+  disk_space_2
   file_saver
   file_selector_windows
   firebase_core

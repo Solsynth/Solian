@@ -11,6 +11,8 @@ import Kingfisher
 import KingfisherWebP
 import UniformTypeIdentifiers
 
+private let appGroupId = "group.solsynth.solian"
+
 enum ParseNotificationPayloadError: Error {
     case missingMetadata(String)
     case missingAvatarUrl(String)
@@ -22,6 +24,8 @@ class NotificationService: UNNotificationServiceExtension {
     private var bestAttemptContent: UNMutableNotificationContent?
     
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        configureKingfisherCache()
+        
         KingfisherManager.shared.defaultOptions += [
             .processor(WebPProcessor.default),
             .cacheSerializer(WebPSerializer.default)
@@ -217,5 +221,44 @@ class NotificationService: UNNotificationServiceExtension {
         let interaction = INInteraction(intent: intent, response: nil)
         interaction.direction = .incoming
         interaction.donate(completion: nil)
+    }
+    
+    // MARK: - Kingfisher Cache Configuration
+    
+    private func configureKingfisherCache() {
+        guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId) else {
+            print("[NotificationService] Failed to get App Group container")
+            return
+        }
+        
+        let cachePath = containerUrl.appendingPathComponent("KingfisherCache").path
+        
+        let cache = ImageCache.default
+        cache.diskStorage.config.cachePathBlock = { _, _ in
+            return cachePath
+        }
+        
+        cache.diskStorage.config.sizeLimit = 50 * 1024 * 1024 // 50MB limit
+        cache.diskStorage.config.expiration = .days(7)
+        
+        print("[NotificationService] Kingfisher cache configured at: \(cachePath)")
+    }
+    
+    // MARK: - Cache Management (called from main app via App Group)
+    
+    static func clearCache() {
+        KingfisherManager.shared.cache.clearMemoryCache()
+        KingfisherManager.shared.cache.clearDiskCache()
+        print("[NotificationService] Cache cleared")
+    }
+    
+    static func getCacheSize() -> UInt {
+        var size: UInt = 0
+        KingfisherManager.shared.cache.calculateDiskStorageSize { result in
+            if case .success(let diskSize) = result {
+                size = diskSize
+            }
+        }
+        return size
     }
 }

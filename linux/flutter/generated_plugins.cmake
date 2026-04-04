@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   bluetooth_low_energy_linux
   desktop_drop
+  disk_space_2
   file_saver
   file_selector_linux
   flutter_secure_storage_linux
