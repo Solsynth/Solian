@@ -699,6 +699,21 @@ class SettingsScreen extends HookConsumerWidget {
         ),
       ),
 
+      // Media Proxy settings
+      ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsMediaProxy').tr(),
+        subtitle: Text('settingsMediaProxyHelper'.tr()),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.speed),
+        trailing: Switch(
+          value: settings.mediaProxyEnabled,
+          onChanged: (value) {
+            ref.read(appSettingsProvider.notifier).setMediaProxyEnabled(value);
+          },
+        ),
+      ),
+
       if (user.value != null)
         pools.when(
           data: (data) {

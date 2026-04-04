@@ -34,6 +34,15 @@ class UniversalImage extends HookConsumerWidget {
     this.useFallbackImage = true,
   });
 
+  bool _isValidBlurHash(String hash) {
+    if (hash.isEmpty || hash.length < 6) return false;
+    try {
+      return RegExp(r'^[0-9A-Za-z#$%*+\-.,:;<>@\[\\\]^_{|}]+$').hasMatch(hash);
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final loaded = useState(false);
@@ -82,7 +91,10 @@ class UniversalImage extends HookConsumerWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (blurHash != null) BlurHash(hash: blurHash!),
+          if (blurHash != null &&
+              blurHash!.isNotEmpty &&
+              _isValidBlurHash(blurHash!))
+            BlurHash(hash: blurHash!),
           if (isCached.value == null)
             Center(child: CircularProgressIndicator())
           else if (isCached.value!)

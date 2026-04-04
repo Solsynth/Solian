@@ -6,6 +6,7 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/network/media_proxy_server.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
@@ -686,4 +687,34 @@ final solarNetworkClientProvider = Provider<SolarNetworkClient>((ref) {
   });
 
   return client;
+});
+
+// ==========================================
+// Media Proxy Server Providers
+// ==========================================
+
+final mediaProxyServerProvider = Provider<MediaProxyServer>((ref) {
+  final server = MediaProxyServer(ref);
+  ref.onDispose(() {
+    server.stop();
+  });
+  return server;
+});
+
+final mediaProxyUrlProvider = FutureProvider<String?>((ref) async {
+  final settings = ref.watch(appSettingsProvider);
+  if (!settings.mediaProxyEnabled) {
+    return null;
+  }
+
+  final server = ref.read(mediaProxyServerProvider);
+  if (!server.isRunning) {
+    try {
+      await server.start();
+    } catch (e) {
+      talker.error('[media.proxy] Failed to start: $e');
+      return null;
+    }
+  }
+  return server.baseUrl;
 });
