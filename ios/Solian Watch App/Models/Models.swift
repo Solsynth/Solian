@@ -215,8 +215,8 @@ struct SnRealm: Codable, Identifiable {
     let description: String?
     let verifiedAs: String?
     let verifiedAt: Date?
-    let isCommunity: Bool
-    let isPublic: Bool
+    let isCommunity: Bool?
+    let isPublic: Bool?
     let picture: SnCloudFile?
     let background: SnCloudFile?
     let accountId: String
@@ -225,6 +225,8 @@ struct SnRealm: Codable, Identifiable {
     let deletedAt: Date?
     let boostPoints: Int
     let boostLevel: Int
+    let resourceIdentifier: String?
+    let verification: SnVerificationMark?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -243,6 +245,30 @@ struct SnRealm: Codable, Identifiable {
         case deletedAt = "deleted_at"
         case boostPoints = "boost_points"
         case boostLevel = "boost_level"
+        case resourceIdentifier = "resource_identifier"
+        case verification
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        slug = try container.decode(String.self, forKey: .slug)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        verifiedAs = try container.decodeIfPresent(String.self, forKey: .verifiedAs)
+        verifiedAt = try container.decodeIfPresent(Date.self, forKey: .verifiedAt)
+        isCommunity = try container.decodeIfPresent(Bool.self, forKey: .isCommunity)
+        isPublic = try container.decodeIfPresent(Bool.self, forKey: .isPublic)
+        picture = try container.decodeIfPresent(SnCloudFile.self, forKey: .picture)
+        background = try container.decodeIfPresent(SnCloudFile.self, forKey: .background)
+        accountId = try container.decodeIfPresent(String.self, forKey: .accountId) ?? ""
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+        deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
+        boostPoints = try container.decodeIfPresent(Int.self, forKey: .boostPoints) ?? 0
+        boostLevel = try container.decodeIfPresent(Int.self, forKey: .boostLevel) ?? 0
+        resourceIdentifier = try container.decodeIfPresent(String.self, forKey: .resourceIdentifier)
+        verification = try container.decodeIfPresent(SnVerificationMark.self, forKey: .verification)
     }
 }
 
@@ -585,7 +611,7 @@ struct SnAccount: Codable {
     let region: String
     let isSuperuser: Bool?
     let automatedId: String?
-    let profile: SnUserProfile
+    let profile: SnUserProfile?
     let perkSubscription: SnWalletSubscriptionRef?
     let badges: [SnAccountBadge]
     let contacts: [SnContactMethod]
@@ -627,7 +653,7 @@ struct SnAccount: Codable {
         region = try container.decodeIfPresent(String.self, forKey: .region) ?? ""
         isSuperuser = try container.decodeIfPresent(Bool.self, forKey: .isSuperuser)
         automatedId = try container.decodeIfPresent(String.self, forKey: .automatedId)
-        profile = try container.decode(SnUserProfile.self, forKey: .profile)
+        profile = try? container.decodeIfPresent(SnUserProfile.self, forKey: .profile)
         perkSubscription = try container.decodeIfPresent(SnWalletSubscriptionRef.self, forKey: .perkSubscription)
         badges = try container.decodeIfPresent([SnAccountBadge].self, forKey: .badges) ?? []
         contacts = try container.decodeIfPresent([SnContactMethod].self, forKey: .contacts) ?? []
@@ -642,14 +668,52 @@ struct SnAccount: Codable {
 }
 
 struct SnWalletSubscriptionRef: Codable {
+    let id: String?
+    let identifier: String?
+    let groupIdentifier: String?
+    let displayName: String?
     let subscriptionId: String?
     let subscriptionType: String?
+    let perkLevel: Int?
+    let isTesting: Bool?
+    let begunAt: Date?
+    let endedAt: Date?
     let expiredAt: Date?
+    let isActive: Bool?
+    let isAvailable: Bool?
+    let isFreeTrial: Bool?
+    let status: Int?
+    let basePrice: Int?
+    let finalPrice: Int?
+    let renewalAt: Date?
+    let accountId: String?
+    let createdAt: Date?
+    let updatedAt: Date?
+    let deletedAt: Date?
     
     enum CodingKeys: String, CodingKey {
+        case id
+        case identifier
+        case groupIdentifier = "group_identifier"
+        case displayName = "display_name"
         case subscriptionId = "subscription_id"
         case subscriptionType = "subscription_type"
+        case perkLevel = "perk_level"
+        case isTesting = "is_testing"
+        case begunAt = "begun_at"
+        case endedAt = "ended_at"
         case expiredAt = "expired_at"
+        case isActive = "is_active"
+        case isAvailable = "is_available"
+        case isFreeTrial = "is_free_trial"
+        case status
+        case basePrice = "base_price"
+        case finalPrice = "final_price"
+        case renewalAt = "renewal_at"
+        case accountId = "account_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
     }
 }
 
@@ -896,18 +960,21 @@ struct SnChatRoom: Codable, Identifiable {
     let type: Int
     let encryptionMode: Int
     let mlsGroupId: String?
+    let e2eePolicy: String?
     let isPublic: Bool
     let isCommunity: Bool
     let picture: SnCloudFile?
     let background: SnCloudFile?
     let realmId: String?
     let accountId: String?
+    let account: SnAccount?
     let realm: SnRealm?
     let createdAt: Date
     let updatedAt: Date
     let deletedAt: Date?
     let members: [SnChatMember]?
     let isPinned: Bool
+    let resourceIdentifier: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -916,18 +983,21 @@ struct SnChatRoom: Codable, Identifiable {
         case type
         case encryptionMode = "encryption_mode"
         case mlsGroupId = "mls_group_id"
+        case e2eePolicy = "e2ee_policy"
         case isPublic = "is_public"
         case isCommunity = "is_community"
         case picture
         case background
         case realmId = "realm_id"
         case accountId = "account_id"
+        case account
         case realm
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
         case members
         case isPinned = "is_pinned"
+        case resourceIdentifier = "resource_identifier"
     }
     
     init(from decoder: Decoder) throws {
@@ -935,21 +1005,24 @@ struct SnChatRoom: Codable, Identifiable {
         id = try container.decode(String.self, forKey: .id)
         name = try container.decodeIfPresent(String.self, forKey: .name)
         description = try container.decodeIfPresent(String.self, forKey: .description)
-        type = try container.decode(Int.self, forKey: .type)
+        type = try container.decodeIfPresent(Int.self, forKey: .type) ?? 0
         encryptionMode = try container.decodeIfPresent(Int.self, forKey: .encryptionMode) ?? 0
         mlsGroupId = try container.decodeIfPresent(String.self, forKey: .mlsGroupId)
+        e2eePolicy = try container.decodeIfPresent(String.self, forKey: .e2eePolicy)
         isPublic = try container.decodeIfPresent(Bool.self, forKey: .isPublic) ?? false
         isCommunity = try container.decodeIfPresent(Bool.self, forKey: .isCommunity) ?? false
         picture = try container.decodeIfPresent(SnCloudFile.self, forKey: .picture)
         background = try container.decodeIfPresent(SnCloudFile.self, forKey: .background)
         realmId = try container.decodeIfPresent(String.self, forKey: .realmId)
         accountId = try container.decodeIfPresent(String.self, forKey: .accountId)
+        account = try container.decodeIfPresent(SnAccount.self, forKey: .account)
         realm = try container.decodeIfPresent(SnRealm.self, forKey: .realm)
-        createdAt = try container.decode(Date.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
         members = try container.decodeIfPresent([SnChatMember].self, forKey: .members)
         isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
+        resourceIdentifier = try container.decodeIfPresent(String.self, forKey: .resourceIdentifier)
     }
 }
 
@@ -1014,16 +1087,19 @@ struct SnChatReaction: Codable, Identifiable {
 
 struct SnChatMember: Codable, Identifiable {
     let id: String
-    let chatRoomId: String
+    let chatRoomId: String?
     let chatRoom: SnChatRoom?
-    let accountId: String
-    let account: SnAccount
+    let accountId: String?
+    let account: SnAccount?
     let nick: String?
-    let role: Int
-    let notify: Int
+    let role: Int?
+    let notify: Int?
     let joinedAt: Date?
+    let leaveAt: Date?
+    let invitedById: String?
     let breakUntil: Date?
     let timeoutUntil: Date?
+    let timeoutCause: String?
     let lastReadAt: Date?
     let status: SnAccountStatus?
     let realmNick: String?
@@ -1033,8 +1109,8 @@ struct SnChatMember: Codable, Identifiable {
     let realmLevelingProgress: Double?
     let realmLabel: SnRealmLabel?
     let lastTyped: Date?
-    let createdAt: Date
-    let updatedAt: Date
+    let createdAt: Date?
+    let updatedAt: Date?
     let deletedAt: Date?
     
     enum CodingKeys: String, CodingKey {
@@ -1047,8 +1123,11 @@ struct SnChatMember: Codable, Identifiable {
         case role
         case notify
         case joinedAt = "joined_at"
+        case leaveAt = "leave_at"
+        case invitedById = "invited_by_id"
         case breakUntil = "break_until"
         case timeoutUntil = "timeout_until"
+        case timeoutCause = "timeout_cause"
         case lastReadAt = "last_read_at"
         case status
         case realmNick = "realm_nick"
@@ -1066,16 +1145,19 @@ struct SnChatMember: Codable, Identifiable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
-        chatRoomId = try container.decode(String.self, forKey: .chatRoomId)
+        chatRoomId = try container.decodeIfPresent(String.self, forKey: .chatRoomId)
         chatRoom = try container.decodeIfPresent(SnChatRoom.self, forKey: .chatRoom)
-        accountId = try container.decode(String.self, forKey: .accountId)
-        account = try container.decode(SnAccount.self, forKey: .account)
+        accountId = try container.decodeIfPresent(String.self, forKey: .accountId)
+        account = try container.decodeIfPresent(SnAccount.self, forKey: .account)
         nick = try container.decodeIfPresent(String.self, forKey: .nick)
-        role = try container.decode(Int.self, forKey: .role)
-        notify = try container.decode(Int.self, forKey: .notify)
+        role = try container.decodeIfPresent(Int.self, forKey: .role)
+        notify = try container.decodeIfPresent(Int.self, forKey: .notify)
         joinedAt = try container.decodeIfPresent(Date.self, forKey: .joinedAt)
+        leaveAt = try container.decodeIfPresent(Date.self, forKey: .leaveAt)
+        invitedById = try container.decodeIfPresent(String.self, forKey: .invitedById)
         breakUntil = try container.decodeIfPresent(Date.self, forKey: .breakUntil)
         timeoutUntil = try container.decodeIfPresent(Date.self, forKey: .timeoutUntil)
+        timeoutCause = try container.decodeIfPresent(String.self, forKey: .timeoutCause)
         lastReadAt = try container.decodeIfPresent(Date.self, forKey: .lastReadAt)
         status = try container.decodeIfPresent(SnAccountStatus.self, forKey: .status)
         realmNick = try container.decodeIfPresent(String.self, forKey: .realmNick)
@@ -1085,8 +1167,8 @@ struct SnChatMember: Codable, Identifiable {
         realmLevelingProgress = try container.decodeIfPresent(Double.self, forKey: .realmLevelingProgress)
         realmLabel = try container.decodeIfPresent(SnRealmLabel.self, forKey: .realmLabel)
         lastTyped = try container.decodeIfPresent(Date.self, forKey: .lastTyped)
-        createdAt = try container.decode(Date.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
     }
 }

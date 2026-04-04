@@ -37,7 +37,7 @@ struct AccountView: View {
             } else if let user = user {
                 VStack(spacing: 16) {
                     // Banner
-                    if user.profile.background != nil {
+                    if user.profile?.background != nil {
                         if bannerImageLoader.isLoading {
                             ProgressView()
                                 .frame(height: 80)
@@ -177,20 +177,22 @@ struct AccountView: View {
                     
                     // Level and Progress
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Level \(user.profile.level)")
-                            .font(.title3)
-                            .bold()
-                        ProgressView(value: user.profile.levelingProgress)
-                            .progressViewStyle(LinearProgressViewStyle())
-                            .frame(height: 8)
-                        Text("Experience: \(user.profile.experience)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        if let profile = user.profile {
+                            Text("Level \(profile.level)")
+                                .font(.title3)
+                                .bold()
+                            ProgressView(value: profile.levelingProgress)
+                                .progressViewStyle(LinearProgressViewStyle())
+                                .frame(height: 8)
+                            Text("Experience: \(profile.experience)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     // Bio
-                    if !user.profile.bio.isEmpty {
-                        Text(user.profile.bio)
+                    if let profile = user.profile, !profile.bio.isEmpty {
+                        Text(profile.bio)
                             .font(.body)
                             .multilineTextAlignment(.center)
                             .foregroundColor(.secondary)
@@ -212,15 +214,19 @@ struct AccountView: View {
                 }
                 .padding()
                 // Load images when user data is available
-                .task(id: user.profile.picture?.id) {
-                    if let serverUrl = appState.serverUrl, let pictureId = user.profile.picture?.id, let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl), let token = appState.token {
-                        await profileImageLoader.loadImage(from: imageUrl, token: token)
-                    }
+                .task(id: user.profile?.picture?.id) {
+                    guard let serverUrl = appState.serverUrl,
+                          let pictureId = user.profile?.picture?.id,
+                          let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl),
+                          let token = appState.token else { return }
+                    await profileImageLoader.loadImage(from: imageUrl, token: token)
                 }
-                .task(id: user.profile.background?.id) {
-                    if let serverUrl = appState.serverUrl, let backgroundId = user.profile.background?.id, let imageUrl = getAttachmentUrl(for: backgroundId, serverUrl: serverUrl), let token = appState.token {
-                        await bannerImageLoader.loadImage(from: imageUrl, token: token)
-                    }
+                .task(id: user.profile?.background?.id) {
+                    guard let serverUrl = appState.serverUrl,
+                          let backgroundId = user.profile?.background?.id,
+                          let imageUrl = getAttachmentUrl(for: backgroundId, serverUrl: serverUrl),
+                          let token = appState.token else { return }
+                    await bannerImageLoader.loadImage(from: imageUrl, token: token)
                 }
             } else {
                 Text("No account data")

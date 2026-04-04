@@ -92,15 +92,36 @@ struct ChatView: View {
     }
 
     private func loadChatRooms() async {
-        guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
-
+        guard let token = appState.token, let serverUrl = appState.serverUrl else {
+            print("[ChatView] loadChatRooms - no token or serverUrl")
+            return
+        }
+        
+        print("[ChatView] loadChatRooms - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
         isLoading = true
         error = nil
 
         do {
             let response = try await appState.networkService.fetchChatRooms(token: token, serverUrl: serverUrl)
             chatRooms = response.rooms
+            print("[ChatView] loadChatRooms - success, rooms: \(chatRooms.count)")
+        } catch let decodingError as DecodingError {
+            print("[ChatView] loadChatRooms - decoding error: \(decodingError)")
+            switch decodingError {
+            case .keyNotFound(let key, let context):
+                print("  Key '\(key.stringValue)' not found. Debug: \(context.debugDescription)")
+            case .typeMismatch(let type, let context):
+                print("  Type mismatch: \(type). Debug: \(context.debugDescription)")
+            case .valueNotFound(let type, let context):
+                print("  Value not found: \(type). Debug: \(context.debugDescription)")
+            case .dataCorrupted(let context):
+                print("  Data corrupted: \(context.debugDescription)")
+            @unknown default:
+                print("  Unknown decoding error")
+            }
+            self.error = decodingError
         } catch {
+            print("[ChatView] loadChatRooms - error: \(error.localizedDescription)")
             self.error = error
         }
 
@@ -148,9 +169,9 @@ struct ChatRoomListItem: View {
     @StateObject private var avatarLoader = ImageLoader()
 
     private var displayName: String {
-        if room.type == 1, let members = room.members, !members.isEmpty {
+        if room.type == 1, let members = room.members, !members.isEmpty, let account = members[0].account {
             // For direct messages, show the other member's name
-            return members[0].account.nick
+            return account.nick
         } else {
             // For group chats, show room name or fallback
             return room.name ?? "Group Chat"
@@ -160,7 +181,7 @@ struct ChatRoomListItem: View {
     private var subtitle: String {
         if room.type == 1, let members = room.members, members.count > 1 {
             // For direct messages, show member usernames
-            return members.map { "@\($0.account.name)" }.joined(separator: ", ")
+            return members.compactMap { $0.account?.name }.map { "@\($0)" }.joined(separator: ", ")
         } else if let description = room.description {
             // For group chats with description
             return description
@@ -171,9 +192,9 @@ struct ChatRoomListItem: View {
     }
 
     private var avatarPictureId: String? {
-        if room.type == 1, let members = room.members, !members.isEmpty {
+        if room.type == 1, let members = room.members, !members.isEmpty, let account = members[0].account {
             // For direct messages, use the other member's avatar
-            return members[0].account.profile.picture?.id
+            return account.profile?.picture?.id
         } else {
             // For group chats, use room picture
             return room.picture?.id
@@ -410,10 +431,12 @@ struct ChatRoomView: View {
         guard !hasLoadedMessages else { return }
 
         guard let token = appState.token, let serverUrl = appState.serverUrl else {
+            print("[ChatRoomView] loadMessages - no token or serverUrl")
             isLoading = false
             return
         }
 
+        print("[ChatRoomView] loadMessages - room: \(room.id), token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
         isLoading = true
         error = nil
 
@@ -426,8 +449,9 @@ struct ChatRoomView: View {
             // Sort with newest messages first (for flipped list, newest will appear at bottom)
             self.messages = messages.sorted { $0.createdAt < $1.createdAt }
             hasLoadedMessages = true
+            print("[ChatRoomView] loadMessages - success, messages: \(messages.count)")
         } catch {
-            print("[watchOS] Error loading messages: \(error.localizedDescription)")
+            print("[ChatRoomView] loadMessages - error: \(error.localizedDescription)")
             self.error = error
         }
 
@@ -438,8 +462,12 @@ struct ChatRoomView: View {
         let content = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !content.isEmpty,
               let token = appState.token,
-              let serverUrl = appState.serverUrl else { return }
+              let serverUrl = appState.serverUrl else {
+            print("[ChatRoomView] sendMessage - missing content, token, or serverUrl")
+            return
+        }
 
+        print("[ChatRoomView] sendMessage - content: \(content.prefix(50)), room: \(room.id)")
         isSending = true
 
         do {
@@ -456,6 +484,7 @@ struct ChatRoomView: View {
 
             // Create the URL
             guard let url = URL(string: "\(serverUrl)/messager/chat/\(room.id)/messages") else {
+                print("[ChatRoomView] sendMessage - bad URL")
                 throw URLError(.badURL)
             }
 
@@ -469,8 +498,16 @@ struct ChatRoomView: View {
             // Send the request
             let (data, response) = try await URLSession.shared.data(for: request)
 
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("[ChatRoomView] sendMessage - no HTTP response")
+                throw URLError(.badServerResponse)
+            }
+            
+            print("[ChatRoomView] sendMessage - response status: \(httpResponse.statusCode)")
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let responseBody = String(data: data, encoding: .utf8) ?? ""
+                print("[ChatRoomView] sendMessage - failed with status \(httpResponse.statusCode), body: \(responseBody)")
                 throw URLError(.badServerResponse)
             }
 
@@ -482,12 +519,13 @@ struct ChatRoomView: View {
 
             // Add the message to the local list
             messages.append(sentMessage)
+            print("[ChatRoomView] sendMessage - success, message added")
 
             // Clear the input
             messageText = ""
 
         } catch {
-            print("[watchOS] Error sending message: \(error.localizedDescription)")
+            print("[ChatRoomView] sendMessage - error: \(error.localizedDescription)")
             // Could show an error alert here
         }
 
@@ -564,7 +602,7 @@ struct ChatMessageItem: View {
     @StateObject private var avatarLoader = ImageLoader()
 
     private var avatarPictureId: String? {
-        message.sender.account.profile.picture?.id
+        message.sender.account?.profile?.picture?.id
     }
 
     var body: some View {
@@ -584,7 +622,7 @@ struct ChatMessageItem: View {
                         .fill(Color.gray.opacity(0.3))
                         .frame(width: 24, height: 24)
                         .overlay(
-                            Text(message.sender.account.nick.prefix(1).uppercased())
+                            Text((message.sender.account?.nick ?? "?").prefix(1).uppercased())
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(.primary)
                         )
@@ -601,7 +639,7 @@ struct ChatMessageItem: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(message.sender.account.nick)
+                    Text(message.sender.account?.nick ?? "Unknown")
                         .font(.system(size: 12, weight: .medium))
                     Spacer()
                     Text(message.createdAt, style: .time)
@@ -617,13 +655,16 @@ struct ChatMessageItem: View {
                 }
 
                 if !message.attachments.isEmpty {
-                    AttachmentView(attachment: message.attachments[0])
-                    if message.attachments.count > 1 {
+                    ForEach(message.attachments.prefix(2)) { attachment in
+                        AttachmentView(attachment: attachment, isCompact: true)
+                            .environmentObject(appState)
+                    }
+                    if message.attachments.count > 2 {
                         HStack(spacing: 8) {
                             Image(systemName: "paperclip.circle.fill")
                                 .frame(width: 12, height: 12)
                                 .foregroundStyle(.gray)
-                            Text("\(message.attachments.count - 1)+ attachments")
+                            Text("\(message.attachments.count - 2)+ more")
                                 .font(.footnote)
                                 .foregroundStyle(.gray)
                         }
@@ -691,7 +732,8 @@ struct ChatInviteItem: View {
                         .lineLimit(1)
 
                     HStack(spacing: 4) {
-                        Text(invite.role == 100 ? "Owner" : invite.role >= 50 ? "Moderator" : "Member")
+                        let roleValue = invite.role ?? 0
+                        Text(roleValue == 100 ? "Owner" : roleValue >= 50 ? "Moderator" : "Member")
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
 

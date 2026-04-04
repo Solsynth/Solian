@@ -271,8 +271,8 @@ class NetworkService {
         return status
     }
     
-    func createOrUpdateStatus(attitude: Int, isInvisible: Bool, isNotDisturb: Bool, label: String?, token: String, serverUrl: String) async throws -> SnAccountStatus {
-        // Check if there\'s already a customized status
+    func createOrUpdateStatus(attitude: Int, statusType: Int, clearedAt: Date?, label: String?, symbol: String?, token: String, serverUrl: String) async throws -> SnAccountStatus {
+        // Check if there's already a customized status
         let existingStatus = try? await fetchAccountStatus(token: token, serverUrl: serverUrl)
         let method = (existingStatus?.isCustomized == true) ? "PATCH" : "POST"
         
@@ -290,12 +290,21 @@ class NetworkService {
         
         var body: [String: Any] = [
             "attitude": attitude,
-            "is_invisible": isInvisible,
-            "is_not_disturb": isNotDisturb,
+            "type": statusType,
         ]
+        
+        if let clearedAt = clearedAt {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime]
+            body["cleared_at"] = formatter.string(from: clearedAt)
+        }
         
         if let label = label, !label.isEmpty {
             body["label"] = label
+        }
+        
+        if let symbol = symbol, !symbol.isEmpty {
+            body["symbol"] = symbol
         }
         
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -371,7 +380,10 @@ class NetworkService {
     // MARK: - Chat API Methods
     
     func fetchChatRooms(token: String, serverUrl: String) async throws -> ChatRoomsResponse {
+        print("[NetworkService] fetchChatRooms - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
+        
         guard let baseURL = URL(string: serverUrl) else {
+            print("[NetworkService] fetchChatRooms - bad URL: \(serverUrl)")
             throw URLError(.badURL)
         }
         let url = baseURL.appendingPathComponent("/messager/chat")
@@ -382,14 +394,39 @@ class NetworkService {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
         
-        let (data, _) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[NetworkService] fetchChatRooms - statusCode: \(httpResponse.statusCode)")
+        }
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
-        let rooms = try decoder.decode([SnChatRoom].self, from: data)
-        return ChatRoomsResponse(rooms: rooms)
+        do {
+            let rooms = try decoder.decode([SnChatRoom].self, from: data)
+            print("[NetworkService] fetchChatRooms - decode success, rooms count: \(rooms.count)")
+            return ChatRoomsResponse(rooms: rooms)
+        } catch let decodingError as DecodingError {
+            print("[NetworkService] fetchChatRooms - decode error: \(decodingError)")
+            switch decodingError {
+            case .keyNotFound(let key, let context):
+                print("  Key '\(key.stringValue)' not found. Debug: \(context.debugDescription)")
+            case .typeMismatch(let type, let context):
+                print("  Type mismatch: \(type). Debug: \(context.debugDescription)")
+            case .valueNotFound(let type, let context):
+                print("  Value not found: \(type). Debug: \(context.debugDescription)")
+            case .dataCorrupted(let context):
+                print("  Data corrupted: \(context.debugDescription)")
+            @unknown default:
+                print("  Unknown decoding error")
+            }
+            throw decodingError
+        } catch {
+            print("[NetworkService] fetchChatRooms - other error: \(error)")
+            throw error
+        }
     }
     
     func fetchChatRoom(identifier: String, token: String, serverUrl: String) async throws -> SnChatRoom {
@@ -484,7 +521,10 @@ class NetworkService {
     // MARK: - Message API Methods
     
     func fetchChatMessages(chatRoomId: String, token: String, serverUrl: String, before: Date? = nil, take: Int = 50) async throws -> [SnChatMessage] {
+        print("[NetworkService] fetchChatMessages - chatRoomId: \(chatRoomId), token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
+        
         guard let baseURL = URL(string: serverUrl) else {
+            print("[NetworkService] fetchChatMessages - bad URL: \(serverUrl)")
             throw URLError(.badURL)
         }
         
@@ -510,17 +550,18 @@ class NetworkService {
         let (data, response) = try await session.data(for: request)
         
         if let httpResponse = response as? HTTPURLResponse {
-            _ = String(data: data, encoding: .utf8) ?? "Unable to decode response body"
+            print("[NetworkService] fetchChatMessages - statusCode: \(httpResponse.statusCode)")
             
             if httpResponse.statusCode != 200 {
-                print("[watchOS] fetchChatMessages failed with status \(httpResponse.statusCode)")
+                let responseBody = String(data: data, encoding: .utf8) ?? "Unable to decode response body"
+                print("[NetworkService] fetchChatMessages failed with status \(httpResponse.statusCode), body: \(responseBody)")
                 throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
             }
         }
         
         // Check if data is empty
         if data.isEmpty {
-            print("[watchOS] fetchChatMessages received empty response data")
+            print("[NetworkService] fetchChatMessages received empty response data")
             return []
         }
         
@@ -530,10 +571,11 @@ class NetworkService {
         
         do {
             let messages = try decoder.decode([SnChatMessage].self, from: data)
-            print("[watchOS] fetchChatMessages successfully decoded \(messages.count) messages")
+            print("[NetworkService] fetchChatMessages - decode success, messages: \(messages.count)")
             return messages
         } catch {
-            print("error: ", error)
+            print("[NetworkService] fetchChatMessages - decode error: \(error)")
+            print("[NetworkService] fetchChatMessages - raw JSON: \(String(data: data, encoding: .utf8) ?? "nil")")
             throw error
         }
     }
