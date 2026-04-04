@@ -66,9 +66,9 @@ import Kingfisher
             binaryMessenger: engineBridge.applicationRegistrar.messenger()
         )
 
-        channel.setMethodCallHandler { [weak self] (call, result) in
+        channel.setMethodCallHandler { (call, result) in
             if call.method == "sendCfgToAppGroup" {
-                self?.sendCfgToAppGroup()
+                sendCfgToAppGroup()
                 WidgetCenter.shared.reloadAllTimelines()
                 result(true)
             } else {
@@ -125,8 +125,8 @@ import Kingfisher
         let cachePath = containerUrl.appendingPathComponent("KingfisherCache").path
         
         let cache = ImageCache.default
-        cache.diskStorage.config.cachePathBlock = { _, _ in
-            return cachePath
+        cache.diskStorage.config.cachePathBlock = { (_, _) -> URL in
+            return URL(fileURLWithPath: cachePath)
         }
         
         cache.diskStorage.config.sizeLimit = 50 * 1024 * 1024 // 50MB limit

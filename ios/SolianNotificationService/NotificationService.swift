@@ -234,8 +234,8 @@ class NotificationService: UNNotificationServiceExtension {
         let cachePath = containerUrl.appendingPathComponent("KingfisherCache").path
         
         let cache = ImageCache.default
-        cache.diskStorage.config.cachePathBlock = { _, _ in
-            return cachePath
+        cache.diskStorage.config.cachePathBlock = { (_, _) -> URL in
+            return URL(fileURLWithPath: cachePath)
         }
         
         cache.diskStorage.config.sizeLimit = 50 * 1024 * 1024 // 50MB limit
