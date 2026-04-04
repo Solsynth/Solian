@@ -68,9 +68,10 @@ class MeetScreen extends HookConsumerWidget {
     final topicController = useTextEditingController();
     final notesController = useTextEditingController();
     final tabController = useTabController(
-      initialLength: 5,
-      initialIndex: initialMeetId.isNotEmpty ? 1 : 0,
+      initialLength: 3,
+      initialIndex: initialMeetId.isNotEmpty ? 0 : 0,
     );
+    final historySubTabController = useTabController(initialLength: 2);
     final entryMode = useState(MeetEntryMode.nearby);
     final visibility = useState(SnMeetVisibility.private);
     final selectedImage = useState<SnCloudFile?>(null);
@@ -407,13 +408,7 @@ class MeetScreen extends HookConsumerWidget {
       void handleTabChange() {
         if (tabController.indexIsChanging) return;
 
-        if (tabController.index == 1 && !isScanning.value) {
-          unawaited(stopNearbySession());
-          unawaited(startNearbyScan());
-          return;
-        }
-
-        if (tabController.index == 2) {
+        if (tabController.index == 1) {
           unawaited(startNearbyPresence());
           return;
         }
@@ -446,7 +441,7 @@ class MeetScreen extends HookConsumerWidget {
     }, [initialMeetId]);
 
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('meet').tr(),
@@ -456,15 +451,7 @@ class MeetScreen extends HookConsumerWidget {
             tabs: [
               Tab(
                 child: Text(
-                  'meetStart'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'meetJoinTab'.tr(),
+                  'meet'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
@@ -473,14 +460,6 @@ class MeetScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'nearby'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'meetDiscovery'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
@@ -500,120 +479,291 @@ class MeetScreen extends HookConsumerWidget {
         body: TabBarView(
           controller: tabController,
           children: [
-            ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _MeetStartCard(
-                  topicController: topicController,
-                  notesController: notesController,
-                  busy: actionBusy.value,
-                  advertising: false,
-                  entryMode: entryMode.value,
-                  locationDraft: locationDraft.value,
-                  isLocating: isLocating.value,
-                  visibility: visibility.value,
-                  image: selectedImage.value,
-                  onChangeEntryMode: (value) => entryMode.value = value,
-                  onChangeVisibility: (value) => visibility.value = value,
-                  onUseCurrentLocation: fillCurrentLocation,
-                  onClearLocation: () => locationDraft.value = null,
-                  onPickImage: () async {
-                    final result = await showModalBottomSheet<SnCloudFile?>(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) => const CloudFilePicker(
-                        allowedTypes: {UniversalFileType.image},
-                      ),
-                    );
-                    if (result != null) {
-                      selectedImage.value = result;
-                    }
-                  },
-                  onRemoveImage: () => selectedImage.value = null,
-                  onStart: startMeet,
-                ),
-              ],
-            ),
-            ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _MeetJoinCard(
-                  joinController: joinController,
-                  busy: actionBusy.value,
-                  scanning: isScanning.value,
-                  bluetoothSupported: bluetoothService.supportsNearbyDiscovery,
-                  advertiseSupported: bluetoothService.supportsAdvertising,
-                  onJoin: () => joinMeetById(joinController.text),
-                  onPaste: () async {
-                    final data = await Clipboard.getData(Clipboard.kTextPlain);
-                    final text = data?.text?.trim();
-                    if (text?.isNotEmpty ?? false) {
-                      joinController.text = text!;
-                    }
-                  },
-                  onScanNearby: startNearbyScan,
-                ),
-                const Gap(16),
-                if (discoveries.value.isNotEmpty)
-                  _MeetNearbyCard(
-                    discoveries: discoveries.value,
-                    onJoin: (meetId) => joinMeetById(meetId),
-                  )
-                else
-                  _MeetInfoCard(
-                    icon: Symbols.groups,
-                    title: 'meetJoinReadyTitle'.tr(),
-                    description: 'meetJoinReadyDescription'.tr(),
+            _MeetTab(
+              topicController: topicController,
+              notesController: notesController,
+              joinController: joinController,
+              busy: actionBusy.value,
+              scanning: isScanning.value,
+              bluetoothSupported: bluetoothService.supportsNearbyDiscovery,
+              advertiseSupported: bluetoothService.supportsAdvertising,
+              entryMode: entryMode.value,
+              locationDraft: locationDraft.value,
+              isLocating: isLocating.value,
+              visibility: visibility.value,
+              image: selectedImage.value,
+              discoveries: discoveries.value,
+              onChangeEntryMode: (value) => entryMode.value = value,
+              onChangeVisibility: (value) => visibility.value = value,
+              onUseCurrentLocation: fillCurrentLocation,
+              onClearLocation: () => locationDraft.value = null,
+              onPickImage: () async {
+                final result = await showModalBottomSheet<SnCloudFile?>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => const CloudFilePicker(
+                    allowedTypes: {UniversalFileType.image},
                   ),
-              ],
+                );
+                if (result != null) {
+                  selectedImage.value = result;
+                }
+              },
+              onRemoveImage: () => selectedImage.value = null,
+              onStart: startMeet,
+              onJoin: () => joinMeetById(joinController.text),
+              onPaste: () async {
+                final data = await Clipboard.getData(Clipboard.kTextPlain);
+                final text = data?.text?.trim();
+                if (text?.isNotEmpty ?? false) {
+                  joinController.text = text!;
+                }
+              },
+              onScanNearby: startNearbyScan,
+              onJoinFromDiscovery: (meetId) => joinMeetById(meetId),
             ),
-            ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _NearbyPresenceCard(
-                  busy: nearbyBusy.value,
-                  scanning: nearbyScanning.value,
-                  discoverable: nearbyDiscoverable.value,
-                  friendOnly: nearbyFriendOnly.value,
-                  advertiseSupported: bluetoothService.supportsAdvertising,
-                  observationCount: nearbyObservationCount.value,
-                  isResolving: nearbyIsResolving.value,
-                  onToggleDiscoverable: (value) async {
-                    nearbyDiscoverable.value = value;
-                    await startNearbyPresence();
-                  },
-                  onToggleFriendOnly: (value) async {
-                    nearbyFriendOnly.value = value;
-                    await startNearbyPresence();
-                  },
-                  onRefresh: startNearbyPresence,
-                  discoveries: nearbyDiscoveries.value,
-                  peers: nearbyPeers.value,
-                ),
-                const Gap(16),
-                _NearbyPeersCard(
-                  peers: nearbyPeers.value,
-                  error: nearbyError.value,
-                  onRetry: startNearbyPresence,
-                ),
-              ],
+            _NearbyTab(
+              nearbyBusy: nearbyBusy.value,
+              nearbyScanning: nearbyScanning.value,
+              nearbyDiscoverable: nearbyDiscoverable.value,
+              nearbyFriendOnly: nearbyFriendOnly.value,
+              advertiseSupported: bluetoothService.supportsAdvertising,
+              nearbyObservationCount: nearbyObservationCount.value,
+              nearbyIsResolving: nearbyIsResolving.value,
+              nearbyDiscoveries: nearbyDiscoveries.value,
+              nearbyPeers: nearbyPeers.value,
+              nearbyError: nearbyError.value,
+              onRefresh: startNearbyPresence,
+              onToggleDiscoverable: (value) async {
+                nearbyDiscoverable.value = value;
+                await startNearbyPresence();
+              },
+              onToggleFriendOnly: (value) async {
+                nearbyFriendOnly.value = value;
+                await startNearbyPresence();
+              },
             ),
-            _MeetDiscoverySection(
+            _HistoryTab(
+              subTabController: historySubTabController,
+              history: meetHistory,
+              onOpen: (meet) => openMeetDetail(meet.id),
+              onRetry: () => ref.invalidate(meetHistoryProvider),
               onOpenMeet: (meetId) => openMeetDetail(meetId),
-            ),
-            ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _MeetHistorySection(
-                  history: meetHistory,
-                  onOpen: (meet) => openMeetDetail(meet.id),
-                  onRetry: () => ref.invalidate(meetHistoryProvider),
-                ),
-              ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MeetTab extends StatelessWidget {
+  final TextEditingController topicController;
+  final TextEditingController notesController;
+  final TextEditingController joinController;
+  final bool busy;
+  final bool scanning;
+  final bool bluetoothSupported;
+  final bool advertiseSupported;
+  final MeetEntryMode entryMode;
+  final _MeetLocationDraft? locationDraft;
+  final bool isLocating;
+  final SnMeetVisibility visibility;
+  final SnCloudFile? image;
+  final List<MeetBluetoothDiscovery> discoveries;
+  final ValueChanged<MeetEntryMode> onChangeEntryMode;
+  final ValueChanged<SnMeetVisibility> onChangeVisibility;
+  final VoidCallback onUseCurrentLocation;
+  final VoidCallback onClearLocation;
+  final VoidCallback onPickImage;
+  final VoidCallback onRemoveImage;
+  final VoidCallback onStart;
+  final VoidCallback onJoin;
+  final VoidCallback onPaste;
+  final VoidCallback onScanNearby;
+  final ValueChanged<String> onJoinFromDiscovery;
+
+  const _MeetTab({
+    required this.topicController,
+    required this.notesController,
+    required this.joinController,
+    required this.busy,
+    required this.scanning,
+    required this.bluetoothSupported,
+    required this.advertiseSupported,
+    required this.entryMode,
+    required this.locationDraft,
+    required this.isLocating,
+    required this.visibility,
+    required this.image,
+    required this.discoveries,
+    required this.onChangeEntryMode,
+    required this.onChangeVisibility,
+    required this.onUseCurrentLocation,
+    required this.onClearLocation,
+    required this.onPickImage,
+    required this.onRemoveImage,
+    required this.onStart,
+    required this.onJoin,
+    required this.onPaste,
+    required this.onScanNearby,
+    required this.onJoinFromDiscovery,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _MeetStartCard(
+          topicController: topicController,
+          notesController: notesController,
+          busy: busy,
+          advertising: false,
+          entryMode: entryMode,
+          locationDraft: locationDraft,
+          isLocating: isLocating,
+          visibility: visibility,
+          image: image,
+          onChangeEntryMode: onChangeEntryMode,
+          onChangeVisibility: onChangeVisibility,
+          onUseCurrentLocation: onUseCurrentLocation,
+          onClearLocation: onClearLocation,
+          onPickImage: onPickImage,
+          onRemoveImage: onRemoveImage,
+          onStart: onStart,
+        ),
+        const Gap(16),
+        _MeetJoinCard(
+          joinController: joinController,
+          busy: busy,
+          scanning: scanning,
+          bluetoothSupported: bluetoothSupported,
+          advertiseSupported: advertiseSupported,
+          onJoin: onJoin,
+          onPaste: onPaste,
+          onScanNearby: onScanNearby,
+        ),
+        const Gap(16),
+        if (discoveries.isNotEmpty)
+          _MeetNearbyCard(discoveries: discoveries, onJoin: onJoinFromDiscovery)
+        else
+          _MeetInfoCard(
+            icon: Symbols.groups,
+            title: 'meetJoinReadyTitle'.tr(),
+            description: 'meetJoinReadyDescription'.tr(),
+          ),
+      ],
+    );
+  }
+}
+
+class _NearbyTab extends StatelessWidget {
+  final bool nearbyBusy;
+  final bool nearbyScanning;
+  final bool nearbyDiscoverable;
+  final bool nearbyFriendOnly;
+  final bool advertiseSupported;
+  final int nearbyObservationCount;
+  final bool nearbyIsResolving;
+  final List<BluetoothHexDiscovery> nearbyDiscoveries;
+  final List<NearbyPeer> nearbyPeers;
+  final Object? nearbyError;
+  final VoidCallback onRefresh;
+  final ValueChanged<bool> onToggleDiscoverable;
+  final ValueChanged<bool> onToggleFriendOnly;
+
+  const _NearbyTab({
+    required this.nearbyBusy,
+    required this.nearbyScanning,
+    required this.nearbyDiscoverable,
+    required this.nearbyFriendOnly,
+    required this.advertiseSupported,
+    required this.nearbyObservationCount,
+    required this.nearbyIsResolving,
+    required this.nearbyDiscoveries,
+    required this.nearbyPeers,
+    required this.nearbyError,
+    required this.onRefresh,
+    required this.onToggleDiscoverable,
+    required this.onToggleFriendOnly,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _NearbyPresenceCard(
+          busy: nearbyBusy,
+          scanning: nearbyScanning,
+          discoverable: nearbyDiscoverable,
+          friendOnly: nearbyFriendOnly,
+          advertiseSupported: advertiseSupported,
+          observationCount: nearbyObservationCount,
+          isResolving: nearbyIsResolving,
+          onRefresh: onRefresh,
+          discoveries: nearbyDiscoveries,
+          peers: nearbyPeers,
+          onToggleDiscoverable: onToggleDiscoverable,
+          onToggleFriendOnly: onToggleFriendOnly,
+        ),
+        const Gap(16),
+        _NearbyPeersCard(
+          peers: nearbyPeers,
+          error: nearbyError,
+          onRetry: onRefresh,
+        ),
+      ],
+    );
+  }
+}
+
+class _HistoryTab extends StatelessWidget {
+  final TabController subTabController;
+  final AsyncValue<List<SnMeet>> history;
+  final ValueChanged<SnMeet> onOpen;
+  final VoidCallback onRetry;
+  final ValueChanged<String> onOpenMeet;
+
+  const _HistoryTab({
+    required this.subTabController,
+    required this.history,
+    required this.onOpen,
+    required this.onRetry,
+    required this.onOpenMeet,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TabBar(
+          controller: subTabController,
+          tabs: [
+            Tab(text: 'meetHistory'.tr()),
+            Tab(text: 'meetDiscovery'.tr()),
+          ],
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: subTabController,
+            children: [
+              ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _MeetHistorySection(
+                    history: history,
+                    onOpen: onOpen,
+                    onRetry: onRetry,
+                  ),
+                ],
+              ),
+              _MeetDiscoverySection(onOpenMeet: onOpenMeet),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
