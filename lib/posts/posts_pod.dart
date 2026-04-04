@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -26,6 +27,10 @@ class ActivityListNotifier
 
   @override
   FutureOr<PaginationState<SnTimelineEvent>> build() async {
+    final exploreSettings = ref.watch(appSettingsProvider).exploreSettings;
+    isAggressiveMode = exploreSettings.aggressiveMode;
+    currentMode = exploreSettings.mode;
+
     // Listen to real-time post created events
     _postCreatedSubscription = eventBus.on<PostCreatedEvent>().listen((event) {
       _handlePostCreated(event.post);

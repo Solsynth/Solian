@@ -317,6 +317,28 @@ class MeetService {
   Future<void> completeMeet(String meetId) async {
     await _client.post('/passport/meets/$meetId/complete');
   }
+
+  Future<void> deleteMeet(String meetId) async {
+    await _client.delete('/passport/meets/$meetId');
+  }
+
+  Future<SnMeet> updateMeetVisibility({
+    required String meetId,
+    required SnMeetVisibility visibility,
+  }) async {
+    final response = await _client.patch(
+      '/passport/meets/$meetId/visibility',
+      data: {
+        'visibility': switch (visibility) {
+          SnMeetVisibility.public => 0,
+          SnMeetVisibility.private => 1,
+          SnMeetVisibility.unlisted => 2,
+          SnMeetVisibility.unknown => 1,
+        },
+      },
+    );
+    return SnMeet.fromJson(Map<String, dynamic>.from(response.data as Map));
+  }
 }
 
 DateTime? _tryParseDate(dynamic value) {
