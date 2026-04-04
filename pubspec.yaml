@@ -72,6 +72,7 @@ dependencies:
   cross_file: ^0.3.5+2
   image_picker: ^1.2.1
   file_picker: ^10.3.10
+  disk_space_2: ^1.0.12
   riverpod_annotation: ^4.0.2
   image_picker_platform_interface: ^2.11.1
   image_picker_android: ^0.8.13+15

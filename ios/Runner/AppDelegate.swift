@@ -4,6 +4,7 @@ import UIKit
 import WatchConnectivity
 import AppIntents
 import flutter_sharing_intent
+import Kingfisher
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -67,13 +68,69 @@ import flutter_sharing_intent
 
         channel.setMethodCallHandler { [weak self] (call, result) in
             if call.method == "sendCfgToAppGroup" {
-                sendCfgToAppGroup()
+                self?.sendCfgToAppGroup()
                 WidgetCenter.shared.reloadAllTimelines()
                 result(true)
             } else {
                 result(FlutterMethodNotImplemented)
             }
         }
+        
+        // Cache management channel
+        let cacheChannel = FlutterMethodChannel(
+            name: "dev.solsynth.solian/cache",
+            binaryMessenger: engineBridge.applicationRegistrar.messenger()
+        )
+        
+        cacheChannel.setMethodCallHandler { [weak self] (call, result) in
+            switch call.method {
+            case "clearImageCache":
+                self?.clearImageCache(result: result)
+            case "getImageCacheSize":
+                self?.getImageCacheSize(result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        }
+    }
+    
+    private func clearImageCache(result: @escaping FlutterResult) {
+        configureKingfisherCache()
+        KingfisherManager.shared.cache.clearMemoryCache()
+        KingfisherManager.shared.cache.clearDiskCache()
+        print("[AppDelegate] Image cache cleared")
+        result(true)
+    }
+    
+    private func getImageCacheSize(result: @escaping FlutterResult) {
+        configureKingfisherCache()
+        KingfisherManager.shared.cache.calculateDiskStorageSize { sizeResult in
+            switch sizeResult {
+            case .success(let size):
+                let sizeInMB = Double(size) / 1024.0 / 1024.0
+                result(["sizeInBytes": size, "sizeInMB": String(format: "%.2f", sizeInMB)])
+            case .failure(let error):
+                result(FlutterError(code: "CACHE_ERROR", message: error.localizedDescription, details: nil))
+            }
+        }
+    }
+    
+    private func configureKingfisherCache() {
+        let appGroupId = "group.solsynth.solian"
+        guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId) else {
+            print("[AppDelegate] Failed to get App Group container")
+            return
+        }
+        
+        let cachePath = containerUrl.appendingPathComponent("KingfisherCache").path
+        
+        let cache = ImageCache.default
+        cache.diskStorage.config.cachePathBlock = { _, _ in
+            return cachePath
+        }
+        
+        cache.diskStorage.config.sizeLimit = 50 * 1024 * 1024 // 50MB limit
+        cache.diskStorage.config.expiration = .days(7)
     }
 
     override func applicationDidEnterBackground(_ application: UIApplication) {
