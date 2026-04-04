@@ -46,7 +46,8 @@ sealed class SnPhysicalPassport with _$SnPhysicalPassport {
 @freezed
 sealed class SnScanResult with _$SnScanResult {
   const factory SnScanResult({
-    required SnAccount user,
+    required String id,
+    required SnAccount? account,
     @Default(false) bool isFriend,
     @Default(false) bool isClaimed,
     @Default([]) List<String> actions,
@@ -306,7 +307,6 @@ class _PhysicalPassportListItem extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     if (passport.lastSeenAt != null) ...[
-                      const Gap(4),
                       Text(
                         'physicalPassportLastSeen'.tr(
                           args: [
@@ -318,6 +318,7 @@ class _PhysicalPassportListItem extends StatelessWidget {
                         ),
                       ),
                     ],
+                    const Gap(8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 4,
@@ -325,20 +326,20 @@ class _PhysicalPassportListItem extends StatelessWidget {
                         if (!passport.isActive)
                           _StatusChip(
                             label: 'physicalPassportInactive'.tr(),
-                            backgroundColor: colorScheme.errorContainer,
-                            textColor: colorScheme.onErrorContainer,
+                            color: colorScheme.onErrorContainer,
+                            icon: Symbols.error,
                           ),
                         if (passport.isLocked)
                           _StatusChip(
                             label: 'physicalPassportLocked'.tr(),
-                            backgroundColor: colorScheme.tertiaryContainer,
-                            textColor: colorScheme.onTertiaryContainer,
+                            color: colorScheme.onTertiaryContainer,
+                            icon: Symbols.lock,
                           ),
                         if (passport.isEncrypted)
                           _StatusChip(
                             label: 'physicalPassportEncrypted'.tr(),
-                            backgroundColor: colorScheme.primaryContainer,
-                            textColor: colorScheme.onPrimaryContainer,
+                            color: colorScheme.onPrimaryContainer,
+                            icon: Symbols.lock,
                           ),
                       ],
                     ),
@@ -371,29 +372,27 @@ class _PhysicalPassportListItem extends StatelessWidget {
 
 class _StatusChip extends StatelessWidget {
   final String label;
-  final Color backgroundColor;
-  final Color textColor;
+  final IconData icon;
+  final Color color;
 
   const _StatusChip({
     required this.label,
-    required this.backgroundColor,
-    required this.textColor,
+    required this.icon,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: textColor),
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        Icon(icon, color: color, size: 16),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+        ),
+      ],
     );
   }
 }
@@ -461,6 +460,7 @@ class _AddPhysicalPassportSheetState
                 const Gap(24),
                 Card(
                   elevation: 0,
+                  margin: EdgeInsets.zero,
                   color: colorScheme.primaryContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -524,19 +524,28 @@ class _AddPhysicalPassportSheetState
                 ),
                 enabled: false,
               ),
-              const Gap(32),
-              FilledButton(
-                onPressed: _isSubmitting || _scannedUid == null
-                    ? null
-                    : _register,
-                child: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text('registerPhysicalPassport').tr(),
-              ),
+              const Gap(24),
+              if (_scannedTag?.type == .iso7816)
+                Text(
+                  'encryptedTagRegsiterHint'.tr(),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: colorScheme.tertiary),
+                  textAlign: TextAlign.center,
+                )
+              else
+                FilledButton(
+                  onPressed: _isSubmitting || _scannedUid == null
+                      ? null
+                      : _register,
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('registerPhysicalPassport').tr(),
+                ),
               const Gap(16),
             ],
           ),
@@ -733,7 +742,7 @@ class _PhysicalPassportScanSheetState
     final colorScheme = Theme.of(context).colorScheme;
 
     return SheetScaffold(
-      heightFactor: 0.4,
+      heightFactor: 0.5,
       titleText: 'scanPhysicalPassport'.tr(),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -742,13 +751,15 @@ class _PhysicalPassportScanSheetState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_scanResult == null)
-              Text(
-                'scanPhysicalPassportDescription'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              ...([
+                Text(
+                  'scanPhysicalPassportDescription'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-            const Gap(24),
+                const Gap(24),
+              ]),
             if (_scanResult == null) ...[
               FilledButton.tonalIcon(
                 onPressed: _isScanning ? null : _scanPassport,
@@ -804,10 +815,12 @@ class _PhysicalPassportScanSheetState
                   });
                 },
               ),
-              if (!_scanResult!.isClaimed && _scannedUid != null) ...[
+              if (_scanResult?.account == null && _scannedUid != null) ...[
                 const Gap(8),
                 FilledButton.icon(
-                  onPressed: (_isScanning || _isClaiming) ? null : _claimTag,
+                  onPressed: (_isScanning || _isClaiming)
+                      ? null
+                      : () => _claimTag(_scanResult!.id),
                   icon: _isClaiming
                       ? const SizedBox(
                           width: 16,
@@ -895,7 +908,7 @@ class _PhysicalPassportScanSheetState
         }
         final response = await client.dio.get(
           '/passport/nfc',
-          queryParameters: queryParams,
+          queryParameters: {...queryParams, 'tag': tag.id},
         );
         result = SnScanResult.fromJson(response.data);
       }
@@ -915,29 +928,23 @@ class _PhysicalPassportScanSheetState
     }
   }
 
-  Future<void> _claimTag() async {
-    if (_scannedUid == null) return;
-
+  Future<void> _claimTag(String recordId) async {
     setState(() => _isClaiming = true);
 
     try {
       final client = ref.read(solarNetworkClientProvider);
       await client.dio.post(
         '/passport/nfc/tags/claim',
-        data: {'uid': _scannedUid},
+        data: {'record_id': recordId},
       );
 
       // Refresh the scan result to show claimed status
-      final response = await client.dio.get(
-        '/passport/nfc',
-        queryParameters: {'uid': _scannedUid},
-      );
+      final response = await client.dio.get('/passport/nfc/tags/$recordId');
       final result = SnScanResult.fromJson(response.data);
 
       setState(() {
         _scanResult = result;
         _isClaiming = false;
-        _scannedUid = null; // Clear so claim button disappears
       });
 
       if (mounted) {
@@ -968,47 +975,64 @@ class _PhysicalPassportScanResultCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          child: InkWell(
-            child: AccountNameplate(
-              name: passport.user.name,
-              isOutlined: false,
+        if (passport.account != null)
+          Card(
+            margin: EdgeInsets.zero,
+            child: InkWell(
+              child: AccountNameplate(
+                name: passport.account!.name,
+                isOutlined: false,
+              ),
+              onTap: () {
+                context.router.push(
+                  AccountProfileRoute(name: passport.account!.name),
+                );
+              },
             ),
-            onTap: () {
-              context.router.push(
-                AccountProfileRoute(name: passport.user.name),
-              );
-            },
-          ),
-        ),
-        if (passport.isClaimed) ...[
-          const Gap(8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Symbols.check_circle,
-                  size: 16,
-                  color: colorScheme.onPrimaryContainer,
-                ),
-                const Gap(4),
-                Text(
-                  'physicalPassportClaimed'.tr(),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+          )
+        else
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            color: colorScheme.primaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.check_circle,
+                        color: colorScheme.primary,
+                        size: 20,
+                      ),
+                      const Gap(8),
+                      Text(
+                        'physicalPassportScanned'.tr(),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const Gap(12),
+                  Text(
+                    'ID: ${passport.id}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
+                  ),
+                  const Gap(12),
+                  Text(
+                    'tagNotClaimed',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ).tr(),
+                ],
+              ),
             ),
           ),
-        ],
         const Gap(24),
         OutlinedButton.icon(
           onPressed: onScanAgain,

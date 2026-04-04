@@ -444,7 +444,7 @@ final class AccountPublishersProvider
   }
 }
 
-String _$accountPublishersHash() => r'8a80a5c90b50bce25b7aca12cbdf1d703e4b0953';
+String _$accountPublishersHash() => r'bbe05ec72c9f070406b8fdf68a5038cf52aaba4d';
 
 final class AccountPublishersFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnPublisher>>, String> {

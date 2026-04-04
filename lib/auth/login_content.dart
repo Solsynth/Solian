@@ -164,7 +164,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
           return;
         }
 
-        await FlutterNfcKit.poll();
+        final tag = await FlutterNfcKit.poll();
         final records = await FlutterNfcKit.readNDEFRecords(cached: false);
         String? uidHex;
         if (records.isNotEmpty) {
@@ -180,7 +180,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
           return;
         }
 
-        passwordController.text = uidHex;
+        passwordController.text = '${tag.id}:$uidHex';
         isScanning.value = false;
         await FlutterNfcKit.finish();
         performCheckTicket();

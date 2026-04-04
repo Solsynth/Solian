@@ -2288,5 +2288,6 @@
   "claimTagUidHint": "输入卡片UID（如 04A1B2C3D4E5F6）",
   "tagUidRequired": "卡片UID为必填项",
   "claimTag": "认领卡片",
-  "tagClaimed": "卡片认领成功"
+  "tagClaimed": "卡片认领成功",
+  "tagNotClaimed": "卡片未认领，您可以认领该卡片"
 }

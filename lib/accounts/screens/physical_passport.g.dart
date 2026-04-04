@@ -34,7 +34,10 @@ Map<String, dynamic> _$SnPhysicalPassportToJson(_SnPhysicalPassport instance) =>
 
 _SnScanResult _$SnScanResultFromJson(Map<String, dynamic> json) =>
     _SnScanResult(
-      user: SnAccount.fromJson(json['user'] as Map<String, dynamic>),
+      id: json['id'] as String,
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       isFriend: json['is_friend'] as bool? ?? false,
       isClaimed: json['is_claimed'] as bool? ?? false,
       actions:
@@ -46,7 +49,8 @@ _SnScanResult _$SnScanResultFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SnScanResultToJson(_SnScanResult instance) =>
     <String, dynamic>{
-      'user': instance.user.toJson(),
+      'id': instance.id,
+      'account': instance.account?.toJson(),
       'is_friend': instance.isFriend,
       'is_claimed': instance.isClaimed,
       'actions': instance.actions,
