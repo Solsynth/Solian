@@ -2344,5 +2344,7 @@
   "claimTag": "Claim Tag",
   "tagClaimed": "Tag claimed successfully",
   "authFactorRecoveryCodeRequired": "You need add a recovery code before adding any other auth factors.",
-  "authFactorExisted": "You already added this type of factor."
+  "authFactorExisted": "You already added this type of factor.",
+  "tagNotClaimed": "Tag was unclaimed, you can claim it.",
+  "encryptedTagRegsiterHint": "3rd party encrypted tag cannot be registered directly, if you obtained this tag from Solsynth. Please use scan feature and claim it."
 }
