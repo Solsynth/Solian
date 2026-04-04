@@ -55,6 +55,7 @@ class AccountName extends StatelessWidget {
   final bool ignorePermissions;
   final bool hideVerificationMark;
   final bool hideOverlay;
+  final List<Widget>? suffixWidgets;
   const AccountName({
     super.key,
     required this.account,
@@ -63,6 +64,7 @@ class AccountName extends StatelessWidget {
     this.ignorePermissions = false,
     this.hideVerificationMark = false,
     this.hideOverlay = false,
+    this.suffixWidgets,
   });
 
   Alignment _parseGradientDirection(String direction) {
@@ -238,6 +240,7 @@ class AccountName extends StatelessWidget {
                             fill: 1,
                           ),
                         ),
+                ...suffixWidgets ?? [],
               ],
             );
           }

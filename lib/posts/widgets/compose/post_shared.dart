@@ -904,6 +904,22 @@ class PostHeader extends HookConsumerWidget {
                                 textOverride: _getDisplayName(item),
                                 style: TextStyle(fontWeight: FontWeight.bold),
                                 hideVerificationMark: true,
+                                suffixWidgets: [
+                                  if (item.publisher?.isModerateSubscription ??
+                                      false)
+                                    Tooltip(
+                                      message: 'publisherGatekeptHintShort'
+                                          .tr(),
+                                      child: Icon(
+                                        Symbols.lock,
+                                        size: 14,
+                                        fill: 1,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                    ),
+                                ],
                               )
                             : Text(
                                 _getDisplayName(item),

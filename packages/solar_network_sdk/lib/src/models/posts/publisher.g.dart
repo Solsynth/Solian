@@ -37,8 +37,9 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
       : SnVerificationMark.fromJson(
           json['verification'] as Map<String, dynamic>,
         ),
-  followRequiresApproval: json['follow_requires_approval'] as bool? ?? false,
-  postsRequireFollow: json['posts_require_follow'] as bool? ?? false,
+  isShadowbanned: json['is_shadowbanned'] as bool? ?? false,
+  isGatekept: json['is_gatekept'] as bool? ?? false,
+  isModerateSubscription: json['is_moderate_subscription'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
@@ -57,8 +58,9 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'realm_id': instance.realmId,
       'verification': instance.verification?.toJson(),
-      'follow_requires_approval': instance.followRequiresApproval,
-      'posts_require_follow': instance.postsRequireFollow,
+      'is_shadowbanned': instance.isShadowbanned,
+      'is_gatekept': instance.isGatekept,
+      'is_moderate_subscription': instance.isModerateSubscription,
     };
 
 _SnPublisherMember _$SnPublisherMemberFromJson(Map<String, dynamic> json) =>
@@ -190,7 +192,7 @@ _SnPublisherSubscriptionStatus _$SnPublisherSubscriptionStatusFromJson(
 ) => _SnPublisherSubscriptionStatus(
   subscription: json['subscription'] == null
       ? null
-      : SnPublisherFollowStatus.fromJson(
+      : SnPublisherSubscription.fromJson(
           json['subscription'] as Map<String, dynamic>,
         ),
   followRequest: json['follow_request'] == null
@@ -201,6 +203,8 @@ _SnPublisherSubscriptionStatus _$SnPublisherSubscriptionStatusFromJson(
   requiresApproval: json['requires_approval'] as bool? ?? false,
   status: json['status'] as String? ?? 'none',
   message: json['message'] as String? ?? '',
+  isPending: json['is_pending'] as bool? ?? false,
+  isActive: json['is_active'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnPublisherSubscriptionStatusToJson(
@@ -211,4 +215,68 @@ Map<String, dynamic> _$SnPublisherSubscriptionStatusToJson(
   'requires_approval': instance.requiresApproval,
   'status': instance.status,
   'message': instance.message,
+  'is_pending': instance.isPending,
+  'is_active': instance.isActive,
+};
+
+_SnPublisherSubscriber _$SnPublisherSubscriberFromJson(
+  Map<String, dynamic> json,
+) => _SnPublisherSubscriber(
+  subscription: SnPublisherSubscription.fromJson(
+    json['subscription'] as Map<String, dynamic>,
+  ),
+  account: json['account'] == null
+      ? null
+      : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$SnPublisherSubscriberToJson(
+  _SnPublisherSubscriber instance,
+) => <String, dynamic>{
+  'subscription': instance.subscription.toJson(),
+  'account': instance.account?.toJson(),
+};
+
+_SnPublisherSubscription _$SnPublisherSubscriptionFromJson(
+  Map<String, dynamic> json,
+) => _SnPublisherSubscription(
+  id: json['id'] as String,
+  publisherId: json['publisher_id'] as String,
+  accountId: json['account_id'] as String,
+  lastReadAt: json['last_read_at'] == null
+      ? null
+      : DateTime.parse(json['last_read_at'] as String),
+  notify: json['notify'] as bool? ?? true,
+  endedAt: json['ended_at'] == null
+      ? null
+      : DateTime.parse(json['ended_at'] as String),
+  endReason: $enumDecodeNullable(
+    _$SubscriptionEndReasonEnumMap,
+    json['end_reason'],
+  ),
+  endedByAccountId: json['ended_by_account_id'] as String?,
+  isActive: json['is_active'] as bool? ?? true,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+);
+
+Map<String, dynamic> _$SnPublisherSubscriptionToJson(
+  _SnPublisherSubscription instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'publisher_id': instance.publisherId,
+  'account_id': instance.accountId,
+  'last_read_at': instance.lastReadAt?.toIso8601String(),
+  'notify': instance.notify,
+  'ended_at': instance.endedAt?.toIso8601String(),
+  'end_reason': _$SubscriptionEndReasonEnumMap[instance.endReason],
+  'ended_by_account_id': instance.endedByAccountId,
+  'is_active': instance.isActive,
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+};
+
+const _$SubscriptionEndReasonEnumMap = {
+  SubscriptionEndReason.userLeft: 'UserLeft',
+  SubscriptionEndReason.removedByPublisher: 'RemovedByPublisher',
 };

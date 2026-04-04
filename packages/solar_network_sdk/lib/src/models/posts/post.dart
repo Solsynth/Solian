@@ -81,15 +81,16 @@ sealed class SnPublisherStats with _$SnPublisherStats {
 }
 
 @freezed
-sealed class SnPublisherSubscription with _$SnPublisherSubscription {
-  const factory SnPublisherSubscription({
+sealed class SnPublisherSubscriptionCompact
+    with _$SnPublisherSubscriptionCompact {
+  const factory SnPublisherSubscriptionCompact({
     required String accountId,
     required String publisherId,
     required SnPublisher publisher,
-  }) = _SnPublisherSubscription;
+  }) = _SnPublisherSubscriptionCompact;
 
-  factory SnPublisherSubscription.fromJson(Map<String, dynamic> json) =>
-      _$SnPublisherSubscriptionFromJson(json);
+  factory SnPublisherSubscriptionCompact.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherSubscriptionCompactFromJson(json);
 }
 
 @freezed

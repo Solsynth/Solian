@@ -204,6 +204,88 @@ Future<void> publisherRejectFollow(
   );
 }
 
+final publisherSubscriberListNotifierProvider = AsyncNotifierProvider.family
+    .autoDispose(PublisherSubscriberListNotifier.new);
+
+class PublisherSubscriberListNotifier
+    extends AsyncNotifier<PaginationState<SnPublisherSubscriber>>
+    with AsyncPaginationController<SnPublisherSubscriber> {
+  static const int pageSize = 20;
+
+  final String arg;
+  PublisherSubscriberListNotifier(this.arg);
+
+  @override
+  FutureOr<PaginationState<SnPublisherSubscriber>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
+  }
+
+  @override
+  Future<List<SnPublisherSubscriber>> fetch() async {
+    final apiClient = ref.read(apiClientProvider);
+
+    final response = await apiClient.get(
+      '/sphere/publishers/$arg/subscribers',
+      queryParameters: {'offset': fetchedCount.toString(), 'take': pageSize},
+    );
+
+    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
+    final subscribers = response.data
+        .map((e) => SnPublisherSubscriber.fromJson(e))
+        .cast<SnPublisherSubscriber>()
+        .toList();
+
+    return subscribers;
+  }
+}
+
+@riverpod
+Future<void> publisherAddSubscriber(
+  Ref ref,
+  String publisherName,
+  String accountId,
+) async {
+  final apiClient = ref.watch(apiClientProvider);
+  await apiClient.post(
+    '/sphere/publishers/$publisherName/subscribers/$accountId',
+  );
+}
+
+@riverpod
+Future<void> publisherRemoveSubscriber(
+  Ref ref,
+  String publisherName,
+  String accountId,
+) async {
+  final apiClient = ref.watch(apiClientProvider);
+  await apiClient.delete(
+    '/sphere/publishers/$publisherName/subscribers/$accountId',
+  );
+}
+
+@riverpod
+Future<SnPublisherSubscription> publisherUpdateSubscriberNotify(
+  Ref ref,
+  String publisherName,
+  String accountId,
+  bool notify,
+) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.patch(
+    '/sphere/publishers/$publisherName/subscribers/$accountId/notify',
+    data: {'notify': notify},
+  );
+  return SnPublisherSubscription.fromJson(response.data);
+}
+
 @RoutePage()
 class CreatorHubListScreen extends StatelessWidget {
   const CreatorHubListScreen({super.key});
@@ -714,25 +796,26 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             );
           },
         ),
-        if (publisherFeatures.value?['followRequiresApproval'] == true)
-          ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-            ),
-            minTileHeight: 48,
-            title: Text('publisherFollow').tr(),
-            trailing: Icon(Symbols.chevron_right),
-            leading: const Icon(Symbols.person_add),
-            onTap: () {
-              showModalBottomSheet(
-                isScrollControlled: true,
-                context: context,
-                builder: (context) => _PublisherFollowSheet(
-                  publisherUname: currentPublisher.value!.name,
-                ),
-              );
-            },
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
+          minTileHeight: 48,
+          title: Text('publisherSubscribers').tr(),
+          trailing: Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.person_add),
+          onTap: () {
+            showModalBottomSheet(
+              isScrollControlled: true,
+              context: context,
+              builder: (context) => _PublisherSubscriberSheet(
+                publisherUname: currentPublisher.value!.name,
+                followRequiresApproval:
+                    publisherFeatures.value?['followRequiresApproval'] ?? false,
+              ),
+            );
+          },
+        ),
         ExpansionTile(
           shape: RoundedRectangleBorder(
             borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -1583,18 +1666,28 @@ class _PublisherFediverseSheet extends HookConsumerWidget {
   }
 }
 
-class _PublisherFollowSheet extends HookConsumerWidget {
+class _PublisherSubscriberSheet extends HookConsumerWidget {
   final String publisherUname;
+  final bool followRequiresApproval;
 
-  const _PublisherFollowSheet({required this.publisherUname});
+  const _PublisherSubscriberSheet({
+    required this.publisherUname,
+    required this.followRequiresApproval,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final followRequest = ref.watch(
-      publisherFollowRequestProvider(publisherUname),
-    );
     final followRequests = ref.watch(
       publisherFollowRequestsProvider(publisherUname),
+    );
+    final subscriberListProvider = publisherSubscriberListNotifierProvider(
+      publisherUname,
+    );
+    final subscriberNotifier = ref.read(
+      publisherSubscriberListNotifierProvider(publisherUname).notifier,
+    );
+    final publisherIdentity = ref.watch(
+      publisherIdentityProvider(publisherUname),
     );
     final apiClient = ref.read(apiClientProvider);
 
@@ -1691,121 +1784,280 @@ class _PublisherFollowSheet extends HookConsumerWidget {
       }
     }
 
-    return SheetScaffold(
-      titleText: 'publisherFollow'.tr(),
-      actions: [
-        IconButton(
-          icon: const Icon(Symbols.refresh),
-          style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-          onPressed: () {
-            ref.invalidate(publisherFollowRequestProvider(publisherUname));
-            ref.invalidate(publisherFollowRequestsProvider(publisherUname));
-          },
-        ),
-      ],
-      child: followRequest.when(
-        data: (request) => SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'publisherFollowRequests'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+    Future<void> addSubscriber() async {
+      final result = await showModalBottomSheet(
+        useRootNavigator: true,
+        isScrollControlled: true,
+        context: context,
+        builder: (context) => const AccountPickerSheet(),
+      );
+      if (result == null) return;
+      try {
+        await apiClient.post(
+          '/sphere/publishers/$publisherUname/subscribers/${result.id}',
+        );
+        subscriberNotifier.refresh();
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> removeSubscriber(String accountId) async {
+      final confirm = await showConfirmAlert(
+        'publisherRemoveSubscriberHint'.tr(),
+        'publisherRemoveSubscriber'.tr(),
+        isDanger: true,
+      );
+      if (confirm != true) return;
+      try {
+        await apiClient.delete(
+          '/sphere/publishers/$publisherUname/subscribers/$accountId',
+        );
+        subscriberNotifier.refresh();
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> toggleNotify(String accountId, bool currentNotify) async {
+      try {
+        await apiClient.patch(
+          '/sphere/publishers/$publisherUname/subscribers/$accountId/notify',
+          data: {'notify': !currentNotify},
+        );
+        subscriberNotifier.refresh();
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    final isManager = (publisherIdentity.value?.role ?? 0) >= 50;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
+            child: Row(
+              children: [
+                Text(
+                  'publisherSubscribers'.tr(),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
                   ),
                 ),
-              ),
-              followRequests.when(
-                data: (requests) {
-                  final pending = requests
-                      .where((r) => r.state == FollowRequestState.pending)
-                      .toList();
-                  if (pending.isEmpty) {
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Center(
-                          child: Text(
-                            'publisherFollowRequestsEmpty'.tr(),
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withOpacity(0.6),
-                                ),
+                const Spacer(),
+                if (isManager)
+                  IconButton(
+                    icon: const Icon(Symbols.person_add),
+                    onPressed: addSubscriber,
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(36, 36),
+                    ),
+                  ),
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  onPressed: () {
+                    ref.invalidate(
+                      publisherFollowRequestsProvider(publisherUname),
+                    );
+                    subscriberNotifier.refresh();
+                  },
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                if (followRequiresApproval) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.person_add, size: 16),
+                          const Gap(8),
+                          Text(
+                            'publisherSubscribeRequests'.tr(),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
-                        ),
+                        ],
                       ),
-                    ).padding(horizontal: 16);
-                  }
-                  return Card(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: pending.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final followReq = pending[index];
-                        return ListTile(
-                          leading: ProfilePictureWidget(
-                            file: followReq.account?.profile.picture,
-                          ),
-                          title: Text(followReq.account?.nick ?? 'Unknown'),
-                          subtitle: Text("@${followReq.account?.name ?? ''}"),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Symbols.check,
-                                  color: Colors.green,
+                    ),
+                  ),
+                  followRequests.when(
+                    data: (requests) {
+                      final pending = requests
+                          .where((r) => r.state == FollowRequestState.pending)
+                          .toList();
+                      if (pending.isEmpty) {
+                        return SliverToBoxAdapter(
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Center(
+                                child: Text(
+                                  'publisherSubscribeRequestsEmpty'.tr(),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.6),
+                                      ),
                                 ),
-                                onPressed: () => approveFollow(followReq.id),
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Symbols.close,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () => rejectFollow(followReq.id),
-                              ),
-                            ],
+                            ),
                           ),
                         );
-                      },
+                      }
+                      return SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final followReq = pending[index];
+                          return Card(
+                            margin: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              bottom: index == pending.length - 1 ? 0 : 1,
+                            ),
+                            child: ListTile(
+                              leading: ProfilePictureWidget(
+                                file: followReq.account?.profile.picture,
+                              ),
+                              title: Text(followReq.account?.nick ?? 'Unknown'),
+                              subtitle: Text(
+                                "@${followReq.account?.name ?? ''}",
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Symbols.check,
+                                      color: Colors.green,
+                                    ),
+                                    onPressed: () =>
+                                        approveFollow(followReq.id),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Symbols.close,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => rejectFollow(followReq.id),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }, childCount: pending.length),
+                      );
+                    },
+                    error: (_, _) =>
+                        const SliverToBoxAdapter(child: SizedBox()),
+                    loading: () => const SliverToBoxAdapter(
+                      child: Center(child: CircularProgressIndicator()),
                     ),
-                  ).padding(horizontal: 16);
-                },
-                error: (_, _) => const SizedBox.shrink(),
-                loading: () => const Center(child: CircularProgressIndicator()),
-              ),
-              ExpansionTile(
-                leading: const Icon(Symbols.info),
-                title: Text('publisherFollowWhatIs').tr(),
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 32,
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: Divider(height: 1),
                     ),
-                    child: Text('publisherFollowAbout').tr(),
                   ),
                 ],
-              ),
-            ],
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Row(
+                      children: [
+                        const Icon(Symbols.group, size: 16),
+                        const Gap(8),
+                        Text(
+                          'publisherSubscribersAll'.tr(),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                PaginationList(
+                  isRefreshable: false,
+                  isSliver: true,
+                  provider: subscriberListProvider,
+                  notifier: subscriberListProvider.notifier,
+                  itemBuilder: (context, index, subscriber) {
+                    final accountId = subscriber.subscription.accountId;
+                    final notify = subscriber.subscription.notify;
+                    return ListTile(
+                      leading: ProfilePictureWidget(
+                        file: subscriber.account?.profile.picture,
+                      ),
+                      title: Text(subscriber.account?.nick ?? 'Unknown'),
+                      subtitle: Row(
+                        children: [
+                          Text("@${subscriber.account?.name ?? ''}"),
+                          if (!notify) ...[
+                            const Gap(4),
+                            Icon(
+                              Symbols.notifications_off,
+                              size: 14,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ],
+                        ],
+                      ),
+                      trailing: isManager
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    notify
+                                        ? Symbols.notifications
+                                        : Symbols.notifications_off,
+                                    color: notify ? Colors.green : Colors.grey,
+                                  ),
+                                  onPressed: () =>
+                                      toggleNotify(accountId, notify),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Symbols.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => removeSubscriber(accountId),
+                                ),
+                              ],
+                            )
+                          : null,
+                    );
+                  },
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: MediaQuery.of(context).padding.bottom + 16,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => ResponseErrorWidget(
-          error: error,
-          onRetry: () =>
-              ref.invalidate(publisherFollowRequestProvider(publisherUname)),
-        ),
+        ],
       ),
     );
   }

@@ -192,16 +192,16 @@ Map<String, dynamic> _$SnPublisherStatsToJson(_SnPublisherStats instance) =>
       'downvote_received': instance.downvoteReceived,
     };
 
-_SnPublisherSubscription _$SnPublisherSubscriptionFromJson(
+_SnPublisherSubscriptionCompact _$SnPublisherSubscriptionCompactFromJson(
   Map<String, dynamic> json,
-) => _SnPublisherSubscription(
+) => _SnPublisherSubscriptionCompact(
   accountId: json['account_id'] as String,
   publisherId: json['publisher_id'] as String,
   publisher: SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$SnPublisherSubscriptionToJson(
-  _SnPublisherSubscription instance,
+Map<String, dynamic> _$SnPublisherSubscriptionCompactToJson(
+  _SnPublisherSubscriptionCompact instance,
 ) => <String, dynamic>{
   'account_id': instance.accountId,
   'publisher_id': instance.publisherId,

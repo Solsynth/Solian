@@ -946,22 +946,22 @@ as int,
 
 
 /// @nodoc
-mixin _$SnPublisherSubscription {
+mixin _$SnPublisherSubscriptionCompact {
 
  String get accountId; String get publisherId; SnPublisher get publisher;
-/// Create a copy of SnPublisherSubscription
+/// Create a copy of SnPublisherSubscriptionCompact
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$SnPublisherSubscriptionCopyWith<SnPublisherSubscription> get copyWith => _$SnPublisherSubscriptionCopyWithImpl<SnPublisherSubscription>(this as SnPublisherSubscription, _$identity);
+$SnPublisherSubscriptionCompactCopyWith<SnPublisherSubscriptionCompact> get copyWith => _$SnPublisherSubscriptionCompactCopyWithImpl<SnPublisherSubscriptionCompact>(this as SnPublisherSubscriptionCompact, _$identity);
 
-  /// Serializes this SnPublisherSubscription to a JSON map.
+  /// Serializes this SnPublisherSubscriptionCompact to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherSubscription&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherSubscriptionCompact&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -970,15 +970,15 @@ int get hashCode => Object.hash(runtimeType,accountId,publisherId,publisher);
 
 @override
 String toString() {
-  return 'SnPublisherSubscription(accountId: $accountId, publisherId: $publisherId, publisher: $publisher)';
+  return 'SnPublisherSubscriptionCompact(accountId: $accountId, publisherId: $publisherId, publisher: $publisher)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $SnPublisherSubscriptionCopyWith<$Res>  {
-  factory $SnPublisherSubscriptionCopyWith(SnPublisherSubscription value, $Res Function(SnPublisherSubscription) _then) = _$SnPublisherSubscriptionCopyWithImpl;
+abstract mixin class $SnPublisherSubscriptionCompactCopyWith<$Res>  {
+  factory $SnPublisherSubscriptionCompactCopyWith(SnPublisherSubscriptionCompact value, $Res Function(SnPublisherSubscriptionCompact) _then) = _$SnPublisherSubscriptionCompactCopyWithImpl;
 @useResult
 $Res call({
  String accountId, String publisherId, SnPublisher publisher
@@ -989,14 +989,14 @@ $SnPublisherCopyWith<$Res> get publisher;
 
 }
 /// @nodoc
-class _$SnPublisherSubscriptionCopyWithImpl<$Res>
-    implements $SnPublisherSubscriptionCopyWith<$Res> {
-  _$SnPublisherSubscriptionCopyWithImpl(this._self, this._then);
+class _$SnPublisherSubscriptionCompactCopyWithImpl<$Res>
+    implements $SnPublisherSubscriptionCompactCopyWith<$Res> {
+  _$SnPublisherSubscriptionCompactCopyWithImpl(this._self, this._then);
 
-  final SnPublisherSubscription _self;
-  final $Res Function(SnPublisherSubscription) _then;
+  final SnPublisherSubscriptionCompact _self;
+  final $Res Function(SnPublisherSubscriptionCompact) _then;
 
-/// Create a copy of SnPublisherSubscription
+/// Create a copy of SnPublisherSubscriptionCompact
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? accountId = null,Object? publisherId = null,Object? publisher = null,}) {
   return _then(_self.copyWith(
@@ -1006,7 +1006,7 @@ as String,publisher: null == publisher ? _self.publisher : publisher // ignore: 
 as SnPublisher,
   ));
 }
-/// Create a copy of SnPublisherSubscription
+/// Create a copy of SnPublisherSubscriptionCompact
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -1019,8 +1019,8 @@ $SnPublisherCopyWith<$Res> get publisher {
 }
 
 
-/// Adds pattern-matching-related methods to [SnPublisherSubscription].
-extension SnPublisherSubscriptionPatterns on SnPublisherSubscription {
+/// Adds pattern-matching-related methods to [SnPublisherSubscriptionCompact].
+extension SnPublisherSubscriptionCompactPatterns on SnPublisherSubscriptionCompact {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -1033,10 +1033,10 @@ extension SnPublisherSubscriptionPatterns on SnPublisherSubscription {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherSubscription value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherSubscriptionCompact value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _SnPublisherSubscription() when $default != null:
+case _SnPublisherSubscriptionCompact() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -1055,10 +1055,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherSubscription value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherSubscriptionCompact value)  $default,){
 final _that = this;
 switch (_that) {
-case _SnPublisherSubscription():
+case _SnPublisherSubscriptionCompact():
 return $default(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -1073,10 +1073,10 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherSubscription value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherSubscriptionCompact value)?  $default,){
 final _that = this;
 switch (_that) {
-case _SnPublisherSubscription() when $default != null:
+case _SnPublisherSubscriptionCompact() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -1096,7 +1096,7 @@ return $default(_that);case _:
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accountId,  String publisherId,  SnPublisher publisher)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _SnPublisherSubscription() when $default != null:
+case _SnPublisherSubscriptionCompact() when $default != null:
 return $default(_that.accountId,_that.publisherId,_that.publisher);case _:
   return orElse();
 
@@ -1117,7 +1117,7 @@ return $default(_that.accountId,_that.publisherId,_that.publisher);case _:
 
 @optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accountId,  String publisherId,  SnPublisher publisher)  $default,) {final _that = this;
 switch (_that) {
-case _SnPublisherSubscription():
+case _SnPublisherSubscriptionCompact():
 return $default(_that.accountId,_that.publisherId,_that.publisher);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -1134,7 +1134,7 @@ return $default(_that.accountId,_that.publisherId,_that.publisher);}
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accountId,  String publisherId,  SnPublisher publisher)?  $default,) {final _that = this;
 switch (_that) {
-case _SnPublisherSubscription() when $default != null:
+case _SnPublisherSubscriptionCompact() when $default != null:
 return $default(_that.accountId,_that.publisherId,_that.publisher);case _:
   return null;
 
@@ -1146,28 +1146,28 @@ return $default(_that.accountId,_that.publisherId,_that.publisher);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _SnPublisherSubscription implements SnPublisherSubscription {
-  const _SnPublisherSubscription({required this.accountId, required this.publisherId, required this.publisher});
-  factory _SnPublisherSubscription.fromJson(Map<String, dynamic> json) => _$SnPublisherSubscriptionFromJson(json);
+class _SnPublisherSubscriptionCompact implements SnPublisherSubscriptionCompact {
+  const _SnPublisherSubscriptionCompact({required this.accountId, required this.publisherId, required this.publisher});
+  factory _SnPublisherSubscriptionCompact.fromJson(Map<String, dynamic> json) => _$SnPublisherSubscriptionCompactFromJson(json);
 
 @override final  String accountId;
 @override final  String publisherId;
 @override final  SnPublisher publisher;
 
-/// Create a copy of SnPublisherSubscription
+/// Create a copy of SnPublisherSubscriptionCompact
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SnPublisherSubscriptionCopyWith<_SnPublisherSubscription> get copyWith => __$SnPublisherSubscriptionCopyWithImpl<_SnPublisherSubscription>(this, _$identity);
+_$SnPublisherSubscriptionCompactCopyWith<_SnPublisherSubscriptionCompact> get copyWith => __$SnPublisherSubscriptionCompactCopyWithImpl<_SnPublisherSubscriptionCompact>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$SnPublisherSubscriptionToJson(this, );
+  return _$SnPublisherSubscriptionCompactToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherSubscription&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherSubscriptionCompact&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1176,15 +1176,15 @@ int get hashCode => Object.hash(runtimeType,accountId,publisherId,publisher);
 
 @override
 String toString() {
-  return 'SnPublisherSubscription(accountId: $accountId, publisherId: $publisherId, publisher: $publisher)';
+  return 'SnPublisherSubscriptionCompact(accountId: $accountId, publisherId: $publisherId, publisher: $publisher)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SnPublisherSubscriptionCopyWith<$Res> implements $SnPublisherSubscriptionCopyWith<$Res> {
-  factory _$SnPublisherSubscriptionCopyWith(_SnPublisherSubscription value, $Res Function(_SnPublisherSubscription) _then) = __$SnPublisherSubscriptionCopyWithImpl;
+abstract mixin class _$SnPublisherSubscriptionCompactCopyWith<$Res> implements $SnPublisherSubscriptionCompactCopyWith<$Res> {
+  factory _$SnPublisherSubscriptionCompactCopyWith(_SnPublisherSubscriptionCompact value, $Res Function(_SnPublisherSubscriptionCompact) _then) = __$SnPublisherSubscriptionCompactCopyWithImpl;
 @override @useResult
 $Res call({
  String accountId, String publisherId, SnPublisher publisher
@@ -1195,17 +1195,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$SnPublisherSubscriptionCopyWithImpl<$Res>
-    implements _$SnPublisherSubscriptionCopyWith<$Res> {
-  __$SnPublisherSubscriptionCopyWithImpl(this._self, this._then);
+class __$SnPublisherSubscriptionCompactCopyWithImpl<$Res>
+    implements _$SnPublisherSubscriptionCompactCopyWith<$Res> {
+  __$SnPublisherSubscriptionCompactCopyWithImpl(this._self, this._then);
 
-  final _SnPublisherSubscription _self;
-  final $Res Function(_SnPublisherSubscription) _then;
+  final _SnPublisherSubscriptionCompact _self;
+  final $Res Function(_SnPublisherSubscriptionCompact) _then;
 
-/// Create a copy of SnPublisherSubscription
+/// Create a copy of SnPublisherSubscriptionCompact
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? accountId = null,Object? publisherId = null,Object? publisher = null,}) {
-  return _then(_SnPublisherSubscription(
+  return _then(_SnPublisherSubscriptionCompact(
 accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,publisher: null == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
@@ -1213,7 +1213,7 @@ as SnPublisher,
   ));
 }
 
-/// Create a copy of SnPublisherSubscription
+/// Create a copy of SnPublisherSubscriptionCompact
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

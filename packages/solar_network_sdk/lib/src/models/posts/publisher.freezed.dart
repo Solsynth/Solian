@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPublisher {
 
- String get id; int get type; String get name; String get nick; String get bio; SnCloudFile? get picture; SnCloudFile? get background; SnAccount? get account; String? get accountId; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String? get realmId; SnVerificationMark? get verification; bool get followRequiresApproval; bool get postsRequireFollow;
+ String get id; int get type; String get name; String get nick; String get bio; SnCloudFile? get picture; SnCloudFile? get background; SnAccount? get account; String? get accountId; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String? get realmId; SnVerificationMark? get verification; bool get isShadowbanned; bool get isGatekept; bool get isModerateSubscription;
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPublisherCopyWith<SnPublisher> get copyWith => _$SnPublisherCopyWithImpl<SnPu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.followRequiresApproval, followRequiresApproval) || other.followRequiresApproval == followRequiresApproval)&&(identical(other.postsRequireFollow, postsRequireFollow) || other.postsRequireFollow == postsRequireFollow));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.isShadowbanned, isShadowbanned) || other.isShadowbanned == isShadowbanned)&&(identical(other.isGatekept, isGatekept) || other.isGatekept == isGatekept)&&(identical(other.isModerateSubscription, isModerateSubscription) || other.isModerateSubscription == isModerateSubscription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification,followRequiresApproval,postsRequireFollow);
+int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification,isShadowbanned,isGatekept,isModerateSubscription);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification, followRequiresApproval: $followRequiresApproval, postsRequireFollow: $postsRequireFollow)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification, isShadowbanned: $isShadowbanned, isGatekept: $isGatekept, isModerateSubscription: $isModerateSubscription)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnPublisherCopyWith<$Res>  {
   factory $SnPublisherCopyWith(SnPublisher value, $Res Function(SnPublisher) _then) = _$SnPublisherCopyWithImpl;
 @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification, bool followRequiresApproval, bool postsRequireFollow
+ String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification, bool isShadowbanned, bool isGatekept, bool isModerateSubscription
 });
 
 
@@ -65,7 +65,7 @@ class _$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,Object? followRequiresApproval = null,Object? postsRequireFollow = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,Object? isShadowbanned = null,Object? isGatekept = null,Object? isModerateSubscription = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -81,8 +81,9 @@ as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ig
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,followRequiresApproval: null == followRequiresApproval ? _self.followRequiresApproval : followRequiresApproval // ignore: cast_nullable_to_non_nullable
-as bool,postsRequireFollow: null == postsRequireFollow ? _self.postsRequireFollow : postsRequireFollow // ignore: cast_nullable_to_non_nullable
+as SnVerificationMark?,isShadowbanned: null == isShadowbanned ? _self.isShadowbanned : isShadowbanned // ignore: cast_nullable_to_non_nullable
+as bool,isGatekept: null == isGatekept ? _self.isGatekept : isGatekept // ignore: cast_nullable_to_non_nullable
+as bool,isModerateSubscription: null == isModerateSubscription ? _self.isModerateSubscription : isModerateSubscription // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -213,10 +214,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool followRequiresApproval,  bool postsRequireFollow)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublisher() when $default != null:
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.followRequiresApproval,_that.postsRequireFollow);case _:
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription);case _:
   return orElse();
 
 }
@@ -234,10 +235,10 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool followRequiresApproval,  bool postsRequireFollow)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisher():
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.followRequiresApproval,_that.postsRequireFollow);}
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -251,10 +252,10 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool followRequiresApproval,  bool postsRequireFollow)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisher() when $default != null:
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.followRequiresApproval,_that.postsRequireFollow);case _:
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription);case _:
   return null;
 
 }
@@ -266,7 +267,7 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 @JsonSerializable()
 
 class _SnPublisher implements SnPublisher {
-  const _SnPublisher({this.id = '', this.type = 0, this.name = '', this.nick = '', this.bio = '', this.picture, this.background, this.account, this.accountId, this.createdAt = null, this.updatedAt = null, this.deletedAt, this.realmId, this.verification, this.followRequiresApproval = false, this.postsRequireFollow = false});
+  const _SnPublisher({this.id = '', this.type = 0, this.name = '', this.nick = '', this.bio = '', this.picture, this.background, this.account, this.accountId, this.createdAt = null, this.updatedAt = null, this.deletedAt, this.realmId, this.verification, this.isShadowbanned = false, this.isGatekept = false, this.isModerateSubscription = false});
   factory _SnPublisher.fromJson(Map<String, dynamic> json) => _$SnPublisherFromJson(json);
 
 @override@JsonKey() final  String id;
@@ -283,8 +284,9 @@ class _SnPublisher implements SnPublisher {
 @override final  DateTime? deletedAt;
 @override final  String? realmId;
 @override final  SnVerificationMark? verification;
-@override@JsonKey() final  bool followRequiresApproval;
-@override@JsonKey() final  bool postsRequireFollow;
+@override@JsonKey() final  bool isShadowbanned;
+@override@JsonKey() final  bool isGatekept;
+@override@JsonKey() final  bool isModerateSubscription;
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
@@ -299,16 +301,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.followRequiresApproval, followRequiresApproval) || other.followRequiresApproval == followRequiresApproval)&&(identical(other.postsRequireFollow, postsRequireFollow) || other.postsRequireFollow == postsRequireFollow));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.isShadowbanned, isShadowbanned) || other.isShadowbanned == isShadowbanned)&&(identical(other.isGatekept, isGatekept) || other.isGatekept == isGatekept)&&(identical(other.isModerateSubscription, isModerateSubscription) || other.isModerateSubscription == isModerateSubscription));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification,followRequiresApproval,postsRequireFollow);
+int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,verification,isShadowbanned,isGatekept,isModerateSubscription);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification, followRequiresApproval: $followRequiresApproval, postsRequireFollow: $postsRequireFollow)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, verification: $verification, isShadowbanned: $isShadowbanned, isGatekept: $isGatekept, isModerateSubscription: $isModerateSubscription)';
 }
 
 
@@ -319,7 +321,7 @@ abstract mixin class _$SnPublisherCopyWith<$Res> implements $SnPublisherCopyWith
   factory _$SnPublisherCopyWith(_SnPublisher value, $Res Function(_SnPublisher) _then) = __$SnPublisherCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification, bool followRequiresApproval, bool postsRequireFollow
+ String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnVerificationMark? verification, bool isShadowbanned, bool isGatekept, bool isModerateSubscription
 });
 
 
@@ -336,7 +338,7 @@ class __$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,Object? followRequiresApproval = null,Object? postsRequireFollow = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? verification = freezed,Object? isShadowbanned = null,Object? isGatekept = null,Object? isModerateSubscription = null,}) {
   return _then(_SnPublisher(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -352,8 +354,9 @@ as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ig
 as DateTime?,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String?,verification: freezed == verification ? _self.verification : verification // ignore: cast_nullable_to_non_nullable
-as SnVerificationMark?,followRequiresApproval: null == followRequiresApproval ? _self.followRequiresApproval : followRequiresApproval // ignore: cast_nullable_to_non_nullable
-as bool,postsRequireFollow: null == postsRequireFollow ? _self.postsRequireFollow : postsRequireFollow // ignore: cast_nullable_to_non_nullable
+as SnVerificationMark?,isShadowbanned: null == isShadowbanned ? _self.isShadowbanned : isShadowbanned // ignore: cast_nullable_to_non_nullable
+as bool,isGatekept: null == isGatekept ? _self.isGatekept : isGatekept // ignore: cast_nullable_to_non_nullable
+as bool,isModerateSubscription: null == isModerateSubscription ? _self.isModerateSubscription : isModerateSubscription // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -1836,7 +1839,7 @@ as String?,
 /// @nodoc
 mixin _$SnPublisherSubscriptionStatus {
 
- SnPublisherFollowStatus? get subscription; SnPublisherFollowRequest? get followRequest; bool get requiresApproval; String get status; String get message;
+ SnPublisherSubscription? get subscription; SnPublisherFollowRequest? get followRequest; bool get requiresApproval; String get status; String get message; bool get isPending; bool get isActive;
 /// Create a copy of SnPublisherSubscriptionStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1849,16 +1852,16 @@ $SnPublisherSubscriptionStatusCopyWith<SnPublisherSubscriptionStatus> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherSubscriptionStatus&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.followRequest, followRequest) || other.followRequest == followRequest)&&(identical(other.requiresApproval, requiresApproval) || other.requiresApproval == requiresApproval)&&(identical(other.status, status) || other.status == status)&&(identical(other.message, message) || other.message == message));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherSubscriptionStatus&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.followRequest, followRequest) || other.followRequest == followRequest)&&(identical(other.requiresApproval, requiresApproval) || other.requiresApproval == requiresApproval)&&(identical(other.status, status) || other.status == status)&&(identical(other.message, message) || other.message == message)&&(identical(other.isPending, isPending) || other.isPending == isPending)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,subscription,followRequest,requiresApproval,status,message);
+int get hashCode => Object.hash(runtimeType,subscription,followRequest,requiresApproval,status,message,isPending,isActive);
 
 @override
 String toString() {
-  return 'SnPublisherSubscriptionStatus(subscription: $subscription, followRequest: $followRequest, requiresApproval: $requiresApproval, status: $status, message: $message)';
+  return 'SnPublisherSubscriptionStatus(subscription: $subscription, followRequest: $followRequest, requiresApproval: $requiresApproval, status: $status, message: $message, isPending: $isPending, isActive: $isActive)';
 }
 
 
@@ -1869,11 +1872,11 @@ abstract mixin class $SnPublisherSubscriptionStatusCopyWith<$Res>  {
   factory $SnPublisherSubscriptionStatusCopyWith(SnPublisherSubscriptionStatus value, $Res Function(SnPublisherSubscriptionStatus) _then) = _$SnPublisherSubscriptionStatusCopyWithImpl;
 @useResult
 $Res call({
- SnPublisherFollowStatus? subscription, SnPublisherFollowRequest? followRequest, bool requiresApproval, String status, String message
+ SnPublisherSubscription? subscription, SnPublisherFollowRequest? followRequest, bool requiresApproval, String status, String message, bool isPending, bool isActive
 });
 
 
-$SnPublisherFollowStatusCopyWith<$Res>? get subscription;$SnPublisherFollowRequestCopyWith<$Res>? get followRequest;
+$SnPublisherSubscriptionCopyWith<$Res>? get subscription;$SnPublisherFollowRequestCopyWith<$Res>? get followRequest;
 
 }
 /// @nodoc
@@ -1886,26 +1889,28 @@ class _$SnPublisherSubscriptionStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisherSubscriptionStatus
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? subscription = freezed,Object? followRequest = freezed,Object? requiresApproval = null,Object? status = null,Object? message = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? subscription = freezed,Object? followRequest = freezed,Object? requiresApproval = null,Object? status = null,Object? message = null,Object? isPending = null,Object? isActive = null,}) {
   return _then(_self.copyWith(
 subscription: freezed == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
-as SnPublisherFollowStatus?,followRequest: freezed == followRequest ? _self.followRequest : followRequest // ignore: cast_nullable_to_non_nullable
+as SnPublisherSubscription?,followRequest: freezed == followRequest ? _self.followRequest : followRequest // ignore: cast_nullable_to_non_nullable
 as SnPublisherFollowRequest?,requiresApproval: null == requiresApproval ? _self.requiresApproval : requiresApproval // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
+as String,isPending: null == isPending ? _self.isPending : isPending // ignore: cast_nullable_to_non_nullable
+as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of SnPublisherSubscriptionStatus
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnPublisherFollowStatusCopyWith<$Res>? get subscription {
+$SnPublisherSubscriptionCopyWith<$Res>? get subscription {
     if (_self.subscription == null) {
     return null;
   }
 
-  return $SnPublisherFollowStatusCopyWith<$Res>(_self.subscription!, (value) {
+  return $SnPublisherSubscriptionCopyWith<$Res>(_self.subscription!, (value) {
     return _then(_self.copyWith(subscription: value));
   });
 }/// Create a copy of SnPublisherSubscriptionStatus
@@ -1999,10 +2004,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnPublisherFollowStatus? subscription,  SnPublisherFollowRequest? followRequest,  bool requiresApproval,  String status,  String message)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnPublisherSubscription? subscription,  SnPublisherFollowRequest? followRequest,  bool requiresApproval,  String status,  String message,  bool isPending,  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublisherSubscriptionStatus() when $default != null:
-return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_that.status,_that.message);case _:
+return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_that.status,_that.message,_that.isPending,_that.isActive);case _:
   return orElse();
 
 }
@@ -2020,10 +2025,10 @@ return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnPublisherFollowStatus? subscription,  SnPublisherFollowRequest? followRequest,  bool requiresApproval,  String status,  String message)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnPublisherSubscription? subscription,  SnPublisherFollowRequest? followRequest,  bool requiresApproval,  String status,  String message,  bool isPending,  bool isActive)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisherSubscriptionStatus():
-return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_that.status,_that.message);}
+return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_that.status,_that.message,_that.isPending,_that.isActive);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2037,10 +2042,10 @@ return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnPublisherFollowStatus? subscription,  SnPublisherFollowRequest? followRequest,  bool requiresApproval,  String status,  String message)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnPublisherSubscription? subscription,  SnPublisherFollowRequest? followRequest,  bool requiresApproval,  String status,  String message,  bool isPending,  bool isActive)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisherSubscriptionStatus() when $default != null:
-return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_that.status,_that.message);case _:
+return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_that.status,_that.message,_that.isPending,_that.isActive);case _:
   return null;
 
 }
@@ -2052,14 +2057,16 @@ return $default(_that.subscription,_that.followRequest,_that.requiresApproval,_t
 @JsonSerializable()
 
 class _SnPublisherSubscriptionStatus implements SnPublisherSubscriptionStatus {
-  const _SnPublisherSubscriptionStatus({this.subscription, this.followRequest, this.requiresApproval = false, this.status = 'none', this.message = ''});
+  const _SnPublisherSubscriptionStatus({this.subscription, this.followRequest, this.requiresApproval = false, this.status = 'none', this.message = '', this.isPending = false, this.isActive = false});
   factory _SnPublisherSubscriptionStatus.fromJson(Map<String, dynamic> json) => _$SnPublisherSubscriptionStatusFromJson(json);
 
-@override final  SnPublisherFollowStatus? subscription;
+@override final  SnPublisherSubscription? subscription;
 @override final  SnPublisherFollowRequest? followRequest;
 @override@JsonKey() final  bool requiresApproval;
 @override@JsonKey() final  String status;
 @override@JsonKey() final  String message;
+@override@JsonKey() final  bool isPending;
+@override@JsonKey() final  bool isActive;
 
 /// Create a copy of SnPublisherSubscriptionStatus
 /// with the given fields replaced by the non-null parameter values.
@@ -2074,16 +2081,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherSubscriptionStatus&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.followRequest, followRequest) || other.followRequest == followRequest)&&(identical(other.requiresApproval, requiresApproval) || other.requiresApproval == requiresApproval)&&(identical(other.status, status) || other.status == status)&&(identical(other.message, message) || other.message == message));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherSubscriptionStatus&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.followRequest, followRequest) || other.followRequest == followRequest)&&(identical(other.requiresApproval, requiresApproval) || other.requiresApproval == requiresApproval)&&(identical(other.status, status) || other.status == status)&&(identical(other.message, message) || other.message == message)&&(identical(other.isPending, isPending) || other.isPending == isPending)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,subscription,followRequest,requiresApproval,status,message);
+int get hashCode => Object.hash(runtimeType,subscription,followRequest,requiresApproval,status,message,isPending,isActive);
 
 @override
 String toString() {
-  return 'SnPublisherSubscriptionStatus(subscription: $subscription, followRequest: $followRequest, requiresApproval: $requiresApproval, status: $status, message: $message)';
+  return 'SnPublisherSubscriptionStatus(subscription: $subscription, followRequest: $followRequest, requiresApproval: $requiresApproval, status: $status, message: $message, isPending: $isPending, isActive: $isActive)';
 }
 
 
@@ -2094,11 +2101,11 @@ abstract mixin class _$SnPublisherSubscriptionStatusCopyWith<$Res> implements $S
   factory _$SnPublisherSubscriptionStatusCopyWith(_SnPublisherSubscriptionStatus value, $Res Function(_SnPublisherSubscriptionStatus) _then) = __$SnPublisherSubscriptionStatusCopyWithImpl;
 @override @useResult
 $Res call({
- SnPublisherFollowStatus? subscription, SnPublisherFollowRequest? followRequest, bool requiresApproval, String status, String message
+ SnPublisherSubscription? subscription, SnPublisherFollowRequest? followRequest, bool requiresApproval, String status, String message, bool isPending, bool isActive
 });
 
 
-@override $SnPublisherFollowStatusCopyWith<$Res>? get subscription;@override $SnPublisherFollowRequestCopyWith<$Res>? get followRequest;
+@override $SnPublisherSubscriptionCopyWith<$Res>? get subscription;@override $SnPublisherFollowRequestCopyWith<$Res>? get followRequest;
 
 }
 /// @nodoc
@@ -2111,14 +2118,16 @@ class __$SnPublisherSubscriptionStatusCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisherSubscriptionStatus
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? subscription = freezed,Object? followRequest = freezed,Object? requiresApproval = null,Object? status = null,Object? message = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? subscription = freezed,Object? followRequest = freezed,Object? requiresApproval = null,Object? status = null,Object? message = null,Object? isPending = null,Object? isActive = null,}) {
   return _then(_SnPublisherSubscriptionStatus(
 subscription: freezed == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
-as SnPublisherFollowStatus?,followRequest: freezed == followRequest ? _self.followRequest : followRequest // ignore: cast_nullable_to_non_nullable
+as SnPublisherSubscription?,followRequest: freezed == followRequest ? _self.followRequest : followRequest // ignore: cast_nullable_to_non_nullable
 as SnPublisherFollowRequest?,requiresApproval: null == requiresApproval ? _self.requiresApproval : requiresApproval // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
+as String,isPending: null == isPending ? _self.isPending : isPending // ignore: cast_nullable_to_non_nullable
+as bool,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -2126,12 +2135,12 @@ as String,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnPublisherFollowStatusCopyWith<$Res>? get subscription {
+$SnPublisherSubscriptionCopyWith<$Res>? get subscription {
     if (_self.subscription == null) {
     return null;
   }
 
-  return $SnPublisherFollowStatusCopyWith<$Res>(_self.subscription!, (value) {
+  return $SnPublisherSubscriptionCopyWith<$Res>(_self.subscription!, (value) {
     return _then(_self.copyWith(subscription: value));
   });
 }/// Create a copy of SnPublisherSubscriptionStatus
@@ -2147,6 +2156,595 @@ $SnPublisherFollowRequestCopyWith<$Res>? get followRequest {
     return _then(_self.copyWith(followRequest: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$SnPublisherSubscriber {
+
+ SnPublisherSubscription get subscription; SnAccount? get account;
+/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPublisherSubscriberCopyWith<SnPublisherSubscriber> get copyWith => _$SnPublisherSubscriberCopyWithImpl<SnPublisherSubscriber>(this as SnPublisherSubscriber, _$identity);
+
+  /// Serializes this SnPublisherSubscriber to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherSubscriber&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.account, account) || other.account == account));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,subscription,account);
+
+@override
+String toString() {
+  return 'SnPublisherSubscriber(subscription: $subscription, account: $account)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPublisherSubscriberCopyWith<$Res>  {
+  factory $SnPublisherSubscriberCopyWith(SnPublisherSubscriber value, $Res Function(SnPublisherSubscriber) _then) = _$SnPublisherSubscriberCopyWithImpl;
+@useResult
+$Res call({
+ SnPublisherSubscription subscription, SnAccount? account
+});
+
+
+$SnPublisherSubscriptionCopyWith<$Res> get subscription;$SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class _$SnPublisherSubscriberCopyWithImpl<$Res>
+    implements $SnPublisherSubscriberCopyWith<$Res> {
+  _$SnPublisherSubscriberCopyWithImpl(this._self, this._then);
+
+  final SnPublisherSubscriber _self;
+  final $Res Function(SnPublisherSubscriber) _then;
+
+/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? subscription = null,Object? account = freezed,}) {
+  return _then(_self.copyWith(
+subscription: null == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
+as SnPublisherSubscription,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,
+  ));
+}
+/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherSubscriptionCopyWith<$Res> get subscription {
+  
+  return $SnPublisherSubscriptionCopyWith<$Res>(_self.subscription, (value) {
+    return _then(_self.copyWith(subscription: value));
+  });
+}/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnPublisherSubscriber].
+extension SnPublisherSubscriberPatterns on SnPublisherSubscriber {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherSubscriber value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPublisherSubscriber() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherSubscriber value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherSubscriber():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherSubscriber value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherSubscriber() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SnPublisherSubscription subscription,  SnAccount? account)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPublisherSubscriber() when $default != null:
+return $default(_that.subscription,_that.account);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SnPublisherSubscription subscription,  SnAccount? account)  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherSubscriber():
+return $default(_that.subscription,_that.account);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SnPublisherSubscription subscription,  SnAccount? account)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherSubscriber() when $default != null:
+return $default(_that.subscription,_that.account);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPublisherSubscriber implements SnPublisherSubscriber {
+  const _SnPublisherSubscriber({required this.subscription, required this.account});
+  factory _SnPublisherSubscriber.fromJson(Map<String, dynamic> json) => _$SnPublisherSubscriberFromJson(json);
+
+@override final  SnPublisherSubscription subscription;
+@override final  SnAccount? account;
+
+/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPublisherSubscriberCopyWith<_SnPublisherSubscriber> get copyWith => __$SnPublisherSubscriberCopyWithImpl<_SnPublisherSubscriber>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPublisherSubscriberToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherSubscriber&&(identical(other.subscription, subscription) || other.subscription == subscription)&&(identical(other.account, account) || other.account == account));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,subscription,account);
+
+@override
+String toString() {
+  return 'SnPublisherSubscriber(subscription: $subscription, account: $account)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPublisherSubscriberCopyWith<$Res> implements $SnPublisherSubscriberCopyWith<$Res> {
+  factory _$SnPublisherSubscriberCopyWith(_SnPublisherSubscriber value, $Res Function(_SnPublisherSubscriber) _then) = __$SnPublisherSubscriberCopyWithImpl;
+@override @useResult
+$Res call({
+ SnPublisherSubscription subscription, SnAccount? account
+});
+
+
+@override $SnPublisherSubscriptionCopyWith<$Res> get subscription;@override $SnAccountCopyWith<$Res>? get account;
+
+}
+/// @nodoc
+class __$SnPublisherSubscriberCopyWithImpl<$Res>
+    implements _$SnPublisherSubscriberCopyWith<$Res> {
+  __$SnPublisherSubscriberCopyWithImpl(this._self, this._then);
+
+  final _SnPublisherSubscriber _self;
+  final $Res Function(_SnPublisherSubscriber) _then;
+
+/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? subscription = null,Object? account = freezed,}) {
+  return _then(_SnPublisherSubscriber(
+subscription: null == subscription ? _self.subscription : subscription // ignore: cast_nullable_to_non_nullable
+as SnPublisherSubscription,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
+as SnAccount?,
+  ));
+}
+
+/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherSubscriptionCopyWith<$Res> get subscription {
+  
+  return $SnPublisherSubscriptionCopyWith<$Res>(_self.subscription, (value) {
+    return _then(_self.copyWith(subscription: value));
+  });
+}/// Create a copy of SnPublisherSubscriber
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnAccountCopyWith<$Res>? get account {
+    if (_self.account == null) {
+    return null;
+  }
+
+  return $SnAccountCopyWith<$Res>(_self.account!, (value) {
+    return _then(_self.copyWith(account: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnPublisherSubscription {
+
+ String get id; String get publisherId; String get accountId; DateTime? get lastReadAt; bool get notify; DateTime? get endedAt; SubscriptionEndReason? get endReason; String? get endedByAccountId; bool get isActive; DateTime get createdAt; DateTime get updatedAt;
+/// Create a copy of SnPublisherSubscription
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnPublisherSubscriptionCopyWith<SnPublisherSubscription> get copyWith => _$SnPublisherSubscriptionCopyWithImpl<SnPublisherSubscription>(this as SnPublisherSubscription, _$identity);
+
+  /// Serializes this SnPublisherSubscription to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisherSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.lastReadAt, lastReadAt) || other.lastReadAt == lastReadAt)&&(identical(other.notify, notify) || other.notify == notify)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.endReason, endReason) || other.endReason == endReason)&&(identical(other.endedByAccountId, endedByAccountId) || other.endedByAccountId == endedByAccountId)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,publisherId,accountId,lastReadAt,notify,endedAt,endReason,endedByAccountId,isActive,createdAt,updatedAt);
+
+@override
+String toString() {
+  return 'SnPublisherSubscription(id: $id, publisherId: $publisherId, accountId: $accountId, lastReadAt: $lastReadAt, notify: $notify, endedAt: $endedAt, endReason: $endReason, endedByAccountId: $endedByAccountId, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnPublisherSubscriptionCopyWith<$Res>  {
+  factory $SnPublisherSubscriptionCopyWith(SnPublisherSubscription value, $Res Function(SnPublisherSubscription) _then) = _$SnPublisherSubscriptionCopyWithImpl;
+@useResult
+$Res call({
+ String id, String publisherId, String accountId, DateTime? lastReadAt, bool notify, DateTime? endedAt, SubscriptionEndReason? endReason, String? endedByAccountId, bool isActive, DateTime createdAt, DateTime updatedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnPublisherSubscriptionCopyWithImpl<$Res>
+    implements $SnPublisherSubscriptionCopyWith<$Res> {
+  _$SnPublisherSubscriptionCopyWithImpl(this._self, this._then);
+
+  final SnPublisherSubscription _self;
+  final $Res Function(SnPublisherSubscription) _then;
+
+/// Create a copy of SnPublisherSubscription
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? publisherId = null,Object? accountId = null,Object? lastReadAt = freezed,Object? notify = null,Object? endedAt = freezed,Object? endReason = freezed,Object? endedByAccountId = freezed,Object? isActive = null,Object? createdAt = null,Object? updatedAt = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,lastReadAt: freezed == lastReadAt ? _self.lastReadAt : lastReadAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,notify: null == notify ? _self.notify : notify // ignore: cast_nullable_to_non_nullable
+as bool,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,endReason: freezed == endReason ? _self.endReason : endReason // ignore: cast_nullable_to_non_nullable
+as SubscriptionEndReason?,endedByAccountId: freezed == endedByAccountId ? _self.endedByAccountId : endedByAccountId // ignore: cast_nullable_to_non_nullable
+as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnPublisherSubscription].
+extension SnPublisherSubscriptionPatterns on SnPublisherSubscription {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnPublisherSubscription value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnPublisherSubscription() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnPublisherSubscription value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherSubscription():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnPublisherSubscription value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnPublisherSubscription() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String publisherId,  String accountId,  DateTime? lastReadAt,  bool notify,  DateTime? endedAt,  SubscriptionEndReason? endReason,  String? endedByAccountId,  bool isActive,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnPublisherSubscription() when $default != null:
+return $default(_that.id,_that.publisherId,_that.accountId,_that.lastReadAt,_that.notify,_that.endedAt,_that.endReason,_that.endedByAccountId,_that.isActive,_that.createdAt,_that.updatedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String publisherId,  String accountId,  DateTime? lastReadAt,  bool notify,  DateTime? endedAt,  SubscriptionEndReason? endReason,  String? endedByAccountId,  bool isActive,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherSubscription():
+return $default(_that.id,_that.publisherId,_that.accountId,_that.lastReadAt,_that.notify,_that.endedAt,_that.endReason,_that.endedByAccountId,_that.isActive,_that.createdAt,_that.updatedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String publisherId,  String accountId,  DateTime? lastReadAt,  bool notify,  DateTime? endedAt,  SubscriptionEndReason? endReason,  String? endedByAccountId,  bool isActive,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnPublisherSubscription() when $default != null:
+return $default(_that.id,_that.publisherId,_that.accountId,_that.lastReadAt,_that.notify,_that.endedAt,_that.endReason,_that.endedByAccountId,_that.isActive,_that.createdAt,_that.updatedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnPublisherSubscription implements SnPublisherSubscription {
+  const _SnPublisherSubscription({required this.id, required this.publisherId, required this.accountId, this.lastReadAt, this.notify = true, this.endedAt, this.endReason, this.endedByAccountId, this.isActive = true, required this.createdAt, required this.updatedAt});
+  factory _SnPublisherSubscription.fromJson(Map<String, dynamic> json) => _$SnPublisherSubscriptionFromJson(json);
+
+@override final  String id;
+@override final  String publisherId;
+@override final  String accountId;
+@override final  DateTime? lastReadAt;
+@override@JsonKey() final  bool notify;
+@override final  DateTime? endedAt;
+@override final  SubscriptionEndReason? endReason;
+@override final  String? endedByAccountId;
+@override@JsonKey() final  bool isActive;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+
+/// Create a copy of SnPublisherSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnPublisherSubscriptionCopyWith<_SnPublisherSubscription> get copyWith => __$SnPublisherSubscriptionCopyWithImpl<_SnPublisherSubscription>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnPublisherSubscriptionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisherSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.lastReadAt, lastReadAt) || other.lastReadAt == lastReadAt)&&(identical(other.notify, notify) || other.notify == notify)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.endReason, endReason) || other.endReason == endReason)&&(identical(other.endedByAccountId, endedByAccountId) || other.endedByAccountId == endedByAccountId)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,publisherId,accountId,lastReadAt,notify,endedAt,endReason,endedByAccountId,isActive,createdAt,updatedAt);
+
+@override
+String toString() {
+  return 'SnPublisherSubscription(id: $id, publisherId: $publisherId, accountId: $accountId, lastReadAt: $lastReadAt, notify: $notify, endedAt: $endedAt, endReason: $endReason, endedByAccountId: $endedByAccountId, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnPublisherSubscriptionCopyWith<$Res> implements $SnPublisherSubscriptionCopyWith<$Res> {
+  factory _$SnPublisherSubscriptionCopyWith(_SnPublisherSubscription value, $Res Function(_SnPublisherSubscription) _then) = __$SnPublisherSubscriptionCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String publisherId, String accountId, DateTime? lastReadAt, bool notify, DateTime? endedAt, SubscriptionEndReason? endReason, String? endedByAccountId, bool isActive, DateTime createdAt, DateTime updatedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnPublisherSubscriptionCopyWithImpl<$Res>
+    implements _$SnPublisherSubscriptionCopyWith<$Res> {
+  __$SnPublisherSubscriptionCopyWithImpl(this._self, this._then);
+
+  final _SnPublisherSubscription _self;
+  final $Res Function(_SnPublisherSubscription) _then;
+
+/// Create a copy of SnPublisherSubscription
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? publisherId = null,Object? accountId = null,Object? lastReadAt = freezed,Object? notify = null,Object? endedAt = freezed,Object? endReason = freezed,Object? endedByAccountId = freezed,Object? isActive = null,Object? createdAt = null,Object? updatedAt = null,}) {
+  return _then(_SnPublisherSubscription(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,lastReadAt: freezed == lastReadAt ? _self.lastReadAt : lastReadAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,notify: null == notify ? _self.notify : notify // ignore: cast_nullable_to_non_nullable
+as bool,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,endReason: freezed == endReason ? _self.endReason : endReason // ignore: cast_nullable_to_non_nullable
+as SubscriptionEndReason?,endedByAccountId: freezed == endedByAccountId ? _self.endedByAccountId : endedByAccountId // ignore: cast_nullable_to_non_nullable
+as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,
+  ));
+}
+
+
 }
 
 // dart format on

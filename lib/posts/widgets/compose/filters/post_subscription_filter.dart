@@ -13,7 +13,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'post_subscription_filter.g.dart';
 
 class PublisherSubscriptionLiveItem {
-  final SnPublisherSubscription subscription;
+  final SnPublisherSubscriptionCompact subscription;
   final bool isLive;
   final DateTime? latestContentAt;
   final bool hasNewContent;
@@ -56,7 +56,7 @@ final publishersSubscriptionsLiveProvider =
       return (response.data as List).whereType<Map>().map((raw) {
         final json = Map<String, dynamic>.from(raw);
         final subRaw = json['subscription'];
-        final sub = SnPublisherSubscription.fromJson(
+        final sub = SnPublisherSubscriptionCompact.fromJson(
           Map<String, dynamic>.from(subRaw is Map ? subRaw : json),
         );
         DateTime? latestContentAt;

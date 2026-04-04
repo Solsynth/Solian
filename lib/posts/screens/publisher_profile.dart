@@ -129,19 +129,16 @@ class _PinnedPostsPageView extends HookConsumerWidget {
         );
 
         if (!isWideScreen(context)) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Card(margin: EdgeInsets.zero, child: contentWidget),
+          return Card(
+            margin: EdgeInsets.only(top: 16, bottom: 8),
+            child: contentWidget,
           );
         }
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Card.outlined(
-            margin: EdgeInsets.zero,
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
-            child: contentWidget,
-          ),
+        return Card.outlined(
+          margin: EdgeInsets.only(top: 16, bottom: 8),
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          child: contentWidget,
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -152,12 +149,12 @@ class _PinnedPostsPageView extends HookConsumerWidget {
 
 class _PublisherBasisWidget extends HookWidget {
   final SnPublisher data;
-  final AsyncValue<SnPublisherSubscription?> subStatus;
+  final AsyncValue<SnPublisherSubscriptionStatus?> subStatus;
   final AsyncValue<SnLiveStream?> liveStatus;
   final ValueNotifier<bool> subscribing;
   final VoidCallback subscribe;
   final VoidCallback unsubscribe;
-  final AsyncValue<SnPublisherSubscriptionStatus?> followRequest;
+  final void Function(bool currentNotify) toggleNotify;
 
   const _PublisherBasisWidget({
     required this.data,
@@ -166,7 +163,7 @@ class _PublisherBasisWidget extends HookWidget {
     required this.subscribing,
     required this.subscribe,
     required this.unsubscribe,
-    required this.followRequest,
+    required this.toggleNotify,
   });
 
   String _getFirstLine(String bio) {
@@ -230,6 +227,20 @@ class _PublisherBasisWidget extends HookWidget {
                               textOverride: data.nick,
                               hideVerificationMark: true,
                               style: TextStyle(fontSize: 20),
+                              suffixWidgets: [
+                                if (data.isModerateSubscription)
+                                  Tooltip(
+                                    message: 'publisherGatekeptHintShort'.tr(),
+                                    child: Icon(
+                                      Symbols.lock,
+                                      size: 14,
+                                      fill: 1,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  ),
+                              ],
                             )
                           else
                             Text(data.nick).fontSize(20),
@@ -332,13 +343,44 @@ class _PublisherBasisWidget extends HookWidget {
                       subStatus
                           .when(
                             data: (status) {
-                              final isPending = followRequest.maybeWhen(
-                                data: (data) =>
-                                    data?.followRequest?.state ==
-                                    FollowRequestState.pending,
-                                orElse: () => false,
-                              );
-                              if (isPending) {
+                              if (status == null) {
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    FilledButton.icon(
+                                      onPressed: subscribing.value
+                                          ? null
+                                          : subscribe,
+                                      icon: const Icon(Symbols.add_circle),
+                                      label: Text('subscribe').tr(),
+                                      style: ButtonStyle(
+                                        visualDensity: VisualDensity(
+                                          vertical: -2,
+                                        ),
+                                      ),
+                                    ),
+                                    if (data.isGatekept)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: Text(
+                                          'publisherFollowRequiresApprovalHint'
+                                              .tr(),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
+                                              ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              }
+                              if (status.isPending) {
                                 return OutlinedButton.icon(
                                   onPressed: subscribing.value
                                       ? null
@@ -352,25 +394,54 @@ class _PublisherBasisWidget extends HookWidget {
                                   ),
                                 );
                               }
-                              final isSubscribed = followRequest.maybeWhen(
-                                data: (data) => data?.status == 'subscribed',
-                                orElse: () => false,
-                              );
-                              return FilledButton.icon(
-                                onPressed: subscribing.value
-                                    ? null
-                                    : (isSubscribed ? unsubscribe : subscribe),
-                                icon: Icon(
-                                  isSubscribed
-                                      ? Symbols.remove_circle
-                                      : Symbols.add_circle,
-                                ),
-                                label: Text(
-                                  isSubscribed ? 'unsubscribe' : 'subscribe',
-                                ).tr(),
-                                style: ButtonStyle(
-                                  visualDensity: VisualDensity(vertical: -2),
-                                ),
+                              final isFollowing =
+                                  status.status == 'following' ||
+                                  status.status == 'subscribed' ||
+                                  status.subscription?.isActive == true;
+                              final currentNotify =
+                                  status.subscription?.notify ?? true;
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                spacing: 8,
+                                children: [
+                                  Expanded(
+                                    child: FilledButton.icon(
+                                      onPressed: subscribing.value
+                                          ? null
+                                          : (isFollowing
+                                                ? unsubscribe
+                                                : subscribe),
+                                      icon: Icon(
+                                        isFollowing
+                                            ? Symbols.remove_circle
+                                            : Symbols.add_circle,
+                                      ),
+                                      label: Text(
+                                        isFollowing
+                                            ? 'unsubscribe'
+                                            : 'subscribe',
+                                      ).tr(),
+                                      style: ButtonStyle(
+                                        visualDensity: VisualDensity(
+                                          vertical: -2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if (isFollowing)
+                                    IconButton(
+                                      onPressed: () =>
+                                          toggleNotify(currentNotify),
+                                      icon: Icon(
+                                        currentNotify
+                                            ? Symbols.notifications
+                                            : Symbols.notifications_off,
+                                      ),
+                                      tooltip: currentNotify
+                                          ? 'notificationsEnabled'.tr()
+                                          : 'notificationsDisabled'.tr(),
+                                    ),
+                                ],
                               );
                             },
                             error: (_, _) => const SizedBox(),
@@ -547,7 +618,7 @@ Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
 }
 
 @riverpod
-Future<SnPublisherSubscription?> publisherSubscriptionStatus(
+Future<SnPublisherSubscriptionStatus?> publisherSubscriptionStatus(
   Ref ref,
   String pubName,
 ) async {
@@ -556,7 +627,7 @@ Future<SnPublisherSubscription?> publisherSubscriptionStatus(
     final resp = await client.dio.get(
       "/sphere/publishers/$pubName/subscription",
     );
-    return SnPublisherSubscription.fromJson(resp.data);
+    return SnPublisherSubscriptionStatus.fromJson(resp.data);
   } catch (err) {
     if (err is DioException) {
       if (err.response?.statusCode == 404) return null;
@@ -628,7 +699,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final publisher = ref.watch(publisherProvider(name));
     final badges = ref.watch(publisherBadgesProvider(name));
     final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
-    final followRequest = ref.watch(publisherFollowRequestProvider(name));
     final heatmap = ref.watch(publisherHeatmapProvider(name));
 
     final categoryTabController = useTabController(initialLength: 3);
@@ -663,17 +733,36 @@ class PublisherProfileScreen extends HookConsumerWidget {
     }
 
     Future<void> unsubscribe() async {
+      final confirm = await showConfirmAlert(
+        'publisherUnsubscribeConfirmHint'.tr(),
+        'publisherUnsubscribeConfirm'.tr(),
+        isDanger: true,
+      );
+      if (confirm != true) return;
+
       final client = ref.watch(solarNetworkClientProvider);
       subscribing.value = true;
       try {
         await client.sphere.unsubscribeFromPublisher(name);
         ref.invalidate(publisherSubscriptionStatusProvider(name));
-        ref.invalidate(publisherFollowRequestProvider(name));
         HapticFeedback.heavyImpact();
       } catch (err) {
         showErrorAlert(err);
       } finally {
         subscribing.value = false;
+      }
+    }
+
+    Future<void> toggleNotify(bool currentNotify) async {
+      try {
+        final client = ref.watch(solarNetworkClientProvider);
+        await client.dio.patch(
+          '/sphere/publishers/$name/subscribers/me/notify',
+          data: {'notify': !currentNotify},
+        );
+        ref.invalidate(publisherSubscriptionStatusProvider(name));
+      } catch (err) {
+        showErrorAlert(err);
       }
     }
 
@@ -701,7 +790,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
                         child: CustomScrollView(
                           slivers: [
-                            SliverGap(16),
                             SliverToBoxAdapter(
                               child: _PinnedPostsPageView(
                                 pubName: name,
@@ -737,7 +825,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                 subscribing: subscribing,
                                 subscribe: subscribe,
                                 unsubscribe: unsubscribe,
-                                followRequest: followRequest,
+                                toggleNotify: toggleNotify,
                               ),
                               if (data.account?.badges.isNotEmpty ?? false)
                                 _PublisherBadgesWidget(
@@ -774,7 +862,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         subscribing: subscribing,
                         subscribe: subscribe,
                         unsubscribe: unsubscribe,
-                        followRequest: followRequest,
+                        toggleNotify: toggleNotify,
                       ).padding(horizontal: 12),
                     ),
                     const SliverGap(12),

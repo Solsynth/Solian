@@ -30,8 +30,9 @@ sealed class SnPublisher with _$SnPublisher {
     DateTime? deletedAt,
     String? realmId,
     SnVerificationMark? verification,
-    @Default(false) bool followRequiresApproval,
-    @Default(false) bool postsRequireFollow,
+    @Default(false) bool isShadowbanned,
+    @Default(false) bool isGatekept,
+    @Default(false) bool isModerateSubscription,
   }) = _SnPublisher;
 
   factory SnPublisher.fromJson(Map<String, dynamic> json) =>
@@ -114,13 +115,53 @@ sealed class SnPublisherFollowStatus with _$SnPublisherFollowStatus {
 sealed class SnPublisherSubscriptionStatus
     with _$SnPublisherSubscriptionStatus {
   const factory SnPublisherSubscriptionStatus({
-    SnPublisherFollowStatus? subscription,
+    SnPublisherSubscription? subscription,
     SnPublisherFollowRequest? followRequest,
     @Default(false) bool requiresApproval,
     @Default('none') String status,
     @Default('') String message,
+    @Default(false) bool isPending,
+    @Default(false) bool isActive,
   }) = _SnPublisherSubscriptionStatus;
 
   factory SnPublisherSubscriptionStatus.fromJson(Map<String, dynamic> json) =>
       _$SnPublisherSubscriptionStatusFromJson(json);
+}
+
+@freezed
+sealed class SnPublisherSubscriber with _$SnPublisherSubscriber {
+  const factory SnPublisherSubscriber({
+    required SnPublisherSubscription subscription,
+    required SnAccount? account,
+  }) = _SnPublisherSubscriber;
+
+  factory SnPublisherSubscriber.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherSubscriberFromJson(json);
+}
+
+enum SubscriptionEndReason {
+  @JsonValue('UserLeft')
+  userLeft,
+  @JsonValue('RemovedByPublisher')
+  removedByPublisher,
+}
+
+@freezed
+sealed class SnPublisherSubscription with _$SnPublisherSubscription {
+  const factory SnPublisherSubscription({
+    required String id,
+    required String publisherId,
+    required String accountId,
+    DateTime? lastReadAt,
+    @Default(true) bool notify,
+    DateTime? endedAt,
+    SubscriptionEndReason? endReason,
+    String? endedByAccountId,
+    @Default(true) bool isActive,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) = _SnPublisherSubscription;
+
+  factory SnPublisherSubscription.fromJson(Map<String, dynamic> json) =>
+      _$SnPublisherSubscriptionFromJson(json);
 }
