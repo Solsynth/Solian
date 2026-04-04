@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/route.dart';
 import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
@@ -17,25 +17,42 @@ class SharingIntentService {
 
   StreamSubscription<List<SharedFile>>? _intentSub;
 
-  /// Initialize the sharing intent service
-  void initialize(BuildContext _) {
+  List<SharedFile>? _pendingSharedFiles;
+  WidgetRef? _widgetRef;
+
+  bool get hasPendingShare => _pendingSharedFiles != null;
+
+  void setWidgetRef(WidgetRef ref) {
+    _widgetRef = ref;
+  }
+
+  void initialize() {
     if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
-    debugPrint("SharingIntentService: Initializing with context");
+    debugPrint("SharingIntentService: Initializing");
     _setupSharingListeners();
   }
 
-  /// Setup listeners for sharing intents
+  void checkAndShowShareSheet() {
+    if (_pendingSharedFiles == null || _widgetRef == null) return;
+    debugPrint("SharingIntentService: checkAndShowShareSheet called");
+    final files = _pendingSharedFiles!;
+    _pendingSharedFiles = null;
+    _handleSharedContentWithRef(files);
+  }
+
   void _setupSharingListeners() {
     debugPrint("SharingIntentService: Setting up sharing listeners");
 
-    // Listen to media sharing coming from outside the app while the app is in memory
     _intentSub = FlutterSharingIntent.instance.getMediaStream().listen(
       (List<SharedFile> value) {
         debugPrint(
           "SharingIntentService: Media stream received ${value.length} files",
         );
         if (value.isNotEmpty) {
-          _handleSharedContent(value);
+          _pendingSharedFiles = value;
+          if (_widgetRef != null) {
+            checkAndShowShareSheet();
+          }
         }
       },
       onError: (err) {
@@ -43,7 +60,6 @@ class SharingIntentService {
       },
     );
 
-    // Get the media sharing coming from outside the app while the app is closed
     FlutterSharingIntent.instance.getInitialSharing().then((
       List<SharedFile> value,
     ) {
@@ -51,15 +67,16 @@ class SharingIntentService {
         "SharingIntentService: Initial media received ${value.length} files",
       );
       if (value.isNotEmpty) {
-        _handleSharedContent(value);
-        // Tell the library that we are done processing the intent
+        _pendingSharedFiles = value;
         FlutterSharingIntent.instance.reset();
+        if (_widgetRef != null) {
+          checkAndShowShareSheet();
+        }
       }
     });
   }
 
-  /// Handle shared media files
-  void _handleSharedContent(
+  void _handleSharedContentWithRef(
     List<SharedFile> sharedFiles, {
     int retryCount = 0,
   }) {
@@ -72,7 +89,6 @@ class SharingIntentService {
       );
     }
 
-    // Convert SharedFile to XFile for files
     final List<XFile> files = sharedFiles
         .where(
           (file) =>
@@ -83,13 +99,11 @@ class SharingIntentService {
         .map((file) => XFile(file.value!, name: file.value!.split('/').last))
         .toList();
 
-    // Extract links from shared content
     final List<String> links = sharedFiles
         .where((file) => file.type == SharedMediaType.URL)
         .map((file) => file.value!)
         .toList();
 
-    // Treat solian:// URLs as deep links, not share payload.
     String? solianDeepLink;
     for (final url in links) {
       final normalized = url.trim();
@@ -109,7 +123,7 @@ class SharingIntentService {
       }
     }
 
-    final ctx = rootNavigatorKey.currentContext;
+    final ctx = _widgetRef!.read(routerProvider).navigatorKey.currentContext;
     if (ctx == null) {
       if (retryCount >= 12) {
         debugPrint(
@@ -121,12 +135,12 @@ class SharingIntentService {
         "SharingIntentService: Navigator context not ready, retrying...",
       );
       Future.delayed(const Duration(milliseconds: 250), () {
-        _handleSharedContent(sharedFiles, retryCount: retryCount + 1);
+        _handleSharedContentWithRef(sharedFiles, retryCount: retryCount + 1);
       });
       return;
     }
 
-    // Show ShareSheet with the shared files
+    debugPrint("SharingIntentService: Showing share sheet");
     if (files.isNotEmpty) {
       showShareSheet(context: ctx, content: ShareContent.files(files));
     } else if (links.isNotEmpty) {
@@ -144,7 +158,6 @@ class SharingIntentService {
     }
   }
 
-  /// Dispose of resources
   void dispose() {
     _intentSub?.cancel();
   }

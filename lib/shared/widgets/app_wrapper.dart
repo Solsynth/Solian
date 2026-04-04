@@ -105,7 +105,8 @@ class AppWrapper extends HookConsumerWidget {
       final ntySubs = setupNotificationListener(context, ref);
       final sharingService = SharingIntentService();
       final deeplinkService = DeeplinkService();
-      sharingService.initialize(context);
+      sharingService.setWidgetRef(ref);
+      sharingService.initialize();
       deeplinkService.initialize(
         onDeepLink: (uri) {
           void handleWhenReady([int retry = 0]) {
@@ -124,6 +125,20 @@ class AppWrapper extends HookConsumerWidget {
         },
       );
       UpdateService().checkForUpdates(context);
+
+      void checkPendingShare([int retry = 0]) {
+        final ctx = ref.read(routerProvider).navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          sharingService.checkAndShowShareSheet();
+          return;
+        }
+        if (retry >= 16) return;
+        Future.delayed(const Duration(milliseconds: 250), () {
+          checkPendingShare(retry + 1);
+        });
+      }
+
+      checkPendingShare();
 
       final trayService = TrayService.instance;
       trayService.initialize(
