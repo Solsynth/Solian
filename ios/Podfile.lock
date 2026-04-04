@@ -11,8 +11,6 @@ PODS:
   - flutter_inappwebview_ios/Core (0.0.1):
     - Flutter
     - OrderedSet (~> 6.0.3)
-  - flutter_keyboard_visibility (0.0.1):
-    - Flutter
   - flutter_sharing_intent (1.0.1):
     - Flutter
   - flutter_tts (0.0.1):
@@ -70,7 +68,6 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_app_update (from `.symlinks/plugins/flutter_app_update/ios`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
-  - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - flutter_sharing_intent (from `.symlinks/plugins/flutter_sharing_intent/ios`)
   - flutter_tts (from `.symlinks/plugins/flutter_tts/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
@@ -103,8 +100,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_app_update/ios"
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
-  flutter_keyboard_visibility:
-    :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
   flutter_sharing_intent:
     :path: ".symlinks/plugins/flutter_sharing_intent/ios"
   flutter_tts:
@@ -141,7 +136,6 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_app_update: 816fdb2e30e4832a7c45e3f108d391c42ef040a9
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
-  flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_sharing_intent: 0c1e53949f09fa8df8ac2268505687bde8ff264c
   flutter_tts: 35ac3c7d42412733e795ea96ad2d7e05d0a75113
   flutter_webrtc: c3e21fc0dcd9d8eb246ae4d5256fcbeb2f5ecd22
