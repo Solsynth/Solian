@@ -454,7 +454,7 @@ class ComposeLogic {
   }
 
   static Future<void> pickGeneralFile(WidgetRef ref, ComposeState state) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.any,
       allowMultiple: true,
     );
@@ -490,10 +490,9 @@ class ComposeLogic {
   }
 
   static Future<void> pickVideoMedia(WidgetRef ref, ComposeState state) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.video,
       allowMultiple: true,
-      allowCompression: false,
     );
     if (result == null || result.count == 0) return;
     state.attachments.value = [

@@ -51,8 +51,8 @@ class PadlockApi extends BaseApi {
       queryParameters: {
         'offset': offset,
         'take': take,
-        if (type != null) 'type': type,
-        if (clientId != null) 'clientId': clientId,
+        'type': ?type,
+        'clientId': ?clientId,
       },
     );
 

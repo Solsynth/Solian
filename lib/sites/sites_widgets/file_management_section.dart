@@ -61,11 +61,10 @@ class FileManagementSection extends HookConsumerWidget {
                         List<File> files = [];
                         List<Map<String, dynamic>>? results;
                         if (choice == 'files') {
-                          final selectedFiles = await FilePicker.platform
-                              .pickFiles(
-                                allowMultiple: true,
-                                type: FileType.any,
-                              );
+                          final selectedFiles = await FilePicker.pickFiles(
+                            allowMultiple: true,
+                            type: FileType.any,
+                          );
                           if (selectedFiles == null ||
                               selectedFiles.files.isEmpty) {
                             return; // User canceled
@@ -74,8 +73,7 @@ class FileManagementSection extends HookConsumerWidget {
                               .map((f) => File(f.path!))
                               .toList();
                         } else if (choice == 'folder') {
-                          final dirPath = await FilePicker.platform
-                              .getDirectoryPath();
+                          final dirPath = await FilePicker.getDirectoryPath();
                           if (dirPath == null) return;
                           results = await _getFilesRecursive(dirPath);
                           files = results

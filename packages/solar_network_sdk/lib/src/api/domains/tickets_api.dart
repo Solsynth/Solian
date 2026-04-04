@@ -1,5 +1,4 @@
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:solar_network_sdk/src/api/base_api.dart';
 
 /// API for ticket/support endpoints (/ticket).
 ///
@@ -155,10 +154,7 @@ class TicketsApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/tickets/$ticketId/messages',
-      data: {
-        'content': content,
-        if (fileIds != null) 'file_ids': fileIds,
-      },
+      data: {'content': content, 'file_ids': ?fileIds},
     );
     return SnTicketMessage.fromJson(response.data!);
   }
@@ -224,14 +220,10 @@ class TicketsApi extends BaseApi {
   /// Gets total ticket count with optional status filter.
   ///
   /// [status] - Optional status filter.
-  Future<int> getTicketCount({
-    int? status,
-  }) async {
+  Future<int> getTicketCount({int? status}) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/tickets/count',
-      queryParameters: {
-        if (status != null) 'status': status,
-      },
+      queryParameters: {'status': ?status},
     );
     return response.data!['count'] as int;
   }

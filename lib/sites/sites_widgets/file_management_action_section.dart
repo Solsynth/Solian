@@ -96,7 +96,7 @@ class FileManagementActionSection extends HookConsumerWidget {
   }
 
   Future<void> _deploySite(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['zip'],
       allowMultiple: false,

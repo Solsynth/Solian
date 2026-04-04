@@ -54,10 +54,9 @@ RoomFilePicker useRoomFilePicker(
   }
 
   Future<void> pickVideos() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.video,
       allowMultiple: true,
-      allowCompression: false,
     );
     if (result == null || result.count == 0 || !mounted.value) return;
     attachments.value = [
@@ -70,10 +69,9 @@ RoomFilePicker useRoomFilePicker(
   }
 
   Future<void> pickAudio() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.audio,
       allowMultiple: true,
-      allowCompression: false,
     );
     if (result == null || result.count == 0 || !mounted.value) return;
     attachments.value = [
@@ -86,10 +84,7 @@ RoomFilePicker useRoomFilePicker(
   }
 
   Future<void> pickFiles() async {
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      allowCompression: false,
-    );
+    final result = await FilePicker.pickFiles(allowMultiple: true);
     if (result == null || result.count == 0 || !mounted.value) return;
     attachments.value = [
       ...attachments.value,

@@ -87,9 +87,7 @@ class CloudFilePicker extends HookConsumerWidget {
 
     void pickFile() async {
       showLoadingModal(context);
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: allowMultiple,
-      );
+      final result = await FilePicker.pickFiles(allowMultiple: allowMultiple);
       if (result == null) {
         if (context.mounted) hideLoadingModal(context);
         return;
@@ -154,7 +152,7 @@ class CloudFilePicker extends HookConsumerWidget {
 
     void pickVideo() async {
       showLoadingModal(context);
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         allowMultiple: allowMultiple,
         type: FileType.video,
       );
