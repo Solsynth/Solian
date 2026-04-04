@@ -1193,18 +1193,21 @@ class _PhysicalPassportDetailSheetState
               ),
             const Gap(24),
             if (!passport.isLocked && !_isEditing) ...[
-              OutlinedButton.icon(
-                onPressed: _isSubmitting ? null : _writePassport,
-                icon: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Symbols.edit),
-                label: Text('writePhysicalPassport'.tr()),
-              ),
-              const Gap(8),
+              if (!passport.isEncrypted)
+                ...([
+                  const Gap(8),
+                  OutlinedButton.icon(
+                    onPressed: _isSubmitting ? null : _writePassport,
+                    icon: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Symbols.edit),
+                    label: Text('writePhysicalPassport'.tr()),
+                  ),
+                ]),
               OutlinedButton.icon(
                 onPressed: _isSubmitting ? null : _lockPassport,
                 icon: _isSubmitting
