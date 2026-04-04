@@ -172,8 +172,10 @@ Future<List<SnPublisherFollowRequest>> publisherFollowRequests(
   final response = await apiClient.get(
     '/sphere/publishers/$publisherName/subscription/requests',
   );
-  final data = SnPublisherFollowRequestListResponse.fromJson(response.data);
-  return data.requests;
+  return response.data
+      .map((e) => SnPublisherFollowRequest.fromJson(e))
+      .cast<SnPublisherFollowRequest>()
+      .toList();
 }
 
 @riverpod
@@ -712,8 +714,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             );
           },
         ),
-        if (publisherFeatures.value?['followRequiresApproval'] == true ||
-            publisherFeatures.value?['postsRequireFollow'] == true)
+        if (publisherFeatures.value?['followRequiresApproval'] == true)
           ListTile(
             shape: RoundedRectangleBorder(
               borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -1596,53 +1597,6 @@ class _PublisherFollowSheet extends HookConsumerWidget {
       publisherFollowRequestsProvider(publisherUname),
     );
     final apiClient = ref.read(apiClientProvider);
-    final isLoading = useState(false);
-
-    final publisherIdentity = ref.watch(
-      publisherIdentityProvider(publisherUname),
-    );
-    final isManager = (publisherIdentity.value?.role ?? 0) >= 50;
-
-    Future<void> submitFollow() async {
-      try {
-        isLoading.value = true;
-        await apiClient.post('/sphere/publishers/$publisherUname/subscribe');
-        ref.invalidate(publisherFollowRequestProvider(publisherUname));
-        if (context.mounted) {
-          showInfoAlert(
-            followRequest.value?.followRequest?.state ==
-                    FollowRequestState.pending
-                ? 'publisherFollowRequestSubmitted'.tr()
-                : 'publisherFollowed'.tr(),
-            'Success',
-            icon: Symbols.check_circle,
-          );
-        }
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        isLoading.value = false;
-      }
-    }
-
-    Future<void> cancelFollow() async {
-      final confirm = await showConfirmAlert(
-        'publisherUnfollowConfirmHint'.tr(),
-        'publisherUnfollow'.tr(),
-        isDanger: true,
-      );
-      if (confirm != true) return;
-
-      try {
-        isLoading.value = true;
-        await apiClient.post('/sphere/publishers/$publisherUname/unsubscribe');
-        ref.invalidate(publisherFollowRequestProvider(publisherUname));
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        isLoading.value = false;
-      }
-    }
 
     Future<void> approveFollow(String requestId) async {
       try {
@@ -1753,196 +1707,82 @@ class _PublisherFollowSheet extends HookConsumerWidget {
         data: (request) => SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: 16,
             children: [
-              if (!isManager)
-                Card.outlined(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (request == null) ...[
-                          Text(
-                            'publisherFollowDescription'.tr(),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const Gap(16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton.icon(
-                              onPressed: isLoading.value ? null : submitFollow,
-                              icon: isLoading.value
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Symbols.person_add),
-                              label: const Text('publisherFollowButton').tr(),
-                            ),
-                          ),
-                        ] else if (request.followRequest?.state ==
-                            FollowRequestState.pending) ...[
-                          Row(
-                            children: [
-                              const Icon(
-                                Symbols.hourglass_top,
-                                color: Colors.orange,
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  'publisherFollowPendingHint'.tr(),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Gap(16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: isLoading.value ? null : cancelFollow,
-                              icon: const Icon(Symbols.close),
-                              label: const Text('publisherCancelRequest').tr(),
-                            ),
-                          ),
-                        ] else if (request.followRequest?.state ==
-                            FollowRequestState.accepted) ...[
-                          Row(
-                            children: [
-                              const Icon(
-                                Symbols.check_circle,
-                                color: Colors.green,
-                              ),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  'publisherFollowAcceptedHint'.tr(),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Gap(16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: isLoading.value ? null : cancelFollow,
-                              icon: const Icon(Symbols.person_remove),
-                              label: const Text('publisherUnfollow').tr(),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ] else if (request.followRequest?.state ==
-                            FollowRequestState.rejected) ...[
-                          Row(
-                            children: [
-                              const Icon(Symbols.block, color: Colors.red),
-                              const Gap(8),
-                              Expanded(
-                                child: Text(
-                                  'publisherFollowRejectedHint'.tr(),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Gap(16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton.icon(
-                              onPressed: isLoading.value ? null : submitFollow,
-                              icon: const Icon(Symbols.refresh),
-                              label: const Text('publisherFollowAgain').tr(),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ).padding(horizontal: 16),
-              if (isManager) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'publisherFollowRequests'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'publisherFollowRequests'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                followRequests.when(
-                  data: (requests) {
-                    final pending = requests
-                        .where((r) => r.state == FollowRequestState.pending)
-                        .toList();
-                    if (pending.isEmpty) {
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Center(
-                            child: Text(
-                              'publisherFollowRequestsEmpty'.tr(),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withOpacity(0.6),
-                                  ),
-                            ),
+              ),
+              followRequests.when(
+                data: (requests) {
+                  final pending = requests
+                      .where((r) => r.state == FollowRequestState.pending)
+                      .toList();
+                  if (pending.isEmpty) {
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Center(
+                          child: Text(
+                            'publisherFollowRequestsEmpty'.tr(),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.6),
+                                ),
                           ),
                         ),
-                      ).padding(horizontal: 16);
-                    }
-                    return Card(
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: pending.length,
-                        separatorBuilder: (_, _) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final followReq = pending[index];
-                          return ListTile(
-                            leading: ProfilePictureWidget(
-                              file: followReq.account?.profile.picture,
-                            ),
-                            title: Text(followReq.account?.nick ?? 'Unknown'),
-                            subtitle: Text("@${followReq.account?.name ?? ''}"),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Symbols.check,
-                                    color: Colors.green,
-                                  ),
-                                  onPressed: () => approveFollow(followReq.id),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Symbols.close,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () => rejectFollow(followReq.id),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
                       ),
                     ).padding(horizontal: 16);
-                  },
-                  error: (_, _) => const SizedBox.shrink(),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                ),
-              ],
+                  }
+                  return Card(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: pending.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final followReq = pending[index];
+                        return ListTile(
+                          leading: ProfilePictureWidget(
+                            file: followReq.account?.profile.picture,
+                          ),
+                          title: Text(followReq.account?.nick ?? 'Unknown'),
+                          subtitle: Text("@${followReq.account?.name ?? ''}"),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Symbols.check,
+                                  color: Colors.green,
+                                ),
+                                onPressed: () => approveFollow(followReq.id),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Symbols.close,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => rejectFollow(followReq.id),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ).padding(horizontal: 16);
+                },
+                error: (_, _) => const SizedBox.shrink(),
+                loading: () => const Center(child: CircularProgressIndicator()),
+              ),
               ExpansionTile(
                 leading: const Icon(Symbols.info),
                 title: Text('publisherFollowWhatIs').tr(),
