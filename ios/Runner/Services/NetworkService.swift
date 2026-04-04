@@ -24,83 +24,7 @@ final class NetworkService {
         self.decoder.keyDecodingStrategy = .convertFromSnakeCase
     }
 
-    private var baseUrl: String {
-        UserDefaults.standard.getServerUrl()
-    }
-
-    private var baseHeaders: [String: String] {
-        [
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        ]
-    }
-
-    private func applyAuthHeaders(to request: inout URLRequest) async {
-        baseHeaders.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        if let token = UserDefaults.standard.getAuthToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-    }
-
-    func getNotificationCount() async throws -> Int {
-        let url = try buildUrl(path: SharedConstants.API.notificationsCount)
-        let response: NotificationCountResponse = try await get(url: url)
-        return response.count
-    }
-
-    func markNotificationsRead() async throws {
-        let url = try buildUrl(path: SharedConstants.API.notificationsMarkRead)
-        let _: EmptyResponse = try await post(url: url)
-    }
-
-    func getUnreadChatsCount() async throws -> Int {
-        let url = try buildUrl(path: SharedConstants.API.unreadChats)
-        let response: UnreadChatsResponse = try await get(url: url)
-        return response.unreadCount
-    }
-
-    func getMessages(channelId: String, offset: Int = 0, take: Int = 5) async throws -> [MessageResponse] {
-        let path = String(format: SharedConstants.API.messages, channelId)
-        let url = try buildUrl(path: path, queryItems: [
-            URLQueryItem(name: "offset", value: String(offset)),
-            URLQueryItem(name: "take", value: String(take))
-        ])
-        let response: MessagesResponse = try await get(url: url)
-        return response.messages
-    }
-
-    func sendMessage(channelId: String, content: String) async throws {
-        let path = String(format: SharedConstants.API.sendMessage, channelId)
-        let url = try buildUrl(path: path)
-        let body = SendMessageBody(content: content, nonce: generateNonce())
-        let _: EmptyResponse = try await post(url: url, body: body)
-    }
-
-    func getChatRooms() async throws -> [ChatRoomResponse] {
-        let url = try buildUrl(path: SharedConstants.API.chatRooms)
-        let response: ChatRoomsResponse = try await get(url: url)
-        return response.rooms
-    }
-
-    func searchChatRooms(query: String) async throws -> [ChatRoomResponse] {
-        let url = try buildUrl(path: SharedConstants.API.chatRooms, queryItems: [
-            URLQueryItem(name: "query", value: query)
-        ])
-        let response: ChatRoomsResponse = try await get(url: url)
-        return response.rooms
-    }
-
-    func searchPosts(query: String, limit: Int = 20) async throws -> [PostResponse] {
-        let url = try buildUrl(path: SharedConstants.API.searchPosts, queryItems: [
-            URLQueryItem(name: "query", value: query),
-            URLQueryItem(name: "take", value: String(limit)),
-            URLQueryItem(name: "mode", value: "personalized")
-        ])
-        let response: PostsResponse = try await get(url: url)
-        return response.items.compactMap { $0.post }
-    }
-
-    private func buildUrl(path: String, queryItems: [URLQueryItem]? = nil) throws -> URL {
+    private func buildUrl(baseUrl: String, path: String, queryItems: [URLQueryItem]? = nil) throws -> URL {
         var components = URLComponents(string: baseUrl + path)
         if let queryItems = queryItems, !queryItems.isEmpty {
             components?.queryItems = queryItems
@@ -111,45 +35,84 @@ final class NetworkService {
         return url
     }
 
-    private func get<T: Decodable>(url: URL) async throws -> T {
+    private func get<T: Decodable>(baseUrl: String, token: String?, url: URL) async throws -> T {
+        print("[NetworkService] GET: \(url.absoluteString)")
+        print("[NetworkService] Token: \(token != nil ? "present" : "nil")")
+
         var request = URLRequest(url: url)
-        await applyAuthHeaders(to: &request)
-
-        let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
-        return try decoder.decode(T.self, from: data)
-    }
-
-    private func post<T: Decodable>(url: URL) async throws -> T {
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        await applyAuthHeaders(to: &request)
-
-        let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
-
-        if T.self == EmptyResponse.self {
-            return EmptyResponse() as! T
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        return try decoder.decode(T.self, from: data)
+        do {
+            let (data, response) = try await session.data(for: request)
+            print("[NetworkService] Response status: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+            try validateResponse(response)
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            print("[NetworkService] GET Error: \(error.localizedDescription)")
+            throw error
+        }
     }
 
-    private func post<T: Decodable, B: Encodable>(url: URL, body: B) async throws -> T {
+    private func post<T: Decodable>(baseUrl: String, token: String?, url: URL) async throws -> T {
+        print("[NetworkService] POST: \(url.absoluteString)")
+        print("[NetworkService] Token: \(token != nil ? "present" : "nil")")
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        await applyAuthHeaders(to: &request)
-
-        request.httpBody = try JSONEncoder().encode(body)
-
-        let (data, response) = try await session.data(for: request)
-        try validateResponse(response)
-
-        if T.self == EmptyResponse.self {
-            return EmptyResponse() as! T
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        return try decoder.decode(T.self, from: data)
+        do {
+            let (data, response) = try await session.data(for: request)
+            print("[NetworkService] Response status: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+            try validateResponse(response)
+
+            if T.self == EmptyResponse.self {
+                return EmptyResponse() as! T
+            }
+
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            print("[NetworkService] POST Error: \(error.localizedDescription)")
+            throw error
+        }
+    }
+
+    private func post<T: Decodable, B: Encodable>(baseUrl: String, token: String?, url: URL, body: B) async throws -> T {
+        print("[NetworkService] POST with body: \(url.absoluteString)")
+        print("[NetworkService] Token: \(token != nil ? "present" : "nil")")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        do {
+            request.httpBody = try JSONEncoder().encode(body)
+
+            let (data, response) = try await session.data(for: request)
+            print("[NetworkService] Response status: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+            try validateResponse(response)
+
+            if T.self == EmptyResponse.self {
+                return EmptyResponse() as! T
+            }
+
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            print("[NetworkService] POST body Error: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     private func validateResponse(_ response: URLResponse) throws {
@@ -163,6 +126,66 @@ final class NetworkService {
 
     private func generateNonce() -> String {
         "\(Date().timeIntervalSince1970)"
+    }
+
+    // MARK: - Public Methods
+
+    func getNotificationCount(token: String, serverUrl: String) async throws -> Int {
+        let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.notificationsCount)
+        let response: NotificationCountResponse = try await get(baseUrl: serverUrl, token: token, url: url)
+        return response.count
+    }
+
+    func markNotificationsRead(token: String, serverUrl: String) async throws {
+        let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.notificationsMarkRead)
+        let _: EmptyResponse = try await post(baseUrl: serverUrl, token: token, url: url)
+    }
+
+    func getUnreadChatsCount(token: String, serverUrl: String) async throws -> Int {
+        let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.unreadChats)
+        let response: UnreadChatsResponse = try await get(baseUrl: serverUrl, token: token, url: url)
+        return response.unreadCount
+    }
+
+    func getMessages(channelId: String, offset: Int = 0, take: Int = 5, token: String, serverUrl: String) async throws -> [MessageResponse] {
+        let path = String(format: SharedConstants.API.messages, channelId)
+        let url = try buildUrl(baseUrl: serverUrl, path: path, queryItems: [
+            URLQueryItem(name: "offset", value: String(offset)),
+            URLQueryItem(name: "take", value: String(take))
+        ])
+        let response: MessagesResponse = try await get(baseUrl: serverUrl, token: token, url: url)
+        return response.messages
+    }
+
+    func sendMessage(channelId: String, content: String, token: String, serverUrl: String) async throws {
+        let path = String(format: SharedConstants.API.sendMessage, channelId)
+        let url = try buildUrl(baseUrl: serverUrl, path: path)
+        let body = SendMessageBody(content: content, nonce: generateNonce())
+        let _: EmptyResponse = try await post(baseUrl: serverUrl, token: token, url: url, body: body)
+    }
+
+    func getChatRooms(token: String, serverUrl: String) async throws -> [ChatRoomResponse] {
+        let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.chatRooms)
+        let response: ChatRoomsResponse = try await get(baseUrl: serverUrl, token: token, url: url)
+        return response.rooms
+    }
+
+    func searchChatRooms(query: String, token: String, serverUrl: String) async throws -> [ChatRoomResponse] {
+        let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.chatRooms, queryItems: [
+            URLQueryItem(name: "query", value: query)
+        ])
+        let response: ChatRoomsResponse = try await get(baseUrl: serverUrl, token: token, url: url)
+        return response.rooms
+    }
+
+    func searchPosts(query: String, limit: Int = 20, token: String, serverUrl: String) async throws -> [PostResponse] {
+        let url = try buildUrl(baseUrl: serverUrl, path: SharedConstants.API.searchPosts, queryItems: [
+            URLQueryItem(name: "query", value: query),
+            URLQueryItem(name: "take", value: String(limit)),
+            URLQueryItem(name: "mode", value: "personalized")
+        ])
+        let response: PostsResponse = try await get(baseUrl: serverUrl, token: token, url: url)
+        return response.items.compactMap { $0.post }
     }
 }
 

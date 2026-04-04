@@ -7,6 +7,30 @@
 
 import AppIntents
 
+// MARK: - Token Helper
+
+@available(iOS 16.0, *)
+struct AppIntentCredential {
+    static func getToken() -> String? {
+        let defaults = UserDefaults(suiteName: SharedConstants.appGroupId)
+        guard let jsonString = defaults?.string(forKey: SharedConstants.tokenKey),
+              let data = jsonString.data(using: .utf8),
+              let jsonObject = try? JSONSerialization.jsonObject(with: data),
+              let jsonDict = jsonObject as? [String: Any],
+              let token = jsonDict["token"] as? String else {
+            print("[AppIntentCredential] Failed to get token")
+            return nil
+        }
+        print("[AppIntentCredential] Token retrieved successfully")
+        return token
+    }
+
+    static func getServerUrl() -> String {
+        let defaults = UserDefaults(suiteName: SharedConstants.appGroupId)
+        return defaults?.string(forKey: SharedConstants.serverUrlKey) ?? SharedConstants.defaultServerUrl
+    }
+}
+
 // MARK: - Cache Helper
 
 @available(iOS 16.0, *)
@@ -86,7 +110,12 @@ struct ChatRoomEntityQuery: EntityQuery {
             return cached
         }
 
-        let rooms = try await NetworkService.shared.getChatRooms()
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
+        let rooms = try await NetworkService.shared.getChatRooms(token: token, serverUrl: serverUrl)
         let entities = rooms.map { room in
             ChatRoomEntity(
                 id: room.id,
@@ -142,7 +171,12 @@ struct PostEntityQuery: EntityQuery {
     }
 
     func entities(matching string: String) async throws -> [PostEntity] {
-        let posts = try await NetworkService.shared.searchPosts(query: string)
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
+        let posts = try await NetworkService.shared.searchPosts(query: string, token: token, serverUrl: serverUrl)
         return posts.map { post in
             PostEntity(
                 id: post.id,
@@ -159,7 +193,12 @@ struct PostEntityQuery: EntityQuery {
             return cached
         }
 
-        let posts = try await NetworkService.shared.searchPosts(query: "", limit: 10)
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
+        let posts = try await NetworkService.shared.searchPosts(query: "", limit: 10, token: token, serverUrl: serverUrl)
         let entities = posts.map { post in
             PostEntity(
                 id: post.id,
@@ -314,8 +353,13 @@ struct CheckNotificationsIntent: AppIntent {
     static var openAppWhenRun = false
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+        
         do {
-            let count = try await NetworkService.shared.getNotificationCount()
+            let count = try await NetworkService.shared.getNotificationCount(token: token, serverUrl: serverUrl)
 
             let message: String
             if count == 0 {
@@ -356,8 +400,13 @@ struct SendMessageIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
         do {
-            try await NetworkService.shared.sendMessage(channelId: chatRoom.id, content: message)
+            try await NetworkService.shared.sendMessage(channelId: chatRoom.id, content: message, token: token, serverUrl: serverUrl)
 
             return .result(
                 value: "Message sent to \(chatRoom.name ?? chatRoom.id)",
@@ -389,13 +438,20 @@ struct ReadMessagesIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
         let safeLimit = max(1, min(20, limit))
 
         do {
             let messages = try await NetworkService.shared.getMessages(
                 channelId: chatRoom.id,
                 offset: 0,
-                take: safeLimit
+                take: safeLimit,
+                token: token,
+                serverUrl: serverUrl
             )
 
             if messages.isEmpty {
@@ -431,8 +487,13 @@ struct CheckUnreadChatsIntent: AppIntent {
     static var openAppWhenRun = false
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
         do {
-            let count = try await NetworkService.shared.getUnreadChatsCount()
+            let count = try await NetworkService.shared.getUnreadChatsCount(token: token, serverUrl: serverUrl)
 
             let message: String
             if count == 0 {
@@ -463,8 +524,13 @@ struct MarkNotificationsReadIntent: AppIntent {
     static var openAppWhenRun = false
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let token = AppIntentCredential.getToken() else {
+            throw AppIntentError.networkError("Not logged in")
+        }
+        let serverUrl = AppIntentCredential.getServerUrl()
+
         do {
-            try await NetworkService.shared.markNotificationsRead()
+            try await NetworkService.shared.markNotificationsRead(token: token, serverUrl: serverUrl)
 
             return .result(
                 value: "All notifications marked as read",
