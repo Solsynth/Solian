@@ -329,10 +329,14 @@ struct SnCloudFile: Codable, Identifiable {
     let hash: String?
     let size: Int
     let uploadedAt: Date?
-    let createdAt: Date
-    let updatedAt: Date
+    let createdAt: Date?
+    let updatedAt: Date?
     let deletedAt: Date?
     let url: String?
+    let hasCompression: Bool?
+    let width: Int?
+    let height: Int?
+    let blurhash: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -349,6 +353,10 @@ struct SnCloudFile: Codable, Identifiable {
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
         case url
+        case hasCompression = "has_compression"
+        case width
+        case height
+        case blurhash
     }
 }
 
@@ -575,16 +583,19 @@ struct SnAccount: Codable {
     let nick: String
     let language: String
     let region: String
-    let isSuperuser: Bool
+    let isSuperuser: Bool?
     let automatedId: String?
     let profile: SnUserProfile
     let perkSubscription: SnWalletSubscriptionRef?
     let badges: [SnAccountBadge]
     let contacts: [SnContactMethod]
     let activatedAt: Date?
-    let createdAt: Date
-    let updatedAt: Date
+    let createdAt: Date?
+    let updatedAt: Date?
     let deletedAt: Date?
+    let accountId: String?
+    let resourceIdentifier: String?
+    let perkLevel: Int?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -602,6 +613,9 @@ struct SnAccount: Codable {
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
+        case accountId = "account_id"
+        case resourceIdentifier = "resource_identifier"
+        case perkLevel = "perk_level"
     }
     
     init(from decoder: Decoder) throws {
@@ -611,16 +625,19 @@ struct SnAccount: Codable {
         nick = try container.decode(String.self, forKey: .nick)
         language = try container.decodeIfPresent(String.self, forKey: .language) ?? ""
         region = try container.decodeIfPresent(String.self, forKey: .region) ?? ""
-        isSuperuser = try container.decode(Bool.self, forKey: .isSuperuser)
+        isSuperuser = try container.decodeIfPresent(Bool.self, forKey: .isSuperuser)
         automatedId = try container.decodeIfPresent(String.self, forKey: .automatedId)
         profile = try container.decode(SnUserProfile.self, forKey: .profile)
         perkSubscription = try container.decodeIfPresent(SnWalletSubscriptionRef.self, forKey: .perkSubscription)
         badges = try container.decodeIfPresent([SnAccountBadge].self, forKey: .badges) ?? []
         contacts = try container.decodeIfPresent([SnContactMethod].self, forKey: .contacts) ?? []
         activatedAt = try container.decodeIfPresent(Date.self, forKey: .activatedAt)
-        createdAt = try container.decode(Date.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
+        accountId = try? container.decode(String.self, forKey: .accountId)
+        resourceIdentifier = try? container.decodeIfPresent(String.self, forKey: .resourceIdentifier)
+        perkLevel = try? container.decodeIfPresent(Int.self, forKey: .perkLevel)
     }
 }
 
@@ -668,12 +685,12 @@ struct SnContactMethod: Codable, Identifiable {
     let id: String
     let type: Int
     let verifiedAt: Date?
-    let isPrimary: Bool
-    let isPublic: Bool
+    let isPrimary: Bool?
+    let isPublic: Bool?
     let content: String
-    let accountId: String
-    let createdAt: Date
-    let updatedAt: Date
+    let accountId: String?
+    let createdAt: Date?
+    let updatedAt: Date?
     let deletedAt: Date?
     
     enum CodingKeys: String, CodingKey {
@@ -713,8 +730,8 @@ struct SnUserProfile: Codable {
     let background: SnCloudFile?
     let verification: SnVerificationMark?
     let usernameColor: UsernameColor?
-    let createdAt: Date
-    let updatedAt: Date
+    let createdAt: Date?
+    let updatedAt: Date?
     let deletedAt: Date?
     
     enum CodingKeys: String, CodingKey {
@@ -760,17 +777,17 @@ struct SnUserProfile: Codable {
         links = try container.decodeIfPresent([ProfileLink].self, forKey: .links) ?? []
         lastSeenAt = try container.decodeIfPresent(Date.self, forKey: .lastSeenAt)
         activeBadge = try container.decodeIfPresent(SnAccountBadge.self, forKey: .activeBadge)
-        experience = try container.decode(Int.self, forKey: .experience)
-        level = try container.decode(Int.self, forKey: .level)
+        experience = try container.decodeIfPresent(Int.self, forKey: .experience) ?? 0
+        level = try container.decodeIfPresent(Int.self, forKey: .level) ?? 1
         socialCredits = try container.decodeIfPresent(Double.self, forKey: .socialCredits) ?? 100.0
         socialCreditsLevel = try container.decodeIfPresent(Int.self, forKey: .socialCreditsLevel) ?? 0
-        levelingProgress = try container.decode(Double.self, forKey: .levelingProgress)
+        levelingProgress = try container.decodeIfPresent(Double.self, forKey: .levelingProgress) ?? 0.0
         picture = try container.decodeIfPresent(SnCloudFile.self, forKey: .picture)
         background = try container.decodeIfPresent(SnCloudFile.self, forKey: .background)
         verification = try container.decodeIfPresent(SnVerificationMark.self, forKey: .verification)
         usernameColor = try container.decodeIfPresent(UsernameColor.self, forKey: .usernameColor)
-        createdAt = try container.decode(Date.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
     }
 }
@@ -801,8 +818,8 @@ struct UsernameColor: Codable {
 
 struct SnAccountStatus: Codable {
     let id: String
-    let attitude: Int
-    let isOnline: Bool
+    let attitude: Int?
+    let isOnline: Bool?
     let isCustomized: Bool
     let type: Int
     let label: String
@@ -837,8 +854,8 @@ struct SnAccountStatus: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
-        attitude = try container.decode(Int.self, forKey: .attitude)
-        isOnline = try container.decode(Bool.self, forKey: .isOnline)
+        attitude = try container.decodeIfPresent(Int.self, forKey: .attitude)
+        isOnline = try container.decodeIfPresent(Bool.self, forKey: .isOnline)
         isCustomized = try container.decodeIfPresent(Bool.self, forKey: .isCustomized) ?? false
         
         if let isInvisible = try? container.decodeIfPresent(Bool.self, forKey: .isOnline), isInvisible == true {
@@ -855,9 +872,9 @@ struct SnAccountStatus: Codable {
         clearedAt = try container.decodeIfPresent(Date.self, forKey: .clearedAt)
         appIdentifier = try container.decodeIfPresent(String.self, forKey: .appIdentifier)
         isAutomated = try container.decodeIfPresent(Bool.self, forKey: .isAutomated) ?? false
-        accountId = try container.decode(String.self, forKey: .accountId)
-        createdAt = try container.decode(Date.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        accountId = (try? container.decode(String.self, forKey: .accountId)) ?? ""
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
     }
     

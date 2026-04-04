@@ -146,7 +146,7 @@ struct AccountView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
                                     Circle()
-                                        .fill(status.isOnline ? Color.green : Color.gray)
+                                        .fill((status.isOnline ?? false) ? Color.green : Color.gray)
                                         .frame(width: 8, height: 8)
                                     Text(status.label.isEmpty ? "No status" : status.label)
                                         .font(.body)
@@ -203,10 +203,12 @@ struct AccountView: View {
                     }
                     
                     // Member since
-                    Text("Joined at \(user.createdAt.formatted(.dateTime.month(.abbreviated).year()))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(alignment: .leading)
+                    if let createdAt = user.createdAt {
+                        Text("Joined at \(createdAt.formatted(.dateTime.month(.abbreviated).year()))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(alignment: .leading)
+                    }
                 }
                 .padding()
                 // Load images when user data is available
@@ -245,17 +247,23 @@ struct AccountView: View {
     
     private func loadUserProfile() async {
         guard let token = appState.token, let serverUrl = appState.serverUrl else {
+            print("[AccountView] loadUserProfile - no token or serverUrl, token: \(appState.token != nil), serverUrl: \(appState.serverUrl != nil)")
             error = NSError(domain: "AccountView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Authentication not available"])
             return
         }
 
+        print("[AccountView] loadUserProfile - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
+        
         isLoading = true
         error = nil
 
         do {
+            print("[AccountView] loadUserProfile - calling fetchUserProfile")
             user = try await networkService.fetchUserProfile(token: token, serverUrl: serverUrl)
+            print("[AccountView] loadUserProfile - calling fetchAccountStatus")
             status = try await networkService.fetchAccountStatus(token: token, serverUrl: serverUrl)
         } catch {
+            print("[AccountView] loadUserProfile - error: \(error)")
             self.error = error
         }
 

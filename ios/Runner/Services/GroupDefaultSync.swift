@@ -14,8 +14,8 @@ private let flutterKeysToSync: [String] = [
     "app_server_url"
 ]
 
-func syncDefaultsToGroup() {
-    print("[iOS] syncDefaultsToGroup() called")
+func sendCfgToAppGroup() {
+    print("[iOS] sendCfgToAppGroup() called")
     
     let standard = UserDefaults.standard
     let shared = UserDefaults(suiteName: "group.solsynth.solian")

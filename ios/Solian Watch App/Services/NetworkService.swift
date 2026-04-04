@@ -200,31 +200,14 @@ class NetworkService {
     }
     
     func fetchUserProfile(token: String, serverUrl: String) async throws -> SnAccount {
+        print("[NetworkService] fetchUserProfile - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
+        
         guard let baseURL = URL(string: serverUrl) else {
+            print("[NetworkService] fetchUserProfile - bad URL: \(serverUrl)")
             throw URLError(.badURL)
         }
         let url = baseURL.appendingPathComponent("/passport/accounts/me")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
-        
-        let (data, _) = try await session.data(for: request)
-        
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
-        return try decoder.decode(SnAccount.self, from: data)
-    }
-    
-    func fetchAccountStatus(token: String, serverUrl: String) async throws -> SnAccountStatus? {
-        guard let baseURL = URL(string: serverUrl) else {
-            throw URLError(.badURL)
-        }
-        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
+        print("[NetworkService] fetchUserProfile - url: \(url)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -234,15 +217,58 @@ class NetworkService {
         
         let (data, response) = try await session.data(for: request)
         
-        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 404 {
-            return nil
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[NetworkService] fetchUserProfile - statusCode: \(httpResponse.statusCode)")
         }
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         
-        return try decoder.decode(SnAccountStatus.self, from: data)
+        do {
+            let account = try decoder.decode(SnAccount.self, from: data)
+            print("[NetworkService] fetchUserProfile - decode success, account: \(account.nick)")
+            return account
+        } catch {
+            print("[NetworkService] fetchUserProfile - decode error: \(error)")
+            print("[NetworkService] fetchUserProfile - raw JSON: \(String(data: data, encoding: .utf8) ?? "nil")")
+            throw error
+        }
+    }
+    
+    func fetchAccountStatus(token: String, serverUrl: String) async throws -> SnAccountStatus? {
+        print("[NetworkService] fetchAccountStatus - token: \(token.prefix(10))..., serverUrl: \(serverUrl)")
+        
+        guard let baseURL = URL(string: serverUrl) else {
+            print("[NetworkService] fetchAccountStatus - bad URL: \(serverUrl)")
+            throw URLError(.badURL)
+        }
+        let url = baseURL.appendingPathComponent("/passport/accounts/me/statuses")
+        print("[NetworkService] fetchAccountStatus - url: \(url)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("SolianWatch/1.0", forHTTPHeaderField: "User-Agent")
+        
+        let (data, response) = try await session.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[NetworkService] fetchAccountStatus - statusCode: \(httpResponse.statusCode)")
+            if httpResponse.statusCode == 404 {
+                print("[NetworkService] fetchAccountStatus - no status found")
+                return nil
+            }
+        }
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        let status = try decoder.decode(SnAccountStatus.self, from: data)
+        print("[NetworkService] fetchAccountStatus - success")
+        return status
     }
     
     func createOrUpdateStatus(attitude: Int, isInvisible: Bool, isNotDisturb: Bool, label: String?, token: String, serverUrl: String) async throws -> SnAccountStatus {

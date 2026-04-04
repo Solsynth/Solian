@@ -14,7 +14,7 @@ import flutter_sharing_intent
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        syncDefaultsToGroup()
+        sendCfgToAppGroup()
         WidgetCenter.shared.reloadAllTimelines()
 
         UNUserNotificationCenter.current().delegate = notifyDelegate
@@ -66,8 +66,8 @@ import flutter_sharing_intent
         )
 
         channel.setMethodCallHandler { [weak self] (call, result) in
-            if call.method == "syncToWidget" {
-                syncDefaultsToGroup()
+            if call.method == "sendCfgToAppGroup" {
+                sendCfgToAppGroup()
                 WidgetCenter.shared.reloadAllTimelines()
                 result(true)
             } else {
@@ -77,12 +77,12 @@ import flutter_sharing_intent
     }
 
     override func applicationDidEnterBackground(_ application: UIApplication) {
-        syncDefaultsToGroup()
+        sendCfgToAppGroup()
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     override func applicationWillTerminate(_ application: UIApplication) {
-        syncDefaultsToGroup()
+        sendCfgToAppGroup()
     }
 }
 

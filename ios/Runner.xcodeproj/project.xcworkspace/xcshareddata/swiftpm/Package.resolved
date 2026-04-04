@@ -145,12 +145,30 @@
       }
     },
     {
+      "identity" : "kingfisherwebp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/yeatse/KingfisherWebP",
+      "state" : {
+        "revision" : "6939874df4417cc37a05893ac2f27332e6668460",
+        "version" : "1.7.3"
+      }
+    },
+    {
       "identity" : "leveldb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/leveldb.git",
       "state" : {
         "revision" : "a0bc79961d7be727d258d33d5a6b2f1023270ba1",
         "version" : "1.22.5"
+      }
+    },
+    {
+      "identity" : "libwebp-xcode",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SDWebImage/libwebp-Xcode.git",
+      "state" : {
+        "revision" : "0d60654eeefd5d7d2bef3835804892c40225e8b2",
+        "version" : "1.5.0"
       }
     },
     {

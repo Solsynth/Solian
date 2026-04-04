@@ -21,18 +21,11 @@ class NotificationService: UNNotificationServiceExtension {
     private var contentHandler: ((UNNotificationContent) -> Void)?
     private var bestAttemptContent: UNMutableNotificationContent?
     
-    override class func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+    override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         KingfisherManager.shared.defaultOptions += [
             .processor(WebPProcessor.default),
             .cacheSerializer(WebPSerializer.default)
         ]
-        super.didReceive(request, withContentHandler: contentHandler)
-    }
-    
-    override func didReceive(
-        _ request: UNNotificationRequest,
-        withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
-    ) {
         self.contentHandler = contentHandler
         guard let bestAttemptContent = request.content.mutableCopy() as? UNMutableNotificationContent else {
             contentHandler(request.content)
