@@ -466,6 +466,7 @@ class CloudVideoWidget extends HookConsumerWidget {
 
     return GestureDetector(
       child: Stack(
+        fit: StackFit.expand,
         children: [
           UniversalImage(uri: '$uri?thumbnail=true'),
           Positioned.fill(

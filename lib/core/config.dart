@@ -70,6 +70,7 @@ const kAppDashboardConfig = 'app_dashboard_config';
 const kRealmDisplayModeList = 'list';
 const kRealmDisplayModeCard = 'card';
 const kAppExploreSettings = 'app_explore_settings';
+const kAppMediaProxyEnabled = 'app_media_proxy_enabled';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -161,6 +162,7 @@ sealed class AppSettings with _$AppSettings {
     required bool showChatSystemMessages,
     required DashboardConfig? dashboardConfig,
     required ExploreSettings exploreSettings,
+    required bool mediaProxyEnabled,
   }) = _AppSettings;
 }
 
@@ -214,6 +216,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       showChatSystemMessages: chatEventMessageMode != kChatEventMessageModeNone,
       dashboardConfig: _getDashboardConfigFromPrefs(prefs),
       exploreSettings: _getExploreSettingsFromPrefs(prefs),
+      mediaProxyEnabled: prefs.getBool(kAppMediaProxyEnabled) ?? true,
     );
   }
 
@@ -535,6 +538,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final json = jsonEncode(value.toJson());
     prefs.setString(kAppExploreSettings, json);
     state = state.copyWith(exploreSettings: value);
+  }
+
+  void setMediaProxyEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppMediaProxyEnabled, value);
+    state = state.copyWith(mediaProxyEnabled: value);
   }
 }
 
