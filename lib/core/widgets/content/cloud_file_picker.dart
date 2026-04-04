@@ -73,7 +73,13 @@ class CloudFilePicker extends HookConsumerWidget {
           result.add(cloudFile);
         }
 
-        if (context.mounted) Navigator.pop(context, result);
+        if (context.mounted) {
+          if (allowMultiple) {
+            Navigator.pop(context, result);
+          } else {
+            Navigator.pop(context, result.isNotEmpty ? result.first : null);
+          }
+        }
       } catch (err) {
         showErrorAlert(err);
       }
@@ -202,26 +208,28 @@ class CloudFilePicker extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
+            padding: EdgeInsets.only(top: 16, left: 20, right: 8, bottom: 12),
             child: Row(
               children: [
                 Text(
                   'pickFile'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Symbols.close),
                   onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size(36, 36),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          const Divider(),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -241,19 +249,13 @@ class CloudFilePicker extends HookConsumerWidget {
                               ],
                             )
                             .opacity(0.85),
-                        LinearProgressIndicator(
-                          value: uploadOverallProgress,
-                          color: Theme.of(context).colorScheme.primary,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceVariant,
-                        ),
+                        const LinearProgressIndicator(),
                       ],
                     ),
                   if (files.value.isNotEmpty)
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: ElevatedButton.icon(
+                      child: FilledButton.icon(
                         onPressed: startUpload,
                         icon: const Icon(Symbols.play_arrow),
                         label: Text('uploadAll'.tr()),
@@ -261,7 +263,7 @@ class CloudFilePicker extends HookConsumerWidget {
                     ),
                   if (files.value.isNotEmpty)
                     SizedBox(
-                      height: 280,
+                      height: 140,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: files.value.length,
@@ -284,41 +286,28 @@ class CloudFilePicker extends HookConsumerWidget {
                       ),
                     ),
                   Card(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
                     margin: EdgeInsets.zero,
                     child: Column(
                       children: [
                         ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
                           leading: const Icon(Symbols.link),
                           title: Text('addLinkAttachment'.tr()),
                           onTap: () => pickLinkAttachment(),
                         ),
                         if (allowedTypes.contains(UniversalFileType.image))
                           ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
                             leading: const Icon(Symbols.photo),
                             title: Text('addPhoto'.tr()),
                             onTap: () => pickImage(),
                           ),
                         if (allowedTypes.contains(UniversalFileType.video))
                           ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
                             leading: const Icon(Symbols.video_call),
                             title: Text('addVideo'.tr()),
                             onTap: () => pickVideo(),
                           ),
                         if (allowedTypes.contains(UniversalFileType.file))
                           ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
                             leading: const Icon(Symbols.draft),
                             title: Text('addFile'.tr()),
                             onTap: () => pickFile(),
@@ -327,7 +316,7 @@ class CloudFilePicker extends HookConsumerWidget {
                     ),
                   ),
                 ],
-              ).padding(all: 24),
+              ).padding(all: 20),
             ),
           ),
         ],

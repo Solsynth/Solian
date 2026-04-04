@@ -1740,7 +1740,7 @@ class _NearbyPresenceCard extends HookWidget {
                 Expanded(
                   child: SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    value: discoverable,
+                    value: advertiseSupported && discoverable,
                     onChanged: busy || !advertiseSupported
                         ? null
                         : onToggleDiscoverable,
@@ -2032,7 +2032,7 @@ class _NearbyPeersCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('nearbyPeersTitle').tr().fontSize(18).bold(),
             const Gap(8),
