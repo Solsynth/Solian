@@ -20,7 +20,7 @@ part 'friends_overview.g.dart';
 Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
   final friends = await client.accounts.getFriendsOverview();
-  return friends.map((e) => SnFriendOverviewItem.fromJson(e.toJson())).toList();
+  return friends;
 }
 
 class FriendsOverviewWidget extends HookConsumerWidget {

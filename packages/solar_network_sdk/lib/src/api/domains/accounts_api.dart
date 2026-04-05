@@ -203,9 +203,9 @@ class AccountsApi extends BaseApi {
   }
 
   /// Gets the friends overview (mutual follows).
-  Future<List<SnAccount>> getFriendsOverview() async {
+  Future<List<SnFriendOverviewItem>> getFriendsOverview() async {
     final response = await get<List<dynamic>>('$_basePath/friends/overview');
-    return parseList(response, SnAccount.fromJson);
+    return parseList(response, SnFriendOverviewItem.fromJson);
   }
 
   // ==========================================
