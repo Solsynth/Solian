@@ -1,14 +1,19 @@
 import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/udid.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/auth/login.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:passkeys/authenticator.dart';
+import 'package:passkeys/types.dart';
 import 'package:pinput/pinput.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -308,15 +313,93 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
     try {
       showLoadingModal(context);
       final client = ref.read(solarNetworkClientProvider);
-      final factor = await client.auth.createFactor(
-        type: _selectedType,
-        data: {
-          if (_selectedType == 0 || _selectedType == 4)
-            'secret': _selectedType == 4
-                ? _pinController.text
-                : _secretController.text,
-        },
-      );
+      SnAuthFactor factor;
+
+      if (_selectedType == 7) {
+        final passkeyAuthenticator = PasskeyAuthenticator(debugMode: true);
+        final availability = await _getPasskeyAvailability(
+          passkeyAuthenticator,
+        );
+        if (!availability.hasPasskeySupport) {
+          if (mounted) {
+            hideLoadingModal(context);
+            showErrorAlert('passkeyNotSupported'.tr());
+          }
+          return;
+        }
+
+        final serverUrl = ref.read(serverUrlProvider);
+        final rpId = Uri.parse(serverUrl).host;
+        final rpName = 'Solar Network';
+        final deviceId = await getUdid();
+
+        final challengeResponse = await client.auth.startPasskeyRegistration(
+          deviceId: deviceId,
+          rpId: rpId,
+          rpName: rpName,
+        );
+
+        final serverOptions = challengeResponse;
+        final authSelection =
+            serverOptions['authenticator_selection'] as Map<String, dynamic>?;
+
+        final request = RegisterRequestType(
+          challenge: serverOptions['challenge'] as String,
+          relyingParty: RelyingPartyType(
+            id: serverOptions['rp_id'] as String,
+            name: serverOptions['rp_name'] as String,
+          ),
+          user: UserType(
+            id: serverOptions['user_id'] as String,
+            name: serverOptions['user_id'] as String,
+            displayName:
+                serverOptions['user_name'] as String? ??
+                serverOptions['user_id'] as String,
+          ),
+          excludeCredentials: [],
+          pubKeyCredParams: (serverOptions['pub_key_cred_params'] as List)
+              .map(
+                (e) => PubKeyCredParamType(
+                  type: e['type'] as String,
+                  alg: e['alg'] as int,
+                ),
+              )
+              .toList(),
+          authSelectionType: authSelection != null
+              ? AuthenticatorSelectionType(
+                  authenticatorAttachment:
+                      authSelection['authenticator_attachment'] as String?,
+                  residentKey:
+                      authSelection['resident_key'] as String? ?? 'preferred',
+                  userVerification:
+                      authSelection['user_verification'] as String? ??
+                      'preferred',
+                  requireResidentKey: false,
+                )
+              : null,
+          timeout: serverOptions['timeout'] as int?,
+          attestation: 'none',
+        );
+
+        final credential = await passkeyAuthenticator.register(request);
+
+        factor = await client.auth.completePasskeyRegistration(
+          deviceId: deviceId,
+          attestationObject: credential.attestationObject,
+          clientDataJson: credential.clientDataJSON,
+        );
+      } else {
+        factor = await client.auth.createFactor(
+          type: _selectedType,
+          data: {
+            if (_selectedType == 0 || _selectedType == 4)
+              'secret': _selectedType == 4
+                  ? _pinController.text
+                  : _secretController.text,
+          },
+        );
+      }
+
       if (!mounted) return;
       hideLoadingModal(context);
       if (factor.type == 3) {
@@ -348,6 +431,24 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
       showErrorAlert(err);
       if (mounted) hideLoadingModal(context);
     }
+  }
+
+  Future<AvailabilityType> _getPasskeyAvailability(
+    PasskeyAuthenticator authenticator,
+  ) async {
+    if (kIsWeb) {
+      return await authenticator.getAvailability().web();
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      return await authenticator.getAvailability().android();
+    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return await authenticator.getAvailability().iOS();
+    }
+    return AvailabilityTypeAndroid(
+      hasPasskeySupport: false,
+      isNative: true,
+      isUserVerifyingPlatformAuthenticatorAvailable: false,
+    );
   }
 
   @override

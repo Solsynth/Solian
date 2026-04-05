@@ -187,6 +187,7 @@ dependencies:
   pinput: ^6.0.2
   # https://github.com/djx-y-z/openmls_dart/issues/4
   flutter_rust_bridge: ^2.12.0
+  passkeys: ^2.18.0
 
 dev_dependencies:
   flutter_test:

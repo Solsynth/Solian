@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/network.dart';
@@ -91,7 +92,7 @@ class SnChatAccountStatus {
   /// Get subscription status for a specific room
   SnChatSubscriptionStatus? getSubscriptionForRoom(String roomId) {
     try {
-      return subscriptions.firstWhere((sub) => sub.roomId == roomId);
+      return subscriptions.firstWhereOrNull((sub) => sub.roomId == roomId);
     } catch (_) {
       return null;
     }

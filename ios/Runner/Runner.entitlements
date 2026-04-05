@@ -12,6 +12,7 @@
 	<array>
 		<string>webcredentials:solian.app</string>
 		<string>applinks:solian.app</string>
+		<string>webcredentials:api.solian.app</string>
 	</array>
 	<key>com.apple.developer.device-information.user-assigned-device-name</key>
 	<true/>
