@@ -186,7 +186,11 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
           seekBarColor: primaryColor.withValues(alpha: 0.3),
           seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
           seekBarThumbColor: primaryColor,
-          bottomButtonBar: [const MaterialSeekBar()],
+          bottomButtonBar: const [
+            MaterialPositionIndicator(),
+            Spacer(),
+            MaterialFullscreenButton(),
+          ],
         ),
         fullscreen: MaterialVideoControlsThemeData(
           visibleOnMount: true,
@@ -195,7 +199,11 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
           seekBarColor: primaryColor.withValues(alpha: 0.3),
           seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
           seekBarThumbColor: primaryColor,
-          bottomButtonBar: [const MaterialSeekBar()],
+          bottomButtonBar: const [
+            MaterialPositionIndicator(),
+            Spacer(),
+            MaterialFullscreenButton(),
+          ],
         ),
         child: video,
       );
@@ -209,9 +217,13 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
           seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
           seekBarThumbColor: primaryColor,
           bottomButtonBar: const [
+            MaterialDesktopSkipPreviousButton(),
+            MaterialDesktopPlayOrPauseButton(),
+            MaterialDesktopSkipNextButton(),
             MaterialDesktopVolumeButton(),
             MaterialDesktopPositionIndicator(),
             Spacer(),
+            MaterialDesktopFullscreenButton(),
           ],
         ),
         fullscreen: MaterialDesktopVideoControlsThemeData(
@@ -222,9 +234,13 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
           seekBarBufferColor: primaryColor.withValues(alpha: 0.5),
           seekBarThumbColor: primaryColor,
           bottomButtonBar: const [
+            MaterialDesktopSkipPreviousButton(),
+            MaterialDesktopPlayOrPauseButton(),
+            MaterialDesktopSkipNextButton(),
             MaterialDesktopVolumeButton(),
             MaterialDesktopPositionIndicator(),
             Spacer(),
+            MaterialDesktopFullscreenButton(),
           ],
         ),
         child: video,

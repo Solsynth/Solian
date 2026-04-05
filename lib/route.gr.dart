@@ -2375,10 +2375,11 @@ class FileDetailRoute extends _i76.PageRouteInfo<FileDetailRouteArgs> {
   FileDetailRoute({
     _i77.Key? key,
     required _i79.SnCloudFile item,
+    String? heroTag,
     List<_i76.PageRouteInfo>? children,
   }) : super(
          FileDetailRoute.name,
-         args: FileDetailRouteArgs(key: key, item: item),
+         args: FileDetailRouteArgs(key: key, item: item, heroTag: heroTag),
          initialChildren: children,
        );
 
@@ -2394,15 +2395,17 @@ class FileDetailRoute extends _i76.PageRouteInfo<FileDetailRouteArgs> {
 }
 
 class FileDetailRouteArgs {
-  const FileDetailRouteArgs({this.key, required this.item});
+  const FileDetailRouteArgs({this.key, required this.item, this.heroTag});
 
   final _i77.Key? key;
 
   final _i79.SnCloudFile item;
 
+  final String? heroTag;
+
   @override
   String toString() {
-    return 'FileDetailRouteArgs{key: $key, item: $item}';
+    return 'FileDetailRouteArgs{key: $key, item: $item, heroTag: $heroTag}';
   }
 
   @override

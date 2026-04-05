@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -217,7 +218,7 @@ class VideoFileContent extends HookConsumerWidget {
     var ratio = item.fileMeta?['ratio'] is num
         ? item.fileMeta!['ratio'].toDouble()
         : 1.0;
-    if (ratio == 0) ratio = 1.0;
+    if (ratio == 0) ratio = 16 / 9;
 
     return Center(
       child: AspectRatio(

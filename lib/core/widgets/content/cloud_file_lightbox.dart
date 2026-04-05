@@ -1,8 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -10,12 +6,10 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
-import 'package:island/shared/widgets/content/video.native.dart';
 import 'package:island/core/widgets/content/exif_info_overlay.dart';
 import 'package:island/core/widgets/content/file_action_button.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -49,7 +43,6 @@ class CloudFileLightbox extends HookConsumerWidget {
     final showExif = useState(ExifInfoOverlay.precheck(items[initialIndex]));
     final showOriginal = useState(false);
     final focusNode = useFocusNode();
-    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final serverUrl = ref.watch(serverUrlProvider);
@@ -148,28 +141,9 @@ class CloudFileLightbox extends HookConsumerWidget {
                     },
                   );
                 } else {
-                  Widget content;
-                  if (item.mimeType?.startsWith('video') == true) {
-                    content = _buildVideoViewer(context, ref, item, isMobile);
-                  } else if (item.mimeType?.startsWith('audio') == true) {
-                    content = _buildAudioViewer(context, ref, item);
-                  } else if (item.mimeType == 'application/pdf') {
-                    content = _buildPdfViewer(context, ref, item);
-                  } else {
-                    content = _buildGenericViewer(context, ref, item);
-                  }
-
-                  if (heroTag != null && index == initialIndex) {
-                    content = Hero(tag: heroTag!, child: content);
-                  }
-
                   return PhotoViewGalleryPageOptions.customChild(
-                    child: content,
+                    child: const SizedBox.shrink(),
                     disableGestures: true,
-                    onTapUp: (context, details, controller) {
-                      showControls.value = !showControls.value;
-                      controlsVisible.value = true;
-                    },
                   );
                 }
               },
@@ -296,13 +270,8 @@ class CloudFileLightbox extends HookConsumerWidget {
                   }
                 },
                 onDoubleTap: () {
-                  final currentItem = items[currentIndex.value];
-                  if (currentItem.mimeType?.startsWith('image') != true) {
-                    Navigator.of(context).pop();
-                  } else {
-                    showControls.value = !showControls.value;
-                    controlsVisible.value = true;
-                  }
+                  showControls.value = !showControls.value;
+                  controlsVisible.value = true;
                 },
                 onVerticalDragEnd: (details) {
                   if (details.primaryVelocity != null &&
@@ -378,132 +347,6 @@ class CloudFileLightbox extends HookConsumerWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVideoViewer(
-    BuildContext context,
-    WidgetRef ref,
-    SnCloudFile item,
-    bool isMobile,
-  ) {
-    final serverUrl = ref.watch(serverUrlProvider);
-    final uri = item.url ?? '$serverUrl/drive/files/${item.id}';
-
-    var ratio = 1.0;
-    final meta = item.fileMeta is Map ? (item.fileMeta as Map) : const {};
-    if (meta['ratio'] is num) {
-      ratio = (meta['ratio'] as num).toDouble();
-    }
-    if (ratio == 0) ratio = 16 / 9;
-
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: ratio,
-          child: UniversalVideo(uri: uri, aspectRatio: ratio, autoplay: true),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAudioViewer(
-    BuildContext context,
-    WidgetRef ref,
-    SnCloudFile item,
-  ) {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.audiotrack, size: 80, color: Colors.white54),
-            const Gap(16),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.push(FileDetailRoute(item: item));
-              },
-              icon: const Icon(Symbols.play_arrow),
-              label: Text('play'.tr()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPdfViewer(
-    BuildContext context,
-    WidgetRef ref,
-    SnCloudFile item,
-  ) {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.picture_as_pdf, size: 80, color: Colors.white54),
-            const Gap(16),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.push(FileDetailRoute(item: item));
-              },
-              icon: const Icon(Symbols.open_in_new),
-              label: Text('open'.tr()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGenericViewer(
-    BuildContext context,
-    WidgetRef ref,
-    SnCloudFile item,
-  ) {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Symbols.insert_drive_file, size: 80, color: Colors.white54),
-            const Gap(16),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                context.router.push(FileDetailRoute(item: item));
-              },
-              icon: const Icon(Symbols.open_in_new),
-              label: Text('open'.tr()),
-            ),
-          ],
         ),
       ),
     );

@@ -140,11 +140,7 @@ class CloudFileList extends HookConsumerWidget {
     final viewableFiles = files
         .asMap()
         .entries
-        .where(
-          (e) =>
-              e.value.mimeType?.startsWith('image') == true ||
-              e.value.mimeType?.startsWith('video') == true,
-        )
+        .where((e) => e.value.mimeType?.startsWith('image') == true)
         .toList();
     final viewableIndex = viewableFiles.indexWhere((e) => e.key == index);
     if (viewableIndex == -1) return;

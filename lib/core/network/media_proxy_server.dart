@@ -551,6 +551,7 @@ class _ChunkCache {
   _ChunkCache({
     this.cachedFilePath,
     this.totalSize = 0,
+    // ignore: unused_element_parameter
     this.downloadedSize = 0,
   }) : _isComplete = false;
 

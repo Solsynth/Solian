@@ -46,10 +46,28 @@ final messageSfxProvider = FutureProvider<void>((ref) async {
 
 Future<void> _playSfx(String assetPath, double volume) async {
   final player = AudioPlayer();
-  await player.setVolume(volume);
-  await player.setAudioSource(AudioSource.asset(assetPath));
-  await player.play();
-  await player.dispose();
+  try {
+    await player.setVolume(volume);
+    // This is the problematic line that sometimes throws -11849
+    // We handle PlayerInterruptedException gracefully as it's expected
+    // when multiple SFX are triggered in rapid succession
+    await player.setAudioSource(AudioSource.asset(assetPath));
+    await player.play();
+  } on PlayerInterruptedException catch (_) {
+    // This is normal and expected when:
+    // 1. Audio source is loading but player gets disposed
+    // 2. Another audio source loads before this one completes
+    // No action needed - just clean up silently
+  } on PlayerException catch (e) {
+    // Only log actual errors, not interruption cases
+    if (e.code != -11849) {
+      // Ignore the "Operation Stopped" case which is same as above
+      rethrow;
+    }
+  } finally {
+    // Always ensure player is disposed even if loading was interrupted
+    await player.dispose();
+  }
 }
 
 void playNotificationSfx(WidgetRef ref) {

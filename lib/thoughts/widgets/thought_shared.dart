@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:island/chat/widgets/chat_link_attachments.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
 import 'package:island/drive/widgets/upload_menu.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -911,13 +913,23 @@ class ThoughtItem extends StatelessWidget {
         final file = entry.value;
         return InkWell(
           onTap: () {
-            context.pushTransparentRoute(
-              CloudFileLightbox(
-                items: files,
-                initialIndex: entry.key,
-                heroTag: 'cloud-file-thought-${file.id}',
-              ),
-            );
+            final isImage = file.mimeType?.startsWith('image') == true;
+            if (isImage) {
+              context.pushTransparentRoute(
+                CloudFileLightbox(
+                  items: files,
+                  initialIndex: entry.key,
+                  heroTag: 'cloud-file-thought-${file.id}',
+                ),
+              );
+            } else {
+              context.router.push(
+                FileDetailRoute(
+                  item: file,
+                  heroTag: 'cloud-file-thought-${file.id}',
+                ),
+              );
+            }
           },
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: ClipRRect(

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +17,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 @RoutePage()
 class FileDetailScreen extends HookConsumerWidget {
   final SnCloudFile item;
+  final String? heroTag;
 
-  const FileDetailScreen({super.key, required this.item});
+  const FileDetailScreen({super.key, required this.item, this.heroTag});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,60 +74,69 @@ class FileDetailScreen extends HookConsumerWidget {
     }, [animationController]);
 
     return AppScaffold(
-      isNoBackground: false,
+      isNoBackground: true,
       appBar: AppBar(
         elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        flexibleSpace: _buildBackground(item, serverUrl),
         leading: IconButton(
-          icon: Icon(Icons.close),
+          icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(item.name.isEmpty ? 'File Details' : item.name),
+        title: Text(
+          item.name.isEmpty ? 'File Details' : item.name,
+          style: const TextStyle(color: Colors.white),
+        ),
         actions: _buildAppBarActions(context, ref, showInfoSheet),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return AnimatedBuilder(
-            animation: animation,
-            builder: (context, child) {
-              return Stack(
-                children: [
-                  // Main content area - resizes with animation
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: constraints.maxWidth - animation.value * 400,
-                    child: _buildContent(context, ref, serverUrl),
-                  ),
-                  // Animated drawer panel - overlays
-                  if (isWide)
+      body: Container(
+        color: Colors.black,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return AnimatedBuilder(
+              animation: animation,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    // Main content area - resizes with animation
                     Positioned(
-                      right: 0,
+                      left: 0,
                       top: 0,
                       bottom: 0,
-                      width: 400,
-                      child: Transform.translate(
-                        offset: Offset((1 - animation.value) * 400, 0),
-                        child: SizedBox(
-                          width: 400,
-                          child: Material(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainer,
-                            elevation: 8,
-                            child: FileInfoSheet(
-                              item: item,
-                              onClose: showInfoSheet,
+                      width: constraints.maxWidth - animation.value * 400,
+                      child: _buildContent(context, ref, serverUrl),
+                    ),
+                    // Animated drawer panel - overlays
+                    if (isWide)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 400,
+                        child: Transform.translate(
+                          offset: Offset((1 - animation.value) * 400, 0),
+                          child: SizedBox(
+                            width: 400,
+                            child: Material(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
+                              elevation: 8,
+                              child: FileInfoSheet(
+                                item: item,
+                                onClose: showInfoSheet,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              );
-            },
-          );
-        },
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -142,7 +154,7 @@ class FileDetailScreen extends HookConsumerWidget {
         if (!kIsWeb) {
           actions.add(
             IconButton(
-              icon: Icon(Icons.save_alt),
+              icon: const Icon(Icons.save_alt, color: Colors.white),
               onPressed: () =>
                   ref.read(driveFileDownloaderProvider).saveToGallery(item),
             ),
@@ -154,7 +166,7 @@ class FileDetailScreen extends HookConsumerWidget {
         if (!kIsWeb) {
           actions.add(
             IconButton(
-              icon: Icon(Icons.save_alt),
+              icon: const Icon(Icons.save_alt, color: Colors.white),
               onPressed: () => ref
                   .read(driveFileDownloaderProvider)
                   .downloadWithProgress(item),
@@ -166,7 +178,10 @@ class FileDetailScreen extends HookConsumerWidget {
 
     // Always add info button
     actions.add(
-      IconButton(icon: Icon(Icons.info_outline), onPressed: showInfoSheet),
+      IconButton(
+        icon: const Icon(Icons.info_outline, color: Colors.white),
+        onPressed: showInfoSheet,
+      ),
     );
 
     actions.add(const Gap(8));
@@ -177,7 +192,7 @@ class FileDetailScreen extends HookConsumerWidget {
   Widget _buildContent(BuildContext context, WidgetRef ref, String serverUrl) {
     final uri = '$serverUrl/drive/files/${item.id}';
 
-    return switch (item.mimeType?.split('/').firstOrNull) {
+    Widget content = switch (item.mimeType?.split('/').firstOrNull) {
       'image' => ImageFileContent(item: item, uri: uri),
       'video' => VideoFileContent(item: item, uri: uri),
       'audio' => AudioFileContent(item: item, uri: uri),
@@ -187,5 +202,38 @@ class FileDetailScreen extends HookConsumerWidget {
       ),
       _ => GenericFileContent(item: item),
     };
+
+    if (heroTag != null && item.mimeType?.startsWith('image') == true) {
+      content = Hero(tag: heroTag!, child: content);
+    }
+
+    return content;
+  }
+
+  Widget _buildBackground(SnCloudFile item, String serverUrl) {
+    final uri = '$serverUrl/drive/files/${item.id}?thumbnail=true';
+    final isVideo = item.mimeType?.startsWith('video') == true;
+
+    if (isVideo) {
+      return ClipRect(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              uri,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(color: Colors.black),
+            ),
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+              child: Container(color: Colors.black38),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(color: Colors.black);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/chat/chat.dart';
 import 'package:solar_network_sdk/src/models/realms/realm.dart';
 
 /// API for realm-related endpoints (/passport/realms).
@@ -310,11 +311,12 @@ class RealmsApi extends BaseApi {
   /// Gets the chat room for a realm.
   ///
   /// [slug] - The realm slug.
-  Future<Map<String, dynamic>> getRealmChat(String slug) async {
-    final response = await get<Map<String, dynamic>>(
-      '/messager/realms/$slug/chat',
-    );
-    return response.data!;
+  Future<List<SnChatRoom>> getRealmChat(String slug) async {
+    final response = await get<List<dynamic>>('/messager/realms/$slug/chat');
+    return response.data!
+        .map((e) => SnChatRoom.fromJson(e))
+        .cast<SnChatRoom>()
+        .toList();
   }
 
   // ==========================================

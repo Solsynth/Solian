@@ -296,7 +296,7 @@ final realmChatRoomsProvider = FutureProvider.autoDispose
     .family<List<SnChatRoom>, String>((ref, realmSlug) async {
       final client = ref.watch(solarNetworkClientProvider);
       final response = await client.realms.getRealmChat(realmSlug);
-      return [SnChatRoom.fromJson(response)];
+      return response;
     });
 
 @RoutePage()
