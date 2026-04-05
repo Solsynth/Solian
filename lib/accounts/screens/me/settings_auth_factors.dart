@@ -316,7 +316,9 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
       SnAuthFactor factor;
 
       if (_selectedType == 7) {
-        final passkeyAuthenticator = PasskeyAuthenticator(debugMode: true);
+        final passkeyAuthenticator = PasskeyAuthenticator(
+          debugMode: kDebugMode,
+        );
         final availability = await _getPasskeyAvailability(
           passkeyAuthenticator,
         );

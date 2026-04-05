@@ -322,6 +322,40 @@ class PostActionButtons extends HookConsumerWidget {
       );
     }
 
+    return Padding(
+      padding: noBottomPadding
+          ? renderingPadding
+          : renderingPadding.copyWith(
+              bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
+            ),
+      child: Wrap(
+        spacing: 2,
+        runSpacing: 2,
+        alignment: WrapAlignment.start,
+        runAlignment: WrapAlignment.start,
+        children: actions,
+      ),
+    );
+  }
+}
+
+class _PostDetailLargeScreenLayout extends HookConsumerWidget {
+  final SnPost post;
+  final String postId;
+  final Function(SnPost) onUpdate;
+  final VoidCallback onRefresh;
+
+  const _PostDetailLargeScreenLayout({
+    required this.post,
+    required this.postId,
+    required this.onUpdate,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userInfoProvider);
+
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
         children: [
@@ -341,7 +375,7 @@ class PostActionButtons extends HookConsumerWidget {
               originalPost: post,
             );
             if (result != null) {
-              onRefresh?.call();
+              onRefresh.call();
             }
           };
         case 'delete':
@@ -360,7 +394,7 @@ class PostActionButtons extends HookConsumerWidget {
                       return err;
                     })
                     .then((_) {
-                      onRefresh?.call();
+                      onRefresh.call();
                     });
               }
             });
@@ -378,7 +412,7 @@ class PostActionButtons extends HookConsumerWidget {
               initialState: PostComposeInitialState(replyingTo: post),
             );
             if (result != null) {
-              onRefresh?.call();
+              onRefresh.call();
             }
           };
         case 'forward':
@@ -388,7 +422,7 @@ class PostActionButtons extends HookConsumerWidget {
               initialState: PostComposeInitialState(forwardingTo: post),
             );
             if (result != null) {
-              onRefresh?.call();
+              onRefresh.call();
             }
           };
         case 'pin':
@@ -399,7 +433,7 @@ class PostActionButtons extends HookConsumerWidget {
               builder: (context) => PostPinSheet(post: post),
             ).then((value) {
               if (value is int) {
-                onUpdate?.call(post.copyWith(pinMode: value));
+                onUpdate.call(post.copyWith(pinMode: value));
               }
             });
           };
@@ -413,7 +447,7 @@ class PostActionButtons extends HookConsumerWidget {
                 try {
                   if (context.mounted) showLoadingModal(context);
                   await client.sphere.unpinPost(post.id);
-                  onUpdate?.call(post.copyWith(pinMode: null));
+                  onUpdate.call(post.copyWith(pinMode: null));
                 } catch (err) {
                   showErrorAlert(err);
                 } finally {
@@ -437,7 +471,7 @@ class PostActionButtons extends HookConsumerWidget {
             try {
               if (context.mounted) showLoadingModal(context);
               await client.sphere.boostPost(post.id);
-              onRefresh?.call();
+              onRefresh.call();
             } catch (err) {
               showErrorAlert(err);
             } finally {
@@ -472,6 +506,9 @@ class PostActionButtons extends HookConsumerWidget {
           return () {};
       }
     }
+
+    final isAuthor =
+        user.value != null && user.value?.id == post.publisher?.accountId;
 
     final postMenuItems = <PopupMenuEntry<String>>[
       if (isAuthor)
@@ -555,42 +592,6 @@ class PostActionButtons extends HookConsumerWidget {
       onSelected: (action) => getMenuAction(action)(),
     );
 
-    actions.add(trailing);
-
-    return Padding(
-      padding: noBottomPadding
-          ? renderingPadding
-          : renderingPadding.copyWith(
-              bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
-            ),
-      child: Wrap(
-        spacing: 2,
-        runSpacing: 2,
-        alignment: WrapAlignment.start,
-        runAlignment: WrapAlignment.start,
-        children: actions,
-      ),
-    );
-  }
-}
-
-class _PostDetailLargeScreenLayout extends HookConsumerWidget {
-  final SnPost post;
-  final String postId;
-  final Function(SnPost) onUpdate;
-  final VoidCallback onRefresh;
-
-  const _PostDetailLargeScreenLayout({
-    required this.post,
-    required this.postId,
-    required this.onUpdate,
-    required this.onRefresh,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userInfoProvider);
-
     return Row(
       children: [
         Expanded(
@@ -643,6 +644,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           isFullPost: true,
                                           isCompact: false,
                                           renderingPadding: EdgeInsets.zero,
+                                          trailing: trailing,
                                         ),
                                         const Gap(8),
                                         PostBody(
@@ -753,7 +755,6 @@ class PostDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final postState = ref.watch(postStateProvider(id));
-    final user = ref.watch(userInfoProvider);
 
     return AppScaffold(
       isNoBackground: false,
@@ -767,6 +768,274 @@ class PostDetailScreen extends HookConsumerWidget {
           final thumbnail = _getPostThumbnail(postItem);
           final isMediaPostLayout =
               isWideScreen(context) && _isMediaPost(postItem);
+
+          Widget buildMenuItem({
+            required String label,
+            required IconData icon,
+          }) {
+            return Row(
+              children: [
+                Icon(icon, size: 18),
+                const SizedBox(width: 12),
+                Text(label),
+              ],
+            );
+          }
+
+          void Function() getMenuAction(String action) {
+            switch (action) {
+              case 'edit':
+                return () async {
+                  final result = await PostComposeDialog.show(
+                    context,
+                    originalPost: postItem,
+                  );
+                  if (result != null) {
+                    ref.invalidate(postProvider(id));
+                    ref.read(postRepliesProvider(id).notifier).refresh();
+                  }
+                };
+              case 'delete':
+                return () {
+                  showConfirmAlert(
+                    'deletePostHint'.tr(),
+                    'deletePost'.tr(),
+                    isDanger: true,
+                  ).then((confirm) {
+                    if (confirm) {
+                      final client = ref.watch(solarNetworkClientProvider);
+                      client.sphere
+                          .deletePost(postItem.id)
+                          .catchError((err) {
+                            showErrorAlert(err);
+                            return err;
+                          })
+                          .then((_) {
+                            ref.invalidate(postProvider(id));
+                            ref
+                                .read(postRepliesProvider(id).notifier)
+                                .refresh();
+                          });
+                    }
+                  });
+                };
+              case 'copyLink':
+                return () {
+                  Clipboard.setData(
+                    ClipboardData(
+                      text: 'https://solian.app/posts/${postItem.id}',
+                    ),
+                  );
+                };
+              case 'reply':
+                return () async {
+                  final result = await PostComposeDialog.show(
+                    context,
+                    initialState: PostComposeInitialState(replyingTo: postItem),
+                  );
+                  if (result != null) {
+                    ref.invalidate(postProvider(id));
+                    ref.read(postRepliesProvider(id).notifier).refresh();
+                  }
+                };
+              case 'forward':
+                return () async {
+                  final result = await PostComposeDialog.show(
+                    context,
+                    initialState: PostComposeInitialState(
+                      forwardingTo: postItem,
+                    ),
+                  );
+                  if (result != null) {
+                    ref.invalidate(postProvider(id));
+                    ref.read(postRepliesProvider(id).notifier).refresh();
+                  }
+                };
+              case 'pin':
+                return () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => PostPinSheet(post: postItem),
+                  ).then((value) {
+                    if (value is int) {
+                      ref
+                          .read(postStateProvider(id).notifier)
+                          .updatePost(postItem.copyWith(pinMode: value));
+                    }
+                  });
+                };
+              case 'unpin':
+                return () {
+                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then(
+                    (confirm) async {
+                      if (confirm) {
+                        final client = ref.watch(solarNetworkClientProvider);
+                        try {
+                          if (context.mounted) showLoadingModal(context);
+                          await client.sphere.unpinPost(postItem.id);
+                          ref
+                              .read(postStateProvider(id).notifier)
+                              .updatePost(postItem.copyWith(pinMode: null));
+                        } catch (err) {
+                          showErrorAlert(err);
+                        } finally {
+                          if (context.mounted) hideLoadingModal(context);
+                        }
+                      }
+                    },
+                  );
+                };
+              case 'award':
+                return () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useRootNavigator: true,
+                    builder: (context) => PostAwardSheet(post: postItem),
+                  );
+                };
+              case 'boost':
+                return () async {
+                  final client = ref.read(solarNetworkClientProvider);
+                  try {
+                    if (context.mounted) showLoadingModal(context);
+                    await client.sphere.boostPost(postItem.id);
+                    ref.invalidate(postProvider(id));
+                    ref.read(postRepliesProvider(id).notifier).refresh();
+                  } catch (err) {
+                    showErrorAlert(err);
+                  } finally {
+                    if (context.mounted) hideLoadingModal(context);
+                  }
+                };
+              case 'share':
+                return () {
+                  showShareSheetLink(
+                    context: context,
+                    link: 'https://solian.app/posts/${postItem.id}',
+                    title: 'sharePost'.tr(),
+                    toSystem: true,
+                  );
+                };
+              case 'sharePhoto':
+                return () {
+                  sharePostAsScreenshot(context, ref, postItem);
+                };
+              case 'openBrowser':
+                return () {
+                  launchUrlString(postItem.fediverseUri!);
+                };
+              case 'report':
+                return () {
+                  showAbuseReportSheet(
+                    context,
+                    resourceIdentifier: 'post:${postItem.id}',
+                  );
+                };
+              default:
+                return () {};
+            }
+          }
+
+          final user = ref.watch(userInfoProvider);
+          final isAuthor =
+              user.value != null &&
+              user.value?.id == postItem.publisher?.accountId;
+
+          final postMenuItems = <PopupMenuEntry<String>>[
+            if (isAuthor)
+              PopupMenuItem<String>(
+                value: 'edit',
+                child: buildMenuItem(label: 'edit'.tr(), icon: Symbols.edit),
+              ),
+            if (isAuthor)
+              PopupMenuItem<String>(
+                value: 'delete',
+                child: buildMenuItem(
+                  label: 'delete'.tr(),
+                  icon: Symbols.delete,
+                ),
+              ),
+            if (isAuthor) const PopupMenuDivider(),
+            PopupMenuItem<String>(
+              value: 'copyLink',
+              child: buildMenuItem(label: 'copyLink'.tr(), icon: Symbols.link),
+            ),
+            PopupMenuItem<String>(
+              value: 'reply',
+              child: buildMenuItem(label: 'reply'.tr(), icon: Symbols.reply),
+            ),
+            PopupMenuItem<String>(
+              value: 'forward',
+              child: buildMenuItem(
+                label: 'forward'.tr(),
+                icon: Symbols.forward,
+              ),
+            ),
+            if (isAuthor && postItem.pinMode == null)
+              PopupMenuItem<String>(
+                value: 'pin',
+                child: buildMenuItem(label: 'pinPost'.tr(), icon: Symbols.keep),
+              )
+            else if (isAuthor && postItem.pinMode != null)
+              PopupMenuItem<String>(
+                value: 'unpin',
+                child: buildMenuItem(
+                  label: 'unpinPost'.tr(),
+                  icon: Symbols.keep_off,
+                ),
+              ),
+            PopupMenuItem<String>(
+              value: 'award',
+              child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem<String>(
+              value: 'boost',
+              child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem<String>(
+              value: 'share',
+              child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
+            ),
+            if (!kIsWeb)
+              PopupMenuItem<String>(
+                value: 'sharePhoto',
+                child: buildMenuItem(
+                  label: 'sharePostPhoto'.tr(),
+                  icon: Symbols.share_reviews,
+                ),
+              ),
+            if (postItem.fediverseUri != null)
+              PopupMenuItem<String>(
+                value: 'openBrowser',
+                child: buildMenuItem(
+                  label: 'openInBrowser'.tr(),
+                  icon: Symbols.open_in_new,
+                ),
+              ),
+            const PopupMenuDivider(),
+            PopupMenuItem<String>(
+              value: 'report',
+              child: buildMenuItem(
+                label: 'abuseReport'.tr(),
+                icon: Symbols.flag,
+              ),
+            ),
+          ];
+
+          final trailing = PopupMenuButton<String>(
+            icon: const Icon(Symbols.more_horiz, size: 18),
+            style: ButtonStyle(
+              visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+              padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+              minimumSize: const WidgetStatePropertyAll(Size(32, 32)),
+            ),
+            itemBuilder: (context) => postMenuItems,
+            onSelected: (action) => getMenuAction(action)(),
+          );
 
           return Stack(
             fit: StackFit.expand,
@@ -834,6 +1103,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                         .read(postStateProvider(id).notifier)
                                         .updatePost(newItem);
                                   },
+                                  trailing: trailing,
                                 ),
                               ),
                             ),

@@ -199,7 +199,9 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
       isBusy.value = true;
       try {
-        final passkeyAuthenticator = PasskeyAuthenticator(debugMode: true);
+        final passkeyAuthenticator = PasskeyAuthenticator(
+          debugMode: kDebugMode,
+        );
         final challenge = this.challenge;
         if (challenge == null) return;
 

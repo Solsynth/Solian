@@ -621,10 +621,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: "27c58ff4ec17d8e05b8b27fa66175bf5786b9ff9bd94ca418a571c7f6771b27b"
+      sha256: "84fd4edc420fd356b4c72b733ba3b54b4b20240b9e495e3852fe015181c9ede6"
       url: "https://pub.dev"
     source: hosted
-    version: "11.0.0"
+    version: "11.0.1"
   file_saver:
     dependency: "direct main"
     description:
@@ -1489,10 +1489,10 @@ packages:
     dependency: transitive
     description:
       name: hotreloader
-      sha256: bc167a1163807b03bada490bfe2df25b0d744df359227880220a5cbd04e5734b
+      sha256: "66871df468fc24eee81f1a0a7cb98acc104716f9b7376d355437b48d633c4ebf"
       url: "https://pub.dev"
     source: hosted
-    version: "4.3.0"
+    version: "4.4.0"
   html:
     dependency: transitive
     description:
