@@ -1,6 +1,6 @@
 ; ==================================================
-#define AppVersion "3.3.0"
-#define BuildNumber "144"
+#define AppVersion "3.7.0"
+#define BuildNumber "198"
 ; ==================================================
 
 #define FullVersion AppVersion + "." + BuildNumber
@@ -12,7 +12,7 @@ AppPublisher=Solsynth
 AppPublisherURL=https://solsynth.dev
 AppSupportURL=https://kb.solsynth.dev/zh/solar-network
 AppUpdatesURL=https://github.com/Solsynth/Solian/releases
-AppCopyright=Copyright © 2025 Solsynth
+AppCopyright=Copyright © 2026 Solsynth
 VersionInfoVersion={#FullVersion}
 UninstallDisplayName=Solian
 UninstallDisplayIcon={app}\Solian.exe
