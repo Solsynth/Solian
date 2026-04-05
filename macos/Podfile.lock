@@ -29,6 +29,9 @@ PODS:
     - FlutterMacOS
     - ObjectBox (= 5.3.0-beta.4)
   - OrderedSet (6.0.3)
+  - passkeys_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - protocol_handler_macos (0.0.1):
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
@@ -56,6 +59,7 @@ DEPENDENCIES:
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - objectbox_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos`)
+  - passkeys_darwin (from `Flutter/ephemeral/.symlinks/plugins/passkeys_darwin/darwin`)
   - protocol_handler_macos (from `Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
@@ -93,6 +97,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
   objectbox_flutter_libs:
     :path: Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos
+  passkeys_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/passkeys_darwin/darwin
   protocol_handler_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos
   screen_retriever_macos:
@@ -121,6 +127,7 @@ SPEC CHECKSUMS:
   ObjectBox: eccb95ea2054c39d81dfa2d4ccc5f1e31187228a
   objectbox_flutter_libs: 3adf97321750a5e89c199bda09d3c0ce659022d8
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
+  passkeys_darwin: 0a09d3b26cea8de1ec3bb8f8c7c159981f63bbc7
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   sign_in_with_apple: 6673c03c9e3643f6c8d33601943fbfa9ae99f94e
@@ -129,6 +136,6 @@ SPEC CHECKSUMS:
   webcrypto: a5f5eb3e375cf0a99993e207e97cdcab5c94ce2e
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 
-PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
+PODFILE CHECKSUM: bac2186806ea901d391c664c7bfc8ccce0ee7cb7
 
 COCOAPODS: 1.16.2

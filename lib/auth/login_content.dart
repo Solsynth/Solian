@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:animations/animations.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,6 +21,8 @@ import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ndef/records/well_known/uri.dart';
+import 'package:passkeys/authenticator.dart';
+import 'package:passkeys/types.dart';
 import 'package:pinput/pinput.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -190,6 +194,56 @@ class _LoginCheckScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> performPasskeyAuth() async {
+      if (factor?.type != 7) return;
+
+      isBusy.value = true;
+      try {
+        final passkeyAuthenticator = PasskeyAuthenticator(debugMode: true);
+        final challenge = this.challenge;
+        if (challenge == null) return;
+
+        final serverUrl = ref.read(serverUrlProvider);
+        final rpId = Uri.parse(serverUrl).host;
+
+        final request = AuthenticateRequestType(
+          challenge: base64Url.encode(challenge.id.codeUnits),
+          relyingPartyId: rpId,
+          userVerification: 'preferred',
+          mediation: MediationType.Optional,
+          preferImmediatelyAvailableCredentials: false,
+        );
+
+        final credential = await passkeyAuthenticator.authenticate(request);
+
+        final client = ref.watch(solarNetworkClientProvider);
+        final resp = await client.dio.patch(
+          '/padlock/auth/challenge/${challenge.id}',
+          data: {
+            'factor_id': factor!.id,
+            'credential_id': credential.id,
+            'client_data_json': credential.clientDataJSON,
+            'authenticator_data': credential.authenticatorData,
+            'signature': credential.signature,
+            'user_handle': credential.userHandle,
+          },
+        );
+        final result = SnAuthChallenge.fromJson(resp.data);
+        onChallenge(result);
+        if (result.stepRemain > 0) {
+          onNext();
+          return;
+        }
+
+        await getToken(code: result.id);
+      } catch (err) {
+        showErrorAlert(err);
+        return;
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -248,6 +302,18 @@ class _LoginCheckScreen extends HookConsumerWidget {
               ),
             ),
           ],
+        ] else if (factor!.type == 7) ...[
+          FilledButton.tonalIcon(
+            onPressed: isBusy.value ? null : () => performPasskeyAuth(),
+            icon: isBusy.value
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Symbols.fingerprint),
+            label: Text('passkeyAuthenticate'.tr()),
+          ),
         ] else if ([0].contains(factor!.type))
           TextField(
             autocorrect: false,
@@ -283,7 +349,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
           subtitle: Text(kFactorTypes[factor!.type]?.$2 ?? 'unknown').tr(),
         ),
         const Gap(12),
-        if (factor!.type != 6)
+        if (factor!.type != 6 && factor!.type != 7)
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [

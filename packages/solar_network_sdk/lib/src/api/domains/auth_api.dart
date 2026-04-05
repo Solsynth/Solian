@@ -164,6 +164,50 @@ class AuthApi extends BaseApi {
   }
 
   // ==========================================
+  // Passkey endpoints
+  // ==========================================
+
+  /// Starts a passkey registration by generating a challenge.
+  ///
+  /// [deviceId] - The device identifier.
+  /// [rpId] - The relying party ID (domain).
+  /// [rpName] - The relying party name.
+  /// Returns challenge and WebAuthn options.
+  Future<Map<String, dynamic>> startPasskeyRegistration({
+    required String deviceId,
+    required String rpId,
+    required String rpName,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/factors/passkey/start',
+      data: {'device_id': deviceId, 'rp_id': rpId, 'rp_name': rpName},
+    );
+    return response.data!;
+  }
+
+  /// Completes a passkey registration by verifying attestation.
+  ///
+  /// [deviceId] - The device identifier.
+  /// [attestationObject] - The attestation object from the authenticator.
+  /// [clientDataJson] - The client data JSON from the authenticator.
+  /// Returns the created factor.
+  Future<SnAuthFactor> completePasskeyRegistration({
+    required String deviceId,
+    required String attestationObject,
+    required String clientDataJson,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/factors/passkey/complete',
+      data: {
+        'device_id': deviceId,
+        'attestation_object': attestationObject,
+        'client_data_json': clientDataJson,
+      },
+    );
+    return SnAuthFactor.fromJson(response.data!);
+  }
+
+  // ==========================================
   // Contact endpoints
   // ==========================================
 
