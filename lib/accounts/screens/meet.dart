@@ -4151,6 +4151,7 @@ class _PinsTab extends HookConsumerWidget {
                                     pin: myPin.value!,
                                     isSelected: true,
                                     isMine: true,
+                                    currentUser: currentUser,
                                   ),
                                 ),
                               ]
@@ -4391,11 +4392,13 @@ class _PinMapMarker extends StatelessWidget {
   final SnLocationPin pin;
   final bool isSelected;
   final bool isMine;
+  final SnAccount? currentUser;
 
   const _PinMapMarker({
     required this.pin,
     required this.isSelected,
     this.isMine = false,
+    this.currentUser,
   });
 
   @override
@@ -4407,36 +4410,58 @@ class _PinMapMarker extends StatelessWidget {
         ? theme.colorScheme.primary
         : theme.colorScheme.secondary;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: isSelected ? 44 : 36,
-          height: isSelected ? 44 : 36,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-            border: Border.all(color: Colors.white, width: isSelected ? 3 : 2),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.4),
-                blurRadius: isSelected ? 12 : 6,
-                spreadRadius: isSelected ? 2 : 1,
-              ),
-            ],
-          ),
-          child: Icon(
-            pin.visibility == LocationPinVisibility.private
-                ? Symbols.lock
-                : pin.visibility == LocationPinVisibility.unlisted
-                ? Symbols.link_off
-                : Symbols.public,
-            color: Colors.white,
-            size: isSelected ? 22 : 18,
+    final picture = isMine
+        ? currentUser?.profile.picture
+        : pin.account?.profile.picture;
+
+    if (picture != null) {
+      return Container(
+        width: isSelected ? 44 : 36,
+        height: isSelected ? 44 : 36,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: isSelected ? 3 : 2),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.4),
+              blurRadius: isSelected ? 12 : 6,
+              spreadRadius: isSelected ? 2 : 1,
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: ProfilePictureWidget(
+            file: picture,
+            radius: isSelected ? 19 : 16,
           ),
         ),
-        Container(width: 2, height: isSelected ? 16 : 12, color: color),
-      ],
+      );
+    }
+
+    return Container(
+      width: isSelected ? 44 : 36,
+      height: isSelected ? 44 : 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        border: Border.all(color: Colors.white, width: isSelected ? 3 : 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.4),
+            blurRadius: isSelected ? 12 : 6,
+            spreadRadius: isSelected ? 2 : 1,
+          ),
+        ],
+      ),
+      child: Icon(
+        pin.visibility == LocationPinVisibility.private
+            ? Symbols.lock
+            : pin.visibility == LocationPinVisibility.unlisted
+            ? Symbols.link_off
+            : Symbols.public,
+        color: Colors.white,
+        size: isSelected ? 22 : 18,
+      ),
     );
   }
 }
