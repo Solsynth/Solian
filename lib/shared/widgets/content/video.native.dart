@@ -42,25 +42,11 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
   void initState() {
     super.initState();
     _initPlayer();
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeRight,
-        DeviceOrientation.landscapeLeft,
-      ]);
-    }
   }
 
   @override
   void dispose() {
     _disposePlayer();
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-        DeviceOrientation.landscapeRight,
-        DeviceOrientation.landscapeLeft,
-      ]);
-    }
     super.dispose();
   }
 
