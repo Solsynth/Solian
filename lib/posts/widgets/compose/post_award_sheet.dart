@@ -11,6 +11,8 @@ import 'package:island/payments/payment_overlay.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+import 'post_award_history_sheet.dart';
+
 class PostAwardSheet extends HookConsumerWidget {
   final SnPost post;
   const PostAwardSheet({super.key, required this.post});
@@ -76,85 +78,149 @@ class PostAwardSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'awardPost'.tr(),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Post Preview Section
-            _buildPostPreview(context),
-            const Gap(20),
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Post Preview Section at TOP
+                  _buildPostPreview(context),
+                  const Gap(16),
 
-            // Award Result Explanation
-            _buildAwardResultExplanation(context),
-            const Gap(20),
-
-            Text(
-              'awardMessage'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Gap(8),
-            TextField(
-              controller: messageController,
-              maxLines: 3,
-              decoration: InputDecoration(hintText: 'awardMessageHint'.tr()),
-            ),
-            const Gap(16),
-            Text(
-              'awardAttitude'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Gap(8),
-            SegmentedButton<int>(
-              segments: [
-                ButtonSegment<int>(
-                  value: 0,
-                  label: Text('awardAttitudePositive'.tr()),
-                  icon: const Icon(Symbols.thumb_up),
-                ),
-                ButtonSegment<int>(
-                  value: 2,
-                  label: Text('awardAttitudeNegative'.tr()),
-                  icon: const Icon(Symbols.thumb_down),
-                ),
-              ],
-              selected: {selectedAttitude.value},
-              onSelectionChanged: (Set<int> selection) {
-                selectedAttitude.value = selection.first;
-              },
-            ),
-            const Gap(16),
-            Text(
-              'awardAmount'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Gap(8),
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'awardAmountHint'.tr(),
-
-                suffixText: 'NSP',
+                  // Existing Awards List
+                  Text(
+                    'Awards History',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const Gap(8),
+                ],
               ),
             ),
-            const Gap(24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => _submitAward(
-                  context,
-                  ref,
-                  messageController,
-                  amountController,
-                  selectedAttitude.value,
+          ),
+          Consumer(
+            builder: (context, ref, child) {
+              final awards = ref.watch(postAwardListNotifierProvider(post.id));
+              return awards.when(
+                loading: () => const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
                 ),
-                icon: const Icon(Symbols.star),
-                label: Text('awardSubmit'.tr()),
+                error: (error, stackTrace) => SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('Failed to load awards: $error'),
+                  ),
+                ),
+                data: (pagination) {
+                  if (pagination.items.isEmpty) {
+                    return const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text('No awards yet.'),
+                      ),
+                    );
+                  }
+                  return SliverList.separated(
+                    itemCount: pagination.items.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      return PostAwardItem(award: pagination.items[index]);
+                    },
+                  );
+                },
+              );
+            },
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Gap(16),
+                  // Award Result Explanation
+                  _buildAwardResultExplanation(context),
+                  const Gap(20),
+
+                  Text(
+                    'awardMessage'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const Gap(8),
+                  TextField(
+                    controller: messageController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'awardMessageHint'.tr(),
+                    ),
+                  ),
+                  const Gap(16),
+                  Text(
+                    'awardAttitude'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const Gap(8),
+                  SegmentedButton<int>(
+                    segments: [
+                      ButtonSegment<int>(
+                        value: 0,
+                        label: Text('awardAttitudePositive'.tr()),
+                        icon: const Icon(Symbols.thumb_up),
+                      ),
+                      ButtonSegment<int>(
+                        value: 2,
+                        label: Text('awardAttitudeNegative'.tr()),
+                        icon: const Icon(Symbols.thumb_down),
+                      ),
+                    ],
+                    selected: {selectedAttitude.value},
+                    onSelectionChanged: (Set<int> selection) {
+                      selectedAttitude.value = selection.first;
+                    },
+                  ),
+                  const Gap(16),
+                  Text(
+                    'awardAmount'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const Gap(8),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: 'awardAmountHint'.tr(),
+
+                      suffixText: 'NSP',
+                    ),
+                  ),
+                  const Gap(24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => _submitAward(
+                        context,
+                        ref,
+                        messageController,
+                        amountController,
+                        selectedAttitude.value,
+                      ),
+                      icon: const Icon(Symbols.star),
+                      label: Text('awardSubmit'.tr()),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
