@@ -1,8 +1,18 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Terminal=false
 Name=Solian
-Exec=island %u
+GenericName=Social Media App
+Comment=Connect with friends and communities on Solar Network
+
+Exec=island %U
 Icon=icon-padded
-Categories=Network;
+Terminal=false
+Categories=Network;Chat;InstantMessaging;Social;
+StartupNotify=true
+StartupWMClass=island
+
+# Helps with search in application menus
+Keywords=solian;social;chat;messenger;community;network;dm;messages;solar network;
+
+MimeType=x-scheme-handler/solian;

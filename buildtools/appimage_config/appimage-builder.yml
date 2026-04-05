@@ -1,0 +1,28 @@
+version: 1
+AppDir:
+  path: AppDir
+  app_info:
+    id: dev.solsynth.solian
+    name: Solian
+    icon: icon-padded.png
+    version: 1.0
+    exec: island
+    exec_args: "$@"
+  files:
+    include:
+      - build/linux/x64/release/bundle
+  runtime:
+    env:
+      LD_LIBRARY_PATH: $APPDIR/lib:$APPDIR/usr/lib
+
+apt:
+  arch: amd64
+  sources:
+    - sourceline: deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
+  include:
+    - libgtk-3-0
+    - libmpv1
+    - libkeybinder-3.0-0
+    - libayatana-appindicator3-1
+    - libnotify4
+    - libgstreamer1.0-0
