@@ -55,6 +55,8 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>Solian uses NFC to register and manage physical NFC tags for your account.</string>
 	<key>NSAppIntentsConfiguration</key>
 	<dict>
 		<key>NSAppIntentsPackage</key>
@@ -67,9 +69,9 @@
 	</dict>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
-	<key>NSBluetoothWhileInUseUsageDescription</key>
-	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
+	<key>NSBluetoothWhileInUseUsageDescription</key>
 	<string>Bluetooth is used to exchange nearby meet identifiers.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Grant access to Calander help us to shows Solar Calander with your own events.</string>
@@ -78,12 +80,12 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow the Solar Network verify your ownership of the logged in account and continue
 			your action quickly.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Allow Solian read Apple Health's data to share with your friends.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Grant access to Microphone will allow Solian record audio for your post.</string>
-	<key>NFCReaderUsageDescription</key>
-	<string>Solian uses NFC to register and manage physical NFC tags for your account.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Grant access to Photo Library will allow Solian download photo to album for you.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -99,6 +101,27 @@
 	<string>1</string>
 	<key>REVERSED_CLIENT_ID</key>
 	<string>com.googleusercontent.apps.961776991058-stt7et4qvn3cpscl4r61gl1hnlatqkig</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UlWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -129,26 +152,5 @@
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneClassName</key>
-					<string>UlWindowScene</string>
-					<key>UISceneDelegateClassName</key>
-					<string>FlutterSceneDelegate</string>
-					<key>UISceneConfigurationName</key>
-					<string>flutter</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
 </dict>
 </plist>

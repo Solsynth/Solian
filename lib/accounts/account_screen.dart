@@ -308,6 +308,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const TicketListRoute());
                     },
                   },
+                  {
+                    'icon': Symbols.fitness_center,
+                    'title': 'fitness',
+                    'onTap': () {
+                      context.router.push(const FitnessDashboardRoute());
+                    },
+                  },
                 ];
                 return Column(
                   children: menuItems.map((item) {

@@ -51,5 +51,12 @@ export 'src/models/realms/realm.dart';
 // Wallets models
 export 'src/models/wallets/wallet.dart';
 
+// Fitness models
+export 'src/models/fitness/converters.dart';
+export 'src/models/fitness/workout.dart';
+export 'src/models/fitness/goal.dart';
+export 'src/models/fitness/metric.dart';
+export 'src/models/fitness/exercise.dart';
+
 // Services
 export 'src/auth/web_auth/web_auth_client.dart';
