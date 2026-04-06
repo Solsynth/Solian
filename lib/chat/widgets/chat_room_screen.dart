@@ -524,7 +524,6 @@ class ChatRoomScreen extends HookConsumerWidget {
         AppScaffold(
           appBar: AppBar(
             leading: const AutoLeadingButton(),
-            centerTitle: false,
             automaticallyImplyLeading: false,
             title: chatRoom.when(
               data: (room) => RoomAppBar(

@@ -19,7 +19,7 @@ class GoalsScreen extends ConsumerWidget {
     );
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Goals'), centerTitle: false),
+      appBar: AppBar(title: const Text('Goals')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(

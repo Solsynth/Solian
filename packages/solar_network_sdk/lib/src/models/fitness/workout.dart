@@ -28,7 +28,6 @@ sealed class SnWorkout with _$SnWorkout {
     required WorkoutType type,
     required DateTime startTime,
     DateTime? endTime,
-    String? duration,
     int? caloriesBurned,
     String? notes,
     required DateTime createdAt,
@@ -49,7 +48,6 @@ sealed class SnWorkoutExercise with _$SnWorkoutExercise {
     int? sets,
     int? reps,
     double? weight,
-    String? duration,
     String? notes,
     required int orderIndex,
     required DateTime createdAt,
@@ -84,7 +82,6 @@ sealed class UpdateWorkoutRequest with _$UpdateWorkoutRequest {
     required WorkoutType type,
     @DateTimeConverter() required DateTime startTime,
     String? description,
-    String? duration,
     int? caloriesBurned,
     String? notes,
   }) = _UpdateWorkoutRequest;

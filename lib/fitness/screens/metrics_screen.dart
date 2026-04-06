@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
+import 'package:island/fitness/screens/metric_record_screen.dart';
 import 'package:island/fitness/utils/metric_unit_formatter.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -11,11 +12,16 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
-class MetricsScreen extends ConsumerWidget {
+class MetricsScreen extends ConsumerStatefulWidget {
   const MetricsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MetricsScreen> createState() => _MetricsScreenState();
+}
+
+class _MetricsScreenState extends ConsumerState<MetricsScreen> {
+  @override
+  Widget build(BuildContext context) {
     final metricsAsync = ref.watch(
       metricsProvider((type: null, skip: 0, take: 100)),
     );
@@ -30,11 +36,22 @@ class MetricsScreen extends ConsumerWidget {
           data: (result) {
             if (result.items.isEmpty) {
               return Center(
-                child: Text(
-                  'No metrics yet',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'No metrics yet',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => _showRecordMetricSheet(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Record Metric'),
+                    ),
+                  ],
                 ),
               );
             }
@@ -61,6 +78,20 @@ class MetricsScreen extends ConsumerWidget {
           error: (e, _) => Center(child: Text('Error: $e')),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showRecordMetricSheet(context),
+        icon: const Icon(Icons.add),
+        label: const Text('Record Metric'),
+      ),
+    );
+  }
+
+  void _showRecordMetricSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => const MetricRecordScreen(),
     );
   }
 }

@@ -21,7 +21,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
     final isDismissed = ref.watch(dismissNewDataCardProvider);
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Fitness'), centerTitle: false),
+      appBar: AppBar(title: const Text('Fitness')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(goalStatsProvider);
@@ -113,7 +113,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

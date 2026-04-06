@@ -54,7 +54,6 @@ class GoalDetailScreen extends ConsumerWidget {
     return AppScaffold(
       appBar: AppBar(
         title: Text(goal.title),
-        centerTitle: false,
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) => _handleAction(context, ref, goal, value),
@@ -151,29 +150,33 @@ class GoalDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const Gap(8),
         ],
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        children: [
-          _buildProgressCard(context, goal, progress, statusColor),
-          const SizedBox(height: 16),
-          if (goal.autoUpdateProgress) _buildAutoUpdateCard(context, goal),
-          if (goal.repeatType != null) ...[
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildProgressCard(context, goal, progress, statusColor),
             const SizedBox(height: 16),
-            _buildRepeatCard(context, goal),
-          ],
-          const SizedBox(height: 16),
-          _buildDetailsCard(context, goal),
-          if (goal.description != null) ...[
+            if (goal.autoUpdateProgress) _buildAutoUpdateCard(context, goal),
+            if (goal.repeatType != null) ...[
+              const SizedBox(height: 16),
+              _buildRepeatCard(context, goal),
+            ],
             const SizedBox(height: 16),
-            _buildSection(context, 'Description', goal.description!),
+            _buildDetailsCard(context, goal),
+            if (goal.description != null) ...[
+              const SizedBox(height: 16),
+              _buildSection(context, 'Description', goal.description!),
+            ],
+            if (goal.notes != null) ...[
+              const SizedBox(height: 16),
+              _buildSection(context, 'Notes', goal.notes!),
+            ],
           ],
-          if (goal.notes != null) ...[
-            const SizedBox(height: 16),
-            _buildSection(context, 'Notes', goal.notes!),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -368,7 +371,7 @@ class GoalDetailScreen extends ConsumerWidget {
 
   Widget _buildSection(BuildContext context, String title, String content) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           title,

@@ -44,10 +44,7 @@ class _MetricDetailScreenState extends ConsumerState<MetricDetailScreen> {
     );
 
     return AppScaffold(
-      appBar: AppBar(
-        title: Text(_getMetricName(widget.metricType)),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: Text(_getMetricName(widget.metricType))),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -214,6 +211,13 @@ class _MetricDetailScreenState extends ConsumerState<MetricDetailScreen> {
       return const Center(child: Text('No data to display'));
     }
 
+    final minY = data.map((d) => d.value).reduce((a, b) => a < b ? a : b);
+    final maxY = data.map((d) => d.value).reduce((a, b) => a > b ? a : b);
+
+    if (minY == maxY) {
+      return const Center(child: Text('Not enough data variation'));
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
     final spots = data
         .asMap()
@@ -221,8 +225,6 @@ class _MetricDetailScreenState extends ConsumerState<MetricDetailScreen> {
         .map((e) => FlSpot(e.key.toDouble(), e.value.value))
         .toList();
 
-    final minY = data.map((d) => d.value).reduce((a, b) => a < b ? a : b);
-    final maxY = data.map((d) => d.value).reduce((a, b) => a > b ? a : b);
     final padding = (maxY - minY) * 0.1;
 
     return LineChart(

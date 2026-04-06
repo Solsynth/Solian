@@ -3,19 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
+import 'package:island/fitness/screens/workout_record_screen.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
-class WorkoutsScreen extends ConsumerWidget {
+class WorkoutsScreen extends ConsumerStatefulWidget {
   const WorkoutsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WorkoutsScreen> createState() => _WorkoutsScreenState();
+}
+
+class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
+  @override
+  Widget build(BuildContext context) {
     final workoutsAsync = ref.watch(workoutsProvider((skip: 0, take: 50)));
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Workouts'), centerTitle: false),
+      appBar: AppBar(title: const Text('Workouts')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(workoutsProvider((skip: 0, take: 50)));
@@ -24,11 +30,22 @@ class WorkoutsScreen extends ConsumerWidget {
           data: (result) {
             if (result.items.isEmpty) {
               return Center(
-                child: Text(
-                  'No workouts yet',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'No workouts yet',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => _showRecordWorkoutSheet(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Record Workout'),
+                    ),
+                  ],
                 ),
               );
             }
@@ -45,6 +62,20 @@ class WorkoutsScreen extends ConsumerWidget {
           error: (e, _) => Center(child: Text('Error: $e')),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showRecordWorkoutSheet(context),
+        icon: const Icon(Icons.add),
+        label: const Text('Record Workout'),
+      ),
+    );
+  }
+
+  void _showRecordWorkoutSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => const WorkoutRecordScreen(),
     );
   }
 }
