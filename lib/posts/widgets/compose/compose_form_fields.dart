@@ -16,15 +16,17 @@ KeyEventResult _preserveComposeFieldFocus(FocusNode node, KeyEvent event) {
       event.logicalKey == LogicalKeyboardKey.arrowDown ||
       event.logicalKey == LogicalKeyboardKey.arrowLeft ||
       event.logicalKey == LogicalKeyboardKey.arrowRight;
+  final isEnterKey = event.logicalKey == LogicalKeyboardKey.enter;
   final hasModifier =
       HardwareKeyboard.instance.isControlPressed ||
       HardwareKeyboard.instance.isMetaPressed ||
       HardwareKeyboard.instance.isAltPressed;
-  final isArrowDownEvent = event is KeyDownEvent || event is KeyRepeatEvent;
+  final isKeyDownEvent = event is KeyDownEvent || event is KeyRepeatEvent;
 
-  // Do not consume plain arrow keys. They are required for caret movement in
-  // text fields and TypeAhead-backed editors.
-  if (isArrowDownEvent && isArrowKey && !hasModifier) {
+  if (isKeyDownEvent && isArrowKey && !hasModifier) {
+    return KeyEventResult.ignored;
+  }
+  if (isKeyDownEvent && isEnterKey && !hasModifier) {
     return KeyEventResult.ignored;
   }
   return KeyEventResult.ignored;
@@ -162,6 +164,8 @@ class ComposeFormFields extends HookConsumerWidget {
                           horizontal: 8,
                         ),
                       ),
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
                       maxLines: null,
                       onTapOutside: (_) =>
                           FocusManager.instance.primaryFocus?.unfocus(),
@@ -350,6 +354,8 @@ class ArticleComposeFormFields extends StatelessWidget {
                       horizontal: 8,
                     ),
                   ),
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
                   maxLines: null,
                   expands: true,
                   textAlignVertical: TextAlignVertical.top,

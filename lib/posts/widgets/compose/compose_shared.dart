@@ -32,6 +32,7 @@ class ComposeState {
   final TextEditingController contentController;
   final TextEditingController slugController;
   final ValueNotifier<int> visibility;
+  final ValueNotifier<String?> language;
   final ValueNotifier<List<UniversalFile>> attachments;
   final ValueNotifier<Map<int, double?>> attachmentProgress;
   final ValueNotifier<SnPublisher?> currentPublisher;
@@ -49,6 +50,8 @@ class ComposeState {
   final ValueNotifier<String?> fundId;
   // Linked livestream id for this compose session (nullable)
   final ValueNotifier<String?> liveStreamId;
+  // Linked fitness reference for this compose session (nullable)
+  final ValueNotifier<String?> fitnessReference;
   // Thumbnail id for article type post (nullable)
   final ValueNotifier<String?> thumbnailId;
   Timer? _autoSaveTimer;
@@ -59,6 +62,7 @@ class ComposeState {
     required this.contentController,
     required this.slugController,
     required this.visibility,
+    required this.language,
     required this.attachments,
     required this.attachmentProgress,
     required this.currentPublisher,
@@ -73,10 +77,12 @@ class ComposeState {
     String? pollId,
     String? fundId,
     String? liveStreamId,
+    String? fitnessReference,
     String? thumbnailId,
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
        liveStreamId = ValueNotifier<String?>(liveStreamId),
+       fitnessReference = ValueNotifier<String?>(fitnessReference),
        thumbnailId = ValueNotifier<String?>(thumbnailId),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
@@ -118,6 +124,7 @@ class ComposeLogic {
     String? pollId;
     String? fundId;
     String? liveStreamId;
+    String? fitnessReference;
     if (originalPost?.meta?['embeds'] is List) {
       final embeds = (originalPost!.meta!['embeds'] as List)
           .cast<Map<String, dynamic>>();
@@ -134,6 +141,15 @@ class ComposeLogic {
           (e) => e['type'] == 'livestream',
         );
         liveStreamId = livestreamEmbed['id'];
+      } catch (_) {}
+      try {
+        final fitnessEmbed = embeds.firstWhere(
+          (e) =>
+              e['type'] == 'workout' ||
+              e['type'] == 'metric' ||
+              e['type'] == 'goal',
+        );
+        fitnessReference = '${fitnessEmbed['type']}:${fitnessEmbed['id']}';
       } catch (_) {}
     }
 
@@ -164,6 +180,7 @@ class ComposeLogic {
       contentController: TextEditingController(text: originalPost?.content),
       slugController: TextEditingController(text: originalPost?.slug),
       visibility: ValueNotifier<int>(originalPost?.visibility ?? 0),
+      language: ValueNotifier<String?>(originalPost?.language),
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double?>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(originalPost?.publisher),
@@ -179,6 +196,7 @@ class ComposeLogic {
       pollId: pollId,
       fundId: fundId,
       liveStreamId: liveStreamId,
+      fitnessReference: fitnessReference,
       thumbnailId: thumbnailId,
     );
   }
@@ -196,6 +214,7 @@ class ComposeLogic {
       contentController: TextEditingController(text: draft.content),
       slugController: TextEditingController(text: draft.slug),
       visibility: ValueNotifier<int>(draft.visibility),
+      language: ValueNotifier<String?>(draft.language),
       submitting: ValueNotifier<bool>(false),
       attachmentProgress: ValueNotifier<Map<int, double?>>({}),
       currentPublisher: ValueNotifier<SnPublisher?>(null),
@@ -289,6 +308,8 @@ class ComposeLogic {
         {'type': 'fund', 'id': state.fundId.value},
       if (state.liveStreamId.value != null)
         {'type': 'livestream', 'id': state.liveStreamId.value},
+      if (state.fitnessReference.value != null)
+        ..._parseFitnessReference(state.fitnessReference.value!),
     ];
     final meta = <String, dynamic>{
       if (state.postType == 1 && state.thumbnailId.value != null)
@@ -299,7 +320,7 @@ class ComposeLogic {
       id: localId,
       title: state.titleController.text,
       description: state.descriptionController.text,
-      language: null,
+      language: state.language.value,
       editedAt: null,
       draftedAt: state.cloudDraftId.value != null ? DateTime.now() : null,
       publishedAt: null,
@@ -382,6 +403,8 @@ class ComposeLogic {
       if (state.fundId.value != null) 'fund_id': state.fundId.value,
       if (state.liveStreamId.value != null)
         'live_stream_id': state.liveStreamId.value,
+      if (state.fitnessReference.value != null)
+        'fitness_reference': state.fitnessReference.value,
       if (state.postType == 1 && state.thumbnailId.value != null)
         'thumbnail_id': state.thumbnailId.value,
       if (state.embedView.value != null)
@@ -740,8 +763,17 @@ class ComposeLogic {
       builder: (context) => ComposeLivestreamSheet(pub: publisher),
     );
 
-    if (livestream == null) return;
-    state.liveStreamId.value = livestream.id;
+    if (livestream != null) {
+      state.liveStreamId.value = livestream.id;
+    }
+  }
+
+  static void setFitnessReference(ComposeState state, String? reference) {
+    state.fitnessReference.value = reference;
+  }
+
+  static void deleteFitnessReference(ComposeState state) {
+    state.fitnessReference.value = null;
   }
 
   /// Unified submit method that returns the created/updated post.
@@ -800,6 +832,7 @@ class ComposeLogic {
         'title': state.titleController.text,
         'description': state.descriptionController.text,
         'content': state.contentController.text,
+        'language': state.language.value,
         if (state.slugController.text.isNotEmpty)
           'slug': state.slugController.text,
         'visibility': state.visibility.value,
@@ -817,6 +850,8 @@ class ComposeLogic {
         if (state.fundId.value != null) 'fund_id': state.fundId.value,
         if (state.liveStreamId.value != null || hadOriginalLivestreamEmbed)
           'live_stream_id': state.liveStreamId.value,
+        if (state.fitnessReference.value != null)
+          'fitness_reference': state.fitnessReference.value,
         if (state.postType == 1 && state.thumbnailId.value != null)
           'thumbnail_id': state.thumbnailId.value,
         if (state.embedView.value != null)
@@ -940,7 +975,7 @@ class ComposeLogic {
     ];
   }
 
-  static void handleKeyPress(
+  static KeyEventResult handleKeyPress(
     KeyEvent event,
     ComposeState state,
     WidgetRef ref,
@@ -949,7 +984,7 @@ class ComposeLogic {
     SnPost? repliedPost,
     SnPost? forwardedPost,
   }) {
-    if (event is! KeyDownEvent) return;
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
     final isSave = event.logicalKey == LogicalKeyboardKey.keyS;
@@ -960,8 +995,10 @@ class ComposeLogic {
 
     if (isPaste && isModifierPressed) {
       handlePaste(state);
+      return KeyEventResult.handled;
     } else if (isSave && isModifierPressed) {
       saveDraftManually(ref, state, context);
+      return KeyEventResult.handled;
     } else if (isSubmit && isModifierPressed && !state.submitting.value) {
       performAction(
         ref,
@@ -971,7 +1008,19 @@ class ComposeLogic {
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
       );
+      return KeyEventResult.handled;
     }
+    return KeyEventResult.ignored;
+  }
+
+  static List<Map<String, dynamic>> _parseFitnessReference(String reference) {
+    final parts = reference.split(':');
+    if (parts.length != 2) return [];
+    final type = parts[0];
+    final id = parts[1];
+    return [
+      {'type': type, 'id': id},
+    ];
   }
 
   static void dispose(ComposeState state) {
@@ -991,6 +1040,7 @@ class ComposeLogic {
     state.pollId.dispose();
     state.fundId.dispose();
     state.liveStreamId.dispose();
+    state.fitnessReference.dispose();
     state.thumbnailId.dispose();
     state.cloudDraftId.dispose();
   }

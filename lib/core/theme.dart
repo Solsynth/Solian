@@ -95,5 +95,15 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
     sliderTheme: SliderThemeData(year2023: false),
+    pageTransitionsTheme: PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.macOS: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.fuchsia: FadeForwardsPageTransitionsBuilder(),
+      },
+    ),
   );
 }
