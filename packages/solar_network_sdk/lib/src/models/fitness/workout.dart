@@ -78,6 +78,7 @@ sealed class CreateWorkoutRequest with _$CreateWorkoutRequest {
     int? caloriesBurned,
     String? notes,
     @Default(FitnessVisibility.private) FitnessVisibility visibility,
+    Map<String, dynamic>? meta,
   }) = _CreateWorkoutRequest;
 
   factory CreateWorkoutRequest.fromJson(Map<String, dynamic> json) =>
@@ -94,6 +95,7 @@ sealed class UpdateWorkoutRequest with _$UpdateWorkoutRequest {
     int? caloriesBurned,
     String? notes,
     FitnessVisibility? visibility,
+    Map<String, dynamic>? meta,
   }) = _UpdateWorkoutRequest;
 
   factory UpdateWorkoutRequest.fromJson(Map<String, dynamic> json) =>
