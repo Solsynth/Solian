@@ -157,12 +157,6 @@ class _AccountBasicInfo extends HookWidget {
                                 uname: uname,
                                 padding: EdgeInsets.zero,
                               ),
-                              const Gap(8),
-                              ActivityPresenceWidget(
-                                uname: uname,
-                                isCompact: true,
-                                compactPadding: EdgeInsets.zero,
-                              ),
                               if (accountDeveloper.value != null) ...[
                                 const Gap(12),
                                 Container(
@@ -1240,6 +1234,10 @@ class AccountProfileScreen extends HookConsumerWidget {
                                 uname: name,
                                 accountDeveloper: accountDeveloper,
                               ),
+                              ActivityPresenceWidget(
+                                uname: name,
+                                isCompact: false,
+                              ),
                               if (data.badges.isNotEmpty)
                                 Card(
                                   margin: EdgeInsets.zero,
@@ -1323,6 +1321,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                             uname: name,
                             accountDeveloper: accountDeveloper,
                           ),
+                          ActivityPresenceWidget(uname: name, isCompact: false),
                           if (data.badges.isNotEmpty)
                             Card(
                               margin: EdgeInsets.zero,
