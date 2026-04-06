@@ -109,7 +109,7 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
             return RefreshIndicator(
               onRefresh: _refreshTickets,
               child: ListView.separated(
-                padding: EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.symmetric(vertical: 16),
                 itemCount: tickets.length,
                 separatorBuilder: (_, _) => const Gap(16),
                 itemBuilder: (context, index) {
