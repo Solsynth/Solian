@@ -42,6 +42,39 @@ class TicketDetailScreen extends HookConsumerWidget {
     final isSubmitting = useState(false);
     final attachments = useState<List<SelectedFile>>([]);
     final ticketService = ref.watch(ticketServiceProvider);
+    final cachedMessages = useState<List<SnTicketMessage>?>(null);
+    final messagePollingTimer = useRef<Timer?>(null);
+
+    void scrollToBottom(ScrollController sc) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (sc.hasClients) {
+          sc.animateTo(
+            sc.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+
+    useEffect(() {
+      messagePollingTimer.value = Timer.periodic(const Duration(minutes: 1), (
+        _,
+      ) async {
+        if (!context.mounted) return;
+        final ticket = await ticketService.getTicket(ticketId);
+        if (context.mounted &&
+            cachedMessages.value != null &&
+            ticket.messages.length > cachedMessages.value!.length) {
+          cachedMessages.value = ticket.messages;
+          scrollToBottom(scrollController);
+        }
+      });
+
+      return () {
+        messagePollingTimer.value?.cancel();
+      };
+    }, []);
 
     final uploadAttachment = useCallback((SelectedFile selectedFile) async {
       final universalFile = UniversalFile(
@@ -107,15 +140,10 @@ class TicketDetailScreen extends HookConsumerWidget {
           // Refresh the ticket to get updated messages
           ref.invalidate(ticketServiceProvider);
 
-          // Scroll to bottom after sending
-          await Future.delayed(const Duration(milliseconds: 100));
-          if (scrollController.hasClients) {
-            scrollController.animateTo(
-              scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          }
+          // Update cached messages and scroll
+          final updatedTicket = await ticketService.getTicket(ticketId);
+          cachedMessages.value = updatedTicket.messages;
+          scrollToBottom(scrollController);
         } catch (e) {
           showErrorAlert(e);
         } finally {
@@ -129,6 +157,7 @@ class TicketDetailScreen extends HookConsumerWidget {
         ticketId,
         attachments,
         uploadAttachment,
+        cachedMessages,
       ],
     );
 
@@ -252,6 +281,9 @@ class TicketDetailScreen extends HookConsumerWidget {
             );
           } else if (snapshot.hasData) {
             final ticket = snapshot.data!;
+            if (cachedMessages.value == null) {
+              cachedMessages.value = ticket.messages;
+            }
             return Column(
               children: [
                 // Ticket header
@@ -261,7 +293,7 @@ class TicketDetailScreen extends HookConsumerWidget {
                 Expanded(
                   child: _buildMessagesSection(
                     context,
-                    ticket,
+                    cachedMessages.value ?? ticket.messages,
                     scrollController,
                   ),
                 ),
@@ -327,21 +359,21 @@ class TicketDetailScreen extends HookConsumerWidget {
               _buildBadge(
                 context,
                 ticketType.displayName,
-                _getTypeColor(ticket.type),
+                _getTypeColor(context, ticket.type),
                 Symbols.category,
               ),
               // Status badge
               _buildBadge(
                 context,
                 ticketStatus.displayName,
-                _getStatusColor(ticket.status),
+                _getStatusColor(context, ticket.status),
                 _getStatusIcon(ticket.status),
               ),
               // Priority badge
               _buildBadge(
                 context,
                 ticketPriority.displayName,
-                _getPriorityColor(ticket.priority),
+                _getPriorityColor(context, ticket.priority),
                 _getPriorityIcon(ticket.priority),
               ),
             ],
@@ -405,9 +437,8 @@ class TicketDetailScreen extends HookConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -429,10 +460,10 @@ class TicketDetailScreen extends HookConsumerWidget {
 
   Widget _buildMessagesSection(
     BuildContext context,
-    SnTicket ticket,
+    List<SnTicketMessage> messages,
     ScrollController scrollController,
   ) {
-    if (ticket.messages.isEmpty) {
+    if (messages.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -464,9 +495,9 @@ class TicketDetailScreen extends HookConsumerWidget {
     return ListView.builder(
       controller: scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: ticket.messages.length,
+      itemCount: messages.length,
       itemBuilder: (context, index) {
-        final message = ticket.messages[index];
+        final message = messages[index];
         return _buildMessageCard(context, message);
       },
     );
@@ -645,33 +676,35 @@ class TicketDetailScreen extends HookConsumerWidget {
     );
   }
 
-  Color _getTypeColor(int type) {
+  Color _getTypeColor(BuildContext context, int type) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (type) {
       case 0:
-        return Colors.blue;
+        return colorScheme.primary;
       case 1:
-        return Colors.red;
+        return colorScheme.error;
       case 2:
         return Colors.purple;
       case 3:
         return Colors.orange;
       default:
-        return Colors.grey;
+        return colorScheme.outline;
     }
   }
 
-  Color _getStatusColor(int status) {
+  Color _getStatusColor(BuildContext context, int status) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (status) {
       case 0:
         return Colors.orange;
       case 1:
-        return Colors.blue;
+        return colorScheme.primary;
       case 2:
         return Colors.green;
       case 3:
-        return Colors.grey;
+        return colorScheme.outline;
       default:
-        return Colors.grey;
+        return colorScheme.outline;
     }
   }
 
@@ -690,18 +723,19 @@ class TicketDetailScreen extends HookConsumerWidget {
     }
   }
 
-  Color _getPriorityColor(int priority) {
+  Color _getPriorityColor(BuildContext context, int priority) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (priority) {
       case 0:
-        return Colors.grey;
+        return colorScheme.outline;
       case 1:
-        return Colors.blue;
+        return colorScheme.primary;
       case 2:
         return Colors.orange;
       case 3:
-        return Colors.red;
+        return colorScheme.error;
       default:
-        return Colors.grey;
+        return colorScheme.outline;
     }
   }
 

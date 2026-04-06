@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/route.gr.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 @RoutePage()
 class TicketListScreen extends ConsumerStatefulWidget {
@@ -23,11 +25,27 @@ class TicketListScreen extends ConsumerStatefulWidget {
 class _TicketListScreenState extends ConsumerState<TicketListScreen> {
   Future<List<SnTicket>>? _ticketsFuture;
   bool _showAllTickets = true;
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     _loadTickets();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) {
+        _loadTickets();
+      }
+    });
   }
 
   void _loadTickets() {
@@ -97,10 +115,16 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                 itemBuilder: (context, index) {
                   final ticket = tickets[index];
                   return Card(
-                    elevation: 2,
+                    elevation: 0,
                     margin: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
                       onTap: () {
                         context.router.push(
                           TicketDetailRoute(ticketId: ticket.id),
@@ -113,119 +137,95 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
                           children: [
                             Text(
                               ticket.title,
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             if (ticket.content != null) ...[
                               const SizedBox(height: 4),
                               Text(
                                 ticket.content!,
-                                style: Theme.of(context).textTheme.bodySmall,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
                               children: [
-                                Text(
-                                  'ID',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                _M3Chip(
+                                  label: TicketType
+                                      .values[ticket.type]
+                                      .displayName,
+                                  color: _getTypeColor(context, ticket.type),
                                 ),
-                                Text(
-                                  ticket.id,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Type',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                Text(
-                                  TicketType.values[ticket.type].displayName,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Priority',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                Text(
-                                  TicketPriority
+                                _M3Chip(
+                                  label: TicketPriority
                                       .values[ticket.priority]
                                       .displayName,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Created at',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                Text(
-                                  '${ticket.createdAt.formatRelative(context)} · ${ticket.createdAt.formatSystem()}',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            if (isAdmin) ...[
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Creator',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
+                                  color: _getPriorityColor(
+                                    context,
+                                    ticket.priority,
                                   ),
-                                  Text(
-                                    ticket.creator.nick,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                            ],
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Status',
-                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
-                                Text(
-                                  TicketStatus.fromValue(
+                                _M3Chip(
+                                  label: TicketStatus.fromValue(
                                     ticket.status,
                                   ).displayName,
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(
-                                        color:
-                                            ticket.status == 2 ||
-                                                ticket.status == 3
-                                            ? Colors.green
-                                            : ticket.status == 1
-                                            ? Colors.blue
-                                            : Colors.orange,
-                                      ),
+                                  color: _getStatusColor(
+                                    context,
+                                    ticket.status,
+                                  ),
                                 ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Icon(
+                                  Symbols.schedule,
+                                  size: 14,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                const Gap(4),
+                                Expanded(
+                                  child: Text(
+                                    '${ticket.createdAt.formatRelative(context)} · ${ticket.createdAt.formatSystem()}',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ),
+                                if (isAdmin) ...[
+                                  Icon(
+                                    Symbols.person,
+                                    size: 14,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                  const Gap(4),
+                                  Text(
+                                    ticket.creator.nick,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
                               ],
                             ),
                           ],
@@ -240,6 +240,80 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
             return const Center(child: Text('No data'));
           }
         },
+      ),
+    );
+  }
+
+  Color _getTypeColor(BuildContext context, int type) {
+    final colorScheme = Theme.of(context).colorScheme;
+    switch (type) {
+      case 0:
+        return colorScheme.primary;
+      case 1:
+        return colorScheme.error;
+      case 2:
+        return Colors.purple;
+      case 3:
+        return Colors.orange;
+      default:
+        return colorScheme.outline;
+    }
+  }
+
+  Color _getPriorityColor(BuildContext context, int priority) {
+    final colorScheme = Theme.of(context).colorScheme;
+    switch (priority) {
+      case 0:
+        return colorScheme.outline;
+      case 1:
+        return colorScheme.primary;
+      case 2:
+        return Colors.orange;
+      case 3:
+        return colorScheme.error;
+      default:
+        return colorScheme.outline;
+    }
+  }
+
+  Color _getStatusColor(BuildContext context, int status) {
+    final colorScheme = Theme.of(context).colorScheme;
+    switch (status) {
+      case 0:
+        return Colors.orange;
+      case 1:
+        return colorScheme.primary;
+      case 2:
+        return Colors.green;
+      case 3:
+        return colorScheme.outline;
+      default:
+        return colorScheme.outline;
+    }
+  }
+}
+
+class _M3Chip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _M3Chip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
