@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -44,7 +45,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
   @override
   Widget build(BuildContext context) {
     return SheetScaffold(
-      titleText: 'Record Workout',
+      titleText: 'recordWorkout'.tr(),
       heightFactor: 0.8,
       actions: [
         TextButton(
@@ -55,7 +56,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text('save'.tr()),
         ),
         const Gap(8),
       ],
@@ -92,13 +93,13 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
   Widget _buildNameField() {
     return TextFormField(
       controller: _nameController,
-      decoration: const InputDecoration(
-        labelText: 'Workout Name',
-        hintText: 'e.g., Morning Run',
+      decoration: InputDecoration(
+        labelText: 'workoutName'.tr(),
+        hintText: 'workoutNameHint'.tr(),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter a name';
+          return 'fieldCannotBeEmpty'.tr();
         }
         return null;
       },
@@ -108,7 +109,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
   Widget _buildWorkoutTypeSelector() {
     return DropdownButtonFormField<WorkoutType>(
       value: _selectedType,
-      decoration: const InputDecoration(labelText: 'Workout Type'),
+      decoration: InputDecoration(labelText: 'workoutType'.tr()),
       items: WorkoutType.values.map((type) {
         return DropdownMenuItem(
           value: type,
@@ -129,9 +130,11 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
   Widget _buildDateTimeSection() {
     return Row(
       children: [
-        Expanded(child: _buildDateTimePicker('Start Time', _startTime, true)),
+        Expanded(
+          child: _buildDateTimePicker('startTime'.tr(), _startTime, true),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildDateTimePicker('End Time', _endTime, false)),
+        Expanded(child: _buildDateTimePicker('endTime'.tr(), _endTime, false)),
       ],
     );
   }
@@ -156,7 +159,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
               ),
             ),
             const SizedBox(height: 4),
-            Text(dateTime != null ? _formatDateTime(dateTime) : 'Not set'),
+            Text(dateTime != null ? _formatDateTime(dateTime) : 'notSet'.tr()),
           ],
         ).padding(horizontal: 16),
       ),
@@ -167,9 +170,9 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
     return TextFormField(
       controller: _durationController,
       keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
-        labelText: 'Duration (minutes)',
-        hintText: 'e.g., 45',
+      decoration: InputDecoration(
+        labelText: 'durationMinutes'.tr(),
+        hintText: 'durationMinutesHint'.tr(),
       ),
     );
   }
@@ -178,9 +181,9 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
     return TextFormField(
       controller: _caloriesController,
       keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
-        labelText: 'Calories Burned',
-        hintText: 'e.g., 300',
+      decoration: InputDecoration(
+        labelText: 'caloriesBurned'.tr(),
+        hintText: 'caloriesBurnedHint'.tr(),
       ),
     );
   }
@@ -189,7 +192,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
     return TextFormField(
       controller: _descriptionController,
       maxLines: 2,
-      decoration: const InputDecoration(labelText: 'Description (optional)'),
+      decoration: InputDecoration(labelText: 'descriptionOptional'.tr()),
     );
   }
 
@@ -197,18 +200,22 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
     return TextFormField(
       controller: _notesController,
       maxLines: 3,
-      decoration: const InputDecoration(labelText: 'Notes (optional)'),
+      decoration: InputDecoration(labelText: 'notesOptional'.tr()),
     );
   }
 
   Widget _buildVisibilitySelector() {
     return DropdownButtonFormField<FitnessVisibility>(
       value: _visibility,
-      decoration: const InputDecoration(labelText: 'Visibility'),
+      decoration: InputDecoration(labelText: 'visibility'.tr()),
       items: FitnessVisibility.values.map((v) {
         return DropdownMenuItem(
           value: v,
-          child: Text(v == FitnessVisibility.private ? 'Private' : 'Public'),
+          child: Text(
+            v == FitnessVisibility.private
+                ? 'visibilityPrivate'.tr()
+                : 'visibilityPublic'.tr(),
+          ),
         );
       }).toList(),
       onChanged: (value) {
@@ -277,7 +284,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
       }
     } catch (e) {
       if (mounted) {
-        showErrorAlert('Error recording workout: $e');
+        showErrorAlert('operationFailed'.tr(args: [e.toString()]));
       }
     } finally {
       if (mounted) {
@@ -288,11 +295,11 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
 
   String _getWorkoutTypeName(WorkoutType type) {
     return switch (type) {
-      WorkoutType.strength => 'Strength',
-      WorkoutType.cardio => 'Cardio',
-      WorkoutType.hiit => 'HIIT',
-      WorkoutType.yoga => 'Yoga',
-      WorkoutType.other => 'Other',
+      WorkoutType.strength => 'workoutTypeStrength'.tr(),
+      WorkoutType.cardio => 'workoutTypeCardio'.tr(),
+      WorkoutType.hiit => 'workoutTypeHiit'.tr(),
+      WorkoutType.yoga => 'workoutTypeYoga'.tr(),
+      WorkoutType.other => 'workoutTypeOther'.tr(),
     };
   }
 

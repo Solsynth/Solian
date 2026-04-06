@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -73,7 +74,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
             visibility: visibility,
           );
       if (context.mounted) {
-        showSnackBar('Updated visibility for $count workouts');
+        showSnackBar('Updated visibility for $count ${'workouts'.tr()}');
         _clearSelection();
       }
     } catch (e) {
@@ -88,8 +89,8 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
     return AppScaffold(
       appBar: AppBar(
         title: _isSelectionMode
-            ? Text('${_selected.length} selected')
-            : const Text('Workouts'),
+            ? Text('${_selected.length} ${"selected".tr()}')
+            : Text('workouts'.tr()),
         leading: _isSelectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
@@ -100,7 +101,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           if (_isSelectionMode) ...[
             PopupMenuButton<String>(
               icon: const Icon(Icons.visibility),
-              tooltip: 'Set Visibility',
+              tooltip: 'setPrivate'.tr(),
               onSelected: (value) {
                 if (value == 'selectAll') {
                   _selectAllWorkouts();
@@ -123,8 +124,8 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                         Icons.select_all,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Select All'),
+                      const SizedBox(width: 12),
+                      Text('selectAll'.tr()),
                     ],
                   ),
                 ),
@@ -136,8 +137,8 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                         Icons.lock_outline,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Set Private'),
+                      const SizedBox(width: 12),
+                      Text('setPrivate'.tr()),
                     ],
                   ),
                 ),
@@ -149,8 +150,8 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                         Icons.public,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Set Public'),
+                      const SizedBox(width: 12),
+                      Text('setPublic'.tr()),
                     ],
                   ),
                 ),
@@ -159,7 +160,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           ] else ...[
             IconButton(
               icon: const Icon(Icons.checklist),
-              tooltip: 'Select',
+              tooltip: 'selectAll'.tr(),
               onPressed: _enterSelectionMode,
             ),
           ],
@@ -181,7 +182,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'No workouts yet',
+                      'noWorkoutsYet'.tr(),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -190,7 +191,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                     FilledButton.icon(
                       onPressed: () => _showRecordWorkoutSheet(context),
                       icon: const Icon(Icons.add),
-                      label: const Text('Record Workout'),
+                      label: Text('recordWorkout'.tr()),
                     ),
                   ],
                 ),
@@ -220,7 +221,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showRecordWorkoutSheet(context),
         icon: const Icon(Icons.add),
-        label: const Text('Record Workout'),
+        label: Text('recordWorkout'.tr()),
       ),
     );
   }
@@ -331,7 +332,7 @@ class _WorkoutCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${workout.caloriesBurned} kcal',
+                              '${workout.caloriesBurned} ${'calories'.tr()}',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: Theme.of(
@@ -364,12 +365,12 @@ class _WorkoutCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Workout'),
-        content: const Text('Are you sure you want to delete this workout?'),
+        title: Text('deleteWorkout'.tr()),
+        content: Text('deleteWorkoutConfirm'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () async {
@@ -385,7 +386,7 @@ class _WorkoutCard extends ConsumerWidget {
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text('delete'.tr()),
           ),
         ],
       ),

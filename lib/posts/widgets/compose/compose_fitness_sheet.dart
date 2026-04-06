@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
@@ -142,14 +143,14 @@ class ComposeFitnessSheet extends ConsumerWidget {
       length: 3,
       child: SheetScaffold(
         heightFactor: 0.7,
-        titleText: 'Fitness',
+        titleText: 'fitnessEmbed'.tr(),
         child: Column(
           children: [
-            const TabBar(
+            TabBar(
               tabs: [
-                Tab(text: 'Workouts'),
-                Tab(text: 'Metrics'),
-                Tab(text: 'Goals'),
+                Tab(text: 'fitnessEmbedWorkouts'.tr()),
+                Tab(text: 'fitnessEmbedMetrics'.tr()),
+                Tab(text: 'fitnessEmbedGoals'.tr()),
               ],
             ),
             Expanded(
@@ -180,7 +181,7 @@ class _WorkoutsTab extends ConsumerWidget {
     return workoutsAsync.when(
       data: (items) {
         if (items.isEmpty) {
-          return const Center(child: Text('No public workouts'));
+          return Center(child: Text('noPublicWorkouts'.tr()));
         }
         return ListView.builder(
           itemCount: items.length,
@@ -199,7 +200,8 @@ class _WorkoutsTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) =>
+          Center(child: Text('errorGeneric'.tr(args: [e.toString()]))),
     );
   }
 }
@@ -216,7 +218,7 @@ class _MetricsTab extends ConsumerWidget {
     return metricsAsync.when(
       data: (items) {
         if (items.isEmpty) {
-          return const Center(child: Text('No public metrics'));
+          return Center(child: Text('noPublicMetrics'.tr()));
         }
         return ListView.builder(
           itemCount: items.length,
@@ -235,7 +237,8 @@ class _MetricsTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) =>
+          Center(child: Text('errorGeneric'.tr(args: [e.toString()]))),
     );
   }
 }
@@ -252,7 +255,7 @@ class _GoalsTab extends ConsumerWidget {
     return goalsAsync.when(
       data: (items) {
         if (items.isEmpty) {
-          return const Center(child: Text('No public goals'));
+          return Center(child: Text('noPublicGoals'.tr()));
         }
         return ListView.builder(
           itemCount: items.length,
@@ -271,7 +274,8 @@ class _GoalsTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) =>
+          Center(child: Text('errorGeneric'.tr(args: [e.toString()]))),
     );
   }
 }

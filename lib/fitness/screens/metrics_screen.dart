@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -75,7 +76,7 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
             visibility: visibility,
           );
       if (context.mounted) {
-        showSnackBar('Updated visibility for $count metrics');
+        showSnackBar('Updated visibility for $count ${'metrics'.tr()}');
         _clearSelection();
       }
     } catch (e) {
@@ -93,8 +94,8 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
     return AppScaffold(
       appBar: AppBar(
         title: isSelectionMode
-            ? Text('${_selected.length} selected')
-            : const Text('Metrics'),
+            ? Text('${_selected.length} ${"selected".tr()}')
+            : Text('metrics'.tr()),
         leading: isSelectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
@@ -105,7 +106,7 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
           if (isSelectionMode) ...[
             PopupMenuButton<String>(
               icon: const Icon(Icons.visibility),
-              tooltip: 'Set Visibility',
+              tooltip: 'setPrivate'.tr(),
               onSelected: (value) {
                 if (value == 'selectAll') {
                   _selectAllMetrics();
@@ -128,8 +129,8 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
                         Icons.select_all,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Select All'),
+                      const SizedBox(width: 12),
+                      Text('selectAll'.tr()),
                     ],
                   ),
                 ),
@@ -141,8 +142,8 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
                         Icons.lock_outline,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Set Private'),
+                      const SizedBox(width: 12),
+                      Text('setPrivate'.tr()),
                     ],
                   ),
                 ),
@@ -154,8 +155,8 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
                         Icons.public,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Set Public'),
+                      const SizedBox(width: 12),
+                      Text('setPublic'.tr()),
                     ],
                   ),
                 ),
@@ -164,7 +165,7 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
           ] else ...[
             IconButton(
               icon: const Icon(Icons.checklist),
-              tooltip: 'Select',
+              tooltip: 'selectAll'.tr(),
               onPressed: _enterSelectionMode,
             ),
           ],
@@ -183,7 +184,7 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'No metrics yet',
+                      'noMetricsYet'.tr(),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -192,7 +193,7 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
                     FilledButton.icon(
                       onPressed: () => _showRecordMetricSheet(context),
                       icon: const Icon(Icons.add),
-                      label: const Text('Record Metric'),
+                      label: Text('recordMetric'.tr()),
                     ),
                   ],
                 ),
@@ -236,7 +237,7 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showRecordMetricSheet(context),
         icon: const Icon(Icons.add),
-        label: const Text('Record Metric'),
+        label: Text('recordMetric'.tr()),
       ),
     );
   }
@@ -325,7 +326,7 @@ class _MetricCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '$avgDisplay • ${metrics.length} records',
+                      '$avgDisplay • ${metrics.length} ${'records'.tr()}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -366,15 +367,40 @@ class _MetricCard extends ConsumerWidget {
 
   void _handleAction(BuildContext context, WidgetRef ref, String action) async {
     if (action == 'delete') {
+      final typeName = _getMetricName(type);
       try {
-        for (final metric in metrics) {
-          await ref
-              .read(metricNotifierProvider.notifier)
-              .deleteMetric(metric.id);
-        }
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text('deleteAllMetrics'.tr()),
+            content: Text('deleteAllMetricsConfirm'.tr(args: [typeName])),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text('cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(dialogContext);
+                  await _deleteAllMetrics(ref);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: Text('delete'.tr()),
+              ),
+            ],
+          ),
+        );
       } catch (e) {
         showErrorAlert('Error: $e');
       }
+    }
+  }
+
+  Future<void> _deleteAllMetrics(WidgetRef ref) async {
+    for (final metric in metrics) {
+      await ref.read(metricNotifierProvider.notifier).deleteMetric(metric.id);
     }
   }
 
