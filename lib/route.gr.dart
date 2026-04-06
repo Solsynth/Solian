@@ -15,17 +15,17 @@ import 'package:flutter/material.dart' as _i84;
 import 'package:island/accounts/account_screen.dart' as _i2;
 import 'package:island/accounts/screens/action_logs.dart' as _i6;
 import 'package:island/accounts/screens/badges.dart' as _i12;
-import 'package:island/accounts/screens/leveling.dart' as _i54;
+import 'package:island/accounts/screens/leveling.dart' as _i53;
 import 'package:island/accounts/screens/me/account_settings.dart' as _i4;
 import 'package:island/accounts/screens/me/profile_update.dart' as _i5;
-import 'package:island/accounts/screens/meet.dart' as _i57;
+import 'package:island/accounts/screens/meet.dart' as _i56;
 import 'package:island/accounts/screens/physical_passport.dart' as _i59;
 import 'package:island/accounts/screens/profile.dart' as _i3;
 import 'package:island/accounts/screens/progress.dart' as _i65;
 import 'package:island/accounts/screens/relationship.dart' as _i70;
 import 'package:island/auth/captcha.dart' as _i16;
 import 'package:island/auth/create_account.dart' as _i20;
-import 'package:island/auth/login.dart' as _i56;
+import 'package:island/auth/login.dart' as _i55;
 import 'package:island/chat/widgets/call_screen.dart' as _i15;
 import 'package:island/chat/widgets/chat_detail_screen.dart' as _i17;
 import 'package:island/chat/widgets/chat_list_screen.dart' as _i18;
@@ -59,22 +59,22 @@ import 'package:island/developers/screens/hub.dart' as _i39;
 import 'package:island/developers/screens/new_app.dart' as _i35;
 import 'package:island/developers/screens/new_bot.dart' as _i38;
 import 'package:island/developers/screens/new_project.dart' as _i41;
-import 'package:island/discovery/explore.dart' as _i45;
+import 'package:island/discovery/explore.dart' as _i44;
 import 'package:island/discovery/screens/article_detail.dart' as _i10;
 import 'package:island/discovery/screens/articles.dart' as _i11;
-import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i47;
-import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i48;
-import 'package:island/discovery/screens/livestream_watch.dart' as _i55;
+import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i46;
+import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i47;
+import 'package:island/discovery/screens/livestream_watch.dart' as _i54;
 import 'package:island/discovery/screens/livestreams.dart' as _i7;
 import 'package:island/discovery/search.dart' as _i79;
-import 'package:island/drive/files/file_detail.dart' as _i49;
-import 'package:island/drive/files/file_list.dart' as _i50;
-import 'package:island/fediverse/actor_profile.dart' as _i46;
-import 'package:island/fitness/screens/exercises_route.dart' as _i44;
-import 'package:island/fitness/screens/fitness_dashboard_route.dart' as _i51;
-import 'package:island/fitness/screens/goals_route.dart' as _i52;
-import 'package:island/fitness/screens/health_sync_screen.dart' as _i53;
-import 'package:island/fitness/screens/metrics_route.dart' as _i58;
+import 'package:island/drive/files/file_detail.dart' as _i48;
+import 'package:island/drive/files/file_list.dart' as _i49;
+import 'package:island/fediverse/actor_profile.dart' as _i45;
+import 'package:island/fitness/screens/fitness_dashboard_screen.dart' as _i50;
+import 'package:island/fitness/screens/goals_screen.dart' as _i51;
+import 'package:island/fitness/screens/health_sync_screen.dart' as _i52;
+import 'package:island/fitness/screens/metric_detail_screen.dart' as _i57;
+import 'package:island/fitness/screens/metrics_screen.dart' as _i58;
 import 'package:island/fitness/screens/workouts_screen.dart' as _i81;
 import 'package:island/misc/about.dart' as _i1;
 import 'package:island/misc/dashboard/dash.dart' as _i31;
@@ -2233,23 +2233,7 @@ class EditPublisherRouteArgs {
 }
 
 /// generated route for
-/// [_i44.ExercisesRoute]
-class ExercisesRoute extends _i82.PageRouteInfo<void> {
-  const ExercisesRoute({List<_i82.PageRouteInfo>? children})
-    : super(ExercisesRoute.name, initialChildren: children);
-
-  static const String name = 'ExercisesRoute';
-
-  static _i82.PageInfo page = _i82.PageInfo(
-    name,
-    builder: (data) {
-      return const _i44.ExercisesRoute();
-    },
-  );
-}
-
-/// generated route for
-/// [_i45.ExploreScreen]
+/// [_i44.ExploreScreen]
 class ExploreRoute extends _i82.PageRouteInfo<void> {
   const ExploreRoute({List<_i82.PageRouteInfo>? children})
     : super(ExploreRoute.name, initialChildren: children);
@@ -2259,13 +2243,13 @@ class ExploreRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i45.ExploreScreen();
+      return const _i44.ExploreScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i46.FediverseActorProfileScreen]
+/// [_i45.FediverseActorProfileScreen]
 class FediverseActorProfileRoute
     extends _i82.PageRouteInfo<FediverseActorProfileRouteArgs> {
   FediverseActorProfileRoute({
@@ -2289,7 +2273,7 @@ class FediverseActorProfileRoute
     name,
     builder: (data) {
       final args = data.argsAs<FediverseActorProfileRouteArgs>();
-      return _i46.FediverseActorProfileScreen(
+      return _i45.FediverseActorProfileScreen(
         key: args.key,
         id: args.id,
         fullHandle: args.fullHandle,
@@ -2328,7 +2312,7 @@ class FediverseActorProfileRouteArgs {
 }
 
 /// generated route for
-/// [_i47.FeedMarketplaceDetailScreen]
+/// [_i46.FeedMarketplaceDetailScreen]
 class FeedMarketplaceDetailRoute
     extends _i82.PageRouteInfo<FeedMarketplaceDetailRouteArgs> {
   FeedMarketplaceDetailRoute({
@@ -2347,7 +2331,7 @@ class FeedMarketplaceDetailRoute
     name,
     builder: (data) {
       final args = data.argsAs<FeedMarketplaceDetailRouteArgs>();
-      return _i47.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
+      return _i46.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2376,7 +2360,7 @@ class FeedMarketplaceDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i48.FeedMarketplaceScreen]
+/// [_i47.FeedMarketplaceScreen]
 class FeedMarketplaceRoute extends _i82.PageRouteInfo<void> {
   const FeedMarketplaceRoute({List<_i82.PageRouteInfo>? children})
     : super(FeedMarketplaceRoute.name, initialChildren: children);
@@ -2386,13 +2370,13 @@ class FeedMarketplaceRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i48.FeedMarketplaceScreen();
+      return const _i47.FeedMarketplaceScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i49.FileDetailScreen]
+/// [_i48.FileDetailScreen]
 class FileDetailRoute extends _i82.PageRouteInfo<FileDetailRouteArgs> {
   FileDetailRoute({
     _i83.Key? key,
@@ -2411,7 +2395,7 @@ class FileDetailRoute extends _i82.PageRouteInfo<FileDetailRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<FileDetailRouteArgs>();
-      return _i49.FileDetailScreen(
+      return _i48.FileDetailScreen(
         key: args.key,
         item: args.item,
         heroTag: args.heroTag,
@@ -2446,7 +2430,7 @@ class FileDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i50.FileListScreen]
+/// [_i49.FileListScreen]
 class FileListRoute extends _i82.PageRouteInfo<void> {
   const FileListRoute({List<_i82.PageRouteInfo>? children})
     : super(FileListRoute.name, initialChildren: children);
@@ -2456,13 +2440,13 @@ class FileListRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i50.FileListScreen();
+      return const _i49.FileListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i51.FitnessDashboardRoute]
+/// [_i50.FitnessDashboardScreen]
 class FitnessDashboardRoute extends _i82.PageRouteInfo<void> {
   const FitnessDashboardRoute({List<_i82.PageRouteInfo>? children})
     : super(FitnessDashboardRoute.name, initialChildren: children);
@@ -2472,13 +2456,13 @@ class FitnessDashboardRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i51.FitnessDashboardRoute();
+      return const _i50.FitnessDashboardScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i52.GoalsRoute]
+/// [_i51.GoalsScreen]
 class GoalsRoute extends _i82.PageRouteInfo<void> {
   const GoalsRoute({List<_i82.PageRouteInfo>? children})
     : super(GoalsRoute.name, initialChildren: children);
@@ -2488,13 +2472,13 @@ class GoalsRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i52.GoalsRoute();
+      return const _i51.GoalsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i53.HealthSyncScreen]
+/// [_i52.HealthSyncScreen]
 class HealthSyncRoute extends _i82.PageRouteInfo<void> {
   const HealthSyncRoute({List<_i82.PageRouteInfo>? children})
     : super(HealthSyncRoute.name, initialChildren: children);
@@ -2504,13 +2488,13 @@ class HealthSyncRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i53.HealthSyncScreen();
+      return const _i52.HealthSyncScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i54.LevelingScreen]
+/// [_i53.LevelingScreen]
 class LevelingRoute extends _i82.PageRouteInfo<void> {
   const LevelingRoute({List<_i82.PageRouteInfo>? children})
     : super(LevelingRoute.name, initialChildren: children);
@@ -2520,13 +2504,13 @@ class LevelingRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i54.LevelingScreen();
+      return const _i53.LevelingScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i55.LivestreamWatchScreen]
+/// [_i54.LivestreamWatchScreen]
 class LivestreamWatchRoute
     extends _i82.PageRouteInfo<LivestreamWatchRouteArgs> {
   LivestreamWatchRoute({
@@ -2550,7 +2534,7 @@ class LivestreamWatchRoute
         orElse: () =>
             LivestreamWatchRouteArgs(livestreamId: pathParams.getString('id')),
       );
-      return _i55.LivestreamWatchScreen(
+      return _i54.LivestreamWatchScreen(
         key: args.key,
         livestreamId: args.livestreamId,
       );
@@ -2582,7 +2566,7 @@ class LivestreamWatchRouteArgs {
 }
 
 /// generated route for
-/// [_i56.LoginScreen]
+/// [_i55.LoginScreen]
 class LoginRoute extends _i82.PageRouteInfo<void> {
   const LoginRoute({List<_i82.PageRouteInfo>? children})
     : super(LoginRoute.name, initialChildren: children);
@@ -2592,13 +2576,13 @@ class LoginRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i56.LoginScreen();
+      return const _i55.LoginScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i57.MeetDetailScreen]
+/// [_i56.MeetDetailScreen]
 class MeetDetailRoute extends _i82.PageRouteInfo<MeetDetailRouteArgs> {
   MeetDetailRoute({
     _i83.Key? key,
@@ -2620,7 +2604,7 @@ class MeetDetailRoute extends _i82.PageRouteInfo<MeetDetailRouteArgs> {
       final args = data.argsAs<MeetDetailRouteArgs>(
         orElse: () => MeetDetailRouteArgs(id: pathParams.getString('id')),
       );
-      return _i57.MeetDetailScreen(key: args.key, id: args.id);
+      return _i56.MeetDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2649,7 +2633,7 @@ class MeetDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i57.MeetScreen]
+/// [_i56.MeetScreen]
 class MeetRoute extends _i82.PageRouteInfo<void> {
   const MeetRoute({List<_i82.PageRouteInfo>? children})
     : super(MeetRoute.name, initialChildren: children);
@@ -2659,13 +2643,63 @@ class MeetRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i57.MeetScreen();
+      return const _i56.MeetScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i58.MetricsRoute]
+/// [_i57.MetricDetailScreen]
+class MetricDetailRoute extends _i82.PageRouteInfo<MetricDetailRouteArgs> {
+  MetricDetailRoute({
+    _i84.Key? key,
+    required _i85.FitnessMetricType metricType,
+    List<_i82.PageRouteInfo>? children,
+  }) : super(
+         MetricDetailRoute.name,
+         args: MetricDetailRouteArgs(key: key, metricType: metricType),
+         initialChildren: children,
+       );
+
+  static const String name = 'MetricDetailRoute';
+
+  static _i82.PageInfo page = _i82.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<MetricDetailRouteArgs>();
+      return _i57.MetricDetailScreen(
+        key: args.key,
+        metricType: args.metricType,
+      );
+    },
+  );
+}
+
+class MetricDetailRouteArgs {
+  const MetricDetailRouteArgs({this.key, required this.metricType});
+
+  final _i84.Key? key;
+
+  final _i85.FitnessMetricType metricType;
+
+  @override
+  String toString() {
+    return 'MetricDetailRouteArgs{key: $key, metricType: $metricType}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! MetricDetailRouteArgs) return false;
+    return key == other.key && metricType == other.metricType;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ metricType.hashCode;
+}
+
+/// generated route for
+/// [_i58.MetricsScreen]
 class MetricsRoute extends _i82.PageRouteInfo<void> {
   const MetricsRoute({List<_i82.PageRouteInfo>? children})
     : super(MetricsRoute.name, initialChildren: children);
@@ -2675,7 +2709,7 @@ class MetricsRoute extends _i82.PageRouteInfo<void> {
   static _i82.PageInfo page = _i82.PageInfo(
     name,
     builder: (data) {
-      return const _i58.MetricsRoute();
+      return const _i58.MetricsScreen();
     },
   );
 }

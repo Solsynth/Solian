@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:health/health.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -173,6 +174,53 @@ class HealthSyncService {
       case SyncType.metrics:
         await _prefs.setString(_keyLastSyncMetrics, now);
     }
+  }
+
+  Future<bool> hasNewDataSince(DateTime since) async {
+    final now = DateTime.now();
+
+    if (since.isAfter(now.subtract(const Duration(hours: 1)))) {
+      return false;
+    }
+
+    final aggregateTypes = [
+      HealthDataType.STEPS,
+      HealthDataType.ACTIVE_ENERGY_BURNED,
+      HealthDataType.HEART_RATE,
+      HealthDataType.DISTANCE_WALKING_RUNNING,
+    ];
+
+    final individualTypes = [
+      HealthDataType.WORKOUT,
+      HealthDataType.SLEEP_ASLEEP,
+    ];
+
+    final latestPerDayTypes = [
+      HealthDataType.WEIGHT,
+      HealthDataType.BODY_MASS_INDEX,
+    ];
+
+    for (final type in [
+      ...individualTypes,
+      ...latestPerDayTypes,
+      ...aggregateTypes,
+    ]) {
+      try {
+        final data = await _health.getHealthDataFromTypes(
+          types: [type],
+          startTime: since,
+          endTime: now,
+        );
+
+        if (data.isNotEmpty) {
+          return true;
+        }
+      } catch (_) {
+        // Skip types that fail
+      }
+    }
+
+    return false;
   }
 
   Future<List<HealthRecord>> fetchAllRecords({
@@ -388,15 +436,17 @@ class HealthSyncService {
     final workoutValue = record.value as WorkoutHealthValue;
     final activityType = workoutValue.workoutActivityType;
 
+    final source = Platform.isIOS ? 'healthkit' : 'googlefit';
+
     return CreateWorkoutRequest(
       name: _formatWorkoutName(activityType),
-      description: 'Synced from HealthKit',
+      description: 'Synced from $source',
       type: _mapWorkoutType(activityType),
       startTime: record.startDate,
       endTime: record.endDate,
       externalId: record.uuid,
       caloriesBurned: workoutValue.totalEnergyBurned?.toInt(),
-      notes: 'Synced from Apple Health',
+      notes: 'Synced from $source',
     );
   }
 
@@ -409,12 +459,14 @@ class HealthSyncService {
       value = (record.value as num).toDouble();
     }
 
+    final source = Platform.isIOS ? 'healthkit' : 'googlefit';
+
     return CreateMetricRequest(
       metricType: metricType!,
       value: value,
       unit: record.unit,
       recordedAt: record.startDate,
-      source: 'healthkit',
+      source: source,
       externalId: record.uuid,
     );
   }

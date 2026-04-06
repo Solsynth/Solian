@@ -63,7 +63,7 @@ final groupedRecordsProvider =
           return grouped;
         },
         loading: () => {},
-        error: (_, __) => {},
+        error: (_, _) => {},
       );
     });
 
@@ -84,6 +84,40 @@ final lastSyncTimeProvider = Provider<DateTime?>((ref) {
 
   return lastWorkouts.isAfter(lastMetrics) ? lastWorkouts : lastMetrics;
 });
+
+final hasNewHealthDataProvider = FutureProvider.autoDispose<bool>((ref) async {
+  final syncService = ref.watch(healthSyncServiceProvider);
+  final health = ref.watch(healthProvider);
+  final types = await syncService.getAvailableTypes();
+
+  try {
+    final hasPermission = await health.hasPermissions(types.toList());
+    if (!Platform.isIOS && hasPermission != true) {
+      return false;
+    }
+
+    final lastSync =
+        syncService.lastSyncMetrics ??
+        syncService.lastSyncWorkouts ??
+        DateTime.now().subtract(const Duration(days: 1));
+
+    return await syncService.hasNewDataSince(lastSync);
+  } catch (e) {
+    return false;
+  }
+});
+
+class DismissCardNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void dismiss() => state = true;
+  void show() => state = false;
+}
+
+final dismissNewDataCardProvider = NotifierProvider<DismissCardNotifier, bool>(
+  DismissCardNotifier.new,
+);
 
 class SelectedRecordsNotifier {
   final Set<String> _selected = {};

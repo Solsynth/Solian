@@ -2,10 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:health/health.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/fitness/pods/health_sync_providers.dart';
 import 'package:island/fitness/services/health_sync_service.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -32,16 +34,12 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
 
   Future<void> _sync() async {
     if (_selectedUuids.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select records to sync')),
-      );
+      showSnackBar('Please select records to sync');
       return;
     }
 
     if (_selectedTypes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one data type')),
-      );
+      showSnackBar('Please select at least one data type');
       return;
     }
 
@@ -68,26 +66,16 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result.success
-                  ? 'Synced ${result.uploaded} records'
-                  : 'Sync failed: ${result.error}',
-            ),
-            backgroundColor: result.success ? Colors.green : Colors.red,
-          ),
-        );
+        if (result.success) {
+          showSnackBar('Synced ${result.uploaded} records');
+        } else {
+          showSnackBar('Sync failed: ${result.error}');
+        }
       }
     } catch (e) {
       setState(() => _isSyncing = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Sync failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showSnackBar('Sync failed: $e');
       }
     }
   }
@@ -160,8 +148,17 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
             onPressed: () => ref.invalidate(healthRecordsProvider),
           ),
           if (_selectedUuids.isNotEmpty || _selectedTypes.isNotEmpty)
-            TextButton(onPressed: _deselectAll, child: const Text('Clear')),
-          TextButton(onPressed: _selectAll, child: const Text('Select All')),
+            IconButton(
+              icon: const Icon(Icons.clear),
+              tooltip: 'Clear',
+              onPressed: _deselectAll,
+            ),
+          IconButton(
+            icon: const Icon(Icons.select_all),
+            tooltip: 'Select All',
+            onPressed: _selectAll,
+          ),
+          const Gap(8),
         ],
       ),
       body: recordsAsync.when(
@@ -253,19 +250,30 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
         }
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _buildTypeSelector(grouped),
             if (lastSync != null)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Last sync: ${_formatDate(lastSync)}',
-                  style: Theme.of(context).textTheme.bodySmall,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    const Icon(Symbols.sync, size: 20),
+                    Text(
+                      'Last sync: ${_formatDate(lastSync)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
-            _buildTypeSelector(grouped),
-            const Divider(),
             Expanded(
               child: ListView.builder(
+                padding: EdgeInsets.zero,
                 itemCount: grouped.length,
                 itemBuilder: (context, index) {
                   final type = grouped.keys.elementAt(index);

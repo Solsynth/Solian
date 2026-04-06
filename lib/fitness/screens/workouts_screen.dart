@@ -15,7 +15,7 @@ class WorkoutsScreen extends ConsumerWidget {
     final workoutsAsync = ref.watch(workoutsProvider((skip: 0, take: 50)));
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Workouts')),
+      appBar: AppBar(title: const Text('Workouts'), centerTitle: false),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(workoutsProvider((skip: 0, take: 50)));
@@ -23,34 +23,21 @@ class WorkoutsScreen extends ConsumerWidget {
         child: workoutsAsync.when(
           data: (result) {
             if (result.items.isEmpty) {
-              return const Center(child: Text('No workouts yet'));
+              return Center(
+                child: Text(
+                  'No workouts yet',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
             }
             return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: result.items.length,
               itemBuilder: (context, index) {
                 final workout = result.items[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Icon(_getWorkoutIcon(workout.type)),
-                    ),
-                    title: Text(workout.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_formatDate(workout.startTime)),
-                        if (workout.caloriesBurned != null)
-                          Text('${workout.caloriesBurned} calories'),
-                      ],
-                    ),
-                    isThreeLine: workout.caloriesBurned != null,
-                    trailing: const Icon(Icons.chevron_right),
-                  ),
-                );
+                return _WorkoutCard(workout: workout);
               },
             );
           },
@@ -58,31 +45,143 @@ class WorkoutsScreen extends ConsumerWidget {
           error: (e, _) => Center(child: Text('Error: $e')),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Create workout route
-        },
-        child: const Icon(Icons.add),
+    );
+  }
+}
+
+class _WorkoutCard extends StatelessWidget {
+  final SnWorkout workout;
+
+  const _WorkoutCard({required this.workout});
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = workout.endTime != null
+        ? workout.endTime!.difference(workout.startTime)
+        : null;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: Icon(
+                _getWorkoutIcon(workout.type),
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    workout.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatDate(workout.startTime),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (workout.caloriesBurned != null || duration != null)
+                    const SizedBox(height: 4),
+                  if (workout.caloriesBurned != null || duration != null)
+                    Row(
+                      children: [
+                        if (duration != null) ...[
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 14,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDuration(duration),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                        if (duration != null && workout.caloriesBurned != null)
+                          const SizedBox(width: 12),
+                        if (workout.caloriesBurned != null) ...[
+                          Icon(
+                            Icons.local_fire_department_outlined,
+                            size: 14,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${workout.caloriesBurned} kcal',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   IconData _getWorkoutIcon(WorkoutType type) {
-    switch (type) {
-      case WorkoutType.strength:
-        return Icons.fitness_center;
-      case WorkoutType.cardio:
-        return Icons.directions_run;
-      case WorkoutType.hiit:
-        return Icons.flash_on;
-      case WorkoutType.yoga:
-        return Icons.self_improvement;
-      case WorkoutType.other:
-        return Icons.sports;
-    }
+    return switch (type) {
+      WorkoutType.strength => Icons.fitness_center,
+      WorkoutType.cardio => Icons.directions_run,
+      WorkoutType.hiit => Icons.flash_on,
+      WorkoutType.yoga => Icons.self_improvement,
+      WorkoutType.other => Icons.sports,
+    };
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes}m';
   }
 }
