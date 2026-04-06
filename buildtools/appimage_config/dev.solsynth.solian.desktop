@@ -8,7 +8,7 @@ Comment=Connect with friends and communities on Solar Network
 Exec=island %U
 Icon=icon-padded
 Terminal=false
-Categories=Network;Chat;InstantMessaging;Social;
+Categories=Network;Chat;InstantMessaging;
 StartupNotify=true
 StartupWMClass=island
 
