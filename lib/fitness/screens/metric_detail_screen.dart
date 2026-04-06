@@ -2,6 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
 import 'package:island/fitness/utils/metric_unit_formatter.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -116,6 +118,11 @@ class _MetricDetailScreenState extends ConsumerState<MetricDetailScreen> {
   }
 
   Widget _buildContent(BuildContext context, List<SnFitnessMetric> metrics) {
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
+    final firstMetric = metrics.isNotEmpty ? metrics.first : null;
+    final isOwner =
+        firstMetric != null && currentUserId == firstMetric.accountId;
+
     final sortedMetrics = List<SnFitnessMetric>.from(metrics)
       ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
 
@@ -135,6 +142,13 @@ class _MetricDetailScreenState extends ConsumerState<MetricDetailScreen> {
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
+          if (!isOwner && firstMetric != null) ...[
+            AccountNameplate(
+              name: firstMetric.accountId,
+              padding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 16),
+          ],
           _buildStatsCards(context, stats),
           const SizedBox(height: 24),
           Text(

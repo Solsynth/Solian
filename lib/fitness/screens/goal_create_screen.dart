@@ -38,6 +38,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
   int _repeatInterval = 1;
   int? _repeatCount;
   bool _isLoading = false;
+  FitnessVisibility _visibility = FitnessVisibility.private;
 
   @override
   void initState() {
@@ -63,6 +64,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
     _autoUpdateProgress = goal.autoUpdateProgress;
     _startDate = goal.startDate;
     _endDate = goal.endDate;
+    _visibility = goal.visibility;
     _isRepeating = goal.repeatType != null;
     if (_isRepeating) {
       _repeatType = goal.repeatType!;
@@ -122,6 +124,8 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
           const SizedBox(height: 16),
           _buildRepeatToggle(),
           _buildRepeatSection(),
+          const SizedBox(height: 16),
+          _buildVisibilitySelector(),
           const SizedBox(height: 16),
           _buildDescriptionField(),
           const SizedBox(height: 16),
@@ -280,6 +284,21 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
       onChanged: (value) {
         setState(() {
           _autoUpdateProgress = value;
+        });
+      },
+    );
+  }
+
+  Widget _buildVisibilitySelector() {
+    return DropdownButtonFormField<FitnessVisibility>(
+      value: _visibility,
+      decoration: const InputDecoration(labelText: 'Visibility'),
+      items: FitnessVisibility.values.map((v) {
+        return DropdownMenuItem(value: v, child: Text(_getVisibilityName(v)));
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _visibility = value!;
         });
       },
     );
@@ -490,6 +509,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
           notes: _notesController.text.isNotEmpty
               ? _notesController.text
               : null,
+          visibility: _visibility,
         );
 
         await ref
@@ -515,6 +535,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
           repeatType: _isRepeating ? _repeatType : null,
           repeatInterval: _isRepeating ? _repeatInterval : null,
           repeatCount: _isRepeating ? _repeatCount : null,
+          visibility: _visibility,
         );
 
         await ref.read(goalNotifierProvider.notifier).createGoal(request);
@@ -581,6 +602,13 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
       RepeatType.monthly => 'Monthly',
       RepeatType.quarterly => 'Quarterly',
       RepeatType.yearly => 'Yearly',
+    };
+  }
+
+  String _getVisibilityName(FitnessVisibility visibility) {
+    return switch (visibility) {
+      FitnessVisibility.private => 'Private',
+      FitnessVisibility.public => 'Public',
     };
   }
 

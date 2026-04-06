@@ -18,6 +18,13 @@ enum WorkoutType {
   other,
 }
 
+enum FitnessVisibility {
+  @JsonValue(0)
+  private,
+  @JsonValue(1)
+  public,
+}
+
 @freezed
 sealed class SnWorkout with _$SnWorkout {
   const factory SnWorkout({
@@ -30,6 +37,7 @@ sealed class SnWorkout with _$SnWorkout {
     DateTime? endTime,
     int? caloriesBurned,
     String? notes,
+    @Default(FitnessVisibility.private) FitnessVisibility visibility,
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default([]) List<SnWorkoutExercise> exercises,
@@ -69,6 +77,7 @@ sealed class CreateWorkoutRequest with _$CreateWorkoutRequest {
     String? externalId,
     int? caloriesBurned,
     String? notes,
+    @Default(FitnessVisibility.private) FitnessVisibility visibility,
   }) = _CreateWorkoutRequest;
 
   factory CreateWorkoutRequest.fromJson(Map<String, dynamic> json) =>
@@ -84,6 +93,7 @@ sealed class UpdateWorkoutRequest with _$UpdateWorkoutRequest {
     String? description,
     int? caloriesBurned,
     String? notes,
+    FitnessVisibility? visibility,
   }) = _UpdateWorkoutRequest;
 
   factory UpdateWorkoutRequest.fromJson(Map<String, dynamic> json) =>

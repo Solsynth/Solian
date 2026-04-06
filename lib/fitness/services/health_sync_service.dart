@@ -379,6 +379,7 @@ class HealthSyncService {
   Future<SyncResult> syncRecords({
     required List<HealthRecord> records,
     required Set<HealthDataType> selectedTypes,
+    FitnessVisibility visibility = FitnessVisibility.private,
   }) async {
     if (records.isEmpty) {
       return SyncResult.success(details: ['No records to sync']);
@@ -402,7 +403,7 @@ class HealthSyncService {
     try {
       if (workoutRecords.isNotEmpty) {
         final workouts = workoutRecords
-            .map((r) => _buildWorkoutRequest(r))
+            .map((r) => _buildWorkoutRequest(r, visibility))
             .toList();
         await _fitnessApi.createWorkoutsBatch(
           CreateWorkoutsBatchRequest(workouts: workouts),
@@ -411,7 +412,7 @@ class HealthSyncService {
 
       if (metricRecords.isNotEmpty) {
         final metrics = metricRecords
-            .map((r) => _buildMetricRequest(r))
+            .map((r) => _buildMetricRequest(r, visibility))
             .toList();
         await _fitnessApi.createMetricsBatch(
           CreateMetricsBatchRequest(metrics: metrics),
@@ -432,7 +433,10 @@ class HealthSyncService {
     }
   }
 
-  CreateWorkoutRequest _buildWorkoutRequest(HealthRecord record) {
+  CreateWorkoutRequest _buildWorkoutRequest(
+    HealthRecord record,
+    FitnessVisibility visibility,
+  ) {
     final workoutValue = record.value as WorkoutHealthValue;
     final activityType = workoutValue.workoutActivityType;
 
@@ -447,10 +451,14 @@ class HealthSyncService {
       externalId: record.uuid,
       caloriesBurned: workoutValue.totalEnergyBurned?.toInt(),
       notes: 'Synced from $source',
+      visibility: visibility,
     );
   }
 
-  CreateMetricRequest _buildMetricRequest(HealthRecord record) {
+  CreateMetricRequest _buildMetricRequest(
+    HealthRecord record,
+    FitnessVisibility visibility,
+  ) {
     final metricType = _mapMetricType(record.type);
     double value = 0;
     if (record.value is double) {
@@ -468,6 +476,7 @@ class HealthSyncService {
       recordedAt: record.startDate,
       source: source,
       externalId: record.uuid,
+      visibility: visibility,
     );
   }
 

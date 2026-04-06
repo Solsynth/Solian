@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'converters.dart';
+import 'workout.dart';
 
 part 'metric.freezed.dart';
 part 'metric.g.dart';
@@ -37,6 +38,7 @@ sealed class SnFitnessMetric with _$SnFitnessMetric {
     required DateTime recordedAt,
     String? notes,
     String? source,
+    @Default(FitnessVisibility.private) FitnessVisibility visibility,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _SnFitnessMetric;
@@ -55,6 +57,7 @@ sealed class CreateMetricRequest with _$CreateMetricRequest {
     String? notes,
     String? source,
     String? externalId,
+    @Default(FitnessVisibility.private) FitnessVisibility visibility,
   }) = _CreateMetricRequest;
 
   factory CreateMetricRequest.fromJson(Map<String, dynamic> json) =>
@@ -70,6 +73,7 @@ sealed class UpdateMetricRequest with _$UpdateMetricRequest {
     @DateTimeConverter() required DateTime recordedAt,
     String? notes,
     String? source,
+    FitnessVisibility? visibility,
   }) = _UpdateMetricRequest;
 
   factory UpdateMetricRequest.fromJson(Map<String, dynamic> json) =>

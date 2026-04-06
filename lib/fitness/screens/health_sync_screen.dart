@@ -10,6 +10,7 @@ import 'package:island/fitness/services/health_sync_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
 class HealthSyncScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,7 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
   final Set<String> _selectedUuids = {};
   final Set<HealthDataType> _selectedTypes = {};
   bool _isSyncing = false;
+  FitnessVisibility _visibility = FitnessVisibility.private;
 
   Future<void> _requestPermissions() async {
     final syncService = ref.read(healthSyncServiceProvider);
@@ -55,6 +57,7 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
       final result = await syncService.syncRecords(
         records: selectedRecords,
         selectedTypes: _selectedTypes,
+        visibility: _visibility,
       );
 
       setState(() {
@@ -333,6 +336,34 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
                 onSelected: (_) => _toggleType(type),
               );
             }).toList(),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Text(
+                'Visibility:',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(width: 16),
+              SegmentedButton<FitnessVisibility>(
+                segments: const [
+                  ButtonSegment(
+                    value: FitnessVisibility.private,
+                    label: Text('Private'),
+                  ),
+                  ButtonSegment(
+                    value: FitnessVisibility.public,
+                    label: Text('Public'),
+                  ),
+                ],
+                selected: {_visibility},
+                onSelectionChanged: (selection) {
+                  setState(() {
+                    _visibility = selection.first;
+                  });
+                },
+              ),
+            ],
           ),
         ],
       ),

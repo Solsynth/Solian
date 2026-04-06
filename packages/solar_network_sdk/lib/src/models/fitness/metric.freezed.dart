@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnFitnessMetric {
 
- String get id; String get accountId; FitnessMetricType get metricType; double get value; String get unit; DateTime get recordedAt; String? get notes; String? get source; DateTime get createdAt; DateTime get updatedAt;
+ String get id; String get accountId; FitnessMetricType get metricType; double get value; String get unit; DateTime get recordedAt; String? get notes; String? get source; FitnessVisibility get visibility; DateTime get createdAt; DateTime get updatedAt;
 /// Create a copy of SnFitnessMetric
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnFitnessMetricCopyWith<SnFitnessMetric> get copyWith => _$SnFitnessMetricCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFitnessMetric&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFitnessMetric&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,metricType,value,unit,recordedAt,notes,source,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,accountId,metricType,value,unit,recordedAt,notes,source,visibility,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'SnFitnessMetric(id: $id, accountId: $accountId, metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SnFitnessMetric(id: $id, accountId: $accountId, metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, visibility: $visibility, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnFitnessMetricCopyWith<$Res>  {
   factory $SnFitnessMetricCopyWith(SnFitnessMetric value, $Res Function(SnFitnessMetric) _then) = _$SnFitnessMetricCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, FitnessMetricType metricType, double value, String unit, DateTime recordedAt, String? notes, String? source, DateTime createdAt, DateTime updatedAt
+ String id, String accountId, FitnessMetricType metricType, double value, String unit, DateTime recordedAt, String? notes, String? source, FitnessVisibility visibility, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$SnFitnessMetricCopyWithImpl<$Res>
 
 /// Create a copy of SnFitnessMetric
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? visibility = null,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -75,7 +75,8 @@ as double,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non
 as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessMetricType metricType,  double value,  String unit,  DateTime recordedAt,  String? notes,  String? source,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessMetricType metricType,  double value,  String unit,  DateTime recordedAt,  String? notes,  String? source,  FitnessVisibility visibility,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnFitnessMetric() when $default != null:
-return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.visibility,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessMetricType metricType,  double value,  String unit,  DateTime recordedAt,  String? notes,  String? source,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessMetricType metricType,  double value,  String unit,  DateTime recordedAt,  String? notes,  String? source,  FitnessVisibility visibility,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnFitnessMetric():
-return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.createdAt,_that.updatedAt);}
+return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.visibility,_that.createdAt,_that.updatedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -197,10 +198,10 @@ return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  FitnessMetricType metricType,  double value,  String unit,  DateTime recordedAt,  String? notes,  String? source,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  FitnessMetricType metricType,  double value,  String unit,  DateTime recordedAt,  String? notes,  String? source,  FitnessVisibility visibility,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnFitnessMetric() when $default != null:
-return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.visibility,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -212,7 +213,7 @@ return $default(_that.id,_that.accountId,_that.metricType,_that.value,_that.unit
 @JsonSerializable()
 
 class _SnFitnessMetric implements SnFitnessMetric {
-  const _SnFitnessMetric({required this.id, required this.accountId, required this.metricType, required this.value, required this.unit, required this.recordedAt, this.notes, this.source, required this.createdAt, required this.updatedAt});
+  const _SnFitnessMetric({required this.id, required this.accountId, required this.metricType, required this.value, required this.unit, required this.recordedAt, this.notes, this.source, this.visibility = FitnessVisibility.private, required this.createdAt, required this.updatedAt});
   factory _SnFitnessMetric.fromJson(Map<String, dynamic> json) => _$SnFitnessMetricFromJson(json);
 
 @override final  String id;
@@ -223,6 +224,7 @@ class _SnFitnessMetric implements SnFitnessMetric {
 @override final  DateTime recordedAt;
 @override final  String? notes;
 @override final  String? source;
+@override@JsonKey() final  FitnessVisibility visibility;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 
@@ -239,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFitnessMetric&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFitnessMetric&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,metricType,value,unit,recordedAt,notes,source,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,accountId,metricType,value,unit,recordedAt,notes,source,visibility,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'SnFitnessMetric(id: $id, accountId: $accountId, metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SnFitnessMetric(id: $id, accountId: $accountId, metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, visibility: $visibility, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$SnFitnessMetricCopyWith<$Res> implements $SnFitnessMetric
   factory _$SnFitnessMetricCopyWith(_SnFitnessMetric value, $Res Function(_SnFitnessMetric) _then) = __$SnFitnessMetricCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, FitnessMetricType metricType, double value, String unit, DateTime recordedAt, String? notes, String? source, DateTime createdAt, DateTime updatedAt
+ String id, String accountId, FitnessMetricType metricType, double value, String unit, DateTime recordedAt, String? notes, String? source, FitnessVisibility visibility, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -276,7 +278,7 @@ class __$SnFitnessMetricCopyWithImpl<$Res>
 
 /// Create a copy of SnFitnessMetric
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? visibility = null,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_SnFitnessMetric(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -286,7 +288,8 @@ as double,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non
 as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -299,7 +302,7 @@ as DateTime,
 /// @nodoc
 mixin _$CreateMetricRequest {
 
- FitnessMetricType get metricType; double get value; String get unit;@DateTimeConverter() DateTime get recordedAt; String? get notes; String? get source; String? get externalId;
+ FitnessMetricType get metricType; double get value; String get unit;@DateTimeConverter() DateTime get recordedAt; String? get notes; String? get source; String? get externalId; FitnessVisibility get visibility;
 /// Create a copy of CreateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,16 +315,16 @@ $CreateMetricRequestCopyWith<CreateMetricRequest> get copyWith => _$CreateMetric
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.externalId, externalId) || other.externalId == externalId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.visibility, visibility) || other.visibility == visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source,externalId);
+int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source,externalId,visibility);
 
 @override
 String toString() {
-  return 'CreateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, externalId: $externalId)';
+  return 'CreateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, externalId: $externalId, visibility: $visibility)';
 }
 
 
@@ -332,7 +335,7 @@ abstract mixin class $CreateMetricRequestCopyWith<$Res>  {
   factory $CreateMetricRequestCopyWith(CreateMetricRequest value, $Res Function(CreateMetricRequest) _then) = _$CreateMetricRequestCopyWithImpl;
 @useResult
 $Res call({
- FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source, String? externalId
+ FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source, String? externalId, FitnessVisibility visibility
 });
 
 
@@ -349,7 +352,7 @@ class _$CreateMetricRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? externalId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? externalId = freezed,Object? visibility = null,}) {
   return _then(_self.copyWith(
 metricType: null == metricType ? _self.metricType : metricType // ignore: cast_nullable_to_non_nullable
 as FitnessMetricType,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
@@ -358,7 +361,8 @@ as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // igno
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String?,externalId: freezed == externalId ? _self.externalId : externalId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility,
   ));
 }
 
@@ -440,10 +444,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  String? externalId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  String? externalId,  FitnessVisibility visibility)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateMetricRequest() when $default != null:
-return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.externalId);case _:
+return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.externalId,_that.visibility);case _:
   return orElse();
 
 }
@@ -461,10 +465,10 @@ return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.n
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  String? externalId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  String? externalId,  FitnessVisibility visibility)  $default,) {final _that = this;
 switch (_that) {
 case _CreateMetricRequest():
-return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.externalId);}
+return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.externalId,_that.visibility);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -478,10 +482,10 @@ return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.n
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  String? externalId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  String? externalId,  FitnessVisibility visibility)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateMetricRequest() when $default != null:
-return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.externalId);case _:
+return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.externalId,_that.visibility);case _:
   return null;
 
 }
@@ -493,7 +497,7 @@ return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.n
 @JsonSerializable()
 
 class _CreateMetricRequest implements CreateMetricRequest {
-  const _CreateMetricRequest({required this.metricType, required this.value, required this.unit, @DateTimeConverter() required this.recordedAt, this.notes, this.source, this.externalId});
+  const _CreateMetricRequest({required this.metricType, required this.value, required this.unit, @DateTimeConverter() required this.recordedAt, this.notes, this.source, this.externalId, this.visibility = FitnessVisibility.private});
   factory _CreateMetricRequest.fromJson(Map<String, dynamic> json) => _$CreateMetricRequestFromJson(json);
 
 @override final  FitnessMetricType metricType;
@@ -503,6 +507,7 @@ class _CreateMetricRequest implements CreateMetricRequest {
 @override final  String? notes;
 @override final  String? source;
 @override final  String? externalId;
+@override@JsonKey() final  FitnessVisibility visibility;
 
 /// Create a copy of CreateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -517,16 +522,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.externalId, externalId) || other.externalId == externalId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.visibility, visibility) || other.visibility == visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source,externalId);
+int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source,externalId,visibility);
 
 @override
 String toString() {
-  return 'CreateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, externalId: $externalId)';
+  return 'CreateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, externalId: $externalId, visibility: $visibility)';
 }
 
 
@@ -537,7 +542,7 @@ abstract mixin class _$CreateMetricRequestCopyWith<$Res> implements $CreateMetri
   factory _$CreateMetricRequestCopyWith(_CreateMetricRequest value, $Res Function(_CreateMetricRequest) _then) = __$CreateMetricRequestCopyWithImpl;
 @override @useResult
 $Res call({
- FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source, String? externalId
+ FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source, String? externalId, FitnessVisibility visibility
 });
 
 
@@ -554,7 +559,7 @@ class __$CreateMetricRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? externalId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? externalId = freezed,Object? visibility = null,}) {
   return _then(_CreateMetricRequest(
 metricType: null == metricType ? _self.metricType : metricType // ignore: cast_nullable_to_non_nullable
 as FitnessMetricType,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
@@ -563,7 +568,8 @@ as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // igno
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String?,externalId: freezed == externalId ? _self.externalId : externalId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility,
   ));
 }
 
@@ -574,7 +580,7 @@ as String?,
 /// @nodoc
 mixin _$UpdateMetricRequest {
 
- FitnessMetricType get metricType; double get value; String get unit;@DateTimeConverter() DateTime get recordedAt; String? get notes; String? get source;
+ FitnessMetricType get metricType; double get value; String get unit;@DateTimeConverter() DateTime get recordedAt; String? get notes; String? get source; FitnessVisibility? get visibility;
 /// Create a copy of UpdateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -587,16 +593,16 @@ $UpdateMetricRequestCopyWith<UpdateMetricRequest> get copyWith => _$UpdateMetric
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.visibility, visibility) || other.visibility == visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source);
+int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source,visibility);
 
 @override
 String toString() {
-  return 'UpdateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source)';
+  return 'UpdateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, visibility: $visibility)';
 }
 
 
@@ -607,7 +613,7 @@ abstract mixin class $UpdateMetricRequestCopyWith<$Res>  {
   factory $UpdateMetricRequestCopyWith(UpdateMetricRequest value, $Res Function(UpdateMetricRequest) _then) = _$UpdateMetricRequestCopyWithImpl;
 @useResult
 $Res call({
- FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source
+ FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source, FitnessVisibility? visibility
 });
 
 
@@ -624,7 +630,7 @@ class _$UpdateMetricRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? visibility = freezed,}) {
   return _then(_self.copyWith(
 metricType: null == metricType ? _self.metricType : metricType // ignore: cast_nullable_to_non_nullable
 as FitnessMetricType,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
@@ -632,7 +638,8 @@ as double,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non
 as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility?,
   ));
 }
 
@@ -714,10 +721,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  FitnessVisibility? visibility)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateMetricRequest() when $default != null:
-return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source);case _:
+return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.visibility);case _:
   return orElse();
 
 }
@@ -735,10 +742,10 @@ return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.n
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  FitnessVisibility? visibility)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateMetricRequest():
-return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source);}
+return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.visibility);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -752,10 +759,10 @@ return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.n
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FitnessMetricType metricType,  double value,  String unit, @DateTimeConverter()  DateTime recordedAt,  String? notes,  String? source,  FitnessVisibility? visibility)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateMetricRequest() when $default != null:
-return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source);case _:
+return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.notes,_that.source,_that.visibility);case _:
   return null;
 
 }
@@ -767,7 +774,7 @@ return $default(_that.metricType,_that.value,_that.unit,_that.recordedAt,_that.n
 @JsonSerializable()
 
 class _UpdateMetricRequest implements UpdateMetricRequest {
-  const _UpdateMetricRequest({required this.metricType, required this.value, required this.unit, @DateTimeConverter() required this.recordedAt, this.notes, this.source});
+  const _UpdateMetricRequest({required this.metricType, required this.value, required this.unit, @DateTimeConverter() required this.recordedAt, this.notes, this.source, this.visibility});
   factory _UpdateMetricRequest.fromJson(Map<String, dynamic> json) => _$UpdateMetricRequestFromJson(json);
 
 @override final  FitnessMetricType metricType;
@@ -776,6 +783,7 @@ class _UpdateMetricRequest implements UpdateMetricRequest {
 @override@DateTimeConverter() final  DateTime recordedAt;
 @override final  String? notes;
 @override final  String? source;
+@override final  FitnessVisibility? visibility;
 
 /// Create a copy of UpdateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -790,16 +798,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateMetricRequest&&(identical(other.metricType, metricType) || other.metricType == metricType)&&(identical(other.value, value) || other.value == value)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.recordedAt, recordedAt) || other.recordedAt == recordedAt)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.source, source) || other.source == source)&&(identical(other.visibility, visibility) || other.visibility == visibility));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source);
+int get hashCode => Object.hash(runtimeType,metricType,value,unit,recordedAt,notes,source,visibility);
 
 @override
 String toString() {
-  return 'UpdateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source)';
+  return 'UpdateMetricRequest(metricType: $metricType, value: $value, unit: $unit, recordedAt: $recordedAt, notes: $notes, source: $source, visibility: $visibility)';
 }
 
 
@@ -810,7 +818,7 @@ abstract mixin class _$UpdateMetricRequestCopyWith<$Res> implements $UpdateMetri
   factory _$UpdateMetricRequestCopyWith(_UpdateMetricRequest value, $Res Function(_UpdateMetricRequest) _then) = __$UpdateMetricRequestCopyWithImpl;
 @override @useResult
 $Res call({
- FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source
+ FitnessMetricType metricType, double value, String unit,@DateTimeConverter() DateTime recordedAt, String? notes, String? source, FitnessVisibility? visibility
 });
 
 
@@ -827,7 +835,7 @@ class __$UpdateMetricRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateMetricRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? metricType = null,Object? value = null,Object? unit = null,Object? recordedAt = null,Object? notes = freezed,Object? source = freezed,Object? visibility = freezed,}) {
   return _then(_UpdateMetricRequest(
 metricType: null == metricType ? _self.metricType : metricType // ignore: cast_nullable_to_non_nullable
 as FitnessMetricType,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
@@ -835,7 +843,8 @@ as double,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non
 as String,recordedAt: null == recordedAt ? _self.recordedAt : recordedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility?,
   ));
 }
 

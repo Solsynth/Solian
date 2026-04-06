@@ -16,6 +16,9 @@ _SnFitnessMetric _$SnFitnessMetricFromJson(Map<String, dynamic> json) =>
       recordedAt: DateTime.parse(json['recorded_at'] as String),
       notes: json['notes'] as String?,
       source: json['source'] as String?,
+      visibility:
+          $enumDecodeNullable(_$FitnessVisibilityEnumMap, json['visibility']) ??
+          FitnessVisibility.private,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -30,6 +33,7 @@ Map<String, dynamic> _$SnFitnessMetricToJson(_SnFitnessMetric instance) =>
       'recorded_at': instance.recordedAt.toIso8601String(),
       'notes': instance.notes,
       'source': instance.source,
+      'visibility': _$FitnessVisibilityEnumMap[instance.visibility]!,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
     };
@@ -46,6 +50,11 @@ const _$FitnessMetricTypeEnumMap = {
   FitnessMetricType.custom: 10,
 };
 
+const _$FitnessVisibilityEnumMap = {
+  FitnessVisibility.private: 0,
+  FitnessVisibility.public: 1,
+};
+
 _CreateMetricRequest _$CreateMetricRequestFromJson(Map<String, dynamic> json) =>
     _CreateMetricRequest(
       metricType: $enumDecode(_$FitnessMetricTypeEnumMap, json['metric_type']),
@@ -57,6 +66,9 @@ _CreateMetricRequest _$CreateMetricRequestFromJson(Map<String, dynamic> json) =>
       notes: json['notes'] as String?,
       source: json['source'] as String?,
       externalId: json['external_id'] as String?,
+      visibility:
+          $enumDecodeNullable(_$FitnessVisibilityEnumMap, json['visibility']) ??
+          FitnessVisibility.private,
     );
 
 Map<String, dynamic> _$CreateMetricRequestToJson(
@@ -69,6 +81,7 @@ Map<String, dynamic> _$CreateMetricRequestToJson(
   'notes': instance.notes,
   'source': instance.source,
   'external_id': instance.externalId,
+  'visibility': _$FitnessVisibilityEnumMap[instance.visibility]!,
 };
 
 _UpdateMetricRequest _$UpdateMetricRequestFromJson(Map<String, dynamic> json) =>
@@ -81,6 +94,10 @@ _UpdateMetricRequest _$UpdateMetricRequestFromJson(Map<String, dynamic> json) =>
       ),
       notes: json['notes'] as String?,
       source: json['source'] as String?,
+      visibility: $enumDecodeNullable(
+        _$FitnessVisibilityEnumMap,
+        json['visibility'],
+      ),
     );
 
 Map<String, dynamic> _$UpdateMetricRequestToJson(
@@ -92,6 +109,7 @@ Map<String, dynamic> _$UpdateMetricRequestToJson(
   'recorded_at': const DateTimeConverter().toJson(instance.recordedAt),
   'notes': instance.notes,
   'source': instance.source,
+  'visibility': _$FitnessVisibilityEnumMap[instance.visibility],
 };
 
 _CreateMetricsBatchRequest _$CreateMetricsBatchRequestFromJson(

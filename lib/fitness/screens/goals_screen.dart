@@ -1,25 +1,173 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
 import 'package:island/fitness/screens/goal_create_screen.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
-class GoalsScreen extends ConsumerWidget {
+class GoalsScreen extends ConsumerStatefulWidget {
   const GoalsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GoalsScreen> createState() => _GoalsScreenState();
+}
+
+class _GoalsScreenState extends ConsumerState<GoalsScreen> {
+  final Set<String> _selected = {};
+  List<SnFitnessGoal> _currentGoals = [];
+  bool _isSelectionMode = false;
+
+  void _enterSelectionMode() {
+    setState(() {
+      _isSelectionMode = true;
+    });
+  }
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selected.contains(id)) {
+        _selected.remove(id);
+      } else {
+        _selected.add(id);
+      }
+      if (_selected.isEmpty) {
+        _isSelectionMode = false;
+      }
+    });
+  }
+
+  void _selectAllGoals() {
+    setState(() {
+      _selected.clear();
+      for (final goal in _currentGoals) {
+        _selected.add(goal.id);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selected.clear();
+      _isSelectionMode = false;
+    });
+  }
+
+  Future<void> _updateSelectedVisibility(
+    BuildContext context,
+    WidgetRef ref,
+    FitnessVisibility visibility,
+  ) async {
+    if (_selected.isEmpty) return;
+
+    try {
+      final count = await ref
+          .read(goalNotifierProvider.notifier)
+          .updateGoalsVisibility(
+            goalIds: _selected.toList(),
+            visibility: visibility,
+          );
+      if (context.mounted) {
+        showSnackBar('Updated visibility for $count goals');
+        _clearSelection();
+      }
+    } catch (e) {
+      showErrorAlert('Error: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final goalsAsync = ref.watch(
       workoutGoalsProvider((status: null, skip: 0, take: 50)),
     );
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Goals')),
+      appBar: AppBar(
+        title: _isSelectionMode
+            ? Text('${_selected.length} selected')
+            : const Text('Goals'),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _clearSelection,
+              )
+            : null,
+        actions: [
+          if (_isSelectionMode) ...[
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.visibility),
+              tooltip: 'Set Visibility',
+              onSelected: (value) {
+                if (value == 'selectAll') {
+                  _selectAllGoals();
+                } else if (value == 'private' || value == 'public') {
+                  _updateSelectedVisibility(
+                    context,
+                    ref,
+                    value == 'private'
+                        ? FitnessVisibility.private
+                        : FitnessVisibility.public,
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'selectAll',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.select_all,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Select All'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'private',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.lock_outline,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Set Private'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'public',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.public,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Set Public'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(Icons.checklist),
+              tooltip: 'Select',
+              onPressed: _enterSelectionMode,
+            ),
+          ],
+          const Gap(8),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(
@@ -28,6 +176,9 @@ class GoalsScreen extends ConsumerWidget {
         },
         child: goalsAsync.when(
           data: (result) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _currentGoals = result.items;
+            });
             if (result.items.isEmpty) {
               return Center(
                 child: Text(
@@ -43,7 +194,15 @@ class GoalsScreen extends ConsumerWidget {
               itemCount: result.items.length,
               itemBuilder: (context, index) {
                 final goal = result.items[index];
-                return _GoalCard(goal: goal);
+                return _GoalCard(
+                  goal: goal,
+                  isSelectionMode: _isSelectionMode,
+                  isSelected: _selected.contains(goal.id),
+                  onTap: _isSelectionMode
+                      ? () => _toggleSelection(goal.id)
+                      : () => context.router.push(GoalDetailRoute(id: goal.id)),
+                  onLongPress: () => _toggleSelection(goal.id),
+                );
               },
             );
           },
@@ -67,8 +226,18 @@ class GoalsScreen extends ConsumerWidget {
 
 class _GoalCard extends StatelessWidget {
   final SnFitnessGoal goal;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
-  const _GoalCard({required this.goal});
+  const _GoalCard({
+    required this.goal,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onTap,
+    this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +259,8 @@ class _GoalCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.router.push(GoalDetailRoute(id: goal.id)),
+        onTap: isSelectionMode ? onTap : onTap,
+        onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -98,6 +268,12 @@ class _GoalCard extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  if (isSelectionMode)
+                    Checkbox(
+                      value: isSelected,
+                      onChanged: (_) => onTap?.call(),
+                    ),
+                  if (isSelectionMode) const SizedBox(width: 8),
                   CircleAvatar(
                     backgroundColor: Theme.of(
                       context,

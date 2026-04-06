@@ -115,6 +115,22 @@ class WorkoutNotifier extends AsyncNotifier<SnWorkout> {
     ref.invalidate(workoutsProvider);
   }
 
+  Future<int> updateWorkoutsVisibility({
+    required List<String> workoutIds,
+    required FitnessVisibility visibility,
+  }) async {
+    final fitness = ref.read(fitnessClientProvider);
+    final count = await fitness.updateWorkoutsVisibility(
+      workoutIds: workoutIds,
+      visibility: visibility,
+    );
+    ref.invalidate(workoutsProvider);
+    for (final id in workoutIds) {
+      ref.invalidate(workoutDetailProvider(id));
+    }
+    return count;
+  }
+
   Future<SnWorkoutExercise> addExercise(
     String workoutId,
     AddExerciseRequest request,
@@ -201,6 +217,23 @@ class GoalNotifier extends AsyncNotifier<SnFitnessGoal> {
     ref.invalidate(goalStatsProvider);
   }
 
+  Future<int> updateGoalsVisibility({
+    required List<String> goalIds,
+    required FitnessVisibility visibility,
+  }) async {
+    final fitness = ref.read(fitnessClientProvider);
+    final count = await fitness.updateGoalsVisibility(
+      goalIds: goalIds,
+      visibility: visibility,
+    );
+    ref.invalidate(workoutGoalsProvider);
+    ref.invalidate(goalStatsProvider);
+    for (final id in goalIds) {
+      ref.invalidate(goalDetailProvider(id));
+    }
+    return count;
+  }
+
   Future<SnFitnessGoal> recalculateGoal(String id) async {
     final fitness = ref.read(fitnessClientProvider);
     final goal = await fitness.recalculateGoal(id);
@@ -242,6 +275,22 @@ class MetricNotifier extends AsyncNotifier<SnFitnessMetric> {
     final fitness = ref.read(fitnessClientProvider);
     await fitness.deleteMetric(id);
     ref.invalidate(metricsProvider);
+  }
+
+  Future<int> updateMetricsVisibility({
+    required List<String> metricIds,
+    required FitnessVisibility visibility,
+  }) async {
+    final fitness = ref.read(fitnessClientProvider);
+    final count = await fitness.updateMetricsVisibility(
+      metricIds: metricIds,
+      visibility: visibility,
+    );
+    ref.invalidate(metricsProvider);
+    for (final id in metricIds) {
+      ref.invalidate(metricDetailProvider(id));
+    }
+    return count;
   }
 }
 

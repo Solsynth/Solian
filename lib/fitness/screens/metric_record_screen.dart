@@ -25,6 +25,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
   FitnessMetricType _selectedType = FitnessMetricType.weight;
   DateTime _recordedAt = DateTime.now();
   bool _isLoading = false;
+  FitnessVisibility _visibility = FitnessVisibility.private;
 
   @override
   void initState() {
@@ -77,6 +78,8 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
           _buildDateTimePicker(),
           const SizedBox(height: 16),
           _buildNotesField(),
+          const SizedBox(height: 16),
+          _buildVisibilitySelector(),
         ],
       ),
     );
@@ -184,6 +187,24 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
     );
   }
 
+  Widget _buildVisibilitySelector() {
+    return DropdownButtonFormField<FitnessVisibility>(
+      value: _visibility,
+      decoration: const InputDecoration(labelText: 'Visibility'),
+      items: FitnessVisibility.values.map((v) {
+        return DropdownMenuItem(
+          value: v,
+          child: Text(v == FitnessVisibility.private ? 'Private' : 'Public'),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _visibility = value!;
+        });
+      },
+    );
+  }
+
   Future<void> _selectDateTime(BuildContext context) async {
     final date = await showDatePicker(
       context: context,
@@ -191,7 +212,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
-    if (date != null && mounted) {
+    if (date != null && context.mounted) {
       final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_recordedAt),
@@ -223,6 +244,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
         recordedAt: _recordedAt,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
         source: 'manual',
+        visibility: _visibility,
       );
 
       await ref.read(metricNotifierProvider.notifier).createMetric(request);

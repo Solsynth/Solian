@@ -1,15 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
 import 'package:island/fitness/screens/metric_record_screen.dart';
 import 'package:island/fitness/utils/metric_unit_formatter.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 @RoutePage()
 class MetricsScreen extends ConsumerStatefulWidget {
@@ -20,14 +21,156 @@ class MetricsScreen extends ConsumerStatefulWidget {
 }
 
 class _MetricsScreenState extends ConsumerState<MetricsScreen> {
+  final Set<String> _selected = {};
+  Map<FitnessMetricType, List<SnFitnessMetric>> _currentMetrics = {};
+  bool isSelectionMode = false;
+
+  void _enterSelectionMode() {
+    setState(() {
+      isSelectionMode = true;
+    });
+  }
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selected.contains(id)) {
+        _selected.remove(id);
+      } else {
+        _selected.add(id);
+      }
+      if (_selected.isEmpty) {
+        isSelectionMode = false;
+      }
+    });
+  }
+
+  void _selectAllMetrics() {
+    setState(() {
+      _selected.clear();
+      for (final type in _currentMetrics.keys) {
+        _selected.add(type.name);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selected.clear();
+      isSelectionMode = false;
+    });
+  }
+
+  Future<void> _updateSelectedVisibility(
+    BuildContext context,
+    WidgetRef ref,
+    FitnessVisibility visibility,
+  ) async {
+    if (_selected.isEmpty) return;
+
+    try {
+      final count = await ref
+          .read(metricNotifierProvider.notifier)
+          .updateMetricsVisibility(
+            metricIds: _selected.toList(),
+            visibility: visibility,
+          );
+      if (context.mounted) {
+        showSnackBar('Updated visibility for $count metrics');
+        _clearSelection();
+      }
+    } catch (e) {
+      showErrorAlert('Error: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final metricsAsync = ref.watch(
       metricsProvider((type: null, skip: 0, take: 100)),
     );
+    final isSelectionMode = _selected.isNotEmpty;
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Metrics')),
+      appBar: AppBar(
+        title: isSelectionMode
+            ? Text('${_selected.length} selected')
+            : const Text('Metrics'),
+        leading: isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _clearSelection,
+              )
+            : null,
+        actions: [
+          if (isSelectionMode) ...[
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.visibility),
+              tooltip: 'Set Visibility',
+              onSelected: (value) {
+                if (value == 'selectAll') {
+                  _selectAllMetrics();
+                } else if (value == 'private' || value == 'public') {
+                  _updateSelectedVisibility(
+                    context,
+                    ref,
+                    value == 'private'
+                        ? FitnessVisibility.private
+                        : FitnessVisibility.public,
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'selectAll',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.select_all,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Select All'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'private',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.lock_outline,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Set Private'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'public',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.public,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Set Public'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(Icons.checklist),
+              tooltip: 'Select',
+              onPressed: _enterSelectionMode,
+            ),
+          ],
+          const Gap(8),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(metricsProvider((type: null, skip: 0, take: 100)));
@@ -60,6 +203,9 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
             for (final metric in result.items) {
               grouped.putIfAbsent(metric.metricType, () => []).add(metric);
             }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _currentMetrics = grouped;
+            });
 
             final types = grouped.keys.toList()
               ..sort((a, b) => a.index.compareTo(b.index));
@@ -70,7 +216,16 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
               itemBuilder: (context, index) {
                 final type = types[index];
                 final metrics = grouped[type]!;
-                return _MetricCard(type: type, metrics: metrics);
+                return _MetricCard(
+                  type: type,
+                  metrics: metrics,
+                  isSelectionMode: isSelectionMode,
+                  isSelected: _selected.contains(type.name),
+                  onTap: isSelectionMode
+                      ? () => _toggleSelection(type.name)
+                      : null,
+                  onLongPress: () => _toggleSelection(type.name),
+                );
               },
             );
           },
@@ -96,14 +251,25 @@ class _MetricsScreenState extends ConsumerState<MetricsScreen> {
   }
 }
 
-class _MetricCard extends StatelessWidget {
+class _MetricCard extends ConsumerWidget {
   final FitnessMetricType type;
   final List<SnFitnessMetric> metrics;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
-  const _MetricCard({required this.type, required this.metrics});
+  const _MetricCard({
+    required this.type,
+    required this.metrics,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onTap,
+    this.onLongPress,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (metrics.isEmpty) return const SizedBox.shrink();
 
     final latestMetric = metrics.first;
@@ -121,11 +287,17 @@ class _MetricCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.router.push(MetricDetailRoute(metricType: type)),
+        onTap: isSelectionMode
+            ? onTap
+            : () => context.router.push(MetricDetailRoute(metricType: type)),
+        onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
+              if (isSelectionMode)
+                Checkbox(value: isSelected, onChanged: (_) => onTap?.call()),
+              if (isSelectionMode) const SizedBox(width: 8),
               CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 child: Icon(
@@ -161,15 +333,49 @@ class _MetricCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ).alignment(Alignment.centerRight),
+              PopupMenuButton<String>(
+                onSelected: (value) => _handleAction(context, ref, value),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.delete,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Delete All',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _handleAction(BuildContext context, WidgetRef ref, String action) async {
+    if (action == 'delete') {
+      try {
+        for (final metric in metrics) {
+          await ref
+              .read(metricNotifierProvider.notifier)
+              .deleteMetric(metric.id);
+        }
+      } catch (e) {
+        showErrorAlert('Error: $e');
+      }
+    }
   }
 
   IconData _getMetricIcon(FitnessMetricType type) {

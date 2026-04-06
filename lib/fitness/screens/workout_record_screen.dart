@@ -29,6 +29,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
   DateTime _startTime = DateTime.now();
   DateTime? _endTime;
   bool _isLoading = false;
+  FitnessVisibility _visibility = FitnessVisibility.private;
 
   @override
   void dispose() {
@@ -81,6 +82,8 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
           _buildDescriptionField(),
           const SizedBox(height: 16),
           _buildNotesField(),
+          const SizedBox(height: 16),
+          _buildVisibilitySelector(),
         ],
       ),
     );
@@ -198,6 +201,24 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
     );
   }
 
+  Widget _buildVisibilitySelector() {
+    return DropdownButtonFormField<FitnessVisibility>(
+      value: _visibility,
+      decoration: const InputDecoration(labelText: 'Visibility'),
+      items: FitnessVisibility.values.map((v) {
+        return DropdownMenuItem(
+          value: v,
+          child: Text(v == FitnessVisibility.private ? 'Private' : 'Public'),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _visibility = value!;
+        });
+      },
+    );
+  }
+
   Future<void> _selectDateTime(BuildContext context, bool isStart) async {
     final initial = isStart ? _startTime : (_endTime ?? DateTime.now());
     final date = await showDatePicker(
@@ -206,7 +227,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
-    if (date != null && mounted) {
+    if (date != null && context.mounted) {
       final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(initial),
@@ -246,6 +267,7 @@ class _WorkoutRecordScreenState extends ConsumerState<WorkoutRecordScreen> {
             ? _descriptionController.text
             : null,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+        visibility: _visibility,
       );
 
       await ref.read(workoutNotifierProvider.notifier).createWorkout(request);

@@ -2,6 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
 import 'package:island/fitness/screens/goal_create_screen.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -37,6 +39,9 @@ class GoalDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     SnFitnessGoal goal,
   ) {
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
+    final isOwner = currentUserId == goal.accountId;
+
     final progress =
         goal.targetValue != null &&
             goal.currentValue != null &&
@@ -133,6 +138,25 @@ class GoalDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(
+                      Symbols.delete,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const Gap(12),
+                    Text(
+                      'Delete Goal',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'edit',
@@ -158,6 +182,9 @@ class GoalDetailScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (!isOwner)
+              AccountNameplate(name: goal.accountId, padding: EdgeInsets.zero),
+            if (!isOwner) const SizedBox(height: 16),
             _buildProgressCard(context, goal, progress, statusColor),
             const SizedBox(height: 16),
             if (goal.autoUpdateProgress) _buildAutoUpdateCard(context, goal),
@@ -363,6 +390,12 @@ class GoalDetailScreen extends ConsumerWidget {
                   ? _formatDate(goal.endDate!)
                   : 'No deadline',
             ),
+            _DetailRow(
+              label: 'Visibility',
+              value: goal.visibility == FitnessVisibility.public
+                  ? 'Public'
+                  : 'Private',
+            ),
           ],
         ),
       ),
@@ -423,6 +456,12 @@ class GoalDetailScreen extends ConsumerWidget {
           await ref
               .read(goalNotifierProvider.notifier)
               .updateGoalStatus(goal.id, FitnessGoalStatus.cancelled);
+          break;
+        case 'delete':
+          await ref.read(goalNotifierProvider.notifier).deleteGoal(goal.id);
+          if (context.mounted) {
+            Navigator.pop(context);
+          }
           break;
         case 'edit':
           showModalBottomSheet(

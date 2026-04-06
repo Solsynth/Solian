@@ -33,6 +33,9 @@ _SnFitnessGoal _$SnFitnessGoalFromJson(
   repeatCount: (json['repeat_count'] as num?)?.toInt(),
   currentRepetition: (json['current_repetition'] as num?)?.toInt(),
   parentGoalId: json['parent_goal_id'] as String?,
+  visibility:
+      $enumDecodeNullable(_$FitnessVisibilityEnumMap, json['visibility']) ??
+      FitnessVisibility.private,
 );
 
 Map<String, dynamic> _$SnFitnessGoalToJson(_SnFitnessGoal instance) =>
@@ -59,6 +62,7 @@ Map<String, dynamic> _$SnFitnessGoalToJson(_SnFitnessGoal instance) =>
       'repeat_count': instance.repeatCount,
       'current_repetition': instance.currentRepetition,
       'parent_goal_id': instance.parentGoalId,
+      'visibility': _$FitnessVisibilityEnumMap[instance.visibility]!,
     };
 
 const _$FitnessGoalTypeEnumMap = {
@@ -88,6 +92,11 @@ const _$RepeatTypeEnumMap = {
   RepeatType.monthly: 3,
   RepeatType.quarterly: 4,
   RepeatType.yearly: 5,
+};
+
+const _$FitnessVisibilityEnumMap = {
+  FitnessVisibility.private: 0,
+  FitnessVisibility.public: 1,
 };
 
 _GoalStats _$GoalStatsFromJson(Map<String, dynamic> json) => _GoalStats(
@@ -121,6 +130,9 @@ _CreateGoalRequest _$CreateGoalRequestFromJson(Map<String, dynamic> json) =>
       repeatType: $enumDecodeNullable(_$RepeatTypeEnumMap, json['repeat_type']),
       repeatInterval: (json['repeat_interval'] as num?)?.toInt(),
       repeatCount: (json['repeat_count'] as num?)?.toInt(),
+      visibility:
+          $enumDecodeNullable(_$FitnessVisibilityEnumMap, json['visibility']) ??
+          FitnessVisibility.private,
     );
 
 Map<String, dynamic> _$CreateGoalRequestToJson(_CreateGoalRequest instance) =>
@@ -139,6 +151,7 @@ Map<String, dynamic> _$CreateGoalRequestToJson(_CreateGoalRequest instance) =>
       'repeat_type': _$RepeatTypeEnumMap[instance.repeatType],
       'repeat_interval': instance.repeatInterval,
       'repeat_count': instance.repeatCount,
+      'visibility': _$FitnessVisibilityEnumMap[instance.visibility]!,
     };
 
 _UpdateGoalRequest _$UpdateGoalRequestFromJson(Map<String, dynamic> json) =>
@@ -160,6 +173,10 @@ _UpdateGoalRequest _$UpdateGoalRequestFromJson(Map<String, dynamic> json) =>
         json['end_date'] as String?,
       ),
       notes: json['notes'] as String?,
+      visibility: $enumDecodeNullable(
+        _$FitnessVisibilityEnumMap,
+        json['visibility'],
+      ),
     );
 
 Map<String, dynamic> _$UpdateGoalRequestToJson(_UpdateGoalRequest instance) =>
@@ -177,6 +194,7 @@ Map<String, dynamic> _$UpdateGoalRequestToJson(_UpdateGoalRequest instance) =>
       'auto_update_progress': instance.autoUpdateProgress,
       'end_date': const NullableDateTimeConverter().toJson(instance.endDate),
       'notes': instance.notes,
+      'visibility': _$FitnessVisibilityEnumMap[instance.visibility],
     };
 
 _UpdateProgressRequest _$UpdateProgressRequestFromJson(

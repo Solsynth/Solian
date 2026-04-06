@@ -68,6 +68,17 @@ class FitnessApi extends BaseApi {
     );
   }
 
+  Future<int> updateWorkoutsVisibility({
+    required List<String> workoutIds,
+    required workout_models.FitnessVisibility visibility,
+  }) async {
+    final response = await patch<num>(
+      '$_basePath/workouts/batch/visibility',
+      data: {'workout_ids': workoutIds, 'visibility': visibility.index},
+    );
+    return response.data!.toInt();
+  }
+
   Future<workout_models.SnWorkoutExercise> addExercise(
     String workoutId,
     workout_models.AddExerciseRequest request,
@@ -237,6 +248,28 @@ class FitnessApi extends BaseApi {
       '$_basePath/metrics/batch',
       data: request.toJson(),
     );
+  }
+
+  Future<int> updateMetricsVisibility({
+    required List<String> metricIds,
+    required workout_models.FitnessVisibility visibility,
+  }) async {
+    final response = await patch<num>(
+      '$_basePath/metrics/batch/visibility',
+      data: {'metric_ids': metricIds, 'visibility': visibility.index},
+    );
+    return response.data!.toInt();
+  }
+
+  Future<int> updateGoalsVisibility({
+    required List<String> goalIds,
+    required workout_models.FitnessVisibility visibility,
+  }) async {
+    final response = await patch<num>(
+      '$_basePath/goals/batch/visibility',
+      data: {'goal_ids': goalIds, 'visibility': visibility.index},
+    );
+    return response.data!.toInt();
   }
 
   // ==========================================

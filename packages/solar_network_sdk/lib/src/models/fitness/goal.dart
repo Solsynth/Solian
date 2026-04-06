@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'converters.dart';
+import 'workout.dart';
 
 part 'goal.freezed.dart';
 part 'goal.g.dart';
@@ -79,6 +80,7 @@ sealed class SnFitnessGoal with _$SnFitnessGoal {
     int? repeatCount,
     int? currentRepetition,
     String? parentGoalId,
+    @Default(FitnessVisibility.private) FitnessVisibility visibility,
   }) = _SnFitnessGoal;
 
   factory SnFitnessGoal.fromJson(Map<String, dynamic> json) =>
@@ -113,6 +115,7 @@ sealed class CreateGoalRequest with _$CreateGoalRequest {
     RepeatType? repeatType,
     int? repeatInterval,
     int? repeatCount,
+    @Default(FitnessVisibility.private) FitnessVisibility visibility,
   }) = _CreateGoalRequest;
 
   factory CreateGoalRequest.fromJson(Map<String, dynamic> json) =>
@@ -135,6 +138,7 @@ sealed class UpdateGoalRequest with _$UpdateGoalRequest {
     bool? autoUpdateProgress,
     @NullableDateTimeConverter() DateTime? endDate,
     String? notes,
+    FitnessVisibility? visibility,
   }) = _UpdateGoalRequest;
 
   factory UpdateGoalRequest.fromJson(Map<String, dynamic> json) =>

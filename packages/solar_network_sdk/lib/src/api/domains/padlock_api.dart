@@ -114,4 +114,28 @@ class PadlockApi extends BaseApi {
   Future<void> updateDeviceLabel(String deviceId, String label) async {
     await patch('$_basePath/devices/$deviceId/label', data: jsonEncode(label));
   }
+
+  /// Gets authorized applications for the current user.
+  ///
+  /// [type] - Filter by app type (0=Oidc, 1=AppConnect).
+  Future<List<Map<String, dynamic>>> getAuthorizedApps({int? type}) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/authorized-apps',
+      queryParameters: {'type': ?type},
+    );
+    final data = response.data;
+    if (data == null) return [];
+    return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Deauthorizes (revokes) an authorized application.
+  ///
+  /// [appId] - The ID of the app to deauthorize.
+  /// [type] - App type filter (optional).
+  Future<void> deauthorizeApp(String appId, {int? type}) async {
+    await delete(
+      '$_basePath/authorized-apps/$appId',
+      queryParameters: {'type': ?type},
+    );
+  }
 }
