@@ -7,7 +7,8 @@ class DateTimeConverter implements JsonConverter<DateTime, String> {
   DateTime fromJson(String json) => DateTime.parse(json);
 
   @override
-  String toJson(DateTime dateTime) => dateTime.toUtc().toIso8601String();
+  String toJson(DateTime dateTime) =>
+      '${dateTime.toUtc().toIso8601String().replaceAll('+00:00', 'Z')}';
 }
 
 class NullableDateTimeConverter implements JsonConverter<DateTime?, String?> {
@@ -18,5 +19,7 @@ class NullableDateTimeConverter implements JsonConverter<DateTime?, String?> {
       json != null ? DateTime.parse(json) : null;
 
   @override
-  String? toJson(DateTime? dateTime) => dateTime?.toUtc().toIso8601String();
+  String? toJson(DateTime? dateTime) => dateTime != null
+      ? '${dateTime.toUtc().toIso8601String().replaceAll('+00:00', 'Z')}'
+      : null;
 }

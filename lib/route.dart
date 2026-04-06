@@ -140,6 +140,8 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: FitnessDashboardRoute.page, path: 'fitness'),
             AutoRoute(page: WorkoutsRoute.page, path: 'fitness/workouts'),
             AutoRoute(page: GoalsRoute.page, path: 'fitness/goals'),
+            AutoRoute(page: GoalDetailRoute.page, path: 'fitness/goals/:id'),
+            AutoRoute(page: GoalCreateRoute.page, path: 'fitness/goals/create'),
             AutoRoute(page: MetricsRoute.page, path: 'fitness/metrics'),
             AutoRoute(
               page: MetricDetailRoute.page,

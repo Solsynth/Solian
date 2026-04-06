@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnFitnessGoal {
 
- String get id; String get accountId; FitnessGoalType get goalType; String get title; String? get description; double? get targetValue; double? get currentValue; String? get unit; DateTime get startDate; DateTime? get endDate; FitnessGoalStatus get status; String? get notes; DateTime get createdAt; DateTime get updatedAt;
+ String get id; String get accountId; FitnessGoalType get goalType; String get title; String? get description; double? get targetValue; double? get currentValue; String? get unit; int? get boundWorkoutType; int? get boundMetricType; bool get autoUpdateProgress;@DateTimeConverter() DateTime get startDate;@NullableDateTimeConverter() DateTime? get endDate; FitnessGoalStatus get status; String? get notes;@DateTimeConverter() DateTime get createdAt;@DateTimeConverter() DateTime get updatedAt; RepeatType? get repeatType; int? get repeatInterval; int? get repeatCount; int? get currentRepetition; String? get parentGoalId;
 /// Create a copy of SnFitnessGoal
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnFitnessGoalCopyWith<SnFitnessGoal> get copyWith => _$SnFitnessGoalCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFitnessGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnFitnessGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.boundWorkoutType, boundWorkoutType) || other.boundWorkoutType == boundWorkoutType)&&(identical(other.boundMetricType, boundMetricType) || other.boundMetricType == boundMetricType)&&(identical(other.autoUpdateProgress, autoUpdateProgress) || other.autoUpdateProgress == autoUpdateProgress)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.repeatType, repeatType) || other.repeatType == repeatType)&&(identical(other.repeatInterval, repeatInterval) || other.repeatInterval == repeatInterval)&&(identical(other.repeatCount, repeatCount) || other.repeatCount == repeatCount)&&(identical(other.currentRepetition, currentRepetition) || other.currentRepetition == currentRepetition)&&(identical(other.parentGoalId, parentGoalId) || other.parentGoalId == parentGoalId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,goalType,title,description,targetValue,currentValue,unit,startDate,endDate,status,notes,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,accountId,goalType,title,description,targetValue,currentValue,unit,boundWorkoutType,boundMetricType,autoUpdateProgress,startDate,endDate,status,notes,createdAt,updatedAt,repeatType,repeatInterval,repeatCount,currentRepetition,parentGoalId]);
 
 @override
 String toString() {
-  return 'SnFitnessGoal(id: $id, accountId: $accountId, goalType: $goalType, title: $title, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, startDate: $startDate, endDate: $endDate, status: $status, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SnFitnessGoal(id: $id, accountId: $accountId, goalType: $goalType, title: $title, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, boundWorkoutType: $boundWorkoutType, boundMetricType: $boundMetricType, autoUpdateProgress: $autoUpdateProgress, startDate: $startDate, endDate: $endDate, status: $status, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt, repeatType: $repeatType, repeatInterval: $repeatInterval, repeatCount: $repeatCount, currentRepetition: $currentRepetition, parentGoalId: $parentGoalId)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnFitnessGoalCopyWith<$Res>  {
   factory $SnFitnessGoalCopyWith(SnFitnessGoal value, $Res Function(SnFitnessGoal) _then) = _$SnFitnessGoalCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, FitnessGoalType goalType, String title, String? description, double? targetValue, double? currentValue, String? unit, DateTime startDate, DateTime? endDate, FitnessGoalStatus status, String? notes, DateTime createdAt, DateTime updatedAt
+ String id, String accountId, FitnessGoalType goalType, String title, String? description, double? targetValue, double? currentValue, String? unit, int? boundWorkoutType, int? boundMetricType, bool autoUpdateProgress,@DateTimeConverter() DateTime startDate,@NullableDateTimeConverter() DateTime? endDate, FitnessGoalStatus status, String? notes,@DateTimeConverter() DateTime createdAt,@DateTimeConverter() DateTime updatedAt, RepeatType? repeatType, int? repeatInterval, int? repeatCount, int? currentRepetition, String? parentGoalId
 });
 
 
@@ -65,7 +65,7 @@ class _$SnFitnessGoalCopyWithImpl<$Res>
 
 /// Create a copy of SnFitnessGoal
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? goalType = null,Object? title = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? startDate = null,Object? endDate = freezed,Object? status = null,Object? notes = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? goalType = null,Object? title = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = null,Object? startDate = null,Object? endDate = freezed,Object? status = null,Object? notes = freezed,Object? createdAt = null,Object? updatedAt = null,Object? repeatType = freezed,Object? repeatInterval = freezed,Object? repeatCount = freezed,Object? currentRepetition = freezed,Object? parentGoalId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -75,13 +75,21 @@ as String,description: freezed == description ? _self.description : description 
 as String?,targetValue: freezed == targetValue ? _self.targetValue : targetValue // ignore: cast_nullable_to_non_nullable
 as double?,currentValue: freezed == currentValue ? _self.currentValue : currentValue // ignore: cast_nullable_to_non_nullable
 as double?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
-as String?,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as String?,boundWorkoutType: freezed == boundWorkoutType ? _self.boundWorkoutType : boundWorkoutType // ignore: cast_nullable_to_non_nullable
+as int?,boundMetricType: freezed == boundMetricType ? _self.boundMetricType : boundMetricType // ignore: cast_nullable_to_non_nullable
+as int?,autoUpdateProgress: null == autoUpdateProgress ? _self.autoUpdateProgress : autoUpdateProgress // ignore: cast_nullable_to_non_nullable
+as bool,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as FitnessGoalStatus,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,repeatType: freezed == repeatType ? _self.repeatType : repeatType // ignore: cast_nullable_to_non_nullable
+as RepeatType?,repeatInterval: freezed == repeatInterval ? _self.repeatInterval : repeatInterval // ignore: cast_nullable_to_non_nullable
+as int?,repeatCount: freezed == repeatCount ? _self.repeatCount : repeatCount // ignore: cast_nullable_to_non_nullable
+as int?,currentRepetition: freezed == currentRepetition ? _self.currentRepetition : currentRepetition // ignore: cast_nullable_to_non_nullable
+as int?,parentGoalId: freezed == parentGoalId ? _self.parentGoalId : parentGoalId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -163,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessGoalType goalType,  String title,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime startDate,  DateTime? endDate,  FitnessGoalStatus status,  String? notes,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessGoalType goalType,  String title,  String? description,  double? targetValue,  double? currentValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool autoUpdateProgress, @DateTimeConverter()  DateTime startDate, @NullableDateTimeConverter()  DateTime? endDate,  FitnessGoalStatus status,  String? notes, @DateTimeConverter()  DateTime createdAt, @DateTimeConverter()  DateTime updatedAt,  RepeatType? repeatType,  int? repeatInterval,  int? repeatCount,  int? currentRepetition,  String? parentGoalId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnFitnessGoal() when $default != null:
-return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.startDate,_that.endDate,_that.status,_that.notes,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.startDate,_that.endDate,_that.status,_that.notes,_that.createdAt,_that.updatedAt,_that.repeatType,_that.repeatInterval,_that.repeatCount,_that.currentRepetition,_that.parentGoalId);case _:
   return orElse();
 
 }
@@ -184,10 +192,10 @@ return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.descri
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessGoalType goalType,  String title,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime startDate,  DateTime? endDate,  FitnessGoalStatus status,  String? notes,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  FitnessGoalType goalType,  String title,  String? description,  double? targetValue,  double? currentValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool autoUpdateProgress, @DateTimeConverter()  DateTime startDate, @NullableDateTimeConverter()  DateTime? endDate,  FitnessGoalStatus status,  String? notes, @DateTimeConverter()  DateTime createdAt, @DateTimeConverter()  DateTime updatedAt,  RepeatType? repeatType,  int? repeatInterval,  int? repeatCount,  int? currentRepetition,  String? parentGoalId)  $default,) {final _that = this;
 switch (_that) {
 case _SnFitnessGoal():
-return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.startDate,_that.endDate,_that.status,_that.notes,_that.createdAt,_that.updatedAt);}
+return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.startDate,_that.endDate,_that.status,_that.notes,_that.createdAt,_that.updatedAt,_that.repeatType,_that.repeatInterval,_that.repeatCount,_that.currentRepetition,_that.parentGoalId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -201,10 +209,10 @@ return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.descri
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  FitnessGoalType goalType,  String title,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime startDate,  DateTime? endDate,  FitnessGoalStatus status,  String? notes,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  FitnessGoalType goalType,  String title,  String? description,  double? targetValue,  double? currentValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool autoUpdateProgress, @DateTimeConverter()  DateTime startDate, @NullableDateTimeConverter()  DateTime? endDate,  FitnessGoalStatus status,  String? notes, @DateTimeConverter()  DateTime createdAt, @DateTimeConverter()  DateTime updatedAt,  RepeatType? repeatType,  int? repeatInterval,  int? repeatCount,  int? currentRepetition,  String? parentGoalId)?  $default,) {final _that = this;
 switch (_that) {
 case _SnFitnessGoal() when $default != null:
-return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.startDate,_that.endDate,_that.status,_that.notes,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.startDate,_that.endDate,_that.status,_that.notes,_that.createdAt,_that.updatedAt,_that.repeatType,_that.repeatInterval,_that.repeatCount,_that.currentRepetition,_that.parentGoalId);case _:
   return null;
 
 }
@@ -216,7 +224,7 @@ return $default(_that.id,_that.accountId,_that.goalType,_that.title,_that.descri
 @JsonSerializable()
 
 class _SnFitnessGoal implements SnFitnessGoal {
-  const _SnFitnessGoal({required this.id, required this.accountId, required this.goalType, required this.title, this.description, this.targetValue, this.currentValue, this.unit, required this.startDate, this.endDate, required this.status, this.notes, required this.createdAt, required this.updatedAt});
+  const _SnFitnessGoal({required this.id, required this.accountId, required this.goalType, required this.title, this.description, this.targetValue, this.currentValue, this.unit, this.boundWorkoutType, this.boundMetricType, this.autoUpdateProgress = true, @DateTimeConverter() required this.startDate, @NullableDateTimeConverter() this.endDate, required this.status, this.notes, @DateTimeConverter() required this.createdAt, @DateTimeConverter() required this.updatedAt, this.repeatType, this.repeatInterval, this.repeatCount, this.currentRepetition, this.parentGoalId});
   factory _SnFitnessGoal.fromJson(Map<String, dynamic> json) => _$SnFitnessGoalFromJson(json);
 
 @override final  String id;
@@ -227,12 +235,20 @@ class _SnFitnessGoal implements SnFitnessGoal {
 @override final  double? targetValue;
 @override final  double? currentValue;
 @override final  String? unit;
-@override final  DateTime startDate;
-@override final  DateTime? endDate;
+@override final  int? boundWorkoutType;
+@override final  int? boundMetricType;
+@override@JsonKey() final  bool autoUpdateProgress;
+@override@DateTimeConverter() final  DateTime startDate;
+@override@NullableDateTimeConverter() final  DateTime? endDate;
 @override final  FitnessGoalStatus status;
 @override final  String? notes;
-@override final  DateTime createdAt;
-@override final  DateTime updatedAt;
+@override@DateTimeConverter() final  DateTime createdAt;
+@override@DateTimeConverter() final  DateTime updatedAt;
+@override final  RepeatType? repeatType;
+@override final  int? repeatInterval;
+@override final  int? repeatCount;
+@override final  int? currentRepetition;
+@override final  String? parentGoalId;
 
 /// Create a copy of SnFitnessGoal
 /// with the given fields replaced by the non-null parameter values.
@@ -247,16 +263,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFitnessGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnFitnessGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.boundWorkoutType, boundWorkoutType) || other.boundWorkoutType == boundWorkoutType)&&(identical(other.boundMetricType, boundMetricType) || other.boundMetricType == boundMetricType)&&(identical(other.autoUpdateProgress, autoUpdateProgress) || other.autoUpdateProgress == autoUpdateProgress)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.repeatType, repeatType) || other.repeatType == repeatType)&&(identical(other.repeatInterval, repeatInterval) || other.repeatInterval == repeatInterval)&&(identical(other.repeatCount, repeatCount) || other.repeatCount == repeatCount)&&(identical(other.currentRepetition, currentRepetition) || other.currentRepetition == currentRepetition)&&(identical(other.parentGoalId, parentGoalId) || other.parentGoalId == parentGoalId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,goalType,title,description,targetValue,currentValue,unit,startDate,endDate,status,notes,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,accountId,goalType,title,description,targetValue,currentValue,unit,boundWorkoutType,boundMetricType,autoUpdateProgress,startDate,endDate,status,notes,createdAt,updatedAt,repeatType,repeatInterval,repeatCount,currentRepetition,parentGoalId]);
 
 @override
 String toString() {
-  return 'SnFitnessGoal(id: $id, accountId: $accountId, goalType: $goalType, title: $title, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, startDate: $startDate, endDate: $endDate, status: $status, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SnFitnessGoal(id: $id, accountId: $accountId, goalType: $goalType, title: $title, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, boundWorkoutType: $boundWorkoutType, boundMetricType: $boundMetricType, autoUpdateProgress: $autoUpdateProgress, startDate: $startDate, endDate: $endDate, status: $status, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt, repeatType: $repeatType, repeatInterval: $repeatInterval, repeatCount: $repeatCount, currentRepetition: $currentRepetition, parentGoalId: $parentGoalId)';
 }
 
 
@@ -267,7 +283,7 @@ abstract mixin class _$SnFitnessGoalCopyWith<$Res> implements $SnFitnessGoalCopy
   factory _$SnFitnessGoalCopyWith(_SnFitnessGoal value, $Res Function(_SnFitnessGoal) _then) = __$SnFitnessGoalCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, FitnessGoalType goalType, String title, String? description, double? targetValue, double? currentValue, String? unit, DateTime startDate, DateTime? endDate, FitnessGoalStatus status, String? notes, DateTime createdAt, DateTime updatedAt
+ String id, String accountId, FitnessGoalType goalType, String title, String? description, double? targetValue, double? currentValue, String? unit, int? boundWorkoutType, int? boundMetricType, bool autoUpdateProgress,@DateTimeConverter() DateTime startDate,@NullableDateTimeConverter() DateTime? endDate, FitnessGoalStatus status, String? notes,@DateTimeConverter() DateTime createdAt,@DateTimeConverter() DateTime updatedAt, RepeatType? repeatType, int? repeatInterval, int? repeatCount, int? currentRepetition, String? parentGoalId
 });
 
 
@@ -284,7 +300,7 @@ class __$SnFitnessGoalCopyWithImpl<$Res>
 
 /// Create a copy of SnFitnessGoal
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? goalType = null,Object? title = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? startDate = null,Object? endDate = freezed,Object? status = null,Object? notes = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? goalType = null,Object? title = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = null,Object? startDate = null,Object? endDate = freezed,Object? status = null,Object? notes = freezed,Object? createdAt = null,Object? updatedAt = null,Object? repeatType = freezed,Object? repeatInterval = freezed,Object? repeatCount = freezed,Object? currentRepetition = freezed,Object? parentGoalId = freezed,}) {
   return _then(_SnFitnessGoal(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -294,13 +310,21 @@ as String,description: freezed == description ? _self.description : description 
 as String?,targetValue: freezed == targetValue ? _self.targetValue : targetValue // ignore: cast_nullable_to_non_nullable
 as double?,currentValue: freezed == currentValue ? _self.currentValue : currentValue // ignore: cast_nullable_to_non_nullable
 as double?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
-as String?,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as String?,boundWorkoutType: freezed == boundWorkoutType ? _self.boundWorkoutType : boundWorkoutType // ignore: cast_nullable_to_non_nullable
+as int?,boundMetricType: freezed == boundMetricType ? _self.boundMetricType : boundMetricType // ignore: cast_nullable_to_non_nullable
+as int?,autoUpdateProgress: null == autoUpdateProgress ? _self.autoUpdateProgress : autoUpdateProgress // ignore: cast_nullable_to_non_nullable
+as bool,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as FitnessGoalStatus,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,repeatType: freezed == repeatType ? _self.repeatType : repeatType // ignore: cast_nullable_to_non_nullable
+as RepeatType?,repeatInterval: freezed == repeatInterval ? _self.repeatInterval : repeatInterval // ignore: cast_nullable_to_non_nullable
+as int?,repeatCount: freezed == repeatCount ? _self.repeatCount : repeatCount // ignore: cast_nullable_to_non_nullable
+as int?,currentRepetition: freezed == currentRepetition ? _self.currentRepetition : currentRepetition // ignore: cast_nullable_to_non_nullable
+as int?,parentGoalId: freezed == parentGoalId ? _self.parentGoalId : parentGoalId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -571,7 +595,7 @@ as int,
 /// @nodoc
 mixin _$CreateGoalRequest {
 
- String get title; FitnessGoalType get goalType; DateTime get startDate; String? get description; double? get targetValue; double? get currentValue; String? get unit; DateTime? get endDate; String? get notes;
+ String get title; FitnessGoalType get goalType;@DateTimeConverter() DateTime get startDate; String? get description; double? get targetValue; String? get unit; int? get boundWorkoutType; int? get boundMetricType; bool get autoUpdateProgress;@NullableDateTimeConverter() DateTime? get endDate; String? get notes; RepeatType? get repeatType; int? get repeatInterval; int? get repeatCount;
 /// Create a copy of CreateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -584,16 +608,16 @@ $CreateGoalRequestCopyWith<CreateGoalRequest> get copyWith => _$CreateGoalReques
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.boundWorkoutType, boundWorkoutType) || other.boundWorkoutType == boundWorkoutType)&&(identical(other.boundMetricType, boundMetricType) || other.boundMetricType == boundMetricType)&&(identical(other.autoUpdateProgress, autoUpdateProgress) || other.autoUpdateProgress == autoUpdateProgress)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.repeatType, repeatType) || other.repeatType == repeatType)&&(identical(other.repeatInterval, repeatInterval) || other.repeatInterval == repeatInterval)&&(identical(other.repeatCount, repeatCount) || other.repeatCount == repeatCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,goalType,startDate,description,targetValue,currentValue,unit,endDate,notes);
+int get hashCode => Object.hash(runtimeType,title,goalType,startDate,description,targetValue,unit,boundWorkoutType,boundMetricType,autoUpdateProgress,endDate,notes,repeatType,repeatInterval,repeatCount);
 
 @override
 String toString() {
-  return 'CreateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, endDate: $endDate, notes: $notes)';
+  return 'CreateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, description: $description, targetValue: $targetValue, unit: $unit, boundWorkoutType: $boundWorkoutType, boundMetricType: $boundMetricType, autoUpdateProgress: $autoUpdateProgress, endDate: $endDate, notes: $notes, repeatType: $repeatType, repeatInterval: $repeatInterval, repeatCount: $repeatCount)';
 }
 
 
@@ -604,7 +628,7 @@ abstract mixin class $CreateGoalRequestCopyWith<$Res>  {
   factory $CreateGoalRequestCopyWith(CreateGoalRequest value, $Res Function(CreateGoalRequest) _then) = _$CreateGoalRequestCopyWithImpl;
 @useResult
 $Res call({
- String title, FitnessGoalType goalType, DateTime startDate, String? description, double? targetValue, double? currentValue, String? unit, DateTime? endDate, String? notes
+ String title, FitnessGoalType goalType,@DateTimeConverter() DateTime startDate, String? description, double? targetValue, String? unit, int? boundWorkoutType, int? boundMetricType, bool autoUpdateProgress,@NullableDateTimeConverter() DateTime? endDate, String? notes, RepeatType? repeatType, int? repeatInterval, int? repeatCount
 });
 
 
@@ -621,18 +645,23 @@ class _$CreateGoalRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? endDate = freezed,Object? notes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? description = freezed,Object? targetValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = null,Object? endDate = freezed,Object? notes = freezed,Object? repeatType = freezed,Object? repeatInterval = freezed,Object? repeatCount = freezed,}) {
   return _then(_self.copyWith(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,goalType: null == goalType ? _self.goalType : goalType // ignore: cast_nullable_to_non_nullable
 as FitnessGoalType,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,targetValue: freezed == targetValue ? _self.targetValue : targetValue // ignore: cast_nullable_to_non_nullable
-as double?,currentValue: freezed == currentValue ? _self.currentValue : currentValue // ignore: cast_nullable_to_non_nullable
 as double?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
-as String?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as String?,boundWorkoutType: freezed == boundWorkoutType ? _self.boundWorkoutType : boundWorkoutType // ignore: cast_nullable_to_non_nullable
+as int?,boundMetricType: freezed == boundMetricType ? _self.boundMetricType : boundMetricType // ignore: cast_nullable_to_non_nullable
+as int?,autoUpdateProgress: null == autoUpdateProgress ? _self.autoUpdateProgress : autoUpdateProgress // ignore: cast_nullable_to_non_nullable
+as bool,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,repeatType: freezed == repeatType ? _self.repeatType : repeatType // ignore: cast_nullable_to_non_nullable
+as RepeatType?,repeatInterval: freezed == repeatInterval ? _self.repeatInterval : repeatInterval // ignore: cast_nullable_to_non_nullable
+as int?,repeatCount: freezed == repeatCount ? _self.repeatCount : repeatCount // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -714,10 +743,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType,  DateTime startDate,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime? endDate,  String? notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType, @DateTimeConverter()  DateTime startDate,  String? description,  double? targetValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool autoUpdateProgress, @NullableDateTimeConverter()  DateTime? endDate,  String? notes,  RepeatType? repeatType,  int? repeatInterval,  int? repeatCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateGoalRequest() when $default != null:
-return $default(_that.title,_that.goalType,_that.startDate,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.endDate,_that.notes);case _:
+return $default(_that.title,_that.goalType,_that.startDate,_that.description,_that.targetValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.endDate,_that.notes,_that.repeatType,_that.repeatInterval,_that.repeatCount);case _:
   return orElse();
 
 }
@@ -735,10 +764,10 @@ return $default(_that.title,_that.goalType,_that.startDate,_that.description,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType,  DateTime startDate,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime? endDate,  String? notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType, @DateTimeConverter()  DateTime startDate,  String? description,  double? targetValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool autoUpdateProgress, @NullableDateTimeConverter()  DateTime? endDate,  String? notes,  RepeatType? repeatType,  int? repeatInterval,  int? repeatCount)  $default,) {final _that = this;
 switch (_that) {
 case _CreateGoalRequest():
-return $default(_that.title,_that.goalType,_that.startDate,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.endDate,_that.notes);}
+return $default(_that.title,_that.goalType,_that.startDate,_that.description,_that.targetValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.endDate,_that.notes,_that.repeatType,_that.repeatInterval,_that.repeatCount);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -752,10 +781,10 @@ return $default(_that.title,_that.goalType,_that.startDate,_that.description,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  FitnessGoalType goalType,  DateTime startDate,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime? endDate,  String? notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  FitnessGoalType goalType, @DateTimeConverter()  DateTime startDate,  String? description,  double? targetValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool autoUpdateProgress, @NullableDateTimeConverter()  DateTime? endDate,  String? notes,  RepeatType? repeatType,  int? repeatInterval,  int? repeatCount)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateGoalRequest() when $default != null:
-return $default(_that.title,_that.goalType,_that.startDate,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.endDate,_that.notes);case _:
+return $default(_that.title,_that.goalType,_that.startDate,_that.description,_that.targetValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.endDate,_that.notes,_that.repeatType,_that.repeatInterval,_that.repeatCount);case _:
   return null;
 
 }
@@ -767,18 +796,23 @@ return $default(_that.title,_that.goalType,_that.startDate,_that.description,_th
 @JsonSerializable()
 
 class _CreateGoalRequest implements CreateGoalRequest {
-  const _CreateGoalRequest({required this.title, required this.goalType, required this.startDate, this.description, this.targetValue, this.currentValue, this.unit, this.endDate, this.notes});
+  const _CreateGoalRequest({required this.title, required this.goalType, @DateTimeConverter() required this.startDate, this.description, this.targetValue, this.unit, this.boundWorkoutType, this.boundMetricType, this.autoUpdateProgress = true, @NullableDateTimeConverter() this.endDate, this.notes, this.repeatType, this.repeatInterval, this.repeatCount});
   factory _CreateGoalRequest.fromJson(Map<String, dynamic> json) => _$CreateGoalRequestFromJson(json);
 
 @override final  String title;
 @override final  FitnessGoalType goalType;
-@override final  DateTime startDate;
+@override@DateTimeConverter() final  DateTime startDate;
 @override final  String? description;
 @override final  double? targetValue;
-@override final  double? currentValue;
 @override final  String? unit;
-@override final  DateTime? endDate;
+@override final  int? boundWorkoutType;
+@override final  int? boundMetricType;
+@override@JsonKey() final  bool autoUpdateProgress;
+@override@NullableDateTimeConverter() final  DateTime? endDate;
 @override final  String? notes;
+@override final  RepeatType? repeatType;
+@override final  int? repeatInterval;
+@override final  int? repeatCount;
 
 /// Create a copy of CreateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -793,16 +827,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.boundWorkoutType, boundWorkoutType) || other.boundWorkoutType == boundWorkoutType)&&(identical(other.boundMetricType, boundMetricType) || other.boundMetricType == boundMetricType)&&(identical(other.autoUpdateProgress, autoUpdateProgress) || other.autoUpdateProgress == autoUpdateProgress)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.repeatType, repeatType) || other.repeatType == repeatType)&&(identical(other.repeatInterval, repeatInterval) || other.repeatInterval == repeatInterval)&&(identical(other.repeatCount, repeatCount) || other.repeatCount == repeatCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,goalType,startDate,description,targetValue,currentValue,unit,endDate,notes);
+int get hashCode => Object.hash(runtimeType,title,goalType,startDate,description,targetValue,unit,boundWorkoutType,boundMetricType,autoUpdateProgress,endDate,notes,repeatType,repeatInterval,repeatCount);
 
 @override
 String toString() {
-  return 'CreateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, endDate: $endDate, notes: $notes)';
+  return 'CreateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, description: $description, targetValue: $targetValue, unit: $unit, boundWorkoutType: $boundWorkoutType, boundMetricType: $boundMetricType, autoUpdateProgress: $autoUpdateProgress, endDate: $endDate, notes: $notes, repeatType: $repeatType, repeatInterval: $repeatInterval, repeatCount: $repeatCount)';
 }
 
 
@@ -813,7 +847,7 @@ abstract mixin class _$CreateGoalRequestCopyWith<$Res> implements $CreateGoalReq
   factory _$CreateGoalRequestCopyWith(_CreateGoalRequest value, $Res Function(_CreateGoalRequest) _then) = __$CreateGoalRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String title, FitnessGoalType goalType, DateTime startDate, String? description, double? targetValue, double? currentValue, String? unit, DateTime? endDate, String? notes
+ String title, FitnessGoalType goalType,@DateTimeConverter() DateTime startDate, String? description, double? targetValue, String? unit, int? boundWorkoutType, int? boundMetricType, bool autoUpdateProgress,@NullableDateTimeConverter() DateTime? endDate, String? notes, RepeatType? repeatType, int? repeatInterval, int? repeatCount
 });
 
 
@@ -830,18 +864,23 @@ class __$CreateGoalRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? endDate = freezed,Object? notes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? description = freezed,Object? targetValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = null,Object? endDate = freezed,Object? notes = freezed,Object? repeatType = freezed,Object? repeatInterval = freezed,Object? repeatCount = freezed,}) {
   return _then(_CreateGoalRequest(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,goalType: null == goalType ? _self.goalType : goalType // ignore: cast_nullable_to_non_nullable
 as FitnessGoalType,startDate: null == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,targetValue: freezed == targetValue ? _self.targetValue : targetValue // ignore: cast_nullable_to_non_nullable
-as double?,currentValue: freezed == currentValue ? _self.currentValue : currentValue // ignore: cast_nullable_to_non_nullable
 as double?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
-as String?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as String?,boundWorkoutType: freezed == boundWorkoutType ? _self.boundWorkoutType : boundWorkoutType // ignore: cast_nullable_to_non_nullable
+as int?,boundMetricType: freezed == boundMetricType ? _self.boundMetricType : boundMetricType // ignore: cast_nullable_to_non_nullable
+as int?,autoUpdateProgress: null == autoUpdateProgress ? _self.autoUpdateProgress : autoUpdateProgress // ignore: cast_nullable_to_non_nullable
+as bool,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,repeatType: freezed == repeatType ? _self.repeatType : repeatType // ignore: cast_nullable_to_non_nullable
+as RepeatType?,repeatInterval: freezed == repeatInterval ? _self.repeatInterval : repeatInterval // ignore: cast_nullable_to_non_nullable
+as int?,repeatCount: freezed == repeatCount ? _self.repeatCount : repeatCount // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -852,7 +891,7 @@ as String?,
 /// @nodoc
 mixin _$UpdateGoalRequest {
 
- String get title; FitnessGoalType get goalType; DateTime get startDate; FitnessGoalStatus get status; String? get description; double? get targetValue; double? get currentValue; String? get unit; DateTime? get endDate; String? get notes;
+ String get title; FitnessGoalType get goalType;@DateTimeConverter() DateTime get startDate; FitnessGoalStatus get status; String? get description; double? get targetValue; double? get currentValue; String? get unit; int? get boundWorkoutType; int? get boundMetricType; bool? get autoUpdateProgress;@NullableDateTimeConverter() DateTime? get endDate; String? get notes;
 /// Create a copy of UpdateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -865,16 +904,16 @@ $UpdateGoalRequestCopyWith<UpdateGoalRequest> get copyWith => _$UpdateGoalReques
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.boundWorkoutType, boundWorkoutType) || other.boundWorkoutType == boundWorkoutType)&&(identical(other.boundMetricType, boundMetricType) || other.boundMetricType == boundMetricType)&&(identical(other.autoUpdateProgress, autoUpdateProgress) || other.autoUpdateProgress == autoUpdateProgress)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,goalType,startDate,status,description,targetValue,currentValue,unit,endDate,notes);
+int get hashCode => Object.hash(runtimeType,title,goalType,startDate,status,description,targetValue,currentValue,unit,boundWorkoutType,boundMetricType,autoUpdateProgress,endDate,notes);
 
 @override
 String toString() {
-  return 'UpdateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, status: $status, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, endDate: $endDate, notes: $notes)';
+  return 'UpdateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, status: $status, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, boundWorkoutType: $boundWorkoutType, boundMetricType: $boundMetricType, autoUpdateProgress: $autoUpdateProgress, endDate: $endDate, notes: $notes)';
 }
 
 
@@ -885,7 +924,7 @@ abstract mixin class $UpdateGoalRequestCopyWith<$Res>  {
   factory $UpdateGoalRequestCopyWith(UpdateGoalRequest value, $Res Function(UpdateGoalRequest) _then) = _$UpdateGoalRequestCopyWithImpl;
 @useResult
 $Res call({
- String title, FitnessGoalType goalType, DateTime startDate, FitnessGoalStatus status, String? description, double? targetValue, double? currentValue, String? unit, DateTime? endDate, String? notes
+ String title, FitnessGoalType goalType,@DateTimeConverter() DateTime startDate, FitnessGoalStatus status, String? description, double? targetValue, double? currentValue, String? unit, int? boundWorkoutType, int? boundMetricType, bool? autoUpdateProgress,@NullableDateTimeConverter() DateTime? endDate, String? notes
 });
 
 
@@ -902,7 +941,7 @@ class _$UpdateGoalRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? status = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? endDate = freezed,Object? notes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? status = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = freezed,Object? endDate = freezed,Object? notes = freezed,}) {
   return _then(_self.copyWith(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,goalType: null == goalType ? _self.goalType : goalType // ignore: cast_nullable_to_non_nullable
@@ -912,7 +951,10 @@ as FitnessGoalStatus,description: freezed == description ? _self.description : d
 as String?,targetValue: freezed == targetValue ? _self.targetValue : targetValue // ignore: cast_nullable_to_non_nullable
 as double?,currentValue: freezed == currentValue ? _self.currentValue : currentValue // ignore: cast_nullable_to_non_nullable
 as double?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
-as String?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as String?,boundWorkoutType: freezed == boundWorkoutType ? _self.boundWorkoutType : boundWorkoutType // ignore: cast_nullable_to_non_nullable
+as int?,boundMetricType: freezed == boundMetricType ? _self.boundMetricType : boundMetricType // ignore: cast_nullable_to_non_nullable
+as int?,autoUpdateProgress: freezed == autoUpdateProgress ? _self.autoUpdateProgress : autoUpdateProgress // ignore: cast_nullable_to_non_nullable
+as bool?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -996,10 +1038,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType,  DateTime startDate,  FitnessGoalStatus status,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime? endDate,  String? notes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType, @DateTimeConverter()  DateTime startDate,  FitnessGoalStatus status,  String? description,  double? targetValue,  double? currentValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool? autoUpdateProgress, @NullableDateTimeConverter()  DateTime? endDate,  String? notes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateGoalRequest() when $default != null:
-return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.endDate,_that.notes);case _:
+return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.endDate,_that.notes);case _:
   return orElse();
 
 }
@@ -1017,10 +1059,10 @@ return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.de
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType,  DateTime startDate,  FitnessGoalStatus status,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime? endDate,  String? notes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  FitnessGoalType goalType, @DateTimeConverter()  DateTime startDate,  FitnessGoalStatus status,  String? description,  double? targetValue,  double? currentValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool? autoUpdateProgress, @NullableDateTimeConverter()  DateTime? endDate,  String? notes)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateGoalRequest():
-return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.endDate,_that.notes);}
+return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.endDate,_that.notes);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1034,10 +1076,10 @@ return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.de
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  FitnessGoalType goalType,  DateTime startDate,  FitnessGoalStatus status,  String? description,  double? targetValue,  double? currentValue,  String? unit,  DateTime? endDate,  String? notes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  FitnessGoalType goalType, @DateTimeConverter()  DateTime startDate,  FitnessGoalStatus status,  String? description,  double? targetValue,  double? currentValue,  String? unit,  int? boundWorkoutType,  int? boundMetricType,  bool? autoUpdateProgress, @NullableDateTimeConverter()  DateTime? endDate,  String? notes)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateGoalRequest() when $default != null:
-return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.endDate,_that.notes);case _:
+return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.description,_that.targetValue,_that.currentValue,_that.unit,_that.boundWorkoutType,_that.boundMetricType,_that.autoUpdateProgress,_that.endDate,_that.notes);case _:
   return null;
 
 }
@@ -1049,18 +1091,21 @@ return $default(_that.title,_that.goalType,_that.startDate,_that.status,_that.de
 @JsonSerializable()
 
 class _UpdateGoalRequest implements UpdateGoalRequest {
-  const _UpdateGoalRequest({required this.title, required this.goalType, required this.startDate, required this.status, this.description, this.targetValue, this.currentValue, this.unit, this.endDate, this.notes});
+  const _UpdateGoalRequest({required this.title, required this.goalType, @DateTimeConverter() required this.startDate, required this.status, this.description, this.targetValue, this.currentValue, this.unit, this.boundWorkoutType, this.boundMetricType, this.autoUpdateProgress, @NullableDateTimeConverter() this.endDate, this.notes});
   factory _UpdateGoalRequest.fromJson(Map<String, dynamic> json) => _$UpdateGoalRequestFromJson(json);
 
 @override final  String title;
 @override final  FitnessGoalType goalType;
-@override final  DateTime startDate;
+@override@DateTimeConverter() final  DateTime startDate;
 @override final  FitnessGoalStatus status;
 @override final  String? description;
 @override final  double? targetValue;
 @override final  double? currentValue;
 @override final  String? unit;
-@override final  DateTime? endDate;
+@override final  int? boundWorkoutType;
+@override final  int? boundMetricType;
+@override final  bool? autoUpdateProgress;
+@override@NullableDateTimeConverter() final  DateTime? endDate;
 @override final  String? notes;
 
 /// Create a copy of UpdateGoalRequest
@@ -1076,16 +1121,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateGoalRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.goalType, goalType) || other.goalType == goalType)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.targetValue, targetValue) || other.targetValue == targetValue)&&(identical(other.currentValue, currentValue) || other.currentValue == currentValue)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.boundWorkoutType, boundWorkoutType) || other.boundWorkoutType == boundWorkoutType)&&(identical(other.boundMetricType, boundMetricType) || other.boundMetricType == boundMetricType)&&(identical(other.autoUpdateProgress, autoUpdateProgress) || other.autoUpdateProgress == autoUpdateProgress)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.notes, notes) || other.notes == notes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,goalType,startDate,status,description,targetValue,currentValue,unit,endDate,notes);
+int get hashCode => Object.hash(runtimeType,title,goalType,startDate,status,description,targetValue,currentValue,unit,boundWorkoutType,boundMetricType,autoUpdateProgress,endDate,notes);
 
 @override
 String toString() {
-  return 'UpdateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, status: $status, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, endDate: $endDate, notes: $notes)';
+  return 'UpdateGoalRequest(title: $title, goalType: $goalType, startDate: $startDate, status: $status, description: $description, targetValue: $targetValue, currentValue: $currentValue, unit: $unit, boundWorkoutType: $boundWorkoutType, boundMetricType: $boundMetricType, autoUpdateProgress: $autoUpdateProgress, endDate: $endDate, notes: $notes)';
 }
 
 
@@ -1096,7 +1141,7 @@ abstract mixin class _$UpdateGoalRequestCopyWith<$Res> implements $UpdateGoalReq
   factory _$UpdateGoalRequestCopyWith(_UpdateGoalRequest value, $Res Function(_UpdateGoalRequest) _then) = __$UpdateGoalRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String title, FitnessGoalType goalType, DateTime startDate, FitnessGoalStatus status, String? description, double? targetValue, double? currentValue, String? unit, DateTime? endDate, String? notes
+ String title, FitnessGoalType goalType,@DateTimeConverter() DateTime startDate, FitnessGoalStatus status, String? description, double? targetValue, double? currentValue, String? unit, int? boundWorkoutType, int? boundMetricType, bool? autoUpdateProgress,@NullableDateTimeConverter() DateTime? endDate, String? notes
 });
 
 
@@ -1113,7 +1158,7 @@ class __$UpdateGoalRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateGoalRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? status = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? endDate = freezed,Object? notes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? goalType = null,Object? startDate = null,Object? status = null,Object? description = freezed,Object? targetValue = freezed,Object? currentValue = freezed,Object? unit = freezed,Object? boundWorkoutType = freezed,Object? boundMetricType = freezed,Object? autoUpdateProgress = freezed,Object? endDate = freezed,Object? notes = freezed,}) {
   return _then(_UpdateGoalRequest(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,goalType: null == goalType ? _self.goalType : goalType // ignore: cast_nullable_to_non_nullable
@@ -1123,7 +1168,10 @@ as FitnessGoalStatus,description: freezed == description ? _self.description : d
 as String?,targetValue: freezed == targetValue ? _self.targetValue : targetValue // ignore: cast_nullable_to_non_nullable
 as double?,currentValue: freezed == currentValue ? _self.currentValue : currentValue // ignore: cast_nullable_to_non_nullable
 as double?,unit: freezed == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
-as String?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as String?,boundWorkoutType: freezed == boundWorkoutType ? _self.boundWorkoutType : boundWorkoutType // ignore: cast_nullable_to_non_nullable
+as int?,boundMetricType: freezed == boundMetricType ? _self.boundMetricType : boundMetricType // ignore: cast_nullable_to_non_nullable
+as int?,autoUpdateProgress: freezed == autoUpdateProgress ? _self.autoUpdateProgress : autoUpdateProgress // ignore: cast_nullable_to_non_nullable
+as bool?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

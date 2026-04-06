@@ -6,25 +6,34 @@ part of 'goal.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_SnFitnessGoal _$SnFitnessGoalFromJson(Map<String, dynamic> json) =>
-    _SnFitnessGoal(
-      id: json['id'] as String,
-      accountId: json['account_id'] as String,
-      goalType: $enumDecode(_$FitnessGoalTypeEnumMap, json['goal_type']),
-      title: json['title'] as String,
-      description: json['description'] as String?,
-      targetValue: (json['target_value'] as num?)?.toDouble(),
-      currentValue: (json['current_value'] as num?)?.toDouble(),
-      unit: json['unit'] as String?,
-      startDate: DateTime.parse(json['start_date'] as String),
-      endDate: json['end_date'] == null
-          ? null
-          : DateTime.parse(json['end_date'] as String),
-      status: $enumDecode(_$FitnessGoalStatusEnumMap, json['status']),
-      notes: json['notes'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-    );
+_SnFitnessGoal _$SnFitnessGoalFromJson(
+  Map<String, dynamic> json,
+) => _SnFitnessGoal(
+  id: json['id'] as String,
+  accountId: json['account_id'] as String,
+  goalType: $enumDecode(_$FitnessGoalTypeEnumMap, json['goal_type']),
+  title: json['title'] as String,
+  description: json['description'] as String?,
+  targetValue: (json['target_value'] as num?)?.toDouble(),
+  currentValue: (json['current_value'] as num?)?.toDouble(),
+  unit: json['unit'] as String?,
+  boundWorkoutType: (json['bound_workout_type'] as num?)?.toInt(),
+  boundMetricType: (json['bound_metric_type'] as num?)?.toInt(),
+  autoUpdateProgress: json['auto_update_progress'] as bool? ?? true,
+  startDate: const DateTimeConverter().fromJson(json['start_date'] as String),
+  endDate: const NullableDateTimeConverter().fromJson(
+    json['end_date'] as String?,
+  ),
+  status: $enumDecode(_$FitnessGoalStatusEnumMap, json['status']),
+  notes: json['notes'] as String?,
+  createdAt: const DateTimeConverter().fromJson(json['created_at'] as String),
+  updatedAt: const DateTimeConverter().fromJson(json['updated_at'] as String),
+  repeatType: $enumDecodeNullable(_$RepeatTypeEnumMap, json['repeat_type']),
+  repeatInterval: (json['repeat_interval'] as num?)?.toInt(),
+  repeatCount: (json['repeat_count'] as num?)?.toInt(),
+  currentRepetition: (json['current_repetition'] as num?)?.toInt(),
+  parentGoalId: json['parent_goal_id'] as String?,
+);
 
 Map<String, dynamic> _$SnFitnessGoalToJson(_SnFitnessGoal instance) =>
     <String, dynamic>{
@@ -36,26 +45,49 @@ Map<String, dynamic> _$SnFitnessGoalToJson(_SnFitnessGoal instance) =>
       'target_value': instance.targetValue,
       'current_value': instance.currentValue,
       'unit': instance.unit,
-      'start_date': instance.startDate.toIso8601String(),
-      'end_date': instance.endDate?.toIso8601String(),
+      'bound_workout_type': instance.boundWorkoutType,
+      'bound_metric_type': instance.boundMetricType,
+      'auto_update_progress': instance.autoUpdateProgress,
+      'start_date': const DateTimeConverter().toJson(instance.startDate),
+      'end_date': const NullableDateTimeConverter().toJson(instance.endDate),
       'status': _$FitnessGoalStatusEnumMap[instance.status]!,
       'notes': instance.notes,
-      'created_at': instance.createdAt.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
+      'created_at': const DateTimeConverter().toJson(instance.createdAt),
+      'updated_at': const DateTimeConverter().toJson(instance.updatedAt),
+      'repeat_type': _$RepeatTypeEnumMap[instance.repeatType],
+      'repeat_interval': instance.repeatInterval,
+      'repeat_count': instance.repeatCount,
+      'current_repetition': instance.currentRepetition,
+      'parent_goal_id': instance.parentGoalId,
     };
 
 const _$FitnessGoalTypeEnumMap = {
   FitnessGoalType.weightLoss: 0,
-  FitnessGoalType.muscleGain: 1,
-  FitnessGoalType.endurance: 2,
-  FitnessGoalType.steps: 3,
-  FitnessGoalType.custom: 4,
+  FitnessGoalType.weightGain: 1,
+  FitnessGoalType.steps: 2,
+  FitnessGoalType.distance: 3,
+  FitnessGoalType.duration: 4,
+  FitnessGoalType.reps: 5,
+  FitnessGoalType.strength: 6,
+  FitnessGoalType.cardio: 7,
+  FitnessGoalType.flexibility: 8,
+  FitnessGoalType.custom: 9,
 };
 
 const _$FitnessGoalStatusEnumMap = {
   FitnessGoalStatus.active: 0,
   FitnessGoalStatus.completed: 1,
-  FitnessGoalStatus.cancelled: 2,
+  FitnessGoalStatus.paused: 2,
+  FitnessGoalStatus.cancelled: 3,
+};
+
+const _$RepeatTypeEnumMap = {
+  RepeatType.daily: 0,
+  RepeatType.weekly: 1,
+  RepeatType.biweekly: 2,
+  RepeatType.monthly: 3,
+  RepeatType.quarterly: 4,
+  RepeatType.yearly: 5,
 };
 
 _GoalStats _$GoalStatsFromJson(Map<String, dynamic> json) => _GoalStats(
@@ -73,43 +105,60 @@ _CreateGoalRequest _$CreateGoalRequestFromJson(Map<String, dynamic> json) =>
     _CreateGoalRequest(
       title: json['title'] as String,
       goalType: $enumDecode(_$FitnessGoalTypeEnumMap, json['goal_type']),
-      startDate: DateTime.parse(json['start_date'] as String),
+      startDate: const DateTimeConverter().fromJson(
+        json['start_date'] as String,
+      ),
       description: json['description'] as String?,
       targetValue: (json['target_value'] as num?)?.toDouble(),
-      currentValue: (json['current_value'] as num?)?.toDouble(),
       unit: json['unit'] as String?,
-      endDate: json['end_date'] == null
-          ? null
-          : DateTime.parse(json['end_date'] as String),
+      boundWorkoutType: (json['bound_workout_type'] as num?)?.toInt(),
+      boundMetricType: (json['bound_metric_type'] as num?)?.toInt(),
+      autoUpdateProgress: json['auto_update_progress'] as bool? ?? true,
+      endDate: const NullableDateTimeConverter().fromJson(
+        json['end_date'] as String?,
+      ),
       notes: json['notes'] as String?,
+      repeatType: $enumDecodeNullable(_$RepeatTypeEnumMap, json['repeat_type']),
+      repeatInterval: (json['repeat_interval'] as num?)?.toInt(),
+      repeatCount: (json['repeat_count'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$CreateGoalRequestToJson(_CreateGoalRequest instance) =>
     <String, dynamic>{
       'title': instance.title,
       'goal_type': _$FitnessGoalTypeEnumMap[instance.goalType]!,
-      'start_date': instance.startDate.toIso8601String(),
+      'start_date': const DateTimeConverter().toJson(instance.startDate),
       'description': instance.description,
       'target_value': instance.targetValue,
-      'current_value': instance.currentValue,
       'unit': instance.unit,
-      'end_date': instance.endDate?.toIso8601String(),
+      'bound_workout_type': instance.boundWorkoutType,
+      'bound_metric_type': instance.boundMetricType,
+      'auto_update_progress': instance.autoUpdateProgress,
+      'end_date': const NullableDateTimeConverter().toJson(instance.endDate),
       'notes': instance.notes,
+      'repeat_type': _$RepeatTypeEnumMap[instance.repeatType],
+      'repeat_interval': instance.repeatInterval,
+      'repeat_count': instance.repeatCount,
     };
 
 _UpdateGoalRequest _$UpdateGoalRequestFromJson(Map<String, dynamic> json) =>
     _UpdateGoalRequest(
       title: json['title'] as String,
       goalType: $enumDecode(_$FitnessGoalTypeEnumMap, json['goal_type']),
-      startDate: DateTime.parse(json['start_date'] as String),
+      startDate: const DateTimeConverter().fromJson(
+        json['start_date'] as String,
+      ),
       status: $enumDecode(_$FitnessGoalStatusEnumMap, json['status']),
       description: json['description'] as String?,
       targetValue: (json['target_value'] as num?)?.toDouble(),
       currentValue: (json['current_value'] as num?)?.toDouble(),
       unit: json['unit'] as String?,
-      endDate: json['end_date'] == null
-          ? null
-          : DateTime.parse(json['end_date'] as String),
+      boundWorkoutType: (json['bound_workout_type'] as num?)?.toInt(),
+      boundMetricType: (json['bound_metric_type'] as num?)?.toInt(),
+      autoUpdateProgress: json['auto_update_progress'] as bool?,
+      endDate: const NullableDateTimeConverter().fromJson(
+        json['end_date'] as String?,
+      ),
       notes: json['notes'] as String?,
     );
 
@@ -117,13 +166,16 @@ Map<String, dynamic> _$UpdateGoalRequestToJson(_UpdateGoalRequest instance) =>
     <String, dynamic>{
       'title': instance.title,
       'goal_type': _$FitnessGoalTypeEnumMap[instance.goalType]!,
-      'start_date': instance.startDate.toIso8601String(),
+      'start_date': const DateTimeConverter().toJson(instance.startDate),
       'status': _$FitnessGoalStatusEnumMap[instance.status]!,
       'description': instance.description,
       'target_value': instance.targetValue,
       'current_value': instance.currentValue,
       'unit': instance.unit,
-      'end_date': instance.endDate?.toIso8601String(),
+      'bound_workout_type': instance.boundWorkoutType,
+      'bound_metric_type': instance.boundMetricType,
+      'auto_update_progress': instance.autoUpdateProgress,
+      'end_date': const NullableDateTimeConverter().toJson(instance.endDate),
       'notes': instance.notes,
     };
 

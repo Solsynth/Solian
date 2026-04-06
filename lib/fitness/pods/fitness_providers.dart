@@ -200,6 +200,14 @@ class GoalNotifier extends AsyncNotifier<SnFitnessGoal> {
     ref.invalidate(workoutGoalsProvider);
     ref.invalidate(goalStatsProvider);
   }
+
+  Future<SnFitnessGoal> recalculateGoal(String id) async {
+    final fitness = ref.read(fitnessClientProvider);
+    final goal = await fitness.recalculateGoal(id);
+    ref.invalidate(workoutGoalsProvider);
+    ref.invalidate(goalDetailProvider(id));
+    return goal;
+  }
 }
 
 final goalNotifierProvider = AsyncNotifierProvider<GoalNotifier, SnFitnessGoal>(

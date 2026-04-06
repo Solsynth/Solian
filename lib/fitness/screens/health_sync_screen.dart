@@ -69,13 +69,13 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
         if (result.success) {
           showSnackBar('Synced ${result.uploaded} records');
         } else {
-          showSnackBar('Sync failed: ${result.error}');
+          showErrorAlert('Sync failed: ${result.error}');
         }
       }
     } catch (e) {
       setState(() => _isSyncing = false);
       if (mounted) {
-        showSnackBar('Sync failed: $e');
+        showErrorAlert('Sync failed: $e');
       }
     }
   }

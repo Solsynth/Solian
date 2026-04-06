@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'converters.dart';
+
 part 'goal.freezed.dart';
 part 'goal.g.dart';
 
@@ -7,12 +9,22 @@ enum FitnessGoalType {
   @JsonValue(0)
   weightLoss,
   @JsonValue(1)
-  muscleGain,
+  weightGain,
   @JsonValue(2)
-  endurance,
-  @JsonValue(3)
   steps,
+  @JsonValue(3)
+  distance,
   @JsonValue(4)
+  duration,
+  @JsonValue(5)
+  reps,
+  @JsonValue(6)
+  strength,
+  @JsonValue(7)
+  cardio,
+  @JsonValue(8)
+  flexibility,
+  @JsonValue(9)
   custom,
 }
 
@@ -22,7 +34,24 @@ enum FitnessGoalStatus {
   @JsonValue(1)
   completed,
   @JsonValue(2)
+  paused,
+  @JsonValue(3)
   cancelled,
+}
+
+enum RepeatType {
+  @JsonValue(0)
+  daily,
+  @JsonValue(1)
+  weekly,
+  @JsonValue(2)
+  biweekly,
+  @JsonValue(3)
+  monthly,
+  @JsonValue(4)
+  quarterly,
+  @JsonValue(5)
+  yearly,
 }
 
 @freezed
@@ -36,12 +65,20 @@ sealed class SnFitnessGoal with _$SnFitnessGoal {
     double? targetValue,
     double? currentValue,
     String? unit,
-    required DateTime startDate,
-    DateTime? endDate,
+    int? boundWorkoutType,
+    int? boundMetricType,
+    @Default(true) bool autoUpdateProgress,
+    @DateTimeConverter() required DateTime startDate,
+    @NullableDateTimeConverter() DateTime? endDate,
     required FitnessGoalStatus status,
     String? notes,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    @DateTimeConverter() required DateTime createdAt,
+    @DateTimeConverter() required DateTime updatedAt,
+    RepeatType? repeatType,
+    int? repeatInterval,
+    int? repeatCount,
+    int? currentRepetition,
+    String? parentGoalId,
   }) = _SnFitnessGoal;
 
   factory SnFitnessGoal.fromJson(Map<String, dynamic> json) =>
@@ -64,13 +101,18 @@ sealed class CreateGoalRequest with _$CreateGoalRequest {
   const factory CreateGoalRequest({
     required String title,
     required FitnessGoalType goalType,
-    required DateTime startDate,
+    @DateTimeConverter() required DateTime startDate,
     String? description,
     double? targetValue,
-    double? currentValue,
     String? unit,
-    DateTime? endDate,
+    int? boundWorkoutType,
+    int? boundMetricType,
+    @Default(true) bool autoUpdateProgress,
+    @NullableDateTimeConverter() DateTime? endDate,
     String? notes,
+    RepeatType? repeatType,
+    int? repeatInterval,
+    int? repeatCount,
   }) = _CreateGoalRequest;
 
   factory CreateGoalRequest.fromJson(Map<String, dynamic> json) =>
@@ -82,13 +124,16 @@ sealed class UpdateGoalRequest with _$UpdateGoalRequest {
   const factory UpdateGoalRequest({
     required String title,
     required FitnessGoalType goalType,
-    required DateTime startDate,
+    @DateTimeConverter() required DateTime startDate,
     required FitnessGoalStatus status,
     String? description,
     double? targetValue,
     double? currentValue,
     String? unit,
-    DateTime? endDate,
+    int? boundWorkoutType,
+    int? boundMetricType,
+    bool? autoUpdateProgress,
+    @NullableDateTimeConverter() DateTime? endDate,
     String? notes,
   }) = _UpdateGoalRequest;
 

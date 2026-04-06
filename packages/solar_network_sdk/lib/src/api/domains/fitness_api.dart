@@ -172,6 +172,13 @@ class FitnessApi extends BaseApi {
     await delete('$_basePath/goals/$id');
   }
 
+  Future<goal_models.SnFitnessGoal> recalculateGoal(String id) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/goals/$id/recalculate',
+    );
+    return goal_models.SnFitnessGoal.fromJson(response.data!);
+  }
+
   // ==========================================
   // Metric endpoints
   // ==========================================
