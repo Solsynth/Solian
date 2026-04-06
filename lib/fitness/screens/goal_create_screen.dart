@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
@@ -86,7 +87,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return SheetScaffold(
-      titleText: isEditing ? 'Edit Goal' : 'Create Goal',
+      titleText: isEditing ? 'editGoal'.tr() : 'createGoal'.tr(),
       heightFactor: 0.9,
       actions: [
         TextButton(
@@ -97,7 +98,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(isEditing ? 'Update' : 'Save'),
+              : Text(isEditing ? 'update'.tr() : 'save'.tr()),
         ),
       ],
       child: _buildForm(),
@@ -138,13 +139,13 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
   Widget _buildTitleField() {
     return TextFormField(
       controller: _titleController,
-      decoration: const InputDecoration(
-        labelText: 'Goal Title',
-        hintText: 'e.g., Walk 50k steps',
+      decoration: InputDecoration(
+        labelText: 'goalTitle'.tr(),
+        hintText: 'goalTitleHint'.tr(),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter a title';
+          return 'fieldCannotBeEmpty'.tr();
         }
         return null;
       },
@@ -154,7 +155,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
   Widget _buildGoalTypeSelector() {
     return DropdownButtonFormField<FitnessGoalType>(
       value: _selectedGoalType,
-      decoration: const InputDecoration(labelText: 'Goal Type'),
+      decoration: InputDecoration(labelText: 'goalType'.tr()),
       items: FitnessGoalType.values.map((type) {
         return DropdownMenuItem(
           value: type,
@@ -180,16 +181,16 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
           child: TextFormField(
             controller: _targetController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Target Value',
-              hintText: 'e.g., 50000',
+            decoration: InputDecoration(
+              labelText: 'targetValue'.tr(),
+              hintText: 'targetValueHint'.tr(),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Required';
+                return 'required'.tr();
               }
               if (double.tryParse(value) == null) {
-                return 'Invalid';
+                return 'fieldCannotBeEmpty'.tr();
               }
               return null;
             },
@@ -199,9 +200,9 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
         Expanded(
           child: TextFormField(
             controller: _unitController,
-            decoration: const InputDecoration(
-              labelText: 'Unit',
-              hintText: 'steps',
+            decoration: InputDecoration(
+              labelText: 'unit'.tr(),
+              hintText: 'unitHint'.tr(),
             ),
           ),
         ),
@@ -217,7 +218,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Auto-Track From',
+              'autoTrackFrom'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -225,11 +226,9 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
             const SizedBox(height: 12),
             DropdownButtonFormField<WorkoutType?>(
               value: _boundWorkoutType,
-              decoration: const InputDecoration(
-                labelText: 'Bind to Workout Type',
-              ),
+              decoration: InputDecoration(labelText: 'bindToWorkoutType'.tr()),
               items: [
-                const DropdownMenuItem(value: null, child: Text('None')),
+                DropdownMenuItem(value: null, child: Text('none'.tr())),
                 ...WorkoutType.values.map((type) {
                   return DropdownMenuItem(
                     value: type,
@@ -247,9 +246,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
             const SizedBox(height: 12),
             DropdownButtonFormField<FitnessMetricType?>(
               value: _boundMetricType,
-              decoration: const InputDecoration(
-                labelText: 'Bind to Metric Type',
-              ),
+              decoration: InputDecoration(labelText: 'bindToMetricType'.tr()),
               items: [
                 const DropdownMenuItem(value: null, child: Text('None')),
                 ...FitnessMetricType.values.map((type) {
@@ -274,11 +271,11 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
 
   Widget _buildAutoUpdateToggle() {
     return SwitchListTile(
-      title: const Text('Auto-Update Progress'),
+      title: Text('autoUpdateProgress'.tr()),
       subtitle: Text(
         _autoUpdateProgress
-            ? 'Progress updates automatically'
-            : 'Manually update progress',
+            ? 'autoUpdateProgressEnabled'.tr()
+            : 'autoUpdateProgressDisabled'.tr(),
       ),
       value: _autoUpdateProgress,
       onChanged: (value) {
@@ -292,7 +289,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
   Widget _buildVisibilitySelector() {
     return DropdownButtonFormField<FitnessVisibility>(
       value: _visibility,
-      decoration: const InputDecoration(labelText: 'Visibility'),
+      decoration: InputDecoration(labelText: 'visibility'.tr()),
       items: FitnessVisibility.values.map((v) {
         return DropdownMenuItem(value: v, child: Text(_getVisibilityName(v)));
       }).toList(),
@@ -320,7 +317,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Start Date',
+                    'startDate'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).hintColor,
@@ -347,14 +344,14 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'End Date',
+                    'endDate'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).hintColor,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(_endDate != null ? _formatDate(_endDate!) : 'None'),
+                  Text(_endDate != null ? _formatDate(_endDate!) : 'none'.tr()),
                 ],
               ).padding(horizontal: 16),
             ),
@@ -366,11 +363,9 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
 
   Widget _buildRepeatToggle() {
     return SwitchListTile(
-      title: const Text('Repeat Goal'),
+      title: Text('repeatGoal'.tr()),
       subtitle: Text(
-        _isRepeating
-            ? 'Create a repeating goal plan'
-            : 'Single goal without repetition',
+        _isRepeating ? 'repeatGoalEnabled'.tr() : 'repeatGoalDisabled'.tr(),
       ),
       value: _isRepeating,
       onChanged: (value) {
@@ -391,7 +386,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Repeat Settings',
+              'repeatSettings'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -399,7 +394,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
             const SizedBox(height: 12),
             DropdownButtonFormField<RepeatType>(
               value: _repeatType,
-              decoration: const InputDecoration(labelText: 'Repeat Type'),
+              decoration: InputDecoration(labelText: 'repeatType'.tr()),
               items: RepeatType.values.map((type) {
                 return DropdownMenuItem(
                   value: type,
@@ -419,7 +414,9 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
                   child: TextFormField(
                     initialValue: _repeatInterval.toString(),
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Interval'),
+                    decoration: InputDecoration(
+                      labelText: 'repeatInterval'.tr(),
+                    ),
                     onChanged: (value) {
                       _repeatInterval = int.tryParse(value) ?? 1;
                     },
@@ -431,8 +428,8 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
                     initialValue: _repeatCount?.toString() ?? '',
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'Count (empty = endless)',
-                      hintText: 'e.g., 12',
+                      labelText: 'repeatCount'.tr(),
+                      hintText: 'repeatCountHint'.tr(),
                     ),
                     onChanged: (value) {
                       _repeatCount = value.isEmpty ? null : int.tryParse(value);
@@ -451,7 +448,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
     return TextFormField(
       controller: _descriptionController,
       maxLines: 2,
-      decoration: const InputDecoration(labelText: 'Description (optional)'),
+      decoration: InputDecoration(labelText: 'descriptionOptional'.tr()),
     );
   }
 
@@ -459,7 +456,7 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
     return TextFormField(
       controller: _notesController,
       maxLines: 3,
-      decoration: const InputDecoration(labelText: 'Notes (optional)'),
+      decoration: InputDecoration(labelText: 'notesOptional'.tr()),
     );
   }
 
@@ -557,58 +554,58 @@ class _GoalCreateScreenState extends ConsumerState<GoalCreateScreen> {
 
   String _getGoalTypeName(FitnessGoalType type) {
     return switch (type) {
-      FitnessGoalType.weightLoss => 'Weight Loss',
-      FitnessGoalType.weightGain => 'Weight Gain',
-      FitnessGoalType.steps => 'Steps',
-      FitnessGoalType.distance => 'Distance',
-      FitnessGoalType.duration => 'Duration',
-      FitnessGoalType.reps => 'Reps',
-      FitnessGoalType.strength => 'Strength',
-      FitnessGoalType.cardio => 'Cardio',
-      FitnessGoalType.flexibility => 'Flexibility',
-      FitnessGoalType.custom => 'Custom',
+      FitnessGoalType.weightLoss => 'goalTypeWeightLoss'.tr(),
+      FitnessGoalType.weightGain => 'goalTypeWeightGain'.tr(),
+      FitnessGoalType.steps => 'goalTypeSteps'.tr(),
+      FitnessGoalType.distance => 'goalTypeDistance'.tr(),
+      FitnessGoalType.duration => 'goalTypeDuration'.tr(),
+      FitnessGoalType.reps => 'goalTypeReps'.tr(),
+      FitnessGoalType.strength => 'goalTypeStrength'.tr(),
+      FitnessGoalType.cardio => 'goalTypeCardio'.tr(),
+      FitnessGoalType.flexibility => 'goalTypeFlexibility'.tr(),
+      FitnessGoalType.custom => 'goalTypeCustom'.tr(),
     };
   }
 
   String _getWorkoutTypeName(WorkoutType type) {
     return switch (type) {
-      WorkoutType.strength => 'Strength',
-      WorkoutType.cardio => 'Cardio',
-      WorkoutType.hiit => 'HIIT',
-      WorkoutType.yoga => 'Yoga',
-      WorkoutType.other => 'Other',
+      WorkoutType.strength => 'workoutTypeStrength'.tr(),
+      WorkoutType.cardio => 'workoutTypeCardio'.tr(),
+      WorkoutType.hiit => 'workoutTypeHiit'.tr(),
+      WorkoutType.yoga => 'workoutTypeYoga'.tr(),
+      WorkoutType.other => 'workoutTypeOther'.tr(),
     };
   }
 
   String _getMetricTypeName(FitnessMetricType type) {
     return switch (type) {
-      FitnessMetricType.weight => 'Weight',
-      FitnessMetricType.bodyFat => 'Body Fat',
-      FitnessMetricType.steps => 'Steps',
-      FitnessMetricType.heartRate => 'Heart Rate',
-      FitnessMetricType.sleep => 'Sleep',
-      FitnessMetricType.calories => 'Calories',
-      FitnessMetricType.waterIntake => 'Water Intake',
-      FitnessMetricType.distance => 'Distance',
-      FitnessMetricType.custom => 'Custom',
+      FitnessMetricType.weight => 'metricTypeWeight'.tr(),
+      FitnessMetricType.bodyFat => 'metricTypeBodyFat'.tr(),
+      FitnessMetricType.steps => 'metricTypeSteps'.tr(),
+      FitnessMetricType.heartRate => 'metricTypeHeartRate'.tr(),
+      FitnessMetricType.sleep => 'metricTypeSleep'.tr(),
+      FitnessMetricType.calories => 'metricTypeCalories'.tr(),
+      FitnessMetricType.waterIntake => 'metricTypeWaterIntake'.tr(),
+      FitnessMetricType.distance => 'metricTypeDistance'.tr(),
+      FitnessMetricType.custom => 'metricTypeCustom'.tr(),
     };
   }
 
   String _getRepeatTypeName(RepeatType type) {
     return switch (type) {
-      RepeatType.daily => 'Daily',
-      RepeatType.weekly => 'Weekly',
-      RepeatType.biweekly => 'Bi-weekly',
-      RepeatType.monthly => 'Monthly',
-      RepeatType.quarterly => 'Quarterly',
-      RepeatType.yearly => 'Yearly',
+      RepeatType.daily => 'daily'.tr(),
+      RepeatType.weekly => 'weekly'.tr(),
+      RepeatType.biweekly => 'biweekly'.tr(),
+      RepeatType.monthly => 'monthly'.tr(),
+      RepeatType.quarterly => 'quarterly'.tr(),
+      RepeatType.yearly => 'yearly'.tr(),
     };
   }
 
   String _getVisibilityName(FitnessVisibility visibility) {
     return switch (visibility) {
-      FitnessVisibility.private => 'Private',
-      FitnessVisibility.public => 'Public',
+      FitnessVisibility.private => 'visibilityPrivate'.tr(),
+      FitnessVisibility.public => 'visibilityPublic'.tr(),
     };
   }
 

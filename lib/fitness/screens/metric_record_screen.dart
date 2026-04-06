@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
@@ -47,7 +48,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
   @override
   Widget build(BuildContext context) {
     return SheetScaffold(
-      titleText: 'Record Metric',
+      titleText: 'recordMetric'.tr(),
       heightFactor: 0.7,
       actions: [
         TextButton(
@@ -58,7 +59,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text('save'.tr()),
         ),
       ],
       child: _buildForm(),
@@ -88,7 +89,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
   Widget _buildMetricTypeSelector() {
     return DropdownButtonFormField<FitnessMetricType>(
       value: _selectedType,
-      decoration: const InputDecoration(labelText: 'Metric Type'),
+      decoration: InputDecoration(labelText: 'metricType'.tr()),
       items: FitnessMetricType.values.map((type) {
         return DropdownMenuItem(
           value: type,
@@ -112,16 +113,16 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
           child: TextFormField(
             controller: _valueController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Value',
-              hintText: 'e.g., 70',
+            decoration: InputDecoration(
+              labelText: 'metricValue'.tr(),
+              hintText: 'metricValueHint'.tr(),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Required';
+                return 'required'.tr();
               }
               if (double.tryParse(value) == null) {
-                return 'Invalid';
+                return 'fieldCannotBeEmpty'.tr();
               }
               return null;
             },
@@ -131,9 +132,9 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
         Expanded(
           child: TextFormField(
             controller: _unitController,
-            decoration: const InputDecoration(
-              labelText: 'Unit',
-              hintText: 'kg',
+            decoration: InputDecoration(
+              labelText: 'unit'.tr(),
+              hintText: 'e.g., kg',
             ),
           ),
         ),
@@ -162,7 +163,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Recorded At',
+                    'recordedAt'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).hintColor,
@@ -183,18 +184,22 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
     return TextFormField(
       controller: _notesController,
       maxLines: 3,
-      decoration: const InputDecoration(labelText: 'Notes (optional)'),
+      decoration: InputDecoration(labelText: 'notesOptional'.tr()),
     );
   }
 
   Widget _buildVisibilitySelector() {
     return DropdownButtonFormField<FitnessVisibility>(
       value: _visibility,
-      decoration: const InputDecoration(labelText: 'Visibility'),
+      decoration: InputDecoration(labelText: 'visibility'.tr()),
       items: FitnessVisibility.values.map((v) {
         return DropdownMenuItem(
           value: v,
-          child: Text(v == FitnessVisibility.private ? 'Private' : 'Public'),
+          child: Text(
+            v == FitnessVisibility.private
+                ? 'visibilityPrivate'.tr()
+                : 'visibilityPublic'.tr(),
+          ),
         );
       }).toList(),
       onChanged: (value) {
@@ -254,7 +259,7 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
       }
     } catch (e) {
       if (mounted) {
-        showErrorAlert('Error recording metric: $e');
+        showErrorAlert('operationFailed'.tr(args: [e.toString()]));
       }
     } finally {
       if (mounted) {
@@ -265,15 +270,15 @@ class _MetricRecordScreenState extends ConsumerState<MetricRecordScreen> {
 
   String _getMetricTypeName(FitnessMetricType type) {
     return switch (type) {
-      FitnessMetricType.weight => 'Weight',
-      FitnessMetricType.bodyFat => 'Body Fat',
-      FitnessMetricType.steps => 'Steps',
-      FitnessMetricType.heartRate => 'Heart Rate',
-      FitnessMetricType.sleep => 'Sleep',
-      FitnessMetricType.calories => 'Calories',
-      FitnessMetricType.waterIntake => 'Water Intake',
-      FitnessMetricType.distance => 'Distance',
-      FitnessMetricType.custom => 'Custom',
+      FitnessMetricType.weight => 'metricTypeWeight'.tr(),
+      FitnessMetricType.bodyFat => 'metricTypeBodyFat'.tr(),
+      FitnessMetricType.steps => 'metricTypeSteps'.tr(),
+      FitnessMetricType.heartRate => 'metricTypeHeartRate'.tr(),
+      FitnessMetricType.sleep => 'metricTypeSleep'.tr(),
+      FitnessMetricType.calories => 'metricTypeCalories'.tr(),
+      FitnessMetricType.waterIntake => 'metricTypeWaterIntake'.tr(),
+      FitnessMetricType.distance => 'metricTypeDistance'.tr(),
+      FitnessMetricType.custom => 'metricTypeCustom'.tr(),
     };
   }
 

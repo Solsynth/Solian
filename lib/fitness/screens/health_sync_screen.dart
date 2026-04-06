@@ -36,12 +36,12 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
 
   Future<void> _sync() async {
     if (_selectedUuids.isEmpty) {
-      showSnackBar('Please select records to sync');
+      showSnackBar('selectRecordsToSync'.tr());
       return;
     }
 
     if (_selectedTypes.isEmpty) {
-      showSnackBar('Please select at least one data type');
+      showSnackBar('selectDataTypes'.tr());
       return;
     }
 
@@ -70,9 +70,11 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
 
       if (mounted) {
         if (result.success) {
-          showSnackBar('Synced ${result.uploaded} records');
+          showSnackBar(
+            'syncedRecords'.tr().replaceAll('{}', result.uploaded.toString()),
+          );
         } else {
-          showErrorAlert('Sync failed: ${result.error}');
+          showErrorAlert('syncFailed'.tr(args: [result.error ?? 'unknown']));
         }
       }
     } catch (e) {
@@ -144,7 +146,7 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
 
     return AppScaffold(
       appBar: AppBar(
-        title: const Text('healthSync').tr(),
+        title: Text('healthSync'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -153,12 +155,12 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
           if (_selectedUuids.isNotEmpty || _selectedTypes.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.clear),
-              tooltip: 'Clear',
+              tooltip: 'clear'.tr(),
               onPressed: _deselectAll,
             ),
           IconButton(
             icon: const Icon(Icons.select_all),
-            tooltip: 'Select All',
+            tooltip: 'selectAll'.tr(),
             onPressed: _selectAll,
           ),
           const Gap(8),
@@ -176,11 +178,11 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: $e'),
+              Text('errorGeneric'.tr(args: [e.toString()])),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(healthRecordsProvider),
-                child: const Text('Retry'),
+                child: Text('retry'.tr()),
               ),
             ],
           ),
@@ -199,8 +201,11 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
                   : const Icon(Symbols.cloud_upload),
               label: Text(
                 _isSyncing
-                    ? 'Syncing...'
-                    : 'Sync ${_selectedUuids.length} records',
+                    ? 'syncing'.tr()
+                    : 'syncingRecords'.tr().replaceAll(
+                        '{}',
+                        _selectedUuids.length.toString(),
+                      ),
               ),
             )
           : null,
@@ -217,19 +222,19 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
             const Icon(Symbols.fitness_center, size: 64),
             const SizedBox(height: 16),
             Text(
-              'healthPermissionRequired',
+              'healthPermissionRequired'.tr(),
               style: Theme.of(context).textTheme.headlineSmall,
-            ).tr(),
+            ),
             const SizedBox(height: 8),
             Text(
-              'healthPermissionDescription',
+              'healthPermissionRequiredDescription'.tr(),
               textAlign: TextAlign.center,
-            ).tr(),
+            ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: _requestPermissions,
               icon: const Icon(Symbols.health_and_safety),
-              label: const Text('grantPermission').tr(),
+              label: Text('grantPermission'.tr()),
             ),
           ],
         ),
@@ -268,7 +273,7 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
                   children: [
                     const Icon(Symbols.sync, size: 20),
                     Text(
-                      'Last sync: ${_formatDate(lastSync)}',
+                      'lastSync'.tr(args: [_formatDate(lastSync)]),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -303,7 +308,7 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select Data Types',
+                'selectDataTypes'.tr(),
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               TextButton(
@@ -318,8 +323,8 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
                 },
                 child: Text(
                   _selectedTypes.length == grouped.length
-                      ? 'Deselect All'
-                      : 'Select All',
+                      ? 'deselectAll'.tr()
+                      : 'selectAll'.tr(),
                 ),
               ),
             ],
@@ -341,19 +346,19 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
           Row(
             children: [
               Text(
-                'Visibility:',
+                'visibility'.tr() + ':',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(width: 16),
               SegmentedButton<FitnessVisibility>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: FitnessVisibility.private,
-                    label: Text('Private'),
+                    label: Text('visibilityPrivate'.tr()),
                   ),
                   ButtonSegment(
                     value: FitnessVisibility.public,
-                    label: Text('Public'),
+                    label: Text('visibilityPublic'.tr()),
                   ),
                 ],
                 selected: {_visibility},
@@ -396,11 +401,11 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
           children: [
             TextButton(
               onPressed: () => _selectAllOfType(records),
-              child: const Text('Select All'),
+              child: Text('selectAllOfType'.tr()),
             ),
             TextButton(
               onPressed: () => _deselectAllOfType(records),
-              child: const Text('Deselect All'),
+              child: Text('deselectAllOfType'.tr()),
             ),
           ],
         ),
@@ -441,14 +446,11 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
             const Icon(Symbols.inbox, size: 64),
             const SizedBox(height: 16),
             Text(
-              'No health data found',
+              'noHealthData'.tr(),
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
-            Text(
-              'Start tracking your fitness with Apple Health or Google Fit to see your data here.',
-              textAlign: TextAlign.center,
-            ),
+            Text('noHealthDataDescription'.tr(), textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -458,25 +460,25 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
   String _getTypeName(HealthDataType type) {
     switch (type) {
       case HealthDataType.WORKOUT:
-        return 'Workouts';
+        return 'selectWorkouts'.tr();
       case HealthDataType.STEPS:
-        return 'Steps';
+        return 'selectSteps'.tr();
       case HealthDataType.ACTIVE_ENERGY_BURNED:
-        return 'Calories';
+        return 'selectCalories'.tr();
       case HealthDataType.HEART_RATE:
-        return 'Heart Rate';
+        return 'selectHeartRate'.tr();
       case HealthDataType.WEIGHT:
-        return 'Weight';
+        return 'selectWeight'.tr();
       case HealthDataType.HEIGHT:
         return 'Height';
       case HealthDataType.BODY_MASS_INDEX:
-        return 'BMI';
+        return 'selectBMI'.tr();
       case HealthDataType.SLEEP_ASLEEP:
-        return 'Sleep (Asleep)';
+        return 'selectSleepAsleep'.tr();
       case HealthDataType.SLEEP_AWAKE:
-        return 'Sleep (Awake)';
+        return 'selectSleepAwake'.tr();
       case HealthDataType.DISTANCE_WALKING_RUNNING:
-        return 'Distance';
+        return 'selectDistance'.tr();
       default:
         return type.name;
     }

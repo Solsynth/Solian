@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -73,7 +74,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
             visibility: visibility,
           );
       if (context.mounted) {
-        showSnackBar('Updated visibility for $count goals');
+        showSnackBar('Updated visibility for $count ${'goals'.tr()}');
         _clearSelection();
       }
     } catch (e) {
@@ -90,8 +91,8 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
     return AppScaffold(
       appBar: AppBar(
         title: _isSelectionMode
-            ? Text('${_selected.length} selected')
-            : const Text('Goals'),
+            ? Text('${_selected.length} ${"selected".tr()}')
+            : Text('goals'.tr()),
         leading: _isSelectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
@@ -102,7 +103,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
           if (_isSelectionMode) ...[
             PopupMenuButton<String>(
               icon: const Icon(Icons.visibility),
-              tooltip: 'Set Visibility',
+              tooltip: 'setPrivate'.tr(),
               onSelected: (value) {
                 if (value == 'selectAll') {
                   _selectAllGoals();
@@ -125,8 +126,8 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                         Icons.select_all,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Select All'),
+                      const SizedBox(width: 12),
+                      Text('selectAll'.tr()),
                     ],
                   ),
                 ),
@@ -138,8 +139,8 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                         Icons.lock_outline,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Set Private'),
+                      const SizedBox(width: 12),
+                      Text('setPrivate'.tr()),
                     ],
                   ),
                 ),
@@ -151,8 +152,8 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                         Icons.public,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      SizedBox(width: 12),
-                      Text('Set Public'),
+                      const SizedBox(width: 12),
+                      Text('setPublic'.tr()),
                     ],
                   ),
                 ),
@@ -161,7 +162,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
           ] else ...[
             IconButton(
               icon: const Icon(Icons.checklist),
-              tooltip: 'Select',
+              tooltip: 'selectAll'.tr(),
               onPressed: _enterSelectionMode,
             ),
           ],
@@ -182,7 +183,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
             if (result.items.isEmpty) {
               return Center(
                 child: Text(
-                  'No goals yet',
+                  'noGoalsYet'.tr(),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -218,7 +219,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
           builder: (context) => const GoalCreateScreen(),
         ),
         icon: const Icon(Icons.add),
-        label: const Text('New Goal'),
+        label: Text('newGoal'.tr()),
       ),
     );
   }
@@ -377,7 +378,7 @@ class _GoalCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Auto-updates from ${_getBindingLabel(goal)}',
+                      'autoUpdatesFrom'.tr(args: [_getBindingLabel(goal)]),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -387,7 +388,7 @@ class _GoalCard extends StatelessWidget {
               ],
               const SizedBox(height: 8),
               Text(
-                'Until ${goal.endDate != null ? _formatDate(goal.endDate!) : 'No deadline'}',
+                '${'until'.tr()} ${goal.endDate != null ? _formatDate(goal.endDate!) : 'noDeadline'.tr()}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -416,10 +417,10 @@ class _GoalCard extends StatelessWidget {
 
   String _getStatusName(FitnessGoalStatus status) {
     return switch (status) {
-      FitnessGoalStatus.active => 'Active',
-      FitnessGoalStatus.completed => 'Completed',
-      FitnessGoalStatus.paused => 'Paused',
-      FitnessGoalStatus.cancelled => 'Cancelled',
+      FitnessGoalStatus.active => 'active'.tr(),
+      FitnessGoalStatus.completed => 'completed'.tr(),
+      FitnessGoalStatus.paused => 'paused'.tr(),
+      FitnessGoalStatus.cancelled => 'cancelled'.tr(),
     };
   }
 
@@ -427,28 +428,28 @@ class _GoalCard extends StatelessWidget {
     if (goal.boundWorkoutType != null) {
       final type = WorkoutType.values[goal.boundWorkoutType!];
       return switch (type) {
-        WorkoutType.strength => 'strength workouts',
-        WorkoutType.cardio => 'cardio workouts',
-        WorkoutType.hiit => 'HIIT workouts',
-        WorkoutType.yoga => 'yoga sessions',
-        WorkoutType.other => 'workouts',
+        WorkoutType.strength => 'strengthWorkouts'.tr(),
+        WorkoutType.cardio => 'cardioWorkouts'.tr(),
+        WorkoutType.hiit => 'hiitWorkouts'.tr(),
+        WorkoutType.yoga => 'yogaSessions'.tr(),
+        WorkoutType.other => 'fitnessWorkouts'.tr(),
       };
     }
     if (goal.boundMetricType != null) {
       final type = FitnessMetricType.values[goal.boundMetricType!];
       return switch (type) {
-        FitnessMetricType.weight => 'weight',
-        FitnessMetricType.bodyFat => 'body fat',
-        FitnessMetricType.steps => 'steps',
-        FitnessMetricType.heartRate => 'heart rate',
-        FitnessMetricType.sleep => 'sleep',
-        FitnessMetricType.calories => 'calories',
-        FitnessMetricType.waterIntake => 'water',
-        FitnessMetricType.distance => 'distance',
-        FitnessMetricType.custom => 'metrics',
+        FitnessMetricType.weight => 'weight'.tr(),
+        FitnessMetricType.bodyFat => 'bodyFat'.tr(),
+        FitnessMetricType.steps => 'steps'.tr(),
+        FitnessMetricType.heartRate => 'heartRate'.tr(),
+        FitnessMetricType.sleep => 'sleep'.tr(),
+        FitnessMetricType.calories => 'calories'.tr(),
+        FitnessMetricType.waterIntake => 'water'.tr(),
+        FitnessMetricType.distance => 'distance'.tr(),
+        FitnessMetricType.custom => 'fitnessMetrics'.tr(),
       };
     }
-    return 'manual';
+    return 'manual'.tr();
   }
 
   String _formatDate(DateTime date) {

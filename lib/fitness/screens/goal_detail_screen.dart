@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -24,11 +25,11 @@ class GoalDetailScreen extends ConsumerWidget {
     return goalAsync.when(
       data: (goal) => _buildContent(context, ref, goal),
       loading: () => AppScaffold(
-        appBar: AppBar(title: const Text('Goal')),
+        appBar: AppBar(title: Text('goal'.tr())),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => AppScaffold(
-        appBar: AppBar(title: const Text('Goal')),
+        appBar: AppBar(title: Text('goal'.tr())),
         body: Center(child: Text('Error: $e')),
       ),
     );
@@ -74,7 +75,7 @@ class GoalDetailScreen extends ConsumerWidget {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       const Gap(12),
-                      const Text('Recalculate Progress'),
+                      Text('recalculateProgress'.tr()),
                     ],
                   ),
                 ),
@@ -89,7 +90,7 @@ class GoalDetailScreen extends ConsumerWidget {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       const Gap(12),
-                      const Text('Pause Goal'),
+                      Text('pauseGoal'.tr()),
                     ],
                   ),
                 ),
@@ -104,7 +105,7 @@ class GoalDetailScreen extends ConsumerWidget {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       const Gap(12),
-                      const Text('Resume Goal'),
+                      Text('resumeGoal'.tr()),
                     ],
                   ),
                 ),
@@ -119,7 +120,7 @@ class GoalDetailScreen extends ConsumerWidget {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       const Gap(12),
-                      const Text('Mark Complete'),
+                      Text('markComplete'.tr()),
                     ],
                   ),
                 ),
@@ -134,7 +135,7 @@ class GoalDetailScreen extends ConsumerWidget {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       const Gap(12),
-                      const Text('Cancel Goal'),
+                      Text('cancelGoal'.tr()),
                     ],
                   ),
                 ),
@@ -149,7 +150,7 @@ class GoalDetailScreen extends ConsumerWidget {
                     ),
                     const Gap(12),
                     Text(
-                      'Delete Goal',
+                      'deleteGoal'.tr(),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -168,7 +169,7 @@ class GoalDetailScreen extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                     const Gap(12),
-                    const Text('Edit Goal'),
+                    Text('editGoal'.tr()),
                   ],
                 ),
               ),
@@ -196,11 +197,11 @@ class GoalDetailScreen extends ConsumerWidget {
             _buildDetailsCard(context, goal),
             if (goal.description != null) ...[
               const SizedBox(height: 16),
-              _buildSection(context, 'Description', goal.description!),
+              _buildSection(context, 'description'.tr(), goal.description!),
             ],
             if (goal.notes != null) ...[
               const SizedBox(height: 16),
-              _buildSection(context, 'Notes', goal.notes!),
+              _buildSection(context, 'notes'.tr(), goal.notes!),
             ],
           ],
         ),
@@ -245,7 +246,7 @@ class GoalDetailScreen extends ConsumerWidget {
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'Complete',
+                        'complete'.tr(),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -297,14 +298,14 @@ class GoalDetailScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Auto-Tracking Enabled',
+                    'autoTrackingEnabled'.tr(),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
-                    'Progress updates from ${_getBindingLabel(goal)}',
+                    'autoTrackingFrom'.tr(args: [_getBindingLabel(goal)]),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
@@ -341,7 +342,7 @@ class GoalDetailScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Repeating Goal',
+                    'repeatingGoal'.tr(),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSecondaryContainer,
                       fontWeight: FontWeight.w600,
@@ -349,8 +350,21 @@ class GoalDetailScreen extends ConsumerWidget {
                   ),
                   Text(
                     isEndless
-                        ? '$current ${_getRepeatTypeName(repeatType)} (every $interval) - Endless'
-                        : '$current of $count ${_getRepeatTypeName(repeatType)}s (every $interval)',
+                        ? 'repeatingGoalInfo'.tr(
+                            args: [
+                              current.toString(),
+                              _getRepeatTypeName(repeatType),
+                              interval.toString(),
+                            ],
+                          )
+                        : 'repeatingGoalInfoCount'.tr(
+                            args: [
+                              current.toString(),
+                              count.toString(),
+                              _getRepeatTypeName(repeatType),
+                              interval.toString(),
+                            ],
+                          ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSecondaryContainer,
                     ),
@@ -372,29 +386,35 @@ class GoalDetailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Details',
+              'details'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
-            _DetailRow(label: 'Type', value: _getGoalTypeName(goal.goalType)),
             _DetailRow(
-              label: 'Target',
+              label: 'goalType'.tr(),
+              value: _getGoalTypeName(goal.goalType),
+            ),
+            _DetailRow(
+              label: 'targetValue'.tr(),
               value: '${goal.targetValue ?? '—'} ${goal.unit ?? ''}',
             ),
-            _DetailRow(label: 'Start Date', value: _formatDate(goal.startDate)),
             _DetailRow(
-              label: 'End Date',
-              value: goal.endDate != null
-                  ? _formatDate(goal.endDate!)
-                  : 'No deadline',
+              label: 'startDate'.tr(),
+              value: _formatDate(goal.startDate),
             ),
             _DetailRow(
-              label: 'Visibility',
+              label: 'endDate'.tr(),
+              value: goal.endDate != null
+                  ? _formatDate(goal.endDate!)
+                  : 'noDeadline'.tr(),
+            ),
+            _DetailRow(
+              label: 'visibility'.tr(),
               value: goal.visibility == FitnessVisibility.public
-                  ? 'Public'
-                  : 'Private',
+                  ? 'visibilityPublic'.tr()
+                  : 'visibilityPrivate'.tr(),
             ),
           ],
         ),
@@ -435,7 +455,7 @@ class GoalDetailScreen extends ConsumerWidget {
           await ref
               .read(goalNotifierProvider.notifier)
               .recalculateGoal(goal.id);
-          showSnackBar('Progress recalculated');
+          showSnackBar('progressRecalculated'.tr());
           break;
         case 'pause':
           await ref
@@ -479,36 +499,36 @@ class GoalDetailScreen extends ConsumerWidget {
 
   String _getStatusName(FitnessGoalStatus status) {
     return switch (status) {
-      FitnessGoalStatus.active => 'Active',
-      FitnessGoalStatus.completed => 'Completed',
-      FitnessGoalStatus.paused => 'Paused',
-      FitnessGoalStatus.cancelled => 'Cancelled',
+      FitnessGoalStatus.active => 'active'.tr(),
+      FitnessGoalStatus.completed => 'completed'.tr(),
+      FitnessGoalStatus.paused => 'paused'.tr(),
+      FitnessGoalStatus.cancelled => 'cancelled'.tr(),
     };
   }
 
   String _getGoalTypeName(FitnessGoalType type) {
     return switch (type) {
-      FitnessGoalType.weightLoss => 'Weight Loss',
-      FitnessGoalType.weightGain => 'Weight Gain',
-      FitnessGoalType.steps => 'Steps',
-      FitnessGoalType.distance => 'Distance',
-      FitnessGoalType.duration => 'Duration',
-      FitnessGoalType.reps => 'Reps',
-      FitnessGoalType.strength => 'Strength',
-      FitnessGoalType.cardio => 'Cardio',
-      FitnessGoalType.flexibility => 'Flexibility',
-      FitnessGoalType.custom => 'Custom',
+      FitnessGoalType.weightLoss => 'goalTypeWeightLoss'.tr(),
+      FitnessGoalType.weightGain => 'goalTypeWeightGain'.tr(),
+      FitnessGoalType.steps => 'goalTypeSteps'.tr(),
+      FitnessGoalType.distance => 'goalTypeDistance'.tr(),
+      FitnessGoalType.duration => 'goalTypeDuration'.tr(),
+      FitnessGoalType.reps => 'goalTypeReps'.tr(),
+      FitnessGoalType.strength => 'goalTypeStrength'.tr(),
+      FitnessGoalType.cardio => 'goalTypeCardio'.tr(),
+      FitnessGoalType.flexibility => 'goalTypeFlexibility'.tr(),
+      FitnessGoalType.custom => 'goalTypeCustom'.tr(),
     };
   }
 
   String _getRepeatTypeName(RepeatType type) {
     return switch (type) {
-      RepeatType.daily => 'Day',
-      RepeatType.weekly => 'Week',
-      RepeatType.biweekly => '2 Weeks',
-      RepeatType.monthly => 'Month',
-      RepeatType.quarterly => 'Quarter',
-      RepeatType.yearly => 'Year',
+      RepeatType.daily => 'day'.tr(),
+      RepeatType.weekly => 'week'.tr(),
+      RepeatType.biweekly => '2Weeks'.tr(),
+      RepeatType.monthly => 'month'.tr(),
+      RepeatType.quarterly => 'quarter'.tr(),
+      RepeatType.yearly => 'year'.tr(),
     };
   }
 
@@ -516,28 +536,28 @@ class GoalDetailScreen extends ConsumerWidget {
     if (goal.boundWorkoutType != null) {
       final type = WorkoutType.values[goal.boundWorkoutType!];
       return switch (type) {
-        WorkoutType.strength => 'strength workouts',
-        WorkoutType.cardio => 'cardio workouts',
-        WorkoutType.hiit => 'HIIT workouts',
-        WorkoutType.yoga => 'yoga sessions',
-        WorkoutType.other => 'workouts',
+        WorkoutType.strength => 'strengthWorkouts'.tr(),
+        WorkoutType.cardio => 'cardioWorkouts'.tr(),
+        WorkoutType.hiit => 'hiitWorkouts'.tr(),
+        WorkoutType.yoga => 'yogaSessions'.tr(),
+        WorkoutType.other => 'fitnessWorkouts'.tr(),
       };
     }
     if (goal.boundMetricType != null) {
       final type = FitnessMetricType.values[goal.boundMetricType!];
       return switch (type) {
-        FitnessMetricType.weight => 'weight',
-        FitnessMetricType.bodyFat => 'body fat',
-        FitnessMetricType.steps => 'steps',
-        FitnessMetricType.heartRate => 'heart rate',
-        FitnessMetricType.sleep => 'sleep',
-        FitnessMetricType.calories => 'calories',
-        FitnessMetricType.waterIntake => 'water',
-        FitnessMetricType.distance => 'distance',
-        FitnessMetricType.custom => 'metrics',
+        FitnessMetricType.weight => 'weight'.tr(),
+        FitnessMetricType.bodyFat => 'bodyFat'.tr(),
+        FitnessMetricType.steps => 'steps'.tr(),
+        FitnessMetricType.heartRate => 'heartRate'.tr(),
+        FitnessMetricType.sleep => 'sleep'.tr(),
+        FitnessMetricType.calories => 'calories'.tr(),
+        FitnessMetricType.waterIntake => 'water'.tr(),
+        FitnessMetricType.distance => 'distance'.tr(),
+        FitnessMetricType.custom => 'fitnessMetrics'.tr(),
       };
     }
-    return 'manual';
+    return 'manual'.tr();
   }
 
   String _formatDate(DateTime date) {
