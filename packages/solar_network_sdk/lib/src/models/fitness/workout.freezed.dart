@@ -598,7 +598,7 @@ as DateTime,
 /// @nodoc
 mixin _$CreateWorkoutRequest {
 
- String get name; WorkoutType get type;@DateTimeConverter() DateTime get startTime;@NullableDateTimeConverter() DateTime? get endTime; String? get description; String? get externalId; int? get caloriesBurned; String? get notes; FitnessVisibility get visibility;
+ String get name; WorkoutType get type;@DateTimeConverter() DateTime get startTime;@NullableDateTimeConverter() DateTime? get endTime; String? get description; String? get externalId; int? get caloriesBurned; String? get notes; FitnessVisibility get visibility; Map<String, dynamic>? get meta;
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -611,16 +611,16 @@ $CreateWorkoutRequestCopyWith<CreateWorkoutRequest> get copyWith => _$CreateWork
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.meta, meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,notes,visibility);
+int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(meta));
 
 @override
 String toString() {
-  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility)';
+  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta)';
 }
 
 
@@ -631,7 +631,7 @@ abstract mixin class $CreateWorkoutRequestCopyWith<$Res>  {
   factory $CreateWorkoutRequestCopyWith(CreateWorkoutRequest value, $Res Function(CreateWorkoutRequest) _then) = _$CreateWorkoutRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, String? notes, FitnessVisibility visibility
+ String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta
 });
 
 
@@ -648,7 +648,7 @@ class _$CreateWorkoutRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -659,7 +659,8 @@ as String?,externalId: freezed == externalId ? _self.externalId : externalId // 
 as String?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
 as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as FitnessVisibility,
+as FitnessVisibility,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 
@@ -741,10 +742,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateWorkoutRequest() when $default != null:
-return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility);case _:
+return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);case _:
   return orElse();
 
 }
@@ -762,10 +763,10 @@ return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.descri
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)  $default,) {final _that = this;
 switch (_that) {
 case _CreateWorkoutRequest():
-return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility);}
+return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -779,10 +780,10 @@ return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.descri
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateWorkoutRequest() when $default != null:
-return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility);case _:
+return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);case _:
   return null;
 
 }
@@ -794,7 +795,7 @@ return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.descri
 @JsonSerializable()
 
 class _CreateWorkoutRequest implements CreateWorkoutRequest {
-  const _CreateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, @NullableDateTimeConverter() this.endTime, this.description, this.externalId, this.caloriesBurned, this.notes, this.visibility = FitnessVisibility.private});
+  const _CreateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, @NullableDateTimeConverter() this.endTime, this.description, this.externalId, this.caloriesBurned, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta}): _meta = meta;
   factory _CreateWorkoutRequest.fromJson(Map<String, dynamic> json) => _$CreateWorkoutRequestFromJson(json);
 
 @override final  String name;
@@ -806,6 +807,15 @@ class _CreateWorkoutRequest implements CreateWorkoutRequest {
 @override final  int? caloriesBurned;
 @override final  String? notes;
 @override@JsonKey() final  FitnessVisibility visibility;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -820,16 +830,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._meta, _meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,notes,visibility);
+int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(_meta));
 
 @override
 String toString() {
-  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility)';
+  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta)';
 }
 
 
@@ -840,7 +850,7 @@ abstract mixin class _$CreateWorkoutRequestCopyWith<$Res> implements $CreateWork
   factory _$CreateWorkoutRequestCopyWith(_CreateWorkoutRequest value, $Res Function(_CreateWorkoutRequest) _then) = __$CreateWorkoutRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, String? notes, FitnessVisibility visibility
+ String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta
 });
 
 
@@ -857,7 +867,7 @@ class __$CreateWorkoutRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,}) {
   return _then(_CreateWorkoutRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -868,7 +878,8 @@ as String?,externalId: freezed == externalId ? _self.externalId : externalId // 
 as String?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
 as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as FitnessVisibility,
+as FitnessVisibility,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 
@@ -879,7 +890,7 @@ as FitnessVisibility,
 /// @nodoc
 mixin _$UpdateWorkoutRequest {
 
- String get name; WorkoutType get type;@DateTimeConverter() DateTime get startTime; String? get description; int? get caloriesBurned; String? get notes; FitnessVisibility? get visibility;
+ String get name; WorkoutType get type;@DateTimeConverter() DateTime get startTime; String? get description; int? get caloriesBurned; String? get notes; FitnessVisibility? get visibility; Map<String, dynamic>? get meta;
 /// Create a copy of UpdateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -892,16 +903,16 @@ $UpdateWorkoutRequestCopyWith<UpdateWorkoutRequest> get copyWith => _$UpdateWork
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.meta, meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,startTime,description,caloriesBurned,notes,visibility);
+int get hashCode => Object.hash(runtimeType,name,type,startTime,description,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(meta));
 
 @override
 String toString() {
-  return 'UpdateWorkoutRequest(name: $name, type: $type, startTime: $startTime, description: $description, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility)';
+  return 'UpdateWorkoutRequest(name: $name, type: $type, startTime: $startTime, description: $description, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta)';
 }
 
 
@@ -912,7 +923,7 @@ abstract mixin class $UpdateWorkoutRequestCopyWith<$Res>  {
   factory $UpdateWorkoutRequestCopyWith(UpdateWorkoutRequest value, $Res Function(UpdateWorkoutRequest) _then) = _$UpdateWorkoutRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, WorkoutType type,@DateTimeConverter() DateTime startTime, String? description, int? caloriesBurned, String? notes, FitnessVisibility? visibility
+ String name, WorkoutType type,@DateTimeConverter() DateTime startTime, String? description, int? caloriesBurned, String? notes, FitnessVisibility? visibility, Map<String, dynamic>? meta
 });
 
 
@@ -929,7 +940,7 @@ class _$UpdateWorkoutRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? description = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? description = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = freezed,Object? meta = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -938,7 +949,8 @@ as DateTime,description: freezed == description ? _self.description : descriptio
 as String?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
 as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as FitnessVisibility?,
+as FitnessVisibility?,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 
@@ -1020,10 +1032,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime,  String? description,  int? caloriesBurned,  String? notes,  FitnessVisibility? visibility)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime,  String? description,  int? caloriesBurned,  String? notes,  FitnessVisibility? visibility,  Map<String, dynamic>? meta)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateWorkoutRequest() when $default != null:
-return $default(_that.name,_that.type,_that.startTime,_that.description,_that.caloriesBurned,_that.notes,_that.visibility);case _:
+return $default(_that.name,_that.type,_that.startTime,_that.description,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);case _:
   return orElse();
 
 }
@@ -1041,10 +1053,10 @@ return $default(_that.name,_that.type,_that.startTime,_that.description,_that.ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime,  String? description,  int? caloriesBurned,  String? notes,  FitnessVisibility? visibility)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime,  String? description,  int? caloriesBurned,  String? notes,  FitnessVisibility? visibility,  Map<String, dynamic>? meta)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateWorkoutRequest():
-return $default(_that.name,_that.type,_that.startTime,_that.description,_that.caloriesBurned,_that.notes,_that.visibility);}
+return $default(_that.name,_that.type,_that.startTime,_that.description,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1058,10 +1070,10 @@ return $default(_that.name,_that.type,_that.startTime,_that.description,_that.ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime,  String? description,  int? caloriesBurned,  String? notes,  FitnessVisibility? visibility)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime,  String? description,  int? caloriesBurned,  String? notes,  FitnessVisibility? visibility,  Map<String, dynamic>? meta)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateWorkoutRequest() when $default != null:
-return $default(_that.name,_that.type,_that.startTime,_that.description,_that.caloriesBurned,_that.notes,_that.visibility);case _:
+return $default(_that.name,_that.type,_that.startTime,_that.description,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);case _:
   return null;
 
 }
@@ -1073,7 +1085,7 @@ return $default(_that.name,_that.type,_that.startTime,_that.description,_that.ca
 @JsonSerializable()
 
 class _UpdateWorkoutRequest implements UpdateWorkoutRequest {
-  const _UpdateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, this.description, this.caloriesBurned, this.notes, this.visibility});
+  const _UpdateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, this.description, this.caloriesBurned, this.notes, this.visibility, final  Map<String, dynamic>? meta}): _meta = meta;
   factory _UpdateWorkoutRequest.fromJson(Map<String, dynamic> json) => _$UpdateWorkoutRequestFromJson(json);
 
 @override final  String name;
@@ -1083,6 +1095,15 @@ class _UpdateWorkoutRequest implements UpdateWorkoutRequest {
 @override final  int? caloriesBurned;
 @override final  String? notes;
 @override final  FitnessVisibility? visibility;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 
 /// Create a copy of UpdateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -1097,16 +1118,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._meta, _meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,startTime,description,caloriesBurned,notes,visibility);
+int get hashCode => Object.hash(runtimeType,name,type,startTime,description,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(_meta));
 
 @override
 String toString() {
-  return 'UpdateWorkoutRequest(name: $name, type: $type, startTime: $startTime, description: $description, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility)';
+  return 'UpdateWorkoutRequest(name: $name, type: $type, startTime: $startTime, description: $description, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta)';
 }
 
 
@@ -1117,7 +1138,7 @@ abstract mixin class _$UpdateWorkoutRequestCopyWith<$Res> implements $UpdateWork
   factory _$UpdateWorkoutRequestCopyWith(_UpdateWorkoutRequest value, $Res Function(_UpdateWorkoutRequest) _then) = __$UpdateWorkoutRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, WorkoutType type,@DateTimeConverter() DateTime startTime, String? description, int? caloriesBurned, String? notes, FitnessVisibility? visibility
+ String name, WorkoutType type,@DateTimeConverter() DateTime startTime, String? description, int? caloriesBurned, String? notes, FitnessVisibility? visibility, Map<String, dynamic>? meta
 });
 
 
@@ -1134,7 +1155,7 @@ class __$UpdateWorkoutRequestCopyWithImpl<$Res>
 
 /// Create a copy of UpdateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? description = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? description = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = freezed,Object? meta = freezed,}) {
   return _then(_UpdateWorkoutRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -1143,7 +1164,8 @@ as DateTime,description: freezed == description ? _self.description : descriptio
 as String?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
 as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: freezed == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as FitnessVisibility?,
+as FitnessVisibility?,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 

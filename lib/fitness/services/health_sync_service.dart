@@ -50,6 +50,16 @@ class HealthRecord {
   final HealthWorkoutActivityType? workoutType;
   final String source;
   final bool selected;
+  final double? distance;
+  final String? distanceUnit;
+  final double? speed;
+  final double? averageSpeed;
+  final double? maxSpeed;
+  final int? steps;
+  final double? heartRate;
+  final double? avgHeartRate;
+  final double? maxHeartRate;
+  final int? flightsClimbed;
 
   const HealthRecord({
     required this.uuid,
@@ -61,6 +71,16 @@ class HealthRecord {
     this.workoutType,
     required this.source,
     this.selected = false,
+    this.distance,
+    this.distanceUnit,
+    this.speed,
+    this.averageSpeed,
+    this.maxSpeed,
+    this.steps,
+    this.heartRate,
+    this.avgHeartRate,
+    this.maxHeartRate,
+    this.flightsClimbed,
   });
 
   HealthRecord copyWith({
@@ -72,6 +92,16 @@ class HealthRecord {
     String? unit,
     HealthWorkoutActivityType? workoutType,
     String? source,
+    double? distance,
+    String? distanceUnit,
+    double? speed,
+    double? averageSpeed,
+    double? maxSpeed,
+    int? steps,
+    double? heartRate,
+    double? avgHeartRate,
+    double? maxHeartRate,
+    int? flightsClimbed,
   }) {
     return HealthRecord(
       uuid: uuid,
@@ -83,6 +113,16 @@ class HealthRecord {
       workoutType: workoutType ?? this.workoutType,
       source: source ?? this.source,
       selected: selected ?? this.selected,
+      distance: distance ?? this.distance,
+      distanceUnit: distanceUnit ?? this.distanceUnit,
+      speed: speed ?? this.speed,
+      averageSpeed: averageSpeed ?? this.averageSpeed,
+      maxSpeed: maxSpeed ?? this.maxSpeed,
+      steps: steps ?? this.steps,
+      heartRate: heartRate ?? this.heartRate,
+      avgHeartRate: avgHeartRate ?? this.avgHeartRate,
+      maxHeartRate: maxHeartRate ?? this.maxHeartRate,
+      flightsClimbed: flightsClimbed ?? this.flightsClimbed,
     );
   }
 
@@ -188,6 +228,10 @@ class HealthSyncService {
       HealthDataType.ACTIVE_ENERGY_BURNED,
       HealthDataType.HEART_RATE,
       HealthDataType.DISTANCE_WALKING_RUNNING,
+      HealthDataType.DISTANCE_CYCLING,
+      HealthDataType.DISTANCE_SWIMMING,
+      HealthDataType.FLIGHTS_CLIMBED,
+      HealthDataType.SPEED,
     ];
 
     final individualTypes = [
@@ -237,6 +281,11 @@ class HealthSyncService {
       HealthDataType.ACTIVE_ENERGY_BURNED,
       HealthDataType.HEART_RATE,
       HealthDataType.DISTANCE_WALKING_RUNNING,
+      HealthDataType.DISTANCE_CYCLING,
+      HealthDataType.DISTANCE_SWIMMING,
+      HealthDataType.FLIGHTS_CLIMBED,
+      HealthDataType.SPEED,
+      HealthDataType.WALKING_SPEED,
     ];
 
     final individualTypes = [
@@ -286,9 +335,15 @@ class HealthSyncService {
   HealthRecord _pointToRecord(HealthDataPoint point) {
     final value = point.value;
     HealthWorkoutActivityType? workoutType;
+    double? distance;
+    String? distanceUnit;
+    int? steps;
 
     if (value is WorkoutHealthValue) {
       workoutType = value.workoutActivityType;
+      distance = value.totalDistance?.toDouble();
+      distanceUnit = _mapHealthUnit(value.totalDistanceUnit);
+      steps = value.totalSteps;
     }
 
     return HealthRecord(
@@ -300,6 +355,9 @@ class HealthSyncService {
       unit: point.unitString,
       source: point.sourceName,
       workoutType: workoutType,
+      distance: distance,
+      distanceUnit: distanceUnit,
+      steps: steps,
     );
   }
 
@@ -376,6 +434,48 @@ class HealthSyncService {
     return value.toString();
   }
 
+  String? _mapHealthUnit(HealthDataUnit? unit) {
+    if (unit == null) return null;
+    switch (unit) {
+      case HealthDataUnit.METER:
+        return 'm';
+      case HealthDataUnit.MILE:
+        return 'mi';
+      case HealthDataUnit.FOOT:
+        return 'ft';
+      case HealthDataUnit.YARD:
+        return 'yd';
+      case HealthDataUnit.KILOCALORIE:
+      case HealthDataUnit.LARGE_CALORIE:
+      case HealthDataUnit.SMALL_CALORIE:
+        return 'kcal';
+      case HealthDataUnit.BEATS_PER_MINUTE:
+        return 'bpm';
+      case HealthDataUnit.COUNT:
+        return 'count';
+      case HealthDataUnit.METER_PER_SECOND:
+        return 'm/s';
+      case HealthDataUnit.GRAM:
+      case HealthDataUnit.KILOGRAM:
+        return 'kg';
+      case HealthDataUnit.POUND:
+        return 'lb';
+      case HealthDataUnit.PERCENT:
+        return '%';
+      case HealthDataUnit.DEGREE_CELSIUS:
+      case HealthDataUnit.DEGREE_FAHRENHEIT:
+        return '°';
+      case HealthDataUnit.HOUR:
+        return 'h';
+      case HealthDataUnit.MINUTE:
+        return 'min';
+      case HealthDataUnit.SECOND:
+        return 's';
+      default:
+        return unit.name;
+    }
+  }
+
   Future<SyncResult> syncRecords({
     required List<HealthRecord> records,
     required Set<HealthDataType> selectedTypes,
@@ -442,6 +542,32 @@ class HealthSyncService {
 
     final source = Platform.isIOS ? 'healthkit' : 'googlefit';
 
+    final meta = <String, dynamic>{};
+    if (record.distance != null) {
+      meta['distance'] = record.distance;
+    }
+    if (record.distanceUnit != null) {
+      meta['distance_unit'] = record.distanceUnit;
+    }
+    if (record.steps != null) {
+      meta['steps'] = record.steps;
+    }
+    if (record.flightsClimbed != null) {
+      meta['elevation_gain'] = record.flightsClimbed;
+    }
+    if (record.avgHeartRate != null) {
+      meta['average_heart_rate'] = record.avgHeartRate;
+    }
+    if (record.maxHeartRate != null) {
+      meta['max_heart_rate'] = record.maxHeartRate;
+    }
+    if (record.averageSpeed != null) {
+      meta['average_speed'] = record.averageSpeed;
+    }
+    if (record.maxSpeed != null) {
+      meta['max_speed'] = record.maxSpeed;
+    }
+
     return CreateWorkoutRequest(
       name: _formatWorkoutName(activityType),
       description: 'Synced from $source',
@@ -452,6 +578,7 @@ class HealthSyncService {
       caloriesBurned: workoutValue.totalEnergyBurned?.toInt(),
       notes: 'Synced from $source',
       visibility: visibility,
+      meta: meta.isNotEmpty ? meta : null,
     );
   }
 
@@ -645,6 +772,11 @@ class HealthSyncService {
       HealthDataType.SLEEP_ASLEEP,
       HealthDataType.SLEEP_AWAKE,
       HealthDataType.DISTANCE_WALKING_RUNNING,
+      HealthDataType.DISTANCE_CYCLING,
+      HealthDataType.DISTANCE_SWIMMING,
+      HealthDataType.FLIGHTS_CLIMBED,
+      HealthDataType.SPEED,
+      HealthDataType.WALKING_SPEED,
     };
   }
 }

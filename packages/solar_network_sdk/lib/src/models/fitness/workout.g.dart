@@ -104,6 +104,7 @@ _CreateWorkoutRequest _$CreateWorkoutRequestFromJson(
   visibility:
       $enumDecodeNullable(_$FitnessVisibilityEnumMap, json['visibility']) ??
       FitnessVisibility.private,
+  meta: json['meta'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$CreateWorkoutRequestToJson(
@@ -118,6 +119,7 @@ Map<String, dynamic> _$CreateWorkoutRequestToJson(
   'calories_burned': instance.caloriesBurned,
   'notes': instance.notes,
   'visibility': _$FitnessVisibilityEnumMap[instance.visibility]!,
+  'meta': instance.meta,
 };
 
 _UpdateWorkoutRequest _$UpdateWorkoutRequestFromJson(
@@ -133,6 +135,7 @@ _UpdateWorkoutRequest _$UpdateWorkoutRequestFromJson(
     _$FitnessVisibilityEnumMap,
     json['visibility'],
   ),
+  meta: json['meta'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$UpdateWorkoutRequestToJson(
@@ -145,6 +148,7 @@ Map<String, dynamic> _$UpdateWorkoutRequestToJson(
   'calories_burned': instance.caloriesBurned,
   'notes': instance.notes,
   'visibility': _$FitnessVisibilityEnumMap[instance.visibility],
+  'meta': instance.meta,
 };
 
 _AddExerciseRequest _$AddExerciseRequestFromJson(Map<String, dynamic> json) =>
