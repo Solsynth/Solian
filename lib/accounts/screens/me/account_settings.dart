@@ -3,6 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_devices.dart';
+import 'package:island/accounts/widgets/account/account_authorized_apps.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/screens/me/settings_auth_factors.dart';
@@ -108,6 +109,21 @@ class AccountSettingsScreen extends HookConsumerWidget {
             context: context,
             isScrollControlled: true,
             builder: (context) => const AccountSessionSheet(),
+          );
+        },
+      ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.connected_tv),
+        title: Text('authorizedApps').tr(),
+        subtitle: Text('authorizedAppsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => const AccountAuthorizedAppsSheet(),
           );
         },
       ),

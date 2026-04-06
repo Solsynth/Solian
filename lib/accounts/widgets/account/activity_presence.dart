@@ -307,9 +307,9 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            (activity.title?.isEmpty ?? true)
+                            (activity.subtitle?.isEmpty ?? true)
                                 ? 'unknown'.tr()
-                                : activity.title!,
+                                : activity.subtitle!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.bodySmall,
@@ -491,9 +491,9 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                                   children: [
                                     Flexible(
                                       child: Text(
-                                        (activity.title?.isEmpty ?? true)
+                                        (activity.subtitle?.isEmpty ?? true)
                                             ? 'unknown'.tr()
-                                            : activity.title!,
+                                            : activity.subtitle!,
                                         style: textTheme.bodyMedium,
                                       ),
                                     ),
