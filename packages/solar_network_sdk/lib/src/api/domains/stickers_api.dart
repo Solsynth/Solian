@@ -1,268 +1,220 @@
+import 'package:dio/dio.dart';
 import 'package:solar_network_sdk/src/api/base_api.dart';
 
-/// API for sticker-related endpoints (/sticker).
+/// API for sticker-related endpoints.
 ///
-/// Handles stickers, sticker packs, and sticker marketplace.
+/// Handles stickers, sticker packs, and sticker ownership.
 class StickersApi extends BaseApi {
   StickersApi(super.dio);
 
   /// Base path for all sticker endpoints.
-  static const String _basePath = '/sphere';
+  static const String _basePath = '/sphere/stickers';
+
+  // ==========================================
+  // Sticker Pack endpoints
+  // ==========================================
+
+  /// List sticker packs with pagination and filtering.
+  ///
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  /// [pubName] - Filter by publisher name.
+  /// [order] - Ordering: 'usage' or default (created_at).
+  /// [query] - Search query for pack name/description.
+  Future<Response<List<dynamic>>> listStickerPacks({
+    int offset = 0,
+    int take = 20,
+    String? pubName,
+    String? order,
+    String? query,
+  }) async {
+    return get<List<dynamic>>(
+      _basePath,
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        'pub': ?pubName,
+        'order': ?order,
+        'query': ?query,
+      },
+    );
+  }
+
+  /// Get sticker packs owned by current user.
+  Future<Response<List<dynamic>>> listOwnedStickerPacks() async {
+    return get<List<dynamic>>('$_basePath/me');
+  }
+
+  /// Get a specific sticker pack by ID.
+  Future<Response<Map<String, dynamic>>> getStickerPack(String packId) async {
+    return get<Map<String, dynamic>>('$_basePath/$packId');
+  }
+
+  /// Create a new sticker pack.
+  ///
+  /// [publisherName] - Publisher name to create the pack under.
+  Future<Response<Map<String, dynamic>>> createStickerPack({
+    required String publisherName,
+    String? iconId,
+    required String name,
+    String? description,
+    required String prefix,
+  }) async {
+    return post<Map<String, dynamic>>(
+      _basePath,
+      queryParameters: {'pub': publisherName},
+      data: {
+        'iconId': ?iconId,
+        'name': name,
+        'description': ?description,
+        'prefix': prefix,
+      },
+    );
+  }
+
+  /// Update an existing sticker pack.
+  Future<Response<Map<String, dynamic>>> updateStickerPack(
+    String packId, {
+    String? iconId,
+    String? name,
+    String? description,
+    String? prefix,
+  }) async {
+    return patch<Map<String, dynamic>>(
+      '$_basePath/$packId',
+      data: {
+        'iconId': ?iconId,
+        'name': ?name,
+        'description': ?description,
+        'prefix': ?prefix,
+      },
+    );
+  }
+
+  /// Delete a sticker pack.
+  Future<Response<void>> deleteStickerPack(String packId) async {
+    return delete('$_basePath/$packId');
+  }
 
   // ==========================================
   // Sticker endpoints
   // ==========================================
 
-  /// Gets all stickers.
-  ///
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<List<dynamic>> getStickers({int offset = 0, int take = 50}) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/stickers',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-    return response.data ?? [];
+  /// List all stickers in a pack.
+  Future<Response<List<dynamic>>> listStickers(String packId) async {
+    return get<List<dynamic>>('$_basePath/$packId/content');
   }
 
-  /// Gets a specific sticker by ID.
-  ///
-  /// [stickerId] - The sticker ID.
-  Future<Map<String, dynamic>> getSticker(String stickerId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/stickers/$stickerId',
-    );
-    return response.data!;
+  /// Lookup sticker by identifier (prefix+slug).
+  Future<Response<Map<String, dynamic>>> getStickerByIdentifier(
+    String identifier,
+  ) async {
+    return get<Map<String, dynamic>>('$_basePath/lookup/$identifier');
   }
 
-  /// Creates a new sticker.
-  ///
-  /// [name] - The sticker name.
-  /// [packId] - The pack ID.
-  /// [imageData] - The image data (base64 or URL).
-  Future<Map<String, dynamic>> createSticker({
-    required String name,
-    required String packId,
-    required String imageData,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/stickers',
-      data: {'name': name, 'pack_id': packId, 'image_data': imageData},
-    );
-    return response.data!;
+  /// Get direct redirect URL for sticker image.
+  Future<Response<Map<String, dynamic>>> openStickerByIdentifier(
+    String identifier,
+  ) async {
+    return get<Map<String, dynamic>>('$_basePath/lookup/$identifier/open');
   }
 
-  /// Deletes a sticker.
-  ///
-  /// [stickerId] - The sticker ID.
-  Future<void> deleteSticker(String stickerId) async {
-    await delete('$_basePath/stickers/$stickerId');
-  }
-
-  // ==========================================
-  // Pack endpoints
-  // ==========================================
-
-  /// Gets all sticker packs.
-  ///
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<List<dynamic>> getPacks({int offset = 0, int take = 20}) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/packs',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-    return response.data ?? [];
-  }
-
-  /// Gets a specific sticker pack by ID.
-  ///
-  /// [packId] - The pack ID.
-  Future<Map<String, dynamic>> getPack(String packId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/packs/$packId',
-    );
-    return response.data!;
-  }
-
-  /// Creates a new sticker pack.
-  ///
-  /// [name] - The pack name.
-  /// [description] - Optional description.
-  Future<Map<String, dynamic>> createPack({
-    required String name,
-    String? description,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/packs',
-      data: {'name': name, 'description': ?description},
-    );
-    return response.data!;
-  }
-
-  /// Updates a sticker pack.
-  ///
-  /// [packId] - The pack ID.
-  /// [data] - The data to update.
-  Future<Map<String, dynamic>> updatePack({
-    required String packId,
-    required Map<String, dynamic> data,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/packs/$packId',
-      data: data,
-    );
-    return response.data!;
-  }
-
-  /// Deletes a sticker pack.
-  ///
-  /// [packId] - The pack ID.
-  Future<void> deletePack(String packId) async {
-    await delete('$_basePath/packs/$packId');
-  }
-
-  /// Gets stickers in a pack.
-  ///
-  /// [packId] - The pack ID.
-  Future<List<dynamic>> getPackStickers(String packId) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/packs/$packId/stickers',
-    );
-    return response.data ?? [];
-  }
-
-  // ==========================================
-  // Marketplace endpoints
-  // ==========================================
-
-  /// Gets featured sticker packs.
-  Future<List<dynamic>> getFeaturedPacks() async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/marketplace/featured',
-    );
-    return response.data ?? [];
-  }
-
-  /// Gets trending sticker packs.
-  ///
-  /// [limit] - Number of packs to return.
-  Future<List<dynamic>> getTrendingPacks({int limit = 10}) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/marketplace/trending',
-      queryParameters: {'limit': limit},
-    );
-    return response.data ?? [];
-  }
-
-  /// Searches sticker packs.
-  ///
-  /// [query] - The search query.
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<List<dynamic>> searchPacks({
+  /// Search stickers by prefix+slug.
+  Future<Response<List<dynamic>>> searchStickers({
     required String query,
+    int take = 10,
     int offset = 0,
-    int take = 20,
   }) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/marketplace/search',
-      queryParameters: {'q': query, 'offset': offset, 'take': take},
+    return get<List<dynamic>>(
+      '$_basePath/search',
+      queryParameters: {'query': query, 'take': take, 'offset': offset},
     );
-    return response.data ?? [];
   }
 
-  /// Gets a pack's preview.
-  ///
-  /// [packId] - The pack ID.
-  Future<Map<String, dynamic>> getPackPreview(String packId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/marketplace/packs/$packId/preview',
+  /// Get a specific sticker from a pack.
+  Future<Response<Map<String, dynamic>>> getSticker(
+    String packId,
+    String stickerId,
+  ) async {
+    return get<Map<String, dynamic>>('$_basePath/$packId/content/$stickerId');
+  }
+
+  /// Create a new sticker in a pack.
+  Future<Response<Map<String, dynamic>>> createSticker(
+    String packId, {
+    required String slug,
+    required String imageId,
+  }) async {
+    return post<Map<String, dynamic>>(
+      '$_basePath/$packId/content',
+      data: {'slug': slug, 'imageId': imageId},
     );
-    return response.data!;
+  }
+
+  /// Update an existing sticker.
+  Future<Response<Map<String, dynamic>>> updateSticker(
+    String packId,
+    String stickerId, {
+    String? slug,
+    String? imageId,
+  }) async {
+    return patch<Map<String, dynamic>>(
+      '$_basePath/$packId/content/$stickerId',
+      data: {'slug': ?slug, 'imageId': ?imageId},
+    );
+  }
+
+  /// Delete a sticker from a pack.
+  Future<Response<void>> deleteSticker(String packId, String stickerId) async {
+    return delete('$_basePath/$packId/content/$stickerId');
   }
 
   // ==========================================
-  // User sticker endpoints
+  // Ownership endpoints
   // ==========================================
 
-  /// Gets user's sticker collection.
-  Future<List<dynamic>> getUserStickers() async {
-    final response = await get<List<dynamic>>('$_basePath/me/stickers');
+  /// Get ownership status for a sticker pack.
+  Future<Response<Map<String, dynamic>>> getStickerPackOwnership(
+    String packId,
+  ) async {
+    return get<Map<String, dynamic>>('$_basePath/$packId/own');
+  }
+
+  /// Acquire (add to collection) a sticker pack.
+  Future<Response<Map<String, dynamic>>> acquireStickerPack(
+    String packId,
+  ) async {
+    return post<Map<String, dynamic>>('$_basePath/$packId/own');
+  }
+
+  /// Release (remove from collection) a sticker pack.
+  Future<Response<void>> releaseStickerPack(String packId) async {
+    return delete('$_basePath/$packId/own');
+  }
+
+  // ==========================================
+  // Backward compatibility aliases
+  // ==========================================
+
+  /// @deprecated Use [listStickers] instead
+  Future<List<dynamic>> getPackStickers(String packId) async {
+    final response = await listStickers(packId);
     return response.data ?? [];
   }
 
-  /// Gets user's sticker packs.
-  Future<List<dynamic>> getUserPacks() async {
-    final response = await get<List<dynamic>>('$_basePath/me/packs');
-    return response.data ?? [];
-  }
-
-  /// Adds a pack to user's collection.
-  ///
-  /// [packId] - The pack ID.
+  /// @deprecated Use [acquireStickerPack] instead
   Future<void> addPackToCollection(String packId) async {
-    await post('$_basePath/me/packs/$packId');
+    await acquireStickerPack(packId);
   }
 
-  /// Removes a pack from user's collection.
-  ///
-  /// [packId] - The pack ID.
+  /// @deprecated Use [releaseStickerPack] instead
   Future<void> removePackFromCollection(String packId) async {
-    await delete('$_basePath/me/packs/$packId');
+    await releaseStickerPack(packId);
   }
 
-  /// Sets favorite stickers.
-  ///
-  /// [stickerIds] - List of sticker IDs.
-  Future<void> setFavorites(List<String> stickerIds) async {
-    await put('$_basePath/me/favorites', data: {'sticker_ids': stickerIds});
-  }
-
-  /// Gets favorite stickers.
-  Future<List<dynamic>> getFavorites() async {
-    final response = await get<List<dynamic>>('$_basePath/me/favorites');
+  /// @deprecated Use [listOwnedStickerPacks] instead
+  Future<List<dynamic>> getUserPacks() async {
+    final response = await listOwnedStickerPacks();
     return response.data ?? [];
-  }
-
-  // ==========================================
-  // Category endpoints
-  // ==========================================
-
-  /// Gets all sticker categories.
-  Future<List<dynamic>> getCategories() async {
-    final response = await get<List<dynamic>>('$_basePath/categories');
-    return response.data ?? [];
-  }
-
-  /// Gets stickers by category.
-  ///
-  /// [categoryId] - The category ID.
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<List<dynamic>> getStickersByCategory({
-    required String categoryId,
-    int offset = 0,
-    int take = 50,
-  }) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/categories/$categoryId/stickers',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-    return response.data ?? [];
-  }
-
-  /// Reports a sticker.
-  ///
-  /// [stickerId] - The sticker ID.
-  /// [reason] - The report reason.
-  Future<void> reportSticker({
-    required String stickerId,
-    required String reason,
-  }) async {
-    await post(
-      '$_basePath/stickers/$stickerId/report',
-      data: {'reason': reason},
-    );
   }
 }
