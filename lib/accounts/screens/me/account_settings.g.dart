@@ -132,3 +132,87 @@ final class AccountConnectionsProvider
 
 String _$accountConnectionsHash() =>
     r'f3393dc4cc77106ca1008cc974fc5f04d1b1802a';
+
+@ProviderFor(publishingSettings)
+final publishingSettingsProvider = PublishingSettingsProvider._();
+
+final class PublishingSettingsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPublishingSettings>,
+          SnPublishingSettings,
+          FutureOr<SnPublishingSettings>
+        >
+    with
+        $FutureModifier<SnPublishingSettings>,
+        $FutureProvider<SnPublishingSettings> {
+  PublishingSettingsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'publishingSettingsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$publishingSettingsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SnPublishingSettings> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnPublishingSettings> create(Ref ref) {
+    return publishingSettings(ref);
+  }
+}
+
+String _$publishingSettingsHash() =>
+    r'5b878813d983391a12ef61a686318586e5bb5c07';
+
+@ProviderFor(fediverseAvailability)
+final fediverseAvailabilityProvider = FediverseAvailabilityProvider._();
+
+final class FediverseAvailabilityProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnFediverseAvailabilityResponse>,
+          SnFediverseAvailabilityResponse,
+          FutureOr<SnFediverseAvailabilityResponse>
+        >
+    with
+        $FutureModifier<SnFediverseAvailabilityResponse>,
+        $FutureProvider<SnFediverseAvailabilityResponse> {
+  FediverseAvailabilityProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'fediverseAvailabilityProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$fediverseAvailabilityHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<SnFediverseAvailabilityResponse> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnFediverseAvailabilityResponse> create(Ref ref) {
+    return fediverseAvailability(ref);
+  }
+}
+
+String _$fediverseAvailabilityHash() =>
+    r'12ec3d0ffd3b23c48d1ac9a18761005e993518b9';

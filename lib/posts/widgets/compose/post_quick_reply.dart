@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/screens/me/account_settings.dart'
+    as account_settings;
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/compose.dart';
@@ -28,15 +30,31 @@ class PostQuickReply extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final publishers = ref.watch(publishersManagedProvider);
+    final publishingSettings = ref.watch(
+      account_settings.publishingSettingsProvider,
+    );
 
     final currentPublisher = useState<SnPublisher?>(null);
 
     useEffect(() {
       if (publishers.value?.isNotEmpty ?? false) {
-        currentPublisher.value = publishers.value!.first;
+        if (currentPublisher.value == null) {
+          // Try to find default reply publisher from settings
+          SnPublisher? defaultPublisher;
+          if (publishingSettings.hasValue) {
+            final defaultId = publishingSettings.value!.defaultReplyPublisherId;
+            if (defaultId != null) {
+              defaultPublisher = publishers.value!
+                  .where((p) => p.id == defaultId)
+                  .firstOrNull;
+            }
+          }
+          // Fall back to first publisher if no default found
+          currentPublisher.value = defaultPublisher ?? publishers.value!.first;
+        }
       }
       return null;
-    }, [publishers]);
+    }, [publishers, publishingSettings]);
 
     final submitting = useState(false);
 

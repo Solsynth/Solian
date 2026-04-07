@@ -1,5 +1,6 @@
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/discovery.dart';
+import 'package:solar_network_sdk/src/models/accounts/publishing_settings.dart';
 import 'package:solar_network_sdk/src/models/posts/post.dart';
 import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 import 'package:solar_network_sdk/src/models/posts/post_category.dart';
@@ -535,5 +536,55 @@ class SphereApi extends BaseApi {
   /// Resets the discovery profile.
   Future<void> resetDiscoveryProfile() async {
     await post('$_basePath/timeline/discovery/reset');
+  }
+
+  // ==========================================
+  // Publishing settings endpoints
+  // ==========================================
+
+  /// Gets the account publishing settings.
+  Future<SnPublishingSettings> getPublishingSettings() async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/account/publishing',
+    );
+    return SnPublishingSettings.fromJson(response.data!);
+  }
+
+  /// Updates the account publishing settings.
+  ///
+  /// [defaultPostingPublisherId] - Default publisher for creating posts.
+  /// [defaultReplyPublisherId] - Default publisher for replies.
+  /// [defaultFediversePublisherId] - Default publisher with Fediverse actor.
+  Future<SnPublishingSettings> updatePublishingSettings({
+    String? defaultPostingPublisherId,
+    String? defaultReplyPublisherId,
+    String? defaultFediversePublisherId,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/account/publishing',
+      data: {
+        if (defaultPostingPublisherId != null)
+          'default_posting_publisher_id': defaultPostingPublisherId,
+        if (defaultReplyPublisherId != null)
+          'default_reply_publisher_id': defaultReplyPublisherId,
+        if (defaultFediversePublisherId != null)
+          'default_fediverse_publisher_id': defaultFediversePublisherId,
+      },
+    );
+    return SnPublishingSettings.fromJson(response.data!);
+  }
+
+  // ==========================================
+  // Fediverse endpoints
+  // ==========================================
+
+  /// Gets the Fediverse availability for publishers.
+  ///
+  /// Returns publishers owned by the user that have Fediverse enabled.
+  Future<SnFediverseAvailabilityResponse> getFediverseAvailability() async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/fediverse/actors/availability',
+    );
+    return SnFediverseAvailabilityResponse.fromJson(response.data!);
   }
 }

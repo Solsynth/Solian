@@ -198,6 +198,15 @@
   "statusActivityEndedTitle": "{}님은 {}까지 {} {} 상태였습니다",
   "appSettings": "앱 설정",
   "accountSettings": "계정 설정",
+  "accountPublishingTitle": "게시 설정",
+  "defaultPublisher": "기본 발행자",
+  "defaultPublisherDescription": "게시물, 답글 및 페디버스 활동의 기본 발행자 구성",
+  "defaultPostingPublisher": "기본 게시 발행자",
+  "defaultReplyPublisher": "기본 답글 발행자",
+  "defaultFediversePublisher": "기본 페디버스 발행자",
+  "selectPostingPublisher": "기본 게시 발행자 선택",
+  "selectReplyPublisher": "기본 답글 발행자 선택",
+  "selectFediversePublisher": "기본 페디버스 발행자 선택",
   "settings": "설정",
   "language": "언어",
   "accountLanguageHint": "이 언어는 이메일 및 푸시 알림에 사용됩니다.",
@@ -1959,5 +1968,8 @@
   "viewOnOriginalSite": "원본 사이트에서 보기",
   "tapToViewOriginal": "탭하여 원본 보기",
   "noPosts": "게시물 없음",
-  "profileFields": "프로필 필드"
+  "profileFields": "프로필 필드",
+  "none": "없음",
+  "noFediversePublishers": "사용 가능한 페디버스 발행자가 없습니다",
+  "settingsSaved": "설정이 저장되었습니다"
 }
