@@ -665,7 +665,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           ).padding(vertical: 8),
                                         PostReactionList(
                                           padding: EdgeInsets.only(top: 8),
-                                          parentId: post.id,
+                                          item: post,
                                           reactions: post.reactionsCount,
                                           reactionsMade: post.reactionsMade,
                                           onReact: (symbol, attitude, delta) {

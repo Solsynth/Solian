@@ -68,7 +68,7 @@ class PostItemScreenshot extends ConsumerWidget {
                 right: renderingPadding.horizontal,
                 top: 8,
               ),
-              parentId: item.id,
+              item: item,
               reactions: item.reactionsCount,
               reactionsMade: item.reactionsMade,
             ),

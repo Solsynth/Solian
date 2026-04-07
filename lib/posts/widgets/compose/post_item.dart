@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -114,6 +115,16 @@ class PostActionableItem extends HookConsumerWidget {
           };
         case 'reply':
           return () async {
+            if (item.fediverseUri != null) {
+              final hasIdentity = ref.read(hasFediverseIdentityProvider);
+              if (!hasIdentity) {
+                await showFediverseInteractionHint(
+                  context,
+                  'fediverseInteractionHint',
+                );
+                return;
+              }
+            }
             final result = await PostComposeDialog.show(
               context,
               initialState: PostComposeInitialState(replyingTo: item),
@@ -124,6 +135,16 @@ class PostActionableItem extends HookConsumerWidget {
           };
         case 'forward':
           return () async {
+            if (item.fediverseUri != null) {
+              final hasIdentity = ref.read(hasFediverseIdentityProvider);
+              if (!hasIdentity) {
+                await showFediverseInteractionHint(
+                  context,
+                  'fediverseInteractionHint',
+                );
+                return;
+              }
+            }
             final result = await PostComposeDialog.show(
               context,
               initialState: PostComposeInitialState(forwardingTo: item),
@@ -174,6 +195,16 @@ class PostActionableItem extends HookConsumerWidget {
           };
         case 'boost':
           return () async {
+            if (item.fediverseUri != null) {
+              final hasIdentity = ref.read(hasFediverseIdentityProvider);
+              if (!hasIdentity) {
+                await showFediverseInteractionHint(
+                  context,
+                  'fediverseInteractionHint',
+                );
+                return;
+              }
+            }
             final client = ref.read(solarNetworkClientProvider);
             try {
               if (context.mounted) showLoadingModal(context);
@@ -574,7 +605,7 @@ class PostItem extends HookConsumerWidget {
             right: renderingPadding.horizontal,
             top: 8,
           ),
-          parentId: item.id,
+          item: item,
           reactions: item.reactionsCount,
           reactionsMade: item.reactionsMade,
           onReact: (symbol, attitude, delta) {
@@ -603,14 +634,14 @@ class PostItem extends HookConsumerWidget {
 }
 
 class PostReactionList extends HookConsumerWidget {
-  final String parentId;
+  final SnPost item;
   final Map<String, int> reactions;
   final Map<String, bool> reactionsMade;
   final Function(String symbol, int attitude, int delta)? onReact;
   final EdgeInsets? padding;
   const PostReactionList({
     super.key,
-    required this.parentId,
+    required this.item,
     required this.reactions,
     required this.reactionsMade,
     this.padding,
@@ -626,7 +657,7 @@ class PostReactionList extends HookConsumerWidget {
       submitting.value = true;
       await client.dio
           .post(
-            '/sphere/posts/$parentId/reactions',
+            '/sphere/posts/${item.id}/reactions',
             data: {'symbol': symbol, 'attitude': attitude},
           )
           .catchError((err) {
@@ -660,6 +691,18 @@ class PostReactionList extends HookConsumerWidget {
                 onPressed: submitting.value
                     ? null
                     : () {
+                        if (item.fediverseUri != null) {
+                          final hasIdentity = ref.read(
+                            hasFediverseIdentityProvider,
+                          );
+                          if (!hasIdentity) {
+                            showFediverseInteractionHint(
+                              context,
+                              'fediverseInteractionHint',
+                            );
+                            return;
+                          }
+                        }
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -670,7 +713,7 @@ class PostReactionList extends HookConsumerWidget {
                               onReact: (symbol, attitude) {
                                 reactPost(symbol, attitude);
                               },
-                              postId: parentId,
+                              postId: item.id,
                             );
                           },
                         );
@@ -710,4 +753,49 @@ class PostReactionList extends HookConsumerWidget {
       ),
     );
   }
+}
+
+Future<void> showFediverseInteractionHint(
+  BuildContext context,
+  String hintKey,
+) async {
+  showOverlayDialog<void>(
+    builder: (_, close) => ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 400),
+      child: AlertDialog(
+        title: null,
+        titlePadding: EdgeInsets.zero,
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Symbols.language,
+              fill: 1,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const Gap(16),
+            Text(
+              'fediverseInteractionHintTitle'.tr(),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const Gap(8),
+            Text(hintKey).tr(),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => close(null), child: Text('cancel'.tr())),
+          FilledButton(
+            onPressed: () {
+              close(null);
+              context.router.navigate(const CreatorHubRoute());
+            },
+            child: Text('learnMore'.tr()),
+          ),
+        ],
+      ),
+    ),
+  );
 }

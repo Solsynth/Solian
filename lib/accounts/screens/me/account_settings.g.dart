@@ -216,3 +216,45 @@ final class FediverseAvailabilityProvider
 
 String _$fediverseAvailabilityHash() =>
     r'12ec3d0ffd3b23c48d1ac9a18761005e993518b9';
+
+@ProviderFor(hasFediverseIdentity)
+final hasFediverseIdentityProvider = HasFediverseIdentityProvider._();
+
+final class HasFediverseIdentityProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  HasFediverseIdentityProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'hasFediverseIdentityProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$hasFediverseIdentityHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return hasFediverseIdentity(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$hasFediverseIdentityHash() =>
+    r'f81f8f33594f0e894ccd5e863a6a45d76d629070';

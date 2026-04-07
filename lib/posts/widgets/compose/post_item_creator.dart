@@ -259,7 +259,7 @@ class PostItemCreator extends HookConsumerWidget {
         ),
         const Gap(8),
         PostReactionList(
-          parentId: item.id,
+          item: item,
           reactions: item.reactionsCount,
           reactionsMade: item.reactionsMade,
           padding: EdgeInsets.zero,

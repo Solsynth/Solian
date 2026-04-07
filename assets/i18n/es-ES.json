@@ -1641,5 +1641,9 @@
   "profileFields": "Campos de perfil",
   "none": "Ninguno",
   "noFediversePublishers": "No hay publicadores de Fediverse disponibles",
-  "settingsSaved": "Configuración guardada"
+  "settingsSaved": "Configuración guardada",
+  "fediverseInteractionHint": "Para interactuar con publicaciones de Fediverse, configura un publicador de Fediverse predeterminado en la configuración de cuenta.",
+  "fediverseInteractionHintTitle": "Se requiere identidad de Fediverse",
+  "fediverseFollowHint": "Para seguir actores de Fediverse, configura un publicador de Fediverse predeterminado en la configuración de cuenta.",
+  "learnMore": "Más información"
 }
