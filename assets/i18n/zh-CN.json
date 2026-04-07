@@ -2299,6 +2299,10 @@
   "none": "无",
   "noFediversePublishers": "没有可用的联邦宇宙发布者",
   "settingsSaved": "设置已保存",
+  "fediverseInteractionHint": "要与联邦宇宙帖子互动，请在账户设置中设置默认的联邦宇宙发布者。",
+  "fediverseInteractionHintTitle": "需要联邦宇宙身份",
+  "fediverseFollowHint": "要关注联邦宇宙行动者，请在账户设置中设置默认的联邦宇宙发布者。",
+  "learnMore": "了解更多",
   "claimTag": "认领卡片",
   "tagClaimed": "卡片认领成功",
   "tagNotClaimed": "卡片未认领，您可以认领该卡片"

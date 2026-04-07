@@ -1641,5 +1641,9 @@
   "profileFields": "プロフィールフィールド",
   "none": "なし",
   "noFediversePublishers": "利用可能なフェディ버스発行者がありません",
-  "settingsSaved": "設定を保存しました"
+  "settingsSaved": "設定を保存しました",
+  "fediverseInteractionHint": "フェディバースの投稿と相互作用するには、アカウント設定でデフォルトのフェディ버스発行者を設定してください。",
+  "fediverseInteractionHintTitle": "フェディ버스IDが必要です",
+  "fediverseFollowHint": "フェディバースのアクターをフォローするには、アカウント設定でデフォルトのフェディ버스発行者を設定してください。",
+  "learnMore": "詳細"
 }

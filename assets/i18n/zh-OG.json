@@ -1642,5 +1642,9 @@
   "profileFields": "個人資料欄位",
   "none": "無",
   "noFediversePublishers": "沒有可用的聯邦宇宙發布者",
-  "settingsSaved": "設置已保存"
+  "settingsSaved": "設置已保存",
+  "fediverseInteractionHint": "要與聯邦宇宙帖子互動，請在帳戶設置中設置默認的聯邦宇宙發布者。",
+  "fediverseInteractionHintTitle": "需要聯邦宇宙身份",
+  "fediverseFollowHint": "要關注聯邦宇宙行動者，請在帳戶設置中設置默認的聯邦宇宙發布者。",
+  "learnMore": "了解一下"
 }

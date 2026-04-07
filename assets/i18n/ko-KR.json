@@ -1971,5 +1971,9 @@
   "profileFields": "프로필 필드",
   "none": "없음",
   "noFediversePublishers": "사용 가능한 페디버스 발행자가 없습니다",
-  "settingsSaved": "설정이 저장되었습니다"
+  "settingsSaved": "설정이 저장되었습니다",
+  "fediverseInteractionHint": "페디버스 게시물과 상호작용하려면 계정 설정에서 기본 페디버스 발행자를 설정하세요.",
+  "fediverseInteractionHintTitle": "페디버스 신원 필요",
+  "fediverseFollowHint": "페디버스 액터를 팔로우하려면 계정 설정에서 기본 페디버스 발행자를 설정하세요.",
+  "learnMore": "자세히 알아보기"
 }

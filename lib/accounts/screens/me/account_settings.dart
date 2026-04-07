@@ -54,6 +54,26 @@ Future<SnFediverseAvailabilityResponse> fediverseAvailability(Ref ref) async {
   return await client.sphere.getFediverseAvailability();
 }
 
+@riverpod
+bool hasFediverseIdentity(Ref ref) {
+  final publishingSettings = ref.watch(publishingSettingsProvider);
+  final fediverseAvailability = ref.watch(fediverseAvailabilityProvider);
+
+  final hasDefaultPublisher =
+      publishingSettings.whenOrNull(
+        data: (settings) => settings.defaultFediversePublisherId != null,
+      ) ??
+      false;
+
+  final hasAnyEnabledPublisher =
+      fediverseAvailability.whenOrNull(
+        data: (response) => response.publishers.any((p) => p.isEnabled),
+      ) ??
+      false;
+
+  return hasDefaultPublisher || hasAnyEnabledPublisher;
+}
+
 @RoutePage()
 class AccountSettingsScreen extends HookConsumerWidget {
   const AccountSettingsScreen({super.key});

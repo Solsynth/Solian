@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
@@ -11,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:html2md/html2md.dart' as html2md;
 import 'package:island/core/network.dart';
+import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_item_skeleton.dart';
 import 'package:island/core/services/responsive.dart';
@@ -144,6 +143,7 @@ class _ActorBasisWidget extends HookWidget {
   final ValueNotifier<bool> acting;
   final VoidCallback follow;
   final VoidCallback unfollow;
+  final bool hasFediverseIdentity;
 
   const _ActorBasisWidget({
     required this.data,
@@ -151,6 +151,7 @@ class _ActorBasisWidget extends HookWidget {
     required this.acting,
     required this.follow,
     required this.unfollow,
+    required this.hasFediverseIdentity,
   });
 
   @override
@@ -294,30 +295,46 @@ class _ActorBasisWidget extends HookWidget {
                       ),
                       const Gap(12),
                       relationship.when(
-                        data: (rel) => FilledButton.icon(
-                          onPressed: acting.value
-                              ? null
-                              : (rel?.isFollowing == true ? unfollow : follow),
-                          icon: Icon(
-                            rel?.isFollowing == true
-                                ? Symbols.remove_circle
-                                : Icons.person_add_outlined,
-                          ),
-                          label: Text(
-                            rel?.isFollowing == true ? 'unfollow' : 'follow',
-                          ).tr(),
-                          style: ButtonStyle(
-                            visualDensity: VisualDensity(vertical: -2),
-                          ),
-                        ),
-                        error: (_, _) => FilledButton.icon(
-                          onPressed: acting.value ? null : follow,
-                          icon: const Icon(Icons.person_add_outlined),
-                          label: Text('follow').tr(),
-                          style: ButtonStyle(
-                            visualDensity: VisualDensity(vertical: -2),
-                          ),
-                        ),
+                        data: (rel) {
+                          return FilledButton.icon(
+                            onPressed: acting.value
+                                ? null
+                                : hasFediverseIdentity
+                                ? (rel?.isFollowing == true ? unfollow : follow)
+                                : () => showFediverseInteractionHint(
+                                    context,
+                                    'fediverseFollowHint',
+                                  ),
+                            icon: Icon(
+                              rel?.isFollowing == true
+                                  ? Symbols.remove_circle
+                                  : Icons.person_add_outlined,
+                            ),
+                            label: Text(
+                              rel?.isFollowing == true ? 'unfollow' : 'follow',
+                            ).tr(),
+                            style: ButtonStyle(
+                              visualDensity: VisualDensity(vertical: -2),
+                            ),
+                          );
+                        },
+                        error: (_, _) {
+                          return FilledButton.icon(
+                            onPressed: acting.value
+                                ? null
+                                : hasFediverseIdentity
+                                ? follow
+                                : () => showFediverseInteractionHint(
+                                    context,
+                                    'fediverseFollowHint',
+                                  ),
+                            icon: const Icon(Icons.person_add_outlined),
+                            label: Text('follow').tr(),
+                            style: ButtonStyle(
+                              visualDensity: VisualDensity(vertical: -2),
+                            ),
+                          );
+                        },
                         loading: () => const SizedBox(
                           height: 36,
                           child: Center(
@@ -780,6 +797,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
         final relationship = ref.watch(
           fediverseActorRelationshipProvider(data.id),
         );
+        final hasFediverseIdentity = ref.watch(hasFediverseIdentityProvider);
 
         return AppScaffold(
           isNoBackground: false,
@@ -839,8 +857,8 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                                 acting: acting,
                                 follow: () => follow(data),
                                 unfollow: () => unfollow(data),
+                                hasFediverseIdentity: hasFediverseIdentity,
                               ),
-                              Text(jsonEncode(data.metadata)),
                               _FollowedMessageWidget(data: data),
                               _FediverseHintWidget(data: data),
                               _ActorTagsWidget(data: data),
@@ -917,6 +935,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                         acting: acting,
                         follow: () => follow(data),
                         unfollow: () => unfollow(data),
+                        hasFediverseIdentity: hasFediverseIdentity,
                       ),
                     ),
                     const SliverGap(12),
