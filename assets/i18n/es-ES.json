@@ -198,6 +198,15 @@
   "statusActivityEndedTitle": "{} is {} {} until {}",
   "appSettings": "App Settings",
   "accountSettings": "Account Settings",
+  "accountPublishingTitle": "Publishing",
+  "defaultPublisher": "Default Publishers",
+  "defaultPublisherDescription": "Configure default publishers for posts, replies, and Fediverse activities",
+  "defaultPostingPublisher": "Default Posting Publisher",
+  "defaultReplyPublisher": "Default Reply Publisher",
+  "defaultFediversePublisher": "Default Fediverse Publisher",
+  "selectPostingPublisher": "Select Default Posting Publisher",
+  "selectReplyPublisher": "Select Default Reply Publisher",
+  "selectFediversePublisher": "Select Default Fediverse Publisher",
   "settings": "Settings",
   "language": "Language",
   "accountLanguageHint": "This language will be used for email and push notifications.",
@@ -1629,5 +1638,8 @@
   "viewOnOriginalSite": "Ver en el sitio original",
   "tapToViewOriginal": "Toca para ver el original",
   "noPosts": "Sin publicaciones",
-  "profileFields": "Campos de perfil"
+  "profileFields": "Campos de perfil",
+  "none": "Ninguno",
+  "noFediversePublishers": "No hay publicadores de Fediverse disponibles",
+  "settingsSaved": "Configuración guardada"
 }

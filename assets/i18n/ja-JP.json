@@ -198,6 +198,15 @@
   "statusActivityEndedTitle": "{} が {} まで {} しています {}",
   "appSettings": "アプリ設定",
   "accountSettings": "アカウント設定",
+  "accountPublishingTitle": "投稿設定",
+  "defaultPublisher": "デフォルト発行者",
+  "defaultPublisherDescription": "投稿、返信、フェディバース活動のデフォルト発行者を設定",
+  "defaultPostingPublisher": "デフォルト投稿発行者",
+  "defaultReplyPublisher": "デフォルト返信発行者",
+  "defaultFediversePublisher": "デフォルトフェディ버스発行者",
+  "selectPostingPublisher": "デフォルト投稿発行者を選択",
+  "selectReplyPublisher": "デフォルト返信発行者を選択",
+  "selectFediversePublisher": "デフォルトフェディ버스発行者を選択",
   "settings": "設定",
   "language": "言語",
   "accountLanguageHint": "この言語は、メールとプッシュ通知に使用されます。",
@@ -1629,5 +1638,8 @@
   "viewOnOriginalSite": "元のサイトで見る",
   "tapToViewOriginal": "タップして元の投稿を表示",
   "noPosts": "投稿なし",
-  "profileFields": "プロフィールフィールド"
+  "profileFields": "プロフィールフィールド",
+  "none": "なし",
+  "noFediversePublishers": "利用可能なフェディ버스発行者がありません",
+  "settingsSaved": "設定を保存しました"
 }

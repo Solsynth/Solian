@@ -11,8 +11,11 @@ import 'package:island/accounts/screens/me/settings_connections.dart';
 import 'package:island/accounts/screens/me/settings_contacts.dart';
 import 'package:island/auth/captcha.dart';
 import 'package:island/auth/login.dart';
+import 'package:island/creators/screens/publishers_form.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -37,6 +40,18 @@ Future<List<SnContactMethod>> contactMethods(Ref ref) async {
 Future<List<SnAccountConnection>> accountConnections(Ref ref) async {
   final client = ref.read(solarNetworkClientProvider);
   return await client.auth.getConnections();
+}
+
+@riverpod
+Future<SnPublishingSettings> publishingSettings(Ref ref) async {
+  final client = ref.read(solarNetworkClientProvider);
+  return await client.sphere.getPublishingSettings();
+}
+
+@riverpod
+Future<SnFediverseAvailabilityResponse> fediverseAvailability(Ref ref) async {
+  final client = ref.read(solarNetworkClientProvider);
+  return await client.sphere.getFediverseAvailability();
 }
 
 @RoutePage()
@@ -388,6 +403,83 @@ class AccountSettingsScreen extends HookConsumerWidget {
       ),
     ];
 
+    final publishingSettings = ref.watch(publishingSettingsProvider);
+    final publishers = ref.watch(publishersManagedProvider);
+    final fediverseAvailability = ref.watch(fediverseAvailabilityProvider);
+
+    final defaultPublisherSettings = [
+      ExpansionTile(
+        leading: const Icon(
+          Symbols.edit,
+        ).alignment(Alignment.centerLeft).width(48),
+        title: Text('defaultPublisher').tr(),
+        subtitle: Text('defaultPublisherDescription').tr().fontSize(12),
+        tilePadding: const EdgeInsets.only(left: 24, right: 17),
+        children: [
+          publishingSettings.when(
+            data: (settings) => publishers.when(
+              data: (publisherList) => fediverseAvailability.when(
+                data: (fediversePublishers) => Column(
+                  children: [
+                    _PublisherListTile(
+                      title: 'defaultPostingPublisher'.tr(),
+                      publisherId: settings.defaultPostingPublisherId,
+                      publishers: publisherList,
+                      onTap: () => _showPublisherPicker(
+                        context,
+                        ref,
+                        settings.defaultPostingPublisherId,
+                        publisherList,
+                        'posting',
+                      ),
+                    ),
+                    _PublisherListTile(
+                      title: 'defaultReplyPublisher'.tr(),
+                      publisherId: settings.defaultReplyPublisherId,
+                      publishers: publisherList,
+                      onTap: () => _showPublisherPicker(
+                        context,
+                        ref,
+                        settings.defaultReplyPublisherId,
+                        publisherList,
+                        'reply',
+                      ),
+                    ),
+                    _FediversePublisherListTile(
+                      title: 'defaultFediversePublisher'.tr(),
+                      publisherId: settings.defaultFediversePublisherId,
+                      fediversePublishers: fediversePublishers,
+                      onTap: () => _showFediversePublisherPicker(
+                        context,
+                        ref,
+                        settings.defaultFediversePublisherId,
+                        fediversePublishers,
+                      ),
+                    ),
+                  ],
+                ),
+                error: (err, _) => ResponseErrorWidget(
+                  error: err,
+                  onRetry: () => ref.invalidate(fediverseAvailabilityProvider),
+                ),
+                loading: () => const ResponseLoadingWidget(),
+              ),
+              error: (err, _) => ResponseErrorWidget(
+                error: err,
+                onRetry: () => ref.invalidate(publishersManagedProvider),
+              ),
+              loading: () => const ResponseLoadingWidget(),
+            ),
+            error: (err, _) => ResponseErrorWidget(
+              error: err,
+              onRetry: () => ref.invalidate(publishingSettingsProvider),
+            ),
+            loading: () => const ResponseLoadingWidget(),
+          ),
+        ],
+      ),
+    ];
+
     final dangerZoneSettings = [
       ListTile(
         minLeadingWidth: 48,
@@ -406,6 +498,10 @@ class AccountSettingsScreen extends HookConsumerWidget {
         spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _SettingsSection(
+            title: 'accountPublishingTitle',
+            children: defaultPublisherSettings,
+          ),
           _SettingsSection(
             title: 'accountSecurityTitle',
             children: securitySettings,
@@ -428,6 +524,73 @@ class AccountSettingsScreen extends HookConsumerWidget {
         child: buildSettingsList(),
       ),
     );
+  }
+
+  Future<void> _showPublisherPicker(
+    BuildContext context,
+    WidgetRef ref,
+    String? currentId,
+    List<SnPublisher> publishers,
+    String type,
+  ) async {
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (context) => _PublisherPickerSheet(
+        publishers: publishers,
+        currentId: currentId,
+        type: type,
+      ),
+    );
+    if (selected == null) return;
+
+    showLoadingModal(context);
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      await client.sphere.updatePublishingSettings(
+        defaultPostingPublisherId: type == 'posting' ? selected : null,
+        defaultReplyPublisherId: type == 'reply' ? selected : null,
+      );
+      ref.invalidate(publishingSettingsProvider);
+      if (context.mounted) {
+        showSnackBar('settingsSaved'.tr());
+      }
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+
+  Future<void> _showFediversePublisherPicker(
+    BuildContext context,
+    WidgetRef ref,
+    String? currentId,
+    SnFediverseAvailabilityResponse fediversePublishers,
+  ) async {
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (context) => _FediversePublisherPickerSheet(
+        publishers: fediversePublishers,
+        currentId: currentId,
+      ),
+    );
+    if (selected == null) return;
+
+    showLoadingModal(context);
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      await client.sphere.updatePublishingSettings(
+        defaultFediversePublisherId: selected,
+      );
+      ref.invalidate(publishingSettingsProvider);
+      if (context.mounted) {
+        showSnackBar('settingsSaved'.tr());
+      }
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
   }
 }
 
@@ -459,6 +622,202 @@ class _SettingsSection extends StatelessWidget {
           const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+}
+
+class _PublisherListTile extends StatelessWidget {
+  final String title;
+  final String? publisherId;
+  final List<SnPublisher> publishers;
+  final VoidCallback onTap;
+
+  const _PublisherListTile({
+    required this.title,
+    required this.publisherId,
+    required this.publishers,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final publisher = publisherId != null
+        ? publishers.where((p) => p.id == publisherId).firstOrNull
+        : null;
+
+    return ListTile(
+      minLeadingWidth: 48,
+      contentPadding: const EdgeInsets.only(
+        left: 16,
+        right: 17,
+        top: 8,
+        bottom: 4,
+      ),
+      leading: publisher != null
+          ? ProfilePictureWidget(file: publisher.picture)
+          : const CircleAvatar(child: Icon(Symbols.close)),
+      title: Text(title),
+      subtitle: Text(
+        publisher != null ? '@${publisher.name}' : 'none'.tr(),
+      ).fontSize(12),
+      trailing: const Icon(Symbols.chevron_right),
+      onTap: onTap,
+    );
+  }
+}
+
+class _FediversePublisherListTile extends StatelessWidget {
+  final String title;
+  final String? publisherId;
+  final SnFediverseAvailabilityResponse fediversePublishers;
+  final VoidCallback onTap;
+
+  const _FediversePublisherListTile({
+    required this.title,
+    required this.publisherId,
+    required this.fediversePublishers,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final publisher = publisherId != null
+        ? fediversePublishers.publishers
+              .where((p) => p.publisherId == publisherId)
+              .firstOrNull
+        : null;
+
+    return ListTile(
+      minLeadingWidth: 48,
+      contentPadding: const EdgeInsets.only(
+        left: 16,
+        right: 17,
+        top: 2,
+        bottom: 8,
+      ),
+      leading: CircleAvatar(
+        backgroundImage: publisher?.avatarUrl != null
+            ? NetworkImage(publisher!.avatarUrl!)
+            : null,
+        child: publisher?.avatarUrl == null
+            ? const Icon(Symbols.language)
+            : null,
+      ),
+      title: Text(title),
+      subtitle: Text(
+        publisher != null ? publisher.fediverseHandle : 'none'.tr(),
+      ).fontSize(12),
+      trailing: const Icon(Symbols.chevron_right),
+      onTap: onTap,
+    );
+  }
+}
+
+class _PublisherPickerSheet extends StatelessWidget {
+  final List<SnPublisher> publishers;
+  final String? currentId;
+  final String type;
+
+  const _PublisherPickerSheet({
+    required this.publishers,
+    required this.currentId,
+    required this.type,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedColor = Theme.of(context).colorScheme.primary;
+    return SheetScaffold(
+      titleText: type == 'posting'
+          ? 'selectPostingPublisher'.tr()
+          : 'selectReplyPublisher'.tr(),
+      child: publishers.isEmpty
+          ? Center(child: Text('publishersEmpty').tr().fontSize(17).bold())
+          : ListView.builder(
+              itemCount: publishers.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return ListTile(
+                    leading: const Icon(Symbols.close),
+                    title: Text('none').tr(),
+                    selected: currentId == null,
+                    trailing: currentId == null
+                        ? Icon(Symbols.check, color: selectedColor)
+                        : null,
+                    onTap: () => Navigator.of(context).pop(null),
+                  );
+                }
+                final publisher = publishers[index - 1];
+                final isSelected = publisher.id == currentId;
+                return ListTile(
+                  leading: ProfilePictureWidget(file: publisher.picture),
+                  title: Text(publisher.nick),
+                  subtitle: Text('@${publisher.name}'),
+                  selected: isSelected,
+                  trailing: isSelected
+                      ? Icon(Symbols.check, color: selectedColor)
+                      : null,
+                  onTap: () => Navigator.of(context).pop(publisher.id),
+                );
+              },
+            ),
+    );
+  }
+}
+
+class _FediversePublisherPickerSheet extends StatelessWidget {
+  final SnFediverseAvailabilityResponse publishers;
+  final String? currentId;
+
+  const _FediversePublisherPickerSheet({
+    required this.publishers,
+    required this.currentId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedColor = Theme.of(context).colorScheme.primary;
+    return SheetScaffold(
+      titleText: 'selectFediversePublisher'.tr(),
+      child: publishers.publishers.isEmpty
+          ? Center(
+              child: Text('noFediversePublishers').tr().fontSize(17).bold(),
+            )
+          : ListView.builder(
+              itemCount: publishers.publishers.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return ListTile(
+                    leading: const Icon(Symbols.close),
+                    title: Text('none').tr(),
+                    selected: currentId == null,
+                    trailing: currentId == null
+                        ? Icon(Symbols.check, color: selectedColor)
+                        : null,
+                    onTap: () => Navigator.of(context).pop(null),
+                  );
+                }
+                final publisher = publishers.publishers[index - 1];
+                final isSelected = publisher.publisherId == currentId;
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: publisher.avatarUrl != null
+                        ? NetworkImage(publisher.avatarUrl!)
+                        : null,
+                    child: publisher.avatarUrl == null
+                        ? Text(publisher.publisherName[0].toUpperCase())
+                        : null,
+                  ),
+                  title: Text(publisher.publisherName),
+                  subtitle: Text(publisher.fediverseHandle),
+                  selected: isSelected,
+                  trailing: isSelected
+                      ? Icon(Symbols.check, color: selectedColor)
+                      : null,
+                  onTap: () => Navigator.of(context).pop(publisher.publisherId),
+                );
+              },
+            ),
     );
   }
 }

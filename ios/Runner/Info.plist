@@ -81,7 +81,7 @@
 	<string>Allow the Solar Network verify your ownership of the logged in account and continue
 			your action quickly.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Allow Solian read Apple Health's data to share with your friends.</string>
+	<string>Allow Solian read Apple Health&apos;s data to share with your friends.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location is used to fill in meet places from your current position.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -152,5 +152,9 @@
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>This app does not write Health data directly, but a dependency may reference HealthKit APIs.</string>
+	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
+	<string>This app does not uses Health Record data directly, but a dependency may reference HealthKit APIs.</string>
 </dict>
 </plist>

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/creators/screens/publishers_form.dart';
+import 'package:island/accounts/screens/me/account_settings.dart';
+import 'package:island/creators/screens/publishers_form.dart'
+    as publishers_form;
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
@@ -11,16 +13,30 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class ComposeStateUtils {
   /// Initializes publisher when data becomes available.
   static void usePublisherInitialization(WidgetRef ref, ComposeState state) {
-    final publishers = ref.watch(publishersManagedProvider);
+    final publishers = ref.watch(publishers_form.publishersManagedProvider);
+    final publishingSettings = ref.watch(publishingSettingsProvider);
 
     useEffect(() {
       if (publishers.value?.isNotEmpty ?? false) {
         if (state.currentPublisher.value == null) {
-          state.currentPublisher.value = publishers.value!.first;
+          // Try to find default publisher from settings
+          SnPublisher? defaultPublisher;
+          if (publishingSettings.hasValue) {
+            final defaultId =
+                publishingSettings.value!.defaultPostingPublisherId;
+            if (defaultId != null) {
+              defaultPublisher = publishers.value!
+                  .where((p) => p.id == defaultId)
+                  .firstOrNull;
+            }
+          }
+          // Fall back to first publisher if no default found
+          state.currentPublisher.value =
+              defaultPublisher ?? publishers.value!.first;
         }
       }
       return null;
-    }, [publishers]);
+    }, [publishers, publishingSettings]);
   }
 
   /// Loads initial state from provided parameters.

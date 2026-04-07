@@ -13,6 +13,7 @@ export 'src/models/accounts/fortune.dart';
 export 'src/models/accounts/progression.dart';
 export 'src/models/accounts/relationship.dart';
 export 'src/models/accounts/tickets.dart';
+export 'src/models/accounts/publishing_settings.dart';
 
 // Activity models
 export 'src/models/activity/activity.dart';

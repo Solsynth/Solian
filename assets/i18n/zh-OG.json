@@ -198,6 +198,15 @@
   "statusActivityEndedTitle": "{} 正於 {} {} 迄於 {}",
   "appSettings": "應用設置",
   "accountSettings": "賬戶設置",
+  "accountPublishingTitle": "發布設置",
+  "defaultPublisher": "默認發布者",
+  "defaultPublisherDescription": "配置貼文、回復並聯邦宇宙活動之默認發布者",
+  "defaultPostingPublisher": "默認發帖發布者",
+  "defaultReplyPublisher": "默認回復發布者",
+  "defaultFediversePublisher": "默認聯邦宇宙發布者",
+  "selectPostingPublisher": "選擇默認發帖發布者",
+  "selectReplyPublisher": "選擇默認回復發布者",
+  "selectFediversePublisher": "選擇默認聯邦宇宙發布者",
   "settings": "設置",
   "language": "言語",
   "accountLanguageHint": "此言語將行於電郵並推送告示。",
@@ -1630,5 +1639,8 @@
   "viewOnOriginalSite": "於原站查看",
   "tapToViewOriginal": "點擊查看原文",
   "noPosts": "尚無帖子",
-  "profileFields": "個人資料欄位"
+  "profileFields": "個人資料欄位",
+  "none": "無",
+  "noFediversePublishers": "沒有可用的聯邦宇宙發布者",
+  "settingsSaved": "設置已保存"
 }
