@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnWorkout {
 
- String get id; String get accountId; String get name; String? get description; WorkoutType get type; DateTime get startTime; DateTime? get endTime; int? get caloriesBurned; String? get notes; FitnessVisibility get visibility; DateTime get createdAt; DateTime get updatedAt; List<SnWorkoutExercise> get exercises;
+ String get id; String get accountId; String get name; String? get description; WorkoutType get type; DateTime get startTime; DateTime? get endTime; int? get caloriesBurned; String? get notes; FitnessVisibility get visibility; Map<String, dynamic>? get meta; DateTime get createdAt; DateTime get updatedAt; List<SnWorkoutExercise> get exercises;
 /// Create a copy of SnWorkout
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnWorkoutCopyWith<SnWorkout> get copyWith => _$SnWorkoutCopyWithImpl<SnWorkout>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.exercises, exercises));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.exercises, exercises));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,notes,visibility,createdAt,updatedAt,const DeepCollectionEquality().hash(exercises));
+int get hashCode => Object.hash(runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(meta),createdAt,updatedAt,const DeepCollectionEquality().hash(exercises));
 
 @override
 String toString() {
-  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
+  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnWorkoutCopyWith<$Res>  {
   factory $SnWorkoutCopyWith(SnWorkout value, $Res Function(SnWorkout) _then) = _$SnWorkoutCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, String? notes, FitnessVisibility visibility, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
+ String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
 });
 
 
@@ -65,7 +65,7 @@ class _$SnWorkoutCopyWithImpl<$Res>
 
 /// Create a copy of SnWorkout
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -77,7 +77,8 @@ as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cas
 as DateTime?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
 as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as FitnessVisibility,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,exercises: null == exercises ? _self.exercises : exercises // ignore: cast_nullable_to_non_nullable
 as List<SnWorkoutExercise>,
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnWorkout() when $default != null:
-return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.createdAt,_that.updatedAt,_that.exercises);case _:
+return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)  $default,) {final _that = this;
 switch (_that) {
 case _SnWorkout():
-return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.createdAt,_that.updatedAt,_that.exercises);}
+return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -200,10 +201,10 @@ return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,) {final _that = this;
 switch (_that) {
 case _SnWorkout() when $default != null:
-return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.createdAt,_that.updatedAt,_that.exercises);case _:
+return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);case _:
   return null;
 
 }
@@ -215,7 +216,7 @@ return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type
 @JsonSerializable()
 
 class _SnWorkout implements SnWorkout {
-  const _SnWorkout({required this.id, required this.accountId, required this.name, this.description, required this.type, required this.startTime, this.endTime, this.caloriesBurned, this.notes, this.visibility = FitnessVisibility.private, required this.createdAt, required this.updatedAt, final  List<SnWorkoutExercise> exercises = const []}): _exercises = exercises;
+  const _SnWorkout({required this.id, required this.accountId, required this.name, this.description, required this.type, required this.startTime, this.endTime, this.caloriesBurned, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta, required this.createdAt, required this.updatedAt, final  List<SnWorkoutExercise> exercises = const []}): _meta = meta,_exercises = exercises;
   factory _SnWorkout.fromJson(Map<String, dynamic> json) => _$SnWorkoutFromJson(json);
 
 @override final  String id;
@@ -228,6 +229,15 @@ class _SnWorkout implements SnWorkout {
 @override final  int? caloriesBurned;
 @override final  String? notes;
 @override@JsonKey() final  FitnessVisibility visibility;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
  final  List<SnWorkoutExercise> _exercises;
@@ -251,16 +261,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._exercises, _exercises));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._exercises, _exercises));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,notes,visibility,createdAt,updatedAt,const DeepCollectionEquality().hash(_exercises));
+int get hashCode => Object.hash(runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(_meta),createdAt,updatedAt,const DeepCollectionEquality().hash(_exercises));
 
 @override
 String toString() {
-  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
+  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
 }
 
 
@@ -271,7 +281,7 @@ abstract mixin class _$SnWorkoutCopyWith<$Res> implements $SnWorkoutCopyWith<$Re
   factory _$SnWorkoutCopyWith(_SnWorkout value, $Res Function(_SnWorkout) _then) = __$SnWorkoutCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, String? notes, FitnessVisibility visibility, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
+ String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
 });
 
 
@@ -288,7 +298,7 @@ class __$SnWorkoutCopyWithImpl<$Res>
 
 /// Create a copy of SnWorkout
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
   return _then(_SnWorkout(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -300,7 +310,8 @@ as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cas
 as DateTime?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
 as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
-as FitnessVisibility,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as FitnessVisibility,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,exercises: null == exercises ? _self._exercises : exercises // ignore: cast_nullable_to_non_nullable
 as List<SnWorkoutExercise>,

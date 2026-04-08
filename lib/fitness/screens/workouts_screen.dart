@@ -295,7 +295,9 @@ class _WorkoutCard extends ConsumerWidget {
                     ),
                     if (workout.caloriesBurned != null || duration != null)
                       const SizedBox(height: 4),
-                    if (workout.caloriesBurned != null || duration != null)
+                    if (workout.caloriesBurned != null ||
+                        duration != null ||
+                        workout.exercises.isNotEmpty)
                       Row(
                         children: [
                           if (duration != null) ...[
@@ -341,6 +343,10 @@ class _WorkoutCard extends ConsumerWidget {
                           ],
                         ],
                       ),
+                    if (workout.meta != null) ...[
+                      const SizedBox(height: 4),
+                      _buildMetaRow(context, workout.meta!),
+                    ],
                   ],
                 ),
               ),
@@ -426,5 +432,74 @@ class _WorkoutCard extends ConsumerWidget {
       return '${hours}h ${minutes}m';
     }
     return '${minutes}m';
+  }
+
+  Widget _buildMetaRow(BuildContext context, Map<String, dynamic> meta) {
+    final items = <Widget>[];
+
+    if (meta['distance'] != null) {
+      final distance = meta['distance'];
+      final unit = meta['distance_unit'] ?? 'km';
+      items.add(_buildMetaChip(context, Icons.straighten, '$distance $unit'));
+    }
+
+    if (meta['steps'] != null) {
+      items.add(
+        _buildMetaChip(
+          context,
+          Icons.directions_walk,
+          '${meta['steps']} steps',
+        ),
+      );
+    }
+
+    if (meta['average_heart_rate'] != null) {
+      items.add(
+        _buildMetaChip(
+          context,
+          Icons.monitor_heart,
+          '~${meta['average_heart_rate']} bpm',
+        ),
+      );
+    }
+
+    if (meta['average_speed'] != null) {
+      final speed = meta['average_speed'];
+      final unit = 'km/h';
+      items.add(_buildMetaChip(context, Icons.speed, '$speed $unit'));
+    }
+
+    if (meta['elevation_gain'] != null) {
+      items.add(
+        _buildMetaChip(context, Icons.terrain, '+${meta['elevation_gain']}m'),
+      );
+    }
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(spacing: 8, runSpacing: 4, children: items);
+  }
+
+  Widget _buildMetaChip(BuildContext context, IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

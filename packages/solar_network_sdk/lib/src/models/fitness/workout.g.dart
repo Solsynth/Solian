@@ -21,6 +21,7 @@ _SnWorkout _$SnWorkoutFromJson(Map<String, dynamic> json) => _SnWorkout(
   visibility:
       $enumDecodeNullable(_$FitnessVisibilityEnumMap, json['visibility']) ??
       FitnessVisibility.private,
+  meta: json['meta'] as Map<String, dynamic>?,
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
   exercises:
@@ -42,6 +43,7 @@ Map<String, dynamic> _$SnWorkoutToJson(_SnWorkout instance) =>
       'calories_burned': instance.caloriesBurned,
       'notes': instance.notes,
       'visibility': _$FitnessVisibilityEnumMap[instance.visibility]!,
+      'meta': instance.meta,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'exercises': instance.exercises.map((e) => e.toJson()).toList(),
