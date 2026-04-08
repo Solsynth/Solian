@@ -38,6 +38,7 @@ sealed class SnWorkout with _$SnWorkout {
     int? caloriesBurned,
     String? notes,
     @Default(FitnessVisibility.private) FitnessVisibility visibility,
+    Map<String, dynamic>? meta,
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default([]) List<SnWorkoutExercise> exercises,
