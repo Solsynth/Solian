@@ -144,8 +144,6 @@ class AccountSettingsScreen extends HookConsumerWidget {
     }
 
     final authFactors = ref.watch(authFactorsProvider);
-    final notificationPreferences = ref.watch(notificationPreferencesProvider);
-    final notificationTopics = ref.read(notificationTopicsProvider);
 
     // Group settings into categories for better organization
     final securitySettings = [
@@ -518,88 +516,24 @@ class AccountSettingsScreen extends HookConsumerWidget {
     ];
 
     final notificationPreferencesSettings = [
-      ExpansionTile(
-        leading: const Icon(
-          Symbols.notifications,
-        ).alignment(Alignment.centerLeft).width(48),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.notifications),
         title: Text('notificationPreferences').tr(),
         subtitle: Text('notificationPreferencesDescription').tr().fontSize(12),
-        tilePadding: const EdgeInsets.only(left: 24, right: 17),
-        children: [
-          notificationPreferences.when(
-            data: (prefs) {
-              final topics = notificationTopics;
-              return Column(
-                children: [
-                  for (final topic in topics)
-                    ListTile(
-                      minLeadingWidth: 48,
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        right: 17,
-                        top: 2,
-                        bottom: 4,
-                      ),
-                      title: Text(topic.description),
-                      subtitle: Text(
-                        topic.topic,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        child: const Icon(Symbols.notifications, size: 16),
-                      ).padding(top: 4),
-                      trailing: const Icon(Symbols.chevron_right),
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) => NotificationPreferenceSheet(
-                            topic: topic,
-                            currentPreference:
-                                prefs[topic.topic] ??
-                                SnNotificationPreferenceLevel.normal,
-                          ),
-                        ).then((value) {
-                          if (value == true) {
-                            ref.invalidate(notificationPreferencesProvider);
-                          }
-                        });
-                      },
-                    ),
-                  ListTile(
-                    minLeadingWidth: 48,
-                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                    title: Text('notificationAddCustom').tr(),
-                    leading: const Icon(Symbols.add),
-                    trailing: const Icon(Symbols.chevron_right),
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) =>
-                            const NotificationCustomTopicSheet(),
-                      ).then((value) {
-                        if (value == true) {
-                          ref.invalidate(notificationPreferencesProvider);
-                        }
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
-            error: (err, _) => ResponseErrorWidget(
-              error: err,
-              onRetry: () => ref.invalidate(notificationPreferencesProvider),
-            ),
-            loading: () => const ResponseLoadingWidget(),
-          ),
-        ],
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => NotificationTopicsSheet(),
+          ).then((value) {
+            if (value == true) {
+              ref.invalidate(notificationPreferencesProvider);
+            }
+          });
+        },
       ),
     ];
 
@@ -963,6 +897,7 @@ class NotificationPreferenceSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SheetScaffold(
       titleText: topic.description,
+      heightFactor: 0.5,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1073,6 +1008,140 @@ class NotificationPreferenceSheet extends HookConsumerWidget {
       showErrorAlert(err);
     } finally {
       if (context.mounted) hideLoadingModal(context);
+    }
+  }
+}
+
+class NotificationTopicsSheet extends ConsumerWidget {
+  const NotificationTopicsSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final topics = ref.read(notificationTopicsProvider);
+    final prefs = ref.watch(notificationPreferencesProvider);
+
+    return SheetScaffold(
+      titleText: 'notificationPreferences'.tr(),
+      heightFactor: 0.8,
+      actions: [
+        IconButton(
+          icon: const Icon(Symbols.add),
+          onPressed: () {
+            Navigator.pop(context);
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => const NotificationCustomTopicSheet(),
+            ).then((value) {
+              if (value == true) {
+                ref.invalidate(notificationPreferencesProvider);
+              }
+            });
+          },
+        ),
+      ],
+      child: prefs.when(
+        data: (preferenceMap) => ListView.builder(
+          itemCount: topics.length,
+          itemBuilder: (context, index) {
+            final topic = topics[index];
+            final currentPref =
+                preferenceMap[topic.topic] ??
+                SnNotificationPreferenceLevel.normal;
+            return ListTile(
+              minLeadingWidth: 48,
+              contentPadding: const EdgeInsets.only(
+                left: 16,
+                right: 17,
+                top: 2,
+                bottom: 4,
+              ),
+              title: Text(topic.description),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    topic.topic,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _getPreferenceLabel(currentPref),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: _getPreferenceColor(context, currentPref),
+                    ),
+                  ),
+                ],
+              ),
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(_getPreferenceIcon(currentPref), size: 16),
+              ).padding(top: 4),
+              trailing: const Icon(Symbols.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => NotificationPreferenceSheet(
+                    topic: topic,
+                    currentPreference: currentPref,
+                  ),
+                ).then((value) {
+                  if (value == true) {
+                    ref.invalidate(notificationPreferencesProvider);
+                  }
+                });
+              },
+            );
+          },
+        ),
+        error: (err, _) => ResponseErrorWidget(
+          error: err,
+          onRetry: () => ref.invalidate(notificationPreferencesProvider),
+        ),
+        loading: () => const ResponseLoadingWidget(),
+      ),
+    );
+  }
+
+  String _getPreferenceLabel(SnNotificationPreferenceLevel level) {
+    switch (level) {
+      case SnNotificationPreferenceLevel.normal:
+        return 'notificationPreferenceNormal'.tr();
+      case SnNotificationPreferenceLevel.silent:
+        return 'notificationPreferenceSilent'.tr();
+      case SnNotificationPreferenceLevel.reject:
+        return 'notificationPreferenceReject'.tr();
+    }
+  }
+
+  Color _getPreferenceColor(
+    BuildContext context,
+    SnNotificationPreferenceLevel level,
+  ) {
+    switch (level) {
+      case SnNotificationPreferenceLevel.normal:
+        return Theme.of(context).colorScheme.primary;
+      case SnNotificationPreferenceLevel.silent:
+        return Theme.of(context).colorScheme.tertiary;
+      case SnNotificationPreferenceLevel.reject:
+        return Theme.of(context).colorScheme.error;
+    }
+  }
+
+  IconData _getPreferenceIcon(SnNotificationPreferenceLevel level) {
+    switch (level) {
+      case SnNotificationPreferenceLevel.normal:
+        return Symbols.notifications;
+      case SnNotificationPreferenceLevel.silent:
+        return Symbols.notifications_off;
+      case SnNotificationPreferenceLevel.reject:
+        return Symbols.block;
     }
   }
 }
