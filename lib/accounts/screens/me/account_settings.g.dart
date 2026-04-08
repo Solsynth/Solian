@@ -217,6 +217,95 @@ final class FediverseAvailabilityProvider
 String _$fediverseAvailabilityHash() =>
     r'12ec3d0ffd3b23c48d1ac9a18761005e993518b9';
 
+@ProviderFor(notificationTopics)
+final notificationTopicsProvider = NotificationTopicsProvider._();
+
+final class NotificationTopicsProvider
+    extends
+        $FunctionalProvider<
+          List<SnNotificationTopic>,
+          List<SnNotificationTopic>,
+          List<SnNotificationTopic>
+        >
+    with $Provider<List<SnNotificationTopic>> {
+  NotificationTopicsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationTopicsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationTopicsHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<SnNotificationTopic>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  List<SnNotificationTopic> create(Ref ref) {
+    return notificationTopics(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<SnNotificationTopic> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<SnNotificationTopic>>(value),
+    );
+  }
+}
+
+String _$notificationTopicsHash() =>
+    r'01c37ea9027162c4317f98c2e12578e7c2abb2df';
+
+@ProviderFor(notificationPreferences)
+final notificationPreferencesProvider = NotificationPreferencesProvider._();
+
+final class NotificationPreferencesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, SnNotificationPreferenceLevel>>,
+          Map<String, SnNotificationPreferenceLevel>,
+          FutureOr<Map<String, SnNotificationPreferenceLevel>>
+        >
+    with
+        $FutureModifier<Map<String, SnNotificationPreferenceLevel>>,
+        $FutureProvider<Map<String, SnNotificationPreferenceLevel>> {
+  NotificationPreferencesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationPreferencesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationPreferencesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, SnNotificationPreferenceLevel>>
+  $createElement($ProviderPointer pointer) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, SnNotificationPreferenceLevel>> create(Ref ref) {
+    return notificationPreferences(ref);
+  }
+}
+
+String _$notificationPreferencesHash() =>
+    r'fe6fd1e8f8947127fbbf3c18033375f4dccf3409';
+
 @ProviderFor(hasFediverseIdentity)
 final hasFediverseIdentityProvider = HasFediverseIdentityProvider._();
 

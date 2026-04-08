@@ -55,6 +55,21 @@ Future<SnFediverseAvailabilityResponse> fediverseAvailability(Ref ref) async {
 }
 
 @riverpod
+List<SnNotificationTopic> notificationTopics(Ref ref) {
+  final client = ref.read(solarNetworkClientProvider);
+  return client.notifications.getTopics();
+}
+
+@riverpod
+Future<Map<String, SnNotificationPreferenceLevel>> notificationPreferences(
+  Ref ref,
+) async {
+  final client = ref.read(solarNetworkClientProvider);
+  final prefs = await client.notifications.getPreferences();
+  return {for (var p in prefs) p.topic: p.preference};
+}
+
+@riverpod
 bool hasFediverseIdentity(Ref ref) {
   final publishingSettings = ref.watch(publishingSettingsProvider);
   final fediverseAvailability = ref.watch(fediverseAvailabilityProvider);
@@ -129,6 +144,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
     }
 
     final authFactors = ref.watch(authFactorsProvider);
+    final notificationPreferences = ref.watch(notificationPreferencesProvider);
+    final notificationTopics = ref.read(notificationTopicsProvider);
 
     // Group settings into categories for better organization
     final securitySettings = [
@@ -500,6 +517,92 @@ class AccountSettingsScreen extends HookConsumerWidget {
       ),
     ];
 
+    final notificationPreferencesSettings = [
+      ExpansionTile(
+        leading: const Icon(
+          Symbols.notifications,
+        ).alignment(Alignment.centerLeft).width(48),
+        title: Text('notificationPreferences').tr(),
+        subtitle: Text('notificationPreferencesDescription').tr().fontSize(12),
+        tilePadding: const EdgeInsets.only(left: 24, right: 17),
+        children: [
+          notificationPreferences.when(
+            data: (prefs) {
+              final topics = notificationTopics;
+              return Column(
+                children: [
+                  for (final topic in topics)
+                    ListTile(
+                      minLeadingWidth: 48,
+                      contentPadding: const EdgeInsets.only(
+                        left: 16,
+                        right: 17,
+                        top: 2,
+                        bottom: 4,
+                      ),
+                      title: Text(topic.description),
+                      subtitle: Text(
+                        topic.topic,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
+                        child: const Icon(Symbols.notifications, size: 16),
+                      ).padding(top: 4),
+                      trailing: const Icon(Symbols.chevron_right),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) => NotificationPreferenceSheet(
+                            topic: topic,
+                            currentPreference:
+                                prefs[topic.topic] ??
+                                SnNotificationPreferenceLevel.normal,
+                          ),
+                        ).then((value) {
+                          if (value == true) {
+                            ref.invalidate(notificationPreferencesProvider);
+                          }
+                        });
+                      },
+                    ),
+                  ListTile(
+                    minLeadingWidth: 48,
+                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                    title: Text('notificationAddCustom').tr(),
+                    leading: const Icon(Symbols.add),
+                    trailing: const Icon(Symbols.chevron_right),
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) =>
+                            const NotificationCustomTopicSheet(),
+                      ).then((value) {
+                        if (value == true) {
+                          ref.invalidate(notificationPreferencesProvider);
+                        }
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+            error: (err, _) => ResponseErrorWidget(
+              error: err,
+              onRetry: () => ref.invalidate(notificationPreferencesProvider),
+            ),
+            loading: () => const ResponseLoadingWidget(),
+          ),
+        ],
+      ),
+    ];
+
     final dangerZoneSettings = [
       ListTile(
         minLeadingWidth: 48,
@@ -521,6 +624,10 @@ class AccountSettingsScreen extends HookConsumerWidget {
           _SettingsSection(
             title: 'accountPublishingTitle',
             children: defaultPublisherSettings,
+          ),
+          _SettingsSection(
+            title: 'accountNotificationPreferencesTitle',
+            children: notificationPreferencesSettings,
           ),
           _SettingsSection(
             title: 'accountSecurityTitle',
@@ -562,8 +669,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
       ),
     );
     if (selected == null) return;
+    if (context.mounted) showLoadingModal(context);
 
-    showLoadingModal(context);
     try {
       final client = ref.read(solarNetworkClientProvider);
       await client.sphere.updatePublishingSettings(
@@ -595,8 +702,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
       ),
     );
     if (selected == null) return;
+    if (context.mounted) showLoadingModal(context);
 
-    showLoadingModal(context);
     try {
       final client = ref.read(solarNetworkClientProvider);
       await client.sphere.updatePublishingSettings(
@@ -839,5 +946,228 @@ class _FediversePublisherPickerSheet extends StatelessWidget {
               },
             ),
     );
+  }
+}
+
+class NotificationPreferenceSheet extends HookConsumerWidget {
+  final SnNotificationTopic topic;
+  final SnNotificationPreferenceLevel currentPreference;
+
+  const NotificationPreferenceSheet({
+    super.key,
+    required this.topic,
+    required this.currentPreference,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SheetScaffold(
+      titleText: topic.description,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Symbols.notifications),
+            title: Text('notificationPreferenceNormal').tr(),
+            subtitle: Text(
+              'notificationPreferenceNormalDesc',
+            ).tr().fontSize(12),
+            trailing: currentPreference == SnNotificationPreferenceLevel.normal
+                ? Icon(
+                    Symbols.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : null,
+            onTap: () => _setPreference(
+              context,
+              ref,
+              SnNotificationPreferenceLevel.normal,
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Symbols.notifications_off),
+            title: Text('notificationPreferenceSilent').tr(),
+            subtitle: Text(
+              'notificationPreferenceSilentDesc',
+            ).tr().fontSize(12),
+            trailing: currentPreference == SnNotificationPreferenceLevel.silent
+                ? Icon(
+                    Symbols.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : null,
+            onTap: () => _setPreference(
+              context,
+              ref,
+              SnNotificationPreferenceLevel.silent,
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Symbols.block),
+            title: Text('notificationPreferenceReject').tr(),
+            subtitle: Text(
+              'notificationPreferenceRejectDesc',
+            ).tr().fontSize(12),
+            trailing: currentPreference == SnNotificationPreferenceLevel.reject
+                ? Icon(
+                    Symbols.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : null,
+            onTap: () => _setPreference(
+              context,
+              ref,
+              SnNotificationPreferenceLevel.reject,
+            ),
+          ),
+          if (currentPreference != SnNotificationPreferenceLevel.normal)
+            ListTile(
+              leading: Icon(
+                Symbols.restore,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text('notificationResetToDefault').tr(),
+              onTap: () => _resetPreference(context, ref),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _setPreference(
+    BuildContext context,
+    WidgetRef ref,
+    SnNotificationPreferenceLevel preference,
+  ) async {
+    showLoadingModal(context);
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      await client.notifications.setPreference(topic.topic, preference);
+      if (context.mounted) {
+        Navigator.pop(context, true);
+        showSnackBar('settingsSaved'.tr());
+      }
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+
+  Future<void> _resetPreference(BuildContext context, WidgetRef ref) async {
+    final confirm = await showConfirmAlert(
+      'notificationResetHint'.tr(),
+      'notificationReset'.tr(),
+    );
+    if (!confirm || !context.mounted) return;
+
+    showLoadingModal(context);
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      await client.notifications.deletePreference(topic.topic);
+      if (context.mounted) {
+        Navigator.pop(context, true);
+        showSnackBar('settingsSaved'.tr());
+      }
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+}
+
+class NotificationCustomTopicSheet extends ConsumerStatefulWidget {
+  const NotificationCustomTopicSheet({super.key});
+
+  @override
+  ConsumerState<NotificationCustomTopicSheet> createState() =>
+      _NotificationCustomTopicSheetState();
+}
+
+class _NotificationCustomTopicSheetState
+    extends ConsumerState<NotificationCustomTopicSheet> {
+  final _topicController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _topicController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SheetScaffold(
+      titleText: 'notificationAddCustom'.tr(),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _topicController,
+              decoration: InputDecoration(
+                labelText: 'notificationCustomTopic'.tr(),
+                hintText: 'notificationCustomTopicHint'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: 'notificationCustomDescription'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: _isLoading ? null : _submit,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text('add'.tr()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submit() async {
+    final topic = _topicController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    if (topic.isEmpty || description.isEmpty) {
+      showSnackBar('notificationCustomTopicError'.tr());
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final client = ref.read(solarNetworkClientProvider);
+      await client.notifications.addCustomTopic(topic, description);
+      if (mounted) {
+        Navigator.pop(context, true);
+        showSnackBar('settingsSaved'.tr());
+      }
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }

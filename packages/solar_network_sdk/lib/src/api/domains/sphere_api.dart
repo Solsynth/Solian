@@ -563,12 +563,9 @@ class SphereApi extends BaseApi {
     final response = await patch<Map<String, dynamic>>(
       '$_basePath/account/publishing',
       data: {
-        if (defaultPostingPublisherId != null)
-          'default_posting_publisher_id': defaultPostingPublisherId,
-        if (defaultReplyPublisherId != null)
-          'default_reply_publisher_id': defaultReplyPublisherId,
-        if (defaultFediversePublisherId != null)
-          'default_fediverse_publisher_id': defaultFediversePublisherId,
+        'default_posting_publisher_id': defaultPostingPublisherId,
+        'default_reply_publisher_id': defaultReplyPublisherId,
+        'default_fediverse_publisher_id': defaultFediversePublisherId,
       },
     );
     return SnPublishingSettings.fromJson(response.data!);

@@ -73,11 +73,8 @@ final fediverseActorProvider =
       }
     });
 
-final fediverseActorRelationshipProvider =
-    FutureProvider.family<FediverseActorRelationship?, String>((
-      ref,
-      actorId,
-    ) async {
+final fediverseActorRelationshipProvider = FutureProvider.autoDispose
+    .family<FediverseActorRelationship?, String>((ref, actorId) async {
       final client = ref.watch(solarNetworkClientProvider);
       try {
         final resp = await client.dio.get(
