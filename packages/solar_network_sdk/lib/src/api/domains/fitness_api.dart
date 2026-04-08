@@ -6,6 +6,8 @@ import 'package:solar_network_sdk/src/models/fitness/metric.dart'
     as metric_models;
 import 'package:solar_network_sdk/src/models/fitness/exercise.dart'
     as exercise_models;
+import 'package:solar_network_sdk/src/models/fitness/leaderboard.dart'
+    as leaderboard_models;
 
 class FitnessApi extends BaseApi {
   FitnessApi(super.dio);
@@ -326,5 +328,29 @@ class FitnessApi extends BaseApi {
 
   Future<void> deleteExercise(String id) async {
     await delete('$_basePath/exercises/$id');
+  }
+
+  // ==========================================
+  // Leaderboard endpoints
+  // ==========================================
+
+  Future<leaderboard_models.LeaderboardResponse> getLeaderboard({
+    leaderboard_models.LeaderboardType type =
+        leaderboard_models.LeaderboardType.calories,
+    leaderboard_models.LeaderboardPeriod period =
+        leaderboard_models.LeaderboardPeriod.weekly,
+    int skip = 0,
+    int take = 20,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/leaderboard',
+      queryParameters: {
+        'type': type.index,
+        'period': period.index,
+        'skip': skip,
+        'take': take,
+      },
+    );
+    return leaderboard_models.LeaderboardResponse.fromJson(response.data!);
   }
 }

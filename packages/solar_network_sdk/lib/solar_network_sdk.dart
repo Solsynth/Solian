@@ -58,6 +58,7 @@ export 'src/models/fitness/workout.dart';
 export 'src/models/fitness/goal.dart';
 export 'src/models/fitness/metric.dart';
 export 'src/models/fitness/exercise.dart';
+export 'src/models/fitness/leaderboard.dart';
 
 // Services
 export 'src/auth/web_auth/web_auth_client.dart';

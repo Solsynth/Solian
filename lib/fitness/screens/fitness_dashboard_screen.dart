@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
 import 'package:island/fitness/pods/health_sync_providers.dart';
+import 'package:island/fitness/screens/leaderboard_screen.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -42,6 +43,8 @@ class FitnessDashboardScreen extends ConsumerWidget {
             _buildGoalsSection(context),
             const SizedBox(height: 24),
             _buildMetricsSection(context),
+            const SizedBox(height: 24),
+            _buildLeaderboardSection(context),
           ],
         ),
       ),
@@ -378,6 +381,42 @@ class FitnessDashboardScreen extends ConsumerWidget {
             subtitle: const Text('Track weight, steps, and more'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.router.push(const MetricsRoute()),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLeaderboardSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Leaderboard',
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          clipBehavior: Clip.antiAlias,
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child: Icon(
+                Icons.leaderboard,
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
+              ),
+            ),
+            title: const Text('View Leaderboard'),
+            subtitle: const Text('See how you rank against others'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useSafeArea: true,
+              builder: (context) => const LeaderboardScreen(),
+            ),
           ),
         ),
       ],

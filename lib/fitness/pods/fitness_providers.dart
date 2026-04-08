@@ -334,3 +334,17 @@ final exerciseNotifierProvider =
     AsyncNotifierProvider<ExerciseNotifier, SnExerciseLibrary>(
       ExerciseNotifier.new,
     );
+
+final leaderboardProvider = FutureProvider.autoDispose
+    .family<
+      LeaderboardResponse,
+      ({LeaderboardType type, LeaderboardPeriod period, int skip, int take})
+    >((ref, params) async {
+      final fitness = ref.watch(fitnessClientProvider);
+      return fitness.getLeaderboard(
+        type: params.type,
+        period: params.period,
+        skip: params.skip,
+        take: params.take,
+      );
+    });
