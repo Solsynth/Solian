@@ -449,3 +449,53 @@ Map<String, dynamic> _$SnFriendOverviewItemToJson(
   'status': instance.status.toJson(),
   'activities': instance.activities.map((e) => e.toJson()).toList(),
 };
+
+_SnNotificationPreference _$SnNotificationPreferenceFromJson(
+  Map<String, dynamic> json,
+) => _SnNotificationPreference(
+  id: json['id'] as String,
+  accountId: json['account_id'] as String,
+  topic: json['topic'] as String,
+  preference: $enumDecode(
+    _$SnNotificationPreferenceLevelEnumMap,
+    json['preference'],
+  ),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+  deletedAt: json['deleted_at'] == null
+      ? null
+      : DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$SnNotificationPreferenceToJson(
+  _SnNotificationPreference instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'account_id': instance.accountId,
+  'topic': instance.topic,
+  'preference': _$SnNotificationPreferenceLevelEnumMap[instance.preference]!,
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+};
+
+const _$SnNotificationPreferenceLevelEnumMap = {
+  SnNotificationPreferenceLevel.normal: 'normal',
+  SnNotificationPreferenceLevel.silent: 'silent',
+  SnNotificationPreferenceLevel.reject: 'reject',
+};
+
+_SnNotificationTopic _$SnNotificationTopicFromJson(Map<String, dynamic> json) =>
+    _SnNotificationTopic(
+      topic: json['topic'] as String,
+      description: json['description'] as String,
+      isCustom: json['is_custom'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$SnNotificationTopicToJson(
+  _SnNotificationTopic instance,
+) => <String, dynamic>{
+  'topic': instance.topic,
+  'description': instance.description,
+  'is_custom': instance.isCustom,
+};

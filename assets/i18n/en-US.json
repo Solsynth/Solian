@@ -2595,5 +2595,22 @@
   "authorizedAppDeauthorizeHint": "Are you sure you want to revoke access for this app? This app will no longer be able to access your account.",
   "unknownApp": "Unknown App",
   "neverUsed": "Never used",
-  "fitness": "Fitness"
+  "fitness": "Fitness",
+  "notificationPreferences": "Notification Preferences",
+  "notificationPreferencesDescription": "Manage how you receive notifications for each topic",
+  "accountNotificationPreferencesTitle": "Notifications",
+  "notificationPreferenceNormal": "Normal",
+  "notificationPreferenceNormalDesc": "Full delivery (push + real-time + stored)",
+  "notificationPreferenceSilent": "Silent",
+  "notificationPreferenceSilentDesc": "Store only, no push or real-time",
+  "notificationPreferenceReject": "Reject",
+  "notificationPreferenceRejectDesc": "Don't store or deliver",
+  "notificationResetToDefault": "Reset to Default",
+  "notificationReset": "Reset to Default",
+  "notificationResetHint": "Are you sure you want to reset this preference to default?",
+  "notificationAddCustom": "Add Custom Topic",
+  "notificationCustomTopic": "Topic",
+  "notificationCustomTopicHint": "e.g., custom.topic.name",
+  "notificationCustomDescription": "Description",
+  "notificationCustomTopicError": "Please enter both topic and description"
 }

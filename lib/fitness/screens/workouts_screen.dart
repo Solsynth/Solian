@@ -253,9 +253,7 @@ class _WorkoutCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final duration = workout.endTime != null
-        ? workout.endTime!.difference(workout.startTime)
-        : null;
+    final duration = workout.endTime?.difference(workout.startTime);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

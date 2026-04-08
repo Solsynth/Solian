@@ -346,7 +346,7 @@ class _HealthSyncScreenState extends ConsumerState<HealthSyncScreen> {
           Row(
             children: [
               Text(
-                'visibility'.tr() + ':',
+                '${'visibility'.tr()}:',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(width: 16),

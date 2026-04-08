@@ -1,14 +1,50 @@
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
 
-/// API for notification endpoints (/notification).
+/// API for notification endpoints (/ring/notification).
 ///
 /// Handles notifications, preferences, and push notifications.
 class NotificationsApi extends BaseApi {
   NotificationsApi(super.dio);
 
   /// Base path for all notification endpoints.
-  static const String _basePath = '/notification';
+  static const String _basePath = '/ring';
+
+  // Hardcoded notification topics
+  static const List<SnNotificationTopic> _defaultTopics = [
+    SnNotificationTopic(
+      topic: 'posts.mentions.new',
+      description: 'Post mentions',
+    ),
+    SnNotificationTopic(topic: 'post.replies', description: 'Post replies'),
+    SnNotificationTopic(
+      topic: 'posts.reactions.new',
+      description: 'New reactions',
+    ),
+    SnNotificationTopic(topic: 'posts.awards.new', description: 'Post awards'),
+    SnNotificationTopic(
+      topic: 'subscriptions.discontinued_in_app',
+      description: 'Subscription discontinued',
+    ),
+    SnNotificationTopic(
+      topic: 'subscriptions.begun',
+      description: 'Subscription started',
+    ),
+    SnNotificationTopic(topic: 'gifts.claimed', description: 'Gift claimed'),
+    SnNotificationTopic(
+      topic: 'wallets.transactions',
+      description: 'Wallet transactions',
+    ),
+    SnNotificationTopic(
+      topic: 'auth.verification',
+      description: 'Auth verification',
+    ),
+    SnNotificationTopic(topic: 'invites.realms', description: 'Realm invites'),
+    SnNotificationTopic(
+      topic: 'livestream.started',
+      description: 'Livestream started',
+    ),
+  ];
 
   // ==========================================
   // Notification endpoints
@@ -77,137 +113,72 @@ class NotificationsApi extends BaseApi {
   // Preference endpoints
   // ==========================================
 
-  /// Gets notification preferences.
-  Future<Map<String, dynamic>> getPreferences() async {
-    final response = await get<Map<String, dynamic>>('$_basePath/preferences');
-    return response.data!;
-  }
-
-  /// Updates notification preferences.
-  ///
-  /// [preferences] - The preferences to update.
-  Future<Map<String, dynamic>> updatePreferences({
-    required Map<String, dynamic> preferences,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/preferences',
-      data: preferences,
-    );
-    return response.data!;
-  }
-
-  /// Gets notification topics.
-  Future<List<dynamic>> getTopics() async {
-    final response = await get<List<dynamic>>('$_basePath/topics');
-    return response.data ?? [];
-  }
-
-  /// Subscribes to a notification topic.
-  ///
-  /// [topicId] - The topic ID.
-  Future<void> subscribeToTopic(String topicId) async {
-    await post('$_basePath/topics/$topicId/subscribe');
-  }
-
-  /// Unsubscribes from a notification topic.
-  ///
-  /// [topicId] - The topic ID.
-  Future<void> unsubscribeFromTopic(String topicId) async {
-    await post('$_basePath/topics/$topicId/unsubscribe');
-  }
-
-  // ==========================================
-  // Push notification endpoints
-  // ==========================================
-
-  /// Registers a device for push notifications.
-  ///
-  /// [token] - The push notification token.
-  /// [platform] - The platform (e.g., 'ios', 'android').
-  /// [deviceId] - The device ID.
-  Future<Map<String, dynamic>> registerPushToken({
-    required String token,
-    required String platform,
-    required String deviceId,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/push/register',
-      data: {'token': token, 'platform': platform, 'device_id': deviceId},
-    );
-    return response.data!;
-  }
-
-  /// Unregisters a device from push notifications.
-  ///
-  /// [deviceId] - The device ID.
-  Future<void> unregisterPushToken(String deviceId) async {
-    await delete('$_basePath/push/register/$deviceId');
-  }
-
-  /// Updates push notification settings.
-  ///
-  /// [deviceId] - The device ID.
-  /// [settings] - The notification settings.
-  Future<Map<String, dynamic>> updatePushSettings({
-    required String deviceId,
-    required Map<String, dynamic> settings,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/push/$deviceId/settings',
-      data: settings,
-    );
-    return response.data!;
-  }
-
-  // ==========================================
-  // In-app notification endpoints
-  // ==========================================
-
-  /// Gets in-app notification settings.
-  Future<Map<String, dynamic>> getInAppSettings() async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/in-app/settings',
-    );
-    return response.data!;
-  }
-
-  /// Updates in-app notification settings.
-  ///
-  /// [settings] - The settings to update.
-  Future<Map<String, dynamic>> updateInAppSettings({
-    required Map<String, dynamic> settings,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/in-app/settings',
-      data: settings,
-    );
-    return response.data!;
-  }
-
-  /// Clears in-app notification badge.
-  Future<void> clearBadge() async {
-    await post('$_basePath/in-app/badge/clear');
-  }
-
-  // ==========================================
-  // Activity endpoints
-  // ==========================================
-
-  /// Gets notification activity log.
-  ///
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<List<dynamic>> getActivityLog({int offset = 0, int take = 50}) async {
+  /// Gets all notification preferences.
+  Future<List<SnNotificationPreference>> getPreferences() async {
     final response = await get<List<dynamic>>(
-      '$_basePath/activity',
-      queryParameters: {'offset': offset, 'take': take},
+      '$_basePath/notifications/preferences',
     );
-    return response.data ?? [];
+    final data = response.data ?? [];
+    return data
+        .map(
+          (json) =>
+              SnNotificationPreference.fromJson(json as Map<String, dynamic>),
+        )
+        .toList();
   }
 
-  /// Gets notification statistics.
-  Future<Map<String, dynamic>> getStats() async {
-    final response = await get<Map<String, dynamic>>('$_basePath/stats');
-    return response.data!;
+  /// Gets preference for a specific topic.
+  ///
+  /// Returns the preference level for a topic. Returns Normal if no custom preference is set.
+  Future<SnNotificationPreferenceLevel> getPreference(String topic) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/notifications/preferences/$topic',
+    );
+    final preference = response.data!['preference'] as int;
+    return SnNotificationPreferenceLevel.fromValue(preference);
+  }
+
+  /// Sets or updates the preference for a topic.
+  ///
+  /// [topic] - The topic identifier.
+  /// [preference] - The preference level to set.
+  Future<void> setPreference(
+    String topic,
+    SnNotificationPreferenceLevel preference,
+  ) async {
+    await put<Map<String, dynamic>>(
+      '$_basePath/notifications/preferences/$topic',
+      data: {'preference': preference.value},
+    );
+  }
+
+  /// Deletes the custom preference for a topic, resetting to default (Normal).
+  ///
+  /// [topic] - The topic identifier.
+  Future<void> deletePreference(String topic) async {
+    await delete('$_basePath/notifications/preferences/$topic');
+  }
+
+  /// Gets all available notification topics.
+  ///
+  /// Returns the hardcoded default topics. Users can set preferences for any custom topic.
+  List<SnNotificationTopic> getTopics() {
+    return _defaultTopics;
+  }
+
+  /// Gets only the default hardcoded topics.
+  List<SnNotificationTopic> getDefaultTopics() {
+    return _defaultTopics;
+  }
+
+  /// Adds a custom topic.
+  ///
+  /// [topic] - The custom topic identifier.
+  /// [description] - Description for the topic.
+  Future<void> addCustomTopic(String topic, String description) async {
+    await post<Map<String, dynamic>>(
+      '$_basePath/notifications/topics',
+      data: {'topic': topic, 'description': description},
+    );
   }
 }

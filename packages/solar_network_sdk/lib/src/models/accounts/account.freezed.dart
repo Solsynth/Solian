@@ -4226,4 +4226,542 @@ $SnAccountStatusCopyWith<$Res> get status {
 }
 }
 
+
+/// @nodoc
+mixin _$SnNotificationPreference {
+
+ String get id; String get accountId; String get topic; SnNotificationPreferenceLevel get preference; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnNotificationPreference
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnNotificationPreferenceCopyWith<SnNotificationPreference> get copyWith => _$SnNotificationPreferenceCopyWithImpl<SnNotificationPreference>(this as SnNotificationPreference, _$identity);
+
+  /// Serializes this SnNotificationPreference to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationPreference&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.preference, preference) || other.preference == preference)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,accountId,topic,preference,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnNotificationPreference(id: $id, accountId: $accountId, topic: $topic, preference: $preference, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnNotificationPreferenceCopyWith<$Res>  {
+  factory $SnNotificationPreferenceCopyWith(SnNotificationPreference value, $Res Function(SnNotificationPreference) _then) = _$SnNotificationPreferenceCopyWithImpl;
+@useResult
+$Res call({
+ String id, String accountId, String topic, SnNotificationPreferenceLevel preference, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnNotificationPreferenceCopyWithImpl<$Res>
+    implements $SnNotificationPreferenceCopyWith<$Res> {
+  _$SnNotificationPreferenceCopyWithImpl(this._self, this._then);
+
+  final SnNotificationPreference _self;
+  final $Res Function(SnNotificationPreference) _then;
+
+/// Create a copy of SnNotificationPreference
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? topic = null,Object? preference = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
+as String,preference: null == preference ? _self.preference : preference // ignore: cast_nullable_to_non_nullable
+as SnNotificationPreferenceLevel,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnNotificationPreference].
+extension SnNotificationPreferencePatterns on SnNotificationPreference {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnNotificationPreference value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnNotificationPreference() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnNotificationPreference value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotificationPreference():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnNotificationPreference value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotificationPreference() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String topic,  SnNotificationPreferenceLevel preference,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnNotificationPreference() when $default != null:
+return $default(_that.id,_that.accountId,_that.topic,_that.preference,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String topic,  SnNotificationPreferenceLevel preference,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnNotificationPreference():
+return $default(_that.id,_that.accountId,_that.topic,_that.preference,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String topic,  SnNotificationPreferenceLevel preference,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnNotificationPreference() when $default != null:
+return $default(_that.id,_that.accountId,_that.topic,_that.preference,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnNotificationPreference implements SnNotificationPreference {
+  const _SnNotificationPreference({required this.id, required this.accountId, required this.topic, required this.preference, required this.createdAt, required this.updatedAt, this.deletedAt});
+  factory _SnNotificationPreference.fromJson(Map<String, dynamic> json) => _$SnNotificationPreferenceFromJson(json);
+
+@override final  String id;
+@override final  String accountId;
+@override final  String topic;
+@override final  SnNotificationPreferenceLevel preference;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnNotificationPreference
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnNotificationPreferenceCopyWith<_SnNotificationPreference> get copyWith => __$SnNotificationPreferenceCopyWithImpl<_SnNotificationPreference>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnNotificationPreferenceToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationPreference&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.preference, preference) || other.preference == preference)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,accountId,topic,preference,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnNotificationPreference(id: $id, accountId: $accountId, topic: $topic, preference: $preference, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnNotificationPreferenceCopyWith<$Res> implements $SnNotificationPreferenceCopyWith<$Res> {
+  factory _$SnNotificationPreferenceCopyWith(_SnNotificationPreference value, $Res Function(_SnNotificationPreference) _then) = __$SnNotificationPreferenceCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String accountId, String topic, SnNotificationPreferenceLevel preference, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnNotificationPreferenceCopyWithImpl<$Res>
+    implements _$SnNotificationPreferenceCopyWith<$Res> {
+  __$SnNotificationPreferenceCopyWithImpl(this._self, this._then);
+
+  final _SnNotificationPreference _self;
+  final $Res Function(_SnNotificationPreference) _then;
+
+/// Create a copy of SnNotificationPreference
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? topic = null,Object? preference = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnNotificationPreference(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
+as String,preference: null == preference ? _self.preference : preference // ignore: cast_nullable_to_non_nullable
+as SnNotificationPreferenceLevel,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnNotificationTopic {
+
+ String get topic; String get description; bool get isCustom;
+/// Create a copy of SnNotificationTopic
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnNotificationTopicCopyWith<SnNotificationTopic> get copyWith => _$SnNotificationTopicCopyWithImpl<SnNotificationTopic>(this as SnNotificationTopic, _$identity);
+
+  /// Serializes this SnNotificationTopic to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotificationTopic&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.description, description) || other.description == description)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,topic,description,isCustom);
+
+@override
+String toString() {
+  return 'SnNotificationTopic(topic: $topic, description: $description, isCustom: $isCustom)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnNotificationTopicCopyWith<$Res>  {
+  factory $SnNotificationTopicCopyWith(SnNotificationTopic value, $Res Function(SnNotificationTopic) _then) = _$SnNotificationTopicCopyWithImpl;
+@useResult
+$Res call({
+ String topic, String description, bool isCustom
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnNotificationTopicCopyWithImpl<$Res>
+    implements $SnNotificationTopicCopyWith<$Res> {
+  _$SnNotificationTopicCopyWithImpl(this._self, this._then);
+
+  final SnNotificationTopic _self;
+  final $Res Function(SnNotificationTopic) _then;
+
+/// Create a copy of SnNotificationTopic
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? topic = null,Object? description = null,Object? isCustom = null,}) {
+  return _then(_self.copyWith(
+topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,isCustom: null == isCustom ? _self.isCustom : isCustom // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnNotificationTopic].
+extension SnNotificationTopicPatterns on SnNotificationTopic {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnNotificationTopic value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnNotificationTopic() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnNotificationTopic value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotificationTopic():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnNotificationTopic value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnNotificationTopic() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String topic,  String description,  bool isCustom)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnNotificationTopic() when $default != null:
+return $default(_that.topic,_that.description,_that.isCustom);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String topic,  String description,  bool isCustom)  $default,) {final _that = this;
+switch (_that) {
+case _SnNotificationTopic():
+return $default(_that.topic,_that.description,_that.isCustom);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String topic,  String description,  bool isCustom)?  $default,) {final _that = this;
+switch (_that) {
+case _SnNotificationTopic() when $default != null:
+return $default(_that.topic,_that.description,_that.isCustom);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnNotificationTopic implements SnNotificationTopic {
+  const _SnNotificationTopic({required this.topic, required this.description, this.isCustom = false});
+  factory _SnNotificationTopic.fromJson(Map<String, dynamic> json) => _$SnNotificationTopicFromJson(json);
+
+@override final  String topic;
+@override final  String description;
+@override@JsonKey() final  bool isCustom;
+
+/// Create a copy of SnNotificationTopic
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnNotificationTopicCopyWith<_SnNotificationTopic> get copyWith => __$SnNotificationTopicCopyWithImpl<_SnNotificationTopic>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnNotificationTopicToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotificationTopic&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.description, description) || other.description == description)&&(identical(other.isCustom, isCustom) || other.isCustom == isCustom));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,topic,description,isCustom);
+
+@override
+String toString() {
+  return 'SnNotificationTopic(topic: $topic, description: $description, isCustom: $isCustom)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnNotificationTopicCopyWith<$Res> implements $SnNotificationTopicCopyWith<$Res> {
+  factory _$SnNotificationTopicCopyWith(_SnNotificationTopic value, $Res Function(_SnNotificationTopic) _then) = __$SnNotificationTopicCopyWithImpl;
+@override @useResult
+$Res call({
+ String topic, String description, bool isCustom
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnNotificationTopicCopyWithImpl<$Res>
+    implements _$SnNotificationTopicCopyWith<$Res> {
+  __$SnNotificationTopicCopyWithImpl(this._self, this._then);
+
+  final _SnNotificationTopic _self;
+  final $Res Function(_SnNotificationTopic) _then;
+
+/// Create a copy of SnNotificationTopic
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? topic = null,Object? description = null,Object? isCustom = null,}) {
+  return _then(_SnNotificationTopic(
+topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,isCustom: null == isCustom ? _self.isCustom : isCustom // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
 // dart format on

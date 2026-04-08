@@ -305,3 +305,47 @@ sealed class SnFriendOverviewItem with _$SnFriendOverviewItem {
   factory SnFriendOverviewItem.fromJson(Map<String, dynamic> json) =>
       _$SnFriendOverviewItemFromJson(json);
 }
+
+enum SnNotificationPreferenceLevel {
+  normal(0),
+  silent(1),
+  reject(2);
+
+  final int value;
+  const SnNotificationPreferenceLevel(this.value);
+
+  static SnNotificationPreferenceLevel fromValue(int value) {
+    return SnNotificationPreferenceLevel.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => SnNotificationPreferenceLevel.normal,
+    );
+  }
+}
+
+@freezed
+sealed class SnNotificationPreference with _$SnNotificationPreference {
+  const factory SnNotificationPreference({
+    required String id,
+    required String accountId,
+    required String topic,
+    required SnNotificationPreferenceLevel preference,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? deletedAt,
+  }) = _SnNotificationPreference;
+
+  factory SnNotificationPreference.fromJson(Map<String, dynamic> json) =>
+      _$SnNotificationPreferenceFromJson(json);
+}
+
+@freezed
+sealed class SnNotificationTopic with _$SnNotificationTopic {
+  const factory SnNotificationTopic({
+    required String topic,
+    required String description,
+    @Default(false) bool isCustom,
+  }) = _SnNotificationTopic;
+
+  factory SnNotificationTopic.fromJson(Map<String, dynamic> json) =>
+      _$SnNotificationTopicFromJson(json);
+}
