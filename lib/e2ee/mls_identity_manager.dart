@@ -95,22 +95,16 @@ class MlsIdentityManager {
         );
         publicKey = signerKeyPair.publicKey();
       } else {
-        // Intermediate format (base64 of serializeSigner, but no public key stored)
-        signerBytes = base64Decode(oldStored);
-        // We need to regenerate to get the public key
-        final signerKeyPair = MlsSignatureKeyPair.generate(
-          ciphersuite: defaultCiphersuite,
-        );
-        // But this gives a NEW keypair... we need the old one.
-        // For migration, we'll have to re-bootstrap groups.
-        signerBytes = serializeSigner(
-          ciphersuite: defaultCiphersuite,
-          privateKey: signerKeyPair.privateKey(),
-          publicKey: signerKeyPair.publicKey(),
-        );
-        publicKey = signerKeyPair.publicKey();
+        // Intermediate format - cannot recover public key from serializeSigner output
+        // This format was stored by a buggy version. Groups created with this key
+        // will need to be re-bootstrapped to ensure all members have the correct key.
         _mlsLogWarn(
-          'Migrating from intermediate signer format - group re-bootstrap may be required',
+          'Migrating from intermediate signer format - groups may need re-bootstrap',
+        );
+        throw StateError(
+          'Cannot migrate from intermediate signer format. '
+          'Groups must be re-bootstrapped. This device cannot decrypt messages '
+          'from groups created during the intermediate format period.',
         );
       }
 
@@ -218,7 +212,7 @@ class MlsIdentityManager {
   Future<int> uploadKeyPackage(String keyPackage) async {
     try {
       final response = await _padlockClient.put(
-        '/e2ee/mls/devices/me/key-packages',
+        '/mls/devices/me/key-packages',
         data: {
           'key_package': keyPackage,
           'device_id': await getOrCreateDeviceId(),
@@ -252,7 +246,7 @@ class MlsIdentityManager {
   ) async {
     try {
       final response = await _padlockClient.get(
-        '/e2ee/mls/keys/$accountId/devices',
+        '/mls/keys/$accountId/devices',
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       if (response.data is List) {
@@ -270,7 +264,7 @@ class MlsIdentityManager {
   Future<bool> revokeDevice(String deviceId) async {
     try {
       final response = await _padlockClient.post(
-        '/e2ee/mls/devices/$deviceId/revoke',
+        '/mls/devices/$deviceId/revoke',
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       return response.statusCode == 200 || response.statusCode == 204;
@@ -298,5 +292,30 @@ class MlsIdentityManager {
         .map((d) => d['device_id']?.toString())
         .whereType<String>()
         .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> checkUsersBatchReady(
+    List<String> accountIds,
+  ) async {
+    if (accountIds.isEmpty) return [];
+
+    try {
+      final response = await _padlockClient.post(
+        '/mls/users/ready/batch',
+        data: {'account_ids': accountIds},
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+      );
+
+      if (response.data is Map<String, dynamic>) {
+        final users = response.data['users'] as List?;
+        if (users != null) {
+          return users.map((u) => Map<String, dynamic>.from(u as Map)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      _mlsLogError('Failed to batch check users ready: $e');
+      return [];
+    }
   }
 }

@@ -692,6 +692,48 @@ final chatMemberListProvider = AsyncNotifierProvider.autoDispose.family(
   ChatMemberListNotifier.new,
 );
 
+final mlsUserReadinessProvider = FutureProvider.autoDispose
+    .family<Map<String, MlsUserReadyStatus>, List<String>>((
+      ref,
+      accountIds,
+    ) async {
+      if (accountIds.isEmpty) return {};
+
+      final mlsClient = ref.watch(mlsClientProvider);
+      final results = await mlsClient.identityManager.checkUsersBatchReady(
+        accountIds,
+      );
+
+      final readinessMap = <String, MlsUserReadyStatus>{};
+      for (final result in results) {
+        final accountId = result['account_id'] as String?;
+        final isReady = result['is_ready'] as bool? ?? false;
+        final availableKeyPackages =
+            result['available_key_packages'] as int? ?? 0;
+
+        if (accountId != null) {
+          readinessMap[accountId] = MlsUserReadyStatus(
+            accountId: accountId,
+            isReady: isReady,
+            availableKeyPackages: availableKeyPackages,
+          );
+        }
+      }
+      return readinessMap;
+    });
+
+class MlsUserReadyStatus {
+  final String accountId;
+  final bool isReady;
+  final int availableKeyPackages;
+
+  MlsUserReadyStatus({
+    required this.accountId,
+    required this.isReady,
+    required this.availableKeyPackages,
+  });
+}
+
 class ChatMemberListNotifier
     extends AsyncNotifier<PaginationState<SnChatMember>>
     with AsyncPaginationController<SnChatMember> {
@@ -760,7 +802,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           try {
             final padlockClient = ref.read(padlockApiClientProvider);
             final readyResponse = await padlockClient.get(
-              '/e2ee/mls/users/${result.id}/ready',
+              '/mls/users/${result.id}/ready',
               options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
             );
             final isReady = readyResponse.data['is_ready'] as bool? ?? false;
@@ -770,6 +812,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
               await mlsClient.groupManager.addMembersAndFanoutWelcome(
                 mlsGroupId,
                 [result.id],
+                chatRoomId: roomId,
               );
             }
           } catch (e) {
@@ -826,6 +869,14 @@ class _ChatMemberListSheet extends HookConsumerWidget {
               provider: chatMemberListProvider(roomId),
               notifier: chatMemberListProvider(roomId).notifier,
               itemBuilder: (context, idx, member) {
+                final readinessAsync = ref.watch(
+                  mlsUserReadinessProvider([member.accountId]),
+                );
+                final isE2eeReady = readinessAsync.maybeWhen(
+                  data: (data) => data[member.accountId]?.isReady ?? false,
+                  orElse: () => false,
+                );
+
                 return ListTile(
                   contentPadding: EdgeInsets.only(left: 16, right: 12),
                   leading: AccountPfcRegion(
@@ -846,6 +897,25 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                         ),
                       if (member.joinedAt == null)
                         const Icon(Symbols.pending_actions, size: 20),
+                      const Gap(4),
+                      if (isE2eeReady)
+                        Tooltip(
+                          message: 'E2EE Ready',
+                          child: Icon(
+                            Symbols.lock,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      else
+                        Tooltip(
+                          message: 'E2EE Not Available',
+                          child: Icon(
+                            Symbols.lock_open,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
                     ],
                   ),
                   subtitle: Text("@${member.account.name}"),

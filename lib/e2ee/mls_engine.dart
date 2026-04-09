@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
@@ -9,19 +10,34 @@ import 'package:island/talker.dart';
 
 class MlsEngineService {
   static MlsEngineService? _instance;
-  MlsEngine? _engine;
-  bool _initialized = false;
+  static MlsEngine? _engine;
+  static bool _initialized = false;
+  static Completer<void>? _initCompleter;
 
   MlsEngineService._();
 
   static Future<MlsEngineService> getInstance() async {
-    if (_instance == null) {
+    if (_instance != null && _initialized && _engine != null) {
+      return _instance!;
+    }
+
+    if (_initCompleter != null) {
+      await _initCompleter!.future;
+      return _instance!;
+    }
+
+    _initCompleter = Completer<void>();
+    try {
       _instance = MlsEngineService._();
       await _instance!._initialize();
-    } else if (!_instance!._initialized) {
-      await _instance!._initialize();
+      _initCompleter!.complete();
+      return _instance!;
+    } catch (e) {
+      _initCompleter!.completeError(e);
+      rethrow;
+    } finally {
+      _initCompleter = null;
     }
-    return _instance!;
   }
 
   Future<void> _initialize() async {
@@ -48,6 +64,7 @@ class MlsEngineService {
         key: 'mls_db_encryption_key',
         value: dbKeyBase64,
       );
+      talker.info('Generated new MLS database encryption key');
     }
 
     final encryptionKey = base64Decode(dbKeyBase64);
@@ -63,7 +80,6 @@ class MlsEngineService {
       }
       dbPath = '${appSupportDir.path}/mls_encrypted.db';
 
-      // Check if database file exists and is valid
       final dbFile = File(dbPath);
       if (await dbFile.exists()) {
         try {
@@ -71,9 +87,11 @@ class MlsEngineService {
             dbPath: dbPath,
             encryptionKey: encryptionKey,
           );
+          talker.info('Opened existing MLS database');
         } catch (e) {
           if (e.toString().contains('file is not a database') ||
-              e.toString().contains('wrong key')) {
+              e.toString().contains('wrong key') ||
+              e.toString().contains('not a database')) {
             talker.warning(
               'Corrupted MLS database, deleting and recreating...',
             );
@@ -82,6 +100,7 @@ class MlsEngineService {
               dbPath: dbPath,
               encryptionKey: encryptionKey,
             );
+            talker.info('Created new MLS database after corruption');
           } else {
             rethrow;
           }
@@ -91,6 +110,7 @@ class MlsEngineService {
           dbPath: dbPath,
           encryptionKey: encryptionKey,
         );
+        talker.info('Created new MLS database');
       }
     }
 
@@ -107,13 +127,18 @@ class MlsEngineService {
   bool get isInitialized => _initialized && _engine != null;
 
   Future<void> close() async {
-    await _engine?.close();
-    _engine = null;
-    _initialized = false;
+    if (_engine != null) {
+      await _engine!.close();
+      _engine = null;
+      _initialized = false;
+      _instance = null;
+    }
   }
 
   static void resetInstance() {
     _instance = null;
+    _engine = null;
+    _initialized = false;
   }
 }
 

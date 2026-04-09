@@ -25,6 +25,17 @@ void _mlsLogInfo(dynamic msg) {
   talker.log('$_mlsLogPrefix$msg');
 }
 
+void _logEpochTransition(
+  String mlsGroupId,
+  int fromEpoch,
+  int toEpoch,
+  String reason,
+) {
+  talker.info(
+    '$_mlsLogPrefix[EPOCH] group=$mlsGroupId $fromEpoch → $toEpoch reason=$reason',
+  );
+}
+
 enum MlsEnvelopeType {
   welcome(5),
   commit(4),
@@ -242,7 +253,7 @@ class MlsGroupManager {
       // Call server to bootstrap the group
       try {
         await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/bootstrap',
+          '/mls/groups/$mlsGroupId/bootstrap',
           data: {
             'chat_room_id': mlsGroupId,
             'group_id': mlsGroupId,
@@ -259,6 +270,8 @@ class MlsGroupManager {
       _mlsLogInfo(
         'MLS group bootstrapped for room $mlsGroupId with epoch ${epoch.toInt()}',
       );
+
+      _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'bootstrap');
 
       if (invitedMembers != null && invitedMembers.isNotEmpty) {
         await fanoutWelcome(mlsGroupId, invitedMembers);
@@ -305,6 +318,8 @@ class MlsGroupManager {
         'Joined MLS group from Welcome for room $mlsGroupId (epoch: ${epoch.toInt()})',
       );
 
+      _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'welcome_join');
+
       return await getGroupState(mlsGroupId);
     } catch (e) {
       _mlsLogError(
@@ -317,7 +332,7 @@ class MlsGroupManager {
   Future<Map<String, dynamic>?> commitPending(String mlsGroupId) async {
     try {
       final response = await _padlockClient.post(
-        '/e2ee/mls/groups/$mlsGroupId/commit',
+        '/mls/groups/$mlsGroupId/commit',
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       if (response.data is Map<String, dynamic>) {
@@ -357,7 +372,7 @@ class MlsGroupManager {
             .toList();
 
         await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/welcome/fanout',
+          '/mls/groups/$mlsGroupId/welcome/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
           options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
         );
@@ -378,13 +393,27 @@ class MlsGroupManager {
   /// Returns the welcome bytes on success.
   Future<Uint8List?> addMembersAndFanoutWelcome(
     String mlsGroupId,
-    List<String> memberAccountIds,
-  ) async {
+    List<String> memberAccountIds, {
+    String? chatRoomId,
+  }) async {
     try {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
       final groupIdBytes = utf8.encode(mlsGroupId);
+      final myAccountId = await _identityManager.getCurrentAccountId();
+
+      // 0. Get existing group members BEFORE adding new ones
+      // This is critical for epoch sync - existing members MUST receive the Commit
+      final existingMembers = await _getGroupMembersForFanout(
+        mlsGroupId,
+        chatRoomId: chatRoomId,
+        excludeAccountIds: memberAccountIds,
+        myAccountId: myAccountId,
+      );
+      _mlsLog(
+        'Found ${existingMembers.length} existing members to notify of group change',
+      );
 
       // 1. Fetch KeyPackages for each member
       final List<Uint8List> keyPackages = [];
@@ -416,6 +445,13 @@ class MlsGroupManager {
       );
 
       final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+      final previousEpoch = await getCurrentEpoch(mlsGroupId);
+      _logEpochTransition(
+        mlsGroupId,
+        previousEpoch,
+        epoch.toInt(),
+        'member_add(${keyPackages.length})',
+      );
       await saveGroupState(mlsGroupId, {
         'group_id': mlsGroupId,
         'epoch': epoch.toInt(),
@@ -428,10 +464,23 @@ class MlsGroupManager {
         'Added ${keyPackages.length} members to group room $mlsGroupId (epoch: ${epoch.toInt()})',
       );
 
-      // 3. Fan out Commit to existing members (critical for epoch advancement)
+      // 3. CRITICAL: Fan out Commit to ALL existing members
+      // This is required for epoch synchronization - without it, existing members
+      // will have stale epoch and cannot decrypt new messages
       if (addResult.commit.isNotEmpty) {
-        _mlsLog('Fanout commit to existing members...');
-        await _fanoutCommitToExistingMembers(mlsGroupId, addResult.commit);
+        _mlsLog(
+          'Fanout commit to ${existingMembers.length} existing members...',
+        );
+        await _fanoutCommitToExistingMembers(
+          mlsGroupId,
+          addResult.commit,
+          existingMemberAccountIds: existingMembers,
+        );
+        _mlsLogInfo('Commit fanout completed');
+      } else {
+        _mlsLogWarn(
+          'No commit in addResult - this is unexpected for member add',
+        );
       }
 
       // 4. Send welcome to new members for joining
@@ -451,6 +500,36 @@ class MlsGroupManager {
       );
       rethrow;
     }
+  }
+
+  /// Get list of existing group members for Commit fanout.
+  /// Excludes the members being added and the current user.
+  Future<List<String>> _getGroupMembersForFanout(
+    String mlsGroupId, {
+    String? chatRoomId,
+    required List<String> excludeAccountIds,
+    String? myAccountId,
+  }) async {
+    // Get members from chat room API
+    // This should match MLS group members for properly synced rooms
+    if (chatRoomId != null) {
+      try {
+        final roomMembers = await _fetchAllChatRoomMembers(chatRoomId);
+        final filtered = roomMembers
+            .where((id) => id != myAccountId && !excludeAccountIds.contains(id))
+            .toList();
+        _mlsLog(
+          'Using ${filtered.length} chat room members for fanout (excluding ${excludeAccountIds.length} new + self)',
+        );
+        return filtered;
+      } catch (e) {
+        _mlsLogWarn('Failed to fetch chat room members: $e');
+      }
+    }
+
+    // Last resort: return empty list (commit fanout will be skipped)
+    _mlsLogWarn('Could not determine existing members for fanout');
+    return [];
   }
 
   /// Send welcome bytes to the server for distribution to invited members.
@@ -494,7 +573,7 @@ class MlsGroupManager {
             .toList();
 
         await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/welcome/fanout',
+          '/mls/groups/$mlsGroupId/welcome/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
           options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
         );
@@ -554,7 +633,7 @@ class MlsGroupManager {
             .toList();
 
         await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/commit/fanout',
+          '/mls/groups/$mlsGroupId/commit/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
           options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
         );
@@ -614,7 +693,7 @@ class MlsGroupManager {
   Future<bool> requestReshare(String mlsGroupId) async {
     try {
       final response = await _padlockClient.post(
-        '/e2ee/mls/groups/$mlsGroupId/reshare-required',
+        '/mls/groups/$mlsGroupId/reshare-required',
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
       return response.statusCode == 200 || response.statusCode == 204;
@@ -654,7 +733,7 @@ class MlsGroupManager {
 
       for (final memberId in membersToAdd) {
         await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/reshare-required',
+          '/mls/groups/$mlsGroupId/reshare-required',
           data: {
             'chat_room_id': roomId,
             'group_id': mlsGroupId,
@@ -703,7 +782,7 @@ class MlsGroupManager {
 
     try {
       await _padlockClient.post(
-        '/e2ee/mls/groups/$mlsGroupId/reset',
+        '/mls/groups/$mlsGroupId/reset',
         data: {
           'new_epoch': 0,
           'state_version': await _getCurrentStateVersion(mlsGroupId) + 1,
@@ -733,7 +812,11 @@ class MlsGroupManager {
         _mlsLog(
           'Re-adding ${membersToAdd.length} members to group $mlsGroupId (excluded creator)',
         );
-        await addMembersAndFanoutWelcome(mlsGroupId, membersToAdd);
+        await addMembersAndFanoutWelcome(
+          mlsGroupId,
+          membersToAdd,
+          chatRoomId: roomId,
+        );
         _mlsLog('Successfully re-added members to group $mlsGroupId');
       }
     } catch (e) {

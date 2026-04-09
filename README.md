@@ -59,10 +59,12 @@ Note: Fediverse support is currently experimental and limited.
 | Social Features | Done | Friends list and blocklist management |
 | File Management | Done | Upload and organize files |
 | AI Features | Done | Smart assistance throughout the app |
+| Fitness & Health | Beta | Track your fitness goal and share with your friends |
+| Progressions | Done | Make your move on Solar Network memorizable |
+| Fediverse | Beta | Interact with other fediverse instances |
 
 ### Coming Soon
 
-- **Fitness & Health** - Track your health and exercise goals
 - **SolarWatt Ideask** - An todo and task management app
 
 ---

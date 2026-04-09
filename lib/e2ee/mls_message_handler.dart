@@ -7,6 +7,7 @@ import 'package:island/talker.dart';
 import 'mls_engine.dart';
 import 'mls_identity_manager.dart';
 import 'mls_group_manager.dart';
+import 'mls_pending_queue.dart';
 
 const _mlsLogPrefix = '[MLS] ';
 
@@ -342,6 +343,38 @@ class MlsMessageHandler {
           _mlsLogWarn(
             'AEAD decryption failed → likely epoch mismatch (message epoch: $messageEpoch vs local: $localEpoch)',
           );
+
+          // Queue this message for later processing
+          _mlsLog(
+            'Queuing message $messageId for later processing due to epoch mismatch',
+          );
+          mlsPendingMessageQueue.enqueue(
+            PendingMlsMessage(
+              messageId: messageId,
+              mlsGroupId: mlsGroupId,
+              ciphertextBytes: ciphertextBytes,
+              epoch: messageEpoch,
+            ),
+          );
+
+          // Epoch mismatch detected - try to recover by fetching pending messages
+          // This may bring in the missing Commit that will advance our epoch
+          if (messageEpoch != null && messageEpoch > localEpoch) {
+            _mlsLog(
+              'Epoch mismatch: message epoch $messageEpoch > local $localEpoch, attempting recovery...',
+            );
+            final recovered = await _attemptEpochRecovery(
+              mlsGroupId,
+              messageEpoch,
+            );
+            if (recovered) {
+              // Try processing queued messages
+              await _processPendingMessages(mlsGroupId);
+            }
+          }
+
+          // Return null since we queued this message for later processing
+          return null;
         }
 
         if (!_isMissingGroupError(e)) rethrow;
@@ -367,9 +400,9 @@ class MlsMessageHandler {
           return null;
 
         case ProcessedMessageType.stagedCommit:
-          final epoch = result.epoch.toInt();
+          final newEpoch = result.epoch.toInt();
           _mlsLog(
-            'Processed staged commit for room $mlsGroupId (new epoch: $epoch)',
+            'Processed staged commit for room $mlsGroupId (new epoch: $newEpoch)',
           );
 
           // Save epoch and ratchet tree for external join support by other devices
@@ -378,19 +411,23 @@ class MlsMessageHandler {
               groupIdBytes: groupIdBytes,
             );
             final existingState = await _groupManager.getGroupState(mlsGroupId);
+            final oldEpoch = existingState?['epoch'] as int? ?? 0;
             await _groupManager.saveGroupState(mlsGroupId, {
               ...?existingState,
               'group_id': mlsGroupId,
-              'epoch': epoch,
+              'epoch': newEpoch,
               'ratchet_tree': base64Encode(ratchetTree),
               'last_commit_at': DateTime.now().toIso8601String(),
               'updated_at': DateTime.now().toIso8601String(),
             });
-            _mlsLog('Saved epoch=$epoch after processing commit');
+            _mlsLog(
+              '[EPOCH] group=$mlsGroupId $oldEpoch → $newEpoch reason=commit_processed',
+            );
+            _mlsLog('Saved epoch=$newEpoch after processing commit');
           } catch (e) {
             _mlsLogWarn('Could not save ratchet tree after commit: $e');
             // Still update epoch even if ratchet tree fails
-            await _groupManager.handleEpochChanged(mlsGroupId, epoch);
+            await _groupManager.handleEpochChanged(mlsGroupId, newEpoch);
           }
           return null;
 
@@ -419,7 +456,7 @@ class MlsMessageHandler {
   }) async {
     try {
       final response = await _padlockClient.post(
-        '/e2ee/mls/messages/fanout',
+        '/mls/messages/fanout',
         data: {'room_id': mlsGroupId, 'payload': encryptedPayload},
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
@@ -453,7 +490,7 @@ class MlsMessageHandler {
   ) async {
     try {
       final response = await _padlockClient.get(
-        '/e2ee/mls/envelopes/pending',
+        '/mls/envelopes/pending',
         queryParameters: {'deviceId': deviceId},
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
@@ -472,7 +509,7 @@ class MlsMessageHandler {
   Future<bool> ackEnvelope(String envelopeId, String deviceId) async {
     try {
       final response = await _padlockClient.post(
-        '/e2ee/mls/envelopes/$envelopeId/ack',
+        '/mls/envelopes/$envelopeId/ack',
         queryParameters: {'deviceId': deviceId},
         options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
       );
@@ -481,6 +518,152 @@ class MlsMessageHandler {
       _mlsLogError('Failed to ack envelope: $e');
       return false;
     }
+  }
+
+  /// Attempt to recover from epoch mismatch by fetching and processing pending messages.
+  /// This will bring in any Commits that other members may have sent, which will
+  /// advance our local epoch to catch up.
+  Future<bool> _attemptEpochRecovery(String mlsGroupId, int targetEpoch) async {
+    _mlsLog(
+      'Attempting epoch recovery for group $mlsGroupId, target epoch $targetEpoch',
+    );
+
+    try {
+      // 1. Request reshare from server to ensure we get the latest updates
+      await _groupManager.requestReshare(mlsGroupId);
+
+      // 2. Fetch pending envelopes which may include Commits we need
+      final deviceId = await _identityManager.getOrCreateDeviceId();
+      if (deviceId == null) {
+        _mlsLogWarn('Cannot fetch pending envelopes: device ID is null');
+        return false;
+      }
+
+      final envelopes = await getPendingEnvelopes(deviceId);
+      if (envelopes.isEmpty) {
+        _mlsLog('No pending envelopes for epoch recovery');
+        return false;
+      }
+
+      _mlsLog(
+        'Processing ${envelopes.length} pending envelopes for epoch recovery',
+      );
+
+      // 3. Process any Commit or Proposal envelopes that could advance our epoch
+      bool processedCommit = false;
+      for (final envelope in envelopes) {
+        final envelopeId = envelope['id']?.toString();
+        final envelopeType = envelope['type'] as int?;
+        final ciphertext = envelope['ciphertext']?.toString();
+        final groupId = envelope['group_id']?.toString();
+
+        if (envelopeId == null || ciphertext == null || groupId == null)
+          continue;
+        if (groupId != mlsGroupId) continue;
+
+        // Only process commits and proposals
+        final type = MlsEnvelopeType.fromInt(envelopeType);
+        if (type != MlsEnvelopeType.commit && type != MlsEnvelopeType.proposal)
+          continue;
+
+        try {
+          final ciphertextBytes = base64Decode(ciphertext);
+          final engineService = await MlsEngineService.getInstance();
+          final engine = engineService.engine;
+          final groupIdBytes = utf8.encode(mlsGroupId);
+
+          final result = await engine.processMessage(
+            groupIdBytes: groupIdBytes,
+            messageBytes: ciphertextBytes,
+          );
+
+          if (result.messageType == ProcessedMessageType.stagedCommit) {
+            processedCommit = true;
+            final newEpoch = result.epoch.toInt();
+            _mlsLog(
+              'Processed commit during epoch recovery: epoch advanced to $newEpoch',
+            );
+
+            // Save the updated state
+            final ratchetTree = await engine.exportRatchetTree(
+              groupIdBytes: groupIdBytes,
+            );
+            final existingState = await _groupManager.getGroupState(mlsGroupId);
+            await _groupManager.saveGroupState(mlsGroupId, {
+              ...?existingState,
+              'group_id': mlsGroupId,
+              'epoch': newEpoch,
+              'ratchet_tree': base64Encode(ratchetTree),
+              'last_commit_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
+            });
+          }
+        } catch (e) {
+          _mlsLogWarn(
+            'Failed to process envelope $envelopeId during recovery: $e',
+          );
+        }
+
+        // Ack the envelope after processing
+        await ackEnvelope(envelopeId, deviceId);
+      }
+
+      // 4. Check if we caught up
+      if (processedCommit) {
+        final newEpoch = await _groupManager.getCurrentEpoch(mlsGroupId);
+        _mlsLog(
+          'Epoch recovery complete: now at epoch $newEpoch (target was $targetEpoch)',
+        );
+        return newEpoch >= targetEpoch;
+      }
+
+      return false;
+    } catch (e) {
+      _mlsLogError('Epoch recovery failed for group $mlsGroupId: $e');
+      return false;
+    }
+  }
+
+  /// Process any messages that were queued due to epoch mismatch.
+  /// Called after successful epoch recovery to process queued messages.
+  Future<List<Map<String, dynamic>>> _processPendingMessages(
+    String mlsGroupId,
+  ) async {
+    final pendingMessages = mlsPendingMessageQueue.dequeueAllForGroup(
+      mlsGroupId,
+    );
+    if (pendingMessages.isEmpty) {
+      return [];
+    }
+
+    _mlsLog(
+      'Processing ${pendingMessages.length} queued messages for group $mlsGroupId',
+    );
+    final results = <Map<String, dynamic>>[];
+
+    for (final pending in pendingMessages) {
+      try {
+        final result = await decryptMessage(
+          messageId: pending.messageId,
+          mlsGroupId: pending.mlsGroupId,
+          ciphertext: base64Encode(pending.ciphertextBytes),
+          encryptionHeader: null,
+          encryptionScheme: 'chat.mls.v2',
+        );
+        if (result != null) {
+          results.add(result);
+        }
+      } catch (e) {
+        _mlsLogWarn(
+          'Failed to process queued message ${pending.messageId}: $e',
+        );
+      }
+    }
+
+    _mlsLog(
+      'Processed ${results.length}/${pendingMessages.length} queued messages',
+    );
+    return results;
   }
 
   String _generateNonce() {
