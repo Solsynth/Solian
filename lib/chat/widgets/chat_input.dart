@@ -56,30 +56,33 @@ void _insertPlaceholder(TextEditingController controller, String placeholder) {
 /// This ensures compatibility with JSON parsers that expect snake_case keys
 Map<String, dynamic> _convertKeysToSnakeCase(Map map) {
   final result = <String, dynamic>{};
-  
+
   map.forEach((key, value) {
     // Convert camelCase/PascalCase to snake_case correctly
     // Handles:
     // - camelCase -> camel_case
     // - PascalCase -> pascal_case
-    // - Id -> id 
+    // - Id -> id
     // - accountId -> account_id
     // - HTTPRequest -> http_request
-    String snakeKey = key.replaceAllMapped(
-      RegExp(r'(?<!^)([A-Z])'),
-      (match) => '_${match.group(0)!.toLowerCase()}',
-    ).toLowerCase();
-    
+    String snakeKey = key
+        .replaceAllMapped(
+          RegExp(r'(?<!^)([A-Z])'),
+          (match) => '_${match.group(0)!.toLowerCase()}',
+        )
+        .toLowerCase();
+
     // Handle sequences of uppercase letters properly
     snakeKey = snakeKey.replaceAllMapped(
       RegExp(r'([A-Z]+)([A-Z][a-z])'),
-      (match) => '${match.group(1)!.toLowerCase()}_${match.group(2)!.toLowerCase()}',
+      (match) =>
+          '${match.group(1)!.toLowerCase()}_${match.group(2)!.toLowerCase()}',
     );
-    
+
     // Recursively process nested maps
     if (value is Map) {
       result[snakeKey] = _convertKeysToSnakeCase(value);
-    } 
+    }
     // Recursively process lists that contain maps
     else if (value is List) {
       result[snakeKey] = value.map((item) {
@@ -88,13 +91,13 @@ Map<String, dynamic> _convertKeysToSnakeCase(Map map) {
         }
         return item;
       }).toList();
-    } 
+    }
     // Directly assign primitive values
     else {
       result[snakeKey] = value;
     }
   });
-  
+
   return result;
 }
 
@@ -1581,13 +1584,18 @@ class ChatInput extends HookConsumerWidget {
                                   itemBuilder: (context, suggestion) {
                                     String title = 'unknown'.tr();
                                     Widget leading = Icon(Symbols.help);
-                                    
+
                                     // Ensure all keys are snake_case before deserialization
-                                    final normalizedData = _convertKeysToSnakeCase(suggestion.data);
-                                    
+                                    final normalizedData =
+                                        _convertKeysToSnakeCase(
+                                          suggestion.data,
+                                        );
+
                                     switch (suggestion.type) {
                                       case 'user':
-                                        final user = SnAccount.fromJson(normalizedData);
+                                        final user = SnAccount.fromJson(
+                                          normalizedData,
+                                        );
                                         title = user.nick;
                                         leading = ProfilePictureWidget(
                                           file: user.profile.picture,
@@ -1595,7 +1603,9 @@ class ChatInput extends HookConsumerWidget {
                                         );
                                         break;
                                       case 'chatroom':
-                                        final chatRoom = SnChatRoom.fromJson(normalizedData);
+                                        final chatRoom = SnChatRoom.fromJson(
+                                          normalizedData,
+                                        );
                                         title = chatRoom.name ?? 'Chat Room';
                                         leading = ProfilePictureWidget(
                                           file: chatRoom.picture,
@@ -1603,7 +1613,9 @@ class ChatInput extends HookConsumerWidget {
                                         );
                                         break;
                                       case 'realm':
-                                        final realm = SnRealm.fromJson(normalizedData);
+                                        final realm = SnRealm.fromJson(
+                                          normalizedData,
+                                        );
                                         title = realm.name;
                                         leading = ProfilePictureWidget(
                                           file: realm.picture,
@@ -1611,7 +1623,9 @@ class ChatInput extends HookConsumerWidget {
                                         );
                                         break;
                                       case 'publisher':
-                                        final publisher = SnPublisher.fromJson(normalizedData);
+                                        final publisher = SnPublisher.fromJson(
+                                          normalizedData,
+                                        );
                                         title = publisher.name;
                                         leading = ProfilePictureWidget(
                                           file: publisher.picture,
@@ -1619,10 +1633,14 @@ class ChatInput extends HookConsumerWidget {
                                         );
                                         break;
                                       case 'sticker':
-                                        final sticker = SnSticker.fromJson(normalizedData);
+                                        final sticker = SnSticker.fromJson(
+                                          normalizedData,
+                                        );
                                         title = sticker.slug;
                                         leading = ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           child: SizedBox(
                                             width: 28,
                                             height: 28,

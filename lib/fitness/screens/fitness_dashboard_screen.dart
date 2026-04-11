@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
@@ -64,7 +65,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
         if (!hasNew) return const SizedBox.shrink();
         return Card(
           color: Theme.of(context).colorScheme.primaryContainer,
-          margin: const EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.only(bottom: 16, left: 4, right: 4),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -189,7 +190,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
       ),
     ];
 
-    if (Platform.isIOS) {
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
       actions.addAll([
         const SizedBox(width: 12),
         Expanded(

@@ -328,14 +328,12 @@ class MlsClient {
           final groupId = data['group_id']?.toString();
           final reason = data['reason']?.toString() ?? 'group_reset';
           if (groupId != null) {
-            _mlsLog('Resetting group $groupId, reason: $reason');
-            await resetAndRebootstrapGroup(
-              roomId: groupId,
-              mlsGroupId: groupId,
-              creatorAccountId: '',
-              reason: reason,
-            );
-            _mlsLog('Group $groupId has been reset and re-bootstrapped');
+            _mlsLog('Processing reshare for group $groupId, reason: $reason');
+            // 1. Check if this device needs reshare (was marked by server)
+            // 2. Add self back to group in OpenMLS
+            // 3. Tell server reshare is complete
+            await _groupManager.checkAndProcessReshare(groupId);
+            _mlsLog('Reshare processed for group $groupId');
           }
         }
       }

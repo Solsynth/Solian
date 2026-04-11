@@ -67,6 +67,8 @@ class MlsMessageHandler {
   final MlsIdentityManager _identityManager;
   final Dio _padlockClient;
 
+  bool _isRecoveringEpoch = false;
+
   MlsMessageHandler({
     required MlsGroupManager groupManager,
     required MlsIdentityManager identityManager,
@@ -250,6 +252,14 @@ class MlsMessageHandler {
       return null;
     }
 
+    // Skip decryption if epoch recovery is already in progress
+    if (_isRecoveringEpoch) {
+      _mlsLog(
+        'Skipping decrypt: epoch recovery already in progress for $mlsGroupId',
+      );
+      return null;
+    }
+
     // Parse message epoch from header for diagnostics
     int? messageEpoch;
     String? parsedDeviceId;
@@ -350,10 +360,21 @@ class MlsMessageHandler {
           _mlsLog('Current local epoch: unknown');
         }
 
-        if (errorStr.contains('AEAD')) {
-          _mlsLogWarn(
-            'AEAD decryption failed → likely epoch mismatch (message epoch: $messageEpoch vs local: $localEpoch)',
-          );
+        // Check for epoch mismatch - either AEAD or explicit epoch error
+        final bool isEpochMismatch =
+            errorStr.contains('AEAD') ||
+            errorStr.toLowerCase().contains('epoch');
+
+        if (isEpochMismatch) {
+          if (errorStr.contains('AEAD')) {
+            _mlsLogWarn(
+              'AEAD decryption failed → likely epoch mismatch (message epoch: $messageEpoch vs local: $localEpoch)',
+            );
+          } else {
+            _mlsLogWarn(
+              'Epoch mismatch detected (message epoch: $messageEpoch vs local: $localEpoch): $errorStr',
+            );
+          }
 
           // Queue this message for later processing
           _mlsLog(
@@ -367,6 +388,9 @@ class MlsMessageHandler {
               epoch: messageEpoch,
             ),
           );
+
+          // Set recovery flag to prevent duplicate triggers from concurrent decryptions
+          _isRecoveringEpoch = true;
 
           // Epoch mismatch detected - try to recover by fetching pending messages
           // This may bring in the missing Commit that will advance our epoch
@@ -389,6 +413,22 @@ class MlsMessageHandler {
           if (!epochRecovered &&
               messageEpoch != null &&
               messageEpoch > localEpoch) {
+            // Check if the error is a deserialization error - treat as unrecoverable
+            final errorStrLower = errorStr.toLowerCase();
+            final isDeserializationError =
+                errorStrLower.contains('deserialize') ||
+                errorStrLower.contains('endofstream') ||
+                errorStrLower.contains('failed to deserialize');
+
+            if (isDeserializationError) {
+              _mlsLogWarn(
+                'Deserialization error during recovery for $mlsGroupId: $errorStr',
+              );
+              _isRecoveringEpoch = false;
+              eventBus.fire(MlsRecoveryFailedEvent(mlsGroupId: mlsGroupId));
+              return null;
+            }
+
             _mlsLog(
               'Epoch recovery failed, attempting external join for $mlsGroupId',
             );
@@ -407,24 +447,38 @@ class MlsMessageHandler {
                 ),
               );
             } else {
-              _mlsLogWarn('External join failed for $mlsGroupId');
+              _mlsLogWarn('External join failed for $mlsGroupId: $e');
               eventBus.fire(
                 MlsExternalJoinCompletedEvent(
                   mlsGroupId: mlsGroupId,
                   success: false,
-                  error: 'External join failed',
+                  error: e.toString(),
                 ),
               );
 
-              _mlsLog('Checking if reshare is required for $mlsGroupId');
-              final reshareProcessed = await _groupManager
-                  .checkAndProcessReshare(mlsGroupId);
-              if (reshareProcessed) {
-                _mlsLog('Reshare processed, retrying decryption');
-                await _processPendingMessages(mlsGroupId);
+              // Check if external join failed due to deserialization
+              final joinErrorStr = e.toString().toLowerCase();
+              if (joinErrorStr.contains('deserialize') ||
+                  joinErrorStr.contains('endofstream')) {
+                _mlsLogWarn(
+                  'External join failed due to deserialization error for $mlsGroupId',
+                );
+                _isRecoveringEpoch = false;
+                eventBus.fire(MlsRecoveryFailedEvent(mlsGroupId: mlsGroupId));
+                return null;
               }
+
+              // Reshare is for group reset scenarios (triggered by e2ee.group.reset packet),
+              // not for regular epoch recovery. If external join failed, show error to user.
+              _mlsLogWarn(
+                'All recovery attempts failed for $mlsGroupId, showing error to user',
+              );
+              eventBus.fire(MlsRecoveryFailedEvent(mlsGroupId: mlsGroupId));
             }
           }
+
+          // Reset recovery flag after all recovery attempts complete
+          _isRecoveringEpoch = false;
 
           // Return null since we queued this message for later processing
           return null;
@@ -511,7 +565,7 @@ class MlsMessageHandler {
   }) async {
     try {
       final response = await _padlockClient.post(
-        '/mls/messages/fanout',
+        '/e2ee/mls/messages/fanout',
         data: {'room_id': mlsGroupId, 'payload': encryptedPayload},
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -583,10 +637,7 @@ class MlsMessageHandler {
     );
 
     try {
-      // 1. Request reshare from server to ensure we get the latest updates
-      await _groupManager.requestReshare(mlsGroupId);
-
-      // 2. Fetch pending envelopes which may include Commits we need
+      // 1. Fetch pending envelopes which may include Commits we need
       final deviceId = await _identityManager.getOrCreateDeviceId();
       if (deviceId == null) {
         _mlsLogWarn('Cannot fetch pending envelopes: device ID is null');
@@ -603,7 +654,7 @@ class MlsMessageHandler {
         'Processing ${envelopes.length} pending envelopes for epoch recovery',
       );
 
-      // 3. Process any Commit or Proposal envelopes that could advance our epoch
+      // 2. Process any Commit or Proposal envelopes that could advance our epoch
       bool processedCommit = false;
       for (final envelope in envelopes) {
         final envelopeId = envelope['id']?.toString();
@@ -662,7 +713,7 @@ class MlsMessageHandler {
         await ackEnvelope(envelopeId, deviceId);
       }
 
-      // 4. Check if we caught up
+      // 3. Check if we caught up
       if (processedCommit) {
         final newEpoch = await _groupManager.getCurrentEpoch(mlsGroupId);
         _mlsLog(

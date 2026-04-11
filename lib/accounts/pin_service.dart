@@ -108,6 +108,7 @@ class PinService {
   }
 
   Future<SnLocationPin> createPin({
+    String? meetId,
     LocationPinVisibility visibility = LocationPinVisibility.public,
     String? locationName,
     String? locationAddress,
@@ -118,6 +119,7 @@ class PinService {
     final response = await _client.post(
       '/passport/pins',
       data: {
+        if (meetId?.trim().isNotEmpty ?? false) 'meet_id': meetId!.trim(),
         'visibility': switch (visibility) {
           LocationPinVisibility.public => 0,
           LocationPinVisibility.private => 1,

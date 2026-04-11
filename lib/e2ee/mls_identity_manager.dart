@@ -241,7 +241,7 @@ class MlsIdentityManager {
   Future<int> uploadKeyPackage(String keyPackage) async {
     try {
       final response = await _padlockClient.put(
-        '/mls/devices/me/kps',
+        '/e2ee/mls/devices/me/kps',
         data: {
           'key_package': keyPackage,
           'device_id': await getOrCreateDeviceId(),
@@ -275,7 +275,7 @@ class MlsIdentityManager {
   ) async {
     try {
       final response = await _padlockClient.get(
-        '/mls/keys/$accountId/devices',
+        '/e2ee/mls/keys/$accountId/devices',
         options: Options(headers: await getMlsHeaders()),
       );
       if (response.data is List) {
@@ -293,7 +293,7 @@ class MlsIdentityManager {
   Future<bool> revokeDevice(String deviceId) async {
     try {
       final response = await _padlockClient.post(
-        '/mls/devices/$deviceId/revoke',
+        '/e2ee/mls/devices/$deviceId/revoke',
         options: Options(headers: await getMlsHeaders()),
       );
       return response.statusCode == 200 || response.statusCode == 204;
@@ -330,7 +330,7 @@ class MlsIdentityManager {
 
     try {
       final response = await _padlockClient.post(
-        '/mls/users/ready/batch',
+        '/e2ee/mls/users/ready/batch',
         data: {'account_ids': accountIds},
         options: Options(headers: await getMlsHeaders()),
       );

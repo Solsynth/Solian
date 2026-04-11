@@ -175,3 +175,28 @@ class MlsExternalJoinCompletedEvent {
     this.error,
   });
 }
+
+/// Event fired when MLS recovery (epoch recovery + external join + reshare) all failed
+class MlsRecoveryFailedEvent {
+  final String mlsGroupId;
+
+  const MlsRecoveryFailedEvent({required this.mlsGroupId});
+}
+
+/// Event fired when MLS E2EE check/initialization starts for a room
+class MlsE2eeCheckStartedEvent {
+  final String mlsGroupId;
+
+  const MlsE2eeCheckStartedEvent({required this.mlsGroupId});
+}
+
+/// Event fired when MLS E2EE check/initialization completes for a room
+class MlsE2eeCheckCompletedEvent {
+  final String mlsGroupId;
+  final bool success;
+
+  const MlsE2eeCheckCompletedEvent({
+    required this.mlsGroupId,
+    required this.success,
+  });
+}

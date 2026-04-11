@@ -261,7 +261,7 @@ class MlsGroupManager {
       // Call server to bootstrap the group
       try {
         await _padlockClient.post(
-          '/mls/groups/$mlsGroupId/bootstrap',
+          '/e2ee/mls/groups/$mlsGroupId/bootstrap',
           data: {
             'chat_room_id': mlsGroupId,
             'group_id': mlsGroupId,
@@ -340,7 +340,7 @@ class MlsGroupManager {
   Future<Map<String, dynamic>?> commitPending(String mlsGroupId) async {
     try {
       final response = await _padlockClient.post(
-        '/mls/groups/$mlsGroupId/commit',
+        '/e2ee/mls/groups/$mlsGroupId/commit',
         options: Options(headers: await _getMlsHeaders()),
       );
       if (response.data is Map<String, dynamic>) {
@@ -383,7 +383,7 @@ class MlsGroupManager {
             .toList();
 
         await _padlockClient.post(
-          '/mls/groups/$mlsGroupId/welcome/fanout',
+          '/e2ee/mls/groups/$mlsGroupId/welcome/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
           options: Options(headers: await _getMlsHeaders()),
         );
@@ -584,7 +584,7 @@ class MlsGroupManager {
             .toList();
 
         await _padlockClient.post(
-          '/mls/groups/$mlsGroupId/welcome/fanout',
+          '/e2ee/mls/groups/$mlsGroupId/welcome/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
           options: Options(headers: await _getMlsHeaders()),
         );
@@ -644,7 +644,7 @@ class MlsGroupManager {
             .toList();
 
         await _padlockClient.post(
-          '/mls/groups/$mlsGroupId/commit/fanout',
+          '/e2ee/mls/groups/$mlsGroupId/commit/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
           options: Options(headers: await _getMlsHeaders()),
         );
@@ -704,7 +704,8 @@ class MlsGroupManager {
   Future<bool> requestReshare(String mlsGroupId) async {
     try {
       final response = await _padlockClient.post(
-        '/mls/groups/$mlsGroupId/reshare-required',
+        '/e2ee/mls/groups/$mlsGroupId/reshare-required',
+        data: {},
         options: Options(headers: await _getMlsHeaders()),
       );
       return response.statusCode == 200 || response.statusCode == 204;
@@ -855,7 +856,7 @@ class MlsGroupManager {
       );
 
       final response = await _padlockClient.put(
-        '/mls/groups/$mlsGroupId/groupinfo',
+        '/e2ee/mls/groups/$mlsGroupId/groupinfo',
         data: {'group_info': base64Encode(ratchetTree)},
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -873,7 +874,7 @@ class MlsGroupManager {
       _mlsLog('Attempting external join for group $mlsGroupId');
 
       final response = await _padlockClient.get(
-        '/mls/groups/$mlsGroupId/groupinfo',
+        '/e2ee/mls/groups/$mlsGroupId/groupinfo',
         options: Options(headers: await _getMlsHeaders()),
       );
 
@@ -956,7 +957,7 @@ class MlsGroupManager {
 
       for (final memberId in membersToAdd) {
         await _padlockClient.post(
-          '/mls/groups/$mlsGroupId/reshare-required',
+          '/e2ee/mls/groups/$mlsGroupId/reshare-required',
           data: {
             'chat_room_id': roomId,
             'group_id': mlsGroupId,
