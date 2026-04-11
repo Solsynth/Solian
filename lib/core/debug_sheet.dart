@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -13,6 +12,7 @@ import 'package:island/core/services/update_service.dart';
 import 'package:island/e2ee/mls_engine.dart';
 import 'package:island/e2ee/mls_storage.dart';
 import 'package:island/e2ee/mls_client.dart';
+import 'package:island/e2ee/key_package_popup.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -243,6 +243,21 @@ class DebugSheet extends HookConsumerWidget {
                   kind: 'quest',
                   title: 'Daily Check-in',
                   reward: const SnProgressRewardDefinition(experience: 50),
+                );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.lock),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test key package depleted'),
+              onTap: () {
+                final notifier = ref.read(keyPackagePopupProvider.notifier);
+                notifier.testShowRefill(
+                  mlsDeviceId: 'test-device-123',
+                  deviceLabel: 'Test iPhone',
+                  currentCount: 1,
                 );
               },
             ),

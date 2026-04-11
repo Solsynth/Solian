@@ -8,6 +8,27 @@ import 'mls_storage.dart';
 
 const _mlsLogPrefix = '[MLS] ';
 
+class KeyPackageStatus {
+  final bool needsMoreKps;
+  final List<Map<String, dynamic>> devicesNeedingKps;
+
+  const KeyPackageStatus({
+    required this.needsMoreKps,
+    required this.devicesNeedingKps,
+  });
+
+  factory KeyPackageStatus.fromJson(Map<String, dynamic> json) {
+    return KeyPackageStatus(
+      needsMoreKps: json['needs_more_kps'] as bool? ?? false,
+      devicesNeedingKps:
+          (json['devices_needing_kps'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
+    );
+  }
+}
+
 void _mlsLog(dynamic msg) {
   talker.info('$_mlsLogPrefix$msg');
 }
@@ -317,5 +338,102 @@ class MlsIdentityManager {
       _mlsLogError('Failed to batch check users ready: $e');
       return [];
     }
+  }
+
+  static const int _minKeyPackagesRequired = 3;
+
+  Future<KeyPackageStatus?> getKeyPackageStatus() async {
+    try {
+      final response = await _padlockClient.get(
+        '/e2ee/mls/kp/status',
+        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+      );
+      if (response.data is Map<String, dynamic>) {
+        return KeyPackageStatus.fromJson(
+          Map<String, dynamic>.from(response.data),
+        );
+      }
+      return null;
+    } catch (e) {
+      _mlsLogError('Failed to get key package status: $e');
+      return null;
+    }
+  }
+
+  Future<bool> checkAndRefillKeyPackages() async {
+    final status = await getKeyPackageStatus();
+    if (status == null || !status.needsMoreKps) {
+      _mlsLog('Key packages sufficient, no refill needed');
+      return true;
+    }
+
+    _mlsLog(
+      'Refilling key packages for ${status.devicesNeedingKps.length} device(s)',
+    );
+
+    for (final device in status.devicesNeedingKps) {
+      final deviceId = device['device_id'] as String?;
+      final availableCount = device['available_count'] as int? ?? 0;
+      final neededCount = _minKeyPackagesRequired - availableCount;
+
+      if (neededCount <= 0) continue;
+
+      _mlsLog(
+        'Device $deviceId has $availableCount KPs, uploading $neededCount more',
+      );
+
+      for (var i = 0; i < neededCount; i++) {
+        try {
+          final kp = await generateKeyPackage();
+          final kpBase64 = base64Encode(kp.keyPackageBytes);
+          await uploadKeyPackage(kpBase64);
+          _mlsLog(
+            'Uploaded key package ${i + 1}/$neededCount for device $deviceId',
+          );
+        } catch (e) {
+          _mlsLogWarn('Failed to upload key package for device $deviceId: $e');
+        }
+      }
+    }
+
+    _mlsLog('Key package refill complete');
+    return true;
+  }
+
+  Future<bool> handleKeyPackageDepletedPacket(
+    Map<String, dynamic> payload,
+  ) async {
+    final mlsDeviceId =
+        payload['mls_device_id'] as String? ?? payload['device_id'] as String?;
+    final availableCount = payload['available_count'] as int? ?? 0;
+
+    if (mlsDeviceId == null) {
+      _mlsLogWarn('Missing device_id in kp.depleted packet');
+      return false;
+    }
+
+    _mlsLog(
+      'Received kp.depleted for device $mlsDeviceId, available: $availableCount',
+    );
+
+    if (availableCount >= _minKeyPackagesRequired) {
+      _mlsLog('Device has sufficient key packages after consumption');
+      return true;
+    }
+
+    _mlsLog('Refilling key packages after depletion notification');
+    for (var i = 0; i < _minKeyPackagesRequired - availableCount; i++) {
+      try {
+        final kp = await generateKeyPackage();
+        final kpBase64 = base64Encode(kp.keyPackageBytes);
+        await uploadKeyPackage(kpBase64);
+        _mlsLog('Refilled key package ${i + 1} for device $mlsDeviceId');
+      } catch (e) {
+        _mlsLogWarn('Failed to refill key package: $e');
+      }
+    }
+
+    _mlsLog('Key package refill complete after depletion');
+    return true;
   }
 }

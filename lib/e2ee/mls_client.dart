@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/websocket.dart';
 import 'package:island/talker.dart';
 import 'mls_engine.dart';
 import 'mls_storage.dart';
@@ -302,6 +304,26 @@ class MlsClient {
       creatorAccountId: creatorAccountId,
     );
   }
+
+  StreamSubscription<WebSocketPacket>? _wsSubscription;
+
+  void startKeyPackageDepletedListener(WebSocketService wsService) {
+    _wsSubscription?.cancel();
+    _wsSubscription = wsService.dataStream.listen((packet) {
+      if (packet.type == 'e2ee.kp.depleted') {
+        _mlsLog('Received e2ee.kp.depleted packet');
+        final data = packet.data;
+        if (data != null) {
+          _identityManager.handleKeyPackageDepletedPacket(data);
+        }
+      }
+    });
+  }
+
+  void stopKeyPackageDepletedListener() {
+    _wsSubscription?.cancel();
+    _wsSubscription = null;
+  }
 }
 
 final mlsStorageProvider = Provider<MlsStorage>((ref) {
@@ -312,11 +334,13 @@ final mlsClientProvider = Provider<MlsClient>((ref) {
   final storage = ref.watch(mlsStorageProvider);
   final padlockClient = ref.watch(padlockApiClientProvider);
   final solarClient = ref.watch(solarNetworkClientProvider);
+  final wsService = ref.watch(websocketProvider);
   final client = MlsClient(
     storage: storage,
     padlockClient: padlockClient,
     apiClient: solarClient.dio,
   );
   client.initialize();
+  client.startKeyPackageDepletedListener(wsService);
   return client;
 });

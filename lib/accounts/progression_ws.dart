@@ -196,8 +196,7 @@ class _ProgressionCompletionOverlayState
     final color = isAchievement ? Colors.amber : Colors.blue;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Material(
-      color: Colors.transparent,
+    return IgnorePointer(
       child: Stack(
         children: [
           Positioned(

@@ -5,3 +5,4 @@ export 'mls_group_manager.dart';
 export 'mls_message_handler.dart';
 export 'mls_client.dart';
 export 'mls_pending_queue.dart';
+export 'key_package_popup.dart';
