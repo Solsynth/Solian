@@ -49,7 +49,6 @@ import shared_preferences_foundation
 import sign_in_with_apple
 import sqflite_darwin
 import super_native_extensions
-import syncfusion_pdfviewer_macos
 import tray_manager
 import url_launcher_macos
 import wakelock_plus
@@ -101,7 +100,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   SignInWithApplePlugin.register(with: registry.registrar(forPlugin: "SignInWithApplePlugin"))
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
   SuperNativeExtensionsPlugin.register(with: registry.registrar(forPlugin: "SuperNativeExtensionsPlugin"))
-  SyncfusionFlutterPdfViewerPlugin.register(with: registry.registrar(forPlugin: "SyncfusionFlutterPdfViewerPlugin"))
   TrayManagerPlugin.register(with: registry.registrar(forPlugin: "TrayManagerPlugin"))
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
   WakelockPlusMacosPlugin.register(with: registry.registrar(forPlugin: "WakelockPlusMacosPlugin"))

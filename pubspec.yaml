@@ -154,7 +154,6 @@ dependencies:
   dart_ipc: ^1.0.1
   pretty_diff_text: ^2.1.0
   window_manager: ^0.5.1
-  syncfusion_flutter_pdfviewer: ^31.1.21
   dio_smart_retry: ^7.0.1
   event_bus: ^2.0.1
   convert: ^3.1.2

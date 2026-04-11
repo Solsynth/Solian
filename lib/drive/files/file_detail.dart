@@ -196,7 +196,6 @@ class FileDetailScreen extends HookConsumerWidget {
       'image' => ImageFileContent(item: item, uri: uri),
       'video' => VideoFileContent(item: item, uri: uri),
       'audio' => AudioFileContent(item: item, uri: uri),
-      _ when item.mimeType == 'application/pdf' => PdfFileContent(uri: uri),
       _ when item.mimeType?.startsWith('text/') == true => TextFileContent(
         uri: uri,
       ),

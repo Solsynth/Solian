@@ -34,7 +34,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_retriever_windows
   share_plus
   super_native_extensions
-  syncfusion_pdfviewer_windows
   tray_manager
   url_launcher_windows
   webcrypto

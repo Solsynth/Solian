@@ -1,9 +1,7 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -19,76 +17,7 @@ import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/core/widgets/content/image_control_overlay.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-class PdfFileContent extends HookConsumerWidget {
-  final String uri;
-
-  const PdfFileContent({required this.uri, super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final fileFuture = useMemoized(
-      () => DefaultCacheManager().getSingleFile(uri),
-      [uri],
-    );
-
-    final pdfController = useMemoized(() => PdfViewerController(), []);
-
-    final shadow = [
-      Shadow(color: Colors.black54, blurRadius: 5.0, offset: Offset(1.0, 1.0)),
-    ];
-
-    return FutureBuilder<File>(
-      future: fileFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error loading PDF: ${snapshot.error}'));
-        } else if (snapshot.hasData) {
-          return Stack(
-            children: [
-              SfPdfViewer.file(snapshot.data!, controller: pdfController),
-              // Controls overlay
-              Positioned(
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-                left: 16,
-                right: 16,
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.remove,
-                        color: Colors.white,
-                        shadows: shadow,
-                      ),
-                      onPressed: () {
-                        pdfController.zoomLevel = pdfController.zoomLevel * 0.9;
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        shadows: shadow,
-                      ),
-                      onPressed: () {
-                        pdfController.zoomLevel = pdfController.zoomLevel * 1.1;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        }
-        return const Center(child: Text('No PDF data'));
-      },
-    );
-  }
-}
 
 class TextFileContent extends HookConsumerWidget {
   final String uri;

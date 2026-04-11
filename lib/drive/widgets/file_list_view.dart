@@ -19,7 +19,6 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -844,15 +843,6 @@ class FileListView extends HookConsumerWidget {
                   )
                 : const Center(child: CircularProgressIndicator()),
           ),
-        );
-        break;
-      case 'application' when file.mimeType == 'application/pdf':
-        previewWidget = SfPdfViewer.network(
-          uri,
-          canShowScrollStatus: false,
-          canShowScrollHead: false,
-          enableDoubleTapZooming: false,
-          pageSpacing: 0,
         );
         break;
       default:

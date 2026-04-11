@@ -22,7 +22,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   record_linux
   screen_retriever_linux
   super_native_extensions
-  syncfusion_pdfviewer_linux
   tray_manager
   url_launcher_linux
   webcrypto
