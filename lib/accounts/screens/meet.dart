@@ -69,7 +69,7 @@ class MeetScreen extends HookConsumerWidget {
     final topicController = useTextEditingController();
     final notesController = useTextEditingController();
     final tabController = useTabController(
-      initialLength: 4,
+      initialLength: 3,
       initialIndex: initialMeetId.isNotEmpty ? 0 : 0,
     );
     final historySubTabController = useTabController(initialLength: 2);
@@ -442,7 +442,7 @@ class MeetScreen extends HookConsumerWidget {
     }, [initialMeetId]);
 
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: AppScaffold(
         appBar: AppBar(
           title: Text('meet').tr(),
@@ -469,14 +469,6 @@ class MeetScreen extends HookConsumerWidget {
               Tab(
                 child: Text(
                   'meetHistory'.tr(),
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                  ),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'locationPinTab'.tr(),
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor,
                   ),
@@ -559,7 +551,6 @@ class MeetScreen extends HookConsumerWidget {
               onRetry: () => ref.invalidate(meetHistoryProvider),
               onOpenMeet: (meetId) => openMeetDetail(meetId),
             ),
-            _PinsTab(),
           ],
         ),
       ),
@@ -1044,7 +1035,7 @@ class MeetDetailScreen extends HookConsumerWidget {
   }
 }
 
-class _MeetActiveListeningPage extends HookWidget {
+class _MeetActiveListeningPage extends HookConsumerWidget {
   final SnMeet meet;
   final MeetEntryMode entryMode;
   final List<_MeetPerson> participants;
@@ -1068,12 +1059,38 @@ class _MeetActiveListeningPage extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final animation = useAnimationController(
       duration: const Duration(milliseconds: 2600),
     )..repeat();
     final theme = Theme.of(context);
     final topic = meet.metadata['topic']?.toString();
+    final meetService = ref.watch(meetServiceProvider);
+    final currentUser = ref.watch(userInfoProvider).value;
+    final pins = useState<List<SnLocationPin>?>(meet.pins);
+    final isLoadingPins = useState(false);
+
+    useEffect(() {
+      if (participants.length >= 2 &&
+          (pins.value == null || pins.value!.isEmpty)) {
+        isLoadingPins.value = true;
+        meetService
+            .getMeetPins(meet.id)
+            .then((result) {
+              pins.value = result;
+            })
+            .catchError((_) {
+              pins.value = null;
+            })
+            .whenComplete(() {
+              isLoadingPins.value = false;
+            });
+      }
+      return null;
+    }, [meet.id, participants.length]);
+
+    final hasMultipleParticipants = participants.length >= 2;
+    final hasPins = pins.value != null && pins.value!.isNotEmpty;
 
     return AppScaffold(
       isNoBackground: true,
@@ -1151,30 +1168,36 @@ class _MeetActiveListeningPage extends HookWidget {
                 const Spacer(),
                 SizedBox(
                   height: 360,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      _MeetRippleField(
-                        animation: animation,
-                        color: theme.colorScheme.primary,
-                      ),
-                      Center(
-                        child: Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: 18,
-                          runSpacing: 18,
-                          children: participants
-                              .map(
-                                (participant) => _ParticipantBubble(
-                                  key: ValueKey(participant.id),
-                                  participant: participant,
-                                ),
-                              )
-                              .toList(),
+                  child: hasMultipleParticipants && hasPins
+                      ? _MeetPinsMapCard(
+                          pins: pins.value!,
+                          participants: participants,
+                          currentUser: currentUser,
+                        )
+                      : Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            _MeetRippleField(
+                              animation: animation,
+                              color: theme.colorScheme.primary,
+                            ),
+                            Center(
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 18,
+                                runSpacing: 18,
+                                children: participants
+                                    .map(
+                                      (participant) => _ParticipantBubble(
+                                        key: ValueKey(participant.id),
+                                        participant: participant,
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
                 const Spacer(),
                 Text(
@@ -1195,7 +1218,7 @@ class _MeetActiveListeningPage extends HookWidget {
                       Expanded(
                         child: FilledButton(
                           onPressed: actionBusy ? null : onComplete,
-                          child: Text('meetComplete').tr(),
+                          child: Text('meetComplete'.tr()),
                         ),
                       ),
                     ],
@@ -1345,7 +1368,7 @@ class _MeetDetailHero extends HookWidget {
   }
 }
 
-class _MeetDetailInfo extends StatelessWidget {
+class _MeetDetailInfo extends HookConsumerWidget {
   final SnMeet meet;
   final MeetEntryMode entryMode;
   final String? eventType;
@@ -1359,7 +1382,33 @@ class _MeetDetailInfo extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final meetService = ref.watch(meetServiceProvider);
+    final pins = useState<List<SnLocationPin>?>(meet.pins);
+    final isLoadingPins = useState(false);
+
+    useEffect(() {
+      if (participants.length >= 2 &&
+          (pins.value == null || pins.value!.isEmpty)) {
+        isLoadingPins.value = true;
+        meetService
+            .getMeetPins(meet.id)
+            .then((result) {
+              pins.value = result;
+            })
+            .catchError((_) {
+              pins.value = null;
+            })
+            .whenComplete(() {
+              isLoadingPins.value = false;
+            });
+      }
+      return null;
+    }, [meet.id, participants.length]);
+
+    final hasMultipleParticipants = participants.length >= 2;
+    final hasPins = pins.value != null && pins.value!.isNotEmpty;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1367,11 +1416,22 @@ class _MeetDetailInfo extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_parseMeetPoint(meet.locationWkt) case final point?) ...[
-              _MeetLocationMapCard(
-                point: point,
-                locationName: meet.locationName,
-                locationAddress: meet.locationAddress,
-              ),
+              if (hasMultipleParticipants && hasPins) ...[
+                _MeetPinsMapCard(pins: pins.value!, participants: participants),
+              ] else if (hasMultipleParticipants && isLoadingPins.value) ...[
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ] else ...[
+                _MeetLocationMapCard(
+                  point: point,
+                  locationName: meet.locationName,
+                  locationAddress: meet.locationAddress,
+                ),
+              ],
               const Gap(16),
             ],
             if (meet.notes?.isNotEmpty ?? false) ...[
@@ -3480,39 +3540,6 @@ class _MeetLocationMapCard extends StatelessWidget {
   }
 }
 
-class _MeetMapPin extends StatelessWidget {
-  final Color color;
-
-  const _MeetMapPin({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.28),
-                  blurRadius: 12,
-                  spreadRadius: 6,
-                ),
-              ],
-            ),
-          ),
-          Container(width: 2, height: 18, color: color),
-        ],
-      ),
-    );
-  }
-}
-
 class _MeetRippleField extends StatelessWidget {
   final Animation<double> animation;
   final Color color;
@@ -3619,6 +3646,251 @@ class _ParticipantBubble extends HookWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MeetMapPin extends StatelessWidget {
+  final Color color;
+
+  const _MeetMapPin({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.28),
+                  blurRadius: 12,
+                  spreadRadius: 6,
+                ),
+              ],
+            ),
+          ),
+          Container(width: 2, height: 18, color: color),
+        ],
+      ),
+    );
+  }
+}
+
+class _MeetPinsMapCard extends StatelessWidget {
+  final List<SnLocationPin> pins;
+  final List<_MeetPerson> participants;
+  final SnAccount? currentUser;
+
+  const _MeetPinsMapCard({
+    required this.pins,
+    required this.participants,
+    this.currentUser,
+  });
+
+  latlong.LatLng? _parsePoint(String? wkt) {
+    if (wkt == null || wkt.isEmpty) return null;
+    final match = RegExp(
+      r'POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)',
+    ).firstMatch(wkt.toUpperCase());
+    if (match == null) return null;
+    return latlong.LatLng(
+      double.tryParse(match.group(2)!) ?? 0,
+      double.tryParse(match.group(1)!) ?? 0,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final points = pins
+        .map((p) => _parsePoint(p.locationWkt))
+        .whereType<latlong.LatLng>()
+        .toList();
+
+    if (points.isEmpty) {
+      return _MeetLocationMapCard(
+        point: latlong.LatLng(0, 0),
+        locationName: 'Location unavailable',
+        locationAddress: null,
+      );
+    }
+
+    final centerLat =
+        points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
+    final centerLng =
+        points.map((p) => p.longitude).reduce((a, b) => a + b) / points.length;
+    final center = latlong.LatLng(centerLat, centerLng);
+
+    final participantMap = {for (final p in participants) p.id: p};
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 320,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: center,
+                initialZoom: 15.2,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  retinaMode: true,
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'dev.solsynth.solian',
+                ),
+                MarkerLayer(
+                  markers: pins
+                      .map((pin) {
+                        final point = _parsePoint(pin.locationWkt);
+                        if (point == null) return null;
+                        final participant = participantMap[pin.accountId];
+                        final isCurrentUser = pin.accountId == currentUser?.id;
+                        final color = isCurrentUser
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.secondary;
+                        return Marker(
+                          point: point,
+                          width: 72,
+                          height: 72,
+                          child: _MeetParticipantPin(
+                            name:
+                                participant?.account?.nick ??
+                                participant?.account?.name ??
+                                participant?.fallbackName ??
+                                pin.accountId.substring(0, 8),
+                            color: color,
+                          ),
+                        );
+                      })
+                      .whereType<Marker>()
+                      .toList(),
+                ),
+              ],
+            ),
+            Positioned(
+              left: 14,
+              right: 14,
+              bottom: 14,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            Symbols.location_on,
+                            color: theme.colorScheme.secondary,
+                          ),
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'meetParticipantsLocation'.tr(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ).fontSize(15).bold(),
+                              Text(
+                                '${pins.length} ${pins.length == 1 ? 'participant'.tr() : 'participants'.tr()}',
+                                style: TextStyle(
+                                  color: theme.colorScheme.secondary,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetParticipantPin extends StatelessWidget {
+  final String name;
+  final Color color;
+
+  const _MeetParticipantPin({required this.name, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              name.length > 6 ? '${name.substring(0, 6)}...' : name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const Gap(2),
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.28),
+                  blurRadius: 8,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -3825,769 +4097,6 @@ String _eventLabel(String type, BuildContext context) {
 }
 
 latlong.LatLng? _parseMeetPoint(String? wkt) {
-  final raw = wkt?.trim();
-  if (raw == null || raw.isEmpty) return null;
-
-  final match = RegExp(
-    r'^POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)$',
-    caseSensitive: false,
-  ).firstMatch(raw);
-  if (match == null) return null;
-
-  final longitude = double.tryParse(match.group(1)!);
-  final latitude = double.tryParse(match.group(2)!);
-  if (longitude == null || latitude == null) return null;
-
-  return latlong.LatLng(latitude, longitude);
-}
-
-class _PinsTab extends HookConsumerWidget {
-  const _PinsTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final pinService = ref.watch(pinServiceProvider);
-    final currentUser = ref.watch(userInfoProvider).value;
-
-    final currentLocation = useState<latlong.LatLng?>(null);
-    final isLocating = useState(false);
-    final locationError = useState<Object?>(null);
-    final selectedPin = useState<SnLocationPin?>(null);
-    final isBroadcasting = useState(false);
-    final myPin = useState<SnLocationPin?>(null);
-    final visibility = useState(LocationPinVisibility.public);
-    final keepOnDisconnect = useState(false);
-    final isUpdating = useState(false);
-    final nearbyPins = useState<List<SnLocationPin>>([]);
-    final nearbyLoading = useState(false);
-    final nearbyError = useState<Object?>(null);
-    final pinStreamSub = useRef<StreamSubscription<SnLocationPinEvent>?>(null);
-    final updateTimer = useRef<Timer?>(null);
-    final mapController = useRef<MapController?>(null);
-
-    Future<void> getCurrentLocation() async {
-      isLocating.value = true;
-      locationError.value = null;
-      try {
-        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) {
-          throw StateError('Location services are turned off.');
-        }
-
-        var permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-        }
-
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          throw StateError(
-            'Location permission is required to use location pins.',
-          );
-        }
-
-        final position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-          ),
-        );
-
-        currentLocation.value = latlong.LatLng(
-          position.latitude,
-          position.longitude,
-        );
-      } catch (error) {
-        locationError.value = error;
-        showErrorAlert(error);
-      } finally {
-        isLocating.value = false;
-      }
-    }
-
-    Future<void> loadNearbyPins() async {
-      if (currentLocation.value == null) return;
-      nearbyLoading.value = true;
-      nearbyError.value = null;
-      try {
-        final locationWkt =
-            'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})';
-        final pins = await pinService.listNearbyPins(
-          locationWkt: locationWkt,
-          visibility: visibility.value,
-          take: 100,
-        );
-        nearbyPins.value = pins
-            .where((pin) => pin.accountId != currentUser?.id)
-            .toList();
-      } catch (error) {
-        nearbyError.value = error;
-      } finally {
-        nearbyLoading.value = false;
-      }
-    }
-
-    Future<void> loadMyPins() async {
-      try {
-        final pins = await pinService.getMyPins();
-        if (pins.isNotEmpty) {
-          myPin.value = pins.first;
-          isBroadcasting.value =
-              myPin.value!.status == LocationPinStatus.active;
-        }
-      } catch (_) {}
-    }
-
-    Future<void> startBroadcasting() async {
-      if (currentLocation.value == null) {
-        showErrorAlert('locationPinLocationError'.tr());
-        return;
-      }
-      isUpdating.value = true;
-      try {
-        final locationWkt =
-            'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})';
-        String? locationName;
-        String? locationAddress;
-
-        try {
-          final placemarks = await placemarkFromCoordinates(
-            currentLocation.value!.latitude,
-            currentLocation.value!.longitude,
-          );
-          if (placemarks.isNotEmpty) {
-            final placemark = placemarks.first;
-            final names =
-                [placemark.name, placemark.subLocality, placemark.locality]
-                    .where((e) => e?.trim().isNotEmpty ?? false)
-                    .cast<String>()
-                    .toList();
-            locationName = names.isNotEmpty ? names.first : null;
-            locationAddress =
-                [
-                      placemark.street,
-                      placemark.subAdministrativeArea,
-                      placemark.administrativeArea,
-                      placemark.country,
-                    ]
-                    .where((e) => e?.trim().isNotEmpty ?? false)
-                    .cast<String>()
-                    .join(', ');
-          }
-        } catch (_) {}
-
-        final pin = await pinService.createPin(
-          visibility: visibility.value,
-          locationName: locationName,
-          locationAddress: locationAddress,
-          locationWkt: locationWkt,
-          keepOnDisconnect: keepOnDisconnect.value,
-        );
-        myPin.value = pin;
-        isBroadcasting.value = true;
-
-        pinStreamSub.value?.cancel();
-        pinStreamSub.value = pinService
-            .streamPin(pin.id)
-            .listen(
-              (event) {
-                if (event.pin != null) {
-                  myPin.value = event.pin;
-                  if (event.type == 'pin_offline' ||
-                      event.type == 'pin_removed') {
-                    isBroadcasting.value = false;
-                  }
-                }
-              },
-              onError: (_) {
-                isBroadcasting.value = false;
-              },
-            );
-
-        updateTimer.value?.cancel();
-        updateTimer.value = Timer.periodic(const Duration(seconds: 30), (
-          _,
-        ) async {
-          if (!isBroadcasting.value || currentLocation.value == null) return;
-          try {
-            final wkt =
-                'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})';
-            await pinService.updatePinLocation(pinId: pin.id, locationWkt: wkt);
-          } catch (_) {}
-        });
-
-        await loadNearbyPins();
-      } catch (error) {
-        showErrorAlert(error);
-      } finally {
-        isUpdating.value = false;
-      }
-    }
-
-    Future<void> stopBroadcasting({bool keep = false}) async {
-      final pin = myPin.value;
-      if (pin == null) return;
-      isUpdating.value = true;
-      try {
-        await pinService.disconnectPin(pin.id, keepOnDisconnect: keep);
-        pinStreamSub.value?.cancel();
-        pinStreamSub.value = null;
-        updateTimer.value?.cancel();
-        updateTimer.value = null;
-        myPin.value = null;
-        isBroadcasting.value = false;
-      } catch (error) {
-        showErrorAlert(error);
-      } finally {
-        isUpdating.value = false;
-      }
-    }
-
-    useEffect(() {
-      mapController.value = MapController();
-      getCurrentLocation();
-      loadMyPins();
-      return () {
-        pinStreamSub.value?.cancel();
-        updateTimer.value?.cancel();
-      };
-    }, const []);
-
-    useEffect(() {
-      if (currentLocation.value != null) {
-        loadNearbyPins();
-      }
-      return null;
-    }, [currentLocation.value, visibility.value]);
-
-    return Column(
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              if (currentLocation.value != null)
-                FlutterMap(
-                  mapController: mapController.value,
-                  options: MapOptions(
-                    initialCenter: currentLocation.value!,
-                    initialZoom: 15,
-                    onTap: (p, l) => selectedPin.value = null,
-                  ),
-                  children: [
-                    TileLayer(
-                      retinaMode: true,
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'dev.solsynth.solian',
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: currentLocation.value!,
-                          width: 40,
-                          height: 40,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isBroadcasting.value
-                                  ? Colors.green
-                                  : theme.colorScheme.primary,
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      (isBroadcasting.value
-                                              ? Colors.green
-                                              : theme.colorScheme.primary)
-                                          .withOpacity(0.3),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              isBroadcasting.value
-                                  ? Symbols.my_location
-                                  : Symbols.location_on,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        ...nearbyPins.value
-                            .map((pin) => _parsePinPoint(pin.locationWkt))
-                            .whereType<latlong.LatLng>()
-                            .toList()
-                            .asMap()
-                            .entries
-                            .map((entry) {
-                              final index = entry.key;
-                              final point = entry.value;
-                              final pin = nearbyPins.value[index];
-                              return Marker(
-                                point: point,
-                                width: 48,
-                                height: 48,
-                                child: GestureDetector(
-                                  onTap: () => selectedPin.value = pin,
-                                  child: _PinMapMarker(
-                                    pin: pin,
-                                    isSelected: selectedPin.value?.id == pin.id,
-                                  ),
-                                ),
-                              );
-                            }),
-                        ...myPin.value != null &&
-                                myPin.value!.status == LocationPinStatus.active
-                            ? [
-                                Marker(
-                                  point:
-                                      _parsePinPoint(
-                                        myPin.value!.locationWkt,
-                                      ) ??
-                                      currentLocation.value!,
-                                  width: 48,
-                                  height: 48,
-                                  child: _PinMapMarker(
-                                    pin: myPin.value!,
-                                    isSelected: true,
-                                    isMine: true,
-                                    currentUser: currentUser,
-                                  ),
-                                ),
-                              ]
-                            : [],
-                      ],
-                    ),
-                  ],
-                )
-              else if (isLocating.value)
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const Gap(16),
-                      Text(
-                        'locationPinLocating'.tr(),
-                        style: TextStyle(color: theme.colorScheme.secondary),
-                      ),
-                    ],
-                  ),
-                )
-              else if (locationError.value != null)
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.location_off,
-                        size: 48,
-                        color: theme.colorScheme.error,
-                      ),
-                      const Gap(16),
-                      Text('locationPinLocationError'.tr()),
-                      const Gap(16),
-                      FilledButton.icon(
-                        onPressed: getCurrentLocation,
-                        icon: const Icon(Symbols.refresh),
-                        label: Text('retry'.tr()),
-                      ),
-                    ],
-                  ),
-                ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Column(
-                  children: [
-                    FloatingActionButton.small(
-                      heroTag: 'pin_zoom_in',
-                      onPressed: () => mapController.value?.move(
-                        mapController.value!.camera.center,
-                        mapController.value!.camera.zoom + 1,
-                      ),
-                      child: const Icon(Symbols.add),
-                    ),
-                    const Gap(8),
-                    FloatingActionButton.small(
-                      heroTag: 'pin_zoom_out',
-                      onPressed: () => mapController.value?.move(
-                        mapController.value!.camera.center,
-                        mapController.value!.camera.zoom - 1,
-                      ),
-                      child: const Icon(Symbols.remove),
-                    ),
-                    const Gap(8),
-                    FloatingActionButton.small(
-                      heroTag: 'pin_locate',
-                      onPressed: () {
-                        if (currentLocation.value != null) {
-                          mapController.value?.move(
-                            currentLocation.value!,
-                            mapController.value!.camera.zoom,
-                          );
-                        }
-                        getCurrentLocation();
-                      },
-                      child: Icon(
-                        isLocating.value
-                            ? Symbols.progress_activity
-                            : Symbols.my_location,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 16,
-                left: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isBroadcasting.value
-                            ? Symbols.location_on
-                            : Symbols.location_off,
-                        color: isBroadcasting.value
-                            ? Colors.green
-                            : theme.colorScheme.secondary,
-                      ),
-                      const Gap(12),
-                      Expanded(
-                        child: Text(
-                          isBroadcasting.value
-                              ? 'locationPinBroadcasting'.tr()
-                              : 'locationPinNotBroadcasting'.tr(),
-                          style: TextStyle(
-                            color: isBroadcasting.value
-                                ? Colors.green
-                                : theme.colorScheme.secondary,
-                          ),
-                        ),
-                      ),
-                      if (nearbyLoading.value)
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      else
-                        Text(
-                          '${nearbyPins.value.length}',
-                          style: TextStyle(color: theme.colorScheme.secondary),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (selectedPin.value != null)
-          Container(
-            margin: const EdgeInsets.all(16),
-            child: _PinInfoCard(
-              pin: selectedPin.value!,
-              onClose: () => selectedPin.value = null,
-            ),
-          ),
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SegmentedButton<LocationPinVisibility>(
-                segments: [
-                  ButtonSegment(
-                    value: LocationPinVisibility.public,
-                    icon: const Icon(Symbols.public),
-                    label: Text('locationPinVisibilityPublic'.tr()),
-                  ),
-                  ButtonSegment(
-                    value: LocationPinVisibility.private,
-                    icon: const Icon(Symbols.lock),
-                    label: Text('locationPinVisibilityPrivate'.tr()),
-                  ),
-                  ButtonSegment(
-                    value: LocationPinVisibility.unlisted,
-                    icon: const Icon(Symbols.link_off),
-                    label: Text('locationPinVisibilityUnlisted'.tr()),
-                  ),
-                ],
-                selected: {visibility.value},
-                onSelectionChanged: isBroadcasting.value
-                    ? null
-                    : (value) => visibility.value = value.first,
-              ),
-              const Gap(12),
-              if (!isBroadcasting.value) ...[
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: keepOnDisconnect.value,
-                  onChanged: (value) => keepOnDisconnect.value = value,
-                  title: Text('locationPinKeepOnDisconnect'.tr()),
-                  dense: true,
-                ),
-                const Gap(12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: isUpdating.value || currentLocation.value == null
-                        ? null
-                        : startBroadcasting,
-                    icon: Icon(
-                      isUpdating.value
-                          ? Symbols.progress_activity
-                          : Symbols.add_location,
-                    ),
-                    label: Text('locationPinStart'.tr()),
-                  ),
-                ),
-              ] else ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: isUpdating.value
-                            ? null
-                            : () => stopBroadcasting(keep: true),
-                        icon: const Icon(Symbols.location_off),
-                        label: Text('locationPinDisconnectKeep'.tr()),
-                      ),
-                    ),
-                    const Gap(12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: isUpdating.value
-                            ? null
-                            : () => stopBroadcasting(keep: false),
-                        icon: const Icon(Symbols.delete),
-                        label: Text('locationPinStop'.tr()),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PinMapMarker extends StatelessWidget {
-  final SnLocationPin pin;
-  final bool isSelected;
-  final bool isMine;
-  final SnAccount? currentUser;
-
-  const _PinMapMarker({
-    required this.pin,
-    required this.isSelected,
-    this.isMine = false,
-    this.currentUser,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = isMine
-        ? Colors.green
-        : pin.status == LocationPinStatus.active
-        ? theme.colorScheme.primary
-        : theme.colorScheme.secondary;
-
-    final picture = isMine
-        ? currentUser?.profile.picture
-        : pin.account?.profile.picture;
-
-    if (picture != null) {
-      return Container(
-        width: isSelected ? 44 : 36,
-        height: isSelected ? 44 : 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: isSelected ? 3 : 2),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.4),
-              blurRadius: isSelected ? 12 : 6,
-              spreadRadius: isSelected ? 2 : 1,
-            ),
-          ],
-        ),
-        child: ClipOval(
-          child: ProfilePictureWidget(
-            file: picture,
-            radius: isSelected ? 19 : 16,
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      width: isSelected ? 44 : 36,
-      height: isSelected ? 44 : 36,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        border: Border.all(color: Colors.white, width: isSelected ? 3 : 2),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.4),
-            blurRadius: isSelected ? 12 : 6,
-            spreadRadius: isSelected ? 2 : 1,
-          ),
-        ],
-      ),
-      child: Icon(
-        pin.visibility == LocationPinVisibility.private
-            ? Symbols.lock
-            : pin.visibility == LocationPinVisibility.unlisted
-            ? Symbols.link_off
-            : Symbols.public,
-        color: Colors.white,
-        size: isSelected ? 22 : 18,
-      ),
-    );
-  }
-}
-
-class _PinInfoCard extends StatelessWidget {
-  final SnLocationPin pin;
-  final VoidCallback onClose;
-
-  const _PinInfoCard({required this.pin, required this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                if (pin.account != null)
-                  ProfilePictureWidget(
-                    file: pin.account!.profile.picture,
-                    radius: 24,
-                  )
-                else
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: theme.colorScheme.primaryContainer,
-                    child: Icon(
-                      Symbols.person,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        pin.account?.nick.isNotEmpty == true
-                            ? pin.account!.nick
-                            : '@${pin.account?.name ?? pin.accountId}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: pin.status == LocationPinStatus.active
-                                  ? Colors.green
-                                  : theme.colorScheme.secondary,
-                            ),
-                          ),
-                          const Gap(4),
-                          Text(
-                            pin.status == LocationPinStatus.active
-                                ? 'locationPinActive'.tr()
-                                : 'locationPinOffline'.tr(),
-                            style: TextStyle(
-                              color: theme.colorScheme.secondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const Gap(8),
-                          Icon(
-                            pin.visibility == LocationPinVisibility.private
-                                ? Symbols.lock
-                                : pin.visibility ==
-                                      LocationPinVisibility.unlisted
-                                ? Symbols.link_off
-                                : Symbols.public,
-                            size: 12,
-                            color: theme.colorScheme.secondary,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(onPressed: onClose, icon: const Icon(Symbols.close)),
-              ],
-            ),
-          ),
-          if (pin.locationName?.isNotEmpty == true ||
-              pin.locationAddress?.isNotEmpty == true)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (pin.locationName?.isNotEmpty == true) ...[
-                    Text(
-                      pin.locationName!,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    const Gap(4),
-                  ],
-                  if (pin.locationAddress?.isNotEmpty == true)
-                    Text(
-                      pin.locationAddress!,
-                      style: TextStyle(
-                        color: theme.colorScheme.secondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-latlong.LatLng? _parsePinPoint(String? wkt) {
   final raw = wkt?.trim();
   if (raw == null || raw.isEmpty) return null;
 

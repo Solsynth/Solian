@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/accounts/pin_service.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 enum SnMeetStatus { active, completed, expired, cancelled, unknown }
@@ -50,6 +51,7 @@ class SnMeet {
   final String? locationWkt;
   final Map<String, dynamic> metadata;
   final List<SnMeetParticipant> participants;
+  final List<SnLocationPin>? pins;
 
   const SnMeet({
     required this.id,
@@ -66,6 +68,7 @@ class SnMeet {
     required this.locationWkt,
     required this.metadata,
     required this.participants,
+    this.pins,
   });
 
   bool get isFinal => switch (status) {
@@ -79,6 +82,8 @@ class SnMeet {
     final rawParticipants =
         (json['participants'] as List?)?.whereType<Map<String, dynamic>>() ??
         const [];
+    final rawPins =
+        (json['pins'] as List?)?.whereType<Map<String, dynamic>>() ?? const [];
 
     return SnMeet(
       id: (json['id'] ?? '').toString(),
@@ -101,6 +106,9 @@ class SnMeet {
           ? Map<String, dynamic>.from(json['metadata'] as Map<String, dynamic>)
           : const {},
       participants: rawParticipants.map(SnMeetParticipant.fromJson).toList(),
+      pins: rawPins.isEmpty
+          ? null
+          : rawPins.map(SnLocationPin.fromJson).toList(),
     );
   }
 }
@@ -249,6 +257,24 @@ class MeetService {
   Future<SnMeet> getMeet(String meetId) async {
     final response = await _client.get('/passport/meets/$meetId');
     return SnMeet.fromJson(Map<String, dynamic>.from(response.data as Map));
+  }
+
+  Future<List<SnLocationPin>> getMeetPins(
+    String meetId, {
+    int offset = 0,
+    int take = 50,
+  }) async {
+    final response = await _client.get(
+      '/passport/meets/$meetId/pins',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+
+    final data = response.data;
+    if (data is! List) return const [];
+    return data
+        .whereType<Map>()
+        .map((item) => SnLocationPin.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
   }
 
   Stream<SnMeetEvent> joinMeet(String meetId) async* {

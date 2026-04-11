@@ -16,6 +16,7 @@ final pinServiceProvider = Provider<PinService>((ref) {
 
 class SnLocationPin {
   final String id;
+  final String? meetId;
   final String accountId;
   final String deviceId;
   final LocationPinVisibility visibility;
@@ -31,6 +32,7 @@ class SnLocationPin {
 
   const SnLocationPin({
     required this.id,
+    this.meetId,
     required this.accountId,
     required this.deviceId,
     required this.visibility,
@@ -48,6 +50,7 @@ class SnLocationPin {
   factory SnLocationPin.fromJson(Map<String, dynamic> json) {
     return SnLocationPin(
       id: (json['id'] ?? '').toString(),
+      meetId: json['meet_id']?.toString(),
       accountId: (json['account_id'] ?? json['accountId'] ?? '').toString(),
       deviceId: (json['device_id'] ?? json['deviceId'] ?? '').toString(),
       visibility: _parseVisibility(json['visibility']),
