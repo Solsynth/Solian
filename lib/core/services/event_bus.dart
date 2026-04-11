@@ -155,3 +155,23 @@ class MlsDeviceRegisteredEvent {
 
   const MlsDeviceRegisteredEvent({required this.deviceId});
 }
+
+/// Event fired when MLS needs external join (e.g., epoch mismatch recovery)
+class MlsExternalJoinStartedEvent {
+  final String mlsGroupId;
+
+  const MlsExternalJoinStartedEvent({required this.mlsGroupId});
+}
+
+/// Event fired when MLS external join completes (success or failure)
+class MlsExternalJoinCompletedEvent {
+  final String mlsGroupId;
+  final bool success;
+  final String? error;
+
+  const MlsExternalJoinCompletedEvent({
+    required this.mlsGroupId,
+    required this.success,
+    this.error,
+  });
+}

@@ -49,6 +49,14 @@ class MlsIdentityManager {
     : _storage = storage,
       _padlockClient = padlockClient;
 
+  Future<Map<String, String>> getMlsHeaders() async {
+    final deviceId = await getOrCreateDeviceId();
+    return {
+      'X-Client-Ability': 'chat.mls.v2',
+      if (deviceId != null) 'X-Device-Id': deviceId,
+    };
+  }
+
   Future<String?> getOrCreateDeviceId() async {
     var deviceId = await _storage.getDeviceId();
     if (deviceId != null && deviceId.isNotEmpty) {
@@ -238,7 +246,7 @@ class MlsIdentityManager {
           'key_package': keyPackage,
           'device_id': await getOrCreateDeviceId(),
         },
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await getMlsHeaders()),
       );
       await _storage.addKeyPackage(keyPackage);
       _mlsLog('KeyPackage uploaded successfully');
@@ -268,7 +276,7 @@ class MlsIdentityManager {
     try {
       final response = await _padlockClient.get(
         '/mls/keys/$accountId/devices',
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await getMlsHeaders()),
       );
       if (response.data is List) {
         return (response.data as List)
@@ -286,7 +294,7 @@ class MlsIdentityManager {
     try {
       final response = await _padlockClient.post(
         '/mls/devices/$deviceId/revoke',
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await getMlsHeaders()),
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
@@ -324,7 +332,7 @@ class MlsIdentityManager {
       final response = await _padlockClient.post(
         '/mls/users/ready/batch',
         data: {'account_ids': accountIds},
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await getMlsHeaders()),
       );
 
       if (response.data is Map<String, dynamic>) {
@@ -346,7 +354,7 @@ class MlsIdentityManager {
     try {
       final response = await _padlockClient.get(
         '/e2ee/mls/kp/status',
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await getMlsHeaders()),
       );
       if (response.data is Map<String, dynamic>) {
         return KeyPackageStatus.fromJson(

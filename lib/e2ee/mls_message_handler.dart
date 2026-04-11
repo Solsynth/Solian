@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:openmls/openmls.dart';
 import 'package:island/talker.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'mls_engine.dart';
 import 'mls_identity_manager.dart';
 import 'mls_group_manager.dart';
@@ -73,6 +74,14 @@ class MlsMessageHandler {
   }) : _groupManager = groupManager,
        _identityManager = identityManager,
        _padlockClient = padlockClient;
+
+  Future<Map<String, String>> _getMlsHeaders() async {
+    final deviceId = await _identityManager.getOrCreateDeviceId();
+    return {
+      'X-Client-Ability': 'chat.mls.v2',
+      if (deviceId != null) 'X-Device-Id': deviceId,
+    };
+  }
 
   bool _isMissingGroupError(Object error) {
     final message = error.toString();
@@ -176,6 +185,8 @@ class MlsMessageHandler {
         'epoch': epoch,
       });
       _mlsLog('Saved group state after encrypt: epoch=$epoch');
+
+      await _groupManager.uploadGroupInfo(mlsGroupId);
     } catch (e) {
       _mlsLog('Could not export ratchet tree after encrypt (non-fatal): $e');
     }
@@ -359,17 +370,59 @@ class MlsMessageHandler {
 
           // Epoch mismatch detected - try to recover by fetching pending messages
           // This may bring in the missing Commit that will advance our epoch
+          bool epochRecovered = false;
           if (messageEpoch != null && messageEpoch > localEpoch) {
             _mlsLog(
               'Epoch mismatch: message epoch $messageEpoch > local $localEpoch, attempting recovery...',
             );
-            final recovered = await _attemptEpochRecovery(
+            epochRecovered = await _attemptEpochRecovery(
               mlsGroupId,
               messageEpoch,
             );
-            if (recovered) {
+            if (epochRecovered) {
               // Try processing queued messages
               await _processPendingMessages(mlsGroupId);
+            }
+          }
+
+          // If epoch recovery failed, try external join
+          if (!epochRecovered &&
+              messageEpoch != null &&
+              messageEpoch > localEpoch) {
+            _mlsLog(
+              'Epoch recovery failed, attempting external join for $mlsGroupId',
+            );
+            eventBus.fire(MlsExternalJoinStartedEvent(mlsGroupId: mlsGroupId));
+
+            final joinedExternally = await _groupManager.joinGroupExternal(
+              mlsGroupId,
+            );
+            if (joinedExternally) {
+              _mlsLog('External join successful, retrying decryption');
+              await _processPendingMessages(mlsGroupId);
+              eventBus.fire(
+                MlsExternalJoinCompletedEvent(
+                  mlsGroupId: mlsGroupId,
+                  success: true,
+                ),
+              );
+            } else {
+              _mlsLogWarn('External join failed for $mlsGroupId');
+              eventBus.fire(
+                MlsExternalJoinCompletedEvent(
+                  mlsGroupId: mlsGroupId,
+                  success: false,
+                  error: 'External join failed',
+                ),
+              );
+
+              _mlsLog('Checking if reshare is required for $mlsGroupId');
+              final reshareProcessed = await _groupManager
+                  .checkAndProcessReshare(mlsGroupId);
+              if (reshareProcessed) {
+                _mlsLog('Reshare processed, retrying decryption');
+                await _processPendingMessages(mlsGroupId);
+              }
             }
           }
 
@@ -424,6 +477,8 @@ class MlsMessageHandler {
               '[EPOCH] group=$mlsGroupId $oldEpoch → $newEpoch reason=commit_processed',
             );
             _mlsLog('Saved epoch=$newEpoch after processing commit');
+
+            await _groupManager.uploadGroupInfo(mlsGroupId);
           } catch (e) {
             _mlsLogWarn('Could not save ratchet tree after commit: $e');
             // Still update epoch even if ratchet tree fails
@@ -458,7 +513,7 @@ class MlsMessageHandler {
       final response = await _padlockClient.post(
         '/mls/messages/fanout',
         data: {'room_id': mlsGroupId, 'payload': encryptedPayload},
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await _getMlsHeaders()),
       );
       if (response.data is Map<String, dynamic>) {
         return Map<String, dynamic>.from(response.data);
@@ -490,9 +545,8 @@ class MlsMessageHandler {
   ) async {
     try {
       final response = await _padlockClient.get(
-        '/mls/envelopes/pending',
-        queryParameters: {'deviceId': deviceId},
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        '/e2ee/mls/envelopes/pending',
+        options: Options(headers: await _getMlsHeaders()),
       );
       if (response.data is List) {
         return (response.data as List).map((e) {
@@ -509,9 +563,9 @@ class MlsMessageHandler {
   Future<bool> ackEnvelope(String envelopeId, String deviceId) async {
     try {
       final response = await _padlockClient.post(
-        '/mls/envelopes/$envelopeId/ack',
+        '/e2ee/mls/envelopes/$envelopeId/ack',
         queryParameters: {'deviceId': deviceId},
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await _getMlsHeaders()),
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {

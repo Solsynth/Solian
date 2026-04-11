@@ -27,6 +27,7 @@ import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/core/services/responsive.dart';
@@ -200,6 +201,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final isResyncingAfterResume = useState(false);
     final wsDisconnectedSinceBackground = useRef(false);
     final wasWsConnected = useRef<bool?>(null);
+    final isReconnectingE2ee = useState(false);
 
     final isDesktop =
         !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
@@ -282,6 +284,30 @@ class ChatRoomScreen extends HookConsumerWidget {
         });
       };
     }, []);
+
+    useEffect(() {
+      StreamSubscription<MlsExternalJoinStartedEvent>? startSub;
+      StreamSubscription<MlsExternalJoinCompletedEvent>? completeSub;
+
+      startSub = eventBus.on<MlsExternalJoinStartedEvent>().listen((event) {
+        if (event.mlsGroupId == id) {
+          isReconnectingE2ee.value = true;
+        }
+      });
+
+      completeSub = eventBus.on<MlsExternalJoinCompletedEvent>().listen((
+        event,
+      ) {
+        if (event.mlsGroupId == id) {
+          isReconnectingE2ee.value = false;
+        }
+      });
+
+      return () {
+        startSub?.cancel();
+        completeSub?.cancel();
+      };
+    }, [id]);
 
     final scrollManager = useRoomScrollManager(
       ref,
@@ -678,6 +704,37 @@ class ChatRoomScreen extends HookConsumerWidget {
                           onPressed: jumpToLastReadAnchor,
                           icon: const Icon(Icons.bookmark_added_outlined),
                           label: const Text('Follow back'),
+                        ),
+                      ),
+                    if (isReconnectingE2ee.value)
+                      Positioned.fill(
+                        child: Container(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surface.withOpacity(0.9),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const ConfuseSpinner(size: 40, speed: 6),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Reconnecting to encrypted conversation...',
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Please wait',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                   ],

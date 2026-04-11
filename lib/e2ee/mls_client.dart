@@ -297,11 +297,13 @@ class MlsClient {
     required String roomId,
     required String mlsGroupId,
     required String creatorAccountId,
+    String reason = 'group_reset',
   }) async {
     await _groupManager.resetAndRebootstrapGroup(
       roomId: roomId,
       mlsGroupId: mlsGroupId,
       creatorAccountId: creatorAccountId,
+      reason: reason,
     );
   }
 
@@ -309,12 +311,32 @@ class MlsClient {
 
   void startKeyPackageDepletedListener(WebSocketService wsService) {
     _wsSubscription?.cancel();
-    _wsSubscription = wsService.dataStream.listen((packet) {
+    _wsSubscription = wsService.dataStream.listen((packet) async {
       if (packet.type == 'e2ee.kp.depleted') {
         _mlsLog('Received e2ee.kp.depleted packet');
         final data = packet.data;
         if (data != null) {
           _identityManager.handleKeyPackageDepletedPacket(data);
+        }
+      } else if (packet.type == 'e2ee.envelope') {
+        _mlsLog('Received e2ee.envelope packet, processing pending envelopes');
+        fetchAndProcessPendingEnvelopes();
+      } else if (packet.type == 'e2ee.group.reset') {
+        _mlsLog('Received e2ee.group.reset packet');
+        final data = packet.data;
+        if (data != null) {
+          final groupId = data['group_id']?.toString();
+          final reason = data['reason']?.toString() ?? 'group_reset';
+          if (groupId != null) {
+            _mlsLog('Resetting group $groupId, reason: $reason');
+            await resetAndRebootstrapGroup(
+              roomId: groupId,
+              mlsGroupId: groupId,
+              creatorAccountId: '',
+              reason: reason,
+            );
+            _mlsLog('Group $groupId has been reset and re-bootstrapped');
+          }
         }
       }
     });

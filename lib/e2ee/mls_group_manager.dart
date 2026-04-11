@@ -75,6 +75,14 @@ class MlsGroupManager {
        _apiClient = apiClient,
        _identityManager = identityManager;
 
+  Future<Map<String, String>> _getMlsHeaders() async {
+    final deviceId = await _identityManager.getOrCreateDeviceId();
+    return {
+      'X-Client-Ability': 'chat.mls.v2',
+      if (deviceId != null) 'X-Device-Id': deviceId,
+    };
+  }
+
   Future<Map<String, dynamic>?> getGroupState(String mlsGroupId) async {
     return _storage.getGroupState(mlsGroupId);
   }
@@ -260,7 +268,7 @@ class MlsGroupManager {
             'epoch': epoch.toInt(),
             'state_version': 1,
           },
-          options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+          options: Options(headers: await _getMlsHeaders()),
         );
         _mlsLog('Server bootstrap called for room $mlsGroupId');
       } catch (e) {
@@ -333,7 +341,7 @@ class MlsGroupManager {
     try {
       final response = await _padlockClient.post(
         '/mls/groups/$mlsGroupId/commit',
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await _getMlsHeaders()),
       );
       if (response.data is Map<String, dynamic>) {
         final data = Map<String, dynamic>.from(response.data);
@@ -343,6 +351,9 @@ class MlsGroupManager {
           'epoch': data['epoch'] ?? newEpoch,
           'last_commit_at': DateTime.now().toIso8601String(),
         });
+
+        await uploadGroupInfo(mlsGroupId);
+
         return data;
       }
       return null;
@@ -374,7 +385,7 @@ class MlsGroupManager {
         await _padlockClient.post(
           '/mls/groups/$mlsGroupId/welcome/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
-          options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+          options: Options(headers: await _getMlsHeaders()),
         );
       }
       return true;
@@ -575,7 +586,7 @@ class MlsGroupManager {
         await _padlockClient.post(
           '/mls/groups/$mlsGroupId/welcome/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
-          options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+          options: Options(headers: await _getMlsHeaders()),
         );
       }
       _mlsLog(
@@ -635,7 +646,7 @@ class MlsGroupManager {
         await _padlockClient.post(
           '/mls/groups/$mlsGroupId/commit/fanout',
           data: {'recipient_account_id': memberId, 'payloads': payloads},
-          options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+          options: Options(headers: await _getMlsHeaders()),
         );
       }
       _mlsLog(
@@ -694,7 +705,7 @@ class MlsGroupManager {
     try {
       final response = await _padlockClient.post(
         '/mls/groups/$mlsGroupId/reshare-required',
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await _getMlsHeaders()),
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
@@ -711,8 +722,220 @@ class MlsGroupManager {
   }
 
   Future<void> handleReshareRequired(String mlsGroupId) async {
-    talker.log('Reshare required for room $mlsGroupId');
-    await requestReshare(mlsGroupId);
+    talker.log('Processing reshare for room $mlsGroupId');
+    await processReshareForGroup(mlsGroupId);
+  }
+
+  Future<List<Map<String, dynamic>>> getReshareRequiredGroups() async {
+    try {
+      final response = await _padlockClient.get(
+        '/e2ee/mls/devices/me/reshare-required',
+        options: Options(headers: await _getMlsHeaders()),
+      );
+      if (response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      _mlsLogError('Failed to get reshare-required groups: $e');
+      return [];
+    }
+  }
+
+  Future<bool> processReshareForGroup(String mlsGroupId) async {
+    try {
+      _mlsLog('Processing reshare for group $mlsGroupId');
+
+      final isActive = await ensureGroupAvailable(mlsGroupId);
+      if (!isActive) {
+        _mlsLogWarn('Group $mlsGroupId not available for reshare');
+        return false;
+      }
+
+      final kpStatus = await _identityManager.getKeyPackageStatus();
+      if (kpStatus == null) {
+        _mlsLogWarn('No key package status available');
+        return false;
+      }
+      final devicesNeedingKp = kpStatus.devicesNeedingKps
+          .where((d) => d['mls_group_id'] == mlsGroupId)
+          .toList();
+
+      if (devicesNeedingKp.isEmpty) {
+        _mlsLog('No devices need key packages for group $mlsGroupId');
+        return true;
+      }
+
+      final engineService = await MlsEngineService.getInstance();
+      final engine = engineService.engine;
+      final groupIdBytes = utf8.encode(mlsGroupId);
+
+      for (final device in devicesNeedingKp) {
+        final deviceId = device['device_id']?.toString();
+        if (deviceId == null) continue;
+
+        _mlsLog('Adding device $deviceId to group $mlsGroupId');
+
+        final keyPackages = await _identityManager.getDeviceKeyPackages(
+          deviceId,
+        );
+        if (keyPackages.isEmpty) {
+          _mlsLogWarn('No key packages available for device $deviceId');
+          continue;
+        }
+
+        final kpBytes = keyPackages.first['key_package_bytes'] as String?;
+        if (kpBytes == null) continue;
+
+        final kp = base64Decode(kpBytes);
+
+        final signerBytes = await _identityManager.getOrCreateSignerBytes();
+        await engine.addMembers(
+          groupIdBytes: groupIdBytes,
+          signerBytes: signerBytes,
+          keyPackagesBytes: [kp],
+        );
+
+        _mlsLog('Added device $deviceId to group $mlsGroupId');
+      }
+
+      await commitPending(mlsGroupId);
+
+      await _padlockClient.post(
+        '/e2ee/mls/devices/me/reshare-required/$mlsGroupId/complete',
+        options: Options(headers: await _getMlsHeaders()),
+      );
+
+      _mlsLog('Reshare completed for group $mlsGroupId');
+      return true;
+    } catch (e) {
+      _mlsLogError('Failed to process reshare for $mlsGroupId: $e');
+      return false;
+    }
+  }
+
+  Future<bool> checkAndProcessReshare(String mlsGroupId) async {
+    try {
+      final reshareRequired = await getReshareRequiredGroups();
+      final groupNeedsReshare = reshareRequired.any(
+        (g) => g['mls_group_id'] == mlsGroupId,
+      );
+
+      if (groupNeedsReshare) {
+        _mlsLog('Group $mlsGroupId requires reshare, processing...');
+        return await processReshareForGroup(mlsGroupId);
+      }
+
+      return false;
+    } catch (e) {
+      _mlsLogError('Failed to check reshare status for $mlsGroupId: $e');
+      return false;
+    }
+  }
+
+  Future<bool> uploadGroupInfo(String mlsGroupId) async {
+    try {
+      final engineService = await MlsEngineService.getInstance();
+      final engine = engineService.engine;
+      final groupIdBytes = utf8.encode(mlsGroupId);
+
+      final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
+      if (!isActive) {
+        _mlsLogWarn(
+          'Cannot upload group info: group not active for $mlsGroupId',
+        );
+        return false;
+      }
+
+      final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+      final ratchetTree = await engine.exportRatchetTree(
+        groupIdBytes: groupIdBytes,
+      );
+
+      final response = await _padlockClient.put(
+        '/mls/groups/$mlsGroupId/groupinfo',
+        data: {'group_info': base64Encode(ratchetTree)},
+        options: Options(headers: await _getMlsHeaders()),
+      );
+
+      _mlsLog('Uploaded group info for $mlsGroupId (epoch: ${epoch.toInt()})');
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      _mlsLogError('Failed to upload group info for $mlsGroupId: $e');
+      return false;
+    }
+  }
+
+  Future<bool> joinGroupExternal(String mlsGroupId) async {
+    try {
+      _mlsLog('Attempting external join for group $mlsGroupId');
+
+      final response = await _padlockClient.get(
+        '/mls/groups/$mlsGroupId/groupinfo',
+        options: Options(headers: await _getMlsHeaders()),
+      );
+
+      if (response.data is! Map<String, dynamic>) {
+        _mlsLogWarn('Invalid group info response for $mlsGroupId');
+        return false;
+      }
+
+      final data = Map<String, dynamic>.from(response.data);
+      final groupInfoBase64 = data['group_info']?.toString();
+      final ratchetTreeBase64 = data['ratchet_tree']?.toString();
+
+      if (groupInfoBase64 == null || ratchetTreeBase64 == null) {
+        _mlsLogWarn(
+          'Missing group_info or ratchet_tree in response for $mlsGroupId',
+        );
+        return false;
+      }
+
+      final groupInfo = base64Decode(groupInfoBase64);
+      final ratchetTree = base64Decode(ratchetTreeBase64);
+
+      final engineService = await MlsEngineService.getInstance();
+      final engine = engineService.engine;
+      final signerBytes = await _identityManager.getOrCreateSignerBytes();
+      final signerPublicKey = await _identityManager.getSignerPublicKey();
+
+      final joinResult = await engine.joinGroupExternalCommit(
+        config: MlsGroupConfig.defaultConfig(ciphersuite: defaultCiphersuite),
+        groupInfoBytes: groupInfo,
+        ratchetTreeBytes: ratchetTree,
+        signerBytes: signerBytes,
+        credentialIdentity: utf8.encode(mlsGroupId),
+        signerPublicKey: signerPublicKey,
+      );
+
+      final groupIdBytesResult = joinResult.groupId;
+      final newEpoch = await engine.groupEpoch(
+        groupIdBytes: groupIdBytesResult,
+      );
+
+      await saveGroupState(mlsGroupId, {
+        'group_id': mlsGroupId,
+        'epoch': newEpoch.toInt(),
+        'ratchet_tree': ratchetTreeBase64,
+        'joined_via_external': true,
+        'external_join_at': DateTime.now().toIso8601String(),
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      _mlsLogInfo(
+        'External join successful for $mlsGroupId (epoch: ${newEpoch.toInt()})',
+      );
+
+      await uploadGroupInfo(mlsGroupId);
+
+      return true;
+    } catch (e) {
+      _mlsLogError('Failed to external join group $mlsGroupId: $e');
+      return false;
+    }
   }
 
   Future<bool> upgradeRoomToMls({
@@ -742,7 +965,7 @@ class MlsGroupManager {
             'epoch': 0,
             'reason': 'room_upgrade_to_mls',
           },
-          options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+          options: Options(headers: await _getMlsHeaders()),
         );
       }
       _mlsLog('Sent reshare requests for all members in room $roomId');
@@ -782,13 +1005,13 @@ class MlsGroupManager {
 
     try {
       await _padlockClient.post(
-        '/mls/groups/$mlsGroupId/reset',
+        '/e2ee/mls/groups/$mlsGroupId/reset',
         data: {
           'new_epoch': 0,
           'state_version': await _getCurrentStateVersion(mlsGroupId) + 1,
           'reason': reason,
         },
-        options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
+        options: Options(headers: await _getMlsHeaders()),
       );
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
