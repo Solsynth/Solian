@@ -11,8 +11,9 @@ import 'package:island/chat/widgets/call_content.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/talker.dart';
+
 import 'package:livekit_client/livekit_client.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -30,14 +31,14 @@ class CallScreen extends HookConsumerWidget {
     final controlsVisible = useState(true);
 
     useEffect(() {
-      talker.info('[Call] Joining the call...');
+      Logger.root.info('[Call] Joining the call...');
       callNotifier.joinRoom(room).catchError((_) {
         showConfirmAlert(
           'Seems there already has a call connected, do you want override it?',
           'Call already connected',
         ).then((value) {
           if (value != true) return;
-          talker.info('[Call] Joining the call... with overrides');
+          Logger.root.info('[Call] Joining the call... with overrides');
           callNotifier.disconnect();
           callNotifier.dispose();
           callNotifier.joinRoom(room);
@@ -182,7 +183,8 @@ class CallScreen extends HookConsumerWidget {
                                   shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
                                   children: [
-                                    for (final live in callNotifier.participants)
+                                    for (final live
+                                        in callNotifier.participants)
                                       Padding(
                                         padding: const EdgeInsets.only(left: 6),
                                         child: SpeakingRippleAvatar(
@@ -218,15 +220,13 @@ class CallScreen extends HookConsumerWidget {
                           ),
                         ),
                         child: const Center(
-                          child: CallControlsBar(
-                            popOnLeaves: true,
-                          ),
+                          child: CallControlsBar(popOnLeaves: true),
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
+        ),
       ),
     );
   }

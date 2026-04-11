@@ -1453,14 +1453,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
-  group_button:
-    dependency: transitive
-    description:
-      name: group_button
-      sha256: "0610fcf28ed122bfb4b410fce161a390f7f2531d55d1d65c5375982001415940"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.3.4"
   gsettings:
     dependency: transitive
     description:
@@ -1926,7 +1918,7 @@ packages:
     source: hosted
     version: "2.7.0"
   logging:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: logging
       sha256: c8245ada5f1717ed44271ed1c26b8ce85ca3228fd2ffdb75468ab01979309d61
@@ -2089,10 +2081,10 @@ packages:
     dependency: "direct main"
     description:
       name: mobile_scanner
-      sha256: d234581c090526676fd8fab4ada92f35c6746e3fb4f05a399665d75a399fb760
+      sha256: c92c26bf2231695b6d3477c8dcf435f51e28f87b1745966b1fe4c47a286171ce
       url: "https://pub.dev"
     source: hosted
-    version: "5.2.3"
+    version: "7.2.0"
   mockito:
     dependency: transitive
     description:
@@ -3321,46 +3313,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.0"
-  talker:
-    dependency: "direct main"
-    description:
-      name: talker
-      sha256: c364edc0fbd6c648e1a78e6edd89cccd64df2150ca96d899ecd486b76c185042
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.1.16"
-  talker_dio_logger:
-    dependency: "direct main"
-    description:
-      name: talker_dio_logger
-      sha256: "0c2b6e30c4e32b0d746cf2053874bf496043c62e67b9a0271e8c0b3eca65cdaa"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.1.16"
-  talker_flutter:
-    dependency: "direct main"
-    description:
-      name: talker_flutter
-      sha256: "54cbbf852101721664faf4a05639fd2fdefdc37178327990abea00390690d4bc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.1.16"
-  talker_logger:
-    dependency: "direct main"
-    description:
-      name: talker_logger
-      sha256: cea1b8283a28c2118a0b197057fc5beb5b0672c75e40a48725e5e452c0278ff3
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.1.16"
-  talker_riverpod_logger:
-    dependency: "direct main"
-    description:
-      name: talker_riverpod_logger
-      sha256: "92367978861476e9fd9cbd03cab2dc33481f5c6bf559445739f6a7d66ffbb0c8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.1.16"
   term_glyph:
     dependency: transitive
     description:

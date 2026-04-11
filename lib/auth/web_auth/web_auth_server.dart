@@ -8,7 +8,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/auth/web_auth/web_auth_app_info.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
 
 class WebAuthRequestEvent {
   final WebAuthAppInfo app;
@@ -30,13 +30,13 @@ class WebAuthServer {
 
   Future<int> start() async {
     if (_server != null) {
-      talker.warning('Web auth server already running.');
+      Logger.root.warning('Web auth server already running.');
       return _server!.port;
     }
 
     final port = await _findUnusedPort(40000, 41000);
     _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
-    talker.info('Web auth server started on http://127.0.0.1:$port');
+    Logger.root.info('Web auth server started on http://127.0.0.1:$port');
 
     _server!.listen(_handleRequest);
     return port;
@@ -45,7 +45,7 @@ class WebAuthServer {
   void stop() {
     _server?.close(force: true);
     _server = null;
-    talker.info('Web auth server stopped.');
+    Logger.root.info('Web auth server stopped.');
   }
 
   Future<int> _findUnusedPort(int start, int end) async {
@@ -80,7 +80,9 @@ class WebAuthServer {
         return;
       }
 
-      talker.info('Web auth request: ${request.method} ${request.uri.path}');
+      Logger.root.info(
+        'Web auth request: ${request.method} ${request.uri.path}',
+      );
 
       if (request.method == 'GET' && request.uri.path == '/alive') {
         await _handleAlive(request);
@@ -94,13 +96,13 @@ class WebAuthServer {
         await request.response.close();
       }
     } catch (e, st) {
-      talker.handle(e, st, 'Error handling web auth request');
+      Logger.root.severe('Error handling web auth request: $e $st');
       try {
         request.response.statusCode = HttpStatus.internalServerError;
         request.response.write(jsonEncode({'error': 'Internal Server Error'}));
         await request.response.close();
       } catch (e2) {
-        talker.error('Failed to send error response: $e2');
+        Logger.root.severe('Failed to send error response: $e2');
       }
     }
   }
@@ -137,7 +139,7 @@ class WebAuthServer {
         );
       }
     } catch (e) {
-      talker.error('Failed to get account info: $e');
+      Logger.root.severe('Failed to get account info: $e');
       request.response.statusCode = HttpStatus.internalServerError;
       request.response.write(jsonEncode({'error': e.toString()}));
     }
@@ -170,7 +172,7 @@ class WebAuthServer {
       return;
     }
 
-    talker.info('Auth request from app: ${app.slug}');
+    Logger.root.info('Auth request from app: ${app.slug}');
 
     final completer = Completer<String?>();
 
@@ -199,7 +201,7 @@ class WebAuthServer {
     request.response.write(jsonEncode(response));
     await request.response.close();
 
-    talker.info('Challenge sent to ${app.slug}');
+    Logger.root.info('Challenge sent to ${app.slug}');
   }
 
   Future<WebAuthAppInfo?> _fetchAppInfoBySlug(String slug) async {
@@ -325,7 +327,7 @@ class WebAuthServer {
         );
       }
     } on DioException catch (e) {
-      talker.error('Backend exchange failed: ${e.response?.data}');
+      Logger.root.severe('Backend exchange failed: ${e.response?.data}');
       request.response.statusCode =
           e.response?.statusCode ?? HttpStatus.internalServerError;
       request.response.headers.contentType = ContentType.json;
@@ -335,7 +337,7 @@ class WebAuthServer {
         ),
       );
     } catch (e, st) {
-      talker.handle(e, st, 'Error during backend exchange');
+      Logger.root.severe('Error during backend exchange: $e $st');
       request.response.statusCode = HttpStatus.internalServerError;
       request.response.headers.contentType = ContentType.json;
       request.response.write(

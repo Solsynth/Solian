@@ -6,9 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:gap/gap.dart';
 import 'package:island/core/network.dart';
-import 'package:island/talker.dart';
+
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:logging/logging.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -139,10 +140,10 @@ class PollEditor extends Notifier<PollEditorState> {
         markAsInitial: true,
       );
     } on DioException catch (e) {
-      talker.error('Failed to load poll $id: ${e.message}');
+      Logger.root.severe('Failed to load poll $id: ${e.message}');
       // Keep state with id set; UI may handle error display.
     } catch (e) {
-      talker.error('Unexpected error loading poll $id: $e');
+      Logger.root.severe('Unexpected error loading poll $id: $e');
     } finally {
       if (context.mounted) hideLoadingModal(context);
     }

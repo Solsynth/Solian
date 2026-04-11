@@ -27,11 +27,11 @@ import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/sync_indicator.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:island/talker.dart';
 
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
@@ -92,11 +92,12 @@ class ChatListBodyWidget extends HookConsumerWidget {
                     await ref
                         .read(chatGlobalSyncProvider.notifier)
                         .syncAllMessages();
-                    talker.log('Pull-to-refresh: Global chat sync completed');
+                    Logger.root.info(
+                      'Pull-to-refresh: Global chat sync completed',
+                    );
                   } catch (e) {
-                    talker.log(
+                    Logger.root.info(
                       'Pull-to-refresh: Global chat sync failed',
-                      exception: e,
                     );
                   }
                 },
@@ -962,16 +963,14 @@ class ChatListWidget extends HookConsumerWidget {
         isResyncingAfterResume.value = true;
         Future<void>(() async {
           try {
-            talker.log(
+            Logger.root.info(
               'Chat list resumed from $previousState, triggering eager global sync',
             );
             await ref.read(chatGlobalSyncProvider.notifier).syncAllMessages();
             ref.invalidate(chatRoomJoinedProvider);
           } catch (e, stackTrace) {
-            talker.log(
-              'Chat list eager resume sync failed',
-              exception: e,
-              stackTrace: stackTrace,
+            Logger.root.info(
+              'Chat list eager resume sync failed: $e $stackTrace',
             );
           } finally {
             if (context.mounted) {

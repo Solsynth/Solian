@@ -6,7 +6,8 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/main.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/e2ee/mls_identity_manager.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -14,7 +15,7 @@ import 'package:styled_widget/styled_widget.dart';
 const _mlsLogPrefix = '[KP Popup] ';
 
 void _mlsLog(dynamic msg) {
-  talker.info('$_mlsLogPrefix$msg');
+  Logger.root.info('$_mlsLogPrefix$msg');
 }
 
 final keyPackagePopupProvider = NotifierProvider<KeyPackagePopupNotifier, void>(

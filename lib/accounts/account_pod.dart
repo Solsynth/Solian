@@ -7,8 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
-import 'package:island/talker.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const _bootstrapRetryTimeouts = <Duration>[
@@ -22,7 +22,7 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
   Future<SnAccount?> build() async {
     final token = ref.watch(tokenProvider);
     if (token == null) {
-      talker.info('[UserInfo] No token found, not going to fetch...');
+      Logger.root.info('[UserInfo] No token found, not going to fetch...');
       return null;
     }
     return _fetchUserWithRetry(showErrorDialog: false);
@@ -85,7 +85,11 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
         });
       }
     }
-    talker.error("[UserInfo] Failed to fetch user info...", error, stackTrace);
+    Logger.root.severe(
+      "[UserInfo] Failed to fetch user info...",
+      error,
+      stackTrace,
+    );
   }
 
   Future<SnAccount?> _fetchUserWithRetry({
@@ -103,7 +107,7 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
       } catch (error, stackTrace) {
         lastError = error;
         lastStackTrace = stackTrace;
-        talker.warning(
+        Logger.root.warning(
           '[UserInfo] Retry ${idx + 1}/${retryTimeouts.length} failed '
           '(timeout: ${timeout.inMilliseconds}ms): $error',
         );

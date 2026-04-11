@@ -5,7 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -57,7 +58,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
     String? uri;
     final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
     if (inCacheInfo == null) {
-      talker.info('[MediaPlayer] Miss cache: $url');
+      Logger.root.info('[MediaPlayer] Miss cache: $url');
       final serverUrl = ref.read(serverUrlProvider);
       final token = ref.read(tokenProvider);
       final authHeaders = url.startsWith(serverUrl) && token != null
@@ -67,7 +68,7 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
       uri = url;
     } else {
       uri = inCacheInfo.file.path;
-      talker.info('[MediaPlayer] Hit cache: $url');
+      Logger.root.info('[MediaPlayer] Hit cache: $url');
     }
 
     final serverUrl = ref.read(serverUrlProvider);

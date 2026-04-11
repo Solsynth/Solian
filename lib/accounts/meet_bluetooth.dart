@@ -5,7 +5,7 @@ import 'package:bluetooth_low_energy/bluetooth_low_energy.dart' as ble;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 const kMeetBluetoothServiceUuid = 'FFF0';
@@ -118,7 +118,7 @@ class MeetBluetoothService {
     final advertisementKey =
         '${serviceUuid.toLowerCase()}|${payloadHex.toUpperCase()}';
     if (_activeAdvertisementKey == advertisementKey) {
-      talker.info(
+      Logger.root.info(
         '[Nearby/BLE] startAdvertising skipped serviceUuid=$serviceUuid payloadHex=$payloadHex because the same advertisement is already active',
       );
       return;
@@ -138,7 +138,7 @@ class MeetBluetoothService {
       payloadHex: payloadHex.toUpperCase(),
       includeSeparateServiceUuid: useSeparateServiceUuidField,
     );
-    talker.info(
+    Logger.root.info(
       '[Nearby/BLE] startAdvertising serviceUuid=$serviceUuid serviceUuidBytes=${_bytesToHex(service.value).toUpperCase()} payloadHex=$payloadHex payloadBytes=${payload.length} estimatedBytes=${payloadLayout.totalBytes} separateServiceUuid=$useSeparateServiceUuidField layout=${payloadLayout.summary}',
     );
     try {
@@ -155,7 +155,7 @@ class MeetBluetoothService {
     if (_activeAdvertisementKey == null) return;
     try {
       await _peripheralManager.stopAdvertising();
-      talker.info('[Nearby/BLE] stopAdvertising');
+      Logger.root.info('[Nearby/BLE] stopAdvertising');
     } finally {
       _activeAdvertisementKey = null;
     }
@@ -183,7 +183,7 @@ class MeetBluetoothService {
     if (await FlutterBluePlus.isScanning.first) {
       await FlutterBluePlus.stopScan();
     }
-    talker.info(
+    Logger.root.info(
       '[Nearby/BLE] startScan serviceUuid=$serviceUuid useServiceFilter=$useServiceFilter timeoutSec=${timeout.inSeconds}',
     );
     if (useServiceFilter) {
@@ -212,7 +212,7 @@ class MeetBluetoothService {
     await stopNearbyDiscovery();
     _nearbyDiscoveries.clear();
 
-    talker.info(
+    Logger.root.info(
       '[Nearby/BLE] startNearbyDiscovery serviceUuid=$serviceUuid timeoutSec=${timeout?.inSeconds ?? "infinite"}',
     );
 
@@ -235,12 +235,12 @@ class MeetBluetoothService {
         final items = _nearbyDiscoveries.values.toList()
           ..sort((a, b) => b.rssi.compareTo(a.rssi));
         _nearbyDiscoveriesController.add(items);
-        talker.info(
+        Logger.root.info(
           '[Nearby/BLE] parsed ${items.length} devices for serviceUuid=$serviceUuid deviceIds=${items.map((e) => e.deviceId).join(",")}',
         );
       },
       onError: (error) {
-        talker.error('[Nearby/BLE] scan error: $error');
+        Logger.root.severe('[Nearby/BLE] scan error: $error');
       },
     );
 
@@ -275,7 +275,7 @@ class MeetBluetoothService {
       }
       _isNearbyDiscovering = false;
       _nearbyDiscoveryStateController.add(false);
-      talker.info('[Nearby/BLE] stopNearbyDiscovery');
+      Logger.root.info('[Nearby/BLE] stopNearbyDiscovery');
     }
   }
 
@@ -384,12 +384,12 @@ class MeetBluetoothService {
     if (matchingServiceUuids.isNotEmpty ||
         matchingManufacturerRows.isNotEmpty ||
         rawServiceDataRows.isNotEmpty) {
-      talker.info(
+      Logger.root.info(
         '[Nearby/BLE] rawScan serviceUuid=$serviceUuid matchedServiceUuids=${matchingServiceUuids.join(",")} manufacturer=${matchingManufacturerRows.join(",")} serviceData=${rawServiceDataRows.join(",")}',
       );
     }
     if (items.isNotEmpty) {
-      talker.info(
+      Logger.root.info(
         '[Nearby/BLE] parsed ${items.length} discoveries for serviceUuid=$serviceUuid payloads=${items.map((e) => e.payloadHex).join(",")}',
       );
     }

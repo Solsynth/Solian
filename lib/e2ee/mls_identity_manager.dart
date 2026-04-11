@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:logging/logging.dart';
 import 'package:openmls/openmls.dart';
-import 'package:island/talker.dart';
+
 import 'mls_engine.dart';
 import 'mls_storage.dart';
 
@@ -30,15 +31,15 @@ class KeyPackageStatus {
 }
 
 void _mlsLog(dynamic msg) {
-  talker.info('$_mlsLogPrefix$msg');
+  Logger.root.info('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogWarn(dynamic msg) {
-  talker.warning('$_mlsLogPrefix$msg');
+  Logger.root.warning('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogError(dynamic msg) {
-  talker.error('$_mlsLogPrefix$msg');
+  Logger.root.severe('$_mlsLogPrefix$msg');
 }
 
 class MlsIdentityManager {
@@ -51,10 +52,7 @@ class MlsIdentityManager {
 
   Future<Map<String, String>> getMlsHeaders() async {
     final deviceId = await getOrCreateDeviceId();
-    return {
-      'X-Client-Ability': 'chat.mls.v2',
-      if (deviceId != null) 'X-Device-Id': deviceId,
-    };
+    return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
   }
 
   Future<String?> getOrCreateDeviceId() async {
@@ -145,7 +143,7 @@ class MlsIdentityManager {
     }
 
     // 3. No existing signer - generate new one
-    talker.info(
+    Logger.root.info(
       'No signer found, generating new signer keypair for this device',
     );
     final keyPair = MlsSignatureKeyPair.generate(
@@ -161,7 +159,7 @@ class MlsIdentityManager {
     // Store both signerBytes and publicKey separately
     await _storage.setSignerBytes(base64Encode(signerBytes));
     await _storage.setSignerPublicKey(base64Encode(keyPair.publicKey()));
-    talker.info('New signer keypair generated and saved');
+    Logger.root.info('New signer keypair generated and saved');
     return signerBytes;
   }
 

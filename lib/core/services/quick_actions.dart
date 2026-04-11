@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:island/route.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:quick_actions/quick_actions.dart';
 
 class QuickActionsService {
@@ -17,19 +18,19 @@ class QuickActionsService {
 
   Future<void> initialize() async {
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-      talker.warning(
+      Logger.root.warning(
         '[QuickActions] Quick Actions only supported on Android and iOS',
       );
       return;
     }
 
     if (_initialized) {
-      talker.info('[QuickActions] Already initialized');
+      Logger.root.info('[QuickActions] Already initialized');
       return;
     }
 
     try {
-      talker.info('[QuickActions] Initializing Quick Actions...');
+      Logger.root.info('[QuickActions] Initializing Quick Actions...');
 
       // TODO Add icons for these
       final shortcuts = <ShortcutItem>[
@@ -46,19 +47,21 @@ class QuickActionsService {
       await _quickActions.setShortcutItems(shortcuts);
 
       _initialized = true;
-      talker.info('[QuickActions] Quick Actions initialized successfully');
+      Logger.root.info('[QuickActions] Quick Actions initialized successfully');
     } catch (e, stack) {
-      talker.error('[QuickActions] Initialization failed', e, stack);
+      Logger.root.severe('[QuickActions] Initialization failed', e, stack);
       rethrow;
     }
   }
 
   void _handleShortcut(String type) {
-    talker.info('[QuickActions] Shortcut tapped: $type');
+    Logger.root.info('[QuickActions] Shortcut tapped: $type');
 
     final context = rootNavigatorKey.currentContext;
     if (context == null) {
-      talker.warning('[QuickActions] Context not available, skipping action');
+      Logger.root.warning(
+        '[QuickActions] Context not available, skipping action',
+      );
       return;
     }
 
@@ -80,7 +83,7 @@ class QuickActionsService {
         break;
 
       default:
-        talker.warning('[QuickActions] Unknown shortcut type: $type');
+        Logger.root.warning('[QuickActions] Unknown shortcut type: $type');
     }
   }
 

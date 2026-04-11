@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/e2ee/e2ee.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// Service layer for E2EE/MLS message operations.
@@ -170,7 +170,7 @@ class E2eeMessageService {
         encryptionScheme: message.meta['e2ee_scheme']?.toString(),
       );
     } catch (e) {
-      talker.debug('E2EE decrypt failed for ${message.id}: $e');
+      Logger.root.fine('E2EE decrypt failed for ${message.id}: $e');
       return null;
     }
   }

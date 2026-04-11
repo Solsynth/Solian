@@ -7,14 +7,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network/media_proxy_server.dart';
+import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:talker_dio_logger/talker_dio_logger.dart';
-import 'package:island/talker.dart';
+
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'network.g.dart';
@@ -202,16 +202,6 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
         return handler.next(error);
       },
     ),
-    TalkerDioLogger(
-      talker: talker,
-      settings: const TalkerDioLoggerSettings(
-        printRequestHeaders: false,
-        printResponseHeaders: false,
-        printResponseMessage: false,
-        printRequestData: false,
-        printResponseData: false,
-      ),
-    ),
     RetryInterceptor(
       dio: dio,
       retries: 3,
@@ -315,16 +305,6 @@ final apiClientProvider = Provider<Dio>((ref) {
         return handler.next(error);
       },
     ),
-    TalkerDioLogger(
-      talker: talker,
-      settings: const TalkerDioLoggerSettings(
-        printRequestHeaders: false,
-        printResponseHeaders: false,
-        printResponseMessage: false,
-        printRequestData: false,
-        printResponseData: false,
-      ),
-    ),
     RetryInterceptor(
       dio: dio,
       retries: 3,
@@ -385,7 +365,7 @@ Future<void> forceRefreshToken({
       current: tokenPair,
     );
     if (refreshed != null) {
-      talker.debug('[Network] Force token refresh completed.');
+      Logger.root.fine('[Network] Force token refresh completed.');
     }
   }();
 
@@ -582,10 +562,10 @@ Future<_StoredTokenPair?> _refreshTokenPairInternal({
 
       await _saveTokenPair(prefs, refreshed);
       onRefreshed?.call();
-      talker.debug('[Network] Access token refreshed.');
+      Logger.root.fine('[Network] Access token refreshed.');
       return refreshed;
     } catch (err) {
-      talker.warning('[Network] Token refresh failed: $err');
+      Logger.root.warning('[Network] Token refresh failed: $err');
       return current;
     } finally {
       client.close();
@@ -712,7 +692,7 @@ final mediaProxyUrlProvider = FutureProvider<String?>((ref) async {
     try {
       await server.start();
     } catch (e) {
-      talker.error('[media.proxy] Failed to start: $e');
+      Logger.root.severe('[media.proxy] Failed to start: $e');
       return null;
     }
   }

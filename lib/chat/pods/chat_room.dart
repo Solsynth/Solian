@@ -11,9 +11,9 @@ import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/e2ee/e2ee.dart';
+import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-import 'package:island/talker.dart';
 
 part 'chat_room.g.dart';
 
@@ -101,7 +101,7 @@ Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
   try {
     return await db.getLatestMessageTimestamp();
   } catch (e) {
-    talker.log('Error getting latest message timestamp: $e');
+    Logger.root.info('Error getting latest message timestamp: $e');
   }
   return 0;
 }
@@ -188,7 +188,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     try {
       return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
     } catch (e) {
-      talker.log(
+      Logger.root.info(
         'Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e',
       );
       return null;
@@ -200,7 +200,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     try {
       return SnChatMember.fromJson(data);
     } catch (e) {
-      talker.log(
+      Logger.root.info(
         'Skipping invalid chat member${context != null ? ' ($context)' : ''}: $e',
       );
       return null;
@@ -581,7 +581,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final room = await db.getChatRoomById(message.chatRoomId);
     final mlsGroupId = room?.mlsGroupId;
     if (mlsGroupId == null) {
-      talker.debug(
+      Logger.root.fine(
         'No mlsGroupId for room ${message.chatRoomId}, skipping decrypt',
       );
       return null;
@@ -616,14 +616,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               return message.copyWith(content: decryptedContent);
             }
             // No plaintext available - skip this message
-            talker.debug(
+            Logger.root.fine(
               'Skipping sync for own message ${message.id} - no plaintext',
             );
             return null;
           }
         }
       } catch (e) {
-        talker.debug('Failed to parse encryption header in sync: $e');
+        Logger.root.fine('Failed to parse encryption header in sync: $e');
       }
     }
 
@@ -644,7 +644,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         }
       }
     } catch (e) {
-      talker.debug('Failed to decrypt sync message ${message.id}: $e');
+      Logger.root.fine('Failed to decrypt sync message ${message.id}: $e');
     }
 
     return null;
@@ -653,7 +653,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   /// Perform global sync to fetch messages from all chat rooms
   Future<void> syncAllMessages({bool force = false}) async {
     if (_ongoingSync != null) {
-      talker.log('Global sync already in progress, joining existing task');
+      Logger.root.info(
+        'Global sync already in progress, joining existing task',
+      );
       return _ongoingSync!;
     }
 
@@ -661,7 +663,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     if (!force &&
         _lastSyncStartedAt != null &&
         now.difference(_lastSyncStartedAt!) < _minSyncInterval) {
-      talker.log(
+      Logger.root.info(
         'Skipping global sync due to cooldown (${now.difference(_lastSyncStartedAt!).inMilliseconds}ms < ${_minSyncInterval.inMilliseconds}ms)',
       );
       return;
@@ -678,7 +680,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
   }
 
   Future<void> _syncAllMessagesImpl() async {
-    talker.log('Starting global chat sync...');
+    Logger.root.info('Starting global chat sync...');
     ref.read(chatSyncHintProvider.notifier).set('Syncing chat history...');
 
     Future.microtask(() {
@@ -696,7 +698,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final savedCursor = prefs.getInt(_chatSyncCursorStoreKey) ?? 0;
       final dbLatestCursor = await _getLatestMessageTimestamp(db);
       if (savedCursor <= 0 && dbLatestCursor <= 0) {
-        talker.log(
+        Logger.root.info(
           'Skipping global sync: no saved sync cursor and no local latest message timestamp.',
         );
         return;
@@ -705,7 +707,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           ? (savedCursor < dbLatestCursor ? savedCursor : dbLatestCursor)
           : (savedCursor > 0 ? savedCursor : dbLatestCursor);
 
-      talker.log(
+      Logger.root.info(
         'Global sync with cursor: $currentSyncTimestamp (saved=$savedCursor, dbLatest=$dbLatestCursor)',
       );
 
@@ -725,7 +727,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         while (true) {
           pagesProcessed += 1;
           if (pagesProcessed > _maxSyncPagesPerRound) {
-            talker.log(
+            Logger.root.info(
               'Stopping sync round ${eagerRound + 1}: reached page limit $_maxSyncPagesPerRound',
             );
             break;
@@ -760,7 +762,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           final nextPagingCursor = currentTimestamp.millisecondsSinceEpoch;
           final hasCursorProgress = nextPagingCursor > pagingCursor;
 
-          talker.log(
+          Logger.root.info(
             'Global sync round ${eagerRound + 1} received ${messages.length} valid messages (${rawMessages.length} raw, skipped $skippedCount), timestamp: $currentTimestamp (total: $totalMessages)',
           );
           ref
@@ -804,7 +806,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             try {
               await db.saveMessagesWithSenders(normalMessages);
             } catch (e) {
-              talker.log('Error bulk-saving sync messages: $e');
+              Logger.root.info('Error bulk-saving sync messages: $e');
             }
           }
 
@@ -827,7 +829,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               updatedRoomIds.add(msg.chatRoomId);
               roundSynced += 1;
             } catch (e) {
-              talker.log('Error saving reaction from global sync: $e');
+              Logger.root.info('Error saving reaction from global sync: $e');
             }
           }
 
@@ -844,14 +846,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           // contains data. Do not rely solely on total_count semantics.
           if (hasCursorProgress) {
             pagingCursor = nextPagingCursor;
-            talker.log(
+            Logger.root.info(
               'Continuing sync round ${eagerRound + 1} with cursor: $pagingCursor (pageRaw=${rawMessages.length}, pageValid=${messages.length}, totalHint=$totalMessages)',
             );
             await Future<void>.delayed(Duration.zero);
             continue;
           }
 
-          talker.log(
+          Logger.root.info(
             'Stopping sync round ${eagerRound + 1}: cursor did not advance (cursor=$pagingCursor, next=$nextPagingCursor, pageRaw=${rawMessages.length})',
           );
           break;
@@ -872,7 +874,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       final nextCursor = syncCursor;
       await prefs.setInt(_chatSyncCursorStoreKey, nextCursor);
 
-      talker.log(
+      Logger.root.info(
         'Global sync complete: $totalSynced messages saved (nextCursor=$nextCursor)',
       );
       ref
@@ -882,11 +884,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         eventBus.fire(ChatMessagesSyncedEvent(roomIds: updatedRoomIds));
       }
     } catch (e, stackTrace) {
-      talker.log(
-        'Error during global chat sync',
-        exception: e,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('Error during global chat sync: $e $stackTrace');
     } finally {
       Future.microtask(() {
         if (ref.mounted) {

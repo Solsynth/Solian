@@ -16,13 +16,14 @@ import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/e2ee/mls_client.dart';
-import 'package:island/talker.dart';
+
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/pagination_list.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -843,7 +844,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
               );
             }
           } catch (e) {
-            talker.warning('Failed to fanout welcome to new member: $e');
+            Logger.root.warning('Failed to fanout welcome to new member: $e');
           }
         }
 

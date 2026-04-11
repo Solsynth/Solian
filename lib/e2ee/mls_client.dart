@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'mls_engine.dart';
 import 'mls_storage.dart';
 import 'mls_identity_manager.dart';
@@ -16,11 +17,11 @@ import 'mls_message_handler.dart';
 const _mlsLogPrefix = '[MLS] ';
 
 void _mlsLog(dynamic msg) {
-  talker.log('$_mlsLogPrefix$msg');
+  Logger.root.info('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogWarn(dynamic msg) {
-  talker.warning('$_mlsLogPrefix$msg');
+  Logger.root.warning('$_mlsLogPrefix$msg');
 }
 
 class MlsClient {

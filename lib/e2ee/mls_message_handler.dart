@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:logging/logging.dart';
 import 'package:openmls/openmls.dart';
-import 'package:island/talker.dart';
+
 import 'package:island/core/services/event_bus.dart';
 import 'mls_engine.dart';
 import 'mls_identity_manager.dart';
@@ -13,15 +14,15 @@ import 'mls_pending_queue.dart';
 const _mlsLogPrefix = '[MLS] ';
 
 void _mlsLog(dynamic msg) {
-  talker.info('$_mlsLogPrefix$msg');
+  Logger.root.info('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogWarn(dynamic msg) {
-  talker.warning('$_mlsLogPrefix$msg');
+  Logger.root.warning('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogError(dynamic msg) {
-  talker.error('$_mlsLogPrefix$msg');
+  Logger.root.severe('$_mlsLogPrefix$msg');
 }
 
 /// Used for encrypting attachments/files, not MLS messages.
@@ -79,10 +80,7 @@ class MlsMessageHandler {
 
   Future<Map<String, String>> _getMlsHeaders() async {
     final deviceId = await _identityManager.getOrCreateDeviceId();
-    return {
-      'X-Client-Ability': 'chat.mls.v2',
-      if (deviceId != null) 'X-Device-Id': deviceId,
-    };
+    return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
   }
 
   bool _isMissingGroupError(Object error) {
@@ -662,14 +660,17 @@ class MlsMessageHandler {
         final ciphertext = envelope['ciphertext']?.toString();
         final groupId = envelope['group_id']?.toString();
 
-        if (envelopeId == null || ciphertext == null || groupId == null)
+        if (envelopeId == null || ciphertext == null || groupId == null) {
           continue;
+        }
         if (groupId != mlsGroupId) continue;
 
         // Only process commits and proposals
         final type = MlsEnvelopeType.fromInt(envelopeType);
-        if (type != MlsEnvelopeType.commit && type != MlsEnvelopeType.proposal)
+        if (type != MlsEnvelopeType.commit &&
+            type != MlsEnvelopeType.proposal) {
           continue;
+        }
 
         try {
           final ciphertextBytes = base64Decode(ciphertext);

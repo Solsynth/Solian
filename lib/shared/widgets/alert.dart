@@ -9,8 +9,9 @@ import 'package:island/main.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/talker.dart';
+
 import 'package:just_audio/just_audio.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -264,7 +265,7 @@ void showErrorAlert(dynamic err, {IconData? icon}) {
   }
 
   if (err is Error) {
-    talker.error('Something went wrong...', err, err.stackTrace);
+    Logger.root.severe('Something went wrong...', err, err.stackTrace);
   }
   final text = switch (err) {
     String _ => err,

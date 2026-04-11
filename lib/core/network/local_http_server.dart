@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:island/talker.dart';
+
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -16,7 +17,7 @@ class LocalHttpServer {
 
   Future<void> start({List<int>? portRange, required Handler handler}) async {
     if (_httpServer != null) {
-      talker.log('[$kLogPrefix] Server already running on port $port');
+      Logger.root.info('[$kLogPrefix] Server already running on port $port');
       return;
     }
 
@@ -25,26 +26,34 @@ class LocalHttpServer {
 
     while (currentPort <= range[1]) {
       try {
-        talker.log('[$kLogPrefix] Attempting to bind to port $currentPort');
+        Logger.root.info(
+          '[$kLogPrefix] Attempting to bind to port $currentPort',
+        );
         _httpServer = await HttpServer.bind(
           InternetAddress.loopbackIPv4,
           currentPort,
         );
         _handler = handler;
-        talker.log('[$kLogPrefix] Listening on port $currentPort');
+        Logger.root.info('[$kLogPrefix] Listening on port $currentPort');
 
         shelf_io.serveRequests(_httpServer!, handler);
         return;
       } on SocketException catch (e) {
         if (e.osError?.errorCode == 98) {
-          talker.log('[$kLogPrefix] Port $currentPort in use, trying next...');
+          Logger.root.info(
+            '[$kLogPrefix] Port $currentPort in use, trying next...',
+          );
         } else {
-          talker.log('[$kLogPrefix] Socket error on port $currentPort: $e');
+          Logger.root.info(
+            '[$kLogPrefix] Socket error on port $currentPort: $e',
+          );
         }
         currentPort++;
         await Future.delayed(const Duration(milliseconds: 100));
       } catch (e) {
-        talker.log('[$kLogPrefix] Error binding to port $currentPort: $e');
+        Logger.root.info(
+          '[$kLogPrefix] Error binding to port $currentPort: $e',
+        );
         currentPort++;
         await Future.delayed(const Duration(milliseconds: 100));
       }
@@ -60,7 +69,7 @@ class LocalHttpServer {
       await _httpServer!.close(force: true);
       _httpServer = null;
       _handler = null;
-      talker.log('[$kLogPrefix] Server stopped');
+      Logger.root.info('[$kLogPrefix] Server stopped');
     }
   }
 

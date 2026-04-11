@@ -12,8 +12,9 @@ import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/services/push_provider.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/talker.dart';
+
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:logging/logging.dart';
 import 'package:windows_notification/windows_notification.dart' as winty;
 import 'package:windows_notification/notification_message.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -93,7 +94,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
     if (pkt.type == "notifications.new") {
       final notification = SnNotification.fromJson(pkt.data!);
       if (_appLifecycleState == AppLifecycleState.resumed) {
-        talker.info(
+        Logger.root.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
         if (settings.notifyWithHaptic) {
@@ -103,7 +104,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
         ref.read(notificationStateProvider.notifier).add(notification);
       } else {
         // App is in background, show Windows system notification
-        talker.info(
+        Logger.root.info(
           '[Notification] Showing Windows system notification: ${notification.title}',
         );
 
@@ -124,7 +125,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
               );
               imagePath = file.path;
             } catch (e) {
-              talker.error('Failed to download pfp image: $e');
+              Logger.root.severe('Failed to download pfp image: $e');
             }
           }
 
@@ -135,7 +136,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
               );
               largeImagePath = file.path;
             } catch (e) {
-              talker.error('Failed to download large image: $e');
+              Logger.root.severe('Failed to download large image: $e');
             }
           }
 
@@ -200,7 +201,9 @@ Future<void> subscribePushNotification(
         );
       })
       .onError((err) {
-        talker.error("Failed to get firebase cloud messaging push token: $err");
+        Logger.root.severe(
+          "Failed to get firebase cloud messaging push token: $err",
+        );
       });
 
   if (deviceToken != null) {

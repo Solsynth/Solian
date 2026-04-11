@@ -11,7 +11,7 @@ import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/lifecycle.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/core/websocket.dart";
-import "package:island/talker.dart";
+import "package:logging/logging.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -70,7 +70,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     try {
       _sendMessage!(jsonEncode(packet));
     } catch (e, stackTrace) {
-      talker.error(
+      Logger.root.severe(
         '[MessageSubscriber] Failed to send $context for room $roomId: $e\n$stackTrace',
       );
     }
@@ -78,7 +78,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
 
   void _sendSubscribe({required String reason}) {
     if (!_shouldKeepSubscriptionAlive()) return;
-    talker.info('[MessageSubscriber] Subscribing room $roomId ($reason)');
+    Logger.root.info('[MessageSubscriber] Subscribing room $roomId ($reason)');
     _sendPacket(
       WebSocketPacket(
         type: 'messages.subscribe',
@@ -90,7 +90,9 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   }
 
   void _sendUnsubscribe({required String reason}) {
-    talker.info('[MessageSubscriber] Unsubscribing room $roomId ($reason)');
+    Logger.root.info(
+      '[MessageSubscriber] Unsubscribing room $roomId ($reason)',
+    );
     _sendPacket(
       WebSocketPacket(
         type: 'messages.unsubscribe',
@@ -271,7 +273,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       try {
         _cleanupResources();
       } catch (e, stackTrace) {
-        talker.error(
+        Logger.root.severe(
           '[MessageSubscriber] Error during cleanup for room $roomId: $e\n$stackTrace',
         );
       }
@@ -280,7 +282,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
           _typingCooldownTimer!.cancel();
         }
       } catch (e, stackTrace) {
-        talker.error(
+        Logger.root.severe(
           '[MessageSubscriber] Error cancelling typing cooldown timer for room $roomId: $e\n$stackTrace',
         );
       }

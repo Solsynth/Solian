@@ -20,8 +20,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
-import 'package:talker_flutter/talker_flutter.dart';
-import 'package:island/talker.dart';
+
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
@@ -154,21 +153,6 @@ class DebugSheet extends HookConsumerWidget {
                   context: context,
                   isScrollControlled: true,
                   builder: (context) => NetworkStatusSheet(),
-                );
-              },
-            ),
-            const Divider(height: 8),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.bug_report),
-              trailing: const Icon(Symbols.chevron_right),
-              title: Text('Logs'),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => TalkerScreen(talker: talker),
-                  ),
                 );
               },
             ),

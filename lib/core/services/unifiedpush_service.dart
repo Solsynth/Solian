@@ -5,7 +5,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:island/core/services/push_provider.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unifiedpush/unifiedpush.dart';
 import 'package:unifiedpush_platform_interface/unifiedpush_platform_interface.dart';
@@ -85,13 +86,15 @@ Future<String> registerUnifiedPush(Dio apiClient) async {
 }
 
 void _onNewEndpoint(PushEndpoint endpoint, String instance) {
-  talker.info('[UnifiedPush] New endpoint received for $instance');
+  Logger.root.info('[UnifiedPush] New endpoint received for $instance');
   _registrationCompleter?.complete(endpoint);
   _registrationCompleter = null;
 }
 
 void _onRegistrationFailed(FailedReason reason, String instance) {
-  talker.error('[UnifiedPush] Registration failed for $instance: $reason');
+  Logger.root.severe(
+    '[UnifiedPush] Registration failed for $instance: $reason',
+  );
   _registrationCompleter?.completeError(
     Exception('UnifiedPush registration failed: $reason'),
   );
@@ -99,16 +102,16 @@ void _onRegistrationFailed(FailedReason reason, String instance) {
 }
 
 void _onUnregistered(String instance) {
-  talker.info('[UnifiedPush] Unregistered instance: $instance');
+  Logger.root.info('[UnifiedPush] Unregistered instance: $instance');
 }
 
 void _onTempUnavailable(String instance) {
-  talker.warning('[UnifiedPush] Temporarily unavailable for $instance');
+  Logger.root.warning('[UnifiedPush] Temporarily unavailable for $instance');
 }
 
 void _onMessage(PushMessage message, String instance) {
   final content = utf8.decode(message.content, allowMalformed: true);
-  talker.info(
+  Logger.root.info(
     '[UnifiedPush] Message received for $instance (decrypted=${message.decrypted}): $content',
   );
 }

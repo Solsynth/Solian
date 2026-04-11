@@ -7,9 +7,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
-import 'package:island/talker.dart';
+
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart' hide Amplitude;
@@ -65,7 +66,7 @@ class ComposeRecorder extends HookConsumerWidget {
     useEffect(() {
       return () {
         // Called when widget is unmounted
-        talker.info('[Recorder] Clean up!');
+        Logger.root.info('[Recorder] Clean up!');
         originalAmplitude?.cancel();
         amplitudeStream.close();
         record.dispose();

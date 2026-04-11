@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:uuid/uuid.dart';
@@ -279,7 +280,7 @@ class NearbyService {
   ) async {
     if (observations.isEmpty) return const [];
 
-    talker.info(
+    Logger.root.info(
       '[Nearby] resolve request count=${observations.length} observations=${observations.map((e) => e.toJson()).toList()}',
     );
 
@@ -291,7 +292,9 @@ class NearbyService {
     final data = Map<String, dynamic>.from(response.data as Map);
     final rawPeers =
         (data['peers'] as List?)?.whereType<Map<String, dynamic>>() ?? const [];
-    talker.info('[Nearby] resolve response peers=${rawPeers.length} data=$data');
+    Logger.root.info(
+      '[Nearby] resolve response peers=${rawPeers.length} data=$data',
+    );
     return rawPeers.map(NearbyPeer.fromJson).toList();
   }
 

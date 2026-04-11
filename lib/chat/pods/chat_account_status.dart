@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/network.dart';
-import 'package:island/talker.dart';
 
 part 'chat_account_status.g.dart';
 
@@ -116,7 +116,7 @@ class ChatAccountStatus extends _$ChatAccountStatus {
     _pollingTimer?.cancel();
     _pollingTimer = Timer.periodic(_pollingInterval, (_) {
       if (state.hasValue) {
-        talker.debug('[ChatAccountStatus] Polling for updates');
+        Logger.root.fine('[ChatAccountStatus] Polling for updates');
         _fetchStatus();
       }
     });
@@ -134,7 +134,7 @@ class ChatAccountStatus extends _$ChatAccountStatus {
       final resp = await client.get('/messager/chat/accounts/me/status');
       return SnChatAccountStatus.fromJson(resp.data as Map<String, dynamic>);
     } catch (e) {
-      talker.warning('[ChatAccountStatus] Failed to fetch status: $e');
+      Logger.root.warning('[ChatAccountStatus] Failed to fetch status: $e');
       // Return null on error - this is optional data
       return null;
     }

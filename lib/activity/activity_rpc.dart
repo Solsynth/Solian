@@ -5,7 +5,8 @@ import 'package:dio/dio.dart' hide Response;
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -72,13 +73,13 @@ class ActivityRpcServer {
 
     // Start WebSocket server
     while (port <= portRange[1]) {
-      talker.log('[$kRpcLogPrefix] Trying port $port');
+      Logger.root.info('[$kRpcLogPrefix] Trying port $port');
       try {
         _httpServer = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
-        talker.log('[$kRpcLogPrefix] Listening on $port');
+        Logger.root.info('[$kRpcLogPrefix] Listening on $port');
 
         shelf_io.serveRequests(_httpServer!, (Request request) async {
-          talker.log('[$kRpcLogPrefix] New request');
+          Logger.root.info('[$kRpcLogPrefix] New request');
           if (request.headers['upgrade']?.toLowerCase() == 'websocket') {
             final handler = webSocketHandler((WebSocketChannel channel, _) {
               _wsSockets.add(channel);
@@ -86,16 +87,16 @@ class ActivityRpcServer {
             });
             return handler(request);
           }
-          talker.log('New request disposed due to not websocket');
+          Logger.root.info('New request disposed due to not websocket');
           return Response.notFound('Not a WebSocket request');
         });
         wsSuccess = true;
         break;
       } catch (e) {
         if (e is SocketException && e.osError?.errorCode == 98) {
-          talker.log('[$kRpcLogPrefix] $port in use!');
+          Logger.root.info('[$kRpcLogPrefix] $port in use!');
         } else {
-          talker.log('[$kRpcLogPrefix] HTTP error: $e');
+          Logger.root.info('[$kRpcLogPrefix] HTTP error: $e');
         }
         port++;
         await Future.delayed(Duration(milliseconds: 100)); // Add delay
@@ -128,10 +129,10 @@ class ActivityRpcServer {
 
         await _ipcServer!.start();
       } catch (e) {
-        talker.log('[$kRpcLogPrefix] IPC server error: $e');
+        Logger.root.info('[$kRpcLogPrefix] IPC server error: $e');
       }
     } else {
-      talker.log('IPC server disabled on macOS or web');
+      Logger.root.info('IPC server disabled on macOS or web');
     }
   }
 
@@ -142,7 +143,7 @@ class ActivityRpcServer {
       try {
         await socket.sink.close();
       } catch (e) {
-        talker.log('[$kRpcLogPrefix] Error closing WebSocket: $e');
+        Logger.root.info('[$kRpcLogPrefix] Error closing WebSocket: $e');
       }
     }
     _wsSockets.clear();
@@ -151,7 +152,7 @@ class ActivityRpcServer {
     // Stop IPC server
     await _ipcServer?.stop();
 
-    talker.log('[$kRpcLogPrefix] Servers stopped');
+    Logger.root.info('[$kRpcLogPrefix] Servers stopped');
   }
 
   // Handle new WebSocket connection
@@ -163,16 +164,16 @@ class ActivityRpcServer {
     final clientId = params['client_id'] ?? '';
     final origin = request.headers['origin'] ?? '';
 
-    talker.log('New WS connection! origin: $origin, params: $params');
+    Logger.root.info('New WS connection! origin: $origin, params: $params');
 
     if (encoding != 'json') {
-      talker.log('Unsupported encoding requested: $encoding');
+      Logger.root.info('Unsupported encoding requested: $encoding');
       socket.sink.close();
       return;
     }
 
     if (ver != 1) {
-      talker.log('[$kRpcLogPrefix] Unsupported version requested: $ver');
+      Logger.root.info('[$kRpcLogPrefix] Unsupported version requested: $ver');
       socket.sink.close();
       return;
     }
@@ -182,10 +183,10 @@ class ActivityRpcServer {
     socket.stream.listen(
       (data) => _onWsMessage(socketWithMeta, data),
       onError: (e) {
-        talker.log('[$kRpcLogPrefix] WS socket error: $e');
+        Logger.root.info('[$kRpcLogPrefix] WS socket error: $e');
       },
       onDone: () {
-        talker.log('[$kRpcLogPrefix] WS socket closed');
+        Logger.root.info('[$kRpcLogPrefix] WS socket closed');
         handlers['close']?.call(socketWithMeta);
         _wsSockets.remove(socket);
       },
@@ -197,19 +198,19 @@ class ActivityRpcServer {
   // Handle incoming WebSocket message
   Future<void> _onWsMessage(_WsSocketWrapper socket, dynamic data) async {
     if (data is! String) {
-      talker.log('Invalid WebSocket message: not a string');
+      Logger.root.info('Invalid WebSocket message: not a string');
       return;
     }
     try {
       final jsonData = await compute(jsonDecode, data);
       if (jsonData is! Map<String, dynamic>) {
-        talker.log('Invalid WebSocket message: not a JSON object');
+        Logger.root.info('Invalid WebSocket message: not a JSON object');
         return;
       }
-      talker.log('[$kRpcLogPrefix] WS message: $jsonData');
+      Logger.root.info('[$kRpcLogPrefix] WS message: $jsonData');
       handlers['message']?.call(socket, jsonData);
     } catch (e) {
-      talker.log('[$kRpcLogPrefix] WS message parse error: $e');
+      Logger.root.info('[$kRpcLogPrefix] WS message parse error: $e');
     }
   }
 
@@ -217,12 +218,12 @@ class ActivityRpcServer {
   void _handleIpcPacket(IpcSocketWrapper socket, IpcPacket packet) {
     switch (packet.type) {
       case IpcTypes.ping:
-        talker.log('[$kRpcLogPrefix] IPC ping received');
+        Logger.root.info('[$kRpcLogPrefix] IPC ping received');
         socket.sendPong(packet.data);
         break;
 
       case IpcTypes.pong:
-        talker.log('[$kRpcLogPrefix] IPC pong received');
+        Logger.root.info('[$kRpcLogPrefix] IPC pong received');
         break;
 
       case IpcTypes.handshake:
@@ -237,7 +238,7 @@ class ActivityRpcServer {
         if (!socket.handshook) {
           throw Exception('Need to handshake first');
         }
-        talker.log('[$kRpcLogPrefix] IPC frame: ${packet.data}');
+        Logger.root.info('[$kRpcLogPrefix] IPC frame: ${packet.data}');
         handlers['message']?.call(socket, packet.data);
         break;
 
@@ -252,19 +253,19 @@ class ActivityRpcServer {
 
   // Handle IPC handshake
   void _onIpcHandshake(IpcSocketWrapper socket, Map<String, dynamic> params) {
-    talker.log('[$kRpcLogPrefix] IPC handshake: $params');
+    Logger.root.info('[$kRpcLogPrefix] IPC handshake: $params');
 
     final ver = int.tryParse(params['v']?.toString() ?? '1') ?? 1;
     final clientId = params['client_id']?.toString() ?? '';
 
     if (ver != 1) {
-      talker.log('IPC unsupported version requested: $ver');
+      Logger.root.info('IPC unsupported version requested: $ver');
       socket.closeWithCode(IpcErrorCodes.invalidVersion);
       return;
     }
 
     if (clientId.isEmpty) {
-      talker.log('[$kRpcLogPrefix] IPC client ID required');
+      Logger.root.info('[$kRpcLogPrefix] IPC client ID required');
       socket.closeWithCode(IpcErrorCodes.invalidClientId);
       return;
     }
@@ -284,7 +285,7 @@ class _WsSocketWrapper {
   _WsSocketWrapper(this.channel, this.clientId, this.encoding);
 
   void send(Map<String, dynamic> msg) {
-    talker.log('[$kRpcLogPrefix] WS sending: $msg');
+    Logger.root.info('[$kRpcLogPrefix] WS sending: $msg');
     channel.sink.add(jsonEncode(msg));
   }
 }
@@ -371,7 +372,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
 
           final currentId = currentActivityManualId;
           if (currentId != null && currentId != appId) {
-            talker.info(
+            Logger.root.info(
               'Skipped the new SET_ACTIVITY command due to there is one existing...',
             );
             return;
@@ -414,7 +415,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
             await apiClient.post('/passport/activities', data: activityData);
             setCurrentActivity(appId, activityData);
           } catch (e) {
-            talker.log('Failed to set remote activity status: $e');
+            Logger.root.info('Failed to set remote activity status: $e');
           }
           socket.send({
             'cmd': 'SET_ACTIVITY',
@@ -434,7 +435,7 @@ class ServerStateNotifier extends Notifier<ServerState> {
           );
           setCurrentActivity(null, null);
         } catch (e) {
-          talker.log('Failed to unset remote activity status: $e');
+          Logger.root.info('Failed to unset remote activity status: $e');
         }
       },
     });
@@ -499,9 +500,9 @@ class ServerStateNotifier extends Notifier<ServerState> {
           '/passport/activities',
           data: state.currentActivityData,
         );
-        talker.log('Activity lease renewed');
+        Logger.root.info('Activity lease renewed');
       } catch (e) {
-        talker.log('Failed to renew activity lease: $e');
+        Logger.root.info('Failed to renew activity lease: $e');
       }
     }
   }

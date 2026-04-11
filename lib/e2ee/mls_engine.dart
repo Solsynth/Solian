@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import 'package:openmls/openmls.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:island/talker.dart';
 
 class MlsEngineService {
   static MlsEngineService? _instance;
@@ -64,7 +64,7 @@ class MlsEngineService {
         key: 'mls_db_encryption_key',
         value: dbKeyBase64,
       );
-      talker.info('Generated new MLS database encryption key');
+      Logger.root.info('Generated new MLS database encryption key');
     }
 
     final encryptionKey = base64Decode(dbKeyBase64);
@@ -87,12 +87,12 @@ class MlsEngineService {
             dbPath: dbPath,
             encryptionKey: encryptionKey,
           );
-          talker.info('Opened existing MLS database');
+          Logger.root.info('Opened existing MLS database');
         } catch (e) {
           if (e.toString().contains('file is not a database') ||
               e.toString().contains('wrong key') ||
               e.toString().contains('not a database')) {
-            talker.warning(
+            Logger.root.warning(
               'Corrupted MLS database, deleting and recreating...',
             );
             await dbFile.delete();
@@ -100,7 +100,7 @@ class MlsEngineService {
               dbPath: dbPath,
               encryptionKey: encryptionKey,
             );
-            talker.info('Created new MLS database after corruption');
+            Logger.root.info('Created new MLS database after corruption');
           } else {
             rethrow;
           }
@@ -110,7 +110,7 @@ class MlsEngineService {
           dbPath: dbPath,
           encryptionKey: encryptionKey,
         );
-        talker.info('Created new MLS database');
+        Logger.root.info('Created new MLS database');
       }
     }
 

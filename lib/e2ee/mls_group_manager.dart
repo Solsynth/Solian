@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:logging/logging.dart';
 import 'package:openmls/openmls.dart';
-import 'package:island/talker.dart';
+
 import 'mls_engine.dart';
 import 'mls_identity_manager.dart';
 import 'mls_storage.dart';
@@ -10,19 +11,19 @@ import 'mls_storage.dart';
 const _mlsLogPrefix = '[MLS] ';
 
 void _mlsLog(dynamic msg) {
-  talker.info('$_mlsLogPrefix$msg');
+  Logger.root.info('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogWarn(dynamic msg) {
-  talker.warning('$_mlsLogPrefix$msg');
+  Logger.root.warning('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogError(dynamic msg) {
-  talker.error('$_mlsLogPrefix$msg');
+  Logger.root.severe('$_mlsLogPrefix$msg');
 }
 
 void _mlsLogInfo(dynamic msg) {
-  talker.log('$_mlsLogPrefix$msg');
+  Logger.root.info('$_mlsLogPrefix$msg');
 }
 
 void _logEpochTransition(
@@ -31,7 +32,7 @@ void _logEpochTransition(
   int toEpoch,
   String reason,
 ) {
-  talker.info(
+  Logger.root.info(
     '$_mlsLogPrefix[EPOCH] group=$mlsGroupId $fromEpoch → $toEpoch reason=$reason',
   );
 }
@@ -77,10 +78,7 @@ class MlsGroupManager {
 
   Future<Map<String, String>> _getMlsHeaders() async {
     final deviceId = await _identityManager.getOrCreateDeviceId();
-    return {
-      'X-Client-Ability': 'chat.mls.v2',
-      if (deviceId != null) 'X-Device-Id': deviceId,
-    };
+    return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
   }
 
   Future<Map<String, dynamic>?> getGroupState(String mlsGroupId) async {
@@ -723,7 +721,7 @@ class MlsGroupManager {
   }
 
   Future<void> handleReshareRequired(String mlsGroupId) async {
-    talker.log('Processing reshare for room $mlsGroupId');
+    Logger.root.info('Processing reshare for room $mlsGroupId');
     await processReshareForGroup(mlsGroupId);
   }
 

@@ -17,8 +17,8 @@ import "package:island/core/websocket.dart";
 import "package:island/drive/drive_service.dart";
 import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
+import "package:logging/logging.dart";
 import "package:mime/mime.dart";
-import "package:island/talker.dart";
 import "package:island/shared/widgets/alert.dart";
 import "package:path/path.dart" as p;
 import "package:riverpod_annotation/riverpod_annotation.dart";
@@ -162,10 +162,8 @@ class MessagesNotifier extends _$MessagesNotifier {
           payload: payload,
         );
       } catch (err, stackTrace) {
-        talker.log(
-          'WebSocket send failed, falling back to HTTP ($context)',
-          exception: err,
-          stackTrace: stackTrace,
+        Logger.root.info(
+          'WebSocket send failed, falling back to HTTP ($context): $err $stackTrace',
         );
       }
     }
@@ -253,10 +251,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       unawaited(cache.downloadFile(mediaUrl, authHeaders: headers));
     } catch (err, stackTrace) {
       _prefetchedVoiceUrls.remove(mediaUrl);
-      talker.log(
-        'Failed to prefetch voice media $mediaUrl',
-        exception: err,
-        stackTrace: stackTrace,
+      Logger.root.info(
+        'Failed to prefetch voice media $mediaUrl: $err $stackTrace',
       );
     }
   }
@@ -279,7 +275,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       return SnChatMessage.fromJson(_sanitizeChatMessageJson(data));
     } catch (e) {
-      talker.log(
+      Logger.root.info(
         'Skipping invalid chat message${context != null ? ' ($context)' : ''}: $e',
       );
       return null;
@@ -329,12 +325,12 @@ class MessagesNotifier extends _$MessagesNotifier {
             if (plaintext != null && plaintext.isNotEmpty) {
               final updatedMeta = Map<String, dynamic>.from(message.meta);
               updatedMeta['e2ee_decrypted_content'] = plaintext;
-              talker.debug(
+              Logger.root.fine(
                 'Skipping decrypt for own message ${message.id}, using plaintext from pending',
               );
               return message.copyWith(content: plaintext, meta: updatedMeta);
             }
-            talker.debug(
+            Logger.root.fine(
               'Skipping decrypt for own message ${message.id} (device: $senderDeviceId), no pending plaintext',
             );
             return null; // Cannot show message without plaintext
@@ -342,7 +338,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         }
       } catch (e) {
         // Header parse failed, proceed with decryption
-        talker.debug('Failed to parse encryption header: $e');
+        Logger.root.fine('Failed to parse encryption header: $e');
       }
     }
 
@@ -392,7 +388,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     // Ensure MLS group is bootstrapped for E2EE rooms
     if (_isE2eeRoom) {
       if (room.mlsGroupId == null) {
-        talker.info(
+        Logger.root.info(
           'Room $roomId has encryption mode 3 but no mlsGroupId - skipping MLS bootstrap',
         );
       } else {
@@ -403,7 +399,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           final currentEpoch = await mlsClient.getCurrentEpoch(
             room.mlsGroupId!,
           );
-          talker.debug(
+          Logger.root.fine(
             'Current MLS epoch for room $roomId (group: ${room.mlsGroupId}): $currentEpoch',
           );
 
@@ -413,7 +409,9 @@ class MessagesNotifier extends _$MessagesNotifier {
           // Instead, let bootstrapGroup decide if a group needs to be created.
           await mlsClient.bootstrapGroup(room.mlsGroupId!, force: false);
         } catch (e) {
-          talker.error('Failed to bootstrap MLS group for room $roomId: $e');
+          Logger.root.severe(
+            'Failed to bootstrap MLS group for room $roomId: $e',
+          );
         }
       }
     }
@@ -424,7 +422,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       _hasIdentity = true;
     }
 
-    talker.log('MessagesNotifier built for room $roomId');
+    Logger.root.info('MessagesNotifier built for room $roomId');
 
     // Direct WebSocket listener for real-time messages (bypasses event bus chain)
     final ws = ref.watch(websocketProvider);
@@ -443,7 +441,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       if (!event.roomIds.contains(roomId)) return;
       if (_isJumping || _isLoadingInitial || !ref.mounted) return;
 
-      talker.log(
+      Logger.root.info(
         'Received global sync completion for room $roomId, reloading in-memory messages from cache',
       );
       loadInitial(forceRemoteRefresh: false);
@@ -559,7 +557,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> _updateStateSafely(List<LocalChatMessage> messages) async {
     if (_isUpdatingState) {
-      talker.log('State update already in progress, skipping');
+      Logger.root.info('State update already in progress, skipping');
       return;
     }
     _isUpdatingState = true;
@@ -588,7 +586,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     bool? withLinks,
     bool? withAttachments,
   }) async {
-    talker.log('Getting cached messages from offset $offset, take $take');
+    Logger.root.info('Getting cached messages from offset $offset, take $take');
     final List<LocalChatMessage> dbMessages;
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
@@ -661,7 +659,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     int offset = 0,
     int take = 20,
   }) async {
-    talker.log('Getting all messages for jump from offset $offset, take $take');
+    Logger.root.info(
+      'Getting all messages for jump from offset $offset, take $take',
+    );
     final dbMessages = await _database.getMessagesForRoom(
       roomId,
       offset: offset,
@@ -705,7 +705,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     int offset = 0,
     int take = 20,
   }) async {
-    talker.log('Fetching messages from API, offset $offset, take $take');
+    Logger.root.info('Fetching messages from API, offset $offset, take $take');
     if (_totalCount == null) {
       final response = await _apiClient.get(
         '/messager/chat/$roomId/messages',
@@ -742,7 +742,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       if (existing != null &&
           existing.content != null &&
           existing.content!.isNotEmpty) {
-        talker.debug(
+        Logger.root.fine(
           'Using existing content from DB for message ${remoteMessage.id}',
         );
         messages.add(existing);
@@ -819,26 +819,22 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> syncMessages() async {
     if (_isSyncing) {
-      talker.log('Sync already in progress, skipping.');
+      Logger.root.info('Sync already in progress, skipping.');
       return;
     }
     _isSyncing = true;
     _allRemoteMessagesFetched = false;
 
-    talker.log('Starting message sync via global sync');
+    Logger.root.info('Starting message sync via global sync');
 
     try {
       // Use the global sync notifier to sync all messages
       await ref.read(chatGlobalSyncProvider.notifier).syncAllMessages();
     } catch (err, stackTrace) {
-      talker.log(
-        'Error syncing messages',
-        exception: err,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('Error syncing messages: $err $stackTrace');
       showErrorAlert(err);
     } finally {
-      talker.log('Finished message sync');
+      Logger.root.info('Finished message sync');
       _isSyncing = false;
     }
   }
@@ -963,10 +959,8 @@ class MessagesNotifier extends _$MessagesNotifier {
           refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
       return _eagerPrefetchIfShort(refreshedMessages, enabled: canFetchRemote);
     } catch (err, stackTrace) {
-      talker.log(
-        'Error refreshing initial messages from remote, falling back to cache',
-        exception: err,
-        stackTrace: stackTrace,
+      Logger.root.info(
+        'Error refreshing initial messages from remote, falling back to cache: $err $stackTrace',
       );
       _hasMore = cachedMessages.length == _pageSize;
       return cachedMessages;
@@ -975,11 +969,11 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> loadInitial({bool forceRemoteRefresh = true}) async {
     if (_isLoadingInitial) {
-      talker.log('Initial load already in progress, skipping.');
+      Logger.root.info('Initial load already in progress, skipping.');
       return;
     }
 
-    talker.log('Loading initial messages');
+    Logger.root.info('Loading initial messages');
     _isLoadingInitial = true;
 
     try {
@@ -994,7 +988,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   Future<void> loadMore() async {
     if (!_hasMore || state is AsyncLoading) {
-      talker.log(
+      Logger.root.info(
         'Skipping loadMore (hasMore=$_hasMore, isAsyncLoading=${state is AsyncLoading})',
       );
       return;
@@ -1004,7 +998,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       roomId,
       DateTime.fromMillisecondsSinceEpoch(0),
     );
-    talker.log('Loading more messages (offset=$offset, take=$_pageSize)');
+    Logger.root.info('Loading more messages (offset=$offset, take=$_pageSize)');
 
     if (ref.mounted) {
       Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
@@ -1024,16 +1018,11 @@ class MessagesNotifier extends _$MessagesNotifier {
           ),
         );
       }
-      talker.log(
+      Logger.root.info(
         'loadMore complete (fetched=${newMessages.length}, hasMore=$_hasMore)',
       );
     } catch (err, stackTrace) {
-      talker.log(
-        'Error loading more messages',
-
-        exception: err,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('Error loading more messages: $err $stackTrace');
       showErrorAlert(err);
     } finally {
       // Always reset global syncing state, regardless of disposal
@@ -1220,7 +1209,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     Function(String, Map<int, double?>)? onProgress,
   }) async {
     final clientMessageId = const Uuid().v4();
-    talker.log('[send:$clientMessageId] Start');
+    Logger.root.info('[send:$clientMessageId] Start');
 
     final mockMessage = SnChatMessage(
       id: 'pending_$clientMessageId',
@@ -1292,13 +1281,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         editingTo: editingTo,
       );
 
-      talker.log('[send:$clientMessageId] Sent successfully');
+      Logger.root.info('[send:$clientMessageId] Sent successfully');
     } catch (e, stackTrace) {
-      talker.log(
-        '[send:$clientMessageId] Failed',
-        exception: e,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('[send:$clientMessageId] Failed: $e $stackTrace');
       _applySendFailure(localMessage);
       showErrorAlert(e);
     }
@@ -1319,7 +1304,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     final clientMessageId = const Uuid().v4();
-    talker.log('Sending voice message with client_message_id $clientMessageId');
+    Logger.root.info(
+      'Sending voice message with client_message_id $clientMessageId',
+    );
 
     final mockMessage = SnChatMessage(
       id: 'pending_$clientMessageId',
@@ -1388,10 +1375,8 @@ class MessagesNotifier extends _$MessagesNotifier {
         state = AsyncValue.data(_sortMessages(list));
       }
     } catch (e, stackTrace) {
-      talker.log(
-        'Failed to send voice message with client_message_id $clientMessageId',
-        exception: e,
-        stackTrace: stackTrace,
+      Logger.root.info(
+        'Failed to send voice message with client_message_id $clientMessageId: $e $stackTrace',
       );
       localMessage.status = MessageStatus.failed;
       _pendingMessages[localMessage.id] = localMessage;
@@ -1412,7 +1397,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> retryMessage(String pendingMessageId) async {
-    talker.log('[retry:$pendingMessageId] Start');
+    Logger.root.info('[retry:$pendingMessageId] Start');
     final message = await fetchMessageById(pendingMessageId);
     if (message == null) {
       throw Exception('Message not found');
@@ -1458,13 +1443,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         }).toList();
         state = AsyncValue.data(newMessages);
       }
-      talker.log('[retry:$pendingMessageId] Sent successfully');
+      Logger.root.info('[retry:$pendingMessageId] Sent successfully');
     } catch (e, stackTrace) {
-      talker.log(
-        '[retry:$pendingMessageId] Failed',
-        exception: e,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('[retry:$pendingMessageId] Failed: $e $stackTrace');
       message.status = MessageStatus.failed;
       _pendingMessages[pendingMessageId] = message;
       await _database.updateMessageStatus(
@@ -1489,13 +1470,13 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (_isJumping) {
       _hasPendingRealtimeRefresh = true;
-      talker.log(
+      Logger.root.info(
         'Received message during jump; queueing post-jump refresh for room $roomId',
       );
       return;
     }
 
-    talker.log('Received new message ${remoteMessage.id}');
+    Logger.root.info('Received new message ${remoteMessage.id}');
 
     // ── Step 1: Dedup ──
     // Skip if already saved by sendMessage before WebSocket echo arrives.
@@ -1503,7 +1484,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (existingInDb != null &&
         existingInDb.content != null &&
         existingInDb.content!.isNotEmpty) {
-      talker.debug(
+      Logger.root.fine(
         'Message ${remoteMessage.id} already in DB with content, skipping duplicate',
       );
       if (remoteMessage.clientMessageId != null) {
@@ -1596,13 +1577,13 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     if (_isJumping) {
       _hasPendingRealtimeRefresh = true;
-      talker.log(
+      Logger.root.info(
         'Received message update during jump; queueing post-jump refresh for room $roomId',
       );
       return;
     }
 
-    talker.log('Received message update ${remoteMessage.id}');
+    Logger.root.info('Received message update ${remoteMessage.id}');
 
     if (remoteMessage.type == 'messages.reaction.added') {
       await receiveReactionAdded(remoteMessage);
@@ -1620,7 +1601,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     final existingMessage = await fetchMessageById(targetId);
     if (existingMessage == null) {
-      talker.log('Cannot update non-existent message $targetId');
+      Logger.root.info('Cannot update non-existent message $targetId');
       return;
     }
 
@@ -1673,13 +1654,13 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void> receiveMessageDeletion(String messageId) async {
     if (_isJumping) {
       _hasPendingRealtimeRefresh = true;
-      talker.log(
+      Logger.root.info(
         'Received message deletion during jump; queueing post-jump refresh for room $roomId',
       );
       return;
     }
 
-    talker.log('Received message deletion $messageId');
+    Logger.root.info('Received message deletion $messageId');
     _pendingMessages.remove(messageId);
 
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
@@ -1718,18 +1699,18 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> deleteMessage(String messageId) async {
-    talker.log('Deleting message $messageId');
+    Logger.root.info('Deleting message $messageId');
 
     // Fetch message to check its status before attempting server delete
     final message = await fetchMessageById(messageId);
     if (message == null) {
-      talker.log('Message $messageId not found for deletion');
+      Logger.root.info('Message $messageId not found for deletion');
       return;
     }
 
     // Skip server delete for failed messages (never successfully sent)
     if (message.status == MessageStatus.failed) {
-      talker.log('Skipping server delete for failed message $messageId');
+      Logger.root.info('Skipping server delete for failed message $messageId');
       // For failed messages, remove them completely from the active list
       _pendingMessages.remove(messageId);
       await _database.deleteMessage(messageId);
@@ -1749,11 +1730,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
-      talker.log(
-        'Error deleting message $messageId',
-        exception: err,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('Error deleting message $messageId: $err $stackTrace');
       showErrorAlert(err);
     }
   }
@@ -1867,7 +1844,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) async {
     final message = await fetchMessageById(messageId);
     if (message == null) {
-      talker.log('Cannot apply reaction delta: message $messageId not found');
+      Logger.root.info(
+        'Cannot apply reaction delta: message $messageId not found',
+      );
       return;
     }
 
@@ -1914,7 +1893,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) async {
     final message = await fetchMessageById(messageId);
     if (message == null) {
-      talker.log(
+      Logger.root.info(
         'Cannot apply reaction snapshot: message $messageId not found',
       );
       return;
@@ -1960,10 +1939,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Reactions are applied via websocket/sync events to avoid double
       // increments (local apply + incoming reaction event).
     } catch (err, stackTrace) {
-      talker.log(
-        'Failed to react to message $messageId',
-        exception: err,
-        stackTrace: stackTrace,
+      Logger.root.info(
+        'Failed to react to message $messageId: $err $stackTrace',
       );
       showErrorAlert(err);
     }
@@ -2049,7 +2026,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       return [];
     }
 
-    talker.log(
+    Logger.root.info(
       'Getting search results for query: $trimmedQuery, filters: links=$withLinks, attachments=$withAttachments',
     );
 
@@ -2065,11 +2042,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       ); // Limit initial search results
       return messages;
     } catch (e, stackTrace) {
-      talker.log(
-        'Error getting search results',
-        exception: e,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('Error getting search results: $e $stackTrace');
       rethrow;
     }
   }
@@ -2088,7 +2061,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
 
-    talker.log('Searching messages with query: $_searchQuery');
+    Logger.root.info('Searching messages with query: $_searchQuery');
     state = const AsyncValue.loading();
 
     try {
@@ -2101,11 +2074,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       ); // Limit initial search results
       state = AsyncValue.data(messages);
     } catch (e, stackTrace) {
-      talker.log(
-        'Error searching messages',
-        exception: e,
-        stackTrace: stackTrace,
-      );
+      Logger.root.info('Error searching messages: $e $stackTrace');
       state = AsyncValue.error(e, stackTrace);
     }
   }
@@ -2119,7 +2088,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
-    talker.log('Fetching message by id $messageId');
+    Logger.root.info('Fetching message by id $messageId');
     try {
       final localMessage = await _database.getMessageById(messageId);
       if (localMessage != null) {
@@ -2149,9 +2118,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<int> jumpToMessage(String messageId) async {
-    talker.log('Starting jump to message $messageId');
+    Logger.root.info('Starting jump to message $messageId');
     if (_isJumping) {
-      talker.log('Jump already in progress, skipping');
+      Logger.root.info('Jump already in progress, skipping');
       return -1;
     }
     _isJumping = true;
@@ -2162,10 +2131,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     try {
-      talker.log('Fetching message $messageId');
+      Logger.root.info('Fetching message $messageId');
       final message = await fetchMessageById(messageId);
       if (message == null) {
-        talker.log('Message $messageId not found');
+        Logger.root.info('Message $messageId not found');
         showSnackBar('messageNotFound'.tr());
         return -1;
       }
@@ -2176,13 +2145,13 @@ class MessagesNotifier extends _$MessagesNotifier {
         (m) => m.id == messageId,
       );
       if (existingIndex >= 0) {
-        talker.log(
+        Logger.root.info(
           'Message $messageId already in current state at index $existingIndex, jumping directly',
         );
         return existingIndex;
       }
 
-      talker.log(
+      Logger.root.info(
         'Message $messageId not in current state, calculating position and loading messages around it',
       );
 
@@ -2198,7 +2167,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final offset = (newerCount - chunkSize ~/ 2)
           .clamp(0, double.infinity)
           .toInt();
-      talker.log(
+      Logger.root.info(
         'Calculated offset $offset for target message (newer: $newerCount, chunk: $chunkSize)',
       );
       // Use full message list (not filtered by search) for jump operations
@@ -2212,7 +2181,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final newMessages = loadedMessages
           .where((m) => !currentIds.contains(m.id))
           .toList();
-      talker.log(
+      Logger.root.info(
         'Loaded ${loadedMessages.length} messages, ${newMessages.length} are new',
       );
 
@@ -2227,7 +2196,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           }
         }
         await _updateStateSafely(uniqueMessages);
-        talker.log(
+        Logger.root.info(
           'Updated state with ${uniqueMessages.length} total messages',
         );
       }
@@ -2238,11 +2207,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       final finalIndex = (state.value ?? []).indexWhere(
         (m) => m.id == messageId,
       );
-      talker.log('Final index for message $messageId is $finalIndex');
+      Logger.root.info('Final index for message $messageId is $finalIndex');
 
       // Verify the message is actually in the list before returning
       if (finalIndex == -1) {
-        talker.log(
+        Logger.root.info(
           'Message $messageId still not found after loading, trying direct fetch',
         );
         // Try to fetch and add the specific message if it's still not found
@@ -2252,7 +2221,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           final updatedList = [...currentList, directMessage];
           await _updateStateSafely(updatedList);
           final newIndex = updatedList.indexWhere((m) => m.id == messageId);
-          talker.log('Added message directly, new index: $newIndex');
+          Logger.root.info('Added message directly, new index: $newIndex');
           return newIndex;
         }
       }
@@ -2262,7 +2231,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       _isJumping = false;
       if (_hasPendingRealtimeRefresh && ref.mounted) {
         _hasPendingRealtimeRefresh = false;
-        talker.log(
+        Logger.root.info(
           'Applying queued post-jump refresh for room $roomId after realtime events',
         );
         unawaited(loadInitial(forceRemoteRefresh: false));

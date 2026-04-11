@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_update/azhon_app_update.dart';
 import 'package:flutter_app_update/update_model.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,7 +19,6 @@ import 'package:collection/collection.dart'; // Added for firstWhereOrNull
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
-import 'package:island/talker.dart';
 
 /// Data model for a GitHub release we care about
 class GithubReleaseInfo {
@@ -144,45 +144,53 @@ class UpdateService {
   /// If update is available, shows a bottom sheet with changelog and an action to open release page.
   Future<void> checkForUpdates(BuildContext context) async {
     if (!kEnableBuiltInUpdate) {
-      talker.info(
+      Logger.root.info(
         '[Update] Built-in update is disabled via kEnableBuiltInUpdate',
       );
       return;
     }
-    talker.info('[Update] Checking for updates...');
+    Logger.root.info('[Update] Checking for updates...');
     try {
       final release = await fetchLatestRelease();
       if (release == null) {
-        talker.info('[Update] No latest release found or could not fetch.');
+        Logger.root.info(
+          '[Update] No latest release found or could not fetch.',
+        );
         return;
       }
-      talker.info('[Update] Fetched latest release: ${release.tagName}');
+      Logger.root.info('[Update] Fetched latest release: ${release.tagName}');
 
       final info = await PackageInfo.fromPlatform();
       final localVersionStr = '${info.version}+${info.buildNumber}';
-      talker.info('[Update] Local app version: $localVersionStr');
+      Logger.root.info('[Update] Local app version: $localVersionStr');
 
       final latest = _ParsedVersion.tryParse(release.tagName);
       final local = _ParsedVersion.tryParse(localVersionStr);
 
       if (latest == null || local == null) {
-        talker.info(
+        Logger.root.info(
           '[Update] Failed to parse versions. Latest: ${release.tagName}, Local: $localVersionStr',
         );
         // If parsing fails, do nothing silently
         return;
       }
-      talker.info('[Update] Parsed versions. Latest: $latest, Local: $local');
+      Logger.root.info(
+        '[Update] Parsed versions. Latest: $latest, Local: $local',
+      );
 
       final needsUpdate = latest.compareTo(local) > 0;
       if (!needsUpdate) {
-        talker.info('[Update] App is up to date. No update needed.');
+        Logger.root.info('[Update] App is up to date. No update needed.');
         return;
       }
-      talker.info('[Update] Update available! Latest: $latest, Local: $local');
+      Logger.root.info(
+        '[Update] Update available! Latest: $latest, Local: $local',
+      );
 
       if (!context.mounted) {
-        talker.info('[Update] Context not mounted, cannot show update sheet.');
+        Logger.root.info(
+          '[Update] Context not mounted, cannot show update sheet.',
+        );
         return;
       }
 
@@ -191,10 +199,10 @@ class UpdateService {
 
       if (context.mounted) {
         await showUpdateSheet(context, release);
-        talker.info('[Update] Update sheet shown.');
+        Logger.root.info('[Update] Update sheet shown.');
       }
     } catch (e) {
-      talker.error('[Update] Error checking for updates: $e');
+      Logger.root.severe('[Update] Error checking for updates: $e');
       // Ignore errors (network, api, etc.)
       return;
     }
@@ -289,18 +297,18 @@ class UpdateService {
         ? '$_proxyBaseUrl${Uri.encodeComponent(_releasesLatestApi)}'
         : _releasesLatestApi;
 
-    talker.info(
+    Logger.root.info(
       '[Update] Fetching latest release from GitHub API: $apiEndpoint (Proxy: $useProxy)',
     );
     final resp = await _dio.get(apiEndpoint);
     if (resp.statusCode != 200) {
-      talker.error(
+      Logger.root.severe(
         '[Update] Failed to fetch latest release. Status code: ${resp.statusCode}',
       );
       return null;
     }
     final data = resp.data as Map<String, dynamic>;
-    talker.info('[Update] Successfully fetched release data.');
+    Logger.root.info('[Update] Successfully fetched release data.');
 
     final tagName = (data['tag_name'] ?? '').toString();
     final name = (data['name'] ?? tagName).toString();
@@ -315,13 +323,13 @@ class UpdateService {
         [];
 
     if (tagName.isEmpty || htmlUrl.isEmpty) {
-      talker.error(
+      Logger.root.severe(
         '[Update] Missing tag_name or html_url in release data. TagName: "$tagName", HtmlUrl: "$htmlUrl"',
       );
       return null;
     }
 
-    talker.info('[Update] Returning GithubReleaseInfo for tag: $tagName');
+    Logger.root.info('[Update] Returning GithubReleaseInfo for tag: $tagName');
     return GithubReleaseInfo(
       tagName: tagName,
       name: name,
@@ -409,7 +417,7 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
         await File(zipPath).delete();
         await Directory(extractDir).delete(recursive: true);
       } catch (e) {
-        talker.error('[Update] Error cleaning up temporary files: $e');
+        Logger.root.severe('[Update] Error cleaning up temporary files: $e');
       }
     } catch (e) {
       _showError('Update failed: $e');
@@ -466,7 +474,9 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
     void Function(int received, int total)? onProgress,
   }) async {
     try {
-      talker.info('[Update] Starting Windows installer download from: $url');
+      Logger.root.info(
+        '[Update] Starting Windows installer download from: $url',
+      );
 
       final tempDir = await getTemporaryDirectory();
       final fileName =
@@ -478,7 +488,7 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
         filePath,
         onReceiveProgress: (received, total) {
           if (total != -1) {
-            talker.info(
+            Logger.root.info(
               '[Update] Download progress: ${(received / total * 100).toStringAsFixed(1)}%',
             );
           }
@@ -487,18 +497,18 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
       );
 
       if (response.statusCode == 200) {
-        talker.info(
+        Logger.root.info(
           '[Update] Windows installer downloaded successfully to: $filePath',
         );
         return filePath;
       } else {
-        talker.error(
+        Logger.root.severe(
           '[Update] Failed to download Windows installer. Status: ${response.statusCode}',
         );
         return null;
       }
     } catch (e) {
-      talker.error('[Update] Error downloading Windows installer: $e');
+      Logger.root.severe('[Update] Error downloading Windows installer: $e');
       return null;
     }
   }
@@ -506,7 +516,7 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
   /// Extracts the ZIP file to a temporary directory
   Future<String?> _extractWindowsInstaller(String zipPath) async {
     try {
-      talker.info('[Update] Extracting Windows installer from: $zipPath');
+      Logger.root.info('[Update] Extracting Windows installer from: $zipPath');
 
       final tempDir = await getTemporaryDirectory();
       final extractDir = path.join(
@@ -531,12 +541,12 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
         }
       }
 
-      talker.info(
+      Logger.root.info(
         '[Update] Windows installer extracted successfully to: $extractDir',
       );
       return extractDir;
     } catch (e) {
-      talker.error('[Update] Error extracting Windows installer: $e');
+      Logger.root.severe('[Update] Error extracting Windows installer: $e');
       return null;
     }
   }
@@ -544,7 +554,7 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
   /// Runs the setup.exe file
   Future<bool> _runWindowsInstaller(String extractDir) async {
     try {
-      talker.info('[Update] Running Windows installer from: $extractDir');
+      Logger.root.info('[Update] Running Windows installer from: $extractDir');
 
       final dir = Directory(extractDir);
       final exeFiles = dir
@@ -553,30 +563,30 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
           .toList();
 
       if (exeFiles.isEmpty) {
-        talker.info('[Update] No .exe file found in extracted directory');
+        Logger.root.info('[Update] No .exe file found in extracted directory');
         return false;
       }
 
       final setupExePath = exeFiles.first.path;
-      talker.info('[Update] Found installer executable: $setupExePath');
+      Logger.root.info('[Update] Found installer executable: $setupExePath');
 
       final shell = Shell();
       final results = await shell.run(setupExePath);
       final result = results.first;
 
       if (result.exitCode == 0) {
-        talker.info('[Update] Windows installer completed successfully');
+        Logger.root.info('[Update] Windows installer completed successfully');
         return true;
       } else {
-        talker.error(
+        Logger.root.severe(
           '[Update] Windows installer failed with exit code: ${result.exitCode}',
         );
-        talker.error('[Update] Installer output: ${result.stdout}');
-        talker.error('[Update] Installer errors: ${result.stderr}');
+        Logger.root.severe('[Update] Installer output: ${result.stdout}');
+        Logger.root.severe('[Update] Installer errors: ${result.stderr}');
         return false;
       }
     } catch (e) {
-      talker.error('[Update] Error running Windows installer: $e');
+      Logger.root.severe('[Update] Error running Windows installer: $e');
       return false;
     }
   }
@@ -683,7 +693,7 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () {
-                            talker.info(widget.androidUpdateUrl!);
+                            Logger.root.info(widget.androidUpdateUrl!);
                             _installUpdate(widget.androidUpdateUrl!);
                           },
                           icon: const Icon(Symbols.update),

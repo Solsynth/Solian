@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart';
@@ -14,7 +15,6 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
-import 'package:island/talker.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/theme.dart';
@@ -27,12 +27,11 @@ import 'package:island/core/services/timezone.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:logging/logging.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:talker_flutter/talker_flutter.dart';
-import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
@@ -42,32 +41,41 @@ import 'package:media_kit/media_kit.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  talker.info('Handling a background message: ${message.messageId}');
+  Logger.root.info('Handling a background message: ${message.messageId}');
 }
 
 void main(List<String> args) async {
+  // Initialize logging
+  Logger.root.onRecord.listen((record) {
+    log(
+      '[${record.time}] [${record.level}] ${record.message}',
+      time: record.time,
+      level: record.level.value,
+    );
+  });
+
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
 
   await initializeUnifiedPush(args);
 
   if (!kIsWeb && Platform.isLinux && args.contains('--unifiedpush-bg')) {
-    talker.info('[UnifiedPush] Linux background receiver initialized.');
+    Logger.root.info('[UnifiedPush] Linux background receiver initialized.');
     return;
   }
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-    talker.info(
+    Logger.root.info(
       "[SplashScreen] Keeping the flash screen to loading other resources...",
     );
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
 
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
-    talker.info("[SplashScreen] Initializing desktop window manager...");
+    Logger.root.info("[SplashScreen] Initializing desktop window manager...");
     await protocolHandler.register('solian');
     await hotKeyManager.unregisterAll();
-    talker.info("[SplashScreen] Desktop window manager is ready!");
+    Logger.root.info("[SplashScreen] Desktop window manager is ready!");
   }
 
   try {
@@ -95,36 +103,40 @@ void main(List<String> args) async {
       }
     }
 
-    talker.info("[SplashScreen] Firebase is ready!");
+    Logger.root.info("[SplashScreen] Firebase is ready!");
   } catch (err) {
     showErrorAlert(err);
   }
 
   try {
-    talker.info("[SplashScreen] Loading timezone database...");
+    Logger.root.info("[SplashScreen] Loading timezone database...");
     await initializeTzdb();
-    talker.info("[SplashScreen] Time zone database was loaded!");
+    Logger.root.info("[SplashScreen] Time zone database was loaded!");
   } catch (err) {
-    talker.error("[SplashScreen] Failed to load timezone database... $err");
+    Logger.root.severe(
+      "[SplashScreen] Failed to load timezone database... $err",
+    );
   }
 
   try {
-    talker.info("[QuickActions] Initializing Quick Actions service...");
+    Logger.root.info("[QuickActions] Initializing Quick Actions service...");
     final quickActionsService = QuickActionsService();
     await quickActionsService.initialize();
-    talker.info("[QuickActions] Quick Actions service is ready!");
+    Logger.root.info("[QuickActions] Quick Actions service is ready!");
   } catch (err) {
-    talker.error(
+    Logger.root.severe(
       "[QuickActions] Failed to initialize Quick Actions service... $err",
     );
   }
 
   try {
-    talker.info("[Analytics] Initializing Analytics service...");
+    Logger.root.info("[Analytics] Initializing Analytics service...");
     final analyticsService = AnalyticsService();
     analyticsService.initialize();
   } catch (err) {
-    talker.error("[Analytics] Failed to initialize Analytics service... $err");
+    Logger.root.severe(
+      "[Analytics] Failed to initialize Analytics service... $err",
+    );
   }
 
   final prefs = await SharedPreferences.getInstance();
@@ -147,7 +159,9 @@ void main(List<String> args) async {
           initialSize = Size(width, height);
         }
       } catch (e) {
-        talker.error("[SplashScreen] Failed to parse saved window size: $e");
+        Logger.root.severe(
+          "[SplashScreen] Failed to parse saved window size: $e",
+        );
         initialSize = defaultSize;
       }
     }
@@ -176,7 +190,7 @@ void main(List<String> args) async {
       await windowManager.focus();
       final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
       await windowManager.setOpacity(opacity);
-      talker.info(
+      Logger.root.info(
         "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
         "${isWayland ? " (Wayland frameless fix applied)" : ""}",
       );
@@ -189,12 +203,12 @@ void main(List<String> args) async {
     if (imagePickerImplementation is ImagePickerAndroid) {
       imagePickerImplementation.useAndroidPhotoPicker = true;
     }
-    talker.info("[SplashScreen] Android image picker is ready!");
+    Logger.root.info("[SplashScreen] Android image picker is ready!");
   }
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     FlutterNativeSplash.remove();
-    talker.info("[SplashScreen] Now hiding splash screen...");
+    Logger.root.info("[SplashScreen] Now hiding splash screen...");
   }
 
   runApp(
@@ -209,17 +223,7 @@ void main(List<String> args) async {
         }
         return const Duration(milliseconds: 300);
       },
-      observers: [
-        TalkerRiverpodObserver(
-          talker: talker,
-          settings: TalkerRiverpodLoggerSettings(
-            printProviderAdded: false,
-            printProviderDisposed: false,
-            printProviderUpdated: false,
-            printStateFullData: false,
-          ),
-        ),
-      ],
+      observers: [],
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: Directionality(
         textDirection: TextDirection.ltr,
@@ -305,7 +309,7 @@ class IslandApp extends HookConsumerWidget {
       final onMessageSubscription = FirebaseMessaging.onMessage.listen((
         message,
       ) {
-        talker.info(
+        Logger.root.info(
           '[Notification] foreground message received: ${message.messageId}',
         );
         handleMessage(message);
@@ -319,7 +323,7 @@ class IslandApp extends HookConsumerWidget {
 
     useEffect(() {
       ref.listen(websocketStateProvider, (_, state) {
-        talker.info('[WebSocket] $state');
+        Logger.root.info('[WebSocket] $state');
         if (state == WebSocketState.connected()) {
           ref.read(realtimePostsProvider).startListening();
         }
@@ -348,7 +352,6 @@ class IslandApp extends HookConsumerWidget {
                 Platform.isIOS ||
                 Platform.isMacOS)
               FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-            TalkerRouteObserver(talker),
           ];
         },
       ),
@@ -366,12 +369,8 @@ class IslandApp extends HookConsumerWidget {
           initialEntries: [
             OverlayEntry(
               builder: (_) {
-                return TalkerWrapper(
-                  talker: talker,
-                  options: const TalkerWrapperOptions(enableErrorAlerts: true),
-                  child: WindowScaffold(
-                    child: AppWrapper(child: child ?? const SizedBox.shrink()),
-                  ),
+                return WindowScaffold(
+                  child: AppWrapper(child: child ?? const SizedBox.shrink()),
                 );
               },
             ),

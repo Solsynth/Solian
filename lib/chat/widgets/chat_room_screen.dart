@@ -608,7 +608,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 toggleBotGroup: toggleBotGroup,
                               ),
                         loading: () => const SizedBox.shrink(),
-                        error: (_, __) => const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
                       ),
                     ),
                     Positioned(

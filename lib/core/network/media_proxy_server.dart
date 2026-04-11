@@ -4,7 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/config.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:shelf/shelf.dart';
 import 'local_http_server.dart';
@@ -41,13 +42,15 @@ class MediaProxyServer {
 
     _isRunning = true;
     _baseUrl = 'http://localhost:${_server!.port}';
-    talker.log('[$kLogPrefix] Started on $_baseUrl');
+    Logger.root.info('[$kLogPrefix] Started on $_baseUrl');
   }
 
   Handler _buildHandler() {
     return (Request request) async {
       final path = request.url.path;
-      talker.log('[$kLogPrefix] Request: ${request.method} ${request.url}');
+      Logger.root.info(
+        '[$kLogPrefix] Request: ${request.method} ${request.url}',
+      );
 
       if (path.startsWith('drive/files/')) {
         return _handleMediaRequest(request, path);
@@ -73,12 +76,12 @@ class MediaProxyServer {
     final queryParams = Map<String, String>.from(request.url.queryParameters);
     final mimeType = queryParams['mime'];
 
-    talker.log(
+    Logger.root.info(
       '[$kLogPrefix] Media request: fileId=$fileId, mime=$mimeType, thumbnail=${queryParams['thumbnail']}',
     );
 
     if (queryParams['thumbnail'] == 'true') {
-      talker.log('[$kLogPrefix] Bypassing proxy for thumbnail');
+      Logger.root.info('[$kLogPrefix] Bypassing proxy for thumbnail');
       return _proxyDirect(request, fileId, queryParams);
     }
 
@@ -86,11 +89,11 @@ class MediaProxyServer {
     final isAudio = mimeType?.startsWith('audio/') ?? false;
 
     if (!isVideo && !isAudio) {
-      talker.log('[$kLogPrefix] Non-video/audio, bypassing proxy');
+      Logger.root.info('[$kLogPrefix] Non-video/audio, bypassing proxy');
       return _proxyDirect(request, fileId, queryParams);
     }
 
-    talker.log('[$kLogPrefix] Using proxy with caching for video/audio');
+    Logger.root.info('[$kLogPrefix] Using proxy with caching for video/audio');
     return _proxyWithCache(request, fileId, queryParams);
   }
 
@@ -103,7 +106,7 @@ class MediaProxyServer {
     final remoteUrl = '$serverUrl/drive/files/$fileId';
 
     try {
-      talker.log('[$kLogPrefix] Proxy direct: $remoteUrl');
+      Logger.root.info('[$kLogPrefix] Proxy direct: $remoteUrl');
       final token = await _getValidAuthToken();
       final uri = Uri.parse(remoteUrl).replace(queryParameters: queryParams);
 
@@ -118,7 +121,7 @@ class MediaProxyServer {
       });
 
       final response = await req.close();
-      talker.log('[$kLogPrefix] Response status: ${response.statusCode}');
+      Logger.root.info('[$kLogPrefix] Response status: ${response.statusCode}');
 
       final contentType = response.headers.contentType?.value;
       final bodyBytes = <int>[];
@@ -136,13 +139,13 @@ class MediaProxyServer {
         },
       );
     } on HandshakeException catch (e) {
-      talker.error('[$kLogPrefix] TLS handshake failed: $e');
+      Logger.root.severe('[$kLogPrefix] TLS handshake failed: $e');
       return Response.internalServerError(body: 'TLS error: ${e.message}');
     } on HttpException catch (e) {
-      talker.error('[$kLogPrefix] Proxy direct HTTP failed: $e');
+      Logger.root.severe('[$kLogPrefix] Proxy direct HTTP failed: $e');
       return Response.internalServerError();
     } catch (e) {
-      talker.error('[$kLogPrefix] Proxy direct failed: $e');
+      Logger.root.severe('[$kLogPrefix] Proxy direct failed: $e');
       return Response.internalServerError();
     }
   }
@@ -168,10 +171,10 @@ class MediaProxyServer {
 
       return Response(405);
     } on HttpException catch (e) {
-      talker.error('[$kLogPrefix] Proxy with cache failed: $e');
+      Logger.root.severe('[$kLogPrefix] Proxy with cache failed: $e');
       return Response.internalServerError();
     } catch (e) {
-      talker.error('[$kLogPrefix] Proxy with cache failed: $e');
+      Logger.root.severe('[$kLogPrefix] Proxy with cache failed: $e');
       return Response.internalServerError();
     }
   }
@@ -264,7 +267,7 @@ class MediaProxyServer {
     String remoteUrl,
     String cacheKey,
   ) async {
-    talker.log('[$kLogPrefix] _streamAndCache: cacheKey=$cacheKey');
+    Logger.root.info('[$kLogPrefix] _streamAndCache: cacheKey=$cacheKey');
     final cache = await _getOrCreateChunkCache(cacheKey);
 
     final token = await _getValidAuthToken();
@@ -276,11 +279,13 @@ class MediaProxyServer {
     }
 
     final response = await req.close();
-    talker.log('[$kLogPrefix] Remote response status: ${response.statusCode}');
+    Logger.root.info(
+      '[$kLogPrefix] Remote response status: ${response.statusCode}',
+    );
 
     final contentLength = response.headers.contentLength;
     final totalSize = contentLength > 0 ? contentLength : null;
-    talker.log(
+    Logger.root.info(
       '[$kLogPrefix] Content-Length: $contentLength, totalSize: $totalSize',
     );
 
@@ -303,14 +308,14 @@ class MediaProxyServer {
         _chunkCaches[cacheKey]!.downloadedSize = receivedLength;
 
         if (receivedLength % (1024 * 1024) == 0) {
-          talker.log('[$kLogPrefix] Downloaded: $receivedLength bytes');
+          Logger.root.info('[$kLogPrefix] Downloaded: $receivedLength bytes');
         }
       }
 
       await sink.close();
       _chunkCaches[cacheKey]!.markComplete();
       _totalCacheSize += receivedLength;
-      talker.log(
+      Logger.root.info(
         '[$kLogPrefix] Cache complete: $receivedLength bytes, cacheKey=$cacheKey',
       );
 
@@ -327,7 +332,7 @@ class MediaProxyServer {
       );
     } catch (e) {
       await sink.close();
-      talker.error('[$kLogPrefix] _streamAndCache error: $e');
+      Logger.root.severe('[$kLogPrefix] _streamAndCache error: $e');
       return Response.internalServerError(body: 'Stream error: $e');
     }
   }
@@ -338,7 +343,7 @@ class MediaProxyServer {
     String cacheKey,
     _Range range,
   ) async {
-    talker.log(
+    Logger.root.info(
       '[$kLogPrefix] _streamAndCacheRange: cacheKey=$cacheKey, range=${range.start}-${range.end}',
     );
     final cache = await _getOrCreateChunkCache(cacheKey);
@@ -353,7 +358,9 @@ class MediaProxyServer {
     req.headers.set('Range', 'bytes=${range.start}-${range.end ?? ""}');
 
     final response = await req.close();
-    talker.log('[$kLogPrefix] Range response status: ${response.statusCode}');
+    Logger.root.info(
+      '[$kLogPrefix] Range response status: ${response.statusCode}',
+    );
 
     final contentLength = response.headers.contentLength;
     final isPartial = response.statusCode == 206;
@@ -507,7 +514,7 @@ class MediaProxyServer {
       _cachedAuthToken = token;
       return token;
     } catch (e) {
-      talker.error('[$kLogPrefix] Failed to get auth token: $e');
+      Logger.root.severe('[$kLogPrefix] Failed to get auth token: $e');
       return null;
     }
   }
@@ -524,7 +531,7 @@ class MediaProxyServer {
     _chunkCaches.clear();
     _totalCacheSize = 0;
     _baseUrl = null;
-    talker.log('[$kLogPrefix] Stopped');
+    Logger.root.info('[$kLogPrefix] Stopped');
   }
 
   Future<void> clearCache() async {
@@ -538,7 +545,7 @@ class MediaProxyServer {
     }
     _chunkCaches.clear();
     _totalCacheSize = 0;
-    talker.log('[$kLogPrefix] Cache cleared');
+    Logger.root.info('[$kLogPrefix] Cache cleared');
   }
 }
 

@@ -25,7 +25,8 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -323,7 +324,7 @@ class MeetScreen extends HookConsumerWidget {
           discoverable: effectiveDiscoverable,
           friendOnly: nearbyFriendOnly.value,
         );
-        talker.info(
+        Logger.root.info(
           '[Nearby] presence bundle deviceId=$deviceId serviceUuid=${bundle.serviceUuid} slotDurationSec=${bundle.slotDurationSec} tokenCount=${bundle.tokens.length} currentToken=${bundle.tokenForNow()?.token ?? "none"} discoverable=$effectiveDiscoverable friendOnly=${nearbyFriendOnly.value}',
         );
         nearbyBundle.value = bundle;

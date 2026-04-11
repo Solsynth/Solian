@@ -4,7 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/posts/pods/post_list.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final realtimePostsProvider = Provider<RealtimePostsHandler>((ref) {
@@ -22,13 +23,13 @@ class RealtimePostsHandler {
     final ws = _ref.read(websocketProvider);
     _subscription?.cancel();
     _subscription = ws.dataStream.listen(_handlePacket);
-    talker.info('[RealtimePosts] Started listening to WebSocket');
+    Logger.root.info('[RealtimePosts] Started listening to WebSocket');
   }
 
   void stopListening() {
     _subscription?.cancel();
     _subscription = null;
-    talker.info('[RealtimePosts] Stopped listening to WebSocket');
+    Logger.root.info('[RealtimePosts] Stopped listening to WebSocket');
   }
 
   void _handlePacket(WebSocketPacket packet) {
@@ -52,14 +53,14 @@ class RealtimePostsHandler {
       final post = SnPost.fromJson(packet.data!);
 
       if (_processedPostIds.contains(post.id)) {
-        talker.info(
+        Logger.root.info(
           '[RealtimePosts] Skipping duplicate post.created: ${post.id}',
         );
         return;
       }
       _processedPostIds.add(post.id);
 
-      talker.info(
+      Logger.root.info(
         '[RealtimePosts] Post created: ${post.id} - ${post.title ?? "Untitled"}',
       );
 
@@ -69,7 +70,7 @@ class RealtimePostsHandler {
       // Invalidate post lists to fetch fresh data
       _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
     } catch (e) {
-      talker.error('[RealtimePosts] Failed to parse post.created: $e');
+      Logger.root.severe('[RealtimePosts] Failed to parse post.created: $e');
     }
   }
 
@@ -79,7 +80,7 @@ class RealtimePostsHandler {
     try {
       final post = SnPost.fromJson(packet.data!);
 
-      talker.info('[RealtimePosts] Post updated: ${post.id}');
+      Logger.root.info('[RealtimePosts] Post updated: ${post.id}');
 
       // Broadcast event for other parts of the app to handle
       eventBus.fire(PostUpdateEvent(post));
@@ -87,7 +88,7 @@ class RealtimePostsHandler {
       // Invalidate post lists to fetch fresh data
       _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
     } catch (e) {
-      talker.error('[RealtimePosts] Failed to parse post.updated: $e');
+      Logger.root.severe('[RealtimePosts] Failed to parse post.updated: $e');
     }
   }
 
@@ -97,7 +98,7 @@ class RealtimePostsHandler {
     try {
       final post = SnPost.fromJson(packet.data!);
 
-      talker.info('[RealtimePosts] Post deleted: ${post.id}');
+      Logger.root.info('[RealtimePosts] Post deleted: ${post.id}');
 
       // Broadcast event for other parts of the app to handle
       eventBus.fire(PostDeleteEvent(post.id));
@@ -105,7 +106,7 @@ class RealtimePostsHandler {
       // Invalidate post lists to fetch fresh data
       _ref.invalidate(postListProvider(const PostListQueryConfig(id: 'home')));
     } catch (e) {
-      talker.error('[RealtimePosts] Failed to parse post.deleted: $e');
+      Logger.root.severe('[RealtimePosts] Failed to parse post.deleted: $e');
     }
   }
 
@@ -115,17 +116,21 @@ class RealtimePostsHandler {
     try {
       final reaction = SnPostReaction.fromJson(packet.data!);
 
-      talker.info(
+      Logger.root.info(
         '[RealtimePosts] Reaction added: ${reaction.symbol} on post ${reaction.postId}',
       );
 
       // Broadcast event for other parts of the app to handle
-      eventBus.fire(PostReactionUpdateEvent(
-        reaction: reaction,
-        action: ReactionAction.added,
-      ));
+      eventBus.fire(
+        PostReactionUpdateEvent(
+          reaction: reaction,
+          action: ReactionAction.added,
+        ),
+      );
     } catch (e) {
-      talker.error('[RealtimePosts] Failed to parse post.reaction.added: $e');
+      Logger.root.severe(
+        '[RealtimePosts] Failed to parse post.reaction.added: $e',
+      );
     }
   }
 
@@ -135,17 +140,21 @@ class RealtimePostsHandler {
     try {
       final reaction = SnPostReaction.fromJson(packet.data!);
 
-      talker.info(
+      Logger.root.info(
         '[RealtimePosts] Reaction removed: ${reaction.symbol} from post ${reaction.postId}',
       );
 
       // Broadcast event for other parts of the app to handle
-      eventBus.fire(PostReactionUpdateEvent(
-        reaction: reaction,
-        action: ReactionAction.removed,
-      ));
+      eventBus.fire(
+        PostReactionUpdateEvent(
+          reaction: reaction,
+          action: ReactionAction.removed,
+        ),
+      );
     } catch (e) {
-      talker.error('[RealtimePosts] Failed to parse post.reaction.removed: $e');
+      Logger.root.severe(
+        '[RealtimePosts] Failed to parse post.reaction.removed: $e',
+      );
     }
   }
 

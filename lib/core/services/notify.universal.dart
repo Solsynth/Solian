@@ -16,7 +16,8 @@ import 'package:island/core/services/push_provider.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:island/route.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -135,7 +136,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
     if (pkt.type == "notifications.new") {
       final notification = SnNotification.fromJson(pkt.data!);
       if (_appLifecycleState == AppLifecycleState.resumed) {
-        talker.info(
+        Logger.root.info(
           '[Notification] Showing in-app notification: ${notification.title}',
         );
         if (settings.notifyWithHaptic) {
@@ -146,7 +147,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
       } else {
         // App is in background, show system notification (only on supported platforms)
         if (!kIsWeb && !Platform.isIOS) {
-          talker.info(
+          Logger.root.info(
             '[Notification] Showing system notification: ${notification.title}',
           );
 
@@ -171,7 +172,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             payload: notification.meta['action_uri'] as String?,
           );
         } else {
-          talker.info(
+          Logger.root.info(
             '[Notification] Skipping system notification for unsupported platform: ${notification.title}',
           );
         }
@@ -219,7 +220,9 @@ Future<void> subscribePushNotification(
         );
       })
       .onError((err) {
-        talker.error("Failed to get firebase cloud messaging push token: $err");
+        Logger.root.severe(
+          "Failed to get firebase cloud messaging push token: $err",
+        );
       });
 
   if (deviceToken != null) {
@@ -247,7 +250,7 @@ Future<void> subscribeUnifiedPushNotification(
     await registerUnifiedPush(apiClient);
   } catch (err) {
     if (detailedErrors) rethrow;
-    talker.error('Failed to register UnifiedPush subscription: $err');
+    Logger.root.severe('Failed to register UnifiedPush subscription: $err');
   }
 }
 

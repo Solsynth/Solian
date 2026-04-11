@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dart_ipc/dart_ipc.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:path/path.dart' as path;
 
 const String kRpcIpcLogPrefix = 'arRPC.ipc';
@@ -130,18 +131,17 @@ class MultiPlatformIpcServer extends IpcServer {
   @override
   Future<void> start() async {
     try {
-      final ipcPath =
-          Platform.isWindows
-              ? r'\\.\pipe\discord-ipc-0'
-              : await _findAvailableUnixIpcPath();
+      final ipcPath = Platform.isWindows
+          ? r'\\.\pipe\discord-ipc-0'
+          : await _findAvailableUnixIpcPath();
 
       final serverSocket = await bind(ipcPath);
-      talker.log('IPC listening at $ipcPath');
+      Logger.root.info('IPC listening at $ipcPath');
 
       _serverSubscription = serverSocket.listen((socket) {
         final socketWrapper = MultiPlatformIpcSocketWrapper(socket);
         addSocket(socketWrapper);
-        talker.log('New IPC connection!');
+        Logger.root.info('New IPC connection!');
         _handleIpcData(socketWrapper);
       });
     } catch (e) {
@@ -155,7 +155,7 @@ class MultiPlatformIpcServer extends IpcServer {
       try {
         socket.close();
       } catch (e) {
-        talker.log('Error closing IPC socket: $e');
+        Logger.root.info('Error closing IPC socket: $e');
       }
     }
     sockets.clear();
@@ -169,9 +169,10 @@ class MultiPlatformIpcServer extends IpcServer {
       (data) {
         final readStart = DateTime.now();
         socket.addData(data);
-        final readDuration =
-            DateTime.now().difference(readStart).inMicroseconds;
-        talker.log('Read data took $readDuration microseconds');
+        final readDuration = DateTime.now()
+            .difference(readStart)
+            .inMicroseconds;
+        Logger.root.info('Read data took $readDuration microseconds');
 
         final packets = socket.readPackets();
         for (final packet in packets) {
@@ -179,18 +180,18 @@ class MultiPlatformIpcServer extends IpcServer {
         }
       },
       onDone: () {
-        talker.log('IPC connection closed');
+        Logger.root.info('IPC connection closed');
         removeSocket(socket);
         onSocketClose?.call(socket);
         socket.close();
       },
       onError: (e) {
-        talker.log('IPC data error: $e');
+        Logger.root.info('IPC data error: $e');
         socket.closeWithCode(IpcCloseCodes.closeUnsupported, e.toString());
       },
     );
     final totalDuration = DateTime.now().difference(startTime).inMicroseconds;
-    talker.log('_handleIpcData took $totalDuration microseconds');
+    Logger.root.info('_handleIpcData took $totalDuration microseconds');
   }
 
   Future<String> _getMacOsSystemTmpDir() async {
@@ -210,7 +211,7 @@ class MultiPlatformIpcServer extends IpcServer {
           baseDirs.add(macTempDir);
         }
       } catch (e) {
-        talker.log('Failed to get macOS system temp dir: $e');
+        Logger.root.info('Failed to get macOS system temp dir: $e');
       }
     }
 
@@ -236,11 +237,11 @@ class MultiPlatformIpcServer extends IpcServer {
           try {
             await File(socketPath).delete();
           } catch (_) {}
-          talker.log('IPC socket will be created at: $socketPath');
+          Logger.root.info('IPC socket will be created at: $socketPath');
           return socketPath;
         } catch (e) {
           if (i == 0) {
-            talker.log('IPC path $socketPath not available: $e');
+            Logger.root.info('IPC path $socketPath not available: $e');
           }
           continue;
         }
@@ -260,7 +261,7 @@ class MultiPlatformIpcSocketWrapper extends IpcSocketWrapper {
 
   @override
   void send(Map<String, dynamic> msg) {
-    talker.log('IPC sending: $msg');
+    Logger.root.info('IPC sending: $msg');
     final packet = IpcServer.encodeIpcPacket(IpcTypes.frame, msg);
     socket.add(packet);
   }

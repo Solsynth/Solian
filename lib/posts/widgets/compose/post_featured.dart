@@ -4,7 +4,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -49,22 +50,26 @@ class PostFeaturedList extends HookConsumerWidget {
 
     // Log isCollapsed state changes
     useEffect(() {
-      talker.info('isCollapsed changed to ${isCollapsed.value}');
+      Logger.root.info('isCollapsed changed to ${isCollapsed.value}');
       return null;
     }, [isCollapsed]);
 
     useEffect(() {
       if (featuredPostsAsync.hasValue && featuredPostsAsync.value!.isNotEmpty) {
         final currentFirstPostId = featuredPostsAsync.value!.first.id;
-        talker.info('Current first post ID: $currentFirstPostId');
-        talker.info('Previous first post ID: ${previousFirstPostId.value}');
-        talker.info('Stored collapsed ID: ${storedCollapsedId.value}');
+        Logger.root.info('Current first post ID: $currentFirstPostId');
+        Logger.root.info(
+          'Previous first post ID: ${previousFirstPostId.value}',
+        );
+        Logger.root.info('Stored collapsed ID: ${storedCollapsedId.value}');
 
         if (previousFirstPostId.value == null) {
           // Initial load
           previousFirstPostId.value = currentFirstPostId;
           isCollapsed.value = (storedCollapsedId.value == currentFirstPostId);
-          talker.info('Initial load. isCollapsed set to ${isCollapsed.value}');
+          Logger.root.info(
+            'Initial load. isCollapsed set to ${isCollapsed.value}',
+          );
         } else if (previousFirstPostId.value != currentFirstPostId) {
           // First post changed, expand by default
           previousFirstPostId.value = currentFirstPostId;
@@ -72,14 +77,16 @@ class PostFeaturedList extends HookConsumerWidget {
           prefs.remove(
             kFeaturedPostsCollapsedId,
           ); // Clear stored ID if post changes
-          talker.info('First post changed. isCollapsed set to false.');
+          Logger.root.info('First post changed. isCollapsed set to false.');
         } else {
           // Same first post, maintain current collapse state
           // No change needed for isCollapsed.value unless manually toggled
-          talker.info('Same first post. Maintaining current collapse state.');
+          Logger.root.info(
+            'Same first post. Maintaining current collapse state.',
+          );
         }
       } else {
-        talker.info('featuredPostsAsync has no value or is empty.');
+        Logger.root.info('featuredPostsAsync has no value or is empty.');
       }
       return null;
     }, [featuredPostsAsync]);
@@ -143,7 +150,7 @@ class PostFeaturedList extends HookConsumerWidget {
                       constraints: const BoxConstraints(),
                       onPressed: () {
                         isCollapsed.value = !isCollapsed.value;
-                        talker.info(
+                        Logger.root.info(
                           'Manual toggle. isCollapsed set to ${isCollapsed.value}',
                         );
                         if (isCollapsed.value &&
@@ -153,12 +160,12 @@ class PostFeaturedList extends HookConsumerWidget {
                             kFeaturedPostsCollapsedId,
                             featuredPostsAsync.value!.first.id,
                           );
-                          talker.info(
+                          Logger.root.info(
                             'Stored collapsed ID: ${featuredPostsAsync.value!.first.id}',
                           );
                         } else {
                           prefs.remove(kFeaturedPostsCollapsedId);
-                          talker.info('Removed stored collapsed ID.');
+                          Logger.root.info('Removed stored collapsed ID.');
                         }
                       },
                       icon: Icon(

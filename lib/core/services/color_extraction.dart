@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:image/image.dart' as img;
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:material_color_utilities/material_color_utilities.dart' as mcu;
 
 class ColorExtractionService {
@@ -43,7 +44,7 @@ class ColorExtractionService {
         return [];
       }
     } catch (e, stackTrace) {
-      talker.error('Error getting colors from image...', e, stackTrace);
+      Logger.root.severe('Error getting colors from image...', e, stackTrace);
       return [];
     }
   }

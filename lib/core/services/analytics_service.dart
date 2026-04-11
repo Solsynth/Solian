@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
 
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
@@ -19,7 +19,7 @@ class AnalyticsService {
     try {
       _analytics = FirebaseAnalytics.instance;
     } catch (e) {
-      talker.warning('[Analytics] Failed to init: $e');
+      Logger.root.warning('[Analytics] Failed to init: $e');
       _analytics = null;
     }
   }
@@ -32,7 +32,7 @@ class AnalyticsService {
     try {
       analytics.logEvent(name: name, parameters: parameters);
     } catch (e) {
-      talker.warning('[Analytics] Failed to log event $name: $e');
+      Logger.root.warning('[Analytics] Failed to log event $name: $e');
     }
   }
 
@@ -48,7 +48,7 @@ class AnalyticsService {
     try {
       analytics.setUserId(id: id);
     } catch (e) {
-      talker.warning('[Analytics] Failed to set user ID: $e');
+      Logger.root.warning('[Analytics] Failed to set user ID: $e');
     }
   }
 

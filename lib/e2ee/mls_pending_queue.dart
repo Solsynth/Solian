@@ -1,11 +1,12 @@
 import 'dart:collection';
 import 'dart:typed_data';
-import 'package:island/talker.dart';
+
+import 'package:logging/logging.dart';
 
 const _mlsLogPrefix = '[MLS] ';
 
 void _mlsLog(dynamic msg) {
-  talker.info('$_mlsLogPrefix$msg');
+  Logger.root.info('$_mlsLogPrefix$msg');
 }
 
 class PendingMlsMessage {

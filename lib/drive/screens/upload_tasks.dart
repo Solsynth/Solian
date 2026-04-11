@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/drive/drive_service.dart';
-import 'package:island/talker.dart';
+import 'package:logging/logging.dart';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -38,7 +39,7 @@ class UploadTasks extends _$UploadTasks {
       if (data == null && packet.type != 'upload.completed') return;
 
       // Debug logging
-      talker.info(
+      Logger.root.info(
         '[UploadTasks] Received WebSocket packet: ${packet.type}, data: $data',
       );
 
@@ -76,13 +77,13 @@ class UploadTasks extends _$UploadTasks {
   }
 
   void _handleTaskCreated(String taskId, Map<String, dynamic> data) {
-    talker.info('[UploadTasks] Handling task.created for taskId: $taskId');
+    Logger.root.info('[UploadTasks] Handling task.created for taskId: $taskId');
 
     final existingTask = state
         .where((task) => task.taskId == taskId)
         .firstOrNull;
     if (existingTask != null) {
-      talker.info('[UploadTasks] Task already exists, updating status');
+      Logger.root.info('[UploadTasks] Task already exists, updating status');
       state = state.map((task) {
         if (task.taskId == taskId) {
           return task.copyWith(
@@ -96,10 +97,10 @@ class UploadTasks extends _$UploadTasks {
     }
 
     final metadata = _pendingUploads[taskId];
-    talker.info('[UploadTasks] Metadata for taskId $taskId: $metadata');
+    Logger.root.info('[UploadTasks] Metadata for taskId $taskId: $metadata');
 
     if (metadata != null) {
-      talker.info('[UploadTasks] Creating task with full metadata');
+      Logger.root.info('[UploadTasks] Creating task with full metadata');
       final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         taskId: taskId,
@@ -120,12 +121,14 @@ class UploadTasks extends _$UploadTasks {
       );
 
       state = [...state, uploadTask];
-      talker.info(
+      Logger.root.info(
         '[UploadTasks] Task created successfully. Total tasks: ${state.length}',
       );
       _pendingUploads.remove(taskId);
     } else {
-      talker.info('[UploadTasks] No metadata found, creating minimal task');
+      Logger.root.info(
+        '[UploadTasks] No metadata found, creating minimal task',
+      );
       final params = data['parameters'];
       final uploadTask = DriveTask(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -144,7 +147,7 @@ class UploadTasks extends _$UploadTasks {
       );
 
       state = [...state, uploadTask];
-      talker.info(
+      Logger.root.info(
         '[UploadTasks] Minimal task created. Total tasks: ${state.length}',
       );
     }
@@ -581,7 +584,7 @@ class EnhancedFileUploader extends FileUploader {
     final chunksCount = createResponse['chunks_count'] as int;
 
     // Store upload metadata for when task.created event arrives
-    talker.info('[UploadTasks] Storing metadata for taskId: $taskId');
+    Logger.root.info('[UploadTasks] Storing metadata for taskId: $taskId');
     ref
         .read(uploadTasksProvider.notifier)
         .storeUploadMetadata(

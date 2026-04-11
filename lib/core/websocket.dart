@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:logging/logging.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:island/talker.dart';
 
 part 'websocket.freezed.dart';
 part 'websocket.g.dart';
@@ -71,7 +71,7 @@ class WebSocketService {
 
   Future<void> connect(Ref ref) async {
     if (_isConnecting) {
-      talker.debug(
+      Logger.root.fine(
         '[WebSocket] Connection attempt already in progress, skipping',
       );
       return;
@@ -92,7 +92,7 @@ class WebSocketService {
 
     final url = '$baseUrl/ws'.replaceFirst('http', 'ws');
 
-    talker.info('[WebSocket] Trying connecting to $url');
+    Logger.root.info('[WebSocket] Trying connecting to $url');
     try {
       if (kIsWeb) {
         final wsUrl = token?.isNotEmpty ?? false ? '$url?tk=$token' : url;
@@ -120,15 +120,15 @@ class WebSocketService {
           try {
             dataStr = data is Uint8List ? utf8.decode(data) : data.toString();
           } catch (e) {
-            talker.error('[WebSocket] Failed to decode data: $e');
+            Logger.root.severe('[WebSocket] Failed to decode data: $e');
             return;
           }
           try {
             final packet = WebSocketPacket.fromJson(jsonDecode(dataStr));
-            talker.info('[WebSocket] Received packet: ${packet.type}');
+            Logger.root.info('[WebSocket] Received packet: ${packet.type}');
 
             if (packet.type == 'error.dupe') {
-              talker.info(
+              Logger.root.info(
                 '[WebSocket] Duplicate device found: ${packet.errorMessage}',
               );
               _isClosing = true;
@@ -137,7 +137,9 @@ class WebSocketService {
               _channel!.sink.close();
               return;
             } else if (packet.type == 'error') {
-              talker.info('[WebSocket] Connect error: ${packet.errorMessage}');
+              Logger.root.info(
+                '[WebSocket] Connect error: ${packet.errorMessage}',
+              );
               _isClosing = true;
               _cancelTimers();
               _addStatus(WebSocketState.error(packet.errorMessage ?? 'error'));
@@ -150,19 +152,19 @@ class WebSocketService {
               final now = DateTime.now();
               final delay = now.difference(_heartbeatAt!);
               heartbeatDelay = delay;
-              talker.info(
+              Logger.root.info(
                 "[WebSocket] Server respond last heartbeat for ${delay.inMilliseconds} ms",
               );
             }
           } catch (e) {
-            talker.error('[WebSocket] Failed to parse packet: $e');
+            Logger.root.severe('[WebSocket] Failed to parse packet: $e');
           }
         },
         onDone: () {
           if (connectionGeneration != _connectionGeneration || _isClosing) {
             return;
           }
-          talker.info(
+          Logger.root.info(
             '[WebSocket] Connection closed, attempting to reconnect...',
           );
           _addStatus(WebSocketState.disconnected());
@@ -172,7 +174,7 @@ class WebSocketService {
           if (connectionGeneration != _connectionGeneration || _isClosing) {
             return;
           }
-          talker.error(
+          Logger.root.severe(
             '[WebSocket] Error occurred: $error, attempting to reconnect...',
           );
           _addStatus(WebSocketState.error(error.toString()));
@@ -181,7 +183,7 @@ class WebSocketService {
       );
     } catch (err) {
       if (connectionGeneration != _connectionGeneration || _isClosing) return;
-      talker.error('[WebSocket] Failed to connect: $err');
+      Logger.root.severe('[WebSocket] Failed to connect: $err');
       _addStatus(WebSocketState.error(err.toString()));
       _scheduleReconnect();
     }
@@ -203,9 +205,9 @@ class WebSocketService {
   }
 
   void _scheduleReconnect() {
-    talker.info('[WebSocket] Scheduling reconnect...');
+    Logger.root.info('[WebSocket] Scheduling reconnect...');
     if (_isClosing) {
-      talker.debug(
+      Logger.root.fine(
         '[WebSocket] Not scheduling reconnect because connection is closing',
       );
       return;
@@ -213,7 +215,7 @@ class WebSocketService {
 
     final ref = _ref;
     if (ref == null) {
-      talker.error(
+      Logger.root.severe(
         '[WebSocket] Cannot schedule reconnect: ref not initialized',
       );
       return;
@@ -229,7 +231,7 @@ class WebSocketService {
     _reconnectCount++;
 
     if (_reconnectCount > _maxReconnectsPerMinute) {
-      talker.error(
+      Logger.root.severe(
         '[WebSocket] Reconnect limit exceeded: $_maxReconnectsPerMinute reconnections in the last minute. Retrying in 30s.',
       );
       _addStatus(WebSocketState.serverDown());
@@ -266,25 +268,27 @@ class WebSocketService {
   void manualReconnect() {
     final ref = _ref;
     if (ref == null) {
-      talker.error('[WebSocket] Cannot manual reconnect: ref not initialized');
+      Logger.root.severe(
+        '[WebSocket] Cannot manual reconnect: ref not initialized',
+      );
       return;
     }
-    talker.info('[WebSocket] Manual reconnect triggered by user');
+    Logger.root.info('[WebSocket] Manual reconnect triggered by user');
 
     // Cancel any pending reconnect timers
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
-    talker.debug('[WebSocket] Cancelled pending reconnect timers');
+    Logger.root.fine('[WebSocket] Cancelled pending reconnect timers');
 
     // Immediately disconnect current connection
     _isClosing = false;
     _reconnectCount = 0;
     _reconnectWindowStart = null;
-    talker.debug('[WebSocket] Reset reconnect counters and state');
+    Logger.root.fine('[WebSocket] Reset reconnect counters and state');
 
     // Fire and forget dispose - do NOT wait for it to complete
     // This avoids hanging if socket is in broken state
-    talker.debug('[WebSocket] Closing existing WebSocket connection');
+    Logger.root.fine('[WebSocket] Closing existing WebSocket connection');
 
     // Increment connection generation first to invalidate any existing connection
     _connectionGeneration++;
@@ -293,16 +297,18 @@ class WebSocketService {
     _disposeActiveChannel(suppressReconnect: true)
         .timeout(const Duration(milliseconds: 1000))
         .then((_) {
-          talker.debug('[WebSocket] Dispose completed normally');
+          Logger.root.fine('[WebSocket] Dispose completed normally');
           _addStatus(WebSocketState.disconnected());
           Future.delayed(const Duration(milliseconds: 100), () {
-            talker.debug('[WebSocket] Reconnecting after manual trigger...');
+            Logger.root.fine(
+              '[WebSocket] Reconnecting after manual trigger...',
+            );
             _addStatus(WebSocketState.connecting());
             connect(ref);
           });
         })
         .catchError((err) {
-          talker.warning(
+          Logger.root.warning(
             '[WebSocket] Dispose had error (this is normal): $err',
           );
         });
@@ -318,7 +324,7 @@ class WebSocketService {
   void _beatTheHeart() {
     if (_channel == null || _isClosing) return;
     _heartbeatAt = DateTime.now();
-    talker.info('[WebSocket] We\'re beating the heart! $_heartbeatAt');
+    Logger.root.info('[WebSocket] We\'re beating the heart! $_heartbeatAt');
     sendMessage(jsonEncode(WebSocketPacket(type: 'ping', data: null)));
   }
 
@@ -326,7 +332,7 @@ class WebSocketService {
 
   bool sendMessage(String message) {
     if (_channel == null || _isClosing) {
-      talker.info(
+      Logger.root.info(
         '[WebSocket] Cannot send message: channel is null or closing',
       );
       return false;
@@ -335,7 +341,7 @@ class WebSocketService {
       _channel!.sink.add(message);
       return true;
     } catch (e) {
-      talker.error('[WebSocket] Failed to send message: $e');
+      Logger.root.severe('[WebSocket] Failed to send message: $e');
       return false;
     }
   }
@@ -360,9 +366,11 @@ class WebSocketService {
       await _channelSubscription?.cancel().timeout(
         const Duration(milliseconds: 200),
       );
-      talker.debug('[WebSocket] Stream subscription cancelled successfully');
+      Logger.root.fine(
+        '[WebSocket] Stream subscription cancelled successfully',
+      );
     } catch (e) {
-      talker.warning(
+      Logger.root.warning(
         '[WebSocket] Stream subscription cancel timed out, forcing null',
       );
     } finally {
@@ -372,9 +380,11 @@ class WebSocketService {
     // Close websocket sink with timeout
     try {
       await _channel?.sink.close().timeout(const Duration(milliseconds: 300));
-      talker.debug('[WebSocket] WebSocket sink closed successfully');
+      Logger.root.fine('[WebSocket] WebSocket sink closed successfully');
     } catch (e) {
-      talker.warning('[WebSocket] WebSocket close timed out, forcing null');
+      Logger.root.warning(
+        '[WebSocket] WebSocket close timed out, forcing null',
+      );
     } finally {
       _channel = null;
     }

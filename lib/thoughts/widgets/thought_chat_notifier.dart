@@ -10,9 +10,10 @@ import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/talker.dart';
+
 import 'package:island/thoughts/screens/think.dart';
 import 'package:island/thoughts/thought.dart';
+import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
@@ -476,7 +477,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                 final type = event['type'];
                 final eventData = event['data'];
                 if (type != 'text') {
-                  talker.info('[Thought] Received event: $type');
+                  Logger.root.info('[Thought] Received event: $type');
                 }
                 switch (type) {
                   case 'text':

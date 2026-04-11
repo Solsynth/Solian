@@ -8,6 +8,7 @@ import 'package:island/posts/widgets/compose/compose_livestream.dart';
 import 'package:island/posts/widgets/compose/compose_poll.dart';
 import 'package:island/posts/widgets/compose/compose_recorder.dart';
 import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
+import 'package:logging/logging.dart';
 import 'package:mime/mime.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -22,7 +23,7 @@ import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
-import 'package:island/talker.dart';
+
 import 'package:island/core/services/analytics_service.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -261,7 +262,9 @@ class ComposeLogic {
               state.attachments.value = clone;
             }
           } catch (err) {
-            talker.error('[ComposeLogic] Failed to upload attachment: $err');
+            Logger.root.severe(
+              '[ComposeLogic] Failed to upload attachment: $err',
+            );
             // Continue with other attachments even if one fails
           }
         }
@@ -272,7 +275,7 @@ class ComposeLogic {
         await _saveCloudDraft(ref, state);
       }
     } catch (e) {
-      talker.error('[ComposeLogic] Failed to save draft, error: $e');
+      Logger.root.severe('[ComposeLogic] Failed to save draft, error: $e');
     }
   }
 
@@ -293,7 +296,7 @@ class ComposeLogic {
     try {
       await _saveLocalDraft(ref, state);
     } catch (e) {
-      talker.error(
+      Logger.root.severe(
         '[ComposeLogic] Failed to save draft without upload, error: $e',
       );
     }
@@ -444,7 +447,9 @@ class ComposeLogic {
         showSnackBar('draftSaved'.tr());
       }
     } catch (e) {
-      talker.error('[ComposeLogic] Failed to save draft manually, error: $e');
+      Logger.root.severe(
+        '[ComposeLogic] Failed to save draft manually, error: $e',
+      );
       if (context.mounted) {
         showSnackBar('draftSaveFailed'.tr());
       }
