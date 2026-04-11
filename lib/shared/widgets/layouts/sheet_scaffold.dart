@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 class SheetScaffold extends StatelessWidget {
   final Widget? title;
   final String? titleText;
+  final Widget? leading;
   final List<Widget> actions;
   final Widget child;
   final double heightFactor;
@@ -12,9 +13,10 @@ class SheetScaffold extends StatelessWidget {
   final bool showHeader;
   const SheetScaffold({
     super.key,
+    required this.child,
     this.title,
     this.titleText,
-    required this.child,
+    this.leading,
     this.actions = const [],
     this.heightFactor = 0.8,
     this.height,
@@ -41,6 +43,7 @@ class SheetScaffold extends StatelessWidget {
               ),
               child: Row(
                 children: [
+                  if (leading != null) ...[leading!, const SizedBox(width: 8)],
                   if (title != null || titleText != null)
                     Expanded(
                       child:
@@ -58,7 +61,6 @@ class SheetScaffold extends StatelessWidget {
                     )
                   else
                     const Spacer(),
-                  const Spacer(),
                   ...actions,
                   IconButton(
                     icon: Icon(

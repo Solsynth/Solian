@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.dart';
@@ -26,9 +25,7 @@ class NotificationCard extends HookConsumerWidget {
           }
           if (uri.startsWith('/')) {
             // In-app routes
-            rootNavigatorKey.currentContext?.router.pushPath(
-              notification.meta['action_uri'],
-            );
+            ref.read(routerProvider).pushPath(notification.meta['action_uri']);
           } else {
             // External URLs
             launchUrlString(uri);
