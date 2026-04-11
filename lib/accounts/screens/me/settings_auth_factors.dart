@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/udid.dart';
@@ -334,9 +335,11 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
         final rpId = Uri.parse(serverUrl).host;
         final rpName = 'Solar Network';
         final deviceId = await getUdid();
+        final deviceName = await getDeviceName();
 
         final challengeResponse = await client.auth.startPasskeyRegistration(
           deviceId: deviceId,
+          deviceName: deviceName,
           rpId: rpId,
           rpName: rpName,
         );
@@ -344,6 +347,8 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
         final serverOptions = challengeResponse;
         final authSelection =
             serverOptions['authenticator_selection'] as Map<String, dynamic>?;
+
+        final userInfo = ref.watch(userInfoProvider);
 
         final request = RegisterRequestType(
           challenge: serverOptions['challenge'] as String,
@@ -353,8 +358,9 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
           ),
           user: UserType(
             id: serverOptions['user_id'] as String,
-            name: serverOptions['user_id'] as String,
+            name: userInfo.value?.name ?? serverOptions['user_id'] as String,
             displayName:
+                userInfo.value?.nick ??
                 serverOptions['user_name'] as String? ??
                 serverOptions['user_id'] as String,
           ),
@@ -387,6 +393,7 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
 
         factor = await client.auth.completePasskeyRegistration(
           deviceId: deviceId,
+          deviceName: deviceName,
           attestationObject: credential.attestationObject,
           clientDataJson: credential.clientDataJSON,
         );
@@ -566,7 +573,6 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                   }
                 },
               ),
-              const SizedBox(height: 16),
               if (_selectedType == 0)
                 TextField(
                   controller: _secretController,
@@ -576,7 +582,7 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                   ),
                   onTapOutside: (_) =>
                       FocusManager.instance.primaryFocus?.unfocus(),
-                )
+                ).padding(top: 16)
               else if (_selectedType == 4)
                 TextField(
                   controller: _pinController,
@@ -588,9 +594,12 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
                   maxLength: 6,
                   onTapOutside: (_) =>
                       FocusManager.instance.primaryFocus?.unfocus(),
-                ),
+                ).padding(top: 16),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Text(
                   kFactorTypes[_selectedType]?.$2 ?? '',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
