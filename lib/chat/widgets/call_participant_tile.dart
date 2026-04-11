@@ -71,55 +71,55 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final account = ref.watch(accountProvider(live.participant.identity));
 
-    return SpeakingRipple(
-      size: size,
-      audioLevel: live.remoteParticipant.audioLevel,
-      isSpeaking: live.remoteParticipant.isSpeaking,
-      child: Stack(
-        children: [
-          Container(
-            width: size,
-            height: size,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(shape: BoxShape.circle),
-            child: account.when(
-              data: (value) => CallParticipantRegion(
-                participant: live,
-                child: ProfilePictureWidget(
+    return CallParticipantRegion(
+      participant: live,
+      child: SpeakingRipple(
+        size: size,
+        audioLevel: live.remoteParticipant.audioLevel,
+        isSpeaking: live.remoteParticipant.isSpeaking,
+        child: Stack(
+          children: [
+            Container(
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: account.when(
+                data: (value) => ProfilePictureWidget(
                   file: value.profile.picture,
                   radius: size / 2,
                 ),
-              ),
-              error: (_, _) => CircleAvatar(
-                radius: size / 2,
-                child: const Icon(Symbols.question_mark),
-              ),
-              loading: () => CircleAvatar(
-                radius: size / 2,
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          ),
-          if (live.remoteParticipant.isMuted)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white, width: 2),
+                error: (_, _) => CircleAvatar(
+                  radius: size / 2,
+                  child: const Icon(Symbols.question_mark),
                 ),
-                child: const Icon(
-                  Symbols.mic_off,
-                  size: 14,
-                  color: Colors.white,
+                loading: () => CircleAvatar(
+                  radius: size / 2,
+                  child: CircularProgressIndicator(),
                 ),
               ),
             ),
-        ],
+            if (live.remoteParticipant.isMuted)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Icon(
+                    Symbols.mic_off,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -196,14 +196,17 @@ class CallParticipantTile extends HookConsumerWidget {
             fit: StackFit.expand,
             children: [
               if (hasVideoTrack)
-                RepaintBoundary(
-                  child: VideoTrackRenderer(
-                    live.remoteParticipant.trackPublications.values
-                            .where((track) => track.kind == TrackType.VIDEO)
-                            .first
-                            .track
-                        as VideoTrack,
-                    renderMode: VideoRenderMode.auto,
+                CallParticipantRegion(
+                  participant: live,
+                  child: RepaintBoundary(
+                    child: VideoTrackRenderer(
+                      live.remoteParticipant.trackPublications.values
+                              .where((track) => track.kind == TrackType.VIDEO)
+                              .first
+                              .track
+                          as VideoTrack,
+                      renderMode: VideoRenderMode.auto,
+                    ),
                   ),
                 )
               else

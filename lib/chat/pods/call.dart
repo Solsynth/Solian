@@ -36,6 +36,7 @@ sealed class CallState with _$CallState {
     required bool isScreenSharing,
     required bool isSpeakerphone,
     @Default(Duration(seconds: 0)) Duration duration,
+    DateTime? joinedAt,
     @Default(ViewMode.grid) ViewMode viewMode,
     @Default(0) int participantSyncVersion,
     String? error,
@@ -267,14 +268,15 @@ class CallNotifier extends _$CallNotifier {
         _isAdmin = joinResponse.isAdmin;
 
         // Setup duration timer
+        final joinedAt = DateTime.now();
+        state = state.copyWith(joinedAt: joinedAt, duration: Duration.zero);
         _durationTimer?.cancel();
         _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
           state = state.copyWith(
             duration: Duration(
               milliseconds:
-                  (DateTime.now().millisecondsSinceEpoch -
-                  (ongoingCall?.createdAt.millisecondsSinceEpoch ??
-                      DateTime.now().millisecondsSinceEpoch)),
+                  DateTime.now().millisecondsSinceEpoch -
+                  joinedAt.millisecondsSinceEpoch,
             ),
           );
         });

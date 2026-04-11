@@ -41,7 +41,7 @@ final class UploadTasksProvider
   }
 }
 
-String _$uploadTasksHash() => r'83f5ceeab49a9476891d739fe0f5c347c1d6306e';
+String _$uploadTasksHash() => r'573517b3e5f8d93947ddcc78c7cba90282e2e262';
 
 abstract class _$UploadTasks extends $Notifier<List<DriveTask>> {
   List<DriveTask> build();

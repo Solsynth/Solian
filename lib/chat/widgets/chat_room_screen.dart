@@ -611,17 +611,12 @@ class ChatRoomScreen extends HookConsumerWidget {
                         error: (_, _) => const SizedBox.shrink(),
                       ),
                     ),
-                    Positioned(
-                      top: 12,
-                      left: 8,
-                      right: 8,
-                      child: chatRoom.when(
-                        data: (room) => room != null
-                            ? CallOverlayBar(room: room)
-                            : const SizedBox.shrink(),
-                        error: (_, _) => const SizedBox.shrink(),
-                        loading: () => const SizedBox.shrink(),
-                      ),
+                    chatRoom.when(
+                      data: (room) => room != null
+                          ? CallOverlayBar(room: room)
+                          : const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                      loading: () => const SizedBox.shrink(),
                     ),
                     if (visibleLastReadAnchorMessageId != null)
                       Positioned(
