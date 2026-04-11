@@ -13,6 +13,7 @@ import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/main.dart';
+import 'package:island/route.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -98,7 +99,11 @@ class _CallOverlayStateNotifier extends Notifier<_CallOverlayState> {
 }
 
 void showCallOverlay(SnChatRoom room) {
-  if (_callOverlayEntry != null) return;
+  if (_callOverlayEntry != null) {
+    _overlayContainer.read(_callOverlayStateProvider.notifier).setRoom(room);
+    _callOverlayEntry?.markNeedsBuild();
+    return;
+  }
 
   final state = _overlayContainer.read(_callOverlayStateProvider);
   _overlayContainer.read(_callOverlayStateProvider.notifier).setRoom(room);
@@ -108,6 +113,7 @@ void showCallOverlay(SnChatRoom room) {
       initialPosition: state.position,
       initialSize: state.size,
       initialExpanded: state.isExpanded,
+      initialRoom: room,
     ),
   );
   globalOverlay.currentState?.insert(_callOverlayEntry!);
@@ -130,11 +136,13 @@ class _CallOverlayPanel extends ConsumerStatefulWidget {
   final Offset initialPosition;
   final Size initialSize;
   final bool initialExpanded;
+  final SnChatRoom initialRoom;
 
   const _CallOverlayPanel({
     required this.initialPosition,
     required this.initialSize,
     required this.initialExpanded,
+    required this.initialRoom,
   });
 
   @override
@@ -146,6 +154,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
   late Offset _position;
   late Size _size;
   late bool _isExpanded;
+  late SnChatRoom _room;
   late AnimationController _animController;
   late Animation<double> _expandAnim;
   late Animation<double> _fadeAnim;
@@ -156,6 +165,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
     _position = widget.initialPosition;
     _size = widget.initialSize;
     _isExpanded = widget.initialExpanded;
+    _room = widget.initialRoom;
     _animController = AnimationController(
       duration: const Duration(milliseconds: 280),
       vsync: this,
@@ -305,7 +315,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
                   lastSpeaker,
                   callNotifier,
                   isMicrophoneEnabled,
-                  room,
+                  _room,
                 );
               },
             ),
@@ -321,7 +331,12 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
     SnChatRoom? room,
     ThemeData theme,
   ) {
-    return _JoinPromptWidget(room: room, theme: theme);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 320),
+        child: _JoinPromptWidget(room: room, theme: theme),
+      ),
+    );
   }
 
   Widget _buildOverlayContent(
@@ -501,11 +516,11 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
               visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
               icon: const Icon(Icons.fullscreen),
               onPressed: room != null
-                  ? () => Navigator.of(context, rootNavigator: true).push(
-                      MaterialPageRoute(
-                        builder: (context) => CallScreen(room: room),
-                      ),
-                    )
+                  ? () {
+                      hideCallOverlay();
+                      final router = ref.read(routerProvider);
+                      router.pushWidget(CallScreen(room: room));
+                    }
                   : null,
               tooltip: 'Full Screen',
             ),
@@ -685,8 +700,9 @@ class CallControlsBar extends HookConsumerWidget {
                 await callNotifier.disconnect();
                 callNotifier.dispose();
                 if (context.mounted && popOnLeaves) {
-                  if (Navigator.of(context).canPop()) {
-                    Navigator.of(context).pop();
+                  final router = ref.read(routerProvider);
+                  if (router.canPop()) {
+                    router.pop();
                   }
                 }
               } catch (err) {
@@ -789,6 +805,8 @@ class CallControlsBar extends HookConsumerWidget {
     WidgetRef ref,
     String deviceType,
   ) async {
+    final navContext = ref.read(routerProvider).navigatorKey.currentContext!;
+
     try {
       final devices = await Hardware.instance.enumerateDevices(
         type: deviceType,
@@ -797,7 +815,7 @@ class CallControlsBar extends HookConsumerWidget {
       if (!context.mounted) return;
 
       showModalBottomSheet(
-        context: context,
+        context: navContext,
         builder: (BuildContext dialogContext) {
           return SheetScaffold(
             titleText: deviceType == 'videoinput'

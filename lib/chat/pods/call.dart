@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -254,7 +253,6 @@ class CallNotifier extends _$CallNotifier {
     }
     try {
       final apiClient = ref.read(apiClientProvider);
-      final ongoingCall = await ref.read(ongoingCallProvider(roomId).future);
       final response = await apiClient.get(
         '/messager/chat/realtime/$roomId/join',
       );

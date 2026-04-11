@@ -4,13 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/chat/pods/call.dart';
-import 'package:island/chat/widgets/call_participant_tile.dart';
-import 'package:island/main.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
+import 'package:island/route.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -398,7 +397,7 @@ class _CallParticipantStatsPanelState
   }
 }
 
-class CallParticipantRegion extends StatelessWidget {
+class CallParticipantRegion extends ConsumerWidget {
   final CallParticipantLive participant;
   final Widget child;
   const CallParticipantRegion({
@@ -408,12 +407,12 @@ class CallParticipantRegion extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       child: child,
       onTapDown: (details) {
         showCallParticipantCard(
-          context,
+          ref.read(routerProvider).navigatorKey.currentContext!,
           participant,
           offset: details.localPosition,
         );
@@ -427,25 +426,11 @@ Future<void> showCallParticipantCard(
   CallParticipantLive participant, {
   Offset? offset,
 }) async {
-  late OverlayEntry entry;
-  entry = OverlayEntry(
-    builder: (overlayContext) => Stack(
-      children: [
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => entry.remove(),
-            child: Container(color: Colors.black54),
-          ),
-        ),
-        Center(
-          child: Material(
-            color: Colors.transparent,
-            child: CallParticipantCard(live: participant),
-          ),
-        ),
-      ],
-    ),
+  await showPopupCard<void>(
+    offset: offset ?? Offset.zero,
+    context: context,
+    builder: (popupContext) => CallParticipantCard(live: participant),
+    alignment: Alignment.center,
+    dimBackground: true,
   );
-  globalOverlay.currentState?.insert(entry);
 }
