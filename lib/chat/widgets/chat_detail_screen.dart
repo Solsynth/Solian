@@ -614,6 +614,39 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
               ],
             ),
           ),
+        if (hasMls)
+          PopupMenuItem(
+            onTap: () async {
+              final mlsGroupId = chatRoom.value?.mlsGroupId;
+              if (mlsGroupId == null) {
+                if (context.mounted) {
+                  showErrorAlert('Room has no MLS group ID');
+                }
+                return;
+              }
+
+              try {
+                final mlsClient = ref.read(mlsClientProvider);
+                await mlsClient.groupManager.uploadGroupInfo(mlsGroupId);
+                ref.invalidate(chatRoomMlsReadinessProvider(id));
+                if (context.mounted) {
+                  showSnackBar('Group info uploaded successfully.');
+                }
+              } catch (err) {
+                showErrorAlert(err);
+              }
+            },
+            child: Row(
+              children: [
+                Icon(
+                  Icons.cloud_upload,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const Gap(12),
+                const Text('Upload Group Info'),
+              ],
+            ),
+          ),
         if (isManagable)
           PopupMenuItem(
             child: Row(

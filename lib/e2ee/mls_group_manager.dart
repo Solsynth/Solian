@@ -81,6 +81,22 @@ class MlsGroupManager {
     return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
   }
 
+  Future<void> _notifyGroupJoined(String chatRoomId) async {
+    try {
+      final deviceId = await _identityManager.getOrCreateDeviceId();
+      final epoch = await getCurrentEpoch(chatRoomId);
+      await _apiClient.post(
+        '/messager/chat/$chatRoomId/devices/me/joined',
+        data: {'mls_device_id': deviceId, 'epoch': epoch},
+      );
+      _mlsLog(
+        'Notified server of group join for room $chatRoomId (epoch: $epoch)',
+      );
+    } catch (e) {
+      _mlsLogWarn('Failed to notify group joined for room $chatRoomId: $e');
+    }
+  }
+
   Future<Map<String, dynamic>?> getGroupState(String mlsGroupId) async {
     return _storage.getGroupState(mlsGroupId);
   }
@@ -283,6 +299,8 @@ class MlsGroupManager {
         await fanoutWelcome(mlsGroupId, invitedMembers);
       }
 
+      await _notifyGroupJoined(mlsGroupId);
+
       return await getGroupState(mlsGroupId);
     } catch (e) {
       _mlsLogError('Failed to bootstrap group for room $mlsGroupId: $e');
@@ -325,6 +343,8 @@ class MlsGroupManager {
       );
 
       _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'welcome_join');
+
+      await _notifyGroupJoined(mlsGroupId);
 
       return await getGroupState(mlsGroupId);
     } catch (e) {
@@ -480,11 +500,7 @@ class MlsGroupManager {
         _mlsLog(
           'Fanout commit to ${existingMembers.length} existing members...',
         );
-        await _fanoutCommitToExistingMembers(
-          mlsGroupId,
-          addResult.commit,
-          existingMemberAccountIds: existingMembers,
-        );
+        await _fanoutCommitToExistingMembers(mlsGroupId, addResult.commit);
         _mlsLogInfo('Commit fanout completed');
       } else {
         _mlsLogWarn(
@@ -603,14 +619,8 @@ class MlsGroupManager {
   /// for distribution to all existing members.
   Future<void> _fanoutCommitToExistingMembers(
     String mlsGroupId,
-    Uint8List commitBytes, {
-    List<String> existingMemberAccountIds = const [],
-  }) async {
-    if (existingMemberAccountIds.isEmpty) {
-      _mlsLog('No existing members to fanout commit to for room $mlsGroupId');
-      return;
-    }
-
+    Uint8List commitBytes,
+  ) async {
     final newEpoch = await getCurrentEpoch(mlsGroupId);
     final commitBase64 = base64Encode(commitBytes);
     final clientMessageId = _generateNonce();
@@ -627,29 +637,19 @@ class MlsGroupManager {
     );
 
     try {
-      for (final memberId in existingMemberAccountIds) {
-        final devices = await _identityManager.getDevicesForAccount(memberId);
-        final payloads = devices
-            .map(
-              (deviceId) => {
-                'recipient_device_id': deviceId,
-                'ciphertext': commitBase64,
-                'header': header,
-                'client_message_id': clientMessageId,
-                'meta': {'reason': 'member_add'},
-              },
-            )
-            .toList();
-
-        await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/commit/fanout',
-          data: {'recipient_account_id': memberId, 'payloads': payloads},
-          options: Options(headers: await _getMlsHeaders()),
-        );
-      }
-      _mlsLog(
-        'Commit fanned out to existing members for room $mlsGroupId (${existingMemberAccountIds.length} members)',
+      await _padlockClient.post(
+        '/e2ee/mls/groups/$mlsGroupId/commit/fanout',
+        data: {
+          'payloads': {
+            'ciphertext': commitBase64,
+            'header': header,
+            'client_message_id': clientMessageId,
+            'meta': {'reason': 'member_add'},
+          },
+        },
+        options: Options(headers: await _getMlsHeaders()),
       );
+      _mlsLog('Commit fanned out to existing members for room $mlsGroupId');
     } catch (e) {
       _mlsLogError('Failed to fanout commit for room $mlsGroupId: $e');
       rethrow;
@@ -839,6 +839,7 @@ class MlsGroupManager {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
       final groupIdBytes = utf8.encode(mlsGroupId);
+      final signerBytes = await _identityManager.getOrCreateSignerBytes();
 
       final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
       if (!isActive) {
@@ -849,13 +850,20 @@ class MlsGroupManager {
       }
 
       final epoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+      final groupInfo = await engine.exportGroupInfo(
+        groupIdBytes: groupIdBytes,
+        signerBytes: signerBytes,
+      );
       final ratchetTree = await engine.exportRatchetTree(
         groupIdBytes: groupIdBytes,
       );
 
       final response = await _padlockClient.put(
         '/e2ee/mls/groups/$mlsGroupId/groupinfo',
-        data: {'group_info': base64Encode(ratchetTree)},
+        data: {
+          'group_info': base64Encode(groupInfo),
+          'ratchet_tree': base64Encode(ratchetTree),
+        },
         options: Options(headers: await _getMlsHeaders()),
       );
 
@@ -876,63 +884,78 @@ class MlsGroupManager {
         options: Options(headers: await _getMlsHeaders()),
       );
 
-      if (response.data is! Map<String, dynamic>) {
-        _mlsLogWarn('Invalid group info response for $mlsGroupId');
-        return false;
-      }
-
-      final data = Map<String, dynamic>.from(response.data);
+      final data = Map<String, dynamic>.from(response.data ?? {});
       final groupInfoBase64 = data['group_info']?.toString();
       final ratchetTreeBase64 = data['ratchet_tree']?.toString();
 
-      if (groupInfoBase64 == null || ratchetTreeBase64 == null) {
-        _mlsLogWarn(
-          'Missing group_info or ratchet_tree in response for $mlsGroupId',
-        );
+      if (groupInfoBase64 == null) {
+        _mlsLogWarn('Missing group_info in response');
         return false;
       }
 
-      final groupInfo = base64Decode(groupInfoBase64);
-      final ratchetTree = base64Decode(ratchetTreeBase64);
+      final groupInfoBytes = base64Decode(groupInfoBase64);
+      final ratchetTreeBytes = ratchetTreeBase64 != null
+          ? base64Decode(ratchetTreeBase64)
+          : null;
 
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
+
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
       final signerPublicKey = await _identityManager.getSignerPublicKey();
+      final identity = await _identityManager.getCredential();
+
+      if (identity == null) {
+        _mlsLogWarn('No identity available for external join');
+        return false;
+      }
+
+      final myCredentialIdentity = utf8.encode(identity); // ← 必须是用户身份！
 
       final joinResult = await engine.joinGroupExternalCommit(
         config: MlsGroupConfig.defaultConfig(ciphersuite: defaultCiphersuite),
-        groupInfoBytes: groupInfo,
-        ratchetTreeBytes: ratchetTree,
+        groupInfoBytes: groupInfoBytes,
+        ratchetTreeBytes: ratchetTreeBytes, // 如果包支持，可传 null 让它从 GroupInfo 里取
         signerBytes: signerBytes,
-        credentialIdentity: utf8.encode(mlsGroupId),
+        credentialIdentity: myCredentialIdentity, // ← 修正这里！
         signerPublicKey: signerPublicKey,
       );
 
-      final groupIdBytesResult = joinResult.groupId;
-      final newEpoch = await engine.groupEpoch(
-        groupIdBytes: groupIdBytesResult,
-      );
+      final externalCommitBytes = joinResult.commit;
 
+      if (externalCommitBytes.isEmpty) {
+        _mlsLogError('No commit message returned from external join');
+        return false;
+      }
+
+      final groupIdBytes = joinResult.groupId;
+
+      await engine.mergePendingCommit(groupIdBytes: groupIdBytes);
+
+      final newEpoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
+
+      // 保存本地状态
       await saveGroupState(mlsGroupId, {
         'group_id': mlsGroupId,
         'epoch': newEpoch.toInt(),
-        'ratchet_tree': ratchetTreeBase64,
         'joined_via_external': true,
         'external_join_at': DateTime.now().toIso8601String(),
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'ratchet_tree': ratchetTreeBase64,
       });
 
-      _mlsLogInfo(
-        'External join successful for $mlsGroupId (epoch: ${newEpoch.toInt()})',
-      );
+      _mlsLogInfo('External join successful, new epoch: $newEpoch');
 
+      // Fanout
+      await _fanoutCommitToExistingMembers(mlsGroupId, externalCommitBytes);
+
+      // 发送成功后再上传新的 GroupInfo（让后续新设备更容易加入）
       await uploadGroupInfo(mlsGroupId);
 
+      await _notifyGroupJoined(mlsGroupId);
+
       return true;
-    } catch (e) {
-      _mlsLogError('Failed to external join group $mlsGroupId: $e');
+    } catch (e, stack) {
+      _mlsLogError('Failed to external join group $mlsGroupId: $e\n$stack');
       return false;
     }
   }
