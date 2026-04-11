@@ -722,6 +722,38 @@ final mlsUserReadinessProvider = FutureProvider.autoDispose
       return readinessMap;
     });
 
+final chatRoomMlsReadinessProvider = FutureProvider.autoDispose
+    .family<Map<String, MlsUserReadyStatus>, String>((ref, roomId) async {
+      final memberListState = await ref.watch(
+        chatMemberListProvider(roomId).future,
+      );
+      final memberList = memberListState.items;
+      final accountIds = memberList.map((m) => m.accountId).toList();
+      if (accountIds.isEmpty) return {};
+
+      final mlsClient = ref.watch(mlsClientProvider);
+      final results = await mlsClient.identityManager.checkUsersBatchReady(
+        accountIds,
+      );
+
+      final readinessMap = <String, MlsUserReadyStatus>{};
+      for (final result in results) {
+        final accountId = result['account_id'] as String?;
+        final isReady = result['is_ready'] as bool? ?? false;
+        final availableKeyPackages =
+            result['available_key_packages'] as int? ?? 0;
+
+        if (accountId != null) {
+          readinessMap[accountId] = MlsUserReadyStatus(
+            accountId: accountId,
+            isReady: isReady,
+            availableKeyPackages: availableKeyPackages,
+          );
+        }
+      }
+      return readinessMap;
+    });
+
 class MlsUserReadyStatus {
   final String accountId;
   final bool isReady;
@@ -773,12 +805,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
     final memberState = ref.watch(chatMemberListProvider(roomId));
     final memberNotifier = ref.watch(chatMemberListProvider(roomId).notifier);
 
-    final roomIdentity = ref.watch(chatRoomIdentityProvider(roomId));
     final chatRoom = ref.watch(chatRoomProvider(roomId));
-
-    final isManagable =
-        chatRoom.value?.accountId == roomIdentity.value?.accountId ||
-        chatRoom.value?.type == 1;
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -802,7 +829,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           try {
             final padlockClient = ref.read(padlockApiClientProvider);
             final readyResponse = await padlockClient.get(
-              '/mls/users/${result.id}/ready',
+              '/e2ee/mls/users/${result.id}/ready',
               options: Options(headers: {'X-Client-Ability': 'chat.mls.v2'}),
             );
             final isReady = readyResponse.data['is_ready'] as bool? ?? false;
@@ -870,86 +897,111 @@ class _ChatMemberListSheet extends HookConsumerWidget {
               notifier: chatMemberListProvider(roomId).notifier,
               itemBuilder: (context, idx, member) {
                 final readinessAsync = ref.watch(
-                  mlsUserReadinessProvider([member.accountId]),
+                  chatRoomMlsReadinessProvider(roomId),
                 );
                 final isE2eeReady = readinessAsync.maybeWhen(
                   data: (data) => data[member.accountId]?.isReady ?? false,
                   orElse: () => false,
                 );
-
-                return ListTile(
-                  contentPadding: EdgeInsets.only(left: 16, right: 12),
-                  leading: AccountPfcRegion(
-                    uname: member.account.name,
-                    child: ProfilePictureWidget(
-                      file: member.account.profile.picture,
-                    ),
-                  ),
-                  title: Row(
-                    spacing: 6,
-                    children: [
-                      Flexible(child: Text(member.account.nick)),
-                      if (member.status != null)
-                        AccountStatusLabel(
-                          status: member.status!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      if (member.joinedAt == null)
-                        const Icon(Symbols.pending_actions, size: 20),
-                      const Gap(4),
-                      if (isE2eeReady)
-                        Tooltip(
-                          message: 'E2EE Ready',
-                          child: Icon(
-                            Symbols.lock,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      else
-                        Tooltip(
-                          message: 'E2EE Not Available',
-                          child: Icon(
-                            Symbols.lock_open,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ),
-                    ],
-                  ),
-                  subtitle: Text("@${member.account.name}"),
-                  trailing: IconButton(
-                    icon: const Icon(Symbols.more_horiz),
-                    onPressed: () {
-                      showChatRoomMemberCard(
-                        context,
-                        roomId: roomId,
-                        member: member,
-                        canModerate: isManagable,
-                        onUpdated: () async {
-                          memberNotifier.refresh();
-                        },
-                      );
-                    },
-                  ),
-                  onTap: () {
-                    showChatRoomMemberCard(
-                      context,
-                      roomId: roomId,
-                      member: member,
-                      canModerate: isManagable,
-                      onUpdated: () async {
-                        memberNotifier.refresh();
-                      },
-                    );
-                  },
+                return _MemberListTile(
+                  member: member,
+                  roomId: roomId,
+                  isE2eeReady: isE2eeReady,
                 );
               },
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MemberListTile extends HookConsumerWidget {
+  final SnChatMember member;
+  final String roomId;
+  final bool isE2eeReady;
+
+  const _MemberListTile({
+    required this.member,
+    required this.roomId,
+    this.isE2eeReady = false,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomIdentity = ref.watch(chatRoomIdentityProvider(roomId));
+    final chatRoom = ref.watch(chatRoomProvider(roomId));
+
+    final isManagable =
+        chatRoom.value?.accountId == roomIdentity.value?.accountId ||
+        chatRoom.value?.type == 1;
+    final memberNotifier = ref.watch(chatMemberListProvider(roomId).notifier);
+
+    return ListTile(
+      contentPadding: EdgeInsets.only(left: 16, right: 12),
+      leading: AccountPfcRegion(
+        uname: member.account.name,
+        child: ProfilePictureWidget(file: member.account.profile.picture),
+      ),
+      title: Row(
+        spacing: 6,
+        children: [
+          Flexible(child: Text(member.account.nick)),
+          if (member.status != null)
+            AccountStatusLabel(
+              status: member.status!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          if (member.joinedAt == null)
+            const Icon(Symbols.pending_actions, size: 20),
+          if (isE2eeReady)
+            Tooltip(
+              message: 'E2EE Ready',
+              child: Icon(
+                Symbols.lock,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            )
+          else
+            Tooltip(
+              message: 'E2EE Not Available',
+              child: Icon(
+                Symbols.lock_open,
+                size: 16,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+        ],
+      ),
+      subtitle: Text("@${member.account.name}"),
+      trailing: IconButton(
+        icon: const Icon(Symbols.more_horiz),
+        onPressed: () {
+          showChatRoomMemberCard(
+            context,
+            roomId: roomId,
+            member: member,
+            canModerate: isManagable,
+            onUpdated: () async {
+              memberNotifier.refresh();
+            },
+          );
+        },
+      ),
+      onTap: () {
+        showChatRoomMemberCard(
+          context,
+          roomId: roomId,
+          member: member,
+          canModerate: isManagable,
+          onUpdated: () async {
+            memberNotifier.refresh();
+          },
+        );
+      },
     );
   }
 }

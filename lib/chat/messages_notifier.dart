@@ -28,6 +28,8 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'messages_notifier.g.dart';
 
+enum E2eeRecoveryState { idle, reconnecting, failed }
+
 @riverpod
 class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
@@ -56,6 +58,10 @@ class MessagesNotifier extends _$MessagesNotifier {
   final Set<String> _prefetchedVoiceUrls = <String>{};
 
   late Future<SnAccount?> Function(String) _fetchAccount;
+
+  E2eeRecoveryState _e2eeRecoveryState = E2eeRecoveryState.idle;
+
+  E2eeRecoveryState get e2eeRecoveryState => _e2eeRecoveryState;
 
   bool get _isE2eeRoom => _roomEncryptionMode == 3;
 
@@ -284,11 +290,17 @@ class MessagesNotifier extends _$MessagesNotifier {
   /// Returns null if:
   /// - Decryption is skipped for own message (no plaintext available)
   /// - Decryption fundamentally fails
+  /// - E2EE recovery has already failed (no retries within same session)
   /// Skips decryption for messages sent by current device (identified by device ID in header)
   /// since MLS forward secrecy prevents self-decryption - plaintext is preserved from pending.
   Future<SnChatMessage?> _decryptMessageIfEncrypted(
     SnChatMessage message,
   ) async {
+    // Skip decryption if recovery has already failed in this session
+    if (_e2eeRecoveryState == E2eeRecoveryState.failed) {
+      return null;
+    }
+
     // Check if message was sent by this device by comparing device IDs
     final headerStr = message.meta['e2ee_header']?.toString();
     if (headerStr != null && headerStr.isNotEmpty) {
@@ -437,6 +449,29 @@ class MessagesNotifier extends _$MessagesNotifier {
       loadInitial(forceRemoteRefresh: false);
     });
 
+    StreamSubscription<MlsExternalJoinStartedEvent>? e2eeStartSub;
+    StreamSubscription<MlsExternalJoinCompletedEvent>? e2eeCompleteSub;
+    StreamSubscription<MlsRecoveryFailedEvent>? e2eeFailedSub;
+
+    e2eeStartSub = eventBus.on<MlsExternalJoinStartedEvent>().listen((event) {
+      if (event.mlsGroupId != _mlsGroupId) return;
+      _e2eeRecoveryState = E2eeRecoveryState.reconnecting;
+    });
+
+    e2eeCompleteSub = eventBus.on<MlsExternalJoinCompletedEvent>().listen((
+      event,
+    ) {
+      if (event.mlsGroupId != _mlsGroupId) return;
+      if (event.success) {
+        _e2eeRecoveryState = E2eeRecoveryState.idle;
+      }
+    });
+
+    e2eeFailedSub = eventBus.on<MlsRecoveryFailedEvent>().listen((event) {
+      if (event.mlsGroupId != _mlsGroupId) return;
+      _e2eeRecoveryState = E2eeRecoveryState.failed;
+    });
+
     ref.listen<String>(
       appSettingsProvider.select((settings) => settings.chatEventMessageMode),
       (previous, next) {
@@ -450,6 +485,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       wsSub.cancel();
       _syncEventsSub?.cancel();
       _syncEventsSub = null;
+      e2eeStartSub?.cancel();
+      e2eeCompleteSub?.cancel();
+      e2eeFailedSub?.cancel();
     });
 
     return _loadInitialMessages(forceRemoteRefresh: false);

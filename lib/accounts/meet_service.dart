@@ -254,8 +254,14 @@ class MeetService {
         .toList();
   }
 
-  Future<SnMeet> getMeet(String meetId) async {
-    final response = await _client.get('/passport/meets/$meetId');
+  Future<SnMeet> getMeet(String meetId, {String? locationWkt}) async {
+    final response = await _client.get(
+      '/passport/meets/$meetId',
+      queryParameters: {
+        if (locationWkt != null && locationWkt.isNotEmpty)
+          'locationWkt': locationWkt,
+      },
+    );
     return SnMeet.fromJson(Map<String, dynamic>.from(response.data as Map));
   }
 
@@ -277,9 +283,13 @@ class MeetService {
         .toList();
   }
 
-  Stream<SnMeetEvent> joinMeet(String meetId) async* {
+  Stream<SnMeetEvent> joinMeet(String meetId, {String? locationWkt}) async* {
     final response = await _streamClient().post(
       '/passport/meets/$meetId/join',
+      queryParameters: {
+        if (locationWkt != null && locationWkt.isNotEmpty)
+          'locationWkt': locationWkt,
+      },
       options: Options(
         responseType: ResponseType.stream,
         receiveTimeout: Duration.zero,

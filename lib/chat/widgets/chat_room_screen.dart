@@ -27,7 +27,6 @@ import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/analytics_service.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/core/services/responsive.dart';
@@ -201,7 +200,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     final isResyncingAfterResume = useState(false);
     final wsDisconnectedSinceBackground = useRef(false);
     final wasWsConnected = useRef<bool?>(null);
-    final isReconnectingE2ee = useState(false);
 
     final isDesktop =
         !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
@@ -285,30 +283,6 @@ class ChatRoomScreen extends HookConsumerWidget {
       };
     }, []);
 
-    useEffect(() {
-      StreamSubscription<MlsExternalJoinStartedEvent>? startSub;
-      StreamSubscription<MlsExternalJoinCompletedEvent>? completeSub;
-
-      startSub = eventBus.on<MlsExternalJoinStartedEvent>().listen((event) {
-        if (event.mlsGroupId == id) {
-          isReconnectingE2ee.value = true;
-        }
-      });
-
-      completeSub = eventBus.on<MlsExternalJoinCompletedEvent>().listen((
-        event,
-      ) {
-        if (event.mlsGroupId == id) {
-          isReconnectingE2ee.value = false;
-        }
-      });
-
-      return () {
-        startSub?.cancel();
-        completeSub?.cancel();
-      };
-    }, [id]);
-
     final scrollManager = useRoomScrollManager(
       ref,
       id,
@@ -336,28 +310,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     }, []);
 
     final inputKey = useMemoized(() => GlobalKey(), []);
-    final inputHeight = useState<double>(80.0);
     final inputManager = useRoomInputManager(ref, id);
     final roomOpenTime = useMemoized(() => DateTime.now());
-
-    final hasTrackedInputHeight = useRef(false);
-    useEffect(() {
-      if (hasTrackedInputHeight.value) return;
-      hasTrackedInputHeight.value = true;
-
-      void measureHeight() {
-        final renderBox =
-            inputKey.currentContext?.findRenderObject() as RenderBox?;
-        if (renderBox != null && renderBox.hasSize) {
-          inputHeight.value = renderBox.size.height;
-        }
-      }
-
-      measureHeight();
-      WidgetsBinding.instance.addPostFrameCallback((_) => measureHeight());
-
-      return null;
-    }, []);
 
     final isSelectionMode = useState<bool>(false);
     final selectedMessages = useState<Set<String>>({});
@@ -564,20 +518,6 @@ class ChatRoomScreen extends HookConsumerWidget {
             ),
             actions: [
               chatRoom.when(
-                data: (data) => data?.encryptionMode == 3
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Icon(
-                          Icons.lock,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-              ),
-              chatRoom.when(
                 data: (data) => AudioCallButton(room: data!),
                 error: (_, _) => const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),
@@ -667,21 +607,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                                     collapsedBotGroupIds.value,
                                 toggleBotGroup: toggleBotGroup,
                               ),
-                        loading: () => Center(
-                          key: ValueKey('loading-messages'),
-                          child: ConfuseSpinner(
-                            size: 40,
-                            speed: 6,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-                          ),
-                        ),
-                        error: (error, _) => ResponseErrorWidget(
-                          key: const ValueKey('error-messages'),
-                          error: error,
-                          onRetry: () => messagesNotifier.loadInitial(),
-                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
                       ),
                     ),
                     Positioned(
@@ -706,7 +633,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                           label: const Text('Follow back'),
                         ),
                       ),
-                    if (isReconnectingE2ee.value)
+                    if (messagesNotifier.e2eeRecoveryState ==
+                        E2eeRecoveryState.reconnecting)
                       Positioned.fill(
                         child: Container(
                           color: Theme.of(
@@ -733,6 +661,53 @@ class ChatRoomScreen extends HookConsumerWidget {
                                       ),
                                 ),
                               ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (messagesNotifier.e2eeRecoveryState ==
+                        E2eeRecoveryState.failed)
+                      Positioned.fill(
+                        child: Container(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surface.withOpacity(0.95),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.lock_outline,
+                                    size: 48,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Unable to decrypt messages',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Your device may need to be re-added to this conversation. Please try leaving and rejoining the chat.',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

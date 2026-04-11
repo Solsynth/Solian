@@ -24,9 +24,12 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/talker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:latlong2/latlong.dart' as latlong;
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
@@ -100,39 +103,6 @@ class MeetScreen extends HookConsumerWidget {
     final nearbyResolveBusy = useRef(false);
     final nearbyDiscoveries = useState<List<BluetoothHexDiscovery>>([]);
     final nearbyIsResolving = useState(false);
-
-    Future<void> startNearbyScan() async {
-      if (!bluetoothService.supportsNearbyDiscovery) {
-        showErrorAlert('meetBluetoothUnavailable'.tr());
-        return;
-      }
-
-      await scanResultSub.value?.cancel();
-      discoveries.value = [];
-
-      scanResultSub.value = FlutterBluePlus.onScanResults.listen(
-        (results) {
-          discoveries.value = bluetoothService.parseDiscoveries(results);
-        },
-        onError: (error, _) {
-          isScanning.value = false;
-          showErrorAlert(error);
-        },
-      );
-      FlutterBluePlus.cancelWhenScanComplete(scanResultSub.value!);
-
-      isScanning.value = true;
-      try {
-        await bluetoothService.startScan();
-      } catch (error) {
-        isScanning.value = false;
-        showErrorAlert(error);
-      }
-
-      scanStateSub.value ??= FlutterBluePlus.isScanning.listen((value) {
-        isScanning.value = value;
-      });
-    }
 
     Future<void> fillCurrentLocation() async {
       isLocating.value = true;
@@ -485,9 +455,6 @@ class MeetScreen extends HookConsumerWidget {
               notesController: notesController,
               joinController: joinController,
               busy: actionBusy.value,
-              scanning: isScanning.value,
-              bluetoothSupported: bluetoothService.supportsNearbyDiscovery,
-              advertiseSupported: bluetoothService.supportsAdvertising,
               entryMode: entryMode.value,
               locationDraft: locationDraft.value,
               isLocating: isLocating.value,
@@ -520,7 +487,8 @@ class MeetScreen extends HookConsumerWidget {
                   joinController.text = text!;
                 }
               },
-              onScanNearby: startNearbyScan,
+              onScanQr: () =>
+                  showQrScannerSheet(context, (meetId) => joinMeetById(meetId)),
               onJoinFromDiscovery: (meetId) => joinMeetById(meetId),
             ),
             _NearbyTab(
@@ -563,14 +531,11 @@ class _MeetTab extends StatelessWidget {
   final TextEditingController notesController;
   final TextEditingController joinController;
   final bool busy;
-  final bool scanning;
-  final bool bluetoothSupported;
-  final bool advertiseSupported;
+  final SnCloudFile? image;
   final MeetEntryMode entryMode;
   final _MeetLocationDraft? locationDraft;
   final bool isLocating;
   final SnMeetVisibility visibility;
-  final SnCloudFile? image;
   final List<MeetBluetoothDiscovery> discoveries;
   final ValueChanged<MeetEntryMode> onChangeEntryMode;
   final ValueChanged<SnMeetVisibility> onChangeVisibility;
@@ -581,7 +546,7 @@ class _MeetTab extends StatelessWidget {
   final VoidCallback onStart;
   final VoidCallback onJoin;
   final VoidCallback onPaste;
-  final VoidCallback onScanNearby;
+  final VoidCallback onScanQr;
   final ValueChanged<String> onJoinFromDiscovery;
 
   const _MeetTab({
@@ -589,14 +554,11 @@ class _MeetTab extends StatelessWidget {
     required this.notesController,
     required this.joinController,
     required this.busy,
-    required this.scanning,
-    required this.bluetoothSupported,
-    required this.advertiseSupported,
+    required this.image,
     required this.entryMode,
     required this.locationDraft,
     required this.isLocating,
     required this.visibility,
-    required this.image,
     required this.discoveries,
     required this.onChangeEntryMode,
     required this.onChangeVisibility,
@@ -607,7 +569,7 @@ class _MeetTab extends StatelessWidget {
     required this.onStart,
     required this.onJoin,
     required this.onPaste,
-    required this.onScanNearby,
+    required this.onScanQr,
     required this.onJoinFromDiscovery,
   });
 
@@ -638,12 +600,9 @@ class _MeetTab extends StatelessWidget {
         _MeetJoinCard(
           joinController: joinController,
           busy: busy,
-          scanning: scanning,
-          bluetoothSupported: bluetoothSupported,
-          advertiseSupported: advertiseSupported,
           onJoin: onJoin,
           onPaste: onPaste,
-          onScanNearby: onScanNearby,
+          onScanQr: onScanQr,
         ),
         const Gap(16),
         if (discoveries.isNotEmpty)
@@ -781,6 +740,7 @@ class MeetDetailScreen extends HookConsumerWidget {
     final currentUser = ref.watch(userInfoProvider).value;
     final meetService = ref.watch(meetServiceProvider);
     final bluetoothService = ref.watch(meetBluetoothServiceProvider);
+    final pinService = ref.watch(pinServiceProvider);
 
     final meet = useState<SnMeet?>(null);
     final error = useState<Object?>(null);
@@ -789,6 +749,46 @@ class MeetDetailScreen extends HookConsumerWidget {
     final isAdvertising = useState(false);
     final actionBusy = useState(false);
     final watchSub = useRef<StreamSubscription<SnMeetEvent>?>(null);
+    final currentLocation = useState<latlong.LatLng?>(null);
+    final isLocating = useState(false);
+    final myPin = useState<SnLocationPin?>(null);
+    final isBroadcastingPin = useState(false);
+    final pinStreamSub = useRef<StreamSubscription<SnLocationPinEvent>?>(null);
+    final pinUpdateTimer = useRef<Timer?>(null);
+
+    Future<void> getCurrentLocation() async {
+      isLocating.value = true;
+      try {
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          return;
+        }
+
+        var permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          return;
+        }
+
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ),
+        );
+
+        currentLocation.value = latlong.LatLng(
+          position.latitude,
+          position.longitude,
+        );
+      } catch (_) {
+      } finally {
+        isLocating.value = false;
+      }
+    }
 
     Future<void> stopAdvertising() async {
       if (!isAdvertising.value) return;
@@ -796,16 +796,87 @@ class MeetDetailScreen extends HookConsumerWidget {
       isAdvertising.value = false;
     }
 
+    Future<void> stopBroadcastingPin() async {
+      if (!isBroadcastingPin.value) return;
+
+      pinUpdateTimer.value?.cancel();
+      pinUpdateTimer.value = null;
+      await pinStreamSub.value?.cancel();
+      pinStreamSub.value = null;
+
+      final pin = myPin.value;
+      if (pin != null) {
+        try {
+          await pinService.disconnectPin(pin.id);
+        } catch (_) {}
+      }
+      myPin.value = null;
+      isBroadcastingPin.value = false;
+    }
+
+    Future<void> startBroadcastingPin(String meetId) async {
+      if (currentLocation.value == null) return;
+
+      final locationWkt =
+          'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})';
+
+      try {
+        final pin = await pinService.createPin(
+          meetId: meetId,
+          visibility: LocationPinVisibility.public,
+          locationWkt: locationWkt,
+        );
+        myPin.value = pin;
+        isBroadcastingPin.value = true;
+
+        pinStreamSub.value?.cancel();
+        pinStreamSub.value = pinService
+            .streamPin(pin.id)
+            .listen(
+              (event) {
+                if (event.pin != null) {
+                  myPin.value = event.pin;
+                }
+              },
+              onError: (_) {
+                isBroadcastingPin.value = false;
+              },
+            );
+
+        pinUpdateTimer.value?.cancel();
+        pinUpdateTimer.value = Timer.periodic(const Duration(seconds: 30), (
+          _,
+        ) async {
+          if (!isBroadcastingPin.value || currentLocation.value == null) return;
+          try {
+            final wkt =
+                'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})';
+            await pinService.updatePinLocation(
+              pinId: myPin.value!.id,
+              locationWkt: wkt,
+            );
+          } catch (_) {}
+        });
+      } catch (e) {
+        isBroadcastingPin.value = false;
+      }
+    }
+
     Future<void> stopWatching() async {
       await watchSub.value?.cancel();
       watchSub.value = null;
       isWatching.value = false;
+      await stopBroadcastingPin();
     }
 
     Future<void> loadMeet() async {
       error.value = null;
       try {
-        final item = await meetService.getMeet(id);
+        await getCurrentLocation();
+        final locationWkt = currentLocation.value != null
+            ? 'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})'
+            : null;
+        final item = await meetService.getMeet(id, locationWkt: locationWkt);
         meet.value = item;
       } catch (err) {
         error.value = err;
@@ -817,9 +888,15 @@ class MeetDetailScreen extends HookConsumerWidget {
       if (current == null || current.status != SnMeetStatus.active) return;
 
       await stopWatching();
+      await getCurrentLocation();
+
+      final locationWkt = currentLocation.value != null
+          ? 'POINT(${currentLocation.value!.longitude.toStringAsFixed(6)} ${currentLocation.value!.latitude.toStringAsFixed(6)})'
+          : null;
+
       isWatching.value = true;
       watchSub.value = meetService
-          .joinMeet(id)
+          .joinMeet(id, locationWkt: locationWkt)
           .listen(
             (event) {
               meet.value = event.meet;
@@ -827,6 +904,7 @@ class MeetDetailScreen extends HookConsumerWidget {
               if (event.meet.isFinal) {
                 isWatching.value = false;
                 unawaited(stopAdvertising());
+                unawaited(stopBroadcastingPin());
                 ref.invalidate(meetHistoryProvider);
               }
             },
@@ -835,6 +913,8 @@ class MeetDetailScreen extends HookConsumerWidget {
               isWatching.value = false;
             },
           );
+
+      await startBroadcastingPin(id);
     }
 
     Future<void> maybeStartAdvertising() async {
@@ -1070,8 +1150,12 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
     final pins = useState<List<SnLocationPin>?>(meet.pins);
     final isLoadingPins = useState(false);
 
+    final currentParticipants = _displayParticipants(meet, currentUser);
+    final participantCount = currentParticipants.length;
+    final hasMultipleParticipants = participantCount >= 2;
+
     useEffect(() {
-      if (participants.length >= 2 &&
+      if (hasMultipleParticipants &&
           (pins.value == null || pins.value!.isEmpty)) {
         isLoadingPins.value = true;
         meetService
@@ -1087,9 +1171,8 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
             });
       }
       return null;
-    }, [meet.id, participants.length]);
+    }, [meet.id, hasMultipleParticipants]);
 
-    final hasMultipleParticipants = participants.length >= 2;
     final hasPins = pins.value != null && pins.value!.isNotEmpty;
 
     return AppScaffold(
@@ -1109,6 +1192,7 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                       onPressed: onClose,
                       icon: const Icon(Symbols.close),
                     ),
+                    const SizedBox(width: 48),
                     Expanded(
                       child: Column(
                         children: [
@@ -1116,6 +1200,8 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                             meet.locationName?.isNotEmpty == true
                                 ? meet.locationName!
                                 : 'meetLiveTitle'.tr(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ).fontSize(18).bold(),
                           Text(
                             (topic?.isNotEmpty ?? false)
@@ -1134,6 +1220,14 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                         showSnackBar('copyToClipboard'.tr());
                       },
                       icon: const Icon(Symbols.content_copy),
+                    ),
+                    IconButton(
+                      onPressed: () => showMeetIdShareSheet(
+                        context,
+                        meet.id,
+                        meetName: meet.locationName,
+                      ),
+                      icon: const Icon(Symbols.qr_code),
                     ),
                   ],
                 ),
@@ -1171,7 +1265,7 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                   child: hasMultipleParticipants && hasPins
                       ? _MeetPinsMapCard(
                           pins: pins.value!,
-                          participants: participants,
+                          participants: currentParticipants,
                           currentUser: currentUser,
                         )
                       : Stack(
@@ -1186,7 +1280,7 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                                 alignment: WrapAlignment.center,
                                 spacing: 18,
                                 runSpacing: 18,
-                                children: participants
+                                children: currentParticipants
                                     .map(
                                       (participant) => _ParticipantBubble(
                                         key: ValueKey(participant.id),
@@ -1201,7 +1295,7 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                 ),
                 const Spacer(),
                 Text(
-                  'meetParticipantsCount'.tr(args: ['${participants.length}']),
+                  'meetParticipantsCount'.tr(args: ['$participantCount']),
                   style: TextStyle(color: theme.colorScheme.secondary),
                 ),
                 const Gap(16),
@@ -1324,14 +1418,18 @@ class _MeetDetailHero extends HookWidget {
                     ),
                   ),
                   const Gap(4),
-                  Text(
-                    meet.locationName?.isNotEmpty == true
-                        ? meet.locationName!
-                        : 'meetLiveTitle'.tr(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
+                  Flexible(
+                    child: Text(
+                      meet.locationName?.isNotEmpty == true
+                          ? meet.locationName!
+                          : 'meetLiveTitle'.tr(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   if (topic?.isNotEmpty ?? false)
@@ -1384,11 +1482,16 @@ class _MeetDetailInfo extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final meetService = ref.watch(meetServiceProvider);
+    final currentUser = ref.watch(userInfoProvider).value;
     final pins = useState<List<SnLocationPin>?>(meet.pins);
     final isLoadingPins = useState(false);
 
+    final currentParticipants = _displayParticipants(meet, currentUser);
+    final participantCount = currentParticipants.length;
+    final hasMultipleParticipants = participantCount >= 2;
+
     useEffect(() {
-      if (participants.length >= 2 &&
+      if (hasMultipleParticipants &&
           (pins.value == null || pins.value!.isEmpty)) {
         isLoadingPins.value = true;
         meetService
@@ -1404,9 +1507,8 @@ class _MeetDetailInfo extends HookConsumerWidget {
             });
       }
       return null;
-    }, [meet.id, participants.length]);
+    }, [meet.id, hasMultipleParticipants]);
 
-    final hasMultipleParticipants = participants.length >= 2;
     final hasPins = pins.value != null && pins.value!.isNotEmpty;
 
     return Card(
@@ -1417,7 +1519,10 @@ class _MeetDetailInfo extends HookConsumerWidget {
           children: [
             if (_parseMeetPoint(meet.locationWkt) case final point?) ...[
               if (hasMultipleParticipants && hasPins) ...[
-                _MeetPinsMapCard(pins: pins.value!, participants: participants),
+                _MeetPinsMapCard(
+                  pins: pins.value!,
+                  participants: currentParticipants,
+                ),
               ] else if (hasMultipleParticipants && isLoadingPins.value) ...[
                 const Center(
                   child: Padding(
@@ -1474,10 +1579,10 @@ class _MeetDetailInfo extends HookConsumerWidget {
               ),
             const Gap(16),
             Text(
-              'meetParticipantsCount'.tr(args: ['${participants.length}']),
+              'meetParticipantsCount'.tr(args: ['$participantCount']),
             ).fontSize(16).bold(),
             const Gap(8),
-            ...participants.map(
+            ...currentParticipants.map(
               (participant) => ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
@@ -1554,18 +1659,6 @@ class _MeetStartCard extends StatelessWidget {
             const Gap(8),
             Text('meetStartDescription').tr(),
             const Gap(16),
-            SegmentedButton<MeetEntryMode>(
-              segments: [
-                ButtonSegment(
-                  value: MeetEntryMode.nearby,
-                  icon: const Icon(Symbols.bluetooth_searching),
-                  label: Text('meetNearbyTab').tr(),
-                ),
-              ],
-              selected: {entryMode},
-              onSelectionChanged: (value) => onChangeEntryMode(value.first),
-            ),
-            const Gap(12),
             SegmentedButton<SnMeetVisibility>(
               segments: [
                 ButtonSegment(
@@ -1593,6 +1686,7 @@ class _MeetStartCard extends StatelessWidget {
               minLines: 3,
               maxLines: 5,
               decoration: InputDecoration(
+                alignLabelWithHint: true,
                 labelText: 'meetNotesLabel'.tr(),
                 hintText: 'meetNotesHint'.tr(),
               ),
@@ -1707,22 +1801,16 @@ class _MeetStartCard extends StatelessWidget {
 class _MeetJoinCard extends StatelessWidget {
   final TextEditingController joinController;
   final bool busy;
-  final bool scanning;
-  final bool bluetoothSupported;
-  final bool advertiseSupported;
   final VoidCallback onJoin;
   final VoidCallback onPaste;
-  final VoidCallback onScanNearby;
+  final VoidCallback onScanQr;
 
   const _MeetJoinCard({
     required this.joinController,
     required this.busy,
-    required this.scanning,
-    required this.bluetoothSupported,
-    required this.advertiseSupported,
     required this.onJoin,
     required this.onPaste,
-    required this.onScanNearby,
+    required this.onScanQr,
   });
 
   @override
@@ -1735,7 +1823,7 @@ class _MeetJoinCard extends StatelessWidget {
           children: [
             Text('meetJoinTitle').tr().fontSize(18).bold(),
             const Gap(8),
-            Text('meetJoinDescription').tr(),
+            Text('meetJoinDescription'.tr()),
             const Gap(16),
             TextField(
               controller: joinController,
@@ -1756,50 +1844,18 @@ class _MeetJoinCard extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: busy ? null : onJoin,
                     icon: const Icon(Symbols.login),
-                    label: Text('meetJoinNow').tr(),
+                    label: Text('meetJoinNow'.tr()),
                   ),
                 ),
                 Expanded(
                   child: FilledButton.tonalIcon(
-                    onPressed: scanning || !bluetoothSupported
-                        ? null
-                        : onScanNearby,
-                    icon: Icon(
-                      scanning
-                          ? Symbols.progress_activity
-                          : Symbols.bluetooth_searching,
-                    ),
-                    label: Text(
-                      scanning ? 'meetScanning'.tr() : 'meetScanNearby'.tr(),
-                    ),
+                    onPressed: onScanQr,
+                    icon: const Icon(Symbols.qr_code_scanner),
+                    label: Text('meetQrScan'.tr()),
                   ),
                 ),
               ],
             ),
-            const Gap(12),
-            Text(
-              scanning
-                  ? 'meetJoinScanningHint'.tr()
-                  : 'meetJoinNearbyHint'.tr(),
-              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-            ),
-            if (!bluetoothSupported) ...[
-              const Gap(12),
-              Text(
-                'meetBluetoothUnavailable',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ).tr(),
-            ] else if (!advertiseSupported) ...[
-              const Gap(12),
-              Text(
-                'meetBroadcastLimited',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ).tr(),
-            ],
           ],
         ),
       ),
@@ -3894,6 +3950,231 @@ class _MeetParticipantPin extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MeetIdShareSheet extends StatelessWidget {
+  final String meetId;
+  final String? meetName;
+
+  const _MeetIdShareSheet({required this.meetId, this.meetName});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SheetScaffold(
+      titleText: meetName?.isNotEmpty == true
+          ? 'meetQrShareTitle'.tr(args: [meetName!])
+          : 'meetQrShareTitleDefault'.tr(),
+      heightFactor: 0.6,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: QrImageView(
+                data: meetId,
+                version: QrVersions.auto,
+                size: 220,
+                backgroundColor: Colors.white,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Colors.black,
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            const Gap(20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      meetId,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Gap(24),
+            FilledButton.icon(
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: meetId));
+                if (context.mounted) {
+                  showSnackBar('copyToClipboard'.tr());
+                }
+              },
+              icon: const Icon(Symbols.content_copy, size: 18),
+              label: Text('copy'.tr()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QrScannerSheet extends StatefulWidget {
+  final ValueChanged<String> onMeetIdScanned;
+
+  const _QrScannerSheet({required this.onMeetIdScanned});
+
+  @override
+  State<_QrScannerSheet> createState() => _QrScannerSheetState();
+}
+
+class _QrScannerSheetState extends State<_QrScannerSheet> {
+  final MobileScannerController _controller = MobileScannerController(
+    detectionSpeed: DetectionSpeed.normal,
+    facing: CameraFacing.back,
+    torchEnabled: false,
+  );
+  bool _hasScanned = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_hasScanned) return;
+
+    final List<Barcode> barcodes = capture.barcodes;
+    for (final barcode in barcodes) {
+      final String? code = barcode.rawValue;
+      if (code != null && code.isNotEmpty) {
+        setState(() => _hasScanned = true);
+        widget.onMeetIdScanned(code);
+        Navigator.of(context).pop();
+        break;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SheetScaffold(
+      titleText: 'meetQrScanTitle'.tr(),
+      heightFactor: 0.85,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+            child: Text(
+              'meetQrScanHint'.tr(),
+              style: TextStyle(color: theme.colorScheme.secondary),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    MobileScanner(controller: _controller, onDetect: _onDetect),
+                    Container(
+                      width: 250,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: theme.colorScheme.primary,
+                          width: 3,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton.filled(
+                            onPressed: () => _controller.toggleTorch(),
+                            icon: ValueListenableBuilder(
+                              valueListenable: _controller,
+                              builder: (context, state, child) {
+                                return Icon(
+                                  state.torchState == TorchState.on
+                                      ? Symbols.flashlight_on
+                                      : Symbols.flashlight_off,
+                                );
+                              },
+                            ),
+                          ),
+                          const Gap(16),
+                          IconButton.filled(
+                            onPressed: () => _controller.switchCamera(),
+                            icon: const Icon(Symbols.cameraswitch),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Gap(24),
+        ],
+      ),
+    );
+  }
+}
+
+void showMeetIdShareSheet(
+  BuildContext context,
+  String meetId, {
+  String? meetName,
+}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => _MeetIdShareSheet(meetId: meetId, meetName: meetName),
+  );
+}
+
+void showQrScannerSheet(
+  BuildContext context,
+  ValueChanged<String> onMeetIdScanned,
+) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => _QrScannerSheet(onMeetIdScanned: onMeetIdScanned),
+  );
 }
 
 class _HeroPill extends StatelessWidget {

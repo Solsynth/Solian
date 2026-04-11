@@ -119,15 +119,8 @@ class AccountsApi extends BaseApi {
   /// Follows an account.
   ///
   /// [accountId] - The account ID to follow.
-  Future<void> followAccount(String accountId) async {
-    await post('$_basePath/relationships/$accountId/follow');
-  }
-
-  /// Unfollows an account.
-  ///
-  /// [accountId] - The account ID to unfollow.
-  Future<void> unfollowAccount(String accountId) async {
-    await delete('$_basePath/relationships/$accountId/follow');
+  Future<void> addAccountAsFriend(String accountId) async {
+    await post('$_basePath/relationships/$accountId/friends');
   }
 
   /// Blocks an account.
