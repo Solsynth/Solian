@@ -19,6 +19,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -44,6 +45,21 @@ class CommandPaletteWidget extends HookConsumerWidget {
         icon: Symbols.notifications,
         action: () {
           eventBus.fire(const ShowNotificationSheetEvent());
+        },
+      ),
+      SpecialAction(
+        name: 'Log Viewer',
+        description: 'Open the log viewer overlay',
+        searchableAliases: [
+          'logs',
+          'debug',
+          'terminal',
+          'console',
+          'log viewer',
+        ],
+        icon: Symbols.terminal,
+        action: () {
+          toggleLogOverlay();
         },
       ),
     ];

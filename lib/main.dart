@@ -13,6 +13,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
+import 'package:island/core/log_recorder.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/firebase_options.dart';
@@ -257,6 +258,10 @@ class IslandApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Make sure it's active
+    final _ = ref.read(logsProvider);
+
+    // Theme data and prefs
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
 

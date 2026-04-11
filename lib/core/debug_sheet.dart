@@ -20,6 +20,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
+import 'package:island/core/widgets/draggable_log_overlay.dart';
 
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -154,6 +155,16 @@ class DebugSheet extends HookConsumerWidget {
                   isScrollControlled: true,
                   builder: (context) => NetworkStatusSheet(),
                 );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.terminal),
+              trailing: const Icon(Symbols.chevron_right),
+              title: const Text('Log Viewer'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              onTap: () {
+                toggleLogOverlay();
               },
             ),
             const Divider(height: 8),
