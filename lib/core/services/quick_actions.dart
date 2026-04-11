@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/route.gr.dart';
@@ -16,7 +17,11 @@ class QuickActionsService {
   final QuickActions _quickActions = const QuickActions();
   bool _initialized = false;
 
-  Future<void> initialize() async {
+  late WidgetRef _ref;
+
+  Future<void> initialize(WidgetRef ref) async {
+    _ref = ref;
+
     if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
       Logger.root.warning(
         '[QuickActions] Quick Actions only supported on Android and iOS',
@@ -57,7 +62,7 @@ class QuickActionsService {
   void _handleShortcut(String type) {
     Logger.root.info('[QuickActions] Shortcut tapped: $type');
 
-    final context = rootNavigatorKey.currentContext;
+    final context = _ref.read(routerProvider).navigatorKey.currentContext;
     if (context == null) {
       Logger.root.warning(
         '[QuickActions] Context not available, skipping action',

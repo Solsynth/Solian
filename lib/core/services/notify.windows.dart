@@ -64,7 +64,7 @@ Future<void> _speakNotification(
   }
 }
 
-Future<void> initializeLocalNotifications() async {
+Future<void> initializeLocalNotifications(WidgetRef _) async {
   // Initialize Windows notification for Windows platform
   windowsNotification = winty.WindowsNotification(applicationId: "Solian");
 

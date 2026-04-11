@@ -13,6 +13,7 @@ import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/core/services/deeplink_service.dart';
+import 'package:island/core/services/quick_actions.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.dart';
@@ -21,6 +22,7 @@ import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/activity/activity_rpc.dart';
@@ -42,6 +44,8 @@ import 'package:window_manager/window_manager.dart';
 
 const kForceShowStartupSplashForTesting = false;
 const kOnboardingLastShownVersion = 'app_onboarding_last_shown_version';
+
+final appWrapperKey = GlobalKey();
 
 class AppWrapper extends HookConsumerWidget {
   final Widget child;
@@ -267,6 +271,24 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
+      Future(() async {
+        try {
+          Logger.root.info(
+            "[QuickActions] Initializing Quick Actions service...",
+          );
+          final quickActionsService = QuickActionsService();
+          await quickActionsService.initialize(ref);
+          Logger.root.info("[QuickActions] Quick Actions service is ready!");
+        } catch (err) {
+          Logger.root.severe(
+            "[QuickActions] Failed to initialize Quick Actions service... $err",
+          );
+        }
+      });
+      return null;
+    }, []);
+
+    useEffect(() {
       if (shouldShowStartupSplash || onboardingChecked.value) return null;
 
       Future(() async {
@@ -297,48 +319,51 @@ class AppWrapper extends HookConsumerWidget {
       return null;
     }, [shouldShowStartupSplash, token]);
 
-    return TourTriggerWidget(
-      key: const Key("app_tour_trigger"),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
-        reverseDuration: const Duration(milliseconds: 500),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeOut,
-        transitionBuilder: (widget, animation) {
-          return FadeTransition(opacity: animation, child: widget);
-        },
-        child: shouldShowStartupSplash
-            ? KeyedSubtree(
-                key: ValueKey('bootstrap_splash'),
-                child: StartupSplashScreen(
-                  runBootstrap: shouldRunBootstrap,
-                  onCompleted: () {
-                    bootstrapCompleted.value = true;
-                  },
-                ),
-              )
-            : KeyedSubtree(
-                key: const ValueKey('main_content'),
-                child: Stack(
-                  children: [
-                    child,
-                    if (doesShowSnow && !isSnowGone.value)
-                      IgnorePointer(
-                        child: AnimatedOpacity(
-                          opacity: isShowSnow.value ? 1 : 00,
-                          duration: const Duration(seconds: 3),
-                          child: SnowFallAnimation(
-                            key: const Key("app_snow_animation"),
-                            config: SnowfallConfig(
-                              numberOfSnowflakes: 50,
-                              speed: 1.0,
+    return Container(
+      key: appWrapperKey,
+      child: TourTriggerWidget(
+        key: const Key("app_tour_trigger"),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          reverseDuration: const Duration(milliseconds: 500),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeOut,
+          transitionBuilder: (widget, animation) {
+            return FadeTransition(opacity: animation, child: widget);
+          },
+          child: shouldShowStartupSplash
+              ? KeyedSubtree(
+                  key: ValueKey('bootstrap_splash'),
+                  child: StartupSplashScreen(
+                    runBootstrap: shouldRunBootstrap,
+                    onCompleted: () {
+                      bootstrapCompleted.value = true;
+                    },
+                  ),
+                )
+              : KeyedSubtree(
+                  key: const ValueKey('main_content'),
+                  child: Stack(
+                    children: [
+                      child,
+                      if (doesShowSnow && !isSnowGone.value)
+                        IgnorePointer(
+                          child: AnimatedOpacity(
+                            opacity: isShowSnow.value ? 1 : 00,
+                            duration: const Duration(seconds: 3),
+                            child: SnowFallAnimation(
+                              key: const Key("app_snow_animation"),
+                              config: SnowfallConfig(
+                                numberOfSnowflakes: 50,
+                                speed: 1.0,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -66,7 +65,7 @@ Future<void> _speakNotification(
   }
 }
 
-Future<void> initializeLocalNotifications() async {
+Future<void> initializeLocalNotifications(WidgetRef ref) async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -101,7 +100,7 @@ Future<void> initializeLocalNotifications() async {
       if (payload != null) {
         if (payload.startsWith('/')) {
           // In-app routes
-          rootNavigatorKey.currentContext?.router.pushPath(payload);
+          ref.read(routerProvider).pushPath(payload);
         } else {
           // External URLs
           launchUrlString(payload);

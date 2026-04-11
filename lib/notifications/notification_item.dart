@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/notification.dart';
@@ -34,9 +33,9 @@ class NotificationItemWidget extends HookConsumerWidget {
             uri = uri.replaceFirst('solian://', '');
           }
           if (uri.startsWith('/')) {
-            rootNavigatorKey.currentContext?.router.pushPath(
-              item.notification.meta['action_uri'],
-            );
+            ref
+                .read(routerProvider)
+                .pushPath(item.notification.meta['action_uri']);
           } else {
             launchUrlString(uri);
           }

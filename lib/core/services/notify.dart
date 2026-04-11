@@ -13,15 +13,15 @@ import 'notify.universal.dart' as universal_notify;
 import 'push_provider.dart';
 
 // Platform-specific delegation
-Future<void> initializeLocalNotifications() async {
+Future<void> initializeLocalNotifications(WidgetRef ref) async {
   if (kIsWeb) {
     // No local notifications on web
     return;
   }
   if (Platform.isWindows) {
-    return windows_notify.initializeLocalNotifications();
+    return windows_notify.initializeLocalNotifications(ref);
   } else {
-    return universal_notify.initializeLocalNotifications();
+    return universal_notify.initializeLocalNotifications(ref);
   }
 }
 

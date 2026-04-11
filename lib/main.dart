@@ -25,7 +25,6 @@ import 'package:island/posts/pods/realtime_posts.dart';
 import 'package:island/route.dart';
 import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
-import 'package:island/core/services/quick_actions.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:logging/logging.dart';
@@ -116,17 +115,6 @@ void main(List<String> args) async {
   } catch (err) {
     Logger.root.severe(
       "[SplashScreen] Failed to load timezone database... $err",
-    );
-  }
-
-  try {
-    Logger.root.info("[QuickActions] Initializing Quick Actions service...");
-    final quickActionsService = QuickActionsService();
-    await quickActionsService.initialize();
-    Logger.root.info("[QuickActions] Quick Actions service is ready!");
-  } catch (err) {
-    Logger.root.severe(
-      "[QuickActions] Failed to initialize Quick Actions service... $err",
     );
   }
 

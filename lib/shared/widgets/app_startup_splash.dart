@@ -117,7 +117,7 @@ class StartupSplashScreen extends HookConsumerWidget {
           label: 'Preparing local notifications',
           isCritical: false,
           action: () async {
-            await initializeLocalNotifications();
+            await initializeLocalNotifications(ref);
           },
         ),
         _BootstrapStage(

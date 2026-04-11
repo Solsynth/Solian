@@ -1,14 +1,8 @@
 import 'dart:io' show Platform;
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
-
-// Shell route keys for nested navigation
-final rootNavigatorKey = GlobalKey<NavigatorState>();
-final shellNavigatorKey = GlobalKey<NavigatorState>();
-final tabsShellKey = GlobalKey<NavigatorState>();
 
 bool get supportsAnalytics =>
     kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
