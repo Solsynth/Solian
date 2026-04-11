@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/log_file.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:open_file/open_file.dart';
 import 'package:island/core/log_recorder.dart'
     show logsProvider, logViewerActiveProvider, LogEntry;
 import 'package:island/main.dart';
+import 'package:island/route.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:super_sliver_list/super_sliver_list.dart';
 
 OverlayEntry? _logOverlayEntry;
 
@@ -81,6 +84,23 @@ void toggleLogOverlay() {
 
 final ProviderContainer _container = ProviderContainer();
 
+final _logHistoryEntriesProvider =
+    NotifierProvider<_LogHistoryNotifier, List<LogEntry>>(
+      _LogHistoryNotifier.new,
+    );
+
+class _LogHistoryNotifier extends Notifier<List<LogEntry>> {
+  @override
+  List<LogEntry> build() => [];
+
+  Future<void> loadFile(String path) async {
+    final entries = await readLogFile(path);
+    state = entries;
+  }
+
+  void clear() => state = [];
+}
+
 final _logViewerStateProvider =
     NotifierProvider<_LogViewerStateNotifier, _LogViewerState>(
       _LogViewerStateNotifier.new,
@@ -139,25 +159,33 @@ class _LogViewerStateNotifier extends Notifier<_LogViewerState> {
 
 final _filteredLogsProvider = Provider<List<LogEntry>>((ref) {
   final logs = ref.watch(logsProvider);
+  final history = ref.watch(_logHistoryEntriesProvider);
   final viewerState = ref.watch(_logViewerStateProvider);
 
   final query = viewerState.searchQuery.toLowerCase();
   final selectedLevels = viewerState.selectedLevels;
 
-  return logs.where((entry) {
-    if (selectedLevels.isNotEmpty &&
-        !selectedLevels.contains(Level.ALL) &&
-        !selectedLevels.contains(entry.level)) {
-      return false;
-    }
-    if (query.isNotEmpty) {
-      final messageMatch = entry.message.toLowerCase().contains(query);
-      final errorMatch =
-          entry.error?.toString().toLowerCase().contains(query) ?? false;
-      if (!messageMatch && !errorMatch) return false;
-    }
-    return true;
-  }).toList();
+  List<LogEntry> filter(List<LogEntry> entries) {
+    return entries.where((entry) {
+      if (selectedLevels.isNotEmpty &&
+          !selectedLevels.contains(Level.ALL) &&
+          !selectedLevels.contains(entry.level)) {
+        return false;
+      }
+      if (query.isNotEmpty) {
+        final messageMatch = entry.message.toLowerCase().contains(query);
+        final errorMatch =
+            entry.error?.toString().toLowerCase().contains(query) ?? false;
+        if (!messageMatch && !errorMatch) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  final filteredHistory = filter(history);
+  final filteredLogs = filter(logs);
+
+  return [...filteredHistory, ...filteredLogs];
 });
 
 final _allLevels = <Level>[
@@ -396,6 +424,23 @@ class _DraggableLogPanelState extends ConsumerState<_DraggableLogPanel>
     );
   }
 
+  void _showHistorySheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: ref.read(routerProvider).navigatorKey.currentContext!,
+      isScrollControlled: true,
+      builder: (ctx) => _LogHistorySheet(
+        onFileSelected: (path) {
+          ref.read(_logHistoryEntriesProvider.notifier).loadFile(path);
+          Navigator.pop(ctx);
+        },
+        onClear: () {
+          ref.read(_logHistoryEntriesProvider.notifier).clear();
+          Navigator.pop(ctx);
+        },
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -440,6 +485,30 @@ class _DraggableLogPanelState extends ConsumerState<_DraggableLogPanel>
             ),
           ),
           const Spacer(),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              _HeaderButton(
+                icon: Symbols.history,
+                tooltip: 'Load history',
+                onTap: () => _showHistorySheet(context, ref),
+              ),
+              if (ref.watch(_logHistoryEntriesProvider).isNotEmpty)
+                Positioned(
+                  right: 4,
+                  top: 4,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 2),
           _HeaderButton(
             icon: _minimized ? Symbols.open_in_full : Symbols.minimize,
             tooltip: _minimized ? 'Expand' : 'Minimize',
@@ -451,6 +520,7 @@ class _DraggableLogPanelState extends ConsumerState<_DraggableLogPanel>
             tooltip: 'Clear logs',
             onTap: () {
               ref.read(logsProvider.notifier).clear();
+              ref.read(_logHistoryEntriesProvider.notifier).clear();
             },
           ),
           const SizedBox(width: 2),
@@ -505,7 +575,7 @@ class _DraggableLogPanelState extends ConsumerState<_DraggableLogPanel>
         ),
         SizedBox(
           height: 36,
-          child: SuperListView.separated(
+          child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemCount: _allLevels.length,
@@ -755,5 +825,87 @@ class _LogEntryTile extends HookConsumerWidget {
     final sec = dt.second.toString().padLeft(2, '0');
     final ms = dt.millisecond.toString().padLeft(3, '0');
     return '$hour:$min:$sec.$ms';
+  }
+}
+
+class _LogHistorySheet extends StatefulWidget {
+  final void Function(String path) onFileSelected;
+  final VoidCallback onClear;
+
+  const _LogHistorySheet({required this.onFileSelected, required this.onClear});
+
+  @override
+  State<_LogHistorySheet> createState() => _LogHistorySheetState();
+}
+
+class _LogHistorySheetState extends State<_LogHistorySheet> {
+  late Future<List<LogFileInfo>> _filesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _filesFuture = getLogFiles();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SheetScaffold(
+      heightFactor: 0.5,
+      leading: Icon(
+        Symbols.history,
+        color: theme.colorScheme.primary,
+        size: 20,
+      ),
+      titleText: 'Load Log History',
+      actions: [
+        TextButton.icon(
+          onPressed: widget.onClear,
+          icon: Icon(Symbols.delete, size: 16),
+          label: const Text('Clear'),
+          style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
+        ),
+      ],
+      child: FutureBuilder<List<LogFileInfo>>(
+        future: _filesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final files = snapshot.data ?? [];
+          if (files.isEmpty) {
+            return Center(
+              child: Text(
+                'No log files found',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            );
+          }
+          return ListView.builder(
+            itemCount: files.length,
+            itemBuilder: (context, index) {
+              final file = files[index];
+              return ListTile(
+                leading: Icon(
+                  Symbols.description,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                title: Text(file.name),
+                subtitle: Text('${file.formattedDate} · ${file.formattedSize}'),
+                trailing: Icon(
+                  Symbols.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onTap: () => OpenFile.open(file.path),
+                onLongPress: () => widget.onFileSelected(file.path),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }

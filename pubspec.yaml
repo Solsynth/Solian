@@ -86,6 +86,7 @@ dependencies:
   objectbox: ^5.3.1
   objectbox_flutter_libs: ^5.3.1
   path: ^1.9.1
+  open_file: ^3.5.11
   collection: ^1.19.1
   markdown_editor_plus: ^0.2.15
   croppy: ^1.5.1
