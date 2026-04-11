@@ -8,7 +8,9 @@
 	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:api.solian.app</string>
+		<string>webcredentials:api.solian.app?mode=developer</string>
+		<string>webcredentials:solian.app</string>
+		<string>applinks:solian.app</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>

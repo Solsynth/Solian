@@ -175,12 +175,18 @@ class AuthApi extends BaseApi {
   /// Returns challenge and WebAuthn options.
   Future<Map<String, dynamic>> startPasskeyRegistration({
     required String deviceId,
+    required String deviceName,
     required String rpId,
     required String rpName,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/factors/passkey/start',
-      data: {'device_id': deviceId, 'rp_id': rpId, 'rp_name': rpName},
+      data: {
+        'device_id': deviceId,
+        'device_name': deviceName,
+        'rp_id': rpId,
+        'rp_name': rpName,
+      },
     );
     return response.data!;
   }
@@ -193,6 +199,7 @@ class AuthApi extends BaseApi {
   /// Returns the created factor.
   Future<SnAuthFactor> completePasskeyRegistration({
     required String deviceId,
+    required String? deviceName,
     required String attestationObject,
     required String clientDataJson,
   }) async {
@@ -200,6 +207,7 @@ class AuthApi extends BaseApi {
       '$_basePath/factors/passkey/complete',
       data: {
         'device_id': deviceId,
+        'device_name': deviceName,
         'attestation_object': attestationObject,
         'client_data_json': clientDataJson,
       },
