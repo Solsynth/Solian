@@ -194,7 +194,7 @@ class E2EEApi extends BaseApi {
   /// [groupId] - The group ID.
   Future<Map<String, dynamic>> getMLSGroupKeyPackage(String groupId) async {
     final response = await get<Map<String, dynamic>>(
-      '$_basePath/mls/groups/$groupId/key-package',
+      '$_basePath/mls/groups/$groupId/kp',
     );
     return response.data!;
   }

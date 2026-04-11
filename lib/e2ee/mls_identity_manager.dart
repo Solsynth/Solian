@@ -212,7 +212,7 @@ class MlsIdentityManager {
   Future<int> uploadKeyPackage(String keyPackage) async {
     try {
       final response = await _padlockClient.put(
-        '/mls/devices/me/key-packages',
+        '/mls/devices/me/kps',
         data: {
           'key_package': keyPackage,
           'device_id': await getOrCreateDeviceId(),

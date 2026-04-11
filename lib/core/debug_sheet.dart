@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -243,6 +244,27 @@ class DebugSheet extends HookConsumerWidget {
                   title: 'Daily Check-in',
                   reward: const SnProgressRewardDefinition(experience: 50),
                 );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.cloud),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test server WS packet'),
+              onTap: () async {
+                try {
+                  final dio = ref.read(apiClientProvider);
+                  await dio.post(
+                    '/passport/admin/progression/test-ws-packet',
+                    queryParameters: {'kind': 'achievement'},
+                  );
+                  if (!context.mounted) return;
+                  showSnackBar('Server WS packet sent');
+                } catch (e) {
+                  if (!context.mounted) return;
+                  showErrorAlert(e);
+                }
               },
             ),
             const Divider(height: 8),
