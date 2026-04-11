@@ -1144,7 +1144,7 @@ class AccountProfileScreen extends HookConsumerWidget {
       showLoadingModal(context);
       try {
         final client = ref.watch(solarNetworkClientProvider);
-        await client.accounts.followAccount(account.value!.id);
+        await client.accounts.addAccountAsFriend(account.value!.id);
         ref.invalidate(accountRelationshipProvider(name));
       } catch (err) {
         showErrorAlert(err);
