@@ -146,9 +146,14 @@ class AudioCallButton extends HookConsumerWidget {
 
     if (hasActiveCall) {
       // There is an ongoing call, offer to join it directly
-      return IconButton(
+      return FilledButton.icon(
         icon: const Icon(Icons.call),
-        tooltip: 'Join Ongoing Call',
+        label: Text('${activeParticipantCount.value}'),
+        style: FilledButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          minimumSize: const Size(0, 36),
+        ),
         onPressed: () async {
           isLoading.value = true;
           try {

@@ -2,7 +2,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
-import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class RoomOverlays extends ConsumerWidget {
@@ -23,17 +22,12 @@ class RoomOverlays extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Stack(
       children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          top: 0,
-          child: roomAsync.when(
-            data: (data) => data != null
-                ? CallOverlayBar(room: data).padding(horizontal: 8, top: 12)
-                : const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-            loading: () => const SizedBox.shrink(),
-          ),
+        roomAsync.when(
+          data: (data) => data != null
+              ? CallOverlayBar(room: data)
+              : const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
+          loading: () => const SizedBox.shrink(),
         ),
         if (showGradient)
           Positioned(

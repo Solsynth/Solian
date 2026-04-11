@@ -654,7 +654,6 @@ class _LogEntryTile extends HookConsumerWidget {
                       fontFamily: 'monospace',
                       fontSize: 10,
                     ),
-                    maxLines: expanded.value ? 100 : 2,
                     minLines: 1,
                   ),
                 ),
@@ -667,7 +666,7 @@ class _LogEntryTile extends HookConsumerWidget {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 44, top: 1),
+              padding: const EdgeInsets.only(left: 40, top: 1),
               child: Text(
                 _formatTime(entry.timestamp),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(

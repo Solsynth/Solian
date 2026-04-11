@@ -3,12 +3,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/widgets/call_participant_tile.dart';
+import 'package:island/main.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
-import 'package:island/chat/pods/call.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -425,11 +427,25 @@ Future<void> showCallParticipantCard(
   CallParticipantLive participant, {
   Offset? offset,
 }) async {
-  await showPopupCard<void>(
-    offset: offset ?? Offset.zero,
-    context: context,
-    builder: (context) => CallParticipantCard(live: participant),
-    alignment: Alignment.center,
-    dimBackground: true,
+  late OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (overlayContext) => Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => entry.remove(),
+            child: Container(color: Colors.black54),
+          ),
+        ),
+        Center(
+          child: Material(
+            color: Colors.transparent,
+            child: CallParticipantCard(live: participant),
+          ),
+        ),
+      ],
+    ),
   );
+  globalOverlay.currentState?.insert(entry);
 }
