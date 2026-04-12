@@ -35,10 +35,10 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-       - run: flutter build windows
-       - name: Extract Version
-         id: extract_version
-         run: |
+      - run: flutter build windows
+      - name: Extract Version
+        id: extract_version
+        run: |
            $pubspec = Get-Content pubspec.yaml -Raw
            if ($pubspec -match 'version:\s*(\d+\.\d+\.\d+)\+(\d+)') {
              $appVersion = $matches[1]
@@ -46,16 +46,16 @@ jobs:
              Write-Host "app_version=$appVersion" >> $env:GITHUB_OUTPUT
              Write-Host "build_number=$buildNumber" >> $env:GITHUB_OUTPUT
            }
-       - name: Archive production artifacts
-         uses: actions/upload-artifact@v4
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
          with:
-           name: build-output-windows
-           path: build/windows/x64/runner/Release
-       - name: Compile Installer
-         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+          name: build-output-windows
+          path: build/windows/x64/runner/Release
+      - name: Compile Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
          with:
-           path: setup.iss
-           options: "/DAppVersion=${{ steps.extract_version.outputs.app_version }} /DBuildNumber=${{ steps.extract_version.outputs.build_number }}"
+          path: setup.iss
+          options: "/DAppVersion=${{ steps.extract_version.outputs.app_version }} /DBuildNumber=${{ steps.extract_version.outputs.build_number }}"
       - name: Archive installer artifacts
         uses: actions/upload-artifact@v4
         with:
