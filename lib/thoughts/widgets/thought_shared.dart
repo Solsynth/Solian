@@ -135,10 +135,7 @@ class ThoughtChatInterface extends HookConsumerWidget {
               child: SuperListView.builder(
                 listController: notifier.listController,
                 controller: notifier.scrollController,
-                padding: EdgeInsets.only(
-                  top: 16,
-                  bottom: MediaQuery.of(context).padding.bottom + 8,
-                ),
+                padding: EdgeInsets.only(top: 16),
                 reverse: true,
                 itemCount:
                     chatState.localThoughts.length +

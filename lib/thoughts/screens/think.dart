@@ -34,10 +34,14 @@ Future<List<SnThinkingThought>> thoughtSequence(
   Ref ref,
   String sequenceId,
 ) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  final response = await client.thoughts.getSequences(offset: 0, take: 50);
-  // Note: This is a simplified implementation. The actual API may differ.
-  return response.map((e) => SnThinkingThought.fromJson(e)).toList();
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get(
+    '/insight/thought/sequences/$sequenceId',
+    queryParameters: {'offset': 0, 'take': 50},
+  );
+  return (response.data as List)
+      .map((e) => SnThinkingThought.fromJson(e))
+      .toList();
 }
 
 @riverpod
@@ -189,7 +193,7 @@ class ThoughtScreen extends HookConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.add),
+            icon: const Icon(Symbols.add_circle),
             onPressed: startNewConversation,
             tooltip: 'newConversation'.tr(),
           ),

@@ -18,22 +18,26 @@ class ThoughtsApi extends BaseApi {
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
-  Future<List<dynamic>> getSequences({int offset = 0, int take = 20}) async {
+  Future<List<SnThinkingSequence>> getSequences({
+    int offset = 0,
+    int take = 20,
+  }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/thought/sequences',
       queryParameters: {'offset': offset, 'take': take},
     );
-    return response.data ?? [];
+    return response.data?.map((e) => SnThinkingSequence.fromJson(e)).toList() ??
+        [];
   }
 
   /// Gets a specific thought sequence by ID.
   ///
   /// [sequenceId] - The sequence ID.
-  Future<Map<String, dynamic>> getSequence(String sequenceId) async {
+  Future<SnThinkingSequence> getSequence(String sequenceId) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/thought/sequences/$sequenceId',
     );
-    return response.data!;
+    return SnThinkingSequence.fromJson(response.data!);
   }
 
   /// Creates a new thought sequence.

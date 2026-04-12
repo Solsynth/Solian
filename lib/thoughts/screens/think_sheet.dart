@@ -1,24 +1,120 @@
-import "package:easy_localization/easy_localization.dart";
-import "package:flutter/material.dart";
-import "package:flutter_hooks/flutter_hooks.dart";
-import "package:gap/gap.dart";
-import "package:hooks_riverpod/hooks_riverpod.dart";
-import "package:island/core/services/responsive.dart";
-import "package:island/shared/widgets/responsive_sidebar.dart";
-import "package:island/thoughts/screens/think.dart";
-import "package:island/thoughts/widgets/billing_status_handler.dart";
-import "package:island/thoughts/widgets/thought_chat_notifier.dart";
-import "package:island/thoughts/widgets/thought_shared.dart";
-import "package:island/thoughts/widgets/thought_sidebar.dart";
-import "package:material_symbols_icons/material_symbols_icons.dart";
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/services/responsive.dart';
+import 'package:island/main.dart';
+import 'package:island/shared/widgets/responsive_sidebar.dart';
+import 'package:island/thoughts/screens/think.dart';
+import 'package:island/thoughts/widgets/billing_status_handler.dart';
+import 'package:island/thoughts/widgets/thought_chat_notifier.dart';
+import 'package:island/thoughts/widgets/thought_shared.dart';
+import 'package:island/thoughts/widgets/thought_sidebar.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
-/// A dialog-based thought chat interface that uses [ResponsiveSidebar].
-///
-/// On wide screens: Shows as a non-blocking floating panel on the right side
-///   - Allows interaction with background widgets
-///   - Full height, draggable/resizable like a window
-/// On mobile screens: Shows as a full screen dialog
-/// The sidebar adapts responsively based on screen size for conversation selection.
+OverlayEntry? _thoughtOverlayEntry;
+
+final _thoughtOverlayStateProvider =
+    NotifierProvider<_ThoughtOverlayStateNotifier, _ThoughtOverlayState>(
+      _ThoughtOverlayStateNotifier.new,
+    );
+
+class _ThoughtOverlayState {
+  final Offset position;
+  final Size size;
+
+  const _ThoughtOverlayState({
+    this.position = const Offset(8, 80),
+    this.size = const Size(480, 640),
+  });
+
+  _ThoughtOverlayState copyWith({Offset? position, Size? size}) {
+    return _ThoughtOverlayState(
+      position: position ?? this.position,
+      size: size ?? this.size,
+    );
+  }
+}
+
+class _ThoughtOverlayStateNotifier extends Notifier<_ThoughtOverlayState> {
+  @override
+  _ThoughtOverlayState build() => const _ThoughtOverlayState();
+
+  void updatePosition(Offset delta) {
+    state = state.copyWith(
+      position: Offset(
+        state.position.dx + delta.dx,
+        state.position.dy + delta.dy,
+      ),
+    );
+  }
+
+  void updateSize(Size delta) {
+    const minWidth = 360.0;
+    const minHeight = 400.0;
+    const maxWidth = 600.0;
+    const maxHeight = 800.0;
+
+    final newWidth = (state.size.width + delta.width).clamp(minWidth, maxWidth);
+    final newHeight = (state.size.height + delta.height).clamp(
+      minHeight,
+      maxHeight,
+    );
+    state = state.copyWith(size: Size(newWidth, newHeight));
+  }
+
+  void setPosition(Offset position) {
+    state = state.copyWith(position: position);
+  }
+}
+
+void showThoughtOverlay({
+  String? initialMessage,
+  List<Map<String, dynamic>> attachedMessages = const [],
+  List<String> attachedPosts = const [],
+}) {
+  if (_thoughtOverlayEntry != null) {
+    _thoughtOverlayEntry?.markNeedsBuild();
+    return;
+  }
+
+  final state = _overlayContainer.read(_thoughtOverlayStateProvider);
+  _thoughtOverlayEntry = OverlayEntry(
+    builder: (context) => _ThoughtOverlayPanel(
+      initialPosition: state.position,
+      initialSize: state.size,
+      initialMessage: initialMessage,
+      attachedMessages: attachedMessages,
+      attachedPosts: attachedPosts,
+    ),
+  );
+  globalOverlay.currentState?.insert(_thoughtOverlayEntry!);
+}
+
+void hideThoughtOverlay() {
+  _thoughtOverlayEntry?.remove();
+  _thoughtOverlayEntry = null;
+}
+
+void toggleThoughtOverlay({
+  String? initialMessage,
+  List<Map<String, dynamic>> attachedMessages = const [],
+  List<String> attachedPosts = const [],
+}) {
+  if (_thoughtOverlayEntry != null) {
+    hideThoughtOverlay();
+  } else {
+    showThoughtOverlay(
+      initialMessage: initialMessage,
+      attachedMessages: attachedMessages,
+      attachedPosts: attachedPosts,
+    );
+  }
+}
+
+final ProviderContainer _overlayContainer = ProviderContainer();
+
 class ThoughtSheet extends HookConsumerWidget {
   final String? initialMessage;
   final List<Map<String, dynamic>> attachedMessages;
@@ -31,9 +127,6 @@ class ThoughtSheet extends HookConsumerWidget {
     this.attachedPosts = const [],
   });
 
-  /// Shows the thought sheet.
-  /// On wide screens: Displays as a non-blocking floating panel on the right
-  /// On mobile: Displays as a full screen dialog
   static Future<void> show(
     BuildContext context, {
     String? initialMessage,
@@ -43,21 +136,13 @@ class ThoughtSheet extends HookConsumerWidget {
     final isWide = isWideScreen(context);
 
     if (isWide) {
-      // On wide screens: show as non-blocking overlay that allows background interaction
-      return showDialog(
-        context: context,
-        useRootNavigator: true,
-        barrierDismissible: true,
-        barrierColor:
-            Colors.transparent, // Allow clicking through to background
-        builder: (context) => _AnimatedThoughtPanel(
-          initialMessage: initialMessage,
-          attachedMessages: attachedMessages,
-          attachedPosts: attachedPosts,
-        ),
+      showThoughtOverlay(
+        initialMessage: initialMessage,
+        attachedMessages: attachedMessages,
+        attachedPosts: attachedPosts,
       );
+      return Future.value();
     } else {
-      // On mobile: show as full screen dialog
       return showDialog(
         context: context,
         useRootNavigator: true,
@@ -77,14 +162,12 @@ class ThoughtSheet extends HookConsumerWidget {
     final statusAsync = ref.watch(thoughtAvailableStausProvider);
     final showSidebar = useState(false);
 
-    // Create args for the chat notifier
     final args = ThoughtChatArgs(
       initialMessage: initialMessage,
       attachedMessages: attachedMessages,
       attachedPosts: attachedPosts,
     );
 
-    // Watch the notifier
     final chatState = ref.watch(thoughtChatProvider(args));
     final chatNotifier = ref.read(thoughtChatProvider(args).notifier);
 
@@ -96,7 +179,6 @@ class ThoughtSheet extends HookConsumerWidget {
     }
 
     void toggleSidebar() => showSidebar.value = !showSidebar.value;
-
     void closeSidebar() => showSidebar.value = false;
 
     void handleServiceChanged(String serviceId) {
@@ -113,7 +195,6 @@ class ThoughtSheet extends HookConsumerWidget {
       }
     }
 
-    // Full screen for mobile dialog
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
@@ -179,225 +260,305 @@ class ThoughtSheet extends HookConsumerWidget {
   }
 }
 
-/// Animated wrapper for the thought panel with slide in/out animation.
-class _AnimatedThoughtPanel extends StatefulWidget {
+class _ThoughtOverlayPanel extends ConsumerStatefulWidget {
+  final Offset initialPosition;
+  final Size initialSize;
   final String? initialMessage;
   final List<Map<String, dynamic>> attachedMessages;
   final List<String> attachedPosts;
 
-  const _AnimatedThoughtPanel({
+  const _ThoughtOverlayPanel({
+    required this.initialPosition,
+    required this.initialSize,
     this.initialMessage,
     this.attachedMessages = const [],
     this.attachedPosts = const [],
   });
 
   @override
-  State<_AnimatedThoughtPanel> createState() => _AnimatedThoughtPanelState();
+  ConsumerState<_ThoughtOverlayPanel> createState() =>
+      _ThoughtOverlayPanelState();
 }
 
-class _AnimatedThoughtPanelState extends State<_AnimatedThoughtPanel>
+class _ThoughtOverlayPanelState extends ConsumerState<_ThoughtOverlayPanel>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late Offset _position;
+  late Size _size;
+  late AnimationController _animController;
   late Animation<Offset> _slideAnimation;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _position = widget.initialPosition;
+    _size = widget.initialSize;
+    _animController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(1.0, 0.0), // Start from right (off-screen)
-      end: Offset.zero, // End at natural position
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _controller.forward(); // Start slide in animation
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
+    _animController.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() => _isInitialized = true);
+    });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
   Future<void> _dismiss() async {
-    // Slide out animation
-    await _controller.reverse();
+    await _animController.reverse();
     if (mounted) {
-      Navigator.of(context).pop();
+      hideThoughtOverlay();
     }
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    final screenSize = MediaQuery.of(context).size;
+    final overlayWidth = _size.width;
+    final overlayHeight = _size.height;
+
+    setState(() {
+      _position = Offset(
+        (_position.dx + details.delta.dx).clamp(
+          0,
+          screenSize.width - overlayWidth,
+        ),
+        (_position.dy + details.delta.dy).clamp(
+          0,
+          screenSize.height - overlayHeight,
+        ),
+      );
+    });
+    ref
+        .read(_thoughtOverlayStateProvider.notifier)
+        .updatePosition(details.delta);
+  }
+
+  void _onResizeUpdate(DragUpdateDetails details) {
+    setState(() {
+      final newWidth = (_size.width + details.delta.dx).clamp(360.0, 600.0);
+      final newHeight = (_size.height + details.delta.dy).clamp(400.0, 800.0);
+      _size = Size(newWidth, newHeight);
+    });
+  }
+
+  void _onResizeEnd(DragEndDetails details) {
+    ref
+        .read(_thoughtOverlayStateProvider.notifier)
+        .updateSize(Size(_size.width - 480, _size.height - 640));
   }
 
   @override
   Widget build(BuildContext context) {
-    const padding = 16.0;
-    const panelWidth = 480.0;
-
-    return Stack(
-      children: [
-        // Transparent background to catch taps outside
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: _dismiss,
-          ),
-        ),
-        // Animated panel with padding from edges - aligned to right
-        Align(
-          alignment: Alignment.centerRight,
-          child: AnimatedBuilder(
-            animation: _slideAnimation,
-            builder: (context, child) {
-              // Slide in from right (off-screen) to visible position
-              // _slideAnimation.value.dx goes from 1.0 (start) to 0.0 (end)
-              // So at start: offset = panelWidth + padding (off-screen right)
-              // At end: offset = 0 (visible)
-              final slideOffset =
-                  _slideAnimation.value.dx * (panelWidth + padding * 2);
-              return Transform.translate(
-                offset: Offset(slideOffset, 0),
-                child: child,
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: padding,
-                bottom: padding,
-                right: padding,
-              ),
-              child: _ThoughtPanel(
-                initialMessage: widget.initialMessage,
-                attachedMessages: widget.attachedMessages,
-                attachedPosts: widget.attachedPosts,
-                onClose: _dismiss,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// The floating panel widget for wide screens.
-class _ThoughtPanel extends HookConsumerWidget {
-  final String? initialMessage;
-  final List<Map<String, dynamic>> attachedMessages;
-  final List<String> attachedPosts;
-  final VoidCallback onClose;
-
-  const _ThoughtPanel({
-    this.initialMessage,
-    this.attachedMessages = const [],
-    this.attachedPosts = const [],
-    required this.onClose,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final statusAsync = ref.watch(thoughtAvailableStausProvider);
+    final theme = Theme.of(context);
     final showSidebar = useState(false);
 
-    // Create args for the chat notifier
-    final args = ThoughtChatArgs(
-      initialMessage: initialMessage,
-      attachedMessages: attachedMessages,
-      attachedPosts: attachedPosts,
-    );
-
-    // Watch the notifier
-    final chatState = ref.watch(thoughtChatProvider(args));
-    final chatNotifier = ref.read(thoughtChatProvider(args).notifier);
-
-    // Panel width
-    const panelWidth = 480.0;
-
-    void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
-
-    void closeSidebar() => showSidebar.value = false;
-
-    void handleServiceChanged(String serviceId) {
-      final previousServiceId = chatState.selectedServiceId;
-      if (serviceId == previousServiceId) {
-        return;
-      }
-
-      chatNotifier.clearChat(selectedServiceId: serviceId);
-      showSidebar.value = false;
-
-      if (serviceId == 'michan') {
-        chatNotifier.loadMichanCanonicalThread();
-      }
+    if (!_isInitialized) {
+      return const SizedBox.shrink();
     }
 
-    return Material(
-      type: MaterialType.transparency,
-      child: Container(
-        width: panelWidth,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 16,
-              offset: const Offset(-4, 0),
+    return AnimatedBuilder(
+      animation: _slideAnimation,
+      builder: (context, child) {
+        final slideOffset = _slideAnimation.value.dx * (_size.width + 16 * 2);
+        return Transform.translate(
+          offset: Offset(slideOffset, 0),
+          child: child,
+        );
+      },
+      child: Positioned(
+        left: _position.dx,
+        top: _position.dy,
+        child: Material(
+          color: Colors.transparent,
+          child: GestureDetector(
+            onPanUpdate: _onPanUpdate,
+            child: SizedBox(
+              width: _size.width,
+              height: _size.height,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _buildPanelContainer(context, showSidebar),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: _buildResizeHandle(theme),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              automaticallyImplyLeading: false,
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(52),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: ServiceSelector(
-                      services: chatState.services,
-                      selectedServiceId: chatState.selectedServiceId,
-                      onServiceChanged: handleServiceChanged,
-                      isStreaming: chatState.isStreaming,
-                      isDisabled: statusAsync.value == false,
-                    ),
+      ),
+    );
+  }
+
+  Widget _buildPanelContainer(
+    BuildContext context,
+    ValueNotifier<bool> showSidebar,
+  ) {
+    final theme = Theme.of(context);
+    final statusAsync = ref.watch(thoughtAvailableStausProvider);
+
+    final args = ThoughtChatArgs(
+      initialMessage: widget.initialMessage,
+      attachedMessages: widget.attachedMessages,
+      attachedPosts: widget.attachedPosts,
+    );
+
+    final chatState = ref.watch(thoughtChatProvider(args));
+
+    void closeSidebar() => showSidebar.value = false;
+    void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: theme.colorScheme.shadow.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            _buildHeader(context, chatState),
+            Container(height: 1, color: theme.dividerColor),
+            Expanded(
+              child: ResponsiveSidebar(
+                showSidebar: showSidebar,
+                sidebarWidth: 280,
+                sidebarContent: ThoughtSidebar(
+                  selectedSequenceId: chatState.sequenceId,
+                  onClose: closeSidebar,
+                ),
+                mainContent: BillingStatusHandler(
+                  statusAsync: statusAsync,
+                  onRefreshStatus: refreshStatus,
+                  child: ThoughtChatInterface(
+                    initialMessage: widget.initialMessage,
+                    attachedMessages: widget.attachedMessages,
+                    attachedPosts: widget.attachedPosts,
+                    isDisabled: statusAsync.value == false,
                   ),
                 ),
               ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Symbols.close),
-                  onPressed: onClose,
-                  tooltip: 'close'.tr(),
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                const Gap(8),
-              ],
             ),
-            body: ResponsiveSidebar(
-              showSidebar: showSidebar,
-              sidebarWidth: 280,
-              sidebarContent: ThoughtSidebar(
-                selectedSequenceId: chatState.sequenceId,
-                onClose: closeSidebar,
-              ),
-              mainContent: BillingStatusHandler(
-                statusAsync: statusAsync,
-                onRefreshStatus: refreshStatus,
-                child: ThoughtChatInterface(
-                  initialMessage: initialMessage,
-                  attachedMessages: attachedMessages,
-                  attachedPosts: attachedPosts,
-                  isDisabled: statusAsync.value == false,
-                ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, dynamic chatState) {
+    final theme = Theme.of(context);
+
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            theme.colorScheme.surfaceContainerHighest.withOpacity(0.7),
+            theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          ],
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 20,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withOpacity(0.6),
+                ],
               ),
             ),
           ),
+          const SizedBox(width: 10),
+          Icon(Symbols.psychology, size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              chatState.currentTopic ?? 'aiThought'.tr(),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Symbols.close),
+            onPressed: _dismiss,
+            tooltip: 'close'.tr(),
+            color: theme.colorScheme.onSurface,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResizeHandle(ThemeData theme) {
+    return GestureDetector(
+      onPanUpdate: _onResizeUpdate,
+      onPanEnd: _onResizeEnd,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(8),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
+        child: const Icon(
+          Icons.drag_handle,
+          size: 14,
+          color: Color(0xFF9E9E9E),
         ),
       ),
     );

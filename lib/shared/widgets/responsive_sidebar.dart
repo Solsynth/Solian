@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 
 /// A general-purpose responsive sidebar widget that adapts to screen size.
 ///
@@ -81,7 +82,6 @@ class ResponsiveSidebar extends HookConsumerWidget {
     );
 
     final showDrawer = useState(false);
-    final scaffoldKey = useMemoized(() => GlobalKey<ScaffoldState>());
 
     useEffect(() {
       void listener() {
@@ -91,20 +91,19 @@ class ResponsiveSidebar extends HookConsumerWidget {
             showDrawer.value = true;
             animationController.forward();
           } else if (!showSidebar.value && showDrawer.value) {
-            // Don't set showDrawer.value = false here - let animation complete first
             animationController.reverse();
           }
         } else {
-          if (showSidebar.value) {
-            scaffoldKey.currentState?.openDrawer();
-          } else if (scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
-            Navigator.of(context).pop();
+          if (showSidebar.value && !showDrawer.value) {
+            showDrawer.value = true;
+            _openSheet(context);
+          } else if (!showSidebar.value && showDrawer.value) {
+            showDrawer.value = false;
           }
         }
       }
 
       showSidebar.addListener(listener);
-      // Set initial state after first frame
       WidgetsBinding.instance.addPostFrameCallback((_) => listener());
 
       return () => showSidebar.removeListener(listener);
@@ -182,20 +181,20 @@ class ResponsiveSidebar extends HookConsumerWidget {
         },
       );
     } else {
-      final effectiveDrawer =
-          drawerWidget ?? Drawer(width: sidebarWidth, child: sidebarContent);
-
-      return Scaffold(
-        key: scaffoldKey,
-        endDrawer: effectiveDrawer,
-        onEndDrawerChanged: (isOpen) {
-          if (!isOpen) {
-            showSidebar.value = false;
-          }
-        },
-        body: mainContent,
-      );
+      return mainContent;
     }
+  }
+
+  void _openSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) =>
+          drawerWidget ??
+          SheetScaffold(showHeader: false, child: sidebarContent),
+    ).then((_) {
+      showSidebar.value = false;
+    });
   }
 
   Widget _buildWideScreenContent(
