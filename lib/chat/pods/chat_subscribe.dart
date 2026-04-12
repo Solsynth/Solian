@@ -71,7 +71,9 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       _sendMessage!(jsonEncode(packet));
     } catch (e, stackTrace) {
       Logger.root.severe(
-        '[MessageSubscriber] Failed to send $context for room $roomId: $e\n$stackTrace',
+        '[MessageSubscriber] Failed to send $context for room $roomId',
+        e,
+        stackTrace,
       );
     }
   }
@@ -274,7 +276,9 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         _cleanupResources();
       } catch (e, stackTrace) {
         Logger.root.severe(
-          '[MessageSubscriber] Error during cleanup for room $roomId: $e\n$stackTrace',
+          '[MessageSubscriber] Error during cleanup for room $roomId',
+          e,
+          stackTrace,
         );
       }
       try {
@@ -283,7 +287,9 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
         }
       } catch (e, stackTrace) {
         Logger.root.severe(
-          '[MessageSubscriber] Error cancelling typing cooldown timer for room $roomId: $e\n$stackTrace',
+          '[MessageSubscriber] Error cancelling typing cooldown timer for room $roomId',
+          e,
+          stackTrace,
         );
       }
     });

@@ -202,7 +202,8 @@ Future<void> subscribePushNotification(
       })
       .onError((err) {
         Logger.root.severe(
-          "Failed to get firebase cloud messaging push token: $err",
+          "Failed to get firebase cloud messaging push token",
+          err,
         );
       });
 

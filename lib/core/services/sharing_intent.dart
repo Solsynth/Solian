@@ -7,6 +7,7 @@ import 'package:island/route.dart';
 import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:island/sharing/share_sheet.dart';
+import 'package:logging/logging.dart';
 import 'package:share_plus/share_plus.dart';
 
 class SharingIntentService {
@@ -28,24 +29,24 @@ class SharingIntentService {
 
   void initialize() {
     if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
-    debugPrint("SharingIntentService: Initializing");
+    Logger.root.info("SharingIntentService: Initializing");
     _setupSharingListeners();
   }
 
   void checkAndShowShareSheet() {
     if (_pendingSharedFiles == null || _widgetRef == null) return;
-    debugPrint("SharingIntentService: checkAndShowShareSheet called");
+    Logger.root.info("SharingIntentService: checkAndShowShareSheet called");
     final files = _pendingSharedFiles!;
     _pendingSharedFiles = null;
     _handleSharedContentWithRef(files);
   }
 
   void _setupSharingListeners() {
-    debugPrint("SharingIntentService: Setting up sharing listeners");
+    Logger.root.info("SharingIntentService: Setting up sharing listeners");
 
     _intentSub = FlutterSharingIntent.instance.getMediaStream().listen(
       (List<SharedFile> value) {
-        debugPrint(
+        Logger.root.info(
           "SharingIntentService: Media stream received ${value.length} files",
         );
         if (value.isNotEmpty) {
@@ -56,14 +57,14 @@ class SharingIntentService {
         }
       },
       onError: (err) {
-        debugPrint("SharingIntentService: Stream error: $err");
+        Logger.root.severe("SharingIntentService: Stream error", err);
       },
     );
 
     FlutterSharingIntent.instance.getInitialSharing().then((
       List<SharedFile> value,
     ) {
-      debugPrint(
+      Logger.root.info(
         "SharingIntentService: Initial media received ${value.length} files",
       );
       if (value.isNotEmpty) {
@@ -80,11 +81,11 @@ class SharingIntentService {
     List<SharedFile> sharedFiles, {
     int retryCount = 0,
   }) {
-    debugPrint(
+    Logger.root.info(
       "SharingIntentService: Received ${sharedFiles.length} shared files",
     );
     for (final file in sharedFiles) {
-      debugPrint(
+      Logger.root.info(
         "SharingIntentService: File path: ${file.value}, type: ${file.type}",
       );
     }
@@ -115,7 +116,7 @@ class SharingIntentService {
     if (solianDeepLink != null) {
       final uri = Uri.tryParse(solianDeepLink);
       if (uri != null) {
-        debugPrint(
+        Logger.root.info(
           "SharingIntentService: Dispatching deep link $solianDeepLink",
         );
         eventBus.fire(SolianDeepLinkEvent(uri));
@@ -126,12 +127,12 @@ class SharingIntentService {
     final ctx = _widgetRef!.read(routerProvider).navigatorKey.currentContext;
     if (ctx == null) {
       if (retryCount >= 12) {
-        debugPrint(
+        Logger.root.info(
           "SharingIntentService: Navigator context unavailable, dropping shared content",
         );
         return;
       }
-      debugPrint(
+      Logger.root.info(
         "SharingIntentService: Navigator context not ready, retrying...",
       );
       Future.delayed(const Duration(milliseconds: 250), () {
@@ -140,7 +141,7 @@ class SharingIntentService {
       return;
     }
 
-    debugPrint("SharingIntentService: Showing share sheet");
+    Logger.root.info("SharingIntentService: Showing share sheet");
     if (files.isNotEmpty) {
       showShareSheet(context: ctx, content: ShareContent.files(files));
     } else if (links.isNotEmpty) {

@@ -114,7 +114,8 @@ void main(List<String> args) async {
     Logger.root.info("[SplashScreen] Time zone database was loaded!");
   } catch (err) {
     Logger.root.severe(
-      "[SplashScreen] Failed to load timezone database... $err",
+      "[SplashScreen] Failed to load timezone database...",
+      err,
     );
   }
 
@@ -124,7 +125,8 @@ void main(List<String> args) async {
     analyticsService.initialize();
   } catch (err) {
     Logger.root.severe(
-      "[Analytics] Failed to initialize Analytics service... $err",
+      "[Analytics] Failed to initialize Analytics service...",
+      err,
     );
   }
 
@@ -149,7 +151,8 @@ void main(List<String> args) async {
         }
       } catch (e) {
         Logger.root.severe(
-          "[SplashScreen] Failed to parse saved window size: $e",
+          "[SplashScreen] Failed to parse saved window size",
+          e,
         );
         initialSize = defaultSize;
       }
@@ -212,7 +215,7 @@ void main(List<String> args) async {
         }
         return const Duration(milliseconds: 300);
       },
-      observers: [],
+      observers: [ProviderLogger()],
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: Directionality(
         textDirection: TextDirection.ltr,

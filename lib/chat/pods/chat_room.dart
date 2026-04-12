@@ -884,7 +884,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         eventBus.fire(ChatMessagesSyncedEvent(roomIds: updatedRoomIds));
       }
     } catch (e, stackTrace) {
-      Logger.root.info('Error during global chat sync: $e $stackTrace');
+      Logger.root.info('Error during global chat sync', e, stackTrace);
     } finally {
       Future.microtask(() {
         if (ref.mounted) {

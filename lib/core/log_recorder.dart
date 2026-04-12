@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter_riverpod/experimental/mutation.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/log_file.dart';
@@ -120,5 +121,36 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
     _pendingEntries.clear();
     _currentLogs = [];
     state = [];
+  }
+}
+
+final class ProviderLogger extends ProviderObserver {
+  @override
+  void providerDidFail(
+    ProviderObserverContext context,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    Logger.root.severe(
+      '[Riverpod] ${context.provider.name} failed...',
+      error,
+      stackTrace,
+    );
+    super.providerDidFail(context, error, stackTrace);
+  }
+
+  @override
+  void mutationError(
+    ProviderObserverContext context,
+    Mutation<Object?> mutation,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    Logger.root.severe(
+      '[Riverpod] ${context.provider.name} mutation failed...',
+      error,
+      stackTrace,
+    );
+    super.mutationError(context, mutation, error, stackTrace);
   }
 }

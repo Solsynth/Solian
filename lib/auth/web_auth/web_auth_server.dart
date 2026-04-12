@@ -96,7 +96,7 @@ class WebAuthServer {
         await request.response.close();
       }
     } catch (e, st) {
-      Logger.root.severe('Error handling web auth request: $e $st');
+      Logger.root.severe('Error handling web auth request', e, st);
       try {
         request.response.statusCode = HttpStatus.internalServerError;
         request.response.write(jsonEncode({'error': 'Internal Server Error'}));
@@ -337,7 +337,7 @@ class WebAuthServer {
         ),
       );
     } catch (e, st) {
-      Logger.root.severe('Error during backend exchange: $e $st');
+      Logger.root.severe('Error during backend exchange', e, st);
       request.response.statusCode = HttpStatus.internalServerError;
       request.response.headers.contentType = ContentType.json;
       request.response.write(

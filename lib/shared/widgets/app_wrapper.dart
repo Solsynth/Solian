@@ -281,7 +281,8 @@ class AppWrapper extends HookConsumerWidget {
           Logger.root.info("[QuickActions] Quick Actions service is ready!");
         } catch (err) {
           Logger.root.severe(
-            "[QuickActions] Failed to initialize Quick Actions service... $err",
+            "[QuickActions] Failed to initialize Quick Actions service...",
+            err,
           );
         }
       });

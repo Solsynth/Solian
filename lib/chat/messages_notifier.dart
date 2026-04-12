@@ -163,7 +163,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         );
       } catch (err, stackTrace) {
         Logger.root.info(
-          'WebSocket send failed, falling back to HTTP ($context): $err $stackTrace',
+          'WebSocket send failed, falling back to HTTP ($context)',
+          err,
+          stackTrace,
         );
       }
     }
@@ -252,7 +254,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     } catch (err, stackTrace) {
       _prefetchedVoiceUrls.remove(mediaUrl);
       Logger.root.info(
-        'Failed to prefetch voice media $mediaUrl: $err $stackTrace',
+        'Failed to prefetch voice media $mediaUrl',
+        err,
+        stackTrace,
       );
     }
   }
@@ -901,7 +905,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Use the global sync notifier to sync all messages
       await ref.read(chatGlobalSyncProvider.notifier).syncAllMessages();
     } catch (err, stackTrace) {
-      Logger.root.info('Error syncing messages: $err $stackTrace');
+      Logger.root.info('Error syncing messages', err, stackTrace);
       showErrorAlert(err);
     } finally {
       Logger.root.info('Finished message sync');
@@ -1030,7 +1034,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       return _eagerPrefetchIfShort(refreshedMessages, enabled: canFetchRemote);
     } catch (err, stackTrace) {
       Logger.root.info(
-        'Error refreshing initial messages from remote, falling back to cache: $err $stackTrace',
+        'Error refreshing initial messages from remote, falling back to cache',
+        err,
+        stackTrace,
       );
       _hasMore = cachedMessages.length == _pageSize;
       return cachedMessages;
@@ -1092,7 +1098,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         'loadMore complete (fetched=${newMessages.length}, hasMore=$_hasMore)',
       );
     } catch (err, stackTrace) {
-      Logger.root.info('Error loading more messages: $err $stackTrace');
+      Logger.root.info('Error loading more messages', err, stackTrace);
       showErrorAlert(err);
     } finally {
       // Always reset global syncing state, regardless of disposal
@@ -1353,7 +1359,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
       Logger.root.info('[send:$clientMessageId] Sent successfully');
     } catch (e, stackTrace) {
-      Logger.root.info('[send:$clientMessageId] Failed: $e $stackTrace');
+      Logger.root.info('[send:$clientMessageId] Failed', e, stackTrace);
       _applySendFailure(localMessage);
       showErrorAlert(e);
     }
@@ -1446,7 +1452,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
     } catch (e, stackTrace) {
       Logger.root.info(
-        'Failed to send voice message with client_message_id $clientMessageId: $e $stackTrace',
+        'Failed to send voice message with client_message_id $clientMessageId',
+        e,
+        stackTrace,
       );
       localMessage.status = MessageStatus.failed;
       _pendingMessages[localMessage.id] = localMessage;
@@ -1515,7 +1523,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
       Logger.root.info('[retry:$pendingMessageId] Sent successfully');
     } catch (e, stackTrace) {
-      Logger.root.info('[retry:$pendingMessageId] Failed: $e $stackTrace');
+      Logger.root.info('[retry:$pendingMessageId] Failed', e, stackTrace);
       message.status = MessageStatus.failed;
       _pendingMessages[pendingMessageId] = message;
       await _database.updateMessageStatus(
@@ -1800,7 +1808,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       await receiveMessageDeletion(messageId);
     } catch (err, stackTrace) {
-      Logger.root.info('Error deleting message $messageId: $err $stackTrace');
+      Logger.root.info('Error deleting message $messageId', err, stackTrace);
       showErrorAlert(err);
     }
   }
@@ -2010,7 +2018,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       // increments (local apply + incoming reaction event).
     } catch (err, stackTrace) {
       Logger.root.info(
-        'Failed to react to message $messageId: $err $stackTrace',
+        'Failed to react to message $messageId',
+        err,
+        stackTrace,
       );
       showErrorAlert(err);
     }
@@ -2112,7 +2122,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       ); // Limit initial search results
       return messages;
     } catch (e, stackTrace) {
-      Logger.root.info('Error getting search results: $e $stackTrace');
+      Logger.root.info('Error getting search results', e, stackTrace);
       rethrow;
     }
   }
@@ -2144,7 +2154,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       ); // Limit initial search results
       state = AsyncValue.data(messages);
     } catch (e, stackTrace) {
-      Logger.root.info('Error searching messages: $e $stackTrace');
+      Logger.root.info('Error searching messages', e, stackTrace);
       state = AsyncValue.error(e, stackTrace);
     }
   }

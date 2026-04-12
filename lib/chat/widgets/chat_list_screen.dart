@@ -970,7 +970,9 @@ class ChatListWidget extends HookConsumerWidget {
             ref.invalidate(chatRoomJoinedProvider);
           } catch (e, stackTrace) {
             Logger.root.info(
-              'Chat list eager resume sync failed: $e $stackTrace',
+              'Chat list eager resume sync failed',
+              e,
+              stackTrace,
             );
           } finally {
             if (context.mounted) {
