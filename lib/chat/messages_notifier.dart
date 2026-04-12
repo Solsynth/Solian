@@ -465,9 +465,75 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
     });
 
-    e2eeFailedSub = eventBus.on<MlsRecoveryFailedEvent>().listen((event) {
+    e2eeFailedSub = eventBus.on<MlsRecoveryFailedEvent>().listen((event) async {
       if (event.mlsGroupId != _mlsGroupId) return;
       _e2eeRecoveryState = E2eeRecoveryState.failed;
+
+      final chatRoomId = roomId;
+      await _database.deleteMessagesForRoom(chatRoomId);
+      Logger.root.info(
+        'Cleared message history for room $chatRoomId after failed epoch recovery',
+      );
+
+      final now = DateTime.now();
+      final systemMessage = LocalChatMessage(
+        id: const Uuid().v4(),
+        roomId: chatRoomId,
+        senderId: 'system',
+        sender: null,
+        data: {
+          'id': const Uuid().v4(),
+          'chat_room_id': chatRoomId,
+          'sender_id': 'system',
+          'type': 'system.e2ee.history_unavailable',
+          'content':
+              'Message history is no longer available due to an encryption key change',
+          'created_at': now.toIso8601String(),
+          'updated_at': now.toIso8601String(),
+          'deleted_at': null,
+          'client_message_id': null,
+          'nonce': null,
+          'meta': <String, dynamic>{},
+          'members_mentioned': <String>[],
+          'attachments': <Map<String, dynamic>>[],
+          'reactions': <Map<String, dynamic>>[],
+          'sender': <String, dynamic>{
+            'id': 'system',
+            'chat_room_id': chatRoomId,
+            'account_id': 'system',
+            'created_at': now.toIso8601String(),
+            'updated_at': now.toIso8601String(),
+            'deleted_at': null,
+            'nick': null,
+            'notify': 0,
+            'joined_at': now.toIso8601String(),
+            'break_until': null,
+            'timeout_until': null,
+            'last_read_at': null,
+            'status': null,
+            'realm_nick': null,
+            'realm_bio': null,
+            'realm_experience': null,
+            'realm_level': null,
+            'realm_leveling_progress': null,
+            'realm_label': null,
+          },
+          'replied_message_id': null,
+          'forwarded_message_id': null,
+        },
+        createdAt: now,
+        clientMessageId: null,
+        status: MessageStatus.sent,
+        type: 'system.e2ee.history_unavailable',
+        meta: {},
+        membersMentioned: [],
+        attachments: [],
+        reactions: [],
+      );
+      await _database.saveMessageWithSender(systemMessage);
+      Logger.root.info(
+        'Inserted system message for history unavailable in room $chatRoomId',
+      );
     });
 
     ref.listen<String>(

@@ -662,47 +662,41 @@ class ChatRoomScreen extends HookConsumerWidget {
                       ),
                     if (messagesNotifier.e2eeRecoveryState ==
                         E2eeRecoveryState.failed)
-                      Positioned.fill(
-                        child: Container(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surface.withOpacity(0.95),
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.lock_outline,
-                                    size: 48,
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Unable to decrypt messages',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Your device may need to be re-added to this conversation. Please try leaving and rejoining the chat.',
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Material(
+                          color: Theme.of(context).colorScheme.errorContainer,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.lock_outline,
+                                  size: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Unable to decrypt messages. History unavailable.',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
                                         ?.copyWith(
                                           color: Theme.of(
                                             context,
-                                          ).colorScheme.onSurfaceVariant,
+                                          ).colorScheme.onErrorContainer,
                                         ),
-                                    textAlign: TextAlign.center,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

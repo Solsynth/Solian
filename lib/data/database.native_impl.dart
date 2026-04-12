@@ -194,6 +194,20 @@ class AppDatabase {
     return box.remove(entity.obxId) ? 1 : 0;
   }
 
+  Future<int> deleteMessagesForRoom(String roomId) async {
+    if (_isWeb) return 0;
+    final store = await _getStore();
+    if (store == null) return 0;
+    final box = store.box<ChatMessageEntity>();
+    final query = box.query(ChatMessageEntity_.roomId.equals(roomId)).build();
+    final count = query.count();
+    final entities = query.find();
+    query.close();
+    if (entities.isEmpty) return 0;
+    box.removeMany(entities.map((e) => e.obxId).toList());
+    return count;
+  }
+
   Future<int> getTotalMessagesForRoom(String roomId) async {
     if (_isWeb) return 0;
     final store = await _getStore();

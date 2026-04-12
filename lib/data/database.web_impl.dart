@@ -37,6 +37,8 @@ class AppDatabase {
 
   Future<int> deleteMessage(String id) async => 1;
 
+  Future<int> deleteMessagesForRoom(String roomId) async => 0;
+
   Future<int> getTotalMessagesForRoom(String roomId) async => 0;
 
   Future<List<LocalChatMessage>> searchMessages(

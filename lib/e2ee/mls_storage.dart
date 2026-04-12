@@ -24,6 +24,10 @@ class MlsStorage {
     return _storage.read(key: _keyAccountId);
   }
 
+  Future<void> clearAccountId() async {
+    await _storage.delete(key: _keyAccountId);
+  }
+
   Future<String?> getDeviceId() async {
     return _storage.read(key: _keyDeviceId);
   }
