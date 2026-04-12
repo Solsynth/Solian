@@ -17,7 +17,6 @@ import 'package:island/route.gr.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/thoughts/thought.dart';
 import 'package:island/thoughts/widgets/function_calls_section.dart';
 import 'package:island/thoughts/widgets/proposals_section.dart';
 import 'package:island/thoughts/widgets/reasoning_section.dart';
@@ -419,198 +418,236 @@ class ThoughtInput extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(left: 16, right: 16, bottom: 16),
-      child: Material(
-        elevation: 2,
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(
-          isListScrolledAwayFromLatest ? 8 : 32,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-          child: Column(
-            children: [
-              // Attachment preview list
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.1),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: SizeTransition(
-                        sizeFactor: animation,
-                        axisAlignment: -1.0,
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
-                child: attachments.isNotEmpty
-                    ? SizedBox(
-                        key: ValueKey('attachments-${attachments.length}'),
-                        height: 180,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: attachments.length,
-                          itemBuilder: (context, idx) {
-                            return SizedBox(
-                              width: 180,
-                              child: AttachmentPreview(
-                                isCompact: true,
-                                item: attachments[idx],
-                                progress: attachmentProgress[idx],
-                                isUploading: attachmentProgress.containsKey(
-                                  idx,
-                                ),
-                                onRequestUpload: () => onUploadAttachment(idx),
-                                onDelete: () => onDeleteAttachment(idx),
-                                onUpdate: (value) {
-                                  final newAttachments = [...attachments];
-                                  newAttachments[idx] = value;
-                                  onAttachmentsChanged(newAttachments);
-                                },
-                                onMove: (delta) =>
-                                    _onMoveAttachment(idx, delta),
-                              ),
-                            );
-                          },
-                          separatorBuilder: (_, _) => const Gap(8),
-                        ),
-                      ).padding(vertical: 12)
-                    : const SizedBox.shrink(key: ValueKey('no-attachments')),
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          top: 0,
+          child: AnimatedContainer(
+            decoration: BoxDecoration(
+              boxShadow: [
+                if (isListScrolledAwayFromLatest)
+                  BoxShadow(
+                    color: Theme.of(context).shadowColor.withOpacity(0.25),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                    offset: const Offset(0, -4),
+                  ),
+              ],
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
-              // Attached messages/posts indicator
-              if ((attachedMessages?.isNotEmpty ?? false) ||
-                  (attachedPosts?.isNotEmpty ?? false))
-                Container(
-                  key: ValueKey(
-                    'attachments-${attachedMessages?.length ?? 0}-${attachedPosts?.length ?? 0}',
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  margin: const EdgeInsets.only(
-                    left: 8,
-                    right: 8,
-                    top: 8,
-                    bottom: 4,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Icon(
-                        Symbols.attach_file,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const Gap(4),
-                      Text(
-                        [
-                          if (attachedMessages?.isNotEmpty ?? false)
-                            '${attachedMessages!.length} message${attachedMessages!.length > 1 ? 's' : ''}',
-                          if (attachedPosts?.isNotEmpty ?? false)
-                            '${attachedPosts!.length} post${attachedPosts!.length > 1 ? 's' : ''}',
-                        ].join(', '),
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const Spacer(),
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.close, size: 14),
-                          onPressed: () {
-                            // Note: Since these are final parameters, we can't modify them directly
-                            // This would require making the sheet stateful or using a callback
-                            // For now, just show the indicator without remove functionality
-                          },
-                          tooltip: 'clear',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              color: isListScrolledAwayFromLatest
+                  ? Theme.of(context).colorScheme.surfaceContainer
+                  : Colors.transparent,
+            ),
+            duration: const Duration(milliseconds: 300),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: 16,
+          ),
+          child: Material(
+            elevation: 2,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(32),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+              child: Column(
                 children: [
-                  // Upload menu
-                  UploadMenu(
-                    items: [
-                      UploadMenuItemData(
-                        Symbols.add_a_photo,
-                        'addPhoto',
-                        () => _pickFile(),
-                      ),
-                      UploadMenuItemData(
-                        Symbols.attach_file,
-                        'linkAttachment',
-                        () => _linkAttachment(context),
-                      ),
-                    ],
-                    iconColor: Theme.of(context).colorScheme.onSurface,
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.1),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: SizeTransition(
+                                sizeFactor: animation,
+                                axisAlignment: -1.0,
+                                child: child,
+                              ),
+                            ),
+                          );
+                        },
+                    child: attachments.isNotEmpty
+                        ? SizedBox(
+                            key: ValueKey('attachments-${attachments.length}'),
+                            height: 180,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: attachments.length,
+                              itemBuilder: (context, idx) {
+                                return SizedBox(
+                                  width: 180,
+                                  child: AttachmentPreview(
+                                    isCompact: true,
+                                    item: attachments[idx],
+                                    progress: attachmentProgress[idx],
+                                    isUploading: attachmentProgress.containsKey(
+                                      idx,
+                                    ),
+                                    onRequestUpload: () =>
+                                        onUploadAttachment(idx),
+                                    onDelete: () => onDeleteAttachment(idx),
+                                    onUpdate: (value) {
+                                      final newAttachments = [...attachments];
+                                      newAttachments[idx] = value;
+                                      onAttachmentsChanged(newAttachments);
+                                    },
+                                    onMove: (delta) =>
+                                        _onMoveAttachment(idx, delta),
+                                  ),
+                                );
+                              },
+                              separatorBuilder: (_, _) => const Gap(8),
+                            ),
+                          ).padding(vertical: 12)
+                        : const SizedBox.shrink(
+                            key: ValueKey('no-attachments'),
+                          ),
                   ),
-                  Expanded(
-                    child: TextField(
-                      controller: messageController,
-                      keyboardType: TextInputType.multiline,
-                      enabled: !isStreaming && !isDisabled,
-                      decoration: InputDecoration(
-                        hintText:
-                            (isStreaming
-                                    ? 'thoughtStreamingHint'
-                                    : isDisabled
-                                    ? 'thoughtUnpaidHint'.tr()
-                                    : 'thoughtInputHint')
-                                .tr(),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
+                  if ((attachedMessages?.isNotEmpty ?? false) ||
+                      (attachedPosts?.isNotEmpty ?? false))
+                    Container(
+                      key: ValueKey(
+                        'attachments-${attachedMessages?.length ?? 0}-${attachedPosts?.length ?? 0}',
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withOpacity(0.2),
+                          width: 1,
                         ),
                       ),
-                      maxLines: 5,
-                      minLines: 1,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (!isStreaming && !isDisabled)
-                          ? (_) => onSend()
-                          : null,
+                      margin: const EdgeInsets.only(
+                        left: 8,
+                        right: 8,
+                        top: 8,
+                        bottom: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Icon(
+                            Symbols.attach_file,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const Gap(4),
+                          Text(
+                            [
+                              if (attachedMessages?.isNotEmpty ?? false)
+                                '${attachedMessages!.length} message${attachedMessages!.length > 1 ? 's' : ''}',
+                              if (attachedPosts?.isNotEmpty ?? false)
+                                '${attachedPosts!.length} post${attachedPosts!.length > 1 ? 's' : ''}',
+                            ].join(', '),
+                            style: Theme.of(context).textTheme.bodySmall!
+                                .copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.close, size: 14),
+                              onPressed: () {},
+                              tooltip: 'clear',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(isStreaming ? Symbols.stop : Icons.send),
-                    color: Theme.of(context).colorScheme.primary,
-                    onPressed: (!isStreaming && !isDisabled) ? onSend : null,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      UploadMenu(
+                        items: [
+                          UploadMenuItemData(
+                            Symbols.add_a_photo,
+                            'addPhoto',
+                            () => _pickFile(),
+                          ),
+                          UploadMenuItemData(
+                            Symbols.attach_file,
+                            'linkAttachment',
+                            () => _linkAttachment(context),
+                          ),
+                        ],
+                        iconColor: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: messageController,
+                          keyboardType: TextInputType.multiline,
+                          enabled: !isStreaming && !isDisabled,
+                          decoration: InputDecoration(
+                            hintText:
+                                (isStreaming
+                                        ? 'thoughtStreamingHint'
+                                        : isDisabled
+                                        ? 'thoughtUnpaidHint'.tr()
+                                        : 'thoughtInputHint')
+                                    .tr(),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                          ),
+                          maxLines: 5,
+                          minLines: 1,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (!isStreaming && !isDisabled)
+                              ? (_) => onSend()
+                              : null,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(isStreaming ? Symbols.stop : Icons.send),
+                        color: Theme.of(context).colorScheme.primary,
+                        onPressed: (!isStreaming && !isDisabled)
+                            ? onSend
+                            : null,
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

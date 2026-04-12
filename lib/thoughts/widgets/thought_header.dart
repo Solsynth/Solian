@@ -4,8 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/utils/text.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
-import 'package:island/thoughts/thought.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ThoughtHeader extends HookConsumerWidget {
   final String agentService;

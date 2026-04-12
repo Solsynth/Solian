@@ -48,7 +48,11 @@ void main(List<String> args) async {
   // Initialize logging
   Logger.root.onRecord.listen((record) {
     log(
-      '[${record.time}] [${record.level}] ${record.message}',
+      [
+        '[${record.time}] [${record.level}] ${record.message}',
+        if (record.error != null) 'Error: ${record.error}',
+        ?record.stackTrace,
+      ].join('\n'),
       time: record.time,
       level: record.level.value,
     );

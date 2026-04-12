@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:island/thoughts/thought.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/thoughts/widgets/thought_proposal.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ThoughtContent extends StatelessWidget {
   const ThoughtContent({

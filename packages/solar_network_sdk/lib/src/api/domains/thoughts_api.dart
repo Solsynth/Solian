@@ -1,4 +1,5 @@
 import 'package:solar_network_sdk/src/api/base_api.dart';
+import 'package:solar_network_sdk/src/models/think/thought.dart';
 
 /// API for thoughts/insight endpoints (/insight).
 ///
@@ -84,9 +85,9 @@ class ThoughtsApi extends BaseApi {
   // ==========================================
 
   /// Gets available thought services.
-  Future<List<dynamic>> getServices() async {
-    final response = await get<List<dynamic>>('$_basePath/thought/services');
-    return response.data ?? [];
+  Future<ThoughtServicesResponse> getServices() async {
+    final response = await get('$_basePath/thought/services');
+    return ThoughtServicesResponse.fromJson(response.data);
   }
 
   /// Gets a specific thought service by ID.

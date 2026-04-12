@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
-import 'package:island/thoughts/thought.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/thoughts/widgets/thought_sequence_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 

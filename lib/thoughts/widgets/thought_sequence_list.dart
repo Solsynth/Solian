@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/thoughts/thought.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final thoughtSequenceListNotifierProvider = AsyncNotifierProvider.autoDispose(
   ThoughtSequenceListNotifier.new,

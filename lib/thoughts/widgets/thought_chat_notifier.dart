@@ -10,9 +10,7 @@ import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/shared/widgets/alert.dart';
-
 import 'package:island/thoughts/screens/think.dart';
-import 'package:island/thoughts/thought.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -121,7 +119,6 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
   TextEditingController? _messageController;
   ScrollController? _scrollController;
   ListController? _listController;
-  final _bottomGradientNotifier = ValueNotifier<double>(0.0);
 
   // Track attached messages and posts for sending
   late List<Map<String, dynamic>> _attachedMessages;
@@ -142,8 +139,6 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     return _listController!;
   }
 
-  ValueNotifier<double> get bottomGradientNotifier => _bottomGradientNotifier;
-
   @override
   ThoughtChatState build(ThoughtChatArgs args) {
     // Initialize controllers
@@ -155,9 +150,6 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
 
     // Listen to services provider
     final servicesAsync = ref.watch(thoughtServicesProvider);
-
-    // Setup scroll listener for gradient
-    _setupScrollListener();
 
     // Initialize state from args and services
     String selectedServiceId = '';
@@ -181,7 +173,6 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       _messageController?.dispose();
       _scrollController?.dispose();
       // ListController doesn't need disposal
-      _bottomGradientNotifier.dispose();
     });
 
     return ThoughtChatState(
@@ -191,17 +182,6 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       services: services,
       selectedServiceId: selectedServiceId,
     );
-  }
-
-  void _setupScrollListener() {
-    final controller = scrollController;
-    void onScroll() {
-      final pixels = controller.position.pixels;
-      _bottomGradientNotifier.value = (pixels / 500.0).clamp(0.0, 1.0);
-    }
-
-    controller.addListener(onScroll);
-    ref.onDispose(() => controller.removeListener(onScroll));
   }
 
   void _scrollToBottom() {

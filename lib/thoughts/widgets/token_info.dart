@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:island/thoughts/thought.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class TokenInfo extends StatelessWidget {
   const TokenInfo({super.key, required this.thought});

@@ -60,5 +60,8 @@ export 'src/models/fitness/metric.dart';
 export 'src/models/fitness/exercise.dart';
 export 'src/models/fitness/leaderboard.dart';
 
+// Think service
+export 'src/models/think/thought.dart';
+
 // Services
 export 'src/auth/web_auth/web_auth_client.dart';

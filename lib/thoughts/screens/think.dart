@@ -6,7 +6,6 @@ import "package:gap/gap.dart";
 import "package:island/thoughts/widgets/thought_chat_notifier.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
-import "package:island/thoughts/thought.dart";
 import "package:island/thoughts/widgets/billing_status_handler.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
@@ -44,8 +43,7 @@ Future<List<SnThinkingThought>> thoughtSequence(
 @riverpod
 Future<ThoughtServicesResponse> thoughtServices(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
-  final services = await client.thoughts.getServices();
-  return ThoughtServicesResponse.fromJson({'services': services});
+  return await client.thoughts.getServices();
 }
 
 /// Deletes a thought sequence by ID.
