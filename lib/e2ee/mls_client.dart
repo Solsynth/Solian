@@ -186,9 +186,14 @@ class MlsClient {
 
   Future<Map<String, dynamic>?> bootstrapGroup(
     String mlsGroupId, {
+    String? roomId,
     bool force = false,
   }) async {
-    final result = await _groupManager.bootstrapGroup(mlsGroupId, force: force);
+    final result = await _groupManager.bootstrapGroup(
+      mlsGroupId,
+      roomId: roomId,
+      force: force,
+    );
     if (result != null) {
       eventBus.fire(MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: 1));
     }

@@ -407,7 +407,11 @@ class MessagesNotifier extends _$MessagesNotifier {
           // Epoch only increases after a commit (adding/removing members).
           // We should NOT force re-bootstrap based on epoch alone.
           // Instead, let bootstrapGroup decide if a group needs to be created.
-          await mlsClient.bootstrapGroup(room.mlsGroupId!, force: false);
+          await mlsClient.bootstrapGroup(
+            room.mlsGroupId!,
+            roomId: roomId,
+            force: false,
+          );
         } catch (e) {
           Logger.root.severe(
             'Failed to bootstrap MLS group for room $roomId: $e',

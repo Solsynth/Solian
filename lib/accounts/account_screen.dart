@@ -15,8 +15,6 @@ import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/e2ee/mls_engine.dart';
-import 'package:island/e2ee/mls_storage.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -407,13 +405,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                 // Fire and forgot
                 client.auth.revokeCurrentSession();
                 await resetDatabase(ref);
-
-                // Clear MLS storage on logout
-                final storage = MlsStorage();
-                await storage.clearAll();
-                await storage.clearAccountId();
-                MlsEngineService.resetInstance();
-
                 if (!context.mounted) return;
                 hideLoadingModal(context);
                 final userNotifier = ref.read(userInfoProvider.notifier);

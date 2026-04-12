@@ -81,19 +81,19 @@ class MlsGroupManager {
     return {'X-Client-Ability': 'chat.mls.v2', 'X-Device-Id': ?deviceId};
   }
 
-  Future<void> _notifyGroupJoined(String chatRoomId) async {
+  Future<void> _notifyGroupJoined({
+    required String roomId,
+    required int epoch,
+  }) async {
     try {
       final deviceId = await _identityManager.getOrCreateDeviceId();
-      final epoch = await getCurrentEpoch(chatRoomId);
       await _apiClient.post(
-        '/messager/chat/$chatRoomId/devices/me/joined',
+        '/messager/chat/$roomId/devices/me/joined',
         data: {'mls_device_id': deviceId, 'epoch': epoch},
       );
-      _mlsLog(
-        'Notified server of group join for room $chatRoomId (epoch: $epoch)',
-      );
+      _mlsLog('Notified server of group join for room $roomId (epoch: $epoch)');
     } catch (e) {
-      _mlsLogWarn('Failed to notify group joined for room $chatRoomId: $e');
+      _mlsLogWarn('Failed to notify group joined for room $roomId: $e');
     }
   }
 
@@ -142,7 +142,7 @@ class MlsGroupManager {
     }
 
     _mlsLog('ensureGroupAvailable: group not found, bootstrapping...');
-    await bootstrapGroup(mlsGroupId, force: true);
+    await bootstrapGroup(mlsGroupId, roomId: mlsGroupId, force: true);
 
     try {
       final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
@@ -177,11 +177,13 @@ class MlsGroupManager {
 
   /// Bootstrap an MLS group for a room.
   ///
-  /// [mlsGroupId] - The room identifier
+  /// [mlsGroupId] - The room identifier (also used as roomId if not specified)
+  /// [roomId] - Chat room ID for notifying the server (defaults to mlsGroupId)
   /// [force] - If true, re-create the group even if one exists
   /// [invitedMembers] - Optional list of member IDs to fan out Welcome to
   Future<Map<String, dynamic>?> bootstrapGroup(
     String mlsGroupId, {
+    String? roomId,
     bool force = false,
     List<String>? invitedMembers,
   }) async {
@@ -299,7 +301,10 @@ class MlsGroupManager {
         await fanoutWelcome(mlsGroupId, invitedMembers);
       }
 
-      await _notifyGroupJoined(mlsGroupId);
+      await _notifyGroupJoined(
+        roomId: roomId ?? mlsGroupId,
+        epoch: epoch.toInt(),
+      );
 
       return await getGroupState(mlsGroupId);
     } catch (e) {
@@ -310,8 +315,9 @@ class MlsGroupManager {
 
   Future<Map<String, dynamic>?> joinGroupFromWelcome(
     String mlsGroupId,
-    Uint8List welcomeBytes,
-  ) async {
+    Uint8List welcomeBytes, {
+    String? roomId,
+  }) async {
     try {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
@@ -344,7 +350,10 @@ class MlsGroupManager {
 
       _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'welcome_join');
 
-      await _notifyGroupJoined(mlsGroupId);
+      await _notifyGroupJoined(
+        roomId: roomId ?? mlsGroupId,
+        epoch: epoch.toInt(),
+      );
 
       return await getGroupState(mlsGroupId);
     } catch (e) {
@@ -640,12 +649,11 @@ class MlsGroupManager {
       await _padlockClient.post(
         '/e2ee/mls/groups/$mlsGroupId/commit/fanout',
         data: {
-          'payloads': {
-            'ciphertext': commitBase64,
-            'header': header,
-            'client_message_id': clientMessageId,
-            'meta': {'reason': 'member_add'},
-          },
+          'epoch': newEpoch,
+          'ciphertext': commitBase64,
+          'header': header,
+          'client_message_id': clientMessageId,
+          'meta': {'reason': 'member_add'},
         },
         options: Options(headers: await _getMlsHeaders()),
       );
@@ -875,7 +883,7 @@ class MlsGroupManager {
     }
   }
 
-  Future<bool> joinGroupExternal(String mlsGroupId) async {
+  Future<bool> joinGroupExternal(String mlsGroupId, {String? roomId}) async {
     try {
       _mlsLog('Attempting external join for group $mlsGroupId');
 
@@ -949,7 +957,10 @@ class MlsGroupManager {
 
       await uploadGroupInfo(mlsGroupId);
 
-      await _notifyGroupJoined(mlsGroupId);
+      await _notifyGroupJoined(
+        roomId: roomId ?? mlsGroupId,
+        epoch: newEpoch.toInt(),
+      );
 
       return true;
     } catch (e, stack) {
@@ -990,7 +1001,7 @@ class MlsGroupManager {
       }
       _mlsLog('Sent reshare requests for all members in room $roomId');
 
-      await bootstrapGroup(mlsGroupId, force: true);
+      await bootstrapGroup(mlsGroupId, roomId: roomId, force: true);
       _mlsLog('Bootstrap completed for room $roomId');
 
       return true;
@@ -1043,7 +1054,7 @@ class MlsGroupManager {
       }
     }
 
-    await bootstrapGroup(mlsGroupId, force: true);
+    await bootstrapGroup(mlsGroupId, roomId: roomId, force: true);
 
     // Fetch all members and re-add them to the new MLS group (excluding creator)
     try {

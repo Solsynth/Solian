@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/e2ee/mls_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -150,8 +151,13 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.remove(kTokenPairStoreKey);
     ref.invalidate(tokenProvider);
+    ref.invalidate(userInfoProvider);
     AnalyticsService().setUserId(null);
     AnalyticsService().logLogout();
+
+    final mlsStorage = MlsStorage();
+    await mlsStorage.clearAllForLogout();
+    Logger.root.info('MLS storage cleared on logout');
   }
 }
 

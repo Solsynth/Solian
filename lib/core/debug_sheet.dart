@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/screens/e2ee_keypair_screen.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/e2ee/mls_engine.dart';
 import 'package:island/e2ee/mls_storage.dart';
@@ -704,22 +703,6 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
         ),
         _Divider(),
         _DebugItem(
-          icon: Symbols.key,
-          title: 'E2EE keypairs',
-          onTap: () {
-            final navCtx = ref
-                .read(routerProvider)
-                .navigatorKey
-                .currentContext!;
-            Navigator.of(navCtx).push(
-              MaterialPageRoute(
-                builder: (context) => const E2eeKeypairScreen(),
-              ),
-            );
-          },
-        ),
-        _Divider(),
-        _DebugItem(
           icon: Symbols.delete,
           title: 'Reset database',
           onTap: () async {
@@ -731,7 +714,12 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           title: 'MLS Diagnostics',
           onTap: () async {
             try {
+              showLoadingModal(context);
+
               final mlsClient = ref.read(mlsClientProvider);
+              final mlsService = MlsEngineService.getInstance();
+              final engine = await mlsService;
+
               final deviceId = await mlsClient.getDeviceId();
               final signerPub = await mlsClient.identityManager
                   .getSignerPublicKey();
@@ -743,6 +731,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               final info = StringBuffer();
               info.writeln('MLS Diagnostics');
               info.writeln('─' * 30);
+              info.writeln('Engine Initialized: ${engine.isInitialized}');
               info.writeln('Device ID: ${deviceId ?? "null"}');
               info.writeln('Account ID: ${accountId ?? "null"}');
               final signerPubStr = base64Encode(signerPub);
@@ -763,9 +752,11 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
               }
 
               if (!context.mounted) return;
+              hideLoadingModal(context);
               showInfoAlert(info.toString(), 'MLS Diagnostics');
             } catch (e) {
               if (!context.mounted) return;
+              hideLoadingModal(context);
               showErrorAlert(e);
             }
           },
@@ -783,7 +774,6 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             if (confirmed == true) {
               final storage = MlsStorage();
               await storage.clearAll();
-              await storage.clearAccountId();
               MlsEngineService.resetInstance();
               showInfoAlert(
                 'MLS storage cleared. Please restart the app.',
@@ -1168,21 +1158,6 @@ class DebugSheet extends HookConsumerWidget {
             const Divider(height: 8),
             ListTile(
               minTileHeight: 48,
-              leading: const Icon(Symbols.key),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('E2EE keypairs'),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const E2eeKeypairScreen(),
-                  ),
-                );
-              },
-            ),
-            const Divider(height: 8),
-            ListTile(
-              minTileHeight: 48,
               leading: const Icon(Symbols.delete),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
@@ -1199,7 +1174,12 @@ class DebugSheet extends HookConsumerWidget {
               title: const Text('MLS Diagnostics'),
               onTap: () async {
                 try {
+                  showLoadingModal(context);
+
                   final mlsClient = ref.read(mlsClientProvider);
+                  final mlsService = MlsEngineService.getInstance();
+                  final engine = await mlsService;
+
                   final deviceId = await mlsClient.getDeviceId();
                   final signerPub = await mlsClient.identityManager
                       .getSignerPublicKey();
@@ -1211,6 +1191,7 @@ class DebugSheet extends HookConsumerWidget {
                   final info = StringBuffer();
                   info.writeln('MLS Diagnostics');
                   info.writeln('─' * 30);
+                  info.writeln('Engine Initialized: ${engine.isInitialized}');
                   info.writeln('Device ID: ${deviceId ?? "null"}');
                   info.writeln('Account ID: ${accountId ?? "null"}');
                   final signerPubStr = base64Encode(signerPub);
@@ -1231,9 +1212,11 @@ class DebugSheet extends HookConsumerWidget {
                   }
 
                   if (!context.mounted) return;
+                  hideLoadingModal(context);
                   showInfoAlert(info.toString(), 'MLS Diagnostics');
                 } catch (e) {
                   if (!context.mounted) return;
+                  hideLoadingModal(context);
                   showErrorAlert(e);
                 }
               },
@@ -1252,12 +1235,24 @@ class DebugSheet extends HookConsumerWidget {
                   isDanger: true,
                 );
                 if (confirmed == true) {
+                  final mlsClient = ref.read(mlsClientProvider);
+                  final accountId = await mlsClient.identityManager
+                      .getCurrentAccountId();
+                  final deviceId = await mlsClient.getDeviceId();
+
                   final storage = MlsStorage();
                   await storage.clearAll();
-                  await storage.clearAccountId();
                   MlsEngineService.resetInstance();
+
+                  if (deviceId != null) {
+                    await storage.setDeviceId(deviceId);
+                  }
+                  if (accountId != null) {
+                    await storage.setAccountId(accountId);
+                  }
+
                   showInfoAlert(
-                    'MLS storage cleared. Please restart the app.',
+                    'MLS storage cleared and device/account ID preserved. Please restart the app.',
                     'Done',
                   );
                 }

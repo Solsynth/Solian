@@ -50,6 +50,8 @@ PODS:
   - objectbox_flutter_libs (0.0.1):
     - Flutter
     - ObjectBox (= 5.3.0-beta.4)
+  - open_file_ios (1.0.3):
+    - Flutter
   - OrderedSet (6.0.3)
   - passkeys_darwin (0.0.1):
     - Flutter
@@ -88,6 +90,7 @@ DEPENDENCIES:
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - native_exif (from `.symlinks/plugins/native_exif/ios`)
   - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
+  - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
   - passkeys_darwin (from `.symlinks/plugins/passkeys_darwin/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - protocol_handler_ios (from `.symlinks/plugins/protocol_handler_ios/ios`)
@@ -135,6 +138,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/native_exif/ios"
   objectbox_flutter_libs:
     :path: ".symlinks/plugins/objectbox_flutter_libs/ios"
+  open_file_ios:
+    :path: ".symlinks/plugins/open_file_ios/ios"
   passkeys_darwin:
     :path: ".symlinks/plugins/passkeys_darwin/darwin"
   permission_handler_apple:
@@ -170,6 +175,7 @@ SPEC CHECKSUMS:
   native_exif: 0eb73d3d5b3ca892719228df8d2d1b13d1ae396c
   ObjectBox: eccb95ea2054c39d81dfa2d4ccc5f1e31187228a
   objectbox_flutter_libs: ed1510f71602e4a0d3f2a721324e468d066fdbb9
+  open_file_ios: 46184d802ee7959203f6392abcfa0dd49fdb5be0
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   passkeys_darwin: 0a09d3b26cea8de1ec3bb8f8c7c159981f63bbc7
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d

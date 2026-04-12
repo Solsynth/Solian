@@ -202,6 +202,26 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
         return handler.next(error);
       },
     ),
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        Logger.root.fine('[API] ${options.method} ${options.uri}');
+        handler.next(options);
+      },
+      onResponse: (options, handler) {
+        if (options.statusCode != null &&
+            options.statusCode! >= 200 &&
+            options.statusCode! < 300) {
+          Logger.root.fine(
+            '[API] OK ${options.statusCode} ${options.requestOptions.method} ${options.requestOptions.uri}',
+          );
+        } else {
+          Logger.root.warning(
+            '[API] FAIL ${options.statusCode} ${options.requestOptions.method} ${options.requestOptions.uri}\nHeaders: ${options.requestOptions.headers}\nRequest: ${options.requestOptions.data}\nResponse: ${options.data}',
+          );
+        }
+        handler.next(options);
+      },
+    ),
     RetryInterceptor(
       dio: dio,
       retries: 3,
@@ -233,6 +253,26 @@ final apiClientProvider = Provider<Dio>((ref) {
   );
 
   dio.interceptors.addAll([
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        Logger.root.fine('[API] ${options.method} ${options.uri}');
+        handler.next(options);
+      },
+      onResponse: (options, handler) {
+        if (options.statusCode != null &&
+            options.statusCode! >= 200 &&
+            options.statusCode! < 300) {
+          Logger.root.fine(
+            '[API] OK ${options.statusCode} ${options.requestOptions.method} ${options.requestOptions.uri}',
+          );
+        } else {
+          Logger.root.warning(
+            '[API] FAIL ${options.statusCode} ${options.requestOptions.method} ${options.requestOptions.uri}\nHeaders: ${options.requestOptions.headers}\nRequest: ${options.requestOptions.data}\nResponse: ${options.data}',
+          );
+        }
+        handler.next(options);
+      },
+    ),
     InterceptorsWrapper(
       onRequest:
           (RequestOptions options, RequestInterceptorHandler handler) async {

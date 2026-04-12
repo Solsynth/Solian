@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logging/logging.dart';
 
 class MlsStorage {
   static const _storage = FlutterSecureStorage(
@@ -22,10 +23,6 @@ class MlsStorage {
 
   Future<String?> getAccountId() async {
     return _storage.read(key: _keyAccountId);
-  }
-
-  Future<void> clearAccountId() async {
-    await _storage.delete(key: _keyAccountId);
   }
 
   Future<String?> getDeviceId() async {
@@ -110,6 +107,25 @@ class MlsStorage {
 
   Future<void> clearAll() async {
     await _storage.deleteAll();
+  }
+
+  Future<void> clearAllForLogout() async {
+    final keysToPreserve = [
+      _keyDeviceId,
+      _keyAccountId,
+      'mls_db_encryption_key',
+    ];
+
+    final allKeys = await _storage.readAll();
+    for (final key in allKeys.keys) {
+      if (!keysToPreserve.contains(key)) {
+        await _storage.delete(key: key);
+      }
+    }
+
+    Logger.root.info(
+      'MLS storage cleared for logout, preserved deviceId and accountId',
+    );
   }
 
   Future<void> deleteAccountData() async {
