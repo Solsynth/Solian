@@ -331,6 +331,11 @@ class MessageContent extends StatelessWidget {
           Symbols.key_vertical,
           item.content ?? 'E2EE sender key rotation required',
         );
+      case 'system.e2ee.history_unavailable':
+        return (
+          Symbols.history,
+          item.content ?? 'Message history is no longer available',
+        );
       case 'system.call.member.joined':
         return (
           Symbols.phone_in_talk,

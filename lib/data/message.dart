@@ -52,11 +52,18 @@ class LocalChatMessage {
   });
 
   SnChatMessage toRemoteMessage() {
-    if (sender == null) {
-      throw Exception('Cannot create remote message without sender');
-    }
     final msgData = Map<String, dynamic>.from(data);
-    msgData['sender'] = sender!.toJson();
+    if (sender != null) {
+      msgData['sender'] = sender!.toJson();
+    } else {
+      msgData['sender'] = {
+        'id': senderId,
+        'account_id': senderId,
+        'display_name': 'System',
+        'avatar_url': null,
+        'custom_id': null,
+      };
+    }
     return SnChatMessage.fromJson(msgData);
   }
 

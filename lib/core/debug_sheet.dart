@@ -634,6 +634,22 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           },
         ),
         _DebugItem(
+          icon: Symbols.login,
+          title: 'Test external join popup',
+          onTap: () {
+            final notifier = ref.read(mlsStatePopupProvider.notifier);
+            notifier.testShowExternalJoin(deviceLabel: 'Test iPhone');
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.sync,
+          title: 'Test epoch recovery popup',
+          onTap: () {
+            final notifier = ref.read(mlsStatePopupProvider.notifier);
+            notifier.testShowRecoveringEpoch(deviceLabel: 'Test iPhone');
+          },
+        ),
+        _DebugItem(
           icon: Symbols.cloud,
           title: 'Test server WS packet',
           onTap: () async {
@@ -758,29 +774,16 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           icon: Icons.delete_outline,
           title: 'Clear MLS storage',
           onTap: () async {
-            final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Clear MLS Storage?'),
-                content: const Text(
-                  'This will delete all MLS group states, credentials, and key packages. '
+            final confirmed = await showConfirmAlert(
+              'This will delete all MLS group states, credentials, and key packages. '
                   'You will need to re-register your device and re-bootstrap all groups.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Clear'),
-                  ),
-                ],
-              ),
+              'Clear MLS Storage?',
+              isDanger: true,
             );
             if (confirmed == true) {
               final storage = MlsStorage();
               await storage.clearAll();
+              await storage.clearAccountId();
               MlsEngineService.resetInstance();
               showInfoAlert(
                 'MLS storage cleared. Please restart the app.',
@@ -1077,6 +1080,28 @@ class DebugSheet extends HookConsumerWidget {
             ),
             ListTile(
               minTileHeight: 48,
+              leading: const Icon(Symbols.login),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test external join popup'),
+              onTap: () {
+                final notifier = ref.read(mlsStatePopupProvider.notifier);
+                notifier.testShowExternalJoin(deviceLabel: 'Test iPhone');
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.sync),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test epoch recovery popup'),
+              onTap: () {
+                final notifier = ref.read(mlsStatePopupProvider.notifier);
+                notifier.testShowRecoveringEpoch(deviceLabel: 'Test iPhone');
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
               leading: const Icon(Symbols.cloud),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -1220,29 +1245,16 @@ class DebugSheet extends HookConsumerWidget {
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               title: const Text('Clear MLS storage'),
               onTap: () async {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Clear MLS Storage?'),
-                    content: const Text(
-                      'This will delete all MLS group states, credentials, and key packages. '
+                final confirmed = await showConfirmAlert(
+                  'This will delete all MLS group states, credentials, and key packages. '
                       'You will need to re-register your device and re-bootstrap all groups.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Clear'),
-                      ),
-                    ],
-                  ),
+                  'Clear MLS Storage?',
+                  isDanger: true,
                 );
                 if (confirmed == true) {
                   final storage = MlsStorage();
                   await storage.clearAll();
+                  await storage.clearAccountId();
                   MlsEngineService.resetInstance();
                   showInfoAlert(
                     'MLS storage cleared. Please restart the app.',

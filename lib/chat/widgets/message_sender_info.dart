@@ -10,7 +10,7 @@ import 'package:styled_widget/styled_widget.dart';
 
 class MessageSenderInfo extends StatelessWidget {
   final String roomId;
-  final SnChatMember sender;
+  final SnChatMember? sender;
   final DateTime createdAt;
   final Color textColor;
   final bool showAvatar;
@@ -26,8 +26,24 @@ class MessageSenderInfo extends StatelessWidget {
     this.isCompact = false,
   });
 
+  bool get _isSystemMessage {
+    final accountId = sender?.accountId;
+    if (accountId == 'system') return true;
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (sender == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (_isSystemMessage) {
+      return const SizedBox.shrink();
+    }
+
+    final s = sender!;
+
     final timestamp = DateTime.now().difference(createdAt).inDays > 365
         ? DateFormat('yyyy/MM/dd HH:mm').format(createdAt.toLocal())
         : DateTime.now().difference(createdAt).inDays > 0
@@ -43,26 +59,29 @@ class MessageSenderInfo extends StatelessWidget {
           if (showAvatar)
             ChatRoomMemberRegion(
               roomId: roomId,
-              member: sender,
+              member: s,
               child: ProfilePictureWidget(
-                file: sender.account.profile.picture,
+                file: s.account.profile.picture,
                 radius: 14,
               ),
             ),
           if (showAvatar) const Gap(4),
           Row(
             children: [
-                AccountName(
-                  textOverride:
-                      (sender.nick?.isNotEmpty == true) ? sender.nick : (sender.realmNick?.isNotEmpty == true) ? sender.realmNick : sender.account.nick,
-                  account: sender.account,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
+              AccountName(
+                textOverride: (s.nick?.isNotEmpty == true)
+                    ? s.nick
+                    : (s.realmNick?.isNotEmpty == true)
+                    ? s.realmNick
+                    : s.account.nick,
+                account: s.account,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
                 ),
-              if (sender.realmLabel != null)
-                RealmLabelWidget(label: sender.realmLabel!).padding(left: 6),
+              ),
+              if (s.realmLabel != null)
+                RealmLabelWidget(label: s.realmLabel!).padding(left: 6),
             ],
           ),
           const Gap(6),
@@ -80,9 +99,9 @@ class MessageSenderInfo extends StatelessWidget {
         children: [
           ChatRoomMemberRegion(
             roomId: roomId,
-            member: sender,
+            member: s,
             child: ProfilePictureWidget(
-              file: sender.account.profile.picture,
+              file: s.account.profile.picture,
               radius: 14,
             ),
           ),
@@ -93,18 +112,19 @@ class MessageSenderInfo extends StatelessWidget {
                 Row(
                   children: [
                     AccountName(
-                      textOverride:
-                          (sender.nick?.isNotEmpty == true) ? sender.nick : (sender.realmNick?.isNotEmpty == true) ? sender.realmNick : sender.account.nick,
-                      account: sender.account,
+                      textOverride: (s.nick?.isNotEmpty == true)
+                          ? s.nick
+                          : (s.realmNick?.isNotEmpty == true)
+                          ? s.realmNick
+                          : s.account.nick,
+                      account: s.account,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (sender.realmLabel != null)
-                      RealmLabelWidget(
-                        label: sender.realmLabel!,
-                      ).padding(left: 6),
+                    if (s.realmLabel != null)
+                      RealmLabelWidget(label: s.realmLabel!).padding(left: 6),
                   ],
                 ),
                 Text(
@@ -128,9 +148,9 @@ class MessageSenderInfo extends StatelessWidget {
         if (showAvatar)
           ChatRoomMemberRegion(
             roomId: roomId,
-            member: sender,
+            member: s,
             child: ProfilePictureWidget(
-              file: sender.account.profile.picture,
+              file: s.account.profile.picture,
               radius: 16,
             ),
           ),
@@ -142,13 +162,16 @@ class MessageSenderInfo extends StatelessWidget {
             Row(
               children: [
                 AccountName(
-                  textOverride:
-                      (sender.nick?.isNotEmpty == true) ? sender.nick : (sender.realmNick?.isNotEmpty == true) ? sender.realmNick : sender.account.nick,
-                  account: sender.account,
+                  textOverride: (s.nick?.isNotEmpty == true)
+                      ? s.nick
+                      : (s.realmNick?.isNotEmpty == true)
+                      ? s.realmNick
+                      : s.account.nick,
+                  account: s.account,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                if (sender.realmLabel != null)
-                  RealmLabelWidget(label: sender.realmLabel!).padding(left: 6),
+                if (s.realmLabel != null)
+                  RealmLabelWidget(label: s.realmLabel!).padding(left: 6),
               ],
             ),
           ],

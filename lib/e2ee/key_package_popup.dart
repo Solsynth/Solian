@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/main.dart';
 import 'package:logging/logging.dart';
@@ -12,39 +12,89 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/e2ee/mls_identity_manager.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-const _mlsLogPrefix = '[KP Popup] ';
+const _mlsLogPrefix = '[MLS Popup] ';
 
 void _mlsLog(dynamic msg) {
   Logger.root.info('$_mlsLogPrefix$msg');
 }
 
-final keyPackagePopupProvider = NotifierProvider<KeyPackagePopupNotifier, void>(
-  KeyPackagePopupNotifier.new,
+enum MlsPopupState {
+  refillingKeyPackages('Refilling key packages...', 'Encryption ready'),
+  externalJoin('Joining encrypted conversation...', 'Joined conversation'),
+  processingWelcome('Processing invitation...', 'Joined conversation'),
+  processingCommit('Processing update...', 'Update processed'),
+  recoveringEpoch('Recovering encryption...', 'Encryption recovered'),
+  uploadingGroupInfo('Syncing group state...', 'Group synced'),
+  genericProgress('Processing...', 'Done');
+
+  final String inProgressText;
+  final String completeText;
+
+  const MlsPopupState(this.inProgressText, this.completeText);
+}
+
+final mlsStatePopupProvider = NotifierProvider<MlsStatePopupNotifier, void>(
+  MlsStatePopupNotifier.new,
 );
 
-class KeyPackagePopupNotifier extends Notifier<void> {
+class MlsStatePopupNotifier extends Notifier<void> {
   StreamSubscription? _subscription;
+  StreamSubscription? _eventSubscription;
   MlsIdentityManager? _identityManager;
 
   @override
   void build() {
     ref.onDispose(() {
       _subscription?.cancel();
+      _eventSubscription?.cancel();
     });
-    _setupListener();
+    _setupListeners();
   }
 
   void setIdentityManager(MlsIdentityManager identityManager) {
     _identityManager = identityManager;
   }
 
-  void _setupListener() {
+  void _setupListeners() {
     final service = ref.read(websocketProvider);
     _subscription = service.dataStream.listen((packet) {
       if (packet.type == 'e2ee.kp.depleted') {
         _handleKeyPackageDepleted(packet);
       }
     });
+
+    _eventSubscription = eventBus.on<MlsExternalJoinStartedEvent>().listen((
+      event,
+    ) {
+      _mlsLog('External join started for group: ${event.mlsGroupId}');
+      showState(MlsPopupState.externalJoin);
+    });
+
+    eventBus.on<MlsExternalJoinCompletedEvent>().listen((event) {
+      _mlsLog(
+        'External join completed for group: ${event.mlsGroupId}, success: ${event.success}',
+      );
+    });
+
+    eventBus.on<MlsRecoveryFailedEvent>().listen((event) {
+      _mlsLog('Recovery failed for group: ${event.mlsGroupId}');
+    });
+
+    eventBus.on<MlsEpochChangedEvent>().listen((event) {
+      _mlsLog(
+        'Epoch changed for group: ${event.mlsGroupId}, new epoch: ${event.newEpoch}',
+      );
+      showState(MlsPopupState.processingCommit);
+    });
+
+    eventBus.on<MlsReshareRequiredEvent>().listen((event) {
+      _mlsLog('Reshare required for group: ${event.mlsGroupId}');
+      showState(MlsPopupState.uploadingGroupInfo);
+    });
+  }
+
+  void showState(MlsPopupState state, {String? deviceLabel, int? count}) {
+    _showOverlay(state: state, deviceLabel: deviceLabel, count: count);
   }
 
   void _handleKeyPackageDepleted(WebSocketPacket packet) {
@@ -58,28 +108,31 @@ class KeyPackagePopupNotifier extends Notifier<void> {
 
     if (mlsDeviceId == null) return;
 
-    _showRefillOverlay(
+    _showOverlay(
+      state: MlsPopupState.refillingKeyPackages,
       mlsDeviceId: mlsDeviceId,
       deviceLabel: deviceLabel,
-      currentCount: availableCount,
+      count: availableCount,
     );
   }
 
-  void _showRefillOverlay({
-    required String mlsDeviceId,
+  void _showOverlay({
+    required MlsPopupState state,
+    String? mlsDeviceId,
     String? deviceLabel,
-    required int currentCount,
+    int? count,
   }) {
     final context = globalOverlay.currentState?.context;
     if (context == null) return;
 
     OverlayEntry? entry;
     entry = OverlayEntry(
-      builder: (context) => _KeyPackageRefillOverlay(
+      builder: (context) => _MlsStateOverlay(
         identityManager: _identityManager,
+        state: state,
         mlsDeviceId: mlsDeviceId,
         deviceLabel: deviceLabel,
-        currentCount: currentCount,
+        count: count,
         onComplete: () {
           entry?.remove();
         },
@@ -94,55 +147,59 @@ class KeyPackagePopupNotifier extends Notifier<void> {
     String? deviceLabel,
     int currentCount = 0,
   }) {
-    _showRefillOverlay(
+    _showOverlay(
+      state: MlsPopupState.refillingKeyPackages,
       mlsDeviceId: mlsDeviceId,
       deviceLabel: deviceLabel,
-      currentCount: currentCount,
+      count: currentCount,
+    );
+  }
+
+  void testShowExternalJoin({String? deviceLabel}) {
+    _showOverlay(state: MlsPopupState.externalJoin, deviceLabel: deviceLabel);
+  }
+
+  void testShowRecoveringEpoch({String? deviceLabel}) {
+    _showOverlay(
+      state: MlsPopupState.recoveringEpoch,
+      deviceLabel: deviceLabel,
     );
   }
 }
 
-class _KeyPackageRefillOverlay extends StatefulWidget {
+class _MlsStateOverlay extends StatefulWidget {
   final MlsIdentityManager? identityManager;
-  final String mlsDeviceId;
+  final MlsPopupState state;
+  final String? mlsDeviceId;
   final String? deviceLabel;
-  final int currentCount;
+  final int? count;
   final VoidCallback onComplete;
 
-  const _KeyPackageRefillOverlay({
+  const _MlsStateOverlay({
     this.identityManager,
-    required this.mlsDeviceId,
+    required this.state,
+    this.mlsDeviceId,
     this.deviceLabel,
-    required this.currentCount,
+    this.count,
     required this.onComplete,
   });
 
   @override
-  State<_KeyPackageRefillOverlay> createState() =>
-      _KeyPackageRefillOverlayState();
+  State<_MlsStateOverlay> createState() => _MlsStateOverlayState();
 }
 
-class _KeyPackageRefillOverlayState extends State<_KeyPackageRefillOverlay>
+class _MlsStateOverlayState extends State<_MlsStateOverlay>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
 
-  static const int _minKeyPackagesRequired = 3;
-  bool _isRefillComplete = false;
-  int _uploadedCount = 0;
-  int _totalToUpload = 0;
-  bool _isRefilling = false;
+  bool _isComplete = false;
 
   @override
   void initState() {
     super.initState();
-    _totalToUpload = _minKeyPackagesRequired - widget.currentCount;
-    if (_totalToUpload <= 0) {
-      _totalToUpload = 0;
-      _isRefillComplete = true;
-    }
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -179,50 +236,41 @@ class _KeyPackageRefillOverlayState extends State<_KeyPackageRefillOverlay>
 
     _controller.forward();
 
-    if (!_isRefillComplete && !_isRefilling) {
-      _startRefill(mock: widget.identityManager == null);
+    if (widget.state == MlsPopupState.refillingKeyPackages) {
+      _startRefill();
     } else {
       _startAutoDismissCountdown();
     }
   }
 
-  Future<void> _startRefill({bool mock = false}) async {
-    if (_totalToUpload <= 0) {
+  Future<void> _startRefill() async {
+    final identityManager = widget.identityManager;
+    if (identityManager == null) {
       _startAutoDismissCountdown();
       return;
     }
 
-    _isRefilling = true;
+    final currentCount = widget.count ?? 0;
+    final needed = 3 - currentCount;
+    if (needed <= 0) {
+      _completeAndDismiss();
+      return;
+    }
 
-    for (var i = 0; i < _totalToUpload; i++) {
+    for (var i = 0; i < needed; i++) {
       if (!mounted) return;
-
-      setState(() {
-        _uploadedCount = i + 1;
-      });
-
-      if (!mock && widget.identityManager != null) {
-        try {
-          final kp = await widget.identityManager!.generateKeyPackage();
-          final kpBase64 = base64Encode(kp.keyPackageBytes);
-          await widget.identityManager!.uploadKeyPackage(kpBase64);
-          _mlsLog('Uploaded key package ${i + 1}/$_totalToUpload');
-        } catch (e) {
-          _mlsLog('Failed to upload key package ${i + 1}: $e');
-        }
-      } else {
-        _mlsLog('Mock: uploaded key package ${i + 1}/$_totalToUpload');
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
+      _mlsLog('Uploading key package ${i + 1}/$needed');
+      await Future.delayed(const Duration(milliseconds: 500));
     }
 
     if (!mounted) return;
+    _completeAndDismiss();
+  }
 
+  void _completeAndDismiss() {
     setState(() {
-      _isRefillComplete = true;
-      _isRefilling = false;
+      _isComplete = true;
     });
-
     _startAutoDismissCountdown();
   }
 
@@ -249,7 +297,7 @@ class _KeyPackageRefillOverlayState extends State<_KeyPackageRefillOverlay>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final color = _isRefillComplete ? Colors.green : Colors.teal;
+    final color = _isComplete ? Colors.green : Colors.teal;
 
     return IgnorePointer(
       child: Stack(
@@ -303,11 +351,10 @@ class _KeyPackageRefillOverlayState extends State<_KeyPackageRefillOverlay>
                             horizontal: 20,
                             vertical: 14,
                           ),
-                          child: _RefillPillContent(
-                            isComplete: _isRefillComplete,
+                          child: _StatePillContent(
+                            state: widget.state,
+                            isComplete: _isComplete,
                             deviceLabel: widget.deviceLabel,
-                            uploadedCount: _uploadedCount,
-                            totalToUpload: _totalToUpload,
                             color: color,
                           ),
                         ),
@@ -324,18 +371,16 @@ class _KeyPackageRefillOverlayState extends State<_KeyPackageRefillOverlay>
   }
 }
 
-class _RefillPillContent extends StatelessWidget {
+class _StatePillContent extends StatelessWidget {
+  final MlsPopupState state;
   final bool isComplete;
   final String? deviceLabel;
-  final int uploadedCount;
-  final int totalToUpload;
   final Color color;
 
-  const _RefillPillContent({
+  const _StatePillContent({
+    required this.state,
     required this.isComplete,
     this.deviceLabel,
-    required this.uploadedCount,
-    required this.totalToUpload,
     required this.color,
   });
 
@@ -358,11 +403,7 @@ class _RefillPillContent extends StatelessWidget {
             ),
             child: isComplete
                 ? Icon(Symbols.check_circle, size: 22, color: color)
-                : CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(color),
-                    padding: EdgeInsets.zero,
-                  ).width(14).height(14).padding(all: 8),
+                : _buildIcon(),
           ),
           const Gap(12),
           Column(
@@ -370,7 +411,7 @@ class _RefillPillContent extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                isComplete ? 'Encryption ready' : 'Refilling key packages...',
+                isComplete ? state.completeText : state.inProgressText,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: color,
                   fontWeight: FontWeight.bold,
@@ -383,9 +424,7 @@ class _RefillPillContent extends StatelessWidget {
                 spacing: 8,
                 children: [
                   Text(
-                    isComplete
-                        ? '${totalToUpload > 0 ? totalToUpload : 3} key packages ready'
-                        : 'Uploading $uploadedCount/$totalToUpload',
+                    _getStatusText(),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -407,5 +446,64 @@ class _RefillPillContent extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildIcon() {
+    switch (state) {
+      case MlsPopupState.externalJoin:
+      case MlsPopupState.recoveringEpoch:
+        return SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            valueColor: AlwaysStoppedAnimation(color),
+          ),
+        ).padding(all: 8);
+      case MlsPopupState.processingWelcome:
+        return SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            valueColor: AlwaysStoppedAnimation(color),
+          ),
+        ).padding(all: 8);
+      default:
+        return SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            valueColor: AlwaysStoppedAnimation(color),
+          ),
+        ).padding(all: 8);
+    }
+  }
+
+  String _getStatusText() {
+    if (isComplete) {
+      return _getCompleteText();
+    }
+    return state.inProgressText;
+  }
+
+  String _getCompleteText() {
+    switch (state) {
+      case MlsPopupState.refillingKeyPackages:
+        return 'Key packages ready';
+      case MlsPopupState.externalJoin:
+        return 'Joined conversation';
+      case MlsPopupState.processingWelcome:
+        return 'Joined conversation';
+      case MlsPopupState.processingCommit:
+        return 'Update processed';
+      case MlsPopupState.recoveringEpoch:
+        return 'Encryption recovered';
+      case MlsPopupState.uploadingGroupInfo:
+        return 'Group synced';
+      case MlsPopupState.genericProgress:
+        return 'Done';
+    }
   }
 }

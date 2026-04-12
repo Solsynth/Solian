@@ -910,14 +910,14 @@ class MlsGroupManager {
         return false;
       }
 
-      final myCredentialIdentity = utf8.encode(identity); // ← 必须是用户身份！
+      final myCredentialIdentity = utf8.encode(identity);
 
       final joinResult = await engine.joinGroupExternalCommit(
         config: MlsGroupConfig.defaultConfig(ciphersuite: defaultCiphersuite),
         groupInfoBytes: groupInfoBytes,
-        ratchetTreeBytes: ratchetTreeBytes, // 如果包支持，可传 null 让它从 GroupInfo 里取
+        ratchetTreeBytes: ratchetTreeBytes,
         signerBytes: signerBytes,
-        credentialIdentity: myCredentialIdentity, // ← 修正这里！
+        credentialIdentity: myCredentialIdentity,
         signerPublicKey: signerPublicKey,
       );
 
@@ -934,7 +934,6 @@ class MlsGroupManager {
 
       final newEpoch = await engine.groupEpoch(groupIdBytes: groupIdBytes);
 
-      // 保存本地状态
       await saveGroupState(mlsGroupId, {
         'group_id': mlsGroupId,
         'epoch': newEpoch.toInt(),
@@ -948,7 +947,6 @@ class MlsGroupManager {
       // Fanout
       await _fanoutCommitToExistingMembers(mlsGroupId, externalCommitBytes);
 
-      // 发送成功后再上传新的 GroupInfo（让后续新设备更容易加入）
       await uploadGroupInfo(mlsGroupId);
 
       await _notifyGroupJoined(mlsGroupId);
