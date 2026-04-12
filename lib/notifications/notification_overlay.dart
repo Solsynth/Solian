@@ -83,22 +83,15 @@ class NotificationOverlay extends HookConsumerWidget {
                   top: index * overlap,
                   left: 16,
                   right: 16,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(color: Colors.black54, blurRadius: 4.0 + index * 2.0),
-                      ],
-                    ),
-                    child: AnimatedNotificationItem(
-                      key: Key(item.id),
-                      item: item,
-                      isDesktop: false,
-                      onDismiss: () {
-                        ref
-                            .read(notificationStateProvider.notifier)
-                            .dismiss(item.id);
-                      },
-                    ),
+                  child: AnimatedNotificationItem(
+                    key: Key(item.id),
+                    item: item,
+                    isDesktop: false,
+                    onDismiss: () {
+                      ref
+                          .read(notificationStateProvider.notifier)
+                          .dismiss(item.id);
+                    },
                   ),
                 );
               }).toList(),

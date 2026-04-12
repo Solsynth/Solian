@@ -389,12 +389,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
               title: Text('debugOptions').tr(),
               dense: true,
               onTap: () {
-                showModalBottomSheet(
-                  useRootNavigator: true,
-                  isScrollControlled: true,
-                  context: context,
-                  builder: (context) => DebugSheet(),
-                );
+                toggleDebugOverlay();
               },
             ),
             ListTile(
@@ -498,10 +493,7 @@ class _UnauthorizedAccountScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.bug_report, fill: 1),
                   onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) => DebugSheet(),
-                    );
+                    toggleDebugOverlay();
                   },
                   iconSize: 18,
                   color: Theme.of(context).colorScheme.secondary,
