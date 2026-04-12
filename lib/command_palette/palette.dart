@@ -20,6 +20,7 @@ import 'package:relative_time/relative_time.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
+import 'package:island/core/debug_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -60,6 +61,15 @@ class CommandPaletteWidget extends HookConsumerWidget {
         icon: Symbols.terminal,
         action: () {
           toggleLogOverlay();
+        },
+      ),
+      SpecialAction(
+        name: 'Debug Panel',
+        description: 'Open the debug panel overlay',
+        searchableAliases: ['debug', 'panel', 'bug', 'debug panel'],
+        icon: Symbols.bug_report,
+        action: () {
+          toggleDebugOverlay();
         },
       ),
     ];

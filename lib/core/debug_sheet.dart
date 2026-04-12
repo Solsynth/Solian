@@ -15,14 +15,112 @@ import 'package:island/e2ee/mls_client.dart';
 import 'package:island/e2ee/key_package_popup.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
+import 'package:island/main.dart';
+import 'package:island/route.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+
+OverlayEntry? _debugOverlayEntry;
+
+final _debugOverlayStateProvider =
+    NotifierProvider<_DebugOverlayStateNotifier, _DebugOverlayState>(
+      _DebugOverlayStateNotifier.new,
+    );
+
+class _DebugOverlayState {
+  final Offset position;
+  final Size size;
+  final bool isCollapsed;
+
+  const _DebugOverlayState({
+    this.position = const Offset(16, 80),
+    this.size = const Size(360, 580),
+    this.isCollapsed = false,
+  });
+
+  _DebugOverlayState copyWith({
+    Offset? position,
+    Size? size,
+    bool? isCollapsed,
+  }) {
+    return _DebugOverlayState(
+      position: position ?? this.position,
+      size: size ?? this.size,
+      isCollapsed: isCollapsed ?? this.isCollapsed,
+    );
+  }
+}
+
+class _DebugOverlayStateNotifier extends Notifier<_DebugOverlayState> {
+  @override
+  _DebugOverlayState build() => const _DebugOverlayState();
+
+  void updatePosition(Offset delta) {
+    state = state.copyWith(
+      position: Offset(
+        state.position.dx + delta.dx,
+        state.position.dy + delta.dy,
+      ),
+    );
+  }
+
+  void setPosition(Offset position) {
+    state = state.copyWith(position: position);
+  }
+
+  void updateSize(Size delta) {
+    const minWidth = 280.0;
+    const minHeight = 300.0;
+    const maxWidth = 600.0;
+    const maxHeight = 800.0;
+
+    final newWidth = (state.size.width + delta.width).clamp(minWidth, maxWidth);
+    final newHeight = (state.size.height + delta.height).clamp(
+      minHeight,
+      maxHeight,
+    );
+    state = state.copyWith(size: Size(newWidth, newHeight));
+  }
+
+  void setCollapsed(bool value) {
+    state = state.copyWith(isCollapsed: value);
+  }
+}
+
+void showDebugOverlay() {
+  if (_debugOverlayEntry != null) return;
+
+  final state = _container.read(_debugOverlayStateProvider);
+  _debugOverlayEntry = OverlayEntry(
+    builder: (context) => _DraggableDebugPanel(
+      initialPosition: state.position,
+      initialSize: state.size,
+      initialCollapsed: state.isCollapsed,
+    ),
+  );
+  globalOverlay.currentState?.insert(_debugOverlayEntry!);
+}
+
+void hideDebugOverlay() {
+  _debugOverlayEntry?.remove();
+  _debugOverlayEntry = null;
+}
+
+void toggleDebugOverlay() {
+  if (_debugOverlayEntry != null) {
+    hideDebugOverlay();
+  } else {
+    showDebugOverlay();
+  }
+}
+
+final ProviderContainer _container = ProviderContainer();
 
 Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
   final TextEditingController controller = TextEditingController();
@@ -57,7 +155,6 @@ Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
               if (token.isNotEmpty) {
                 await setToken(prefs, token);
                 ref.invalidate(tokenProvider);
-                // Store context in local variable to avoid async gap issue
                 final navigatorContext = context;
                 if (navigatorContext.mounted) {
                   Navigator.of(navigatorContext).pop();
@@ -69,6 +166,727 @@ Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
       );
     },
   );
+}
+
+class _DraggableDebugPanel extends ConsumerStatefulWidget {
+  final Offset initialPosition;
+  final Size initialSize;
+  final bool initialCollapsed;
+
+  const _DraggableDebugPanel({
+    required this.initialPosition,
+    required this.initialSize,
+    required this.initialCollapsed,
+  });
+
+  @override
+  ConsumerState<_DraggableDebugPanel> createState() =>
+      _DraggableDebugPanelState();
+}
+
+class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
+    with SingleTickerProviderStateMixin {
+  late Offset _position;
+  late Size _size;
+  late bool _isCollapsed;
+  late AnimationController _animController;
+  late Animation<double> _expandAnim;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _position = widget.initialPosition;
+    _size = widget.initialSize;
+    _isCollapsed = widget.initialCollapsed;
+    _animController = AnimationController(
+      duration: const Duration(milliseconds: 280),
+      vsync: this,
+      value: _isCollapsed ? 0.0 : 1.0,
+    );
+    _expandAnim = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    _fadeAnim = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _toggleCollapsed() {
+    setState(() => _isCollapsed = !_isCollapsed);
+    ref.read(_debugOverlayStateProvider.notifier).setCollapsed(_isCollapsed);
+    if (_isCollapsed) {
+      _animController.reverse();
+    } else {
+      _animController.forward();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    const collapsedWidth = 140.0;
+    const collapsedHeight = 140.0;
+    final currentWidth =
+        collapsedWidth + (_size.width - collapsedWidth) * _expandAnim.value;
+    final currentHeight =
+        collapsedHeight + (_size.height - collapsedHeight) * _expandAnim.value;
+
+    return Positioned(
+      left: _position.dx,
+      top: _position.dy,
+      child: FadeTransition(
+        opacity: _fadeAnim.value == 0 ? AlwaysStoppedAnimation(1.0) : _fadeAnim,
+        child: Material(
+          color: Colors.transparent,
+          child: GestureDetector(
+            onPanUpdate: (details) {
+              final screenSize = MediaQuery.of(context).size;
+              final overlayWidth = _isCollapsed ? collapsedWidth : _size.width;
+              final overlayHeight = _isCollapsed
+                  ? collapsedHeight
+                  : _size.height;
+
+              setState(() {
+                _position = Offset(
+                  (_position.dx + details.delta.dx).clamp(
+                    0,
+                    screenSize.width - overlayWidth,
+                  ),
+                  (_position.dy + details.delta.dy).clamp(
+                    0,
+                    screenSize.height - overlayHeight,
+                  ),
+                );
+              });
+              ref
+                  .read(_debugOverlayStateProvider.notifier)
+                  .updatePosition(details.delta);
+            },
+            child: SizedBox(
+              width: currentWidth,
+              height: currentHeight,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _buildPanelContainer(context),
+                  ),
+                  if (!_isCollapsed) ...[
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: _buildResizeHandle(theme),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPanelContainer(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: theme.colorScheme.shadow.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: _isCollapsed
+            ? _buildCollapsedContent(context)
+            : _buildExpandedContent(context),
+      ),
+    );
+  }
+
+  Widget _buildResizeHandle(ThemeData theme) {
+    const minWidth = 280.0;
+    const minHeight = 300.0;
+    const maxWidth = 600.0;
+    const maxHeight = 800.0;
+
+    return GestureDetector(
+      onPanUpdate: (details) {
+        setState(() {
+          final newWidth = (_size.width + details.delta.dx).clamp(
+            minWidth,
+            maxWidth,
+          );
+          final newHeight = (_size.height + details.delta.dy).clamp(
+            minHeight,
+            maxHeight,
+          );
+          _size = Size(newWidth, newHeight);
+        });
+      },
+      onPanEnd: (_) {
+        ref
+            .read(_debugOverlayStateProvider.notifier)
+            .updateSize(Size(_size.width - 360, _size.height - 580));
+      },
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(8),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
+        child: Icon(
+          Icons.drag_handle,
+          size: 14,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpandedContent(BuildContext context) {
+    return Column(
+      children: [
+        _buildHeader(context),
+        Container(height: 1, color: Theme.of(context).dividerColor),
+        Expanded(child: _buildContent(context)),
+      ],
+    );
+  }
+
+  Widget _buildCollapsedContent(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: _toggleCollapsed,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Symbols.bug_report,
+                color: theme.colorScheme.onPrimary,
+                size: 24,
+              ),
+            ),
+            const Gap(6),
+            Text(
+              'Debug',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Gap(4),
+            Icon(
+              Icons.expand_more,
+              size: 14,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      height: 46,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            theme.colorScheme.surfaceContainerHighest.withOpacity(0.7),
+            theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          ],
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 20,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withOpacity(0.6),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Icon(Symbols.bug_report, size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            'Debug',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          _HeaderButton(
+            icon: _isCollapsed ? Symbols.open_in_full : Symbols.minimize,
+            tooltip: _isCollapsed ? 'Expand' : 'Minimize',
+            onTap: _toggleCollapsed,
+          ),
+          const SizedBox(width: 2),
+          _HeaderButton(
+            icon: Symbols.close,
+            tooltip: 'Close',
+            onTap: () {
+              hideDebugOverlay();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      children: [
+        _DebugItem(
+          icon: Symbols.update,
+          title: 'Force update',
+          onTap: () async {
+            final svc = UpdateService();
+            showLoadingModal(context);
+            final release = await svc.fetchLatestRelease();
+            if (!context.mounted) return;
+            hideLoadingModal(context);
+            if (release != null) {
+              await svc.showUpdateSheet(context, release);
+            } else {
+              showInfoAlert(
+                'Currently cannot get update from the GitHub.',
+                'Unable to check for updates',
+              );
+            }
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.slideshow,
+          title: 'Show onboarding (new user)',
+          onTap: () async {
+            final info = await PackageInfo.fromPlatform();
+            if (!context.mounted) return;
+            await showAppOnboardingSheet(
+              context,
+              version: info.version,
+              isFirstLaunch: true,
+              suggestAuth: true,
+            );
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.slideshow,
+          title: 'Show onboarding (old user)',
+          onTap: () async {
+            final info = await PackageInfo.fromPlatform();
+            if (!context.mounted) return;
+            await showAppOnboardingSheet(
+              context,
+              version: info.version,
+              isFirstLaunch: false,
+              suggestAuth: false,
+            );
+          },
+        ),
+        _Divider(),
+        _DebugItem(
+          icon: Symbols.wifi,
+          title: 'Connection status',
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => NetworkStatusSheet(),
+            );
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.terminal,
+          title: 'Log Viewer',
+          onTap: () {
+            toggleLogOverlay();
+          },
+        ),
+        _Divider(),
+        _DebugItem(
+          icon: Symbols.error,
+          title: 'Test error alert',
+          onTap: () {
+            showErrorAlert(
+              'This is a test error message for debugging purposes.',
+            );
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.info,
+          title: 'Test info alert',
+          onTap: () {
+            showInfoAlert(
+              'This is a test info message for debugging purposes.',
+              'Test Alert',
+            );
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.chat_bubble,
+          title: 'Test snackbar',
+          onTap: () {
+            showSnackBar('This is a test snackbar message.');
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.military_tech,
+          title: 'Test achievement completed',
+          onTap: () {
+            final notifier = ref.read(progressionWebSocketProvider.notifier);
+            notifier.testShowCompletion(
+              kind: 'achievement',
+              title: 'First Post',
+              reward: const SnProgressRewardDefinition(
+                experience: 100,
+                sourcePoints: 50,
+              ),
+            );
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.assignment,
+          title: 'Test quest completed',
+          onTap: () {
+            final notifier = ref.read(progressionWebSocketProvider.notifier);
+            notifier.testShowCompletion(
+              kind: 'quest',
+              title: 'Daily Check-in',
+              reward: const SnProgressRewardDefinition(experience: 50),
+            );
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.lock,
+          title: 'Test key package depleted',
+          onTap: () {
+            final notifier = ref.read(keyPackagePopupProvider.notifier);
+            notifier.testShowRefill(
+              mlsDeviceId: 'test-device-123',
+              deviceLabel: 'Test iPhone',
+              currentCount: 1,
+            );
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.cloud,
+          title: 'Test server WS packet',
+          onTap: () async {
+            try {
+              final dio = ref.read(apiClientProvider);
+              await dio.post(
+                '/passport/admin/progression/test-ws-packet',
+                queryParameters: {'kind': 'achievement'},
+              );
+              if (!context.mounted) return;
+              showSnackBar('Server WS packet sent');
+            } catch (e) {
+              if (!context.mounted) return;
+              showErrorAlert(e);
+            }
+          },
+        ),
+        _Divider(),
+        _DebugItem(
+          icon: Symbols.copy_all,
+          title: 'Copy access token',
+          onTap: () async {
+            final tk = ref.watch(tokenProvider);
+            Clipboard.setData(ClipboardData(text: tk!.token));
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.edit,
+          title: 'Set access token',
+          onTap: () async {
+            await _showSetTokenDialog(context, ref);
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.refresh,
+          title: 'Force refresh token',
+          onTap: () async {
+            try {
+              await forceRefreshToken(
+                prefs: ref.read(sharedPreferencesProvider),
+                serverUrl: ref.read(serverUrlProvider),
+              );
+              if (!context.mounted) return;
+              showSnackBar('Token refreshed');
+            } on RefreshTokenExpiredException catch (e) {
+              showErrorAlert(e.message);
+            } catch (e) {
+              if (!context.mounted) return;
+              showErrorAlert(e);
+            }
+          },
+        ),
+        _Divider(),
+        _DebugItem(
+          icon: Symbols.key,
+          title: 'E2EE keypairs',
+          onTap: () {
+            final navCtx = ref
+                .read(routerProvider)
+                .navigatorKey
+                .currentContext!;
+            Navigator.of(navCtx).push(
+              MaterialPageRoute(
+                builder: (context) => const E2eeKeypairScreen(),
+              ),
+            );
+          },
+        ),
+        _Divider(),
+        _DebugItem(
+          icon: Symbols.delete,
+          title: 'Reset database',
+          onTap: () async {
+            resetDatabase(ref);
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.security,
+          title: 'MLS Diagnostics',
+          onTap: () async {
+            try {
+              final mlsClient = ref.read(mlsClientProvider);
+              final deviceId = await mlsClient.getDeviceId();
+              final signerPub = await mlsClient.identityManager
+                  .getSignerPublicKey();
+              final kpCount = await mlsClient.identityManager
+                  .getKeyPackageUploadCount();
+              final accountId = await mlsClient.identityManager
+                  .getCurrentAccountId();
+
+              final info = StringBuffer();
+              info.writeln('MLS Diagnostics');
+              info.writeln('─' * 30);
+              info.writeln('Device ID: ${deviceId ?? "null"}');
+              info.writeln('Account ID: ${accountId ?? "null"}');
+              final signerPubStr = base64Encode(signerPub);
+              info.writeln(
+                'Signer Public Key: ${signerPubStr.length > 20 ? "${signerPubStr.substring(0, 20)}..." : signerPubStr}',
+              );
+              info.writeln('Local KeyPackages: $kpCount');
+
+              if (accountId != null) {
+                final serverKps = await mlsClient.identityManager
+                    .getDeviceKeyPackages(accountId);
+                info.writeln('Server KeyPackages: ${serverKps.length}');
+                for (final kp in serverKps) {
+                  info.writeln(
+                    '  Device: ${kp['device_id']}, KP: ${kp['key_package'] != null ? "yes" : "no"}',
+                  );
+                }
+              }
+
+              if (!context.mounted) return;
+              showInfoAlert(info.toString(), 'MLS Diagnostics');
+            } catch (e) {
+              if (!context.mounted) return;
+              showErrorAlert(e);
+            }
+          },
+        ),
+        _DebugItem(
+          icon: Icons.delete_outline,
+          title: 'Clear MLS storage',
+          onTap: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Clear MLS Storage?'),
+                content: const Text(
+                  'This will delete all MLS group states, credentials, and key packages. '
+                  'You will need to re-register your device and re-bootstrap all groups.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Clear'),
+                  ),
+                ],
+              ),
+            );
+            if (confirmed == true) {
+              final storage = MlsStorage();
+              await storage.clearAll();
+              MlsEngineService.resetInstance();
+              showInfoAlert(
+                'MLS storage cleared. Please restart the app.',
+                'Done',
+              );
+            }
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.mail,
+          title: 'Fetch pending E2EE envelopes',
+          onTap: () async {
+            try {
+              final mlsClient = ref.read(mlsClientProvider);
+              await mlsClient.fetchAndProcessPendingEnvelopes();
+              if (!context.mounted) return;
+              showSnackBar('Pending envelopes processed');
+            } catch (e) {
+              if (!context.mounted) return;
+              showErrorAlert(e);
+            }
+          },
+        ),
+        const Gap(8),
+      ],
+    );
+  }
+}
+
+class _HeaderButton extends StatelessWidget {
+  final dynamic icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _HeaderButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            icon,
+            size: 18,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DebugItem extends StatelessWidget {
+  final dynamic icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _DebugItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(title, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            Icon(
+              Symbols.chevron_right,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Container(height: 1, color: Theme.of(context).dividerColor),
+    );
+  }
 }
 
 class DebugSheet extends HookConsumerWidget {
@@ -90,9 +908,7 @@ class DebugSheet extends HookConsumerWidget {
               title: Text('Force update'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               onTap: () async {
-                // Fetch latest release and show the unified sheet
                 final svc = UpdateService();
-                // Reuse service fetch + compare to decide content
                 showLoadingModal(context);
                 final release = await svc.fetchLatestRelease();
                 if (!context.mounted) return;
@@ -444,39 +1260,6 @@ class DebugSheet extends HookConsumerWidget {
                   await mlsClient.fetchAndProcessPendingEnvelopes();
                   if (!context.mounted) return;
                   showSnackBar('Pending envelopes processed');
-                } catch (e) {
-                  if (!context.mounted) return;
-                  showErrorAlert(e);
-                }
-              },
-            ),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.info),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              title: const Text('MLS Diagnostics'),
-              onTap: () async {
-                try {
-                  final mlsClient = ref.read(mlsClientProvider);
-                  final deviceId = await mlsClient.getDeviceId();
-                  final signerPub = await mlsClient.identityManager
-                      .getSignerPublicKey();
-                  final kpCount = await mlsClient.identityManager
-                      .getKeyPackageUploadCount();
-
-                  final info = StringBuffer();
-                  info.writeln('MLS Diagnostics');
-                  info.writeln('─' * 30);
-                  info.writeln('Device ID: ${deviceId ?? "null"}');
-                  final signerPubStr = base64Encode(signerPub);
-                  info.writeln(
-                    'Signer Public Key: ${signerPubStr.length > 20 ? "${signerPubStr.substring(0, 20)}..." : signerPubStr}',
-                  );
-                  info.writeln('Local KeyPackages: $kpCount');
-
-                  if (!context.mounted) return;
-                  showInfoAlert(info.toString(), 'MLS Diagnostics');
                 } catch (e) {
                   if (!context.mounted) return;
                   showErrorAlert(e);
