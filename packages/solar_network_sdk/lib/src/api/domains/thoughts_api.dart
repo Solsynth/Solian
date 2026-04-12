@@ -116,6 +116,14 @@ class ThoughtsApi extends BaseApi {
     return response.data!;
   }
 
+  /// Gets the current quota status.
+  Future<Map<String, dynamic>> getQuota() async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/thought/quota',
+    );
+    return response.data!;
+  }
+
   /// Gets billing history.
   ///
   /// [offset] - Pagination offset.

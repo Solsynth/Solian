@@ -9,6 +9,7 @@ import "package:hooks_riverpod/hooks_riverpod.dart";
 import "package:island/thoughts/widgets/billing_status_handler.dart";
 import "package:island/thoughts/widgets/thought_shared.dart";
 import "package:island/thoughts/widgets/thought_sidebar.dart";
+import "package:island/thoughts/widgets/free_quota_indicator.dart";
 import "package:island/core/network.dart";
 import "package:solar_network_sdk/solar_network_sdk.dart";
 import "package:island/shared/widgets/app_scaffold.dart" hide PageBackButton;
@@ -27,6 +28,12 @@ Future<bool> thoughtAvailableStaus(Ref ref) async {
   } catch (_) {
     return false;
   }
+}
+
+@riverpod
+Future<Map<String, dynamic>> thoughtQuota(Ref ref) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.thoughts.getQuota();
 }
 
 @riverpod
@@ -192,6 +199,8 @@ class ThoughtScreen extends HookConsumerWidget {
           ),
         ),
         actions: [
+          const FreeQuotaIndicator(),
+          const Gap(4),
           IconButton(
             icon: const Icon(Symbols.add_circle),
             onPressed: startNewConversation,
