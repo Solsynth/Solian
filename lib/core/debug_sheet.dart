@@ -508,7 +508,10 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             if (!context.mounted) return;
             hideLoadingModal(context);
             if (release != null) {
-              await svc.showUpdateSheet(context, release);
+              await svc.showUpdateSheet(
+                ref.read(routerProvider).navigatorKey.currentContext!,
+                release,
+              );
             } else {
               showInfoAlert(
                 'Currently cannot get update from the GitHub.',
@@ -538,7 +541,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             final info = await PackageInfo.fromPlatform();
             if (!context.mounted) return;
             await showAppOnboardingSheet(
-              context,
+              ref.read(routerProvider).navigatorKey.currentContext!,
               version: info.version,
               isFirstLaunch: false,
               suggestAuth: false,
@@ -551,7 +554,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           title: 'Connection status',
           onTap: () {
             showModalBottomSheet(
-              context: context,
+              context: ref.read(routerProvider).navigatorKey.currentContext!,
               isScrollControlled: true,
               builder: (context) => NetworkStatusSheet(),
             );
@@ -622,7 +625,7 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           icon: Symbols.lock,
           title: 'Test key package depleted',
           onTap: () {
-            final notifier = ref.read(keyPackagePopupProvider.notifier);
+            final notifier = ref.read(mlsStatePopupProvider.notifier);
             notifier.testShowRefill(
               mlsDeviceId: 'test-device-123',
               deviceLabel: 'Test iPhone',
@@ -934,7 +937,7 @@ class DebugSheet extends HookConsumerWidget {
                 final info = await PackageInfo.fromPlatform();
                 if (!context.mounted) return;
                 await showAppOnboardingSheet(
-                  context,
+                  ref.read(routerProvider).navigatorKey.currentContext!,
                   version: info.version,
                   isFirstLaunch: true,
                   suggestAuth: true,
@@ -951,7 +954,7 @@ class DebugSheet extends HookConsumerWidget {
                 final info = await PackageInfo.fromPlatform();
                 if (!context.mounted) return;
                 await showAppOnboardingSheet(
-                  context,
+                  ref.read(routerProvider).navigatorKey.currentContext!,
                   version: info.version,
                   isFirstLaunch: false,
                   suggestAuth: false,
@@ -1064,7 +1067,7 @@ class DebugSheet extends HookConsumerWidget {
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               title: const Text('Test key package depleted'),
               onTap: () {
-                final notifier = ref.read(keyPackagePopupProvider.notifier);
+                final notifier = ref.read(mlsStatePopupProvider.notifier);
                 notifier.testShowRefill(
                   mlsDeviceId: 'test-device-123',
                   deviceLabel: 'Test iPhone',
