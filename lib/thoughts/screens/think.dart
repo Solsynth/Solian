@@ -199,8 +199,8 @@ class ThoughtScreen extends HookConsumerWidget {
           ),
         ),
         actions: [
-          const FreeQuotaIndicator(),
-          const Gap(4),
+          const FreeQuotaIndicator(forcegroundColor: Colors.white),
+          const Gap(6),
           IconButton(
             icon: const Icon(Symbols.add_circle),
             onPressed: startNewConversation,

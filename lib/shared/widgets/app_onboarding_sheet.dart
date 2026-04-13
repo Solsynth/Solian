@@ -5,6 +5,7 @@ import 'package:island/auth/create_account_modal.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
 import 'package:island/core/services/update_service.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 
 Future<void> showAppOnboardingSheet(
   BuildContext context, {
@@ -553,17 +554,15 @@ class _OnboardingPageState extends State<_OnboardingPage>
                         ),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      constraints: const BoxConstraints(maxHeight: 60),
-                      child: SingleChildScrollView(
-                        child: Text(
-                          widget.data.changelog!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
-                                ),
+                      constraints: const BoxConstraints(maxHeight: 280),
+                      child: MarkdownTextContent(
+                        content: widget.data.changelog!,
+                        textStyle: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.6,
                               ),
-                        ),
+                            ),
                       ),
                     ),
                   ],
