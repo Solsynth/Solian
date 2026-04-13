@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final thoughtQuotaProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final client = ref.watch(solarNetworkClientProvider);
@@ -11,10 +8,13 @@ final thoughtQuotaProvider = FutureProvider<Map<String, dynamic>>((ref) async {
 });
 
 class FreeQuotaIndicator extends ConsumerWidget {
-  const FreeQuotaIndicator({super.key});
+  final Color? forcegroundColor;
+  const FreeQuotaIndicator({super.key, required this.forcegroundColor});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    const double kSize = 30;
+
     return ref
         .watch(thoughtQuotaProvider)
         .when(
@@ -30,74 +30,59 @@ class FreeQuotaIndicator extends ConsumerWidget {
 
             final progress = used / total;
             final isLow = remaining < total * 0.2;
+            final percentage = ((1 - progress) * 100).round();
 
             return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: isLow
-                    ? Theme.of(context).colorScheme.errorContainer
-                    : Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isLow ? Symbols.warning : Symbols.bolt,
-                    size: 16,
-                    color: isLow
-                        ? Theme.of(context).colorScheme.onErrorContainer
-                        : Theme.of(context).colorScheme.primary,
-                  ),
-                  const Gap(6),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '$remaining free tokens',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isLow
-                              ? Theme.of(context).colorScheme.onErrorContainer
-                              : Theme.of(context).colorScheme.onSurface,
+              child: Tooltip(
+                message: '$remaining / $total tokens remaining',
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: kSize,
+                      height: kSize,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 2.5,
+                        trackGap: 0,
+                        backgroundColor:
+                            forcegroundColor?.withOpacity(0.3) ??
+                            Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.3),
+                        valueColor: AlwaysStoppedAnimation(
+                          isLow
+                              ? Theme.of(context).colorScheme.error
+                              : forcegroundColor ??
+                                    Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                      const Gap(2),
-                      SizedBox(
-                        width: 80,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            backgroundColor: isLow
-                                ? Theme.of(context).colorScheme.onErrorContainer
-                                      .withOpacity(0.2)
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.2),
-                            valueColor: AlwaysStoppedAnimation(
-                              isLow
-                                  ? Theme.of(context).colorScheme.error
-                                  : Theme.of(context).colorScheme.primary,
-                            ),
-                            minHeight: 3,
-                          ),
-                        ),
+                    ),
+                    Text(
+                      '$percentage',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: isLow
+                            ? Theme.of(context).colorScheme.error
+                            : Theme.of(context).colorScheme.onSurface,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             );
           },
           loading: () => const SizedBox(
-            width: 80,
-            height: 24,
-            child: LinearProgressIndicator(),
+            width: kSize,
+            height: kSize,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
           ),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
         );
   }
 }
