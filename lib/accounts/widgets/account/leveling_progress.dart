@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 class LevelingProgressCard extends StatelessWidget {
   final int level;
@@ -19,140 +17,124 @@ class LevelingProgressCard extends StatelessWidget {
     this.isCompact = false,
   });
 
+  static const _stageColors = [
+    Colors.green,
+    Colors.blue,
+    Colors.teal,
+    Colors.cyan,
+    Colors.indigo,
+    Colors.lime,
+    Colors.yellow,
+    Colors.amber,
+    Colors.orange,
+    Colors.deepOrange,
+    Colors.pink,
+    Colors.red,
+  ];
+
+  int get _stage => ((level - 1) ~/ 10 + 1).clamp(1, 12);
+  Color get _stageColor => _stageColors[_stage - 1];
+
+  String _formatExperience(int exp) {
+    if (exp >= 1000000) {
+      return '${(exp / 1000000).toStringAsFixed(1)}M';
+    } else if (exp >= 1000) {
+      return '${(exp / 1000).toStringAsFixed(1)}K';
+    }
+    return exp.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Calculate level stage (1-12, each stage covers 10 levels)
-    int stage = ((level - 1) ~/ 10) + 1;
-    stage = stage.clamp(1, 12); // Ensure stage is within 1-12
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final stageColor = _stageColor;
 
-    // Define colors for each stage
-    const List<Color> stageColors = [
-      Colors.green,
-      Colors.blue,
-      Colors.teal,
-      Colors.cyan,
-      Colors.indigo,
-      Colors.lime,
-      Colors.yellow,
-      Colors.amber,
-      Colors.orange,
-      Colors.deepOrange,
-      Colors.pink,
-      Colors.red,
-    ];
+    final compactValues = isCompact
+        ? (levelFontSize: 14.0, stageFontSize: 13.0, expFontSize: 12.0)
+        : (levelFontSize: 18.0, stageFontSize: 14.0, expFontSize: 14.0);
 
-    Color stageColor = stageColors[stage - 1];
-
-    // Compact mode adjustments
-    final double levelFontSize = isCompact ? 14 : 18;
-    final double stageFontSize = isCompact ? 13 : 14;
-    final double experienceFontSize = isCompact ? 12 : 14;
-    final double progressHeight = isCompact ? 6 : 10;
-    final double horizontalPadding = isCompact ? 16 : 20;
-    final double verticalPadding = isCompact ? 12 : 16;
-    final double gapSize = isCompact ? 4 : 8;
-    final double rowSpacing = 12;
-
-    final cardContent = Card(
+    return Card(
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [
-                stageColor.withOpacity(0.1),
-                Theme.of(context).colorScheme.surface,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 16 : 20,
+            vertical: isCompact ? 12 : 16,
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                spacing: rowSpacing,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Expanded(
-                    child: Text(
-                      'levelingProgressLevel'.tr(args: [level.toString()]),
-                      style: TextStyle(
-                        color: stageColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: levelFontSize,
-                      ),
+                  Text(
+                    'levelingProgressLevel'.tr(args: [level.toString()]),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: stageColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: compactValues.levelFontSize,
                     ),
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'levelingStage$stage'.tr(),
-                        style: TextStyle(
-                          color: stageColor.withOpacity(0.7),
+                        'levelingStage$_stage'.tr(),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: stageColor.withAlpha(180),
                           fontWeight: FontWeight.w500,
-                          fontSize: stageFontSize,
+                          fontSize: compactValues.stageFontSize,
                         ),
                       ),
                       if (onTap != null) ...[
-                        const Gap(4),
+                        const SizedBox(width: 4),
                         Icon(
                           Icons.arrow_forward_ios,
                           size: isCompact ? 10 : 12,
-                          color: stageColor.withOpacity(0.7),
+                          color: stageColor.withAlpha(180),
                         ),
                       ],
                     ],
                   ),
                 ],
               ),
-              Gap(gapSize),
+              const SizedBox(height: 8),
               Row(
-                spacing: rowSpacing,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Tooltip(
                       message: '${(progress * 100).toStringAsFixed(1)}%',
                       child: LinearProgressIndicator(
-                        minHeight: progressHeight,
+                        minHeight: isCompact ? 6 : 10,
                         value: progress,
                         borderRadius: BorderRadius.circular(32),
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLow.withOpacity(0.75),
+                        backgroundColor: colorScheme.surfaceContainerHighest,
                         color: stageColor,
-                        stopIndicatorRadius: 0,
-                        trackGap: 0,
+                        stopIndicatorColor: stageColor,
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   Text(
-                    'levelingProgressExperience'.tr(
-                      args: [experience.toString()],
-                    ),
-                    style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.8),
-                      fontSize: experienceFontSize,
+                    isCompact
+                        ? _formatExperience(experience)
+                        : 'levelingProgressExperience'.tr(
+                            args: [experience.toString()],
+                          ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withAlpha(200),
+                      fontSize: compactValues.expFontSize,
                     ),
                   ),
                 ],
               ),
             ],
-          ).padding(horizontal: horizontalPadding, vertical: verticalPadding),
+          ),
         ),
       ),
     );
-
-    return cardContent;
   }
 }
