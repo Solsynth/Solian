@@ -28,6 +28,7 @@ import 'package:island/notifications/notification_tile.dart';
 import 'package:island/accounts/check_in.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:slide_countdown/slide_countdown.dart';
 import 'package:island/sharing/share_sheet.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -239,20 +240,19 @@ class DashboardGrid extends HookConsumerWidget {
                   Expanded(
                     child:
                         SingleChildScrollView(
-                              padding: isWide
-                                  ? const EdgeInsets.symmetric(horizontal: 24)
-                                  : const EdgeInsets.symmetric(horizontal: 16),
-                              scrollDirection: isWide
-                                  ? Axis.horizontal
-                                  : Axis.vertical,
-                              child: isWide
-                                  ? _DashboardGridWide()
-                                  : _DashboardGridNarrow(),
-                            )
-                            .clipRRect(
-                              topLeft: isWide ? 0 : 12,
-                              topRight: isWide ? 0 : 12,
-                            ),
+                          padding: isWide
+                              ? const EdgeInsets.symmetric(horizontal: 24)
+                              : const EdgeInsets.symmetric(horizontal: 16),
+                          scrollDirection: isWide
+                              ? Axis.horizontal
+                              : Axis.vertical,
+                          child: isWide
+                              ? _DashboardGridWide()
+                              : _DashboardGridNarrow(),
+                        ).clipRRect(
+                          topLeft: isWide ? 0 : 12,
+                          topRight: isWide ? 0 : 12,
+                        ),
                   )
                 else
                   Center(
@@ -628,7 +628,10 @@ class NotificationsCard extends HookConsumerWidget {
               ],
             ).padding(horizontal: 16, vertical: 12),
             notifications.when(
-              loading: () => const SkeletonNotificationTile(),
+              loading: () => Skeletonizer(
+                enabled: true,
+                child: const SkeletonNotificationTile(),
+              ),
               error: (error, stack) => Center(child: Text('Error: $error')),
               data: (notificationList) {
                 if (notificationList.items.isEmpty) {

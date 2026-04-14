@@ -251,7 +251,10 @@ class NotificationSheet extends HookConsumerWidget {
             child: PaginationList(
               provider: notificationListProvider,
               notifier: notificationListProvider.notifier,
-              footerSkeletonChild: const SkeletonNotificationTile(),
+              footerSkeletonChild: Skeletonizer(
+                enabled: true,
+                child: const SkeletonNotificationTile(),
+              ),
               itemBuilder: (context, index, notification) {
                 return NotificationTile(notification: notification);
               },
