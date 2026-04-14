@@ -64,7 +64,7 @@ class StickersApi extends BaseApi {
       _basePath,
       queryParameters: {'pub': publisherName},
       data: {
-        'iconId': ?iconId,
+        'icon_id': ?iconId,
         'name': name,
         'description': ?description,
         'prefix': prefix,
@@ -83,7 +83,7 @@ class StickersApi extends BaseApi {
     return patch<Map<String, dynamic>>(
       '$_basePath/$packId',
       data: {
-        'iconId': ?iconId,
+        'icon_id': ?iconId,
         'name': ?name,
         'description': ?description,
         'prefix': ?prefix,
@@ -147,7 +147,7 @@ class StickersApi extends BaseApi {
   }) async {
     return post<Map<String, dynamic>>(
       '$_basePath/$packId/content',
-      data: {'slug': slug, 'imageId': imageId},
+      data: {'slug': slug, 'image_id': imageId},
     );
   }
 
@@ -160,7 +160,7 @@ class StickersApi extends BaseApi {
   }) async {
     return patch<Map<String, dynamic>>(
       '$_basePath/$packId/content/$stickerId',
-      data: {'slug': ?slug, 'imageId': ?imageId},
+      data: {'slug': ?slug, 'image_id': ?imageId},
     );
   }
 
