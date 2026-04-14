@@ -1610,6 +1610,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     await _database.saveMessageWithSender(localMessage);
 
     // ── Step 6: Update UI state ──
+    final isMessageUpdate =
+        remoteMessage.type == 'messages.update' ||
+        remoteMessage.type == 'messages.update.links';
+    final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
+    final shouldShowEditTrail =
+        chatMode != kChatEventMessageModeNone &&
+        (isMessageUpdate || _shouldIncludeInActiveList(localMessage));
+
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final existingIndex = currentMessages.indexWhere(
       (m) =>
@@ -1621,13 +1629,13 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (ref.mounted) {
       if (existingIndex >= 0) {
         final newList = [...currentMessages];
-        if (_shouldIncludeInActiveList(localMessage)) {
+        if (shouldShowEditTrail) {
           newList[existingIndex] = localMessage;
         } else {
           newList.removeAt(existingIndex);
         }
         state = AsyncValue.data(_sortMessages(newList));
-      } else if (_shouldIncludeInActiveList(localMessage)) {
+      } else if (shouldShowEditTrail) {
         state = AsyncValue.data(
           _sortMessages([localMessage, ...currentMessages]),
         );
@@ -1716,17 +1724,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     await _database.saveMessage(updatedMessage);
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    final index = currentMessages.indexWhere((m) => m.id == updatedMessage.id);
-
-    if (ref.mounted) {
-      if (index >= 0) {
-        final newList = [...currentMessages];
-        newList[index] = updatedMessage;
-        state = AsyncValue.data(_sortMessages(newList));
-      }
-    }
   }
 
   Future<void> receiveMessageDeletion(String messageId) async {

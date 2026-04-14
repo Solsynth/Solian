@@ -15,8 +15,9 @@ final routerProvider = Provider((ref) {
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
   @override
-  RouteType get defaultRouteType =>
-      RouteType.adaptive(enablePredictiveBackGesture: true);
+  RouteType get defaultRouteType => (!kIsWeb && Platform.isIOS)
+      ? RouteType.cupertino()
+      : RouteType.material();
 
   @override
   List<AutoRoute> get routes => [
@@ -142,6 +143,7 @@ class AppRouter extends RootStackRouter {
               path: 'fitness/metrics/:type',
             ),
             AutoRoute(page: HealthSyncRoute.page, path: 'fitness/sync'),
+            AutoRoute(page: PunishmentsRoute.page, path: 'me/punishments'),
           ],
         ),
 

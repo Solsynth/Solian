@@ -4,6 +4,7 @@ import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/action_log.dart';
 import 'package:solar_network_sdk/src/models/auth/auth_session.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
+import 'package:solar_network_sdk/src/models/accounts/punishment.dart';
 
 /// API for security / padlock endpoints (/padlock).
 ///
@@ -136,6 +137,91 @@ class PadlockApi extends BaseApi {
     await delete(
       '$_basePath/authorized-apps/$appId',
       queryParameters: {'type': ?type},
+    );
+  }
+
+  // ==========================================
+  // Punishment endpoints (/padlock/admin/accounts)
+  // ==========================================
+
+  /// Gets all punishments for an account.
+  ///
+  /// [username] - The username of the account.
+  Future<List<SnAccountPunishment>> getAccountPunishments(
+    String username,
+  ) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/admin/accounts/$username/punishments',
+    );
+    return parseList(response, SnAccountPunishment.fromJson);
+  }
+
+  /// Creates a new punishment for an account.
+  ///
+  /// [username] - The username of the account.
+  /// [reason] - The reason for the punishment.
+  /// [type] - The type of punishment.
+  /// [expiredAt] - Optional expiration time.
+  /// [blockedPermissions] - Optional list of permissions to block.
+  Future<List<SnAccountPunishment>> createPunishment({
+    required String username,
+    required String reason,
+    required PunishmentType type,
+    DateTime? expiredAt,
+    List<String>? blockedPermissions,
+  }) async {
+    final response = await post<List<dynamic>>(
+      '$_basePath/admin/accounts/$username/punishments',
+      data: {
+        'reason': reason,
+        'type': type.value,
+        'expired_at': expiredAt?.toUtc().toIso8601String(),
+        'blocked_permissions': blockedPermissions,
+      },
+    );
+    return parseList(response, SnAccountPunishment.fromJson);
+  }
+
+  /// Updates an existing punishment.
+  ///
+  /// [username] - The username of the account.
+  /// [punishmentId] - The ID of the punishment to update.
+  /// [reason] - Optional new reason.
+  /// [type] - Optional new type.
+  /// [expiredAt] - Optional new expiration time.
+  /// [blockedPermissions] - Optional new blocked permissions list.
+  Future<SnAccountPunishment> updatePunishment({
+    required String username,
+    required String punishmentId,
+    String? reason,
+    PunishmentType? type,
+    DateTime? expiredAt,
+    List<String>? blockedPermissions,
+  }) async {
+    final data = <String, dynamic>{};
+    if (reason != null) data['reason'] = reason;
+    if (type != null) data['type'] = type.value;
+    if (expiredAt != null) {
+      data['expired_at'] = expiredAt.toUtc().toIso8601String();
+    }
+    if (blockedPermissions != null) {
+      data['blocked_permissions'] = blockedPermissions;
+    }
+
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/admin/accounts/$username/punishments/$punishmentId',
+      data: data,
+    );
+    return SnAccountPunishment.fromJson(response.data!);
+  }
+
+  /// Deletes a punishment.
+  ///
+  /// [username] - The username of the account.
+  /// [punishmentId] - The ID of the punishment to delete.
+  Future<void> deletePunishment(String username, String punishmentId) async {
+    await delete(
+      '$_basePath/admin/accounts/$username/punishments/$punishmentId',
     );
   }
 }

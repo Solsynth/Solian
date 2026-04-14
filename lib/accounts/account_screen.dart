@@ -315,6 +315,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const FitnessDashboardRoute());
                     },
                   },
+                  {
+                    'icon': Symbols.gavel,
+                    'title': 'punishments',
+                    'onTap': () {
+                      context.router.push(const PunishmentsRoute());
+                    },
+                  },
                 ];
                 return Column(
                   children: menuItems.map((item) {
