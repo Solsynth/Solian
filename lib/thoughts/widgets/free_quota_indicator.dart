@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/network.dart';
+import 'package:island/thoughts/screens/think.dart';
 
-final thoughtQuotaProvider = FutureProvider<Map<String, dynamic>>((ref) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  return await client.thoughts.getQuota();
-});
+// NOTE: thoughtQuotaProvider is defined in lib/thoughts/screens/think.dart
+// and is invalidated automatically when AI response completes
 
 class FreeQuotaIndicator extends ConsumerWidget {
   final Color? forcegroundColor;

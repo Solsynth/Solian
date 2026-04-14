@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/thoughts/widgets/function_calls_section.dart';
 import 'package:island/thoughts/widgets/proposals_section.dart';
 import 'package:island/thoughts/widgets/reasoning_section.dart';
@@ -159,6 +161,43 @@ class ThoughtChatInterface extends HookConsumerWidget {
                 },
               ),
             ),
+            if (chatState.currentStatus != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  children: [
+                    Text(
+                      chatState.currentStatus!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                    if (chatState.compactSummary != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          chatState.compactSummary!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontStyle: FontStyle.italic,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if (chatState.archivedCount != null)
+                      Text(
+                        'thoughtCompactArchived'.tr(
+                          args: [chatState.archivedCount.toString()],
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -671,8 +710,14 @@ class ThoughtItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = !isStreaming && thought!.role == ThinkingThoughtRole.user;
+    final isSystem =
+        !isStreaming && thought!.role == ThinkingThoughtRole.system;
     final effectiveBotName = (thought?.botName ?? agentService).toLowerCase();
     final isMichanStyle = effectiveBotName == 'michan';
+
+    if (isSystem) {
+      return _buildSystemBanner(context);
+    }
 
     if (isMichanStyle) {
       return _buildMichanChatItem(context, isUser);
@@ -772,6 +817,58 @@ class ThoughtItem extends StatelessWidget {
   }
 
   List<Widget> buildWidgetsList(BuildContext context) {
+    if (!isStreaming &&
+        (thought?.parts.any(
+              (e) => e.metadata?['compaction_summary'] == true,
+            )) ==
+            true) {
+      return [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.compress,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  const Gap(4),
+                  Text(
+                    'Context Compacted',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '${thought!.parts.firstWhereOrNull((e) => e.metadata?['compaction_archived_count'] != null)?.metadata?['compaction_archived_count']} messages archived',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                ),
+              ),
+              if (thought?.parts.isNotEmpty == true) ...[
+                const Gap(8),
+                Text(
+                  thought!.parts.first.text ?? '',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ];
+    }
+
     final List<StreamItem> items = isStreaming
         ? (streamingItems ?? [])
         : thought!.parts.map((p) {
@@ -979,6 +1076,78 @@ class ThoughtItem extends StatelessWidget {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildSystemBanner(BuildContext context) {
+    final textContent =
+        thought?.parts
+            .where((p) => p.type == ThinkingMessagePartType.text)
+            .map((p) => p.text ?? '')
+            .join() ??
+        '';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.secondaryContainer.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            visualDensity: VisualDensity.compact,
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 0,
+            ),
+            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            leading: Icon(
+              Icons.info_outline,
+              size: 20,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            title: Text(
+              (thought?.parts.any(
+                        (e) => e.metadata?['compaction_summary'] == true,
+                      ) ??
+                      false)
+                  ? 'System: Context Compacted'
+                  : 'System',
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: Theme.of(context).colorScheme.secondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            children: [
+              if (thought?.parts.any(
+                    (e) => e.metadata?['compaction_summary'] == true,
+                  ) ??
+                  false)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    '${thought!.parts.firstWhereOrNull((e) => e.metadata?['compaction_archived_count'])?.metadata?['compaction_archived_count']} messages archived',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
+                  ),
+                ),
+              MarkdownTextContent(
+                content: textContent,
+                textStyle: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

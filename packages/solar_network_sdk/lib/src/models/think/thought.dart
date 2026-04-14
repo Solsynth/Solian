@@ -6,7 +6,8 @@ part 'thought.g.dart';
 
 enum ThinkingThoughtRole {
   assistant(0),
-  user(1);
+  user(1),
+  system(2);
 
   const ThinkingThoughtRole(this.value);
   final int value;
@@ -178,6 +179,7 @@ sealed class SnThinkingThought with _$SnThinkingThought {
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,
+    required bool isArchived,
   }) = _SnThinkingThought;
 
   factory SnThinkingThought.fromJson(Map<String, dynamic> json) =>

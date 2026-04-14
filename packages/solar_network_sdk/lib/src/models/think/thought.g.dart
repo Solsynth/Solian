@@ -178,6 +178,7 @@ _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
+      isArchived: json['is_archived'] as bool,
     );
 
 Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
@@ -193,6 +194,7 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
+      'is_archived': instance.isArchived,
     };
 
 _ThoughtService _$ThoughtServiceFromJson(Map<String, dynamic> json) =>
