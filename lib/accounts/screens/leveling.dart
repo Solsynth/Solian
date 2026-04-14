@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/leveling_progress.dart';
 import 'package:island/accounts/widgets/account/stellar_program_tab.dart';
@@ -13,7 +12,7 @@ import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
-import 'package:styled_widget/styled_widget.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final levelingHistoryNotifierProvider =
@@ -131,116 +130,140 @@ class LevelingScreen extends HookConsumerWidget {
     WidgetRef ref,
     SnAccount user,
   ) {
+    final theme = Theme.of(context);
     final currentLevel = user.profile.level;
     final currentExp = user.profile.experience;
     final progress = user.profile.levelingProgress;
 
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: CustomScrollView(
-          slivers: [
-            const SliverGap(20),
-
-            // Current Progress Card
-            SliverToBoxAdapter(
-              child: LevelingProgressCard(
-                level: currentLevel,
-                experience: currentExp,
-                progress: progress,
-              ),
+    return CustomScrollView(
+      slivers: [
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: LevelingProgressCard(
+              level: currentLevel,
+              experience: currentExp,
+              progress: progress,
             ),
-            const SliverGap(24),
-
-            // Level Stairs Graph
-            SliverToBoxAdapter(
-              child: Text(
-                'levelProgress'.tr(),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              spacing: 8,
+              children: [
+                const Icon(Symbols.stairs),
+                Text(
+                  'levelProgress'.tr(),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+              ],
             ),
-            const SliverGap(16),
-
-            SliverToBoxAdapter(
-              child: Card(
-                margin: EdgeInsets.zero,
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: 12,
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${'levelingProgressLevel'.tr(args: [currentLevel.toString()])} / 120',
-                      textAlign: TextAlign.start,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: theme.textTheme.bodySmall,
                     ),
-                    const Gap(8),
+                    const SizedBox(height: 8),
                     LinearProgressIndicator(
                       value: currentLevel / 120,
                       minHeight: 10,
-                      stopIndicatorRadius: 0,
-                      trackGap: 0,
-                      color: Theme.of(context).colorScheme.primary,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(32),
+                      color: theme.colorScheme.primary,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                     ),
                   ],
-                ).padding(horizontal: 16, top: 16, bottom: 12),
-              ),
-            ),
-            const SliverGap(16),
-            // Leveling History
-            SliverToBoxAdapter(
-              child: Text(
-                'levelingHistory'.tr(),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SliverGap(8),
-            PaginationList(
-              provider: levelingHistoryNotifierProvider,
-              notifier: levelingHistoryNotifierProvider.notifier,
-              isRefreshable: false,
-              isSliver: true,
-              itemBuilder: (context, idx, record) => ListTile(
-                title: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(record.reason),
-                    Row(
-                      spacing: 4,
-                      children: [
-                        Text(
-                          record.createdAt.formatRelative(context),
-                        ).fontSize(13),
-                        Text('·').fontSize(13).bold(),
-                        Text(record.createdAt.formatSystem()).fontSize(13),
-                      ],
-                    ).opacity(0.8),
-                  ],
-                ),
-                subtitle: Row(
-                  spacing: 8,
-                  children: [
-                    Text('${record.delta > 0 ? '+' : ''}${record.delta} EXP'),
-                    if (record.bonusMultiplier != 1.0)
-                      Text('x${record.bonusMultiplier}'),
-                  ],
-                ),
-                minTileHeight: 56,
-                contentPadding: EdgeInsets.symmetric(horizontal: 4),
-              ),
-            ),
-
-            SliverGap(20),
-          ],
+          ),
         ),
-      ),
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              spacing: 8,
+              children: [
+                const Icon(Symbols.history),
+                Text(
+                  'levelingHistory'.tr(),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        PaginationList(
+          provider: levelingHistoryNotifierProvider,
+          notifier: levelingHistoryNotifierProvider.notifier,
+          isRefreshable: false,
+          isSliver: true,
+          itemBuilder: (context, idx, record) => ListTile(
+            title: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(record.reason),
+                const SizedBox(height: 4),
+                Opacity(
+                  opacity: 0.8,
+                  child: Row(
+                    children: [
+                      Text(
+                        record.createdAt.formatRelative(context),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      const Text(' · ', style: TextStyle(fontSize: 13)),
+                      Text(
+                        record.createdAt.formatSystem(),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            subtitle: Row(
+              spacing: 4,
+              children: [
+                Text('${record.delta > 0 ? '+' : ''}${record.delta} EXP'),
+                if (record.bonusMultiplier != 1.0)
+                  Text('x${record.bonusMultiplier}'),
+              ],
+            ),
+            minTileHeight: 56,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+      ],
     );
   }
 }
