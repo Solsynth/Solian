@@ -43,6 +43,47 @@ final class ThoughtAvailableStausProvider
 String _$thoughtAvailableStausHash() =>
     r'b7c259086b30d4ca01639953b3d6a852d4e076cb';
 
+@ProviderFor(thoughtQuota)
+final thoughtQuotaProvider = ThoughtQuotaProvider._();
+
+final class ThoughtQuotaProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, dynamic>>,
+          Map<String, dynamic>,
+          FutureOr<Map<String, dynamic>>
+        >
+    with
+        $FutureModifier<Map<String, dynamic>>,
+        $FutureProvider<Map<String, dynamic>> {
+  ThoughtQuotaProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'thoughtQuotaProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$thoughtQuotaHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, dynamic>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, dynamic>> create(Ref ref) {
+    return thoughtQuota(ref);
+  }
+}
+
+String _$thoughtQuotaHash() => r'59a92ac33e7a784aaee4da27aadede4e0a5a30c3';
+
 @ProviderFor(thoughtSequence)
 final thoughtSequenceProvider = ThoughtSequenceFamily._();
 
@@ -100,7 +141,7 @@ final class ThoughtSequenceProvider
   }
 }
 
-String _$thoughtSequenceHash() => r'46a48c98d9ffad6d8c85930c8bb9ce7a23482a00';
+String _$thoughtSequenceHash() => r'87cf578c336fe566575033a498950dcbb2a962be';
 
 final class ThoughtSequenceFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnThinkingThought>>, String> {
@@ -159,4 +200,4 @@ final class ThoughtServicesProvider
   }
 }
 
-String _$thoughtServicesHash() => r'e3e69c83f407b9c5b946f199a1cff5f989d730f0';
+String _$thoughtServicesHash() => r'86b5b8f09bb3c833f65ef13daaefaef41b4dd57a';

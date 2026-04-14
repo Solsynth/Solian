@@ -30,6 +30,9 @@ class ThoughtChatState {
   final String? sequenceId;
   final List<SnThinkingThought> localThoughts;
   final String? currentTopic;
+  final String? currentStatus;
+  final String? compactSummary;
+  final int? archivedCount;
   final List<ThoughtService> services;
   final String selectedServiceId;
   final bool isStreaming;
@@ -42,6 +45,9 @@ class ThoughtChatState {
     this.sequenceId,
     this.localThoughts = const [],
     this.currentTopic,
+    this.currentStatus,
+    this.compactSummary,
+    this.archivedCount,
     this.services = const [],
     this.selectedServiceId = '',
     this.isStreaming = false,
@@ -55,6 +61,9 @@ class ThoughtChatState {
     String? sequenceId,
     List<SnThinkingThought>? localThoughts,
     String? currentTopic,
+    String? currentStatus,
+    String? compactSummary,
+    int? archivedCount,
     List<ThoughtService>? services,
     String? selectedServiceId,
     bool? isStreaming,
@@ -67,6 +76,9 @@ class ThoughtChatState {
       sequenceId: sequenceId ?? this.sequenceId,
       localThoughts: localThoughts ?? this.localThoughts,
       currentTopic: currentTopic ?? this.currentTopic,
+      currentStatus: currentStatus ?? this.currentStatus,
+      compactSummary: compactSummary ?? this.compactSummary,
+      archivedCount: archivedCount ?? this.archivedCount,
       services: services ?? this.services,
       selectedServiceId: selectedServiceId ?? this.selectedServiceId,
       isStreaming: isStreaming ?? this.isStreaming,
@@ -370,6 +382,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     final now = DateTime.now();
     final userThought = SnThinkingThought(
       id: 'user-${DateTime.now().millisecondsSinceEpoch}',
+      isArchived: false,
       parts: [
         SnThinkingMessagePart(
           type: ThinkingMessagePartType.text,
@@ -457,7 +470,9 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                 final type = event['type'];
                 final eventData = event['data'];
                 if (type != 'text') {
-                  Logger.root.info('[Thought] Received event: $type');
+                  Logger.root.info(
+                    '[Thought] Received event: $type ${jsonEncode(eventData)}',
+                  );
                 }
                 switch (type) {
                   case 'text':
@@ -469,26 +484,52 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                     );
                     break;
                   case 'function_call':
-                    state = state.copyWith(
-                      streamingItems: [
-                        ...state.streamingItems,
-                        StreamItem(
-                          'function_call',
-                          SnFunctionCall.fromJson(eventData),
-                        ),
-                      ],
-                    );
+                    try {
+                      final mappedData = {
+                        'id': eventData['Id'],
+                        'name': eventData['Name'],
+                        'arguments': eventData['Arguments'] ?? '',
+                      };
+                      state = state.copyWith(
+                        streamingItems: [
+                          ...state.streamingItems,
+                          StreamItem(
+                            'function_call',
+                            SnFunctionCall.fromJson(mappedData),
+                          ),
+                        ],
+                      );
+                    } catch (e, st) {
+                      Logger.root.severe(
+                        'Failed to parse function_call: $eventData',
+                        e,
+                        st,
+                      );
+                    }
                     break;
                   case 'function_result':
-                    state = state.copyWith(
-                      streamingItems: [
-                        ...state.streamingItems,
-                        StreamItem(
-                          'function_result',
-                          SnFunctionResult.fromJson(eventData),
-                        ),
-                      ],
-                    );
+                    try {
+                      final mappedData = {
+                        'callId': eventData['CallId'],
+                        'result': eventData['Result'],
+                        'isError': eventData['IsError'] ?? false,
+                      };
+                      state = state.copyWith(
+                        streamingItems: [
+                          ...state.streamingItems,
+                          StreamItem(
+                            'function_result',
+                            SnFunctionResult.fromJson(mappedData),
+                          ),
+                        ],
+                      );
+                    } catch (e, st) {
+                      Logger.root.severe(
+                        'Failed to parse function_result: $eventData',
+                        e,
+                        st,
+                      );
+                    }
                     break;
                   case 'reasoning':
                     state = state.copyWith(
@@ -496,6 +537,47 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                         ...state.streamingItems,
                         StreamItem('reasoning', eventData),
                       ],
+                    );
+                    break;
+                  case 'status':
+                    final statusText = eventData as String?;
+                    String? localizedStatus;
+                    switch (statusText) {
+                      case 'compacting':
+                        localizedStatus = 'thoughtStatusCompacting'.tr();
+                        break;
+                      case 'preparing_context':
+                        localizedStatus = 'thoughtStatusPreparingContext'.tr();
+                        break;
+                      default:
+                        localizedStatus = statusText;
+                    }
+                    state = state.copyWith(currentStatus: localizedStatus);
+                    break;
+                  case 'context_cleared':
+                    state = state.copyWith(
+                      sequenceId: eventData['new_sequence_id'],
+                      compactSummary: eventData['summary'],
+                      archivedCount: eventData['archived_count'] as int?,
+                      currentStatus: 'thoughtStatusContextCleared'.tr(),
+                    );
+                    final newSeqId = eventData['new_sequence_id'] as String?;
+                    if (newSeqId != null) {
+                      ref.invalidate(thoughtSequenceProvider(newSeqId));
+                    }
+                    break;
+                  case 'compacted':
+                    state = state.copyWith(
+                      compactSummary: eventData['summary'],
+                      archivedCount: eventData['archived_count'] as int?,
+                      currentStatus: 'thoughtStatusCompacted'.tr(),
+                    );
+                    break;
+                  case 'auto_compacted':
+                    state = state.copyWith(
+                      compactSummary: eventData['summary'],
+                      archivedCount: eventData['archived_count'] as int?,
+                      currentStatus: 'thoughtStatusAutoCompacted'.tr(),
                     );
                     break;
                   default:
@@ -518,6 +600,9 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                     aiThought.sequenceId.isNotEmpty) {
                   state = state.copyWith(sequenceId: aiThought.sequenceId);
                 }
+
+                // Refresh quota after message response completes
+                ref.invalidate(thoughtQuotaProvider);
               }
             } catch (e) {
               // Ignore parsing errors for individual events
@@ -549,6 +634,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     final now = DateTime.now();
     final errorThought = SnThinkingThought(
       id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+      isArchived: false,
       parts: [
         SnThinkingMessagePart(
           type: ThinkingMessagePartType.text,
