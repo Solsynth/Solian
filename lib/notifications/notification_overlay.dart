@@ -162,11 +162,16 @@ class AnimatedNotificationItem extends HookConsumerWidget {
         axis: Axis.vertical,
         child: Padding(
           padding: margin ?? EdgeInsets.zero,
-          child: NotificationItemWidget(
-            item: item,
-            isDesktop: isDesktop,
-            onDismiss: onDismiss,
-            progress: progressAnimation,
+          child: Material(
+            color: Colors.transparent,
+            elevation: 8,
+            borderRadius: BorderRadius.circular(8),
+            child: NotificationItemWidget(
+              item: item,
+              isDesktop: isDesktop,
+              onDismiss: onDismiss,
+              progress: progressAnimation,
+            ),
           ),
         ),
       ),

@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/core/database.dart';
+import 'package:island/core/notification.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/e2ee/mls_engine.dart';
@@ -594,6 +595,27 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           },
         ),
         _DebugItem(
+          icon: Symbols.notifications,
+          title: 'Test notification overlay',
+          onTap: () {
+            final notification = SnNotification(
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              deletedAt: null,
+              id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+              topic: 'local',
+              title: 'Test Notification',
+              subtitle: '',
+              content: 'This is a test notification for debugging.',
+              meta: const {},
+              priority: 0,
+              viewedAt: null,
+              accountId: 'local',
+            );
+            ref.read(notificationStateProvider.notifier).add(notification);
+          },
+        ),
+        _DebugItem(
           icon: Symbols.military_tech,
           title: 'Test achievement completed',
           onTap: () {
@@ -847,28 +869,34 @@ class _DebugItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(title, style: Theme.of(context).textTheme.bodyMedium),
-            ),
-            Icon(
-              Symbols.chevron_right,
-              size: 18,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              Icon(
+                Symbols.chevron_right,
+                size: 18,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -878,10 +906,7 @@ class _DebugItem extends StatelessWidget {
 class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Container(height: 1, color: Theme.of(context).dividerColor),
-    );
+    return Divider(height: 4);
   }
 }
 
@@ -1013,6 +1038,31 @@ class DebugSheet extends HookConsumerWidget {
               title: const Text('Test snackbar'),
               onTap: () {
                 showSnackBar('This is a test snackbar message.');
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.notifications),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test notification overlay'),
+              onTap: () {
+                final notification = SnNotification(
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                  deletedAt: null,
+                  id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+                  topic: 'local',
+                  title: 'Test Notification',
+                  subtitle: '',
+                  content: 'This is a test notification for debugging.',
+                  meta: const {},
+                  priority: 0,
+                  viewedAt: null,
+                  accountId: 'local',
+                );
+                ref.read(notificationStateProvider.notifier).add(notification);
                 Navigator.pop(context);
               },
             ),
