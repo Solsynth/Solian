@@ -361,7 +361,10 @@ class StellarProgramTab extends HookConsumerWidget {
             ? (tabController.index == 0 ? 2 : 0)
             : (tabController.index == 0 ? 1 : 0);
         if (ref.read(selectedTabProvider) != newTab) {
-          ref.read(selectedTabProvider.notifier).setTab(newTab);
+          final notifier = ref.read(selectedTabProvider.notifier);
+          Future(() {
+            notifier.setTab(newTab);
+          });
         }
       }
 
@@ -817,21 +820,24 @@ class StellarProgramTab extends HookConsumerWidget {
   }
 
   Color _getMembershipTierColor(BuildContext context, String identifier) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (identifier) {
       case 'solian.stellar.primary':
-        return Colors.blue;
+        return colorScheme.primary;
       case 'solian.stellar.nova':
-        return Colors.purple;
-      case 'solian.stellar.supernova':
-        return Colors.orange;
+        return colorScheme.secondary;
+      case 'solian.stellar.tertiary':
+        return colorScheme.tertiary;
       default:
-        return Theme.of(context).colorScheme.primary;
+        return colorScheme.primary;
     }
   }
 
+  static final _defaultColor = Color(0xFF2196F3);
+
   Color _parseColor(String? colorString) {
     if (colorString == null || colorString.isEmpty) {
-      return Colors.blue;
+      return _defaultColor;
     }
     try {
       if (colorString.startsWith('#')) {
@@ -842,9 +848,9 @@ class StellarProgramTab extends HookConsumerWidget {
           return Color(int.parse(hexColor, radix: 16));
         }
       }
-      return Colors.blue;
+      return _defaultColor;
     } catch (e) {
-      return Colors.blue;
+      return _defaultColor;
     }
   }
 
@@ -1508,19 +1514,20 @@ class StellarProgramTab extends HookConsumerWidget {
   }
 
   Color _getGiftStatusColor(BuildContext context, int status) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (status) {
       case 0:
-        return Colors.grey;
+        return colorScheme.outline;
       case 1:
-        return Colors.blue;
+        return colorScheme.primary;
       case 2:
-        return Colors.green;
+        return colorScheme.tertiary;
       case 3:
-        return Colors.red;
+        return colorScheme.error;
       case 4:
-        return Colors.orange;
+        return colorScheme.secondary;
       default:
-        return Theme.of(context).colorScheme.primary;
+        return colorScheme.primary;
     }
   }
 
@@ -1794,7 +1801,7 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.92);
+    _pageController = PageController(viewportFraction: 0.72);
   }
 
   @override
@@ -1803,9 +1810,11 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
     super.dispose();
   }
 
+  static final _defaultColor = Color(0xFF2196F3);
+
   Color _parseColor(String? colorString) {
     if (colorString == null || colorString.isEmpty) {
-      return Colors.blue;
+      return _defaultColor;
     }
     try {
       if (colorString.startsWith('#')) {
@@ -1816,9 +1825,9 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
           return Color(int.parse(hexColor, radix: 16));
         }
       }
-      return Colors.blue;
+      return _defaultColor;
     } catch (e) {
-      return Colors.blue;
+      return _defaultColor;
     }
   }
 

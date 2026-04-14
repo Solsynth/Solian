@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -92,9 +93,19 @@ class SocialCreditsTab extends HookConsumerWidget {
                       right: 0,
                       top: 0,
                       child: IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => SheetScaffold(
+                              titleText: 'socialCredits'.tr(),
+                              child: Text(
+                                'socialCreditsDescription'.tr(),
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ).padding(horizontal: 20, vertical: 16),
+                            ),
+                          );
+                        },
                         icon: const Icon(Symbols.info),
-                        tooltip: 'socialCreditsDescription'.tr(),
                       ),
                     ),
                   ],
@@ -138,7 +149,9 @@ class SocialCreditsTab extends HookConsumerWidget {
                 trailing: Text(
                   record.delta > 0 ? '+${record.delta}' : '${record.delta}',
                   style: TextStyle(
-                    color: record.delta > 0 ? Colors.green : Colors.red,
+                    color: record.delta > 0
+                        ? Theme.of(context).colorScheme.tertiary
+                        : Theme.of(context).colorScheme.error,
                   ),
                 ),
               );
