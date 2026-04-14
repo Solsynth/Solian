@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
@@ -288,7 +290,7 @@ class AccountsApi extends BaseApi {
   Future<void> checkIn({String? captchaToken}) async {
     await post(
       '$_basePath/accounts/me/check-in',
-      data: captchaToken != null ? {'token': captchaToken} : null,
+      data: captchaToken != null ? jsonEncode(captchaToken) : null,
     );
   }
 
