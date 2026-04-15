@@ -8,6 +8,7 @@ import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -166,9 +167,9 @@ class PunishmentCard extends HookWidget {
               ),
             ],
             const Gap(12),
-            Text(
-              punishment.reason,
-              style: TextStyle(
+            MarkdownTextContent(
+              content: punishment.reason,
+              textStyle: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
