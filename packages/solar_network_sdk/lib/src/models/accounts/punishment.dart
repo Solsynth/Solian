@@ -38,6 +38,8 @@ sealed class SnAccountPunishment with _$SnAccountPunishment {
     @JsonKey(name: 'blocked_permissions') List<String>? blockedPermissions,
     @JsonKey(name: 'account_id') required String accountId,
     SnAccount? account,
+    @JsonKey(name: 'creator_id') String? creatorId,
+    SnAccount? creator,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
     @JsonKey(name: 'deleted_at') DateTime? deletedAt,

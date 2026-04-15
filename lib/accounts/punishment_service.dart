@@ -10,12 +10,20 @@ class PunishmentService {
   final Ref ref;
   PunishmentService(this.ref);
 
-  Future<List<SnAccountPunishment>> getPunishments(String username) async {
+  Future<PaginatedResult<SnAccountPunishment>> getPunishments(
+    String username, {
+    int offset = 0,
+    int take = 20,
+  }) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return client.padlock.getAccountPunishments(username);
+    return client.padlock.getAccountPunishments(
+      username,
+      offset: offset,
+      take: take,
+    );
   }
 
-  Future<List<SnAccountPunishment>> createPunishment({
+  Future<SnAccountPunishment> createPunishment({
     required String username,
     required String reason,
     required PunishmentType type,
@@ -23,13 +31,14 @@ class PunishmentService {
     List<String>? blockedPermissions,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
-    return client.padlock.createPunishment(
+    final response = await client.padlock.createPunishment(
       username: username,
       reason: reason,
       type: type,
       expiredAt: expiredAt,
       blockedPermissions: blockedPermissions,
     );
+    return response;
   }
 
   Future<SnAccountPunishment> updatePunishment({
@@ -54,5 +63,16 @@ class PunishmentService {
   Future<void> deletePunishment(String username, String punishmentId) async {
     final client = ref.watch(solarNetworkClientProvider);
     await client.padlock.deletePunishment(username, punishmentId);
+  }
+
+  Future<PaginatedResult<SnAccountPunishment>> getAdminCreatedPunishments({
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final client = ref.watch(solarNetworkClientProvider);
+    return client.padlock.getAdminCreatedPunishments(
+      offset: offset,
+      take: take,
+    );
   }
 }
