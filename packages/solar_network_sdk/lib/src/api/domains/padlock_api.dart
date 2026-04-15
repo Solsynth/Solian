@@ -147,13 +147,27 @@ class PadlockApi extends BaseApi {
   /// Gets all punishments for an account.
   ///
   /// [username] - The username of the account.
-  Future<List<SnAccountPunishment>> getAccountPunishments(
-    String username,
-  ) async {
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  Future<PaginatedResult<SnAccountPunishment>> getAccountPunishments(
+    String username, {
+    int offset = 0,
+    int take = 20,
+  }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/admin/accounts/$username/punishments',
+      '$_basePath/accounts/$username/punishments',
+      queryParameters: {'offset': offset, 'take': take},
     );
-    return parseList(response, SnAccountPunishment.fromJson);
+    final items = parseList(response, SnAccountPunishment.fromJson);
+    final totalCount = getTotalCount(response.headers);
+    final hasMore = items.length == take;
+    final cursor = hasMore ? (offset + take).toString() : null;
+    return PaginatedResult(
+      items: items,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
   }
 
   /// Creates a new punishment for an account.
@@ -163,14 +177,14 @@ class PadlockApi extends BaseApi {
   /// [type] - The type of punishment.
   /// [expiredAt] - Optional expiration time.
   /// [blockedPermissions] - Optional list of permissions to block.
-  Future<List<SnAccountPunishment>> createPunishment({
+  Future<SnAccountPunishment> createPunishment({
     required String username,
     required String reason,
     required PunishmentType type,
     DateTime? expiredAt,
     List<String>? blockedPermissions,
   }) async {
-    final response = await post<List<dynamic>>(
+    final response = await post(
       '$_basePath/admin/accounts/$username/punishments',
       data: {
         'reason': reason,
@@ -179,7 +193,7 @@ class PadlockApi extends BaseApi {
         'blocked_permissions': blockedPermissions,
       },
     );
-    return parseList(response, SnAccountPunishment.fromJson);
+    return SnAccountPunishment.fromJson(response.data);
   }
 
   /// Updates an existing punishment.
@@ -222,6 +236,30 @@ class PadlockApi extends BaseApi {
   Future<void> deletePunishment(String username, String punishmentId) async {
     await delete(
       '$_basePath/admin/accounts/$username/punishments/$punishmentId',
+    );
+  }
+
+  /// Gets all punishments created by the current admin user.
+  ///
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  Future<PaginatedResult<SnAccountPunishment>> getAdminCreatedPunishments({
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/admin/punishments/created',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+    final items = parseList(response, SnAccountPunishment.fromJson);
+    final totalCount = getTotalCount(response.headers);
+    final hasMore = items.length == take;
+    final cursor = hasMore ? (offset + take).toString() : null;
+    return PaginatedResult(
+      items: items,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
     );
   }
 }
