@@ -912,6 +912,7 @@ class MeetDetailScreen extends HookConsumerWidget {
             onError: (err, _) {
               error.value = err;
               isWatching.value = false;
+              unawaited(stopBroadcastingPin());
             },
           );
 
@@ -1146,35 +1147,13 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
     )..repeat();
     final theme = Theme.of(context);
     final topic = meet.metadata['topic']?.toString();
-    final meetService = ref.watch(meetServiceProvider);
     final currentUser = ref.watch(userInfoProvider).value;
-    final pins = useState<List<SnLocationPin>?>(meet.pins);
-    final isLoadingPins = useState(false);
 
+    final pins = meet.pins;
     final currentParticipants = _displayParticipants(meet, currentUser);
     final participantCount = currentParticipants.length;
     final hasMultipleParticipants = participantCount >= 2;
-
-    useEffect(() {
-      if (hasMultipleParticipants &&
-          (pins.value == null || pins.value!.isEmpty)) {
-        isLoadingPins.value = true;
-        meetService
-            .getMeetPins(meet.id)
-            .then((result) {
-              pins.value = result;
-            })
-            .catchError((_) {
-              pins.value = null;
-            })
-            .whenComplete(() {
-              isLoadingPins.value = false;
-            });
-      }
-      return null;
-    }, [meet.id, hasMultipleParticipants]);
-
-    final hasPins = pins.value != null && pins.value!.isNotEmpty;
+    final hasPins = pins != null && pins.isNotEmpty;
 
     return AppScaffold(
       isNoBackground: true,
@@ -1265,7 +1244,7 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                   height: 360,
                   child: hasMultipleParticipants && hasPins
                       ? _MeetPinsMapCard(
-                          pins: pins.value!,
+                          pins: pins,
                           participants: currentParticipants,
                           currentUser: currentUser,
                         )
@@ -1467,7 +1446,7 @@ class _MeetDetailHero extends HookWidget {
   }
 }
 
-class _MeetDetailInfo extends HookConsumerWidget {
+class _MeetDetailInfo extends StatelessWidget {
   final SnMeet meet;
   final MeetEntryMode entryMode;
   final String? eventType;
@@ -1481,36 +1460,10 @@ class _MeetDetailInfo extends HookConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final meetService = ref.watch(meetServiceProvider);
-    final currentUser = ref.watch(userInfoProvider).value;
-    final pins = useState<List<SnLocationPin>?>(meet.pins);
-    final isLoadingPins = useState(false);
-
-    final currentParticipants = _displayParticipants(meet, currentUser);
-    final participantCount = currentParticipants.length;
+  Widget build(BuildContext context) {
+    final participantCount = participants.length;
     final hasMultipleParticipants = participantCount >= 2;
-
-    useEffect(() {
-      if (hasMultipleParticipants &&
-          (pins.value == null || pins.value!.isEmpty)) {
-        isLoadingPins.value = true;
-        meetService
-            .getMeetPins(meet.id)
-            .then((result) {
-              pins.value = result;
-            })
-            .catchError((_) {
-              pins.value = null;
-            })
-            .whenComplete(() {
-              isLoadingPins.value = false;
-            });
-      }
-      return null;
-    }, [meet.id, hasMultipleParticipants]);
-
-    final hasPins = pins.value != null && pins.value!.isNotEmpty;
+    final hasPins = meet.pins != null && meet.pins!.isNotEmpty;
 
     return Card(
       child: Padding(
@@ -1520,17 +1473,7 @@ class _MeetDetailInfo extends HookConsumerWidget {
           children: [
             if (_parseMeetPoint(meet.locationWkt) case final point?) ...[
               if (hasMultipleParticipants && hasPins) ...[
-                _MeetPinsMapCard(
-                  pins: pins.value!,
-                  participants: currentParticipants,
-                ),
-              ] else if (hasMultipleParticipants && isLoadingPins.value) ...[
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+                _MeetPinsMapCard(pins: meet.pins!, participants: participants),
               ] else ...[
                 _MeetLocationMapCard(
                   point: point,
@@ -1583,7 +1526,7 @@ class _MeetDetailInfo extends HookConsumerWidget {
               'meetParticipantsCount'.tr(args: ['$participantCount']),
             ).fontSize(16).bold(),
             const Gap(8),
-            ...currentParticipants.map(
+            ...participants.map(
               (participant) => ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
