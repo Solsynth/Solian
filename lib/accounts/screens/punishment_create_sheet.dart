@@ -26,6 +26,7 @@ class PunishmentCreateSheet extends HookConsumerWidget {
     final expiredAt = useState<DateTime?>(null);
     final blockedPermissions = useState<List<String>>([]);
     final permissionController = useTextEditingController();
+    final socialCreditReductionController = useTextEditingController();
     final isLoading = useState(false);
 
     if (!isSuperuser) {
@@ -50,6 +51,9 @@ class PunishmentCreateSheet extends HookConsumerWidget {
             isLoading.value = true;
             try {
               final service = ref.read(punishmentServiceProvider);
+              final socialCreditReduction = double.tryParse(
+                socialCreditReductionController.text,
+              );
               await service.createPunishment(
                 username: selectedAccount.value!.name,
                 reason: reasonController.text,
@@ -59,6 +63,7 @@ class PunishmentCreateSheet extends HookConsumerWidget {
                     selectedType.value == PunishmentType.permissionModification
                     ? blockedPermissions.value
                     : null,
+                socialCreditReduction: socialCreditReduction,
               );
               if (!context.mounted) return;
               showSnackBar('punishmentCreated'.tr());
@@ -284,6 +289,28 @@ class PunishmentCreateSheet extends HookConsumerWidget {
               ),
             ],
           ],
+          const Gap(16),
+          Text(
+            'socialCreditReduction'.tr(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const Gap(4),
+          Text(
+            'optionalField'.tr(),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const Gap(8),
+          TextField(
+            controller: socialCreditReductionController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'e.g. 100',
+              suffixText: 'credits',
+            ),
+          ),
         ],
       ),
     );

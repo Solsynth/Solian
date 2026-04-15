@@ -23,22 +23,28 @@ class PunishmentService {
     );
   }
 
+  Future<SnAccountPunishment?> getPunishmentOverview(String username) async {
+    final client = ref.watch(solarNetworkClientProvider);
+    return client.padlock.getAccountPunishmentOverview(username);
+  }
+
   Future<SnAccountPunishment> createPunishment({
     required String username,
     required String reason,
     required PunishmentType type,
     DateTime? expiredAt,
     List<String>? blockedPermissions,
+    double? socialCreditReduction,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
-    final response = await client.padlock.createPunishment(
+    return client.padlock.createPunishment(
       username: username,
       reason: reason,
       type: type,
       expiredAt: expiredAt,
       blockedPermissions: blockedPermissions,
+      socialCreditReduction: socialCreditReduction,
     );
-    return response;
   }
 
   Future<SnAccountPunishment> updatePunishment({

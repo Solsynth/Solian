@@ -9,6 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/auth/login.dart';
+import 'package:island/accounts/screens/punishment_user_sheet.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -43,6 +44,35 @@ Future<void> performPostLogin(BuildContext context, WidgetRef ref) async {
   wsNotifier.connect();
   if (context.mounted && Navigator.canPop(context)) {
     Navigator.pop(context, true);
+  }
+}
+
+Future<void> handleLockedError(
+  BuildContext context,
+  WidgetRef ref,
+  dynamic error,
+  String username,
+) async {
+  if (error is DioException && error.response?.statusCode == 423) {
+    final client = ref.watch(solarNetworkClientProvider);
+    try {
+      final response = await client.dio.get(
+        '/padlock/accounts/$username/punishments/overview',
+      );
+      final overview = response.data != null
+          ? SnAccountPunishment.fromJson(response.data)
+          : null;
+      if (!context.mounted) return;
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        builder: (context) =>
+            UserPunishmentsSheet(username: username, initialOverview: overview),
+      );
+    } catch (e) {
+      // ignore
+    }
   }
 }
 
@@ -843,6 +873,8 @@ class _LoginLookupScreen extends HookConsumerWidget {
         );
         onNext();
       } catch (err) {
+        await handleLockedError(context, ref, err, uname);
+        if (!context.mounted) return;
         showErrorAlert(err);
         return;
       } finally {

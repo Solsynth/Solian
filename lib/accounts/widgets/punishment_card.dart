@@ -17,6 +17,7 @@ class PunishmentCard extends HookWidget {
   final bool showAccount;
   final bool showCreator;
   final bool canDelete;
+  final bool isOverview;
   final VoidCallback? onDelete;
 
   const PunishmentCard({
@@ -25,6 +26,7 @@ class PunishmentCard extends HookWidget {
     this.showAccount = false,
     this.showCreator = false,
     this.canDelete = false,
+    this.isOverview = false,
     this.onDelete,
   });
 

@@ -144,6 +144,19 @@ class PadlockApi extends BaseApi {
   // Punishment endpoints (/padlock/admin/accounts)
   // ==========================================
 
+  /// Gets punishment overview for an account.
+  ///
+  /// [username] - The username of the account.
+  /// Returns the most severe active punishment or null if none.
+  Future<SnAccountPunishment?> getAccountPunishmentOverview(
+    String username,
+  ) async {
+    final response = await get(
+      '$_basePath/accounts/$username/punishments/overview',
+    );
+    return SnAccountPunishment.fromJson(response.data);
+  }
+
   /// Gets all punishments for an account.
   ///
   /// [username] - The username of the account.
@@ -177,12 +190,14 @@ class PadlockApi extends BaseApi {
   /// [type] - The type of punishment.
   /// [expiredAt] - Optional expiration time.
   /// [blockedPermissions] - Optional list of permissions to block.
+  /// [socialCreditReduction] - Optional social credit reduction amount.
   Future<SnAccountPunishment> createPunishment({
     required String username,
     required String reason,
     required PunishmentType type,
     DateTime? expiredAt,
     List<String>? blockedPermissions,
+    double? socialCreditReduction,
   }) async {
     final response = await post(
       '$_basePath/admin/accounts/$username/punishments',
@@ -191,6 +206,7 @@ class PadlockApi extends BaseApi {
         'type': type.value,
         'expired_at': expiredAt?.toUtc().toIso8601String(),
         'blocked_permissions': blockedPermissions,
+        'social_credit_reduction': socialCreditReduction,
       },
     );
     return SnAccountPunishment.fromJson(response.data);

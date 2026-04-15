@@ -36,6 +36,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/accounts/screens/punishment_user_sheet.dart';
 
 part 'profile.g.dart';
 
@@ -865,6 +866,71 @@ class _PublisherCard extends StatelessWidget {
   }
 }
 
+class _AccountPunishment extends StatelessWidget {
+  final SnAccountPunishment punishment;
+  final VoidCallback onTap;
+
+  const _AccountPunishment({required this.punishment, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Symbols.warning,
+                  color: theme.colorScheme.onErrorContainer,
+                  size: 20,
+                ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'accountRestrictions'.tr(),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Gap(2),
+                    Text(
+                      'tapToViewDetails'.tr(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Symbols.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _AccountAction extends StatelessWidget {
   final SnAccount data;
   final AsyncValue<SnRelationship?> accountRelationship;
@@ -1074,6 +1140,23 @@ Future<List<SnPublisher>> accountPublishers(Ref ref, String id) async {
   }
 }
 
+@riverpod
+Future<SnAccountPunishment?> accountPunishmentOverview(
+  Ref ref,
+  String uname,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  try {
+    final response = await client.dio.get(
+      '/padlock/accounts/$uname/punishments/overview',
+    );
+    if (response.data == null) return null;
+    return SnAccountPunishment.fromJson(response.data);
+  } catch (err) {
+    return null;
+  }
+}
+
 final accountTimelineProvider = AsyncNotifierProvider.autoDispose
     .family<
       AccountTimelineNotifier,
@@ -1138,6 +1221,21 @@ class AccountProfileScreen extends HookConsumerWidget {
     final accountChat = ref.watch(accountDirectChatProvider(name));
     final accountRelationship = ref.watch(accountRelationshipProvider(name));
     final accountDeveloper = ref.watch(accountBotDeveloperProvider(name));
+    final accountPunishment = ref.watch(
+      accountPunishmentOverviewProvider(name),
+    );
+
+    void showPunishmentSheet() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        builder: (context) => UserPunishmentsSheet(
+          username: name,
+          initialOverview: accountPunishment.value,
+        ),
+      );
+    }
 
     Future<void> relationshipAction() async {
       if (accountRelationship.value != null) return;
@@ -1269,6 +1367,14 @@ class AccountProfileScreen extends HookConsumerWidget {
                               _AccountPublisherList(
                                 publishers: accountPublishers.value ?? [],
                               ),
+                              ?accountPunishment.whenOrNull(
+                                data: (data) => data != null
+                                    ? _AccountPunishment(
+                                        punishment: data,
+                                        onTap: showPunishmentSheet,
+                                      )
+                                    : null,
+                              ),
                               if (user.value != null && !isCurrentUser)
                                 _AccountAction(
                                   data: data,
@@ -1353,6 +1459,14 @@ class AccountProfileScreen extends HookConsumerWidget {
                             publishers: accountPublishers.value ?? [],
                           ),
                           _AccountProfileDetail(data: data),
+                          ?accountPunishment.whenOrNull(
+                            data: (data) => data != null
+                                ? _AccountPunishment(
+                                    punishment: data,
+                                    onTap: showPunishmentSheet,
+                                  )
+                                : null,
+                          ),
                           if (user.value != null && !isCurrentUser)
                             _AccountAction(
                               data: data,

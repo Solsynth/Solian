@@ -463,3 +463,82 @@ final class AccountPublishersFamily extends $Family
   @override
   String toString() => r'accountPublishersProvider';
 }
+
+@ProviderFor(accountPunishmentOverview)
+final accountPunishmentOverviewProvider = AccountPunishmentOverviewFamily._();
+
+final class AccountPunishmentOverviewProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnAccountPunishment?>,
+          SnAccountPunishment?,
+          FutureOr<SnAccountPunishment?>
+        >
+    with
+        $FutureModifier<SnAccountPunishment?>,
+        $FutureProvider<SnAccountPunishment?> {
+  AccountPunishmentOverviewProvider._({
+    required AccountPunishmentOverviewFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountPunishmentOverviewProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountPunishmentOverviewHash();
+
+  @override
+  String toString() {
+    return r'accountPunishmentOverviewProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnAccountPunishment?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnAccountPunishment?> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountPunishmentOverview(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountPunishmentOverviewProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$accountPunishmentOverviewHash() =>
+    r'baf11e22c68d5fb2ec142245814c07823c20206e';
+
+final class AccountPunishmentOverviewFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnAccountPunishment?>, String> {
+  AccountPunishmentOverviewFamily._()
+    : super(
+        retry: null,
+        name: r'accountPunishmentOverviewProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountPunishmentOverviewProvider call(String uname) =>
+      AccountPunishmentOverviewProvider._(argument: uname, from: this);
+
+  @override
+  String toString() => r'accountPunishmentOverviewProvider';
+}

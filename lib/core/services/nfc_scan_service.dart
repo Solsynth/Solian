@@ -3,6 +3,7 @@ import 'dart:convert';
 
 export 'package:flutter_nfc_kit/flutter_nfc_kit.dart' show NFCAvailability;
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+import 'package:logging/logging.dart';
 import 'package:ndef/ndef.dart' as ndef;
 
 class NfcScanService {
@@ -15,17 +16,41 @@ class NfcScanService {
   }
 
   Future<NFCTag> scanTag({Duration? timeout, String? iosAlertMessage}) async {
-    return FlutterNfcKit.poll(
-      timeout: timeout,
-      iosAlertMessage: iosAlertMessage ?? '',
-    );
+    Logger.root.info('NfcScanService: Starting NFC scan...');
+    try {
+      final tag = await FlutterNfcKit.poll(
+        timeout: timeout,
+        iosAlertMessage: iosAlertMessage ?? '',
+      );
+      Logger.root.info(
+        'NfcScanService: Scanned tag: ${tag.id}, type: ${tag.type}, ndefAvailable: ${tag.ndefAvailable}',
+      );
+      return tag;
+    } catch (e, st) {
+      Logger.root.severe('NfcScanService: Error scanning tag: $e', st);
+      rethrow;
+    }
   }
 
   Future<List<ndef.NDEFRecord>> readNdefRecords(
     NFCTag tag, {
     bool cached = false,
   }) async {
-    return FlutterNfcKit.readNDEFRecords(cached: cached);
+    try {
+      final records = await FlutterNfcKit.readNDEFRecords(cached: cached);
+      Logger.root.info('NfcScanService: Read ${records.length} NDEF records');
+      for (var i = 0; i < records.length; i++) {
+        final rec = records[i];
+        final recData = rec.toString();
+        Logger.root.info(
+          'NfcScanService: Record[$i] type: ${rec.runtimeType}, data: $recData',
+        );
+      }
+      return records;
+    } catch (e, st) {
+      Logger.root.severe('NfcScanService: Error reading NDEF records: $e', st);
+      rethrow;
+    }
   }
 
   Future<void> finish({
@@ -40,22 +65,39 @@ class NfcScanService {
   }
 
   Uri? parseDeepLinkUri(List<ndef.NDEFRecord> records) {
-    if (records.isEmpty) return null;
-
-    final firstRecord = records.first;
-
-    if (firstRecord is ndef.UriRecord && firstRecord.uri != null) {
-      return firstRecord.uri;
+    if (records.isEmpty) {
+      Logger.root.info('NfcScanService: No records found');
+      return null;
     }
 
-    if (firstRecord is ndef.TextRecord) {
-      final text = firstRecord.text;
-      if (text == null) return null;
+    for (var i = 0; i < records.length; i++) {
+      final record = records[i];
+      Logger.root.info(
+        'NfcScanService: Record[$i] type: ${record.runtimeType}',
+      );
 
-      final uri = _tryParseUri(text);
-      if (uri != null) return uri;
+      if (record is ndef.UriRecord && record.uri != null) {
+        Logger.root.info('NfcScanService: URI record found: ${record.uri}');
+        return record.uri;
+      }
+
+      if (record is ndef.TextRecord) {
+        final text = record.text;
+        if (text == null) {
+          Logger.root.info('NfcScanService: Text record has null text');
+          continue;
+        }
+
+        Logger.root.info('NfcScanService: Text record[$i]: "$text"');
+        final uri = _tryParseUri(text);
+        if (uri != null) {
+          Logger.root.info('NfcScanService: Parsed URI from text: $uri');
+          return uri;
+        }
+      }
     }
 
+    Logger.root.info('NfcScanService: No valid URI found in records');
     return null;
   }
 
@@ -64,6 +106,10 @@ class NfcScanService {
 
     if (_looksLikeUrl(trimmed)) {
       return Uri.tryParse(trimmed);
+    }
+
+    if (!_isLikelyBase64(trimmed)) {
+      return null;
     }
 
     try {
@@ -81,6 +127,12 @@ class NfcScanService {
     } catch (_) {}
 
     return null;
+  }
+
+  bool _isLikelyBase64(String input) {
+    if (input.isEmpty) return false;
+    final base64Regex = RegExp(r'^[A-Za-z0-9+/]*={0,2}$');
+    return base64Regex.hasMatch(input);
   }
 
   int _findUrlStart(String input) {
