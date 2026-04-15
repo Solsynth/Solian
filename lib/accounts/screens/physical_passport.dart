@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/nfc_scan_service.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -558,7 +559,7 @@ class _AddPhysicalPassportSheetState
     setState(() => _isScanning = true);
 
     try {
-      final availability = await FlutterNfcKit.nfcAvailability;
+      final availability = await NfcScanService().checkAvailability();
       if (availability != NFCAvailability.available) {
         if (mounted) {
           showErrorAlert(Exception('nfcNotAvailable'.tr()));
@@ -566,7 +567,7 @@ class _AddPhysicalPassportSheetState
         return;
       }
 
-      final tag = await FlutterNfcKit.poll();
+      final tag = await NfcScanService().scanTag();
       final uid = tag.id;
 
       setState(() {
@@ -575,7 +576,7 @@ class _AddPhysicalPassportSheetState
         _uidController.text = uid;
       });
 
-      await FlutterNfcKit.finish();
+      await NfcScanService().finish();
     } catch (e) {
       if (mounted) {
         showErrorAlert(e);
@@ -846,7 +847,7 @@ class _PhysicalPassportScanSheetState
     });
 
     try {
-      final availability = await FlutterNfcKit.nfcAvailability;
+      final availability = await NfcScanService().checkAvailability();
       if (availability != NFCAvailability.available) {
         setState(() {
           _error = 'nfcNotAvailable'.tr();
@@ -855,7 +856,7 @@ class _PhysicalPassportScanSheetState
         return;
       }
 
-      final tag = await FlutterNfcKit.poll();
+      final tag = await NfcScanService().scanTag();
 
       if (tag.ndefAvailable != true) {
         setState(() {
@@ -865,7 +866,7 @@ class _PhysicalPassportScanSheetState
         return;
       }
 
-      final records = await FlutterNfcKit.readNDEFRecords(cached: false);
+      final records = await NfcScanService().readNdefRecords(tag);
       if (records.isEmpty) {
         setState(() {
           _error = 'nfcTagEmpty'.tr();
@@ -919,7 +920,7 @@ class _PhysicalPassportScanSheetState
         _scannedUid = uidFromUri;
       });
 
-      await FlutterNfcKit.finish();
+      await NfcScanService().finish();
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -1597,7 +1598,7 @@ class _AdminRegisterEncryptedTagSheetState
     setState(() => _isScanning = true);
 
     try {
-      final availability = await FlutterNfcKit.nfcAvailability;
+      final availability = await NfcScanService().checkAvailability();
       if (availability != NFCAvailability.available) {
         if (mounted) {
           showErrorAlert(Exception('nfcNotAvailable'.tr()));
@@ -1605,7 +1606,7 @@ class _AdminRegisterEncryptedTagSheetState
         return;
       }
 
-      final tag = await FlutterNfcKit.poll();
+      final tag = await NfcScanService().scanTag();
       final uid = tag.id;
 
       setState(() {
@@ -1614,7 +1615,7 @@ class _AdminRegisterEncryptedTagSheetState
         _uidController.text = uid;
       });
 
-      await FlutterNfcKit.finish();
+      await NfcScanService().finish();
     } catch (e) {
       if (mounted) {
         showErrorAlert(e);

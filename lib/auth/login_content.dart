@@ -6,7 +6,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/auth/login.dart';
@@ -16,6 +15,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/screens/me/settings_connections.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/services/nfc_scan_service.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -161,15 +161,15 @@ class _LoginCheckScreen extends HookConsumerWidget {
       scanError.value = null;
 
       try {
-        final availability = await FlutterNfcKit.nfcAvailability;
+        final availability = await NfcScanService().checkAvailability();
         if (availability != NFCAvailability.available) {
           scanError.value = 'nfcNotAvailable'.tr();
           isScanning.value = false;
           return;
         }
 
-        final tag = await FlutterNfcKit.poll();
-        final records = await FlutterNfcKit.readNDEFRecords(cached: false);
+        final tag = await NfcScanService().scanTag();
+        final records = await NfcScanService().readNdefRecords(tag);
         String? uidHex;
         if (records.isNotEmpty) {
           final firstRecord = records.first;
@@ -186,7 +186,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
         passwordController.text = '${tag.id}:$uidHex';
         isScanning.value = false;
-        await FlutterNfcKit.finish();
+        await NfcScanService().finish();
         performCheckTicket();
       } catch (e) {
         scanError.value = e.toString();
