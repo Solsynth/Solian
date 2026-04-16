@@ -207,6 +207,7 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
                                       ),
                                       child: CloudImageWidget(
                                         file: pack.stickers[index].image,
+                                        noBlurhash: true,
                                       ),
                                     ).clipRRect(all: 8),
                                   ),
@@ -237,6 +238,7 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
                                         ),
                                         child: CloudImageWidget(
                                           file: pack.stickers[index + 4].image,
+                                          noBlurhash: true,
                                         ),
                                       ).clipRRect(all: 8),
                                     ),
@@ -258,6 +260,7 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
                         ),
                         child: CloudImageWidget(
                           file: pack.icon ?? pack.stickers.firstOrNull?.image,
+                          noBlurhash: true,
                         ),
                       ).width(40).height(40).clipRRect(all: 8),
                       shape: RoundedRectangleBorder(

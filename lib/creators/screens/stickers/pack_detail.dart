@@ -18,7 +18,6 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:super_context_menu/super_context_menu.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'pack_detail.g.dart';
@@ -43,30 +42,34 @@ class StickerPackDetailContent extends HookConsumerWidget {
     required this.pubName,
   });
 
+  Future<void> deleteSticker(
+    BuildContext context,
+    WidgetRef ref,
+    SnSticker sticker,
+  ) async {
+    final confirm = await showConfirmAlert(
+      'deleteStickerHint'.tr(),
+      'deleteSticker'.tr(),
+    );
+    if (!confirm) return;
+    if (!context.mounted) return;
+
+    try {
+      showLoadingModal(context);
+      final apiClient = ref.watch(apiClientProvider);
+      await apiClient.delete('/sphere/stickers/$id/content/${sticker.id}');
+      ref.invalidate(stickerPackContentProvider(id));
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pack = ref.watch(stickerPackProvider(id));
     final packContent = ref.watch(stickerPackContentProvider(id));
-
-    Future<void> deleteSticker(SnSticker sticker) async {
-      final confirm = await showConfirmAlert(
-        'deleteStickerHint'.tr(),
-        'deleteSticker'.tr(),
-      );
-      if (!confirm) return;
-      if (!context.mounted) return;
-
-      try {
-        showLoadingModal(context);
-        final apiClient = ref.watch(apiClientProvider);
-        await apiClient.delete('/sphere/stickers/$id/content/${sticker.id}');
-        ref.invalidate(stickerPackContentProvider(id));
-      } catch (err) {
-        showErrorAlert(err);
-      } finally {
-        if (context.mounted) hideLoadingModal(context);
-      }
-    }
 
     return pack.when(
       data: (pack) => Column(
@@ -114,39 +117,125 @@ class StickerPackDetailContent extends HookConsumerWidget {
               data: (stickers) => RefreshIndicator(
                 onRefresh: () =>
                     ref.refresh(stickerPackContentProvider(id).future),
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 20,
+                child: _buildStickersTable(context, ref, stickers, pack.prefix),
+              ),
+              error: (err, _) =>
+                  Text('Error: $err').textAlignment(TextAlign.center).center(),
+              loading: () => const CircularProgressIndicator().center(),
+            ),
+          ),
+        ],
+      ),
+      error: (err, _) =>
+          Text('Error: $err').textAlignment(TextAlign.center).center(),
+      loading: () => const CircularProgressIndicator().center(),
+    );
+  }
+
+  Widget _buildStickersTable(
+    BuildContext context,
+    WidgetRef ref,
+    List<SnSticker> stickers,
+    String prefix,
+  ) {
+    final scrollController = useCallback(() {
+      final controller = ScrollController();
+      return controller;
+    }, []);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          controller: scrollController(),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.surfaceContainerHigh,
+                ),
+                dataRowMinHeight: 48,
+                dataRowMaxHeight: 56,
+                columnSpacing: 20,
+                horizontalMargin: 16,
+                headingRowHeight: 40,
+                columns: const [
+                  DataColumn(
+                    label: _TableHeaderIcon(
+                      icon: Symbols.image,
+                      label: 'Preview',
+                    ),
                   ),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 80,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
+                  DataColumn(
+                    label: _TableHeaderIcon(icon: Symbols.tag, label: 'Slug'),
                   ),
-                  itemCount: stickers.length,
-                  itemBuilder: (context, index) {
-                    final sticker = stickers[index];
-                    return ContextMenuWidget(
-                      menuProvider: (_) {
-                        return Menu(
+                  DataColumn(
+                    label: _TableHeaderIcon(icon: Icons.tag, label: 'Code'),
+                  ),
+                  DataColumn(label: SizedBox.shrink()),
+                ],
+                rows: stickers.map((sticker) {
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: CloudImageWidget(
+                                file: sticker.image,
+                                fit: BoxFit.contain,
+                                noBlurhash: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            sticker.slug,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: GoogleFonts.robotoMono(fontSize: 11),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          ':$prefix+${sticker.slug}:',
+                          style: GoogleFonts.robotoMono(fontSize: 11),
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            MenuAction(
-                              title: 'stickerCopyPlaceholder'.tr(),
-                              image: MenuImage.icon(Symbols.copy_all),
-                              callback: () {
+                            IconButton(
+                              icon: const Icon(Icons.copy, size: 16),
+                              onPressed: () {
                                 Clipboard.setData(
                                   ClipboardData(
-                                    text: ':${pack.prefix}+${sticker.slug}:',
+                                    text: ':$prefix+${sticker.slug}:',
                                   ),
                                 );
                               },
+                              tooltip: 'copy'.tr(),
+                              visualDensity: VisualDensity.compact,
                             ),
-                            MenuSeparator(),
-                            MenuAction(
-                              title: 'edit'.tr(),
-                              image: MenuImage.icon(Symbols.edit),
-                              callback: () {
+                            IconButton(
+                              icon: const Icon(Symbols.edit, size: 16),
+                              onPressed: () {
                                 showModalBottomSheet(
                                   context: context,
                                   isScrollControlled: true,
@@ -165,46 +254,50 @@ class StickerPackDetailContent extends HookConsumerWidget {
                                   }
                                 });
                               },
+                              tooltip: 'edit'.tr(),
+                              visualDensity: VisualDensity.compact,
                             ),
-                            MenuAction(
-                              title: 'delete'.tr(),
-                              image: MenuImage.icon(Symbols.delete),
-                              callback: () {
-                                deleteSticker(sticker);
-                              },
+                            IconButton(
+                              icon: const Icon(
+                                Symbols.delete,
+                                size: 16,
+                                color: Colors.red,
+                              ),
+                              onPressed: () =>
+                                  deleteSticker(context, ref, sticker),
+                              tooltip: 'delete'.tr(),
+                              visualDensity: VisualDensity.compact,
                             ),
                           ],
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainer,
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                          ),
-                          child: CloudImageWidget(
-                            file: sticker.image,
-                            fit: BoxFit.contain,
-                          ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ],
+                  );
+                }).toList(),
               ),
-              error: (err, _) =>
-                  Text('Error: $err').textAlignment(TextAlign.center).center(),
-              loading: () => const CircularProgressIndicator().center(),
             ),
           ),
-        ],
-      ),
-      error: (err, _) =>
-          Text('Error: $err').textAlignment(TextAlign.center).center(),
-      loading: () => const CircularProgressIndicator().center(),
+        );
+      },
+    );
+  }
+}
+
+class _TableHeaderIcon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _TableHeaderIcon({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
+        const Gap(4),
+        Text(label, style: Theme.of(context).textTheme.labelMedium),
+      ],
     );
   }
 }

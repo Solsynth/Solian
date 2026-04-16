@@ -259,6 +259,7 @@ class _StickersGrid extends StatelessWidget {
                   child: CloudImageWidget(
                     file: sticker.image,
                     fit: BoxFit.contain,
+                    noBlurhash: true,
                   ),
                 ),
               ),
@@ -404,9 +405,11 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
                           return packs[i].icon != null
                               ? CloudImageWidget(
                                   file: packs[i].icon!,
+                                  noBlurhash: true,
                                 ).clipRRect(all: value)
                               : CloudImageWidget(
                                   file: packs[i].stickers.firstOrNull?.image,
+                                  noBlurhash: true,
                                 ).clipRRect(all: value);
                         },
                       ),

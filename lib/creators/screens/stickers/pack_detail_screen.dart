@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/creators/screens/stickers/pack_detail.dart';
 import 'package:island/creators/screens/stickers/stickers.dart';
@@ -46,6 +47,7 @@ class CreatorStickerPackDetailScreen extends HookConsumerWidget {
             packId: packId,
             iconShadow: Shadow(),
           ),
+          const Gap(8),
         ],
       ),
       body: StickerPackDetailContent(id: packId, pubName: pubName),

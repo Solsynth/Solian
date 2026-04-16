@@ -78,8 +78,6 @@ class CreatorPostListScreen extends HookConsumerWidget {
     }, []);
 
     final posts = state.items;
-    final isLoading = state.isLoading;
-    final hasMore = state.hasMore;
 
     return LayoutBuilder(
       builder: (context, constraints) {
