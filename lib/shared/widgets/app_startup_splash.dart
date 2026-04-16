@@ -35,22 +35,15 @@ class StartupSplashScreen extends HookConsumerWidget {
       required String stageLabel,
       required ValueNotifier<String?> subtitle,
     }) async {
-      Object? lastError;
-      StackTrace? lastStackTrace;
       for (var idx = 0; idx < retryTimeouts.length; idx++) {
         final timeout = retryTimeouts[idx];
         try {
           await action(timeout);
           return;
-        } catch (error, stackTrace) {
-          lastError = error;
-          lastStackTrace = stackTrace;
+        } catch (e, _) {
           subtitle.value =
               '$stageLabel retry ${idx + 1}/${retryTimeouts.length} failed.';
         }
-      }
-      if (lastError != null && lastStackTrace != null) {
-        Error.throwWithStackTrace(lastError, lastStackTrace);
       }
     }
 
@@ -181,7 +174,7 @@ class StartupSplashScreen extends HookConsumerWidget {
               subtitle.value = 'Skipped optional stage: ${stage.label}';
             }
           }
-        } catch (e) {
+        } catch (_) {
           final warning = 'Skipped "${stage.label}" after retries.';
           warnings.value = [...warnings.value, warning];
           subtitle.value = '$warning App may have limited functionality.';
