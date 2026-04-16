@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_input.dart';
@@ -33,7 +34,6 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/attachment_uploader.dart';
-import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/sync_indicator.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
@@ -159,6 +159,8 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final messages = ref.watch(messagesProvider(id));
     final messagesNotifier = ref.read(messagesProvider(id).notifier);
+    final isSyncing = ref.watch(chatSyncingProvider);
+    final syncHint = ref.watch(chatSyncHintProvider);
     final isAtLatestMessages = useState(true);
     final collapsedBotGroupIds = useState<Set<String>>({});
     final savedLastReadAt = useState<DateTime?>(null);
@@ -622,6 +624,49 @@ class ChatRoomScreen extends HookConsumerWidget {
                       error: (_, _) => const SizedBox.shrink(),
                       loading: () => const SizedBox.shrink(),
                     ),
+                    if (isSyncing)
+                      Positioned(
+                        top: 12,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ConfuseSpinner(
+                                  size: 20,
+                                  speed: 7,
+                                  fontSize: 10,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                if (syncHint != null) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    syncHint,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     if (visibleLastReadAnchorMessageId != null)
                       Positioned(
                         top: 12,
