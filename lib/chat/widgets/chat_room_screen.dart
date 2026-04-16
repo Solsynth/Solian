@@ -174,7 +174,9 @@ class ChatRoomScreen extends HookConsumerWidget {
     useEffect(() {
       Future.microtask(() async {
         if (!context.mounted) return;
+        messagesNotifier.resetPaginationState();
         await messagesNotifier.syncMessages();
+        await messagesNotifier.loadInitial(forceRemoteRefresh: false);
       });
       return null;
     }, [id]);
@@ -232,6 +234,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         Future<void>(() async {
           try {
             if (shouldSync) {
+              messagesNotifier.resetPaginationState();
               await messagesNotifier.syncMessages();
             }
             await messagesNotifier.loadInitial(forceRemoteRefresh: false);
@@ -258,6 +261,7 @@ class ChatRoomScreen extends HookConsumerWidget {
         isResyncingAfterResume.value = true;
         Future<void>(() async {
           try {
+            messagesNotifier.resetPaginationState();
             await messagesNotifier.syncMessages();
             await messagesNotifier.loadInitial(forceRemoteRefresh: false);
           } finally {

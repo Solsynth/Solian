@@ -600,21 +600,33 @@ class MessagesNotifier extends _$MessagesNotifier {
         final offset = combined.length;
         final remaining = minimumCount - combined.length;
         final eagerTake = remaining.clamp(_pageSize, eagerMaxTake);
+        Logger.root.info(
+          'EagerPrefetch pass $passes: offset=$offset, eagerTake=$eagerTake, combined=${combined.length}, minCount=$minimumCount',
+        );
         final older = await listMessages(offset: offset, take: eagerTake);
+        Logger.root.info(
+          'EagerPrefetch pass $passes: fetched ${older.length} messages, hasMore=$_hasMore',
+        );
         if (older.isEmpty) {
+          Logger.root.info(
+            'EagerPrefetch: empty response, setting hasMore=false',
+          );
           _hasMore = false;
           break;
         }
 
         final nextCombined = _mergeDedupMessages([...combined, ...older]);
         if (nextCombined.length == combined.length) {
-          // No growth means we hit the end or server returned duplicates only.
+          Logger.root.info('EagerPrefetch: no growth, setting hasMore=false');
           _hasMore = false;
           break;
         }
         combined = nextCombined;
 
         if (older.length < eagerTake) {
+          Logger.root.info(
+            'EagerPrefetch: fetched fewer than requested ($older.length < $eagerTake), setting hasMore=false',
+          );
           _hasMore = false;
         }
         passes += 1;
@@ -622,6 +634,9 @@ class MessagesNotifier extends _$MessagesNotifier {
           'Loading history: ${combined.length}/$minimumCount (batch $passes)',
         );
       }
+      Logger.root.info(
+        'EagerPrefetch done: combined=${combined.length}, hasMore=$_hasMore, passes=$passes',
+      );
     } finally {
       hint.clear();
     }
@@ -887,6 +902,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (offset + messages.length >= _totalCount!) {
       _allRemoteMessagesFetched = true;
     }
+    Logger.root.info(
+      'FetchAndCache done: offset=$offset, rawCount=${messages.length}, totalCount=$_totalCount, allFetched=$_allRemoteMessagesFetched',
+    );
 
     return messages;
   }
@@ -1006,6 +1024,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       // If remote fetching is allowed, don't assume "no more" from cache size.
       // Small local cache should still probe remote pages eagerly.
       _hasMore = canFetchRemote ? true : cachedMessages.length == _pageSize;
+      Logger.root.info(
+        'LoadInitial: using cache (cached=${cachedMessages.length}), _hasMore=$_hasMore, shouldRefreshRemote=$shouldRefreshRemote',
+      );
       return _eagerPrefetchIfShort(cachedMessages, enabled: canFetchRemote);
     }
 
@@ -1017,9 +1038,15 @@ class MessagesNotifier extends _$MessagesNotifier {
         offset: 0,
         take: _pageSize,
       );
+      Logger.root.info(
+        'LoadInitial: fetched ${remoteMessages.length} from remote, _allRemoteMessagesFetched=$_allRemoteMessagesFetched',
+      );
       if (kIsWeb) {
         _hasMore =
             remoteMessages.length == _pageSize || !_allRemoteMessagesFetched;
+        Logger.root.info(
+          'LoadInitial (web): _hasMore=$_hasMore (remoteLen=${remoteMessages.length}, pageSize=$_pageSize, allFetched=$_allRemoteMessagesFetched)',
+        );
         return _eagerPrefetchIfShort(remoteMessages, enabled: canFetchRemote);
       }
       final refreshedMessages = await _getCachedMessages(
@@ -1031,6 +1058,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       _hasMore =
           refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
+      Logger.root.info(
+        'LoadInitial: _hasMore=$_hasMore (refreshedLen=${refreshedMessages.length}, pageSize=$_pageSize, allFetched=$_allRemoteMessagesFetched)',
+      );
       return _eagerPrefetchIfShort(refreshedMessages, enabled: canFetchRemote);
     } catch (err, stackTrace) {
       Logger.root.info(
@@ -1062,6 +1092,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
+  void resetPaginationState() {
+    _hasMore = true;
+    _allRemoteMessagesFetched = false;
+    _totalCount = null;
+  }
+
   Future<void> loadMore() async {
     if (!_hasMore || state is AsyncLoading) {
       Logger.root.info(
@@ -1069,7 +1105,6 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
       return;
     }
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final offset = await _database.countMessagesNewerThan(
       roomId,
       DateTime.fromMillisecondsSinceEpoch(0),
@@ -1083,11 +1118,12 @@ class MessagesNotifier extends _$MessagesNotifier {
     try {
       final newMessages = await listMessages(offset: offset, take: _pageSize);
 
-      if (newMessages.isEmpty || newMessages.length < _pageSize) {
+      if (newMessages.isEmpty || _allRemoteMessagesFetched) {
         _hasMore = false;
       }
 
       if (ref.mounted) {
+        final currentMessages = state.value ?? [];
         state = AsyncValue.data(
           _filterActiveMessages(
             _sortMessages([...currentMessages, ...newMessages]),
@@ -1095,7 +1131,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         );
       }
       Logger.root.info(
-        'loadMore complete (fetched=${newMessages.length}, hasMore=$_hasMore)',
+        'loadMore complete (fetched=${newMessages.length}, hasMore=$_hasMore, allRemoteFetched=$_allRemoteMessagesFetched)',
       );
     } catch (err, stackTrace) {
       Logger.root.info('Error loading more messages', err, stackTrace);
