@@ -32,6 +32,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final _meetLogger = Logger('Meet');
 
@@ -2507,7 +2508,18 @@ class _MeetDiscoverySection extends HookConsumerWidget {
                       retinaMode: true,
                       urlTemplate:
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'dev.solsynth.solian',
+                      userAgentPackageName:
+                          'Solian/1.0 (+https://solian.app, contact: lily@solsynth.dev)',
+                    ),
+                    RichAttributionWidget(
+                      attributions: [
+                        TextSourceAttribution(
+                          'OpenStreetMap contributors',
+                          onTap: () => launchUrl(
+                            Uri.parse('https://openstreetmap.org/copyright'),
+                          ),
+                        ),
+                      ],
                     ),
                     MarkerLayer(
                       markers: [
@@ -3474,7 +3486,18 @@ class _MeetLocationMapCard extends StatelessWidget {
                 TileLayer(
                   retinaMode: true,
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'dev.solsynth.solian',
+                  userAgentPackageName:
+                      'Solian/1.0 (+https://solian.app, contact: lily@solsynth.dev)',
+                ),
+                RichAttributionWidget(
+                  attributions: [
+                    TextSourceAttribution(
+                      'OpenStreetMap contributors',
+                      onTap: () => launchUrl(
+                        Uri.parse('https://openstreetmap.org/copyright'),
+                      ),
+                    ),
+                  ],
                 ),
                 MarkerLayer(
                   markers: [
@@ -3764,7 +3787,18 @@ class _MeetPinsMapCard extends StatelessWidget {
             TileLayer(
               retinaMode: true,
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'dev.solsynth.solian',
+              userAgentPackageName:
+                  'Solian/1.0 (+https://solian.app, contact: lily@solsynth.dev)',
+            ),
+            RichAttributionWidget(
+              attributions: [
+                TextSourceAttribution(
+                  'OpenStreetMap contributors',
+                  onTap: () => launchUrl(
+                    Uri.parse('https://openstreetmap.org/copyright'),
+                  ),
+                ),
+              ],
             ),
             MarkerLayer(
               markers: pins
