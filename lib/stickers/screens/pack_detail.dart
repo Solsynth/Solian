@@ -169,6 +169,7 @@ class StickerMarketplacePackDetailScreen extends HookConsumerWidget {
                                 child: CloudImageWidget(
                                   file: sticker.image,
                                   fit: BoxFit.contain,
+                                  noBlurhash: true,
                                 ),
                               ),
                             ),

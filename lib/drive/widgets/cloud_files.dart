@@ -494,6 +494,7 @@ class CloudImageWidget extends ConsumerWidget {
   final BoxFit fit;
   final double aspectRatio;
   final String? blurHash;
+  final bool noBlurhash;
   const CloudImageWidget({
     super.key,
     this.fileId,
@@ -501,6 +502,7 @@ class CloudImageWidget extends ConsumerWidget {
     this.aspectRatio = 1,
     this.fit = BoxFit.cover,
     this.blurHash,
+    this.noBlurhash = false,
   });
 
   @override
@@ -511,8 +513,12 @@ class CloudImageWidget extends ConsumerWidget {
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: file != null
-          ? CloudFileWidget(item: file!, fit: fit)
-          : UniversalImage(uri: uri, blurHash: blurHash, fit: fit),
+          ? CloudFileWidget(item: file!, fit: fit, noBlurhash: noBlurhash)
+          : UniversalImage(
+              uri: uri,
+              blurHash: noBlurhash ? null : blurHash,
+              fit: fit,
+            ),
     );
   }
 
