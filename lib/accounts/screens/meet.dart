@@ -26,13 +26,14 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:logging/logging.dart';
-
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
+
+final _meetLogger = Logger('Meet');
 
 final meetHistoryProvider = FutureProvider.autoDispose<List<SnMeet>>((
   ref,
@@ -856,6 +857,7 @@ class MeetDetailScreen extends HookConsumerWidget {
               pinId: myPin.value!.id,
               locationWkt: wkt,
             );
+            _meetLogger.info('Pin location updated: $wkt');
           } catch (_) {}
         });
       } catch (e) {
@@ -1011,6 +1013,8 @@ class MeetDetailScreen extends HookConsumerWidget {
         isAdvertising: isAdvertising.value,
         isHost: isHost,
         actionBusy: actionBusy.value,
+        isBroadcastingPin: isBroadcastingPin.value,
+        myPin: myPin.value,
         onClose: context.router.maybePop,
         onComplete: completeMeet,
       );
@@ -1125,6 +1129,8 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
   final bool isAdvertising;
   final bool isHost;
   final bool actionBusy;
+  final bool isBroadcastingPin;
+  final SnLocationPin? myPin;
   final VoidCallback onClose;
   final VoidCallback onComplete;
 
@@ -1136,6 +1142,8 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
     required this.isAdvertising,
     required this.isHost,
     required this.actionBusy,
+    required this.isBroadcastingPin,
+    required this.myPin,
     required this.onClose,
     required this.onComplete,
   });
@@ -1149,11 +1157,20 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
     final topic = meet.metadata['topic']?.toString();
     final currentUser = ref.watch(userInfoProvider).value;
 
-    final pins = meet.pins;
+    final meetPins = meet.pins ?? const [];
+    final localPins = myPin != null ? [...meetPins, myPin!] : meetPins;
+    final pins = localPins;
     final currentParticipants = _displayParticipants(meet, currentUser);
-    final participantCount = currentParticipants.length;
-    final hasMultipleParticipants = participantCount >= 2;
-    final hasPins = pins != null && pins.isNotEmpty;
+    final hasPins = pins.isNotEmpty || isBroadcastingPin;
+    final canShowMap = hasPins;
+    final showMap = useState(hasPins);
+
+    useEffect(() {
+      if (hasPins && !showMap.value) {
+        showMap.value = true;
+      }
+      return null;
+    }, [hasPins]);
 
     return AppScaffold(
       isNoBackground: true,
@@ -1162,6 +1179,7 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
         height: double.infinity,
         color: theme.colorScheme.surface,
         child: SafeArea(
+          bottom: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
             child: Column(
@@ -1195,13 +1213,6 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: meet.id));
-                        showSnackBar('copyToClipboard'.tr());
-                      },
-                      icon: const Icon(Symbols.content_copy),
-                    ),
-                    IconButton(
                       onPressed: () => showMeetIdShareSheet(
                         context,
                         meet.id,
@@ -1209,6 +1220,13 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                       ),
                       icon: const Icon(Symbols.qr_code),
                     ),
+                    if (canShowMap)
+                      IconButton(
+                        onPressed: () => showMap.value = !showMap.value,
+                        icon: Icon(
+                          showMap.value ? Symbols.map : Symbols.signpost,
+                        ),
+                      ),
                   ],
                 ),
                 const Gap(12),
@@ -1239,43 +1257,45 @@ class _MeetActiveListeningPage extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                const Spacer(),
-                SizedBox(
-                  height: 360,
-                  child: hasMultipleParticipants && hasPins
-                      ? _MeetPinsMapCard(
-                          pins: pins,
-                          participants: currentParticipants,
-                          currentUser: currentUser,
-                        )
-                      : Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            _MeetRippleField(
-                              animation: animation,
-                              color: theme.colorScheme.primary,
-                            ),
-                            Center(
-                              child: Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 18,
-                                runSpacing: 18,
-                                children: currentParticipants
-                                    .map(
-                                      (participant) => _ParticipantBubble(
-                                        key: ValueKey(participant.id),
-                                        participant: participant,
-                                      ),
-                                    )
-                                    .toList(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: showMap.value && hasPins
+                        ? _MeetPinsMapCard(
+                            pins: pins,
+                            participants: currentParticipants,
+                            currentUser: currentUser,
+                          ).clipRRect(all: 8)
+                        : Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              _MeetRippleField(
+                                animation: animation,
+                                color: theme.colorScheme.primary,
                               ),
-                            ),
-                          ],
-                        ),
+                              Center(
+                                child: Wrap(
+                                  alignment: WrapAlignment.center,
+                                  spacing: 18,
+                                  runSpacing: 18,
+                                  children: currentParticipants
+                                      .map(
+                                        (participant) => _ParticipantBubble(
+                                          key: ValueKey(participant.id),
+                                          participant: participant,
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
                 ),
-                const Spacer(),
                 Text(
-                  'meetParticipantsCount'.tr(args: ['$participantCount']),
+                  'meetParticipantsCount'.tr(
+                    args: ['${currentParticipants.length}'],
+                  ),
                   style: TextStyle(color: theme.colorScheme.secondary),
                 ),
                 const Gap(16),
@@ -1462,7 +1482,6 @@ class _MeetDetailInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final participantCount = participants.length;
-    final hasMultipleParticipants = participantCount >= 2;
     final hasPins = meet.pins != null && meet.pins!.isNotEmpty;
 
     return Card(
@@ -1472,7 +1491,7 @@ class _MeetDetailInfo extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_parseMeetPoint(meet.locationWkt) case final point?) ...[
-              if (hasMultipleParticipants && hasPins) ...[
+              if (hasPins) ...[
                 _MeetPinsMapCard(pins: meet.pins!, participants: participants),
               ] else ...[
                 _MeetLocationMapCard(
@@ -3731,118 +3750,114 @@ class _MeetPinsMapCard extends StatelessWidget {
 
     final participantMap = {for (final p in participants) p.id: p};
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: 320,
-        child: Stack(
-          children: [
-            FlutterMap(
-              options: MapOptions(
-                initialCenter: center,
-                initialZoom: 15.2,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom,
-                ),
-              ),
-              children: [
-                TileLayer(
-                  retinaMode: true,
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'dev.solsynth.solian',
-                ),
-                MarkerLayer(
-                  markers: pins
-                      .map((pin) {
-                        final point = _parsePoint(pin.locationWkt);
-                        if (point == null) return null;
-                        final participant = participantMap[pin.accountId];
-                        final isCurrentUser = pin.accountId == currentUser?.id;
-                        final color = isCurrentUser
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.secondary;
-                        return Marker(
-                          point: point,
-                          width: 72,
-                          height: 72,
-                          child: _MeetParticipantPin(
-                            name:
-                                participant?.account?.nick ??
-                                participant?.account?.name ??
-                                participant?.fallbackName ??
-                                pin.accountId.substring(0, 8),
-                            color: color,
-                          ),
-                        );
-                      })
-                      .whereType<Marker>()
-                      .toList(),
-                ),
-              ],
+    return Stack(
+      children: [
+        FlutterMap(
+          options: MapOptions(
+            initialCenter: center,
+            initialZoom: 15.2,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom,
             ),
-            Positioned(
-              left: 14,
-              right: 14,
-              bottom: 14,
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
+          ),
+          children: [
+            TileLayer(
+              retinaMode: true,
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'dev.solsynth.solian',
+            ),
+            MarkerLayer(
+              markers: pins
+                  .map((pin) {
+                    final point = _parsePoint(pin.locationWkt);
+                    if (point == null) return null;
+                    final participant = participantMap[pin.accountId];
+                    final isCurrentUser = pin.accountId == currentUser?.id;
+                    final color = isCurrentUser
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.secondary;
+                    return Marker(
+                      point: point,
+                      width: 72,
+                      height: 72,
+                      child: _MeetParticipantPin(
+                        name:
+                            participant?.account?.nick ??
+                            participant?.account?.name ??
+                            participant?.fallbackName ??
+                            pin.accountId.substring(0, 8),
+                        color: color,
+                        avatar: participant?.account?.profile.picture,
+                        accountName: participant?.account?.name,
                       ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Icon(
-                            Symbols.location_on,
-                            color: theme.colorScheme.secondary,
-                          ),
-                        ),
-                        const Gap(12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'meetParticipantsLocation'.tr(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ).fontSize(15).bold(),
-                              Text(
-                                '${pins.length} ${pins.length == 1 ? 'participant'.tr() : 'participants'.tr()}',
-                                style: TextStyle(
-                                  color: theme.colorScheme.secondary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+                    );
+                  })
+                  .whereType<Marker>()
+                  .toList(),
             ),
           ],
         ),
-      ),
+        Positioned(
+          left: 14,
+          right: 14,
+          bottom: 14,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Symbols.location_on,
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'meetParticipantsLocation'.tr(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ).fontSize(15).bold(),
+                          Text(
+                            '${pins.length} ${pins.length == 1 ? 'participant'.tr() : 'participants'.tr()}',
+                            style: TextStyle(
+                              color: theme.colorScheme.secondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -3850,11 +3865,36 @@ class _MeetPinsMapCard extends StatelessWidget {
 class _MeetParticipantPin extends StatelessWidget {
   final String name;
   final Color color;
+  final SnCloudFile? avatar;
+  final String? accountName;
 
-  const _MeetParticipantPin({required this.name, required this.color});
+  const _MeetParticipantPin({
+    required this.name,
+    required this.color,
+    this.avatar,
+    this.accountName,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final avatarWidget = avatar != null
+        ? ProfilePictureWidget(file: avatar, radius: 16)
+        : Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.28),
+                  blurRadius: 8,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+          );
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -3875,21 +3915,12 @@ class _MeetParticipantPin extends StatelessWidget {
             ),
           ),
           const Gap(2),
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.28),
-                  blurRadius: 8,
-                  spreadRadius: 4,
-                ),
-              ],
-            ),
-          ),
+          accountName != null
+              ? GestureDetector(
+                  onTap: () => showAccountProfileCard(context, accountName!),
+                  child: avatarWidget,
+                )
+              : avatarWidget,
         ],
       ),
     );
