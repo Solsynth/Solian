@@ -264,7 +264,7 @@ class PadlockApi extends BaseApi {
     int take = 20,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/admin/punishments/created',
+      '$_basePath/admin/accounts/punishments/created',
       queryParameters: {'offset': offset, 'take': take},
     );
     final items = parseList(response, SnAccountPunishment.fromJson);

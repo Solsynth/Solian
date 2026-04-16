@@ -113,6 +113,7 @@ class PunishmentsScreen extends HookConsumerWidget {
                   ),
                   onPressed: () {
                     ref.read(punishmentAdminModeProvider.notifier).toggle();
+                    ref.invalidate(punishmentsNotifierProvider);
                   },
                   tooltip: isAdminMode
                       ? 'myPunishments'.tr()

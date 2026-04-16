@@ -873,6 +873,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
         );
         onNext();
       } catch (err) {
+        if (!context.mounted) return;
         await handleLockedError(context, ref, err, uname);
         if (!context.mounted) return;
         showErrorAlert(err);
