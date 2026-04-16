@@ -605,12 +605,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         );
         final older = await listMessages(offset: offset, take: eagerTake);
         Logger.root.info(
-          'EagerPrefetch pass $passes: fetched ${older.length} messages, hasMore=$_hasMore',
+          'EagerPrefetch pass $passes: fetched ${older.length} messages, hasMore=$_hasMore, allFetched=$_allRemoteMessagesFetched',
         );
-        if (older.isEmpty) {
-          Logger.root.info(
-            'EagerPrefetch: empty response, setting hasMore=false',
-          );
+        if (older.isEmpty || _allRemoteMessagesFetched) {
           _hasMore = false;
           break;
         }
@@ -622,13 +619,6 @@ class MessagesNotifier extends _$MessagesNotifier {
           break;
         }
         combined = nextCombined;
-
-        if (older.length < eagerTake) {
-          Logger.root.info(
-            'EagerPrefetch: fetched fewer than requested ($older.length < $eagerTake), setting hasMore=false',
-          );
-          _hasMore = false;
-        }
         passes += 1;
         hint.set(
           'Loading history: ${combined.length}/$minimumCount (batch $passes)',
@@ -639,6 +629,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
     } finally {
       hint.clear();
+      if (ref.mounted) {
+        Future.microtask(
+          () => ref.read(chatSyncingProvider.notifier).set(false),
+        );
+      }
     }
 
     return combined;
@@ -1034,6 +1029,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Reset total count so resumed sessions and long-lived notifiers do not
       // keep stale pagination metadata.
       _totalCount = null;
+      if (ref.mounted) {
+        Future.microtask(
+          () => ref.read(chatSyncingProvider.notifier).set(true),
+        );
+      }
       final remoteMessages = await _fetchAndCacheMessages(
         offset: 0,
         take: _pageSize,
@@ -1047,7 +1047,16 @@ class MessagesNotifier extends _$MessagesNotifier {
         Logger.root.info(
           'LoadInitial (web): _hasMore=$_hasMore (remoteLen=${remoteMessages.length}, pageSize=$_pageSize, allFetched=$_allRemoteMessagesFetched)',
         );
-        return _eagerPrefetchIfShort(remoteMessages, enabled: canFetchRemote);
+        final result = await _eagerPrefetchIfShort(
+          remoteMessages,
+          enabled: canFetchRemote,
+        );
+        if (ref.mounted) {
+          Future.microtask(
+            () => ref.read(chatSyncingProvider.notifier).set(false),
+          );
+        }
+        return result;
       }
       final refreshedMessages = await _getCachedMessages(
         offset: 0,
@@ -1061,7 +1070,16 @@ class MessagesNotifier extends _$MessagesNotifier {
       Logger.root.info(
         'LoadInitial: _hasMore=$_hasMore (refreshedLen=${refreshedMessages.length}, pageSize=$_pageSize, allFetched=$_allRemoteMessagesFetched)',
       );
-      return _eagerPrefetchIfShort(refreshedMessages, enabled: canFetchRemote);
+      final result = await _eagerPrefetchIfShort(
+        refreshedMessages,
+        enabled: canFetchRemote,
+      );
+      if (ref.mounted) {
+        Future.microtask(
+          () => ref.read(chatSyncingProvider.notifier).set(false),
+        );
+      }
+      return result;
     } catch (err, stackTrace) {
       Logger.root.info(
         'Error refreshing initial messages from remote, falling back to cache',
@@ -1069,6 +1087,11 @@ class MessagesNotifier extends _$MessagesNotifier {
         stackTrace,
       );
       _hasMore = cachedMessages.length == _pageSize;
+      if (ref.mounted) {
+        Future.microtask(
+          () => ref.read(chatSyncingProvider.notifier).set(false),
+        );
+      }
       return cachedMessages;
     }
   }
