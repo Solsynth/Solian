@@ -224,7 +224,7 @@ class RoomMessageList extends HookConsumerWidget {
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 4,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,

@@ -163,7 +163,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final syncHint = ref.watch(chatSyncHintProvider);
     final isAtLatestMessages = useState(true);
     final collapsedBotGroupIds = useState<Set<String>>({});
-    final savedLastReadAt = useState<DateTime?>(null);
+    final savedLastReadAt = useState<DateTime?>(chatIdentity.value?.lastReadAt);
 
     useEffect(() {
       final identity = chatIdentity.value;
@@ -502,7 +502,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     final dismissLastReadMarker = useCallback(() {
       ref.read(chatSubscribeProvider(id).notifier).sendReadReceipt();
-      ref.invalidate(chatRoomIdentityProvider(id));
+      savedLastReadAt.value = null;
     }, [id]);
 
     return Stack(
