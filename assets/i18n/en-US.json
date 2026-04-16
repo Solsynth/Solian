@@ -2663,5 +2663,8 @@
   "notificationCustomTopic": "Topic",
   "notificationCustomTopicHint": "e.g., custom.topic.name",
   "notificationCustomDescription": "Description",
-  "notificationCustomTopicError": "Please enter both topic and description"
+  "notificationCustomTopicError": "Please enter both topic and description",
+  "settingsMediaProxy": "Media Proxy",
+  "settingsMediaProxyHelper": "Media proxy will run a local HTTP server on your device, to support streaming cache, provides better media playback experience.",
+  "openFullPost": "Open full post"
 }
