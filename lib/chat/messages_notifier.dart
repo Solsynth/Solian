@@ -61,6 +61,16 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   E2eeRecoveryState _e2eeRecoveryState = E2eeRecoveryState.idle;
 
+  /// Request deduplication futures
+  Future<void>? _syncOperation;
+  Future<void>? _loadInitialOperation;
+  bool _isInitializing = false;
+
+  /// LRU memory cache for frequently accessed messages
+  final Map<String, LocalChatMessage> _messageCache = {};
+  final List<String> _messageCacheKeys = [];
+  static const int _maxCacheSize = 100;
+
   E2eeRecoveryState get e2eeRecoveryState => _e2eeRecoveryState;
 
   bool get _isE2eeRoom => _roomEncryptionMode == 3;
@@ -266,11 +276,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     await _prefetchVoiceUrl(_resolveVoiceMediaUrlFromMeta(message.meta));
   }
 
-  Future<void> _prefetchVoiceForLocalMessage(LocalChatMessage message) async {
-    if (message.type != 'voice') return;
-    await _prefetchVoiceUrl(_resolveVoiceMediaUrlFromMeta(message.meta));
-  }
-
   Map<String, dynamic> _sanitizeChatMessageJson(Map<String, dynamic> input) =>
       E2eeMessageService.sanitizeChatMessageJson(input);
 
@@ -381,48 +386,51 @@ class MessagesNotifier extends _$MessagesNotifier {
     _roomEncryptionMode = room.encryptionMode;
     _mlsGroupId = room.mlsGroupId;
 
-    // Set account ID for MLS operations
-    if (identity != null) {
-      final mlsClient = ref.read(mlsClientProvider);
-      await mlsClient.setCurrentAccountId(identity.accountId);
-      // Fetch pending E2EE envelopes (Welcome, Commit, Proposal)
-      await mlsClient.fetchAndProcessPendingEnvelopes();
-    }
+    // Defer heavy MLS operations to post-frame callback to not block initial build
+    Future.microtask(() async {
+      // Set account ID for MLS operations
+      if (identity != null) {
+        final mlsClient = ref.read(mlsClientProvider);
+        await mlsClient.setCurrentAccountId(identity.accountId);
+        // Fetch pending E2EE envelopes (Welcome, Commit, Proposal)
+        await mlsClient.fetchAndProcessPendingEnvelopes();
+      }
 
-    // Ensure MLS group is bootstrapped for E2EE rooms
-    if (_isE2eeRoom) {
-      if (room.mlsGroupId == null) {
-        Logger.root.info(
-          'Room $roomId has encryption mode 3 but no mlsGroupId - skipping MLS bootstrap',
-        );
-      } else {
-        try {
-          final mlsClient = ref.read(mlsClientProvider);
+      // Ensure MLS group is bootstrapped for E2EE rooms
+      if (_isE2eeRoom) {
+        if (room.mlsGroupId == null) {
+          Logger.root.info(
+            'Room $roomId has encryption mode 3 but no mlsGroupId - skipping MLS bootstrap',
+          );
+        } else {
+          try {
+            final mlsClient = ref.read(mlsClientProvider);
 
-          // Check current epoch for logging purposes
-          final currentEpoch = await mlsClient.getCurrentEpoch(
-            room.mlsGroupId!,
-          );
-          Logger.root.fine(
-            'Current MLS epoch for room $roomId (group: ${room.mlsGroupId}): $currentEpoch',
-          );
+            // Check current epoch for logging purposes
+            final currentEpoch = await mlsClient.getCurrentEpoch(
+              room.mlsGroupId!,
+            );
+            Logger.root.fine(
+              'Current MLS epoch for room $roomId (group: ${room.mlsGroupId}): $currentEpoch',
+            );
 
-          // Note: epoch=0 is NORMAL for newly created MLS groups.
-          // Epoch only increases after a commit (adding/removing members).
-          // We should NOT force re-bootstrap based on epoch alone.
-          // Instead, let bootstrapGroup decide if a group needs to be created.
-          await mlsClient.bootstrapGroup(
-            room.mlsGroupId!,
-            roomId: roomId,
-            force: false,
-          );
-        } catch (e) {
-          Logger.root.severe(
-            'Failed to bootstrap MLS group for room $roomId: $e',
-          );
+            // Note: epoch=0 is NORMAL for newly created MLS groups.
+            // Epoch only increases after a commit (adding/removing members).
+            // We should NOT force re-bootstrap based on epoch alone.
+            // Instead, let bootstrapGroup decide if a group needs to be created.
+            await mlsClient.bootstrapGroup(
+              room.mlsGroupId!,
+              roomId: roomId,
+              force: false,
+            );
+          } catch (e) {
+            Logger.root.severe(
+              'Failed to bootstrap MLS group for room $roomId: $e',
+            );
+          }
         }
       }
-    }
+    });
 
     // Allow building even if identity is null for public rooms
     if (identity != null) {
@@ -560,6 +568,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();
       e2eeFailedSub?.cancel();
+      _clearMessageCache(); // Clear memory cache on dispose
     });
 
     return _loadInitialMessages(forceRemoteRefresh: false);
@@ -590,8 +599,8 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     var combined = _mergeDedupMessages(initial);
     var passes = 0;
-    const maxPasses = 8;
-    const eagerMaxTake = 100;
+    const maxPasses = 3; // Reduced from 8 to limit sequential requests
+    const eagerMaxTake = 100; // Server-side maximum is 100
     final hint = ref.read(chatSyncHintProvider.notifier);
     hint.set('Loading history: ${combined.length}/$minimumCount');
 
@@ -702,10 +711,8 @@ class MessagesNotifier extends _$MessagesNotifier {
           .toList();
     }
 
-    for (final message in filteredMessages) {
-      unawaited(_prefetchVoiceForLocalMessage(message));
-    }
-
+    // Defer voice prefetching - only prefetch for visible messages
+    // Voice prefetching is now handled lazily when messages become visible
     final dbLocalMessages = filteredMessages;
 
     // Always ensure unique messages to prevent duplicate keys
@@ -751,9 +758,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       offset: offset,
       limit: take,
     );
-    for (final message in dbMessages) {
-      unawaited(_prefetchVoiceForLocalMessage(message));
-    }
+    // Voice prefetching deferred - only prefetch when messages become visible
 
     // Always ensure unique messages to prevent duplicate keys
     final uniqueMessages = <LocalChatMessage>[];
@@ -790,29 +795,28 @@ class MessagesNotifier extends _$MessagesNotifier {
     int take = 20,
   }) async {
     Logger.root.info('Fetching messages from API, offset $offset, take $take');
-    if (_totalCount == null) {
-      final response = await _apiClient.get(
-        '/messager/chat/$roomId/messages',
-        queryParameters: {'offset': 0, 'take': 1},
-      );
-      _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
-    }
+
+    // Single API call to fetch messages - total count is read from response header
+    final response = await _apiClient.get(
+      '/messager/chat/$roomId/messages',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+
+    // Extract total count from response header (available in single request)
+    _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
 
     if (offset >= _totalCount!) {
       _allRemoteMessagesFetched = true;
       return [];
     }
 
-    final response = await _apiClient.get(
-      '/messager/chat/$roomId/messages',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-
     final List<dynamic> data = response.data;
     _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
 
     final messages = <LocalChatMessage>[];
     final pendingReactionEvents = <SnChatMessage>[];
+    final messagesToBatchSave = <LocalChatMessage>[];
+
     for (final json in data) {
       final remoteMessage = _tryParseChatMessage(
         json,
@@ -830,6 +834,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           'Using existing content from DB for message ${remoteMessage.id}',
         );
         messages.add(existing);
+        _addToMessageCache(existing); // Add to memory cache
         continue;
       }
 
@@ -874,8 +879,15 @@ class MessagesNotifier extends _$MessagesNotifier {
         }
       }
 
-      await _database.saveMessageWithSender(localMessage);
-      unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
+      // Queue for batch save instead of immediate save
+      messagesToBatchSave.add(localMessage);
+      _addToMessageCache(localMessage); // Add to memory cache
+
+      // Defer voice prefetching - don't block message loading
+      if (remoteMessage.type == 'voice') {
+        _prefetchVoiceForRemoteMessage(remoteMessage);
+      }
+
       if (localMessage.clientMessageId != null) {
         _pendingMessages.removeWhere(
           (_, pendingMsg) =>
@@ -885,6 +897,27 @@ class MessagesNotifier extends _$MessagesNotifier {
       messages.add(localMessage);
     }
 
+    // Batch save all messages in a single database transaction
+    if (messagesToBatchSave.isNotEmpty) {
+      try {
+        await _database.saveMessagesWithSenders(messagesToBatchSave);
+        Logger.root.info(
+          'Batch saved ${messagesToBatchSave.length} messages to database',
+        );
+      } catch (e) {
+        Logger.root.info('Error batch-saving messages: $e');
+        // Fallback to individual saves if batch fails
+        for (final msg in messagesToBatchSave) {
+          try {
+            await _database.saveMessageWithSender(msg);
+          } catch (e) {
+            Logger.root.info('Error saving individual message ${msg.id}: $e');
+          }
+        }
+      }
+    }
+
+    // Process reaction events after batch save
     for (final event in pendingReactionEvents) {
       if (event.type == 'messages.reaction.added') {
         await receiveReactionAdded(event);
@@ -904,11 +937,48 @@ class MessagesNotifier extends _$MessagesNotifier {
     return messages;
   }
 
+  /// Consolidated initialization that handles pagination reset, sync, and initial load
+  /// with debouncing to prevent redundant calls
+  Future<void> initialize({bool forceRemoteRefresh = false}) async {
+    if (_isInitializing) {
+      Logger.root.info('Initialization already in progress, skipping.');
+      return;
+    }
+    _isInitializing = true;
+    Logger.root.info('Starting consolidated initialization');
+    try {
+      resetPaginationState();
+      await syncMessages();
+      await loadInitial(forceRemoteRefresh: forceRemoteRefresh);
+    } finally {
+      _isInitializing = false;
+      Logger.root.info('Consolidated initialization complete');
+    }
+  }
+
   Future<void> syncMessages() async {
+    // Deduplication: return existing operation if one is in progress
+    if (_syncOperation != null) {
+      Logger.root.info(
+        'Sync operation already in progress, joining existing task',
+      );
+      return _syncOperation!;
+    }
+
     if (_isSyncing) {
       Logger.root.info('Sync already in progress, skipping.');
       return;
     }
+
+    _syncOperation = _syncMessagesImpl();
+    try {
+      await _syncOperation!;
+    } finally {
+      _syncOperation = null;
+    }
+  }
+
+  Future<void> _syncMessagesImpl() async {
     _isSyncing = true;
     _allRemoteMessagesFetched = false;
 
@@ -1097,11 +1167,30 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> loadInitial({bool forceRemoteRefresh = true}) async {
+    // Deduplication: return existing operation if one is in progress
+    if (_loadInitialOperation != null) {
+      Logger.root.info(
+        'LoadInitial operation already in progress, joining existing task',
+      );
+      return _loadInitialOperation!;
+    }
+
     if (_isLoadingInitial) {
       Logger.root.info('Initial load already in progress, skipping.');
       return;
     }
 
+    _loadInitialOperation = _loadInitialImpl(
+      forceRemoteRefresh: forceRemoteRefresh,
+    );
+    try {
+      await _loadInitialOperation!;
+    } finally {
+      _loadInitialOperation = null;
+    }
+  }
+
+  Future<void> _loadInitialImpl({bool forceRemoteRefresh = true}) async {
     Logger.root.info('Loading initial messages');
     _isLoadingInitial = true;
 
@@ -2150,10 +2239,13 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   /// Get search results without updating shared state
+  /// Supports pagination with offset and take parameters
   Future<List<LocalChatMessage>> getSearchResults(
     String query, {
     bool? withLinks,
     bool? withAttachments,
+    int offset = 0,
+    int take = 50, // Reduced default from 1000/50 to consistent 50
   }) async {
     final trimmedQuery = query.trim();
     final hasFilters = [withLinks, withAttachments].any((e) => e == true);
@@ -2163,19 +2255,19 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     Logger.root.info(
-      'Getting search results for query: $trimmedQuery, filters: links=$withLinks, attachments=$withAttachments',
+      'Getting search results for query: $trimmedQuery, filters: links=$withLinks, attachments=$withAttachments, offset=$offset, take=$take',
     );
 
     try {
-      // When filtering without query, get more messages to ensure we find all matches
-      final take = (trimmedQuery.isEmpty && hasFilters) ? 1000 : 50;
+      // Use consistent pagination instead of fetching large batches
+      // Database search is efficient, no need for excessive batch sizes
       final messages = await _getCachedMessages(
-        offset: 0,
+        offset: offset,
         take: take,
         searchQuery: trimmedQuery.isNotEmpty ? trimmedQuery : null,
         withLinks: withLinks,
         withAttachments: withAttachments,
-      ); // Limit initial search results
+      );
       return messages;
     } catch (e, stackTrace) {
       Logger.root.info('Error getting search results', e, stackTrace);
@@ -2187,6 +2279,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     String query, {
     bool? withLinks,
     bool? withAttachments,
+    int offset = 0,
+    int take = 50, // Consistent pagination
   }) async {
     _searchQuery = query.trim();
     _withLinks = withLinks;
@@ -2202,12 +2296,12 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     try {
       final messages = await _getCachedMessages(
-        offset: 0,
-        take: 50,
+        offset: offset,
+        take: take,
         searchQuery: _searchQuery,
         withLinks: _withLinks,
         withAttachments: _withAttachments,
-      ); // Limit initial search results
+      );
       state = AsyncValue.data(messages);
     } catch (e, stackTrace) {
       Logger.root.info('Error searching messages', e, stackTrace);
@@ -2223,11 +2317,47 @@ class MessagesNotifier extends _$MessagesNotifier {
     loadInitial();
   }
 
+  /// Add a message to the LRU cache
+  void _addToMessageCache(LocalChatMessage message) {
+    // Remove if already exists to update LRU order
+    if (_messageCache.containsKey(message.id)) {
+      _messageCacheKeys.remove(message.id);
+    }
+
+    // Add to cache
+    _messageCache[message.id] = message;
+    _messageCacheKeys.add(message.id);
+
+    // Trim cache if exceeds max size
+    _trimMessageCache();
+  }
+
+  /// Trim the cache to max size using LRU eviction
+  void _trimMessageCache() {
+    while (_messageCacheKeys.length > _maxCacheSize) {
+      final oldestKey = _messageCacheKeys.removeAt(0);
+      _messageCache.remove(oldestKey);
+    }
+  }
+
+  /// Clear the message cache (useful when room changes)
+  void _clearMessageCache() {
+    _messageCache.clear();
+    _messageCacheKeys.clear();
+  }
+
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
     Logger.root.info('Fetching message by id $messageId');
     try {
+      // Check memory cache first
+      if (_messageCache.containsKey(messageId)) {
+        Logger.root.fine('Message $messageId found in memory cache');
+        return _messageCache[messageId];
+      }
+
       final localMessage = await _database.getMessageById(messageId);
       if (localMessage != null) {
+        _addToMessageCache(localMessage);
         return localMessage;
       }
 
@@ -2245,7 +2375,12 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       await _database.saveMessageWithSender(message);
-      unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
+      _addToMessageCache(message);
+
+      // Defer voice prefetching
+      if (remoteMessage.type == 'voice') {
+        _prefetchVoiceForRemoteMessage(remoteMessage);
+      }
       return message;
     } catch (e) {
       if (e is DioException) return null;

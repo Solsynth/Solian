@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/chat/pods/chat_room_state.dart';
 import 'package:island/chat/widgets/message_item_wrapper.dart';
 import 'package:island/core/config.dart';
 import 'package:island/data/message.dart';
@@ -65,70 +66,46 @@ List<BotGroupInfo> _computeBotGroups(List<LocalChatMessage> messages) {
   return groups;
 }
 
+/// Simplified RoomMessageList that uses universal chat room state.
+/// All state is managed by [ChatRoomStateNotifier] via [chatRoomStateProvider].
 class RoomMessageList extends HookConsumerWidget {
+  final String roomId;
   final List<LocalChatMessage> messages;
   final AsyncValue<SnChatRoom?> roomAsync;
   final AsyncValue<SnChatMember?> chatIdentity;
-  final ScrollController scrollController;
-  final ListController listController;
-  final bool isSelectionMode;
-  final Set<String> selectedMessages;
-  final VoidCallback toggleSelectionMode;
-  final void Function(String) toggleMessageSelection;
-  final void Function(String action, LocalChatMessage message) onMessageAction;
   final void Function(String messageId) onJump;
-  final Map<String, Map<int, double?>> attachmentProgress;
-  final bool disableAnimation;
-  final DateTime roomOpenTime;
-  final String? lastReadAnchorMessageId;
-  final VoidCallback? onFollowBack;
-  final VoidCallback? onDismissLastReadMarker;
-  final Set<String> collapsedBotGroupIds;
-  final void Function(String groupId) toggleBotGroup;
 
   const RoomMessageList({
     super.key,
+    required this.roomId,
     required this.messages,
     required this.roomAsync,
     required this.chatIdentity,
-    required this.scrollController,
-    required this.listController,
-    required this.isSelectionMode,
-    required this.selectedMessages,
-    required this.toggleSelectionMode,
-    required this.toggleMessageSelection,
-    required this.onMessageAction,
     required this.onJump,
-    required this.attachmentProgress,
-    required this.disableAnimation,
-    required this.roomOpenTime,
-    this.lastReadAnchorMessageId,
-    this.onFollowBack,
-    this.onDismissLastReadMarker,
-    this.collapsedBotGroupIds = const {},
-    required this.toggleBotGroup,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
+    final chatState = ref.watch(chatRoomStateProvider(roomId));
+    final chatStateNotifier = ref.read(chatRoomStateProvider(roomId).notifier);
     const messageKeyPrefix = 'message-';
 
     final lastReadMarkerKey = useState<String?>(null);
     final isLastReadMarkerDismissed = useState(false);
 
     useEffect(() {
-      if (lastReadAnchorMessageId != lastReadMarkerKey.value) {
-        lastReadMarkerKey.value = lastReadAnchorMessageId;
+      if (chatState.lastReadAnchorMessageId != lastReadMarkerKey.value) {
+        lastReadMarkerKey.value = chatState.lastReadAnchorMessageId;
         isLastReadMarkerDismissed.value = false;
       }
       return null;
-    }, [lastReadAnchorMessageId]);
+    }, [chatState.lastReadAnchorMessageId]);
 
     final handleDismiss = useCallback(() {
       isLastReadMarkerDismissed.value = true;
-      onDismissLastReadMarker?.call();
-    }, [onDismissLastReadMarker]);
+      chatStateNotifier.dismissLastReadMarker();
+    }, [chatStateNotifier]);
 
     final botGroups = useMemoized(() => _computeBotGroups(messages), [
       messages,
@@ -147,15 +124,15 @@ class RoomMessageList extends HookConsumerWidget {
       [botGroups],
     );
     final effectiveCollapsed = useMemoized(
-      () => {...allGroupIds}..removeAll(collapsedBotGroupIds),
-      [allGroupIds, collapsedBotGroupIds],
+      () => {...allGroupIds}..removeAll(chatState.collapsedBotGroupIds),
+      [allGroupIds, chatState.collapsedBotGroupIds],
     );
 
     int lastReturnedIndex = -1;
 
     final listWidget = SuperListView.builder(
-      listController: listController,
-      controller: scrollController,
+      listController: chatStateNotifier.listController,
+      controller: chatStateNotifier.scrollController,
       reverse: true,
       padding: EdgeInsets.only(top: 8),
       itemCount: messages.length,
@@ -209,8 +186,8 @@ class RoomMessageList extends HookConsumerWidget {
           '$messageKeyPrefix${message.clientMessageId ?? message.id}',
         );
         final showLastReadMarker =
-            lastReadAnchorMessageId != null &&
-            message.id == lastReadAnchorMessageId;
+            chatState.lastReadAnchorMessageId != null &&
+            message.id == chatState.lastReadAnchorMessageId;
 
         return Column(
           key: key,
@@ -248,7 +225,7 @@ class RoomMessageList extends HookConsumerWidget {
                               ),
                         ),
                       ),
-                      if (onDismissLastReadMarker != null)
+                      if (chatState.lastReadAnchorMessageId != null)
                         IconButton(
                           onPressed: handleDismiss,
                           icon: Icon(
@@ -270,27 +247,29 @@ class RoomMessageList extends HookConsumerWidget {
               message: message,
               index: index,
               isLastInGroup: isLastInGroup,
-              isSelectionMode: isSelectionMode,
-              selectedMessages: selectedMessages,
+              isSelectionMode: chatState.isSelectionMode,
+              selectedMessages: chatState.selectedMessageIds,
               chatIdentity: chatIdentity,
-              toggleSelectionMode: toggleSelectionMode,
-              toggleMessageSelection: toggleMessageSelection,
-              onMessageAction: onMessageAction,
+              toggleSelectionMode: chatStateNotifier.toggleSelectionMode,
+              toggleMessageSelection: chatStateNotifier.toggleMessageSelection,
+              onMessageAction: chatStateNotifier.onMessageAction,
               onJump: onJump,
-              attachmentProgress: attachmentProgress,
+              attachmentProgress: chatState.attachmentProgress,
               disableAnimation: settings.disableAnimation,
-              roomOpenTime: roomOpenTime,
+              roomOpenTime: chatState.roomOpenTime,
             ),
             if (botGroup != null && isCollapsed && index == botGroup.startIndex)
               _BotGroupExpandBar(
                 hiddenCount: botGroup.messageCount - 1,
-                onToggle: () => toggleBotGroup(botGroup.groupId),
+                onToggle: () =>
+                    chatStateNotifier.toggleBotGroup(botGroup.groupId),
                 isExpanded: false,
               ),
             if (botGroup != null && !isCollapsed && index == botGroup.endIndex)
               _BotGroupExpandBar(
                 hiddenCount: 0,
-                onToggle: () => toggleBotGroup(botGroup.groupId),
+                onToggle: () =>
+                    chatStateNotifier.toggleBotGroup(botGroup.groupId),
                 isExpanded: true,
               ),
           ],
