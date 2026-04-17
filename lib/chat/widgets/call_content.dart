@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:collection/collection.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -162,7 +162,9 @@ class CallContent extends HookConsumerWidget {
                       child: Consumer(
                         builder: (context, ref, _) {
                           final account = ref.watch(
-                            accountProvider(live.participant.name),
+                            callParticipantAccountProvider(
+                              live.participant.identity,
+                            ),
                           );
                           return account.value == null
                               ? Text(

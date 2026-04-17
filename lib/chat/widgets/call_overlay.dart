@@ -4,8 +4,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/accounts/screens/profile.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_content.dart';
 import 'package:island/chat/widgets/call_participant_tile.dart';
@@ -16,6 +16,7 @@ import 'package:island/main.dart';
 import 'package:island/route.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -24,6 +25,21 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 OverlayEntry? _callOverlayEntry;
 final ProviderContainer _overlayContainer = ProviderContainer();
+
+// Track if the full-screen CallScreen is active to prevent overlay from showing
+bool _isCallScreenActive = false;
+
+/// Set whether the full-screen CallScreen is currently active.
+/// When active, the floating overlay will not be shown.
+void setCallScreenActive(bool active) {
+  _isCallScreenActive = active;
+  if (active) {
+    hideCallOverlay();
+  }
+}
+
+/// Check if the full-screen CallScreen is currently active.
+bool isCallScreenActive() => _isCallScreenActive;
 
 final _callOverlayStateProvider =
     NotifierProvider<_CallOverlayStateNotifier, _CallOverlayState>(
@@ -99,6 +115,14 @@ class _CallOverlayStateNotifier extends Notifier<_CallOverlayState> {
 }
 
 void showCallOverlay(SnChatRoom room) {
+  // Don't show overlay if CallScreen is active
+  if (_isCallScreenActive) {
+    Logger.root.info(
+      '[CallOverlay] Not showing overlay - CallScreen is active',
+    );
+    return;
+  }
+
   if (_callOverlayEntry != null) {
     _overlayContainer.read(_callOverlayStateProvider.notifier).setRoom(room);
     _callOverlayEntry?.markNeedsBuild();
@@ -909,6 +933,9 @@ class _CallOverlayBarState extends ConsumerState<CallOverlayBar> {
   }
 
   void _checkAndShowOverlay() {
+    // Don't show overlay if CallScreen is active
+    if (_isCallScreenActive) return;
+
     final callState = ref.read(callProvider);
     final activeParticipantCount = ref.read(
       activeCallParticipantCountProvider(widget.room.id),
@@ -938,12 +965,12 @@ class _CallOverlayBarState extends ConsumerState<CallOverlayBar> {
       previous,
       current,
     ) {
-      if (current && !callState.isConnected) {
+      if (current && !callState.isConnected && !_isCallScreenActive) {
         showCallOverlay(widget.room);
       }
     });
 
-    if (callState.isConnected || hasActiveCall) {
+    if (!_isCallScreenActive && (callState.isConnected || hasActiveCall)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_callOverlayEntry == null) {
           showCallOverlay(widget.room);
@@ -1156,7 +1183,9 @@ class _CallPreviewParticipantAvatar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final account = ref.watch(accountProvider(participant.identity));
+    final account = ref.watch(
+      callParticipantAccountProvider(participant.identity),
+    );
     return account.when(
       data: (value) =>
           ProfilePictureWidget(file: value.profile.picture, radius: 17),

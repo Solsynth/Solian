@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/pods/call_participants.dart';
 import 'package:island/chat/widgets/call_participant_card.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -69,7 +69,9 @@ class SpeakingRippleAvatar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final account = ref.watch(accountProvider(live.participant.identity));
+    final account = ref.watch(
+      callParticipantAccountProvider(live.participant.identity),
+    );
 
     return CallParticipantRegion(
       participant: live,
@@ -145,7 +147,9 @@ class CallParticipantTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final account = ref.watch(accountProvider(live.participant.identity));
+    final account = ref.watch(
+      callParticipantAccountProvider(live.participant.identity),
+    );
 
     final hasVideoTrack =
         live.hasVideo &&
