@@ -333,6 +333,73 @@ class ChatRoomScreen extends HookConsumerWidget {
       return () => controller.removeListener(updateAtLatestState);
     }, []);
 
+    // Track new messages while scrolled up
+    final newMessagesCount = useState<int>(0);
+    final lastMessageCount = useRef<int>(0);
+    final isBackToBottomVisible = useState<bool>(false);
+    final hideBackToBottomTimer = useRef<Timer?>(null);
+    final lastScrollPosition = useRef<double>(0);
+    final scrollStabilityCounter = useRef<int>(0);
+
+    // Update new message count when messages change
+    useEffect(() {
+      final currentCount = messages.value?.length ?? 0;
+      if (!isAtLatestMessages.value &&
+          currentCount > lastMessageCount.value &&
+          lastMessageCount.value > 0) {
+        newMessagesCount.value += (currentCount - lastMessageCount.value);
+      }
+      lastMessageCount.value = currentCount;
+      return null;
+    }, [messages.value?.length, isAtLatestMessages.value]);
+
+    // Auto-hide back-to-bottom button after 3s of no scroll
+    useEffect(() {
+      if (!isAtLatestMessages.value) {
+        isBackToBottomVisible.value = true;
+
+        void onScroll() {
+          if (!scrollControllerRef.value.hasClients) return;
+          final currentPos = scrollControllerRef.value.position.pixels;
+          final delta = (currentPos - lastScrollPosition.value).abs();
+
+          // Reset timer on significant scroll movement
+          if (delta > 5) {
+            scrollStabilityCounter.value = 0;
+            isBackToBottomVisible.value = true;
+            hideBackToBottomTimer.value?.cancel();
+            hideBackToBottomTimer.value = Timer(const Duration(seconds: 3), () {
+              isBackToBottomVisible.value = false;
+            });
+          } else {
+            // Small movement, increment stability counter
+            scrollStabilityCounter.value++;
+          }
+
+          lastScrollPosition.value = currentPos;
+        }
+
+        final controller = scrollControllerRef.value;
+        controller.addListener(onScroll);
+
+        // Start initial timer
+        hideBackToBottomTimer.value = Timer(const Duration(seconds: 3), () {
+          isBackToBottomVisible.value = false;
+        });
+
+        return () {
+          controller.removeListener(onScroll);
+          hideBackToBottomTimer.value?.cancel();
+        };
+      } else {
+        // At bottom, hide button and reset counter
+        isBackToBottomVisible.value = false;
+        newMessagesCount.value = 0;
+        hideBackToBottomTimer.value?.cancel();
+        return null;
+      }
+    }, [isAtLatestMessages.value]);
+
     final inputKey = useMemoized(() => GlobalKey(), []);
 
     final openThinkingSheet = useCallback(() {
@@ -639,16 +706,96 @@ class ChatRoomScreen extends HookConsumerWidget {
                           ),
                         ),
                       ),
-                    if (visibleLastReadAnchorMessageId != null)
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: FilledButton.tonalIcon(
-                          onPressed: jumpToLastReadAnchor,
-                          icon: const Icon(Icons.bookmark_added_outlined),
-                          label: const Text('Follow back'),
+                    // Follow Back FAB - top right, small circular, ignores safe area
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: SafeArea(
+                        top: false,
+                        bottom: false,
+                        child: AnimatedOpacity(
+                          opacity: visibleLastReadAnchorMessageId != null
+                              ? 1.0
+                              : 0.0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          child: AnimatedScale(
+                            scale: visibleLastReadAnchorMessageId != null
+                                ? 1.0
+                                : 0.8,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: FloatingActionButton.small(
+                              heroTag: 'followBack',
+                              onPressed: visibleLastReadAnchorMessageId != null
+                                  ? jumpToLastReadAnchor
+                                  : null,
+                              elevation: visibleLastReadAnchorMessageId != null
+                                  ? 2
+                                  : 0,
+                              backgroundColor:
+                                  visibleLastReadAnchorMessageId != null
+                                  ? null
+                                  : Colors.transparent,
+                              child: const Icon(Icons.bookmark_added_outlined),
+                            ),
+                          ),
                         ),
                       ),
+                    ),
+
+                    // Back to Bottom FAB - bottom right, with new message badge, ignores safe area
+                    Positioned(
+                      bottom: 16,
+                      right: 12,
+                      child: AnimatedOpacity(
+                        opacity:
+                            (!isAtLatestMessages.value &&
+                                isBackToBottomVisible.value)
+                            ? 1.0
+                            : 0.0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: AnimatedScale(
+                          scale:
+                              (!isAtLatestMessages.value &&
+                                  isBackToBottomVisible.value)
+                              ? 1.0
+                              : 0.8,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          child: FloatingActionButton.small(
+                            heroTag: 'backToBottom',
+                            onPressed:
+                                (!isAtLatestMessages.value &&
+                                    isBackToBottomVisible.value)
+                                ? () {
+                                    chatStateNotifier.jumpToBottom();
+                                    newMessagesCount.value = 0;
+                                  }
+                                : null,
+                            elevation:
+                                (!isAtLatestMessages.value &&
+                                    isBackToBottomVisible.value)
+                                ? 2
+                                : 0,
+                            backgroundColor:
+                                (!isAtLatestMessages.value &&
+                                    isBackToBottomVisible.value)
+                                ? null
+                                : Colors.transparent,
+                            child: Badge(
+                              isLabelVisible:
+                                  newMessagesCount.value > 0 &&
+                                  isBackToBottomVisible.value,
+                              label: Text('${newMessagesCount.value}'),
+                              child: const Icon(Icons.arrow_downward),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
                     if (messagesNotifier.e2eeRecoveryState ==
                         E2eeRecoveryState.reconnecting)
                       Positioned.fill(
