@@ -47,6 +47,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool? _withAttachments;
 
   static const int _pageSize = 20;
+  static const int _fetchBatchSize =
+      100; // Fetch 100 from API to reduce network requests
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
@@ -70,6 +72,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   final Map<String, LocalChatMessage> _messageCache = {};
   final List<String> _messageCacheKeys = [];
   static const int _maxCacheSize = 100;
+
+  /// Pending message fetches to prevent duplicate concurrent requests
+  final Map<String, Future<LocalChatMessage?>> _pendingMessageFetches = {};
 
   E2eeRecoveryState get e2eeRecoveryState => _e2eeRecoveryState;
 
@@ -569,6 +574,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       e2eeCompleteSub?.cancel();
       e2eeFailedSub?.cancel();
       _clearMessageCache(); // Clear memory cache on dispose
+      _pendingMessageFetches.clear(); // Clear pending fetches
     });
 
     return _loadInitialMessages(forceRemoteRefresh: false);
@@ -1024,9 +1030,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       // If we haven't fetched all remote messages, check remote even if we have local
       // OR if we have no local messages at all
       if (_searchQuery == null || _searchQuery!.isEmpty) {
+        // Fetch more from API than requested to reduce network requests
+        // Local cache query will still return the correct amount
         final remoteMessages = await _fetchAndCacheMessages(
           offset: offset,
-          take: take,
+          take: _fetchBatchSize,
         );
 
         // If we got remote messages, re-fetch from cache to get merged result
@@ -1104,9 +1112,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           () => ref.read(chatSyncingProvider.notifier).set(true),
         );
       }
+      // Fetch more from API than displayed to reduce network requests
       final remoteMessages = await _fetchAndCacheMessages(
         offset: 0,
-        take: _pageSize,
+        take: _fetchBatchSize,
       );
       Logger.root.info(
         'LoadInitial: fetched ${remoteMessages.length} from remote, _allRemoteMessagesFetched=$_allRemoteMessagesFetched',
@@ -2347,20 +2356,47 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
-    Logger.root.info('Fetching message by id $messageId');
+    // Check memory cache first - synchronous, no logging
+    if (_messageCache.containsKey(messageId)) {
+      return _messageCache[messageId];
+    }
+
+    // Check if there's an ongoing fetch for this message
+    if (_pendingMessageFetches.containsKey(messageId)) {
+      return _pendingMessageFetches[messageId]!;
+    }
+
+    // Create the fetch future and cache it to prevent duplicate concurrent fetches
+    final fetchFuture = _fetchMessageByIdInternal(messageId);
+    _pendingMessageFetches[messageId] = fetchFuture;
+
     try {
-      // Check memory cache first
+      final result = await fetchFuture;
+      return result;
+    } finally {
+      _pendingMessageFetches.remove(messageId);
+    }
+  }
+
+  Future<LocalChatMessage?> _fetchMessageByIdInternal(String messageId) async {
+    Logger.root.info('Fetching message by id $messageId from DB/API');
+    try {
+      // Double-check cache after any async gap
       if (_messageCache.containsKey(messageId)) {
-        Logger.root.fine('Message $messageId found in memory cache');
+        Logger.root.fine(
+          'Message $messageId found in memory cache (post-check)',
+        );
         return _messageCache[messageId];
       }
 
       final localMessage = await _database.getMessageById(messageId);
       if (localMessage != null) {
+        Logger.root.fine('Message $messageId found in local database');
         _addToMessageCache(localMessage);
         return localMessage;
       }
 
+      Logger.root.info('Message $messageId not in DB, fetching from API');
       final response = await _apiClient.get(
         '/messager/chat/$roomId/messages/$messageId',
       );

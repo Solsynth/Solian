@@ -115,10 +115,6 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   late final ScrollController scrollController;
   late final ListController listController;
 
-  // Internal refs for async operations
-  MessagesNotifier? _messagesNotifier;
-  ChatSubscribeNotifier? _chatSubscribeNotifier;
-
   // Auto-fill tracking
   int _autoFillPasses = 0;
   bool _autoFillInProgress = false;
@@ -157,10 +153,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
 
   void _onTextChange() {
     if (messageController.text.isNotEmpty) {
-      _chatSubscribeNotifier ??= ref.read(
-        chatSubscribeProvider(roomId).notifier,
-      );
-      _chatSubscribeNotifier?.sendTypingStatus();
+      // Read fresh notifier each time to avoid using disposed instance
+      final notifier = ref.read(chatSubscribeProvider(roomId).notifier);
+      notifier.sendTypingStatus();
     }
   }
 
@@ -171,8 +166,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     if (position.pixels >= position.maxScrollExtent - 200) {
       if (!_isLoadingMore) {
         _isLoadingMore = true;
-        _messagesNotifier ??= ref.read(messagesProvider(roomId).notifier);
-        _messagesNotifier!.loadMore().whenComplete(() {
+        // Read fresh notifier each time to avoid using disposed instance
+        final notifier = ref.read(messagesProvider(roomId).notifier);
+        notifier.loadMore().whenComplete(() {
           _isLoadingMore = false;
         });
       }
@@ -207,8 +203,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       '(roomId=$roomId, pass=$_autoFillPasses, count=$messageCount)',
     );
 
-    _messagesNotifier ??= ref.read(messagesProvider(roomId).notifier);
-    _messagesNotifier!.loadMore().whenComplete(() {
+    // Read fresh notifier each time to avoid using disposed instance
+    final notifier = ref.read(messagesProvider(roomId).notifier);
+    notifier.loadMore().whenComplete(() {
       _autoFillInProgress = false;
     });
   }
@@ -356,11 +353,12 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   // ==================== Message Actions ====================
 
   void onMessageAction(String action, LocalChatMessage message) {
-    _messagesNotifier ??= ref.read(messagesProvider(roomId).notifier);
+    // Read fresh notifier each time to avoid using disposed instance
+    final notifier = ref.read(messagesProvider(roomId).notifier);
 
     switch (action) {
       case 'delete':
-        _messagesNotifier!.deleteMessage(message.id);
+        notifier.deleteMessage(message.id);
       case 'edit':
         setEditingTo(message.toRemoteMessage());
       case 'forward':
@@ -368,7 +366,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       case 'reply':
         setReplyingTo(message.toRemoteMessage());
       case 'resend':
-        _messagesNotifier!.retryMessage(message.id);
+        notifier.retryMessage(message.id);
     }
   }
 
@@ -381,8 +379,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       return;
     }
 
-    _messagesNotifier ??= ref.read(messagesProvider(roomId).notifier);
-    _messagesNotifier!.sendMessage(
+    // Read fresh notifier each time to avoid using disposed instance
+    final notifier = ref.read(messagesProvider(roomId).notifier);
+    notifier.sendMessage(
       outerRef,
       text,
       state.attachments,
