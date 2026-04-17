@@ -48,14 +48,21 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   static const int _pageSize = 20;
   static const int _fetchBatchSize =
-      100; // Fetch 100 from API to reduce network requests
+      1000; // Max API take (1k) to minimize network requests
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
   bool _hasPendingRealtimeRefresh = false;
   bool _isUpdatingState = false;
   bool _isLoadingInitial = false;
+  bool _isLoadingMore = false;
   bool _allRemoteMessagesFetched = false;
+
+  /// Track the last offset fetched from API to prevent overlapping fetches
+  /// This is separate from DB offset since we fetch in larger batches (_fetchBatchSize)
+  /// than we display (_pageSize)
+  int _lastApiFetchOffset = 0;
+
   StreamSubscription<ChatMessagesSyncedEvent>? _syncEventsSub;
   final Set<String> _prefetchedVoiceUrls = <String>{};
 
@@ -77,6 +84,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   final Map<String, Future<LocalChatMessage?>> _pendingMessageFetches = {};
 
   E2eeRecoveryState get e2eeRecoveryState => _e2eeRecoveryState;
+
+  bool get isLoadingMore => _isLoadingMore;
 
   bool get _isE2eeRoom => _roomEncryptionMode == 3;
 
@@ -932,12 +941,15 @@ class MessagesNotifier extends _$MessagesNotifier {
       }
     }
 
+    // Track the last API fetch offset for pagination
+    _lastApiFetchOffset = offset + messages.length;
+
     // Check if we've fetched all remote messages
-    if (offset + messages.length >= _totalCount!) {
+    if (_lastApiFetchOffset >= _totalCount!) {
       _allRemoteMessagesFetched = true;
     }
     Logger.root.info(
-      'FetchAndCache done: offset=$offset, rawCount=${messages.length}, totalCount=$_totalCount, allFetched=$_allRemoteMessagesFetched',
+      'FetchAndCache done: offset=$offset, rawCount=${messages.length}, totalCount=$_totalCount, allFetched=$_allRemoteMessagesFetched, lastApiOffset=$_lastApiFetchOffset',
     );
 
     return messages;
@@ -1030,10 +1042,18 @@ class MessagesNotifier extends _$MessagesNotifier {
       // If we haven't fetched all remote messages, check remote even if we have local
       // OR if we have no local messages at all
       if (_searchQuery == null || _searchQuery!.isEmpty) {
+        // Only fetch from API if we haven't fetched all messages yet
+        // Use _lastApiFetchOffset to track what we've already fetched
+        // This prevents overlapping fetches when we fetch in large batches
+        if (_allRemoteMessagesFetched ||
+            (_totalCount != null && _lastApiFetchOffset >= _totalCount!)) {
+          return localMessages;
+        }
+
         // Fetch more from API than requested to reduce network requests
-        // Local cache query will still return the correct amount
+        // Use _lastApiFetchOffset for API call, not the UI offset
         final remoteMessages = await _fetchAndCacheMessages(
-          offset: offset,
+          offset: _lastApiFetchOffset,
           take: _fetchBatchSize,
         );
 
@@ -1077,6 +1097,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     bool forceRemoteRefresh = true,
   }) async {
     _allRemoteMessagesFetched = false;
+    _lastApiFetchOffset = 0; // Reset API fetch offset on initial load
 
     final cachedMessages = await _getCachedMessages(
       offset: 0,
@@ -1217,20 +1238,23 @@ class MessagesNotifier extends _$MessagesNotifier {
     _hasMore = true;
     _allRemoteMessagesFetched = false;
     _totalCount = null;
+    _lastApiFetchOffset = 0;
   }
 
   Future<void> loadMore() async {
-    if (!_hasMore || state is AsyncLoading) {
+    if (!_hasMore || state is AsyncLoading || _isLoadingMore) {
       Logger.root.info(
-        'Skipping loadMore (hasMore=$_hasMore, isAsyncLoading=${state is AsyncLoading})',
+        'Skipping loadMore (hasMore=$_hasMore, isAsyncLoading=${state is AsyncLoading}, isLoadingMore=$_isLoadingMore)',
       );
       return;
     }
-    final offset = await _database.countMessagesNewerThan(
-      roomId,
-      DateTime.fromMillisecondsSinceEpoch(0),
+    _isLoadingMore = true;
+    // Use the current displayed message count as offset for UI pagination
+    // This is different from _lastApiFetchOffset which tracks API fetch progress
+    final offset = state.value?.length ?? 0;
+    Logger.root.info(
+      'Loading more messages (displayOffset=$offset, take=$_pageSize, lastApiOffset=$_lastApiFetchOffset)',
     );
-    Logger.root.info('Loading more messages (offset=$offset, take=$_pageSize)');
 
     if (ref.mounted) {
       Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
@@ -1258,6 +1282,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       Logger.root.info('Error loading more messages', err, stackTrace);
       showErrorAlert(err);
     } finally {
+      _isLoadingMore = false;
       // Always reset global syncing state, regardless of disposal
       Future.microtask(() {
         if (ref.mounted) ref.read(chatSyncingProvider.notifier).set(false);

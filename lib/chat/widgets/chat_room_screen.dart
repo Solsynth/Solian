@@ -341,17 +341,22 @@ class ChatRoomScreen extends HookConsumerWidget {
     final lastScrollPosition = useRef<double>(0);
     final scrollStabilityCounter = useRef<int>(0);
 
-    // Update new message count when messages change
+    // Watch loading state from messages notifier
+    final isLoadingMore = messagesNotifier.isLoadingMore;
+
+    // Update new message count when messages change (but not during loadMore)
     useEffect(() {
       final currentCount = messages.value?.length ?? 0;
       if (!isAtLatestMessages.value &&
           currentCount > lastMessageCount.value &&
-          lastMessageCount.value > 0) {
+          lastMessageCount.value > 0 &&
+          !isLoadingMore) {
+        // Only count as "new" if not from loadMore
         newMessagesCount.value += (currentCount - lastMessageCount.value);
       }
       lastMessageCount.value = currentCount;
       return null;
-    }, [messages.value?.length, isAtLatestMessages.value]);
+    }, [messages.value?.length, isAtLatestMessages.value, isLoadingMore]);
 
     // Auto-hide back-to-bottom button after 3s of no scroll
     useEffect(() {
@@ -764,31 +769,31 @@ class ChatRoomScreen extends HookConsumerWidget {
                               : 0.8,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
-                          child: FloatingActionButton.small(
-                            heroTag: 'backToBottom',
-                            onPressed:
-                                (!isAtLatestMessages.value &&
-                                    isBackToBottomVisible.value)
-                                ? () {
-                                    chatStateNotifier.jumpToBottom();
-                                    newMessagesCount.value = 0;
-                                  }
-                                : null,
-                            elevation:
-                                (!isAtLatestMessages.value &&
-                                    isBackToBottomVisible.value)
-                                ? 2
-                                : 0,
-                            backgroundColor:
-                                (!isAtLatestMessages.value &&
-                                    isBackToBottomVisible.value)
-                                ? null
-                                : Colors.transparent,
-                            child: Badge(
-                              isLabelVisible:
-                                  newMessagesCount.value > 0 &&
-                                  isBackToBottomVisible.value,
-                              label: Text('${newMessagesCount.value}'),
+                          child: Badge(
+                            isLabelVisible:
+                                newMessagesCount.value > 0 &&
+                                isBackToBottomVisible.value,
+                            label: Text('${newMessagesCount.value}'),
+                            child: FloatingActionButton.small(
+                              heroTag: 'backToBottom',
+                              onPressed:
+                                  (!isAtLatestMessages.value &&
+                                      isBackToBottomVisible.value)
+                                  ? () {
+                                      chatStateNotifier.jumpToBottom();
+                                      newMessagesCount.value = 0;
+                                    }
+                                  : null,
+                              elevation:
+                                  (!isAtLatestMessages.value &&
+                                      isBackToBottomVisible.value)
+                                  ? 2
+                                  : 0,
+                              backgroundColor:
+                                  (!isAtLatestMessages.value &&
+                                      isBackToBottomVisible.value)
+                                  ? null
+                                  : Colors.transparent,
                               child: const Icon(Icons.arrow_downward),
                             ),
                           ),
