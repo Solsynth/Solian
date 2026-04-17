@@ -343,9 +343,14 @@ class _WorkoutCard extends ConsumerWidget {
                           ],
                         ],
                       ),
-                    if (workout.meta != null) ...[
+                    if (workout.distance != null ||
+                        workout.averageHeartRate != null ||
+                        workout.averageSpeed != null ||
+                        workout.elevationGain != null ||
+                        (workout.meta != null &&
+                            workout.meta!['steps'] != null)) ...[
                       const SizedBox(height: 4),
-                      _buildMetaRow(context, workout.meta!),
+                      _buildMetaRow(context, workout.meta ?? {}),
                     ],
                   ],
                 ),
@@ -437,10 +442,11 @@ class _WorkoutCard extends ConsumerWidget {
   Widget _buildMetaRow(BuildContext context, Map<String, dynamic> meta) {
     final items = <Widget>[];
 
-    if (meta['distance'] != null) {
-      final distance = meta['distance'];
-      final unit = meta['distance_unit'] ?? 'km';
-      items.add(_buildMetaChip(context, Icons.straighten, '$distance $unit'));
+    if (workout.distance != null) {
+      final unit = workout.distanceUnit ?? 'km';
+      items.add(
+        _buildMetaChip(context, Icons.straighten, '${workout.distance} $unit'),
+      );
     }
 
     if (meta['steps'] != null) {
@@ -453,25 +459,26 @@ class _WorkoutCard extends ConsumerWidget {
       );
     }
 
-    if (meta['average_heart_rate'] != null) {
+    if (workout.averageHeartRate != null) {
       items.add(
         _buildMetaChip(
           context,
           Icons.monitor_heart,
-          '~${meta['average_heart_rate']} bpm',
+          '~${workout.averageHeartRate} bpm',
         ),
       );
     }
 
-    if (meta['average_speed'] != null) {
-      final speed = meta['average_speed'];
+    if (workout.averageSpeed != null) {
       final unit = 'km/h';
-      items.add(_buildMetaChip(context, Icons.speed, '$speed $unit'));
+      items.add(
+        _buildMetaChip(context, Icons.speed, '${workout.averageSpeed} $unit'),
+      );
     }
 
-    if (meta['elevation_gain'] != null) {
+    if (workout.elevationGain != null) {
       items.add(
-        _buildMetaChip(context, Icons.terrain, '+${meta['elevation_gain']}m'),
+        _buildMetaChip(context, Icons.terrain, '+${workout.elevationGain}m'),
       );
     }
 

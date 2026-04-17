@@ -1796,9 +1796,9 @@ class MessagesNotifier extends _$MessagesNotifier {
         remoteMessage.type == 'messages.update' ||
         remoteMessage.type == 'messages.update.links';
     final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
+    final shouldShowMessage = _shouldIncludeInActiveList(localMessage);
     final shouldShowEditTrail =
-        chatMode != kChatEventMessageModeNone &&
-        (isMessageUpdate || _shouldIncludeInActiveList(localMessage));
+        chatMode != kChatEventMessageModeNone && isMessageUpdate;
 
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final existingIndex = currentMessages.indexWhere(
@@ -1811,13 +1811,13 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (ref.mounted) {
       if (existingIndex >= 0) {
         final newList = [...currentMessages];
-        if (shouldShowEditTrail) {
+        if (shouldShowMessage || shouldShowEditTrail) {
           newList[existingIndex] = localMessage;
         } else {
           newList.removeAt(existingIndex);
         }
         state = AsyncValue.data(_sortMessages(newList));
-      } else if (shouldShowEditTrail) {
+      } else if (shouldShowMessage || shouldShowEditTrail) {
         state = AsyncValue.data(
           _sortMessages([localMessage, ...currentMessages]),
         );

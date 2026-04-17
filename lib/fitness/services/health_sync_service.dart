@@ -14,25 +14,10 @@ class SyncResult {
   final String? error;
   final List<String> details;
 
-  const SyncResult({
-    required this.success,
-    this.uploaded = 0,
-    this.skipped = 0,
-    this.error,
-    this.details = const [],
-  });
+  const SyncResult({required this.success, this.uploaded = 0, this.skipped = 0, this.error, this.details = const []});
 
-  factory SyncResult.success({
-    int uploaded = 0,
-    int skipped = 0,
-    List<String> details = const [],
-  }) {
-    return SyncResult(
-      success: true,
-      uploaded: uploaded,
-      skipped: skipped,
-      details: details,
-    );
+  factory SyncResult.success({int uploaded = 0, int skipped = 0, List<String> details = const []}) {
+    return SyncResult(success: true, uploaded: uploaded, skipped: skipped, details: details);
   }
 
   factory SyncResult.failure(String error) {
@@ -158,8 +143,7 @@ class HealthRecord {
       final duration = endDate.difference(startDate);
       return '${duration.inMinutes} min';
     }
-    if (type == HealthDataType.SLEEP_ASLEEP ||
-        type == HealthDataType.SLEEP_AWAKE) {
+    if (type == HealthDataType.SLEEP_ASLEEP || type == HealthDataType.SLEEP_AWAKE) {
       final duration = endDate.difference(startDate);
       return '${duration.inHours}h ${duration.inMinutes % 60}m';
     }
@@ -176,13 +160,10 @@ class HealthSyncService {
   static const _keyLastSyncMetrics = 'health_sync_last_metrics';
   static const _keySyncEnabled = 'health_sync_enabled';
 
-  HealthSyncService({
-    required Health health,
-    required FitnessApi fitnessApi,
-    required SharedPreferences prefs,
-  }) : _health = health,
-       _fitnessApi = fitnessApi,
-       _prefs = prefs;
+  HealthSyncService({required Health health, required FitnessApi fitnessApi, required SharedPreferences prefs})
+    : _health = health,
+      _fitnessApi = fitnessApi,
+      _prefs = prefs;
 
   DateTime? get lastSyncWorkouts {
     final str = _prefs.getString(_keyLastSyncWorkouts);
@@ -234,27 +215,13 @@ class HealthSyncService {
       HealthDataType.SPEED,
     ];
 
-    final individualTypes = [
-      HealthDataType.WORKOUT,
-      HealthDataType.SLEEP_ASLEEP,
-    ];
+    final individualTypes = [HealthDataType.WORKOUT, HealthDataType.SLEEP_ASLEEP];
 
-    final latestPerDayTypes = [
-      HealthDataType.WEIGHT,
-      HealthDataType.BODY_MASS_INDEX,
-    ];
+    final latestPerDayTypes = [HealthDataType.WEIGHT, HealthDataType.BODY_MASS_INDEX];
 
-    for (final type in [
-      ...individualTypes,
-      ...latestPerDayTypes,
-      ...aggregateTypes,
-    ]) {
+    for (final type in [...individualTypes, ...latestPerDayTypes, ...aggregateTypes]) {
       try {
-        final data = await _health.getHealthDataFromTypes(
-          types: [type],
-          startTime: since,
-          endTime: now,
-        );
+        final data = await _health.getHealthDataFromTypes(types: [type], startTime: since, endTime: now);
 
         if (data.isNotEmpty) {
           return true;
@@ -267,13 +234,9 @@ class HealthSyncService {
     return false;
   }
 
-  Future<List<HealthRecord>> fetchAllRecords({
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
+  Future<List<HealthRecord>> fetchAllRecords({DateTime? startDate, DateTime? endDate}) async {
     final records = <HealthRecord>[];
-    final start =
-        startDate ?? DateTime.now().subtract(const Duration(days: 30));
+    final start = startDate ?? DateTime.now().subtract(const Duration(days: 30));
     final end = endDate ?? DateTime.now();
 
     final aggregateTypes = [
@@ -288,27 +251,13 @@ class HealthSyncService {
       HealthDataType.WALKING_SPEED,
     ];
 
-    final individualTypes = [
-      HealthDataType.WORKOUT,
-      HealthDataType.SLEEP_ASLEEP,
-    ];
+    final individualTypes = [HealthDataType.WORKOUT, HealthDataType.SLEEP_ASLEEP];
 
-    final latestPerDayTypes = [
-      HealthDataType.WEIGHT,
-      HealthDataType.BODY_MASS_INDEX,
-    ];
+    final latestPerDayTypes = [HealthDataType.WEIGHT, HealthDataType.BODY_MASS_INDEX];
 
-    for (final type in [
-      ...individualTypes,
-      ...latestPerDayTypes,
-      ...aggregateTypes,
-    ]) {
+    for (final type in [...individualTypes, ...latestPerDayTypes, ...aggregateTypes]) {
       try {
-        final data = await _health.getHealthDataFromTypes(
-          types: [type],
-          startTime: start,
-          endTime: end,
-        );
+        final data = await _health.getHealthDataFromTypes(types: [type], startTime: start, endTime: end);
 
         if (data.isEmpty) continue;
 
@@ -361,10 +310,7 @@ class HealthSyncService {
     );
   }
 
-  List<HealthRecord> _aggregateByDay(
-    List<HealthDataPoint> data,
-    HealthDataType type,
-  ) {
+  List<HealthRecord> _aggregateByDay(List<HealthDataPoint> data, HealthDataType type) {
     final byDay = <String, List<HealthDataPoint>>{};
 
     for (final point in data) {
@@ -379,9 +325,7 @@ class HealthSyncService {
       if (dayPoints.isEmpty) continue;
 
       final first = dayPoints.first;
-      final values = dayPoints
-          .map((p) => (p.value as NumericHealthValue).numericValue)
-          .toList();
+      final values = dayPoints.map((p) => (p.value as NumericHealthValue).numericValue).toList();
 
       double aggValue;
       if (type == HealthDataType.HEART_RATE) {
@@ -502,21 +446,13 @@ class HealthSyncService {
 
     try {
       if (workoutRecords.isNotEmpty) {
-        final workouts = workoutRecords
-            .map((r) => _buildWorkoutRequest(r, visibility))
-            .toList();
-        await _fitnessApi.createWorkoutsBatch(
-          CreateWorkoutsBatchRequest(workouts: workouts),
-        );
+        final workouts = workoutRecords.map((r) => _buildWorkoutRequest(r, visibility)).toList();
+        await _fitnessApi.createWorkoutsBatch(CreateWorkoutsBatchRequest(workouts: workouts));
       }
 
       if (metricRecords.isNotEmpty) {
-        final metrics = metricRecords
-            .map((r) => _buildMetricRequest(r, visibility))
-            .toList();
-        await _fitnessApi.createMetricsBatch(
-          CreateMetricsBatchRequest(metrics: metrics),
-        );
+        final metrics = metricRecords.map((r) => _buildMetricRequest(r, visibility)).toList();
+        await _fitnessApi.createMetricsBatch(CreateMetricsBatchRequest(metrics: metrics));
       }
 
       await updateLastSync(SyncType.workouts);
@@ -524,48 +460,22 @@ class HealthSyncService {
 
       return SyncResult.success(
         uploaded: workoutRecords.length + metricRecords.length,
-        details: [
-          'Uploaded ${workoutRecords.length} workouts and ${metricRecords.length} metrics',
-        ],
+        details: ['Uploaded ${workoutRecords.length} workouts and ${metricRecords.length} metrics'],
       );
     } catch (e) {
       return SyncResult.failure('Sync failed: $e');
     }
   }
 
-  CreateWorkoutRequest _buildWorkoutRequest(
-    HealthRecord record,
-    FitnessVisibility visibility,
-  ) {
+  CreateWorkoutRequest _buildWorkoutRequest(HealthRecord record, FitnessVisibility visibility) {
     final workoutValue = record.value as WorkoutHealthValue;
     final activityType = workoutValue.workoutActivityType;
 
     final source = Platform.isIOS ? 'healthkit' : 'googlefit';
 
     final meta = <String, dynamic>{};
-    if (record.distance != null) {
-      meta['distance'] = record.distance;
-    }
-    if (record.distanceUnit != null) {
-      meta['distance_unit'] = record.distanceUnit;
-    }
     if (record.steps != null) {
       meta['steps'] = record.steps;
-    }
-    if (record.flightsClimbed != null) {
-      meta['elevation_gain'] = record.flightsClimbed;
-    }
-    if (record.avgHeartRate != null) {
-      meta['average_heart_rate'] = record.avgHeartRate;
-    }
-    if (record.maxHeartRate != null) {
-      meta['max_heart_rate'] = record.maxHeartRate;
-    }
-    if (record.averageSpeed != null) {
-      meta['average_speed'] = record.averageSpeed;
-    }
-    if (record.maxSpeed != null) {
-      meta['max_speed'] = record.maxSpeed;
     }
 
     return CreateWorkoutRequest(
@@ -576,16 +486,20 @@ class HealthSyncService {
       endTime: record.endDate,
       externalId: record.uuid,
       caloriesBurned: workoutValue.totalEnergyBurned?.toInt(),
+      distance: record.distance,
+      distanceUnit: record.distanceUnit,
+      elevationGain: record.flightsClimbed?.toDouble(),
+      averageHeartRate: record.avgHeartRate?.round(),
+      maxHeartRate: record.maxHeartRate?.round(),
+      maxSpeed: record.maxSpeed,
+      averageSpeed: record.averageSpeed,
       notes: 'Synced from $source',
       visibility: visibility,
       meta: meta.isNotEmpty ? meta : null,
     );
   }
 
-  CreateMetricRequest _buildMetricRequest(
-    HealthRecord record,
-    FitnessVisibility visibility,
-  ) {
+  CreateMetricRequest _buildMetricRequest(HealthRecord record, FitnessVisibility visibility) {
     final metricType = _mapMetricType(record.type);
     double value = 0;
     if (record.value is double) {
@@ -750,9 +664,7 @@ class HealthSyncService {
     }
   }
 
-  Future<Map<HealthDataType, List<HealthRecord>>> groupRecordsByType(
-    List<HealthRecord> records,
-  ) async {
+  Future<Map<HealthDataType, List<HealthRecord>>> groupRecordsByType(List<HealthRecord> records) async {
     final grouped = <HealthDataType, List<HealthRecord>>{};
     for (final record in records) {
       grouped.putIfAbsent(record.type, () => []).add(record);

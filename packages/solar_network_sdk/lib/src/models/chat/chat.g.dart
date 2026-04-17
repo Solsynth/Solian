@@ -95,6 +95,11 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, (e as num).toInt()),
           ) ??
           const {},
+      reactionsMade:
+          (json['reactions_made'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as bool),
+          ) ??
+          const {},
       repliedMessageId: json['replied_message_id'] as String?,
       forwardedMessageId: json['forwarded_message_id'] as String?,
       senderId: json['sender_id'] as String,
@@ -118,6 +123,7 @@ Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
       'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'reactions': instance.reactions.map((e) => e.toJson()).toList(),
       'reactions_count': instance.reactionsCount,
+      'reactions_made': instance.reactionsMade,
       'replied_message_id': instance.repliedMessageId,
       'forwarded_message_id': instance.forwardedMessageId,
       'sender_id': instance.senderId,

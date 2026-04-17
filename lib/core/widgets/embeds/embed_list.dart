@@ -501,7 +501,13 @@ class _FitnessDetailSheet extends ConsumerWidget {
                   workout.notes!,
                   icon: Icons.note,
                 ),
-              if (workout.meta != null && workout.meta!.isNotEmpty) ...[
+              if (workout.distance != null ||
+                  workout.averageHeartRate != null ||
+                  workout.maxHeartRate != null ||
+                  workout.averageSpeed != null ||
+                  workout.maxSpeed != null ||
+                  workout.elevationGain != null ||
+                  (workout.meta != null && workout.meta!['steps'] != null)) ...[
                 const Divider(height: 24),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -520,7 +526,7 @@ class _FitnessDetailSheet extends ConsumerWidget {
                     ],
                   ),
                 ),
-                _buildMetaDetails(context, workout.meta!),
+                _buildMetaDetails(context, workout),
               ],
             ],
           ),
@@ -705,76 +711,76 @@ class _FitnessDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetaDetails(BuildContext context, Map<String, dynamic> meta) {
+  Widget _buildMetaDetails(BuildContext context, SnWorkout workout) {
     final items = <Widget>[];
 
-    if (meta['distance'] != null) {
+    if (workout.distance != null) {
       items.add(
         _buildMetaRow(
           context,
           Icons.straighten,
           'Distance',
-          '${meta['distance']} ${meta['distance_unit'] ?? 'km'}',
+          '${workout.distance} ${workout.distanceUnit ?? 'km'}',
         ),
       );
     }
-    if (meta['steps'] != null) {
+    if (workout.meta != null && workout.meta!['steps'] != null) {
       items.add(
         _buildMetaRow(
           context,
           Icons.directions_walk,
           'Steps',
-          '${meta['steps']}',
+          '${workout.meta!['steps']}',
         ),
       );
     }
-    if (meta['average_heart_rate'] != null) {
+    if (workout.averageHeartRate != null) {
       items.add(
         _buildMetaRow(
           context,
           Icons.monitor_heart,
           'Avg Heart Rate',
-          '${meta['average_heart_rate']} bpm',
+          '${workout.averageHeartRate} bpm',
         ),
       );
     }
-    if (meta['max_heart_rate'] != null) {
+    if (workout.maxHeartRate != null) {
       items.add(
         _buildMetaRow(
           context,
           Icons.favorite,
           'Max Heart Rate',
-          '${meta['max_heart_rate']} bpm',
+          '${workout.maxHeartRate} bpm',
         ),
       );
     }
-    if (meta['average_speed'] != null) {
+    if (workout.averageSpeed != null) {
       items.add(
         _buildMetaRow(
           context,
           Icons.speed,
           'Avg Speed',
-          '${meta['average_speed']} km/h',
+          '${workout.averageSpeed} km/h',
         ),
       );
     }
-    if (meta['max_speed'] != null) {
+    if (workout.maxSpeed != null) {
       items.add(
         _buildMetaRow(
           context,
           Icons.bolt,
           'Max Speed',
-          '${meta['max_speed']} km/h',
+          '${workout.maxSpeed} km/h',
         ),
       );
     }
-    if (meta['elevation_gain'] != null) {
+    if (workout.elevationGain != null) {
       items.add(
         _buildMetaRow(
           context,
           Icons.terrain,
           'Elevation Gain',
-          '+${meta['elevation_gain']}m',
+          '+${workout.elevationGain}m',
         ),
       );
     }
