@@ -31,6 +31,10 @@ class CallScreen extends HookConsumerWidget {
     final controlsVisible = useState(true);
 
     useEffect(() {
+      // Mark CallScreen as active and hide overlay
+      setCallScreenActive(true);
+      hideCallOverlay();
+
       Logger.root.info('[Call] Joining the call...');
       callNotifier.joinRoom(room).catchError((_) {
         showConfirmAlert(
@@ -44,7 +48,10 @@ class CallScreen extends HookConsumerWidget {
           callNotifier.joinRoom(room);
         });
       });
-      return null;
+      return () {
+        // Mark CallScreen as inactive when leaving
+        setCallScreenActive(false);
+      };
     }, []);
 
     useEffect(() {

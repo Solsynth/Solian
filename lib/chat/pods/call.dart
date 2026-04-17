@@ -78,9 +78,21 @@ class CallNotifier extends _$CallNotifier {
   Map<String, double> participantsVolumes = {};
 
   Timer? _durationTimer;
+  Timer? _reconnectTimer;
+  Timer? _connectionHealthTimer;
 
   lk.Room? get room => _room;
   bool get isAdmin => _isAdmin;
+
+  // Reconnection state
+  int _reconnectAttempts = 0;
+  static const int _maxReconnectAttempts = 10;
+  static const Duration _baseReconnectDelay = Duration(seconds: 1);
+  static const Duration _maxReconnectDelay = Duration(seconds: 30);
+  bool _isReconnecting = false;
+  bool _shouldAutoReconnect = true;
+
+  SnChatRoom? _currentRoom;
 
   @override
   CallState build() {
@@ -244,6 +256,11 @@ class CallNotifier extends _$CallNotifier {
     }
     _roomId = roomId;
     _chatRoom = room;
+    _currentRoom = room;
+    _shouldAutoReconnect = true;
+    _reconnectAttempts = 0;
+    _isReconnecting = false;
+
     if (_room != null) {
       await _room!.disconnect();
       await _room!.dispose();
@@ -252,83 +269,165 @@ class CallNotifier extends _$CallNotifier {
       _participants = [];
     }
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final response = await apiClient.get(
-        '/messager/chat/realtime/$roomId/join',
-      );
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data;
-        // Parse join response
-        final joinResponse = ChatRealtimeJoinResponse.fromJson(data);
-        final participants = joinResponse.participants;
-        final String endpoint = joinResponse.endpoint;
-        final String token = joinResponse.token;
-        _isAdmin = joinResponse.isAdmin;
-
-        // Setup duration timer
-        final joinedAt = DateTime.now();
-        state = state.copyWith(joinedAt: joinedAt, duration: Duration.zero);
-        _durationTimer?.cancel();
-        _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          state = state.copyWith(
-            duration: Duration(
-              milliseconds:
-                  DateTime.now().millisecondsSinceEpoch -
-                  joinedAt.millisecondsSinceEpoch,
-            ),
-          );
-        });
-
-        // Connect to LiveKit
-        _room = lk.Room();
-
-        await _room!.connect(
-          endpoint,
-          token,
-          connectOptions: lk.ConnectOptions(autoSubscribe: true),
-          roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
-          fastConnectOptions: lk.FastConnectOptions(
-            microphone: lk.TrackOption(enabled: true),
-          ),
-        );
-        _localParticipant = _room!.localParticipant;
-
-        _initRoomListeners();
-        _updateLiveParticipants(participants);
-
-        if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-          lk.Hardware.instance.setSpeakerphoneOn(true);
-        }
-
-        // Listen for connection updates
-        _room!.addListener(() {
-          final wasConnected = state.isConnected;
-          final isNowConnected =
-              _room!.connectionState == lk.ConnectionState.connected;
-          state = state.copyWith(
-            isConnected: isNowConnected,
-            isMicrophoneEnabled: _localParticipant!.isMicrophoneEnabled(),
-            isCameraEnabled: _localParticipant!.isCameraEnabled(),
-            isScreenSharing: _localParticipant!.isScreenShareEnabled(),
-          );
-          // Enable wakelock when call connects
-          if (!wasConnected && isNowConnected) {
-            WakelockPlus.enable();
-          }
-          // Disable wakelock when call disconnects
-          else if (wasConnected && !isNowConnected) {
-            WakelockPlus.disable();
-          }
-        });
-        state = state.copyWith(isConnected: true);
-        // Enable wakelock when call connects
-        WakelockPlus.enable();
-      } else {
-        state = state.copyWith(error: 'Failed to join room');
-      }
+      await _performConnection(room);
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
+  }
+
+  Future<void> _performConnection(SnChatRoom room) async {
+    final apiClient = ref.read(apiClientProvider);
+    final response = await apiClient.get(
+      '/messager/chat/realtime/${room.id}/join',
+    );
+
+    if (response.statusCode != 200 || response.data == null) {
+      throw Exception('Failed to join room');
+    }
+
+    final data = response.data;
+    final joinResponse = ChatRealtimeJoinResponse.fromJson(data);
+    final participants = joinResponse.participants;
+    final String endpoint = joinResponse.endpoint;
+    final String token = joinResponse.token;
+    _isAdmin = joinResponse.isAdmin;
+
+    // Setup duration timer
+    final joinedAt = DateTime.now();
+    state = state.copyWith(joinedAt: joinedAt, duration: Duration.zero);
+    _durationTimer?.cancel();
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      state = state.copyWith(
+        duration: Duration(
+          milliseconds:
+              DateTime.now().millisecondsSinceEpoch -
+              joinedAt.millisecondsSinceEpoch,
+        ),
+      );
+    });
+
+    // Connect to LiveKit
+    _room = lk.Room();
+
+    await _room!.connect(
+      endpoint,
+      token,
+      connectOptions: lk.ConnectOptions(autoSubscribe: true),
+      roomOptions: lk.RoomOptions(adaptiveStream: true, dynacast: true),
+      fastConnectOptions: lk.FastConnectOptions(
+        microphone: lk.TrackOption(enabled: true),
+      ),
+    );
+    _localParticipant = _room!.localParticipant;
+
+    _initRoomListeners();
+    _updateLiveParticipants(participants);
+    _startConnectionHealthMonitor();
+
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      lk.Hardware.instance.setSpeakerphoneOn(true);
+    }
+
+    // Listen for connection updates
+    _room!.addListener(_onConnectionStateChange);
+    state = state.copyWith(isConnected: true);
+    WakelockPlus.enable();
+  }
+
+  void _onConnectionStateChange() {
+    if (_room == null || _room!.isDisposed) return;
+
+    final connectionState = _room!.connectionState;
+    final wasConnected = state.isConnected;
+    final isNowConnected = connectionState == lk.ConnectionState.connected;
+
+    state = state.copyWith(
+      isConnected: isNowConnected,
+      isMicrophoneEnabled: _localParticipant?.isMicrophoneEnabled() ?? false,
+      isCameraEnabled: _localParticipant?.isCameraEnabled() ?? false,
+      isScreenSharing: _localParticipant?.isScreenShareEnabled() ?? false,
+    );
+
+    if (!wasConnected && isNowConnected) {
+      WakelockPlus.enable();
+      _reconnectAttempts = 0;
+      _isReconnecting = false;
+    } else if (wasConnected && !isNowConnected) {
+      WakelockPlus.disable();
+      _attemptReconnect();
+    }
+  }
+
+  void _startConnectionHealthMonitor() {
+    _connectionHealthTimer?.cancel();
+    _connectionHealthTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _checkConnectionHealth(),
+    );
+  }
+
+  void _checkConnectionHealth() {
+    if (_room == null || _room!.isDisposed) return;
+
+    final connectionState = _room!.connectionState;
+    if (connectionState != lk.ConnectionState.connected) {
+      Logger.root.warning(
+        '[Call] Connection health check failed: $connectionState',
+      );
+      _attemptReconnect();
+    }
+  }
+
+  Future<void> _attemptReconnect() async {
+    if (_isReconnecting || !_shouldAutoReconnect || _currentRoom == null) {
+      return;
+    }
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      Logger.root.severe('[Call] Max reconnection attempts reached');
+      state = state.copyWith(error: 'Connection lost. Please rejoin the call.');
+      return;
+    }
+
+    _isReconnecting = true;
+    _reconnectAttempts++;
+
+    // Exponential backoff with jitter
+    final delay = Duration(
+      milliseconds:
+          (_baseReconnectDelay.inMilliseconds * (1 << (_reconnectAttempts - 1)))
+              .clamp(
+                _baseReconnectDelay.inMilliseconds,
+                _maxReconnectDelay.inMilliseconds,
+              ) +
+          (DateTime.now().millisecond % 1000),
+    );
+
+    Logger.root.info(
+      '[Call] Attempting reconnect $_reconnectAttempts/$_maxReconnectAttempts in ${delay.inSeconds}s',
+    );
+
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(delay, () async {
+      try {
+        // Clean up old connection
+        if (_room != null) {
+          _room!.removeListener(_onConnectionStateChange);
+          await _room!.disconnect();
+          await _room!.dispose();
+        }
+        _room = null;
+        _localParticipant = null;
+
+        await _performConnection(_currentRoom!);
+        Logger.root.info('[Call] Reconnection successful');
+        _reconnectAttempts = 0;
+        _isReconnecting = false;
+      } catch (e) {
+        Logger.root.severe('[Call] Reconnection failed: $e');
+        _isReconnecting = false;
+        // Will try again on next timer if needed
+      }
+    });
   }
 
   Future<void> toggleMicrophone() async {
@@ -484,6 +583,11 @@ class CallNotifier extends _$CallNotifier {
   }
 
   void dispose() {
+    _shouldAutoReconnect = false;
+    _reconnectTimer?.cancel();
+    _connectionHealthTimer?.cancel();
+    _isReconnecting = false;
+
     state = state.copyWith(
       error: null,
       isConnected: false,
@@ -491,14 +595,15 @@ class CallNotifier extends _$CallNotifier {
       isCameraEnabled: false,
       isScreenSharing: false,
     );
+    _room?.removeListener(_onConnectionStateChange);
     _roomListener?.dispose();
-    _room?.removeListener(_onRoomChange);
+    _room?.disconnect();
     _room?.dispose();
     _durationTimer?.cancel();
     _roomId = null;
+    _currentRoom = null;
     _isAdmin = false;
     participantsVolumes = {};
-    // Disable wakelock when disposing
     WakelockPlus.disable();
   }
 }

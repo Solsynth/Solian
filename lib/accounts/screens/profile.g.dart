@@ -523,7 +523,7 @@ final class AccountPunishmentOverviewProvider
 }
 
 String _$accountPunishmentOverviewHash() =>
-    r'baf11e22c68d5fb2ec142245814c07823c20206e';
+    r'e503a93b837490c2d71735412235a88ce46b53cd';
 
 final class AccountPunishmentOverviewFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SnAccountPunishment?>, String> {

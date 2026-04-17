@@ -4,10 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/chat/pods/call.dart';
+import 'package:island/chat/pods/call_participants.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/route.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -27,7 +27,7 @@ class CallParticipantCard extends HookConsumerWidget {
     ref.watch(callProvider);
     final callNotifier = ref.watch(callProvider.notifier);
     final participantAccount = ref.watch(
-      accountProvider(live.participant.identity),
+      callParticipantAccountProvider(live.participant.identity),
     );
     final isAdmin = callNotifier.isAdmin;
     final isLocalParticipant = live.remoteParticipant is LocalParticipant;
