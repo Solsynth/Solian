@@ -90,6 +90,11 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
               ?.map((e) => SnChatReaction.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      reactionsCount:
+          (json['reactions_count'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toInt()),
+          ) ??
+          const {},
       repliedMessageId: json['replied_message_id'] as String?,
       forwardedMessageId: json['forwarded_message_id'] as String?,
       senderId: json['sender_id'] as String,
@@ -112,6 +117,7 @@ Map<String, dynamic> _$SnChatMessageToJson(_SnChatMessage instance) =>
       'edited_at': instance.editedAt?.toIso8601String(),
       'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'reactions': instance.reactions.map((e) => e.toJson()).toList(),
+      'reactions_count': instance.reactionsCount,
       'replied_message_id': instance.repliedMessageId,
       'forwarded_message_id': instance.forwardedMessageId,
       'sender_id': instance.senderId,

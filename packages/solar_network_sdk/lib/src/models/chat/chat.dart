@@ -50,6 +50,9 @@ sealed class SnChatMessage with _$SnChatMessage {
     DateTime? editedAt,
     @Default([]) List<SnCloudFile> attachments,
     @Default([]) List<SnChatReaction> reactions,
+    @JsonKey(name: 'reactions_count')
+    @Default({})
+    Map<String, int> reactionsCount,
     String? repliedMessageId,
     String? forwardedMessageId,
     required String senderId,
