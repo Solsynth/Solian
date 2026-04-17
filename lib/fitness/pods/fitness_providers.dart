@@ -66,25 +66,6 @@ final metricDetailProvider = FutureProvider.autoDispose
       return fitness.getMetric(id);
     });
 
-final exercisesProvider = FutureProvider.autoDispose
-    .family<
-      PaginatedResult<SnExerciseLibrary>,
-      ({ExerciseCategory? category, int skip, int take})
-    >((ref, params) async {
-      final fitness = ref.watch(fitnessClientProvider);
-      return fitness.getExercises(
-        category: params.category,
-        skip: params.skip,
-        take: params.take,
-      );
-    });
-
-final exerciseDetailProvider = FutureProvider.autoDispose
-    .family<SnExerciseLibrary, String>((ref, id) async {
-      final fitness = ref.watch(fitnessClientProvider);
-      return fitness.getExercise(id);
-    });
-
 class WorkoutNotifier extends AsyncNotifier<SnWorkout> {
   @override
   Future<SnWorkout> build() async {
@@ -296,44 +277,6 @@ class MetricNotifier extends AsyncNotifier<SnFitnessMetric> {
 
 final metricNotifierProvider =
     AsyncNotifierProvider<MetricNotifier, SnFitnessMetric>(MetricNotifier.new);
-
-class ExerciseNotifier extends AsyncNotifier<SnExerciseLibrary> {
-  @override
-  Future<SnExerciseLibrary> build() async {
-    throw UnimplementedError('Use exerciseDetailProvider instead');
-  }
-
-  Future<SnExerciseLibrary> createExercise(
-    CreateExerciseRequest request,
-  ) async {
-    final fitness = ref.read(fitnessClientProvider);
-    final exercise = await fitness.createExercise(request);
-    ref.invalidate(exercisesProvider);
-    return exercise;
-  }
-
-  Future<SnExerciseLibrary> updateExerciseLibrary(
-    String id,
-    UpdateExerciseLibraryRequest request,
-  ) async {
-    final fitness = ref.read(fitnessClientProvider);
-    final exercise = await fitness.updateExerciseLibrary(id, request);
-    ref.invalidate(exercisesProvider);
-    ref.invalidate(exerciseDetailProvider(id));
-    return exercise;
-  }
-
-  Future<void> deleteExercise(String id) async {
-    final fitness = ref.read(fitnessClientProvider);
-    await fitness.deleteExercise(id);
-    ref.invalidate(exercisesProvider);
-  }
-}
-
-final exerciseNotifierProvider =
-    AsyncNotifierProvider<ExerciseNotifier, SnExerciseLibrary>(
-      ExerciseNotifier.new,
-    );
 
 final leaderboardProvider = FutureProvider.autoDispose
     .family<

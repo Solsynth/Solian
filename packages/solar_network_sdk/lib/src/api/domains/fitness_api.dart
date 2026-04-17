@@ -4,8 +4,6 @@ import 'package:solar_network_sdk/src/models/fitness/workout.dart'
 import 'package:solar_network_sdk/src/models/fitness/goal.dart' as goal_models;
 import 'package:solar_network_sdk/src/models/fitness/metric.dart'
     as metric_models;
-import 'package:solar_network_sdk/src/models/fitness/exercise.dart'
-    as exercise_models;
 import 'package:solar_network_sdk/src/models/fitness/leaderboard.dart'
     as leaderboard_models;
 
@@ -272,58 +270,6 @@ class FitnessApi extends BaseApi {
       data: {'goal_ids': goalIds, 'visibility': visibility.index},
     );
     return response.data!.toInt();
-  }
-
-  // ==========================================
-  // Exercise Library endpoints
-  // ==========================================
-
-  Future<PaginatedResult<exercise_models.SnExerciseLibrary>> getExercises({
-    exercise_models.ExerciseCategory? category,
-    int skip = 0,
-    int take = 20,
-  }) async {
-    final queryParams = <String, dynamic>{'skip': skip, 'take': take};
-    if (category != null) queryParams['category'] = category.index;
-
-    final response = await get<List<dynamic>>(
-      '$_basePath/exercises',
-      queryParameters: queryParams,
-    );
-    final totalCount = getTotalCount(response.headers);
-    final items = parseList(
-      response,
-      exercise_models.SnExerciseLibrary.fromJson,
-    );
-    return PaginatedResult(items: items, totalCount: totalCount);
-  }
-
-  Future<exercise_models.SnExerciseLibrary> getExercise(String id) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/exercises/$id',
-    );
-    return exercise_models.SnExerciseLibrary.fromJson(response.data!);
-  }
-
-  Future<exercise_models.SnExerciseLibrary> createExercise(
-    exercise_models.CreateExerciseRequest request,
-  ) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/exercises',
-      data: request.toJson(),
-    );
-    return exercise_models.SnExerciseLibrary.fromJson(response.data!);
-  }
-
-  Future<exercise_models.SnExerciseLibrary> updateExerciseLibrary(
-    String id,
-    exercise_models.UpdateExerciseLibraryRequest request,
-  ) async {
-    final response = await put<Map<String, dynamic>>(
-      '$_basePath/exercises/$id',
-      data: request.toJson(),
-    );
-    return exercise_models.SnExerciseLibrary.fromJson(response.data!);
   }
 
   Future<void> deleteExercise(String id) async {

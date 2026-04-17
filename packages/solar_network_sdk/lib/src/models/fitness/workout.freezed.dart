@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnWorkout {
 
- String get id; String get accountId; String get name; String? get description; WorkoutType get type; DateTime get startTime; DateTime? get endTime; int? get caloriesBurned; String? get notes; FitnessVisibility get visibility; Map<String, dynamic>? get meta; DateTime get createdAt; DateTime get updatedAt; List<SnWorkoutExercise> get exercises;
+ String get id; String get accountId; String get name; String? get description; WorkoutType get type; DateTime get startTime; DateTime? get endTime; int? get caloriesBurned; double? get distance; String? get distanceUnit; double? get averageSpeed; int? get averageHeartRate; int? get maxHeartRate; double? get elevationGain; double? get maxSpeed; String? get notes; FitnessVisibility get visibility; Map<String, dynamic>? get meta; DateTime get createdAt; DateTime get updatedAt; List<SnWorkoutExercise> get exercises;
 /// Create a copy of SnWorkout
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnWorkoutCopyWith<SnWorkout> get copyWith => _$SnWorkoutCopyWithImpl<SnWorkout>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.exercises, exercises));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.averageHeartRate, averageHeartRate) || other.averageHeartRate == averageHeartRate)&&(identical(other.maxHeartRate, maxHeartRate) || other.maxHeartRate == maxHeartRate)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.maxSpeed, maxSpeed) || other.maxSpeed == maxSpeed)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.exercises, exercises));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(meta),createdAt,updatedAt,const DeepCollectionEquality().hash(exercises));
+int get hashCode => Object.hashAll([runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,distance,distanceUnit,averageSpeed,averageHeartRate,maxHeartRate,elevationGain,maxSpeed,notes,visibility,const DeepCollectionEquality().hash(meta),createdAt,updatedAt,const DeepCollectionEquality().hash(exercises)]);
 
 @override
 String toString() {
-  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
+  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, distance: $distance, distanceUnit: $distanceUnit, averageSpeed: $averageSpeed, averageHeartRate: $averageHeartRate, maxHeartRate: $maxHeartRate, elevationGain: $elevationGain, maxSpeed: $maxSpeed, notes: $notes, visibility: $visibility, meta: $meta, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnWorkoutCopyWith<$Res>  {
   factory $SnWorkoutCopyWith(SnWorkout value, $Res Function(SnWorkout) _then) = _$SnWorkoutCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
+ String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, double? distance, String? distanceUnit, double? averageSpeed, int? averageHeartRate, int? maxHeartRate, double? elevationGain, double? maxSpeed, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
 });
 
 
@@ -65,7 +65,7 @@ class _$SnWorkoutCopyWithImpl<$Res>
 
 /// Create a copy of SnWorkout
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? distance = freezed,Object? distanceUnit = freezed,Object? averageSpeed = freezed,Object? averageHeartRate = freezed,Object? maxHeartRate = freezed,Object? elevationGain = freezed,Object? maxSpeed = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -75,7 +75,14 @@ as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_no
 as WorkoutType,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
 as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as DateTime?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
-as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as int?,distance: freezed == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
+as double?,distanceUnit: freezed == distanceUnit ? _self.distanceUnit : distanceUnit // ignore: cast_nullable_to_non_nullable
+as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,averageHeartRate: freezed == averageHeartRate ? _self.averageHeartRate : averageHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,maxHeartRate: freezed == maxHeartRate ? _self.maxHeartRate : maxHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,elevationGain: freezed == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
+as double?,maxSpeed: freezed == maxSpeed ? _self.maxSpeed : maxSpeed // ignore: cast_nullable_to_non_nullable
+as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as FitnessVisibility,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -163,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  double? distance,  String? distanceUnit,  double? averageSpeed,  int? averageHeartRate,  int? maxHeartRate,  double? elevationGain,  double? maxSpeed,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnWorkout() when $default != null:
-return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);case _:
+return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.distance,_that.distanceUnit,_that.averageSpeed,_that.averageHeartRate,_that.maxHeartRate,_that.elevationGain,_that.maxSpeed,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);case _:
   return orElse();
 
 }
@@ -184,10 +191,10 @@ return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  double? distance,  String? distanceUnit,  double? averageSpeed,  int? averageHeartRate,  int? maxHeartRate,  double? elevationGain,  double? maxSpeed,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)  $default,) {final _that = this;
 switch (_that) {
 case _SnWorkout():
-return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);}
+return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.distance,_that.distanceUnit,_that.averageSpeed,_that.averageHeartRate,_that.maxHeartRate,_that.elevationGain,_that.maxSpeed,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -201,10 +208,10 @@ return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String name,  String? description,  WorkoutType type,  DateTime startTime,  DateTime? endTime,  int? caloriesBurned,  double? distance,  String? distanceUnit,  double? averageSpeed,  int? averageHeartRate,  int? maxHeartRate,  double? elevationGain,  double? maxSpeed,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta,  DateTime createdAt,  DateTime updatedAt,  List<SnWorkoutExercise> exercises)?  $default,) {final _that = this;
 switch (_that) {
 case _SnWorkout() when $default != null:
-return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);case _:
+return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type,_that.startTime,_that.endTime,_that.caloriesBurned,_that.distance,_that.distanceUnit,_that.averageSpeed,_that.averageHeartRate,_that.maxHeartRate,_that.elevationGain,_that.maxSpeed,_that.notes,_that.visibility,_that.meta,_that.createdAt,_that.updatedAt,_that.exercises);case _:
   return null;
 
 }
@@ -216,7 +223,7 @@ return $default(_that.id,_that.accountId,_that.name,_that.description,_that.type
 @JsonSerializable()
 
 class _SnWorkout implements SnWorkout {
-  const _SnWorkout({required this.id, required this.accountId, required this.name, this.description, required this.type, required this.startTime, this.endTime, this.caloriesBurned, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta, required this.createdAt, required this.updatedAt, final  List<SnWorkoutExercise> exercises = const []}): _meta = meta,_exercises = exercises;
+  const _SnWorkout({required this.id, required this.accountId, required this.name, this.description, required this.type, required this.startTime, this.endTime, this.caloriesBurned, this.distance, this.distanceUnit, this.averageSpeed, this.averageHeartRate, this.maxHeartRate, this.elevationGain, this.maxSpeed, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta, required this.createdAt, required this.updatedAt, final  List<SnWorkoutExercise> exercises = const []}): _meta = meta,_exercises = exercises;
   factory _SnWorkout.fromJson(Map<String, dynamic> json) => _$SnWorkoutFromJson(json);
 
 @override final  String id;
@@ -227,6 +234,13 @@ class _SnWorkout implements SnWorkout {
 @override final  DateTime startTime;
 @override final  DateTime? endTime;
 @override final  int? caloriesBurned;
+@override final  double? distance;
+@override final  String? distanceUnit;
+@override final  double? averageSpeed;
+@override final  int? averageHeartRate;
+@override final  int? maxHeartRate;
+@override final  double? elevationGain;
+@override final  double? maxSpeed;
 @override final  String? notes;
 @override@JsonKey() final  FitnessVisibility visibility;
  final  Map<String, dynamic>? _meta;
@@ -261,16 +275,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._exercises, _exercises));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWorkout&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.averageHeartRate, averageHeartRate) || other.averageHeartRate == averageHeartRate)&&(identical(other.maxHeartRate, maxHeartRate) || other.maxHeartRate == maxHeartRate)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.maxSpeed, maxSpeed) || other.maxSpeed == maxSpeed)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._exercises, _exercises));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(_meta),createdAt,updatedAt,const DeepCollectionEquality().hash(_exercises));
+int get hashCode => Object.hashAll([runtimeType,id,accountId,name,description,type,startTime,endTime,caloriesBurned,distance,distanceUnit,averageSpeed,averageHeartRate,maxHeartRate,elevationGain,maxSpeed,notes,visibility,const DeepCollectionEquality().hash(_meta),createdAt,updatedAt,const DeepCollectionEquality().hash(_exercises)]);
 
 @override
 String toString() {
-  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
+  return 'SnWorkout(id: $id, accountId: $accountId, name: $name, description: $description, type: $type, startTime: $startTime, endTime: $endTime, caloriesBurned: $caloriesBurned, distance: $distance, distanceUnit: $distanceUnit, averageSpeed: $averageSpeed, averageHeartRate: $averageHeartRate, maxHeartRate: $maxHeartRate, elevationGain: $elevationGain, maxSpeed: $maxSpeed, notes: $notes, visibility: $visibility, meta: $meta, createdAt: $createdAt, updatedAt: $updatedAt, exercises: $exercises)';
 }
 
 
@@ -281,7 +295,7 @@ abstract mixin class _$SnWorkoutCopyWith<$Res> implements $SnWorkoutCopyWith<$Re
   factory _$SnWorkoutCopyWith(_SnWorkout value, $Res Function(_SnWorkout) _then) = __$SnWorkoutCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
+ String id, String accountId, String name, String? description, WorkoutType type, DateTime startTime, DateTime? endTime, int? caloriesBurned, double? distance, String? distanceUnit, double? averageSpeed, int? averageHeartRate, int? maxHeartRate, double? elevationGain, double? maxSpeed, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta, DateTime createdAt, DateTime updatedAt, List<SnWorkoutExercise> exercises
 });
 
 
@@ -298,7 +312,7 @@ class __$SnWorkoutCopyWithImpl<$Res>
 
 /// Create a copy of SnWorkout
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? description = freezed,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? caloriesBurned = freezed,Object? distance = freezed,Object? distanceUnit = freezed,Object? averageSpeed = freezed,Object? averageHeartRate = freezed,Object? maxHeartRate = freezed,Object? elevationGain = freezed,Object? maxSpeed = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,Object? createdAt = null,Object? updatedAt = null,Object? exercises = null,}) {
   return _then(_SnWorkout(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -308,7 +322,14 @@ as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_no
 as WorkoutType,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
 as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as DateTime?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
-as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as int?,distance: freezed == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
+as double?,distanceUnit: freezed == distanceUnit ? _self.distanceUnit : distanceUnit // ignore: cast_nullable_to_non_nullable
+as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,averageHeartRate: freezed == averageHeartRate ? _self.averageHeartRate : averageHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,maxHeartRate: freezed == maxHeartRate ? _self.maxHeartRate : maxHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,elevationGain: freezed == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
+as double?,maxSpeed: freezed == maxSpeed ? _self.maxSpeed : maxSpeed // ignore: cast_nullable_to_non_nullable
+as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as FitnessVisibility,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -609,7 +630,7 @@ as DateTime,
 /// @nodoc
 mixin _$CreateWorkoutRequest {
 
- String get name; WorkoutType get type;@DateTimeConverter() DateTime get startTime;@NullableDateTimeConverter() DateTime? get endTime; String? get description; String? get externalId; int? get caloriesBurned; String? get notes; FitnessVisibility get visibility; Map<String, dynamic>? get meta;
+ String get name; WorkoutType get type;@DateTimeConverter() DateTime get startTime;@NullableDateTimeConverter() DateTime? get endTime; String? get description; String? get externalId; int? get caloriesBurned; double? get distance; String? get distanceUnit; double? get averageSpeed; int? get averageHeartRate; int? get maxHeartRate; double? get elevationGain; double? get maxSpeed; String? get notes; FitnessVisibility get visibility; Map<String, dynamic>? get meta;
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -622,16 +643,16 @@ $CreateWorkoutRequestCopyWith<CreateWorkoutRequest> get copyWith => _$CreateWork
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.meta, meta));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.averageHeartRate, averageHeartRate) || other.averageHeartRate == averageHeartRate)&&(identical(other.maxHeartRate, maxHeartRate) || other.maxHeartRate == maxHeartRate)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.maxSpeed, maxSpeed) || other.maxSpeed == maxSpeed)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other.meta, meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(meta));
+int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,distance,distanceUnit,averageSpeed,averageHeartRate,maxHeartRate,elevationGain,maxSpeed,notes,visibility,const DeepCollectionEquality().hash(meta));
 
 @override
 String toString() {
-  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta)';
+  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, distance: $distance, distanceUnit: $distanceUnit, averageSpeed: $averageSpeed, averageHeartRate: $averageHeartRate, maxHeartRate: $maxHeartRate, elevationGain: $elevationGain, maxSpeed: $maxSpeed, notes: $notes, visibility: $visibility, meta: $meta)';
 }
 
 
@@ -642,7 +663,7 @@ abstract mixin class $CreateWorkoutRequestCopyWith<$Res>  {
   factory $CreateWorkoutRequestCopyWith(CreateWorkoutRequest value, $Res Function(CreateWorkoutRequest) _then) = _$CreateWorkoutRequestCopyWithImpl;
 @useResult
 $Res call({
- String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta
+ String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, double? distance, String? distanceUnit, double? averageSpeed, int? averageHeartRate, int? maxHeartRate, double? elevationGain, double? maxSpeed, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta
 });
 
 
@@ -659,7 +680,7 @@ class _$CreateWorkoutRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? distance = freezed,Object? distanceUnit = freezed,Object? averageSpeed = freezed,Object? averageHeartRate = freezed,Object? maxHeartRate = freezed,Object? elevationGain = freezed,Object? maxSpeed = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -668,7 +689,14 @@ as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cas
 as DateTime?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,externalId: freezed == externalId ? _self.externalId : externalId // ignore: cast_nullable_to_non_nullable
 as String?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
-as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as int?,distance: freezed == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
+as double?,distanceUnit: freezed == distanceUnit ? _self.distanceUnit : distanceUnit // ignore: cast_nullable_to_non_nullable
+as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,averageHeartRate: freezed == averageHeartRate ? _self.averageHeartRate : averageHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,maxHeartRate: freezed == maxHeartRate ? _self.maxHeartRate : maxHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,elevationGain: freezed == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
+as double?,maxSpeed: freezed == maxSpeed ? _self.maxSpeed : maxSpeed // ignore: cast_nullable_to_non_nullable
+as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as FitnessVisibility,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,
@@ -753,10 +781,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  double? distance,  String? distanceUnit,  double? averageSpeed,  int? averageHeartRate,  int? maxHeartRate,  double? elevationGain,  double? maxSpeed,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateWorkoutRequest() when $default != null:
-return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);case _:
+return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.distance,_that.distanceUnit,_that.averageSpeed,_that.averageHeartRate,_that.maxHeartRate,_that.elevationGain,_that.maxSpeed,_that.notes,_that.visibility,_that.meta);case _:
   return orElse();
 
 }
@@ -774,10 +802,10 @@ return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.descri
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  double? distance,  String? distanceUnit,  double? averageSpeed,  int? averageHeartRate,  int? maxHeartRate,  double? elevationGain,  double? maxSpeed,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)  $default,) {final _that = this;
 switch (_that) {
 case _CreateWorkoutRequest():
-return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);}
+return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.distance,_that.distanceUnit,_that.averageSpeed,_that.averageHeartRate,_that.maxHeartRate,_that.elevationGain,_that.maxSpeed,_that.notes,_that.visibility,_that.meta);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -791,10 +819,10 @@ return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.descri
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  WorkoutType type, @DateTimeConverter()  DateTime startTime, @NullableDateTimeConverter()  DateTime? endTime,  String? description,  String? externalId,  int? caloriesBurned,  double? distance,  String? distanceUnit,  double? averageSpeed,  int? averageHeartRate,  int? maxHeartRate,  double? elevationGain,  double? maxSpeed,  String? notes,  FitnessVisibility visibility,  Map<String, dynamic>? meta)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateWorkoutRequest() when $default != null:
-return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.notes,_that.visibility,_that.meta);case _:
+return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.description,_that.externalId,_that.caloriesBurned,_that.distance,_that.distanceUnit,_that.averageSpeed,_that.averageHeartRate,_that.maxHeartRate,_that.elevationGain,_that.maxSpeed,_that.notes,_that.visibility,_that.meta);case _:
   return null;
 
 }
@@ -806,7 +834,7 @@ return $default(_that.name,_that.type,_that.startTime,_that.endTime,_that.descri
 @JsonSerializable()
 
 class _CreateWorkoutRequest implements CreateWorkoutRequest {
-  const _CreateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, @NullableDateTimeConverter() this.endTime, this.description, this.externalId, this.caloriesBurned, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta}): _meta = meta;
+  const _CreateWorkoutRequest({required this.name, required this.type, @DateTimeConverter() required this.startTime, @NullableDateTimeConverter() this.endTime, this.description, this.externalId, this.caloriesBurned, this.distance, this.distanceUnit, this.averageSpeed, this.averageHeartRate, this.maxHeartRate, this.elevationGain, this.maxSpeed, this.notes, this.visibility = FitnessVisibility.private, final  Map<String, dynamic>? meta}): _meta = meta;
   factory _CreateWorkoutRequest.fromJson(Map<String, dynamic> json) => _$CreateWorkoutRequestFromJson(json);
 
 @override final  String name;
@@ -816,6 +844,13 @@ class _CreateWorkoutRequest implements CreateWorkoutRequest {
 @override final  String? description;
 @override final  String? externalId;
 @override final  int? caloriesBurned;
+@override final  double? distance;
+@override final  String? distanceUnit;
+@override final  double? averageSpeed;
+@override final  int? averageHeartRate;
+@override final  int? maxHeartRate;
+@override final  double? elevationGain;
+@override final  double? maxSpeed;
 @override final  String? notes;
 @override@JsonKey() final  FitnessVisibility visibility;
  final  Map<String, dynamic>? _meta;
@@ -841,16 +876,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._meta, _meta));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateWorkoutRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.description, description) || other.description == description)&&(identical(other.externalId, externalId) || other.externalId == externalId)&&(identical(other.caloriesBurned, caloriesBurned) || other.caloriesBurned == caloriesBurned)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.distanceUnit, distanceUnit) || other.distanceUnit == distanceUnit)&&(identical(other.averageSpeed, averageSpeed) || other.averageSpeed == averageSpeed)&&(identical(other.averageHeartRate, averageHeartRate) || other.averageHeartRate == averageHeartRate)&&(identical(other.maxHeartRate, maxHeartRate) || other.maxHeartRate == maxHeartRate)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.maxSpeed, maxSpeed) || other.maxSpeed == maxSpeed)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&const DeepCollectionEquality().equals(other._meta, _meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,notes,visibility,const DeepCollectionEquality().hash(_meta));
+int get hashCode => Object.hash(runtimeType,name,type,startTime,endTime,description,externalId,caloriesBurned,distance,distanceUnit,averageSpeed,averageHeartRate,maxHeartRate,elevationGain,maxSpeed,notes,visibility,const DeepCollectionEquality().hash(_meta));
 
 @override
 String toString() {
-  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, notes: $notes, visibility: $visibility, meta: $meta)';
+  return 'CreateWorkoutRequest(name: $name, type: $type, startTime: $startTime, endTime: $endTime, description: $description, externalId: $externalId, caloriesBurned: $caloriesBurned, distance: $distance, distanceUnit: $distanceUnit, averageSpeed: $averageSpeed, averageHeartRate: $averageHeartRate, maxHeartRate: $maxHeartRate, elevationGain: $elevationGain, maxSpeed: $maxSpeed, notes: $notes, visibility: $visibility, meta: $meta)';
 }
 
 
@@ -861,7 +896,7 @@ abstract mixin class _$CreateWorkoutRequestCopyWith<$Res> implements $CreateWork
   factory _$CreateWorkoutRequestCopyWith(_CreateWorkoutRequest value, $Res Function(_CreateWorkoutRequest) _then) = __$CreateWorkoutRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta
+ String name, WorkoutType type,@DateTimeConverter() DateTime startTime,@NullableDateTimeConverter() DateTime? endTime, String? description, String? externalId, int? caloriesBurned, double? distance, String? distanceUnit, double? averageSpeed, int? averageHeartRate, int? maxHeartRate, double? elevationGain, double? maxSpeed, String? notes, FitnessVisibility visibility, Map<String, dynamic>? meta
 });
 
 
@@ -878,7 +913,7 @@ class __$CreateWorkoutRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateWorkoutRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? type = null,Object? startTime = null,Object? endTime = freezed,Object? description = freezed,Object? externalId = freezed,Object? caloriesBurned = freezed,Object? distance = freezed,Object? distanceUnit = freezed,Object? averageSpeed = freezed,Object? averageHeartRate = freezed,Object? maxHeartRate = freezed,Object? elevationGain = freezed,Object? maxSpeed = freezed,Object? notes = freezed,Object? visibility = null,Object? meta = freezed,}) {
   return _then(_CreateWorkoutRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -887,7 +922,14 @@ as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cas
 as DateTime?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,externalId: freezed == externalId ? _self.externalId : externalId // ignore: cast_nullable_to_non_nullable
 as String?,caloriesBurned: freezed == caloriesBurned ? _self.caloriesBurned : caloriesBurned // ignore: cast_nullable_to_non_nullable
-as int?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as int?,distance: freezed == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
+as double?,distanceUnit: freezed == distanceUnit ? _self.distanceUnit : distanceUnit // ignore: cast_nullable_to_non_nullable
+as String?,averageSpeed: freezed == averageSpeed ? _self.averageSpeed : averageSpeed // ignore: cast_nullable_to_non_nullable
+as double?,averageHeartRate: freezed == averageHeartRate ? _self.averageHeartRate : averageHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,maxHeartRate: freezed == maxHeartRate ? _self.maxHeartRate : maxHeartRate // ignore: cast_nullable_to_non_nullable
+as int?,elevationGain: freezed == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
+as double?,maxSpeed: freezed == maxSpeed ? _self.maxSpeed : maxSpeed // ignore: cast_nullable_to_non_nullable
+as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as FitnessVisibility,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,

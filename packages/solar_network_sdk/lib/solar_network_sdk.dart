@@ -58,7 +58,6 @@ export 'src/models/fitness/converters.dart';
 export 'src/models/fitness/workout.dart';
 export 'src/models/fitness/goal.dart';
 export 'src/models/fitness/metric.dart';
-export 'src/models/fitness/exercise.dart';
 export 'src/models/fitness/leaderboard.dart';
 
 // Think service

@@ -405,7 +405,7 @@ $SnRealmCopyWith<$Res>? get realm {
 /// @nodoc
 mixin _$SnChatMessage {
 
- DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get type; String? get content;@JsonKey(name: 'client_message_id') String? get clientMessageId; String? get nonce; Map<String, dynamic> get meta; List<String> get membersMentioned; DateTime? get editedAt; List<SnCloudFile> get attachments; List<SnChatReaction> get reactions;@JsonKey(name: 'reactions_count') Map<String, int> get reactionsCount; String? get repliedMessageId; String? get forwardedMessageId; String get senderId; SnChatMember get sender; String get chatRoomId;
+ DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get type; String? get content;@JsonKey(name: 'client_message_id') String? get clientMessageId; String? get nonce; Map<String, dynamic> get meta; List<String> get membersMentioned; DateTime? get editedAt; List<SnCloudFile> get attachments; List<SnChatReaction> get reactions;@JsonKey(name: 'reactions_count') Map<String, int> get reactionsCount;@JsonKey(name: 'reactions_made') Map<String, bool> get reactionsMade; String? get repliedMessageId; String? get forwardedMessageId; String get senderId; SnChatMember get sender; String get chatRoomId;
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -418,16 +418,16 @@ $SnChatMessageCopyWith<SnChatMessage> get copyWith => _$SnChatMessageCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.clientMessageId, clientMessageId) || other.clientMessageId == clientMessageId)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other.meta, meta)&&const DeepCollectionEquality().equals(other.membersMentioned, membersMentioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&const DeepCollectionEquality().equals(other.reactions, reactions)&&const DeepCollectionEquality().equals(other.reactionsCount, reactionsCount)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.clientMessageId, clientMessageId) || other.clientMessageId == clientMessageId)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other.meta, meta)&&const DeepCollectionEquality().equals(other.membersMentioned, membersMentioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&const DeepCollectionEquality().equals(other.reactions, reactions)&&const DeepCollectionEquality().equals(other.reactionsCount, reactionsCount)&&const DeepCollectionEquality().equals(other.reactionsMade, reactionsMade)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,createdAt,updatedAt,deletedAt,id,type,content,clientMessageId,nonce,const DeepCollectionEquality().hash(meta),const DeepCollectionEquality().hash(membersMentioned),editedAt,const DeepCollectionEquality().hash(attachments),const DeepCollectionEquality().hash(reactions),const DeepCollectionEquality().hash(reactionsCount),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId]);
+int get hashCode => Object.hashAll([runtimeType,createdAt,updatedAt,deletedAt,id,type,content,clientMessageId,nonce,const DeepCollectionEquality().hash(meta),const DeepCollectionEquality().hash(membersMentioned),editedAt,const DeepCollectionEquality().hash(attachments),const DeepCollectionEquality().hash(reactions),const DeepCollectionEquality().hash(reactionsCount),const DeepCollectionEquality().hash(reactionsMade),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId]);
 
 @override
 String toString() {
-  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, clientMessageId: $clientMessageId, nonce: $nonce, meta: $meta, membersMentioned: $membersMentioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, reactionsCount: $reactionsCount, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
+  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, clientMessageId: $clientMessageId, nonce: $nonce, meta: $meta, membersMentioned: $membersMentioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, reactionsCount: $reactionsCount, reactionsMade: $reactionsMade, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
 }
 
 
@@ -438,7 +438,7 @@ abstract mixin class $SnChatMessageCopyWith<$Res>  {
   factory $SnChatMessageCopyWith(SnChatMessage value, $Res Function(SnChatMessage) _then) = _$SnChatMessageCopyWithImpl;
 @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount,@JsonKey(name: 'reactions_made') Map<String, bool> reactionsMade, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
 
 
@@ -455,7 +455,7 @@ class _$SnChatMessageCopyWithImpl<$Res>
 
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? clientMessageId = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMentioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? reactionsCount = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? clientMessageId = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMentioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? reactionsCount = null,Object? reactionsMade = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
   return _then(_self.copyWith(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -471,7 +471,8 @@ as List<String>,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ign
 as DateTime?,attachments: null == attachments ? _self.attachments : attachments // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>,reactions: null == reactions ? _self.reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<SnChatReaction>,reactionsCount: null == reactionsCount ? _self.reactionsCount : reactionsCount // ignore: cast_nullable_to_non_nullable
-as Map<String, int>,repliedMessageId: freezed == repliedMessageId ? _self.repliedMessageId : repliedMessageId // ignore: cast_nullable_to_non_nullable
+as Map<String, int>,reactionsMade: null == reactionsMade ? _self.reactionsMade : reactionsMade // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,repliedMessageId: freezed == repliedMessageId ? _self.repliedMessageId : repliedMessageId // ignore: cast_nullable_to_non_nullable
 as String?,forwardedMessageId: freezed == forwardedMessageId ? _self.forwardedMessageId : forwardedMessageId // ignore: cast_nullable_to_non_nullable
 as String?,senderId: null == senderId ? _self.senderId : senderId // ignore: cast_nullable_to_non_nullable
 as String,sender: null == sender ? _self.sender : sender // ignore: cast_nullable_to_non_nullable
@@ -567,10 +568,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatMessage() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.reactionsMade,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
   return orElse();
 
 }
@@ -588,10 +589,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMessage():
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);}
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.reactionsMade,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -605,10 +606,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMessage() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.reactionsMade,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
   return null;
 
 }
@@ -620,7 +621,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 @JsonSerializable()
 
 class _SnChatMessage implements SnChatMessage {
-  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, @JsonKey(name: 'client_message_id') this.clientMessageId, this.nonce, final  Map<String, dynamic> meta = const {}, final  List<String> membersMentioned = const [], this.editedAt, final  List<SnCloudFile> attachments = const [], final  List<SnChatReaction> reactions = const [], @JsonKey(name: 'reactions_count') final  Map<String, int> reactionsCount = const {}, this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMentioned = membersMentioned,_attachments = attachments,_reactions = reactions,_reactionsCount = reactionsCount;
+  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, @JsonKey(name: 'client_message_id') this.clientMessageId, this.nonce, final  Map<String, dynamic> meta = const {}, final  List<String> membersMentioned = const [], this.editedAt, final  List<SnCloudFile> attachments = const [], final  List<SnChatReaction> reactions = const [], @JsonKey(name: 'reactions_count') final  Map<String, int> reactionsCount = const {}, @JsonKey(name: 'reactions_made') final  Map<String, bool> reactionsMade = const {}, this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMentioned = membersMentioned,_attachments = attachments,_reactions = reactions,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade;
   factory _SnChatMessage.fromJson(Map<String, dynamic> json) => _$SnChatMessageFromJson(json);
 
 @override final  DateTime createdAt;
@@ -667,6 +668,13 @@ class _SnChatMessage implements SnChatMessage {
   return EqualUnmodifiableMapView(_reactionsCount);
 }
 
+ final  Map<String, bool> _reactionsMade;
+@override@JsonKey(name: 'reactions_made') Map<String, bool> get reactionsMade {
+  if (_reactionsMade is EqualUnmodifiableMapView) return _reactionsMade;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_reactionsMade);
+}
+
 @override final  String? repliedMessageId;
 @override final  String? forwardedMessageId;
 @override final  String senderId;
@@ -686,16 +694,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.clientMessageId, clientMessageId) || other.clientMessageId == clientMessageId)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other._meta, _meta)&&const DeepCollectionEquality().equals(other._membersMentioned, _membersMentioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&const DeepCollectionEquality().equals(other._reactions, _reactions)&&const DeepCollectionEquality().equals(other._reactionsCount, _reactionsCount)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatMessage&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.clientMessageId, clientMessageId) || other.clientMessageId == clientMessageId)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&const DeepCollectionEquality().equals(other._meta, _meta)&&const DeepCollectionEquality().equals(other._membersMentioned, _membersMentioned)&&(identical(other.editedAt, editedAt) || other.editedAt == editedAt)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&const DeepCollectionEquality().equals(other._reactions, _reactions)&&const DeepCollectionEquality().equals(other._reactionsCount, _reactionsCount)&&const DeepCollectionEquality().equals(other._reactionsMade, _reactionsMade)&&(identical(other.repliedMessageId, repliedMessageId) || other.repliedMessageId == repliedMessageId)&&(identical(other.forwardedMessageId, forwardedMessageId) || other.forwardedMessageId == forwardedMessageId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.sender, sender) || other.sender == sender)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,createdAt,updatedAt,deletedAt,id,type,content,clientMessageId,nonce,const DeepCollectionEquality().hash(_meta),const DeepCollectionEquality().hash(_membersMentioned),editedAt,const DeepCollectionEquality().hash(_attachments),const DeepCollectionEquality().hash(_reactions),const DeepCollectionEquality().hash(_reactionsCount),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId]);
+int get hashCode => Object.hashAll([runtimeType,createdAt,updatedAt,deletedAt,id,type,content,clientMessageId,nonce,const DeepCollectionEquality().hash(_meta),const DeepCollectionEquality().hash(_membersMentioned),editedAt,const DeepCollectionEquality().hash(_attachments),const DeepCollectionEquality().hash(_reactions),const DeepCollectionEquality().hash(_reactionsCount),const DeepCollectionEquality().hash(_reactionsMade),repliedMessageId,forwardedMessageId,senderId,sender,chatRoomId]);
 
 @override
 String toString() {
-  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, clientMessageId: $clientMessageId, nonce: $nonce, meta: $meta, membersMentioned: $membersMentioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, reactionsCount: $reactionsCount, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
+  return 'SnChatMessage(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, id: $id, type: $type, content: $content, clientMessageId: $clientMessageId, nonce: $nonce, meta: $meta, membersMentioned: $membersMentioned, editedAt: $editedAt, attachments: $attachments, reactions: $reactions, reactionsCount: $reactionsCount, reactionsMade: $reactionsMade, repliedMessageId: $repliedMessageId, forwardedMessageId: $forwardedMessageId, senderId: $senderId, sender: $sender, chatRoomId: $chatRoomId)';
 }
 
 
@@ -706,7 +714,7 @@ abstract mixin class _$SnChatMessageCopyWith<$Res> implements $SnChatMessageCopy
   factory _$SnChatMessageCopyWith(_SnChatMessage value, $Res Function(_SnChatMessage) _then) = __$SnChatMessageCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount,@JsonKey(name: 'reactions_made') Map<String, bool> reactionsMade, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
 
 
@@ -723,7 +731,7 @@ class __$SnChatMessageCopyWithImpl<$Res>
 
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? clientMessageId = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMentioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? reactionsCount = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? id = null,Object? type = null,Object? content = freezed,Object? clientMessageId = freezed,Object? nonce = freezed,Object? meta = null,Object? membersMentioned = null,Object? editedAt = freezed,Object? attachments = null,Object? reactions = null,Object? reactionsCount = null,Object? reactionsMade = null,Object? repliedMessageId = freezed,Object? forwardedMessageId = freezed,Object? senderId = null,Object? sender = null,Object? chatRoomId = null,}) {
   return _then(_SnChatMessage(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -739,7 +747,8 @@ as List<String>,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ign
 as DateTime?,attachments: null == attachments ? _self._attachments : attachments // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>,reactions: null == reactions ? _self._reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<SnChatReaction>,reactionsCount: null == reactionsCount ? _self._reactionsCount : reactionsCount // ignore: cast_nullable_to_non_nullable
-as Map<String, int>,repliedMessageId: freezed == repliedMessageId ? _self.repliedMessageId : repliedMessageId // ignore: cast_nullable_to_non_nullable
+as Map<String, int>,reactionsMade: null == reactionsMade ? _self._reactionsMade : reactionsMade // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,repliedMessageId: freezed == repliedMessageId ? _self.repliedMessageId : repliedMessageId // ignore: cast_nullable_to_non_nullable
 as String?,forwardedMessageId: freezed == forwardedMessageId ? _self.forwardedMessageId : forwardedMessageId // ignore: cast_nullable_to_non_nullable
 as String?,senderId: null == senderId ? _self.senderId : senderId // ignore: cast_nullable_to_non_nullable
 as String,sender: null == sender ? _self.sender : sender // ignore: cast_nullable_to_non_nullable

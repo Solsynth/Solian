@@ -53,6 +53,9 @@ sealed class SnChatMessage with _$SnChatMessage {
     @JsonKey(name: 'reactions_count')
     @Default({})
     Map<String, int> reactionsCount,
+    @JsonKey(name: 'reactions_made')
+    @Default({})
+    Map<String, bool> reactionsMade,
     String? repliedMessageId,
     String? forwardedMessageId,
     required String senderId,

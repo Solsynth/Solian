@@ -85,6 +85,13 @@ class LocalChatMessage {
     if (jsonData['reactions'] == null) {
       jsonData['reactions'] = <Map<String, dynamic>>[];
     }
+    // Copy reactions_count and reactions_made from SnChatMessage to data for easy access
+    if (message.reactionsCount.isNotEmpty) {
+      jsonData['reactions_count'] = message.reactionsCount;
+    }
+    if (message.reactionsMade.isNotEmpty) {
+      jsonData['reactions_made'] = message.reactionsMade;
+    }
     final msgData = Map<String, dynamic>.from(jsonData);
     return LocalChatMessage(
       id: message.id,
