@@ -70,21 +70,16 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                 enableBlur: false,
                 enableAdjustments: false,
               ),
-        title: position == 'background'
-            ? 'settingsBackgroundImage'.tr()
-            : 'accountProfile'.tr(),
+        title: position == 'background' ? 'settingsBackgroundImage'.tr() : 'accountProfile'.tr(),
       );
       if (result == null) return;
-
+      if (!context.mounted) return;
       showLoadingModal(context);
       submitting.value = true;
       try {
         final cloudFile = result as SnCloudFile;
         final client = ref.watch(apiClientProvider);
-        await client.patch(
-          '/passport/accounts/me/profile',
-          data: {'${position}_id': cloudFile.id},
-        );
+        await client.patch('/passport/accounts/me/profile', data: {'${position}_id': cloudFile.id});
         final userNotifier = ref.read(userInfoProvider.notifier);
         userNotifier.fetchUser();
       } catch (err) {
@@ -127,47 +122,21 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
     }
 
     final formKeyProfile = useMemoized(GlobalKey<FormState>.new, const []);
-    final birthday = useState<DateTime?>(
-      user.value!.profile.birthday?.toLocal(),
-    );
-    final firstNameController = useTextEditingController(
-      text: user.value!.profile.firstName,
-    );
-    final middleNameController = useTextEditingController(
-      text: user.value!.profile.middleName,
-    );
-    final lastNameController = useTextEditingController(
-      text: user.value!.profile.lastName,
-    );
-    final bioController = useTextEditingController(
-      text: user.value!.profile.bio,
-    );
-    final genderController = useTextEditingController(
-      text: user.value!.profile.gender,
-    );
-    final pronounsController = useTextEditingController(
-      text: user.value!.profile.pronouns,
-    );
-    final locationController = useTextEditingController(
-      text: user.value!.profile.location,
-    );
-    final timeZoneController = useTextEditingController(
-      text: user.value!.profile.timeZone,
-    );
+    final birthday = useState<DateTime?>(user.value!.profile.birthday?.toLocal());
+    final firstNameController = useTextEditingController(text: user.value!.profile.firstName);
+    final middleNameController = useTextEditingController(text: user.value!.profile.middleName);
+    final lastNameController = useTextEditingController(text: user.value!.profile.lastName);
+    final bioController = useTextEditingController(text: user.value!.profile.bio);
+    final genderController = useTextEditingController(text: user.value!.profile.gender);
+    final pronounsController = useTextEditingController(text: user.value!.profile.pronouns);
+    final locationController = useTextEditingController(text: user.value!.profile.location);
+    final timeZoneController = useTextEditingController(text: user.value!.profile.timeZone);
 
     // Username color state
-    final usernameColorType = useState<String>(
-      user.value!.profile.usernameColor?.type ?? 'plain',
-    );
-    final usernameColorValue = useTextEditingController(
-      text: user.value!.profile.usernameColor?.value,
-    );
-    final usernameColorDirection = useTextEditingController(
-      text: user.value!.profile.usernameColor?.direction,
-    );
-    final usernameColorColors = useState<List<String>>(
-      user.value!.profile.usernameColor?.colors ?? [],
-    );
+    final usernameColorType = useState<String>(user.value!.profile.usernameColor?.type ?? 'plain');
+    final usernameColorValue = useTextEditingController(text: user.value!.profile.usernameColor?.value);
+    final usernameColorDirection = useTextEditingController(text: user.value!.profile.usernameColor?.direction);
+    final usernameColorColors = useState<List<String>>(user.value!.profile.usernameColor?.colors ?? []);
 
     void updateProfile() async {
       if (!formKeyProfile.currentState!.validate()) return;
@@ -177,15 +146,11 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
         final client = ref.watch(apiClientProvider);
         final usernameColorData = {
           'type': usernameColorType.value,
-          if (usernameColorType.value == 'plain' &&
-              usernameColorValue.text.isNotEmpty)
+          if (usernameColorType.value == 'plain' && usernameColorValue.text.isNotEmpty)
             'value': usernameColorValue.text,
           if (usernameColorType.value == 'gradient') ...{
-            if (usernameColorDirection.text.isNotEmpty)
-              'direction': usernameColorDirection.text,
-            'colors': usernameColorColors.value
-                .where((c) => c.isNotEmpty)
-                .toList(),
+            if (usernameColorDirection.text.isNotEmpty) 'direction': usernameColorDirection.text,
+            'colors': usernameColorColors.value.where((c) => c.isNotEmpty).toList(),
           },
         };
 
@@ -202,16 +167,12 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
             'time_zone': timeZoneController.text,
             'birthday': birthday.value?.toUtc().toIso8601String(),
             'username_color': usernameColorData,
-            'links': links.value
-                .where((e) => e.name.isNotEmpty && e.url.isNotEmpty)
-                .toList(),
+            'links': links.value.where((e) => e.name.isNotEmpty && e.url.isNotEmpty).toList(),
           },
         );
         final userNotifier = ref.read(userInfoProvider.notifier);
         userNotifier.fetchUser();
-        links.value = links.value
-            .where((e) => e.name.isNotEmpty && e.url.isNotEmpty)
-            .toList();
+        links.value = links.value.where((e) => e.name.isNotEmpty && e.url.isNotEmpty).toList();
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -220,10 +181,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
     }
 
     return AppScaffold(
-      appBar: AppBar(
-        title: Text('updateYourProfile').tr(),
-        leading: const AutoLeadingButton(),
-      ),
+      appBar: AppBar(title: Text('updateYourProfile').tr(), leading: const AutoLeadingButton()),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
         child: Column(
@@ -239,10 +197,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     child: Container(
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
                       child: user.value!.profile.background != null
-                          ? CloudImageWidget(
-                              file: user.value!.profile.background,
-                              fit: BoxFit.cover,
-                            )
+                          ? CloudImageWidget(file: user.value!.profile.background, fit: BoxFit.cover)
                           : const SizedBox.shrink(),
                     ),
                     onTap: () {
@@ -253,10 +208,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     left: 20,
                     bottom: -32,
                     child: GestureDetector(
-                      child: ProfilePictureWidget(
-                        file: user.value!.profile.picture,
-                        radius: 40,
-                      ),
+                      child: ProfilePictureWidget(file: user.value!.profile.picture, radius: 40),
                       onTap: () {
                         updateProfilePicture('picture');
                       },
@@ -265,11 +217,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                 ],
               ),
             ).padding(bottom: 32),
-            Text('accountBasicInfo')
-                .tr()
-                .bold()
-                .fontSize(18)
-                .padding(horizontal: 24, top: 16, bottom: 12),
+            Text('accountBasicInfo').tr().bold().fontSize(18).padding(horizontal: 24, top: 16, bottom: 12),
             Form(
               key: formKeyBasicInfo,
               child: Column(
@@ -284,31 +232,19 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     ),
                     controller: usernameController,
                     readOnly: true,
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   TextFormField(
                     decoration: InputDecoration(labelText: 'nickname'.tr()),
                     controller: nicknameController,
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   DropdownButtonFormField2<String>(
-                    decoration: InputDecoration(
-                      labelText: 'language'.tr(),
-                      helperText: 'accountLanguageHint'.tr(),
-                    ),
+                    decoration: InputDecoration(labelText: 'language'.tr(), helperText: 'accountLanguageHint'.tr()),
                     items: [
-                      ...kServerSupportedLanguages.values.map(
-                        (e) => DropdownItem(value: e, child: Text(e)),
-                      ),
-                      if (!kServerSupportedLanguages.containsValue(
-                        language.value,
-                      ))
-                        DropdownItem(
-                          value: language.value,
-                          child: Text(language.value),
-                        ),
+                      ...kServerSupportedLanguages.values.map((e) => DropdownItem(value: e, child: Text(e))),
+                      if (!kServerSupportedLanguages.containsValue(language.value))
+                        DropdownItem(value: language.value, child: Text(language.value)),
                     ],
                     valueListenable: language,
                     onChanged: (value) {
@@ -322,19 +258,11 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     ),
                   ),
                   DropdownButtonFormField2<String>(
-                    decoration: InputDecoration(
-                      labelText: 'region'.tr(),
-                      helperText: 'accountRegionHint'.tr(),
-                    ),
+                    decoration: InputDecoration(labelText: 'region'.tr(), helperText: 'accountRegionHint'.tr()),
                     items: [
-                      ...kServerSupportedRegions.map(
-                        (e) => DropdownItem(value: e, child: Text(e)),
-                      ),
+                      ...kServerSupportedRegions.map((e) => DropdownItem(value: e, child: Text(e))),
                       if (!kServerSupportedRegions.contains(region.value))
-                        DropdownItem(
-                          value: region.value,
-                          child: Text(region.value),
-                        ),
+                        DropdownItem(value: region.value, child: Text(region.value)),
                     ],
                     valueListenable: region,
                     onChanged: (value) {
@@ -358,11 +286,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                 ],
               ).padding(horizontal: 24),
             ),
-            Text('accountProfile')
-                .tr()
-                .bold()
-                .fontSize(18)
-                .padding(horizontal: 24, top: 16, bottom: 8),
+            Text('accountProfile').tr().bold().fontSize(18).padding(horizontal: 24, top: 16, bottom: 8),
             Form(
               key: formKeyProfile,
               child: Column(
@@ -374,47 +298,34 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     children: [
                       Expanded(
                         child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'firstName'.tr(),
-                          ),
+                          decoration: InputDecoration(labelText: 'firstName'.tr()),
                           controller: firstNameController,
-                          onTapOutside: (_) =>
-                              FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                       ),
                       Expanded(
                         child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'middleName'.tr(),
-                          ),
+                          decoration: InputDecoration(labelText: 'middleName'.tr()),
                           controller: middleNameController,
-                          onTapOutside: (_) =>
-                              FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                       ),
                       Expanded(
                         child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'lastName'.tr(),
-                          ),
+                          decoration: InputDecoration(labelText: 'lastName'.tr()),
                           controller: lastNameController,
-                          onTapOutside: (_) =>
-                              FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                       ),
                     ],
                   ),
 
                   TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'bio'.tr(),
-                      alignLabelWithHint: true,
-                    ),
+                    decoration: InputDecoration(labelText: 'bio'.tr(), alignLabelWithHint: true),
                     maxLines: null,
                     minLines: 3,
                     controller: bioController,
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   Row(
                     spacing: 16,
@@ -427,52 +338,35 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                               return options;
                             }
                             return options.where(
-                              (option) => option.toLowerCase().contains(
-                                textEditingValue.text.toLowerCase(),
-                              ),
+                              (option) => option.toLowerCase().contains(textEditingValue.text.toLowerCase()),
                             );
                           },
                           onSelected: (String selection) {
                             genderController.text = selection;
                           },
-                          fieldViewBuilder:
-                              (
-                                context,
-                                controller,
-                                focusNode,
-                                onFieldSubmitted,
-                              ) {
-                                // Initialize the controller with the current value
-                                if (controller.text.isEmpty &&
-                                    genderController.text.isNotEmpty) {
-                                  controller.text = genderController.text;
-                                }
+                          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                            // Initialize the controller with the current value
+                            if (controller.text.isEmpty && genderController.text.isNotEmpty) {
+                              controller.text = genderController.text;
+                            }
 
-                                return TextFormField(
-                                  controller: controller,
-                                  focusNode: focusNode,
-                                  decoration: InputDecoration(
-                                    labelText: 'gender'.tr(),
-                                  ),
-                                  onChanged: (value) {
-                                    genderController.text = value;
-                                  },
-                                  onTapOutside: (_) => FocusManager
-                                      .instance
-                                      .primaryFocus
-                                      ?.unfocus(),
-                                );
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(labelText: 'gender'.tr()),
+                              onChanged: (value) {
+                                genderController.text = value;
                               },
+                              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                            );
+                          },
                         ),
                       ),
                       Expanded(
                         child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'pronouns'.tr(),
-                          ),
+                          decoration: InputDecoration(labelText: 'pronouns'.tr()),
                           controller: pronounsController,
-                          onTapOutside: (_) =>
-                              FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                       ),
                     ],
@@ -482,12 +376,9 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     children: [
                       Expanded(
                         child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'location'.tr(),
-                          ),
+                          decoration: InputDecoration(labelText: 'location'.tr()),
                           controller: locationController,
-                          onTapOutside: (_) =>
-                              FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                       ),
                       Expanded(
@@ -496,8 +387,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                             if (textEditingValue.text.isEmpty) {
                               return const Iterable<String>.empty();
                             }
-                            final lowercaseQuery = textEditingValue.text
-                                .toLowerCase();
+                            final lowercaseQuery = textEditingValue.text.toLowerCase();
                             return getAvailableTz().where((tz) {
                               return tz.toLowerCase().contains(lowercaseQuery);
                             });
@@ -505,77 +395,57 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                           onSelected: (String selection) {
                             timeZoneController.text = selection;
                           },
-                          fieldViewBuilder:
-                              (
-                                context,
-                                controller,
-                                focusNode,
-                                onFieldSubmitted,
-                              ) {
-                                // Sync the controller with timeZoneController when the widget is built
-                                if (controller.text !=
-                                    timeZoneController.text) {
-                                  controller.text = timeZoneController.text;
-                                }
+                          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                            // Sync the controller with timeZoneController when the widget is built
+                            if (controller.text != timeZoneController.text) {
+                              controller.text = timeZoneController.text;
+                            }
 
-                                return TextFormField(
-                                  controller: controller,
-                                  focusNode: focusNode,
-                                  decoration: InputDecoration(
-                                    labelText: 'timeZone'.tr(),
-                                    suffix: InkWell(
-                                      child: const Icon(
-                                        Symbols.my_location,
-                                        size: 18,
-                                      ),
-                                      onTap: () async {
-                                        try {
-                                          showLoadingModal(context);
-                                          final machineTz =
-                                              await getMachineTz();
-                                          controller.text = machineTz;
-                                          timeZoneController.text = machineTz;
-                                        } finally {
-                                          if (context.mounted) {
-                                            hideLoadingModal(context);
-                                          }
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                  onChanged: (value) {
-                                    timeZoneController.text = value;
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                labelText: 'timeZone'.tr(),
+                                suffix: InkWell(
+                                  child: const Icon(Symbols.my_location, size: 18),
+                                  onTap: () async {
+                                    try {
+                                      showLoadingModal(context);
+                                      final machineTz = await getMachineTz();
+                                      controller.text = machineTz;
+                                      timeZoneController.text = machineTz;
+                                    } finally {
+                                      if (context.mounted) {
+                                        hideLoadingModal(context);
+                                      }
+                                    }
                                   },
-                                );
+                                ),
+                              ),
+                              onChanged: (value) {
+                                timeZoneController.text = value;
                               },
+                            );
+                          },
                           optionsViewBuilder: (context, onSelected, options) {
                             return Align(
                               alignment: Alignment.topLeft,
                               child: Material(
                                 elevation: 4.0,
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxHeight: 200,
-                                    maxWidth: 300,
-                                  ),
+                                  constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
                                   child: ListView.builder(
                                     padding: const EdgeInsets.all(8.0),
                                     itemCount: options.length,
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                          final option = options.elementAt(
-                                            index,
-                                          );
-                                          return ListTile(
-                                            title: Text(
-                                              option,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            onTap: () {
-                                              onSelected(option);
-                                            },
-                                          );
+                                    itemBuilder: (BuildContext context, int index) {
+                                      final option = options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(option, overflow: TextOverflow.ellipsis),
+                                        onTap: () {
+                                          onSelected(option);
                                         },
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
@@ -598,35 +468,23 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).dividerColor,
-                          width: 1,
-                        ),
+                        border: Border.all(color: Theme.of(context).dividerColor, width: 1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Text('birthday'.tr(), style: TextStyle(color: Theme.of(context).hintColor)),
                           Text(
-                            'birthday'.tr(),
-                            style: TextStyle(
-                              color: Theme.of(context).hintColor,
-                            ),
-                          ),
-                          Text(
-                            birthday.value != null
-                                ? DateFormat.yMMMd().format(birthday.value!)
-                                : 'Select a date'.tr(),
+                            birthday.value != null ? DateFormat.yMMMd().format(birthday.value!) : 'Select a date'.tr(),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  Text(
-                    'usernameColor',
-                  ).tr().bold().fontSize(18).padding(top: 16),
+                  Text('usernameColor').tr().bold().fontSize(18).padding(top: 16),
                   Column(
                     spacing: 16,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -635,9 +493,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -652,46 +508,30 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                                   profile: user.value!.profile.copyWith(
                                     usernameColor: UsernameColor(
                                       type: usernameColorType.value,
-                                      value:
-                                          usernameColorType.value == 'plain' &&
-                                              usernameColorValue.text.isNotEmpty
+                                      value: usernameColorType.value == 'plain' && usernameColorValue.text.isNotEmpty
                                           ? usernameColorValue.text
                                           : null,
                                       direction:
-                                          usernameColorType.value ==
-                                                  'gradient' &&
-                                              usernameColorDirection
-                                                  .text
-                                                  .isNotEmpty
+                                          usernameColorType.value == 'gradient' &&
+                                              usernameColorDirection.text.isNotEmpty
                                           ? usernameColorDirection.text
                                           : null,
-                                      colors:
-                                          usernameColorType.value == 'gradient'
-                                          ? usernameColorColors.value
-                                                .where((c) => c.isNotEmpty)
-                                                .toList()
+                                      colors: usernameColorType.value == 'gradient'
+                                          ? usernameColorColors.value.where((c) => c.isNotEmpty).toList()
                                           : null,
                                     ),
                                   ),
                                 );
 
                                 // Check if user can use this color
-                                final tier =
-                                    user.value!.perkSubscription?.identifier;
+                                final tier = user.value!.perkSubscription?.identifier;
                                 final canUseColor = switch (tier) {
                                   'solian.stellar.primary' =>
                                     usernameColorType.value == 'plain' &&
-                                        (kUsernamePlainColors.containsKey(
-                                              usernameColorValue.text,
-                                            ) ||
-                                            (usernameColorValue.text.startsWith(
-                                                  '#',
-                                                ) &&
-                                                _isValidHexColor(
-                                                  usernameColorValue.text,
-                                                ))),
-                                  'solian.stellar.nova' =>
-                                    usernameColorType.value == 'plain',
+                                        (kUsernamePlainColors.containsKey(usernameColorValue.text) ||
+                                            (usernameColorValue.text.startsWith('#') &&
+                                                _isValidHexColor(usernameColorValue.text))),
+                                  'solian.stellar.nova' => usernameColorType.value == 'plain',
                                   'solian.stellar.supernova' => true,
                                   _ => false,
                                 };
@@ -708,24 +548,16 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                                     Row(
                                       children: [
                                         Icon(
-                                          canUseColor
-                                              ? Symbols.check_circle
-                                              : Symbols.error,
+                                          canUseColor ? Symbols.check_circle : Symbols.error,
                                           size: 16,
-                                          color: canUseColor
-                                              ? Colors.green
-                                              : Colors.red,
+                                          color: canUseColor ? Colors.green : Colors.red,
                                         ),
                                         const Gap(4),
                                         Text(
-                                          canUseColor
-                                              ? 'availableWithYourPlan'.tr()
-                                              : 'upgradeRequired'.tr(),
+                                          canUseColor ? 'availableWithYourPlan'.tr() : 'upgradeRequired'.tr(),
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: canUseColor
-                                                ? Colors.green
-                                                : Colors.red,
+                                            color: canUseColor ? Colors.green : Colors.red,
                                           ),
                                         ),
                                       ],
@@ -738,18 +570,10 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                         ),
                       ),
                       DropdownButtonFormField2<String>(
-                        decoration: InputDecoration(
-                          labelText: 'colorType'.tr(),
-                        ),
+                        decoration: InputDecoration(labelText: 'colorType'.tr()),
                         items: [
-                          DropdownItem(
-                            value: 'plain',
-                            child: Text('plain'.tr()),
-                          ),
-                          DropdownItem(
-                            value: 'gradient',
-                            child: Text('gradient'.tr()),
-                          ),
+                          DropdownItem(value: 'plain', child: Text('plain'.tr())),
+                          DropdownItem(value: 'gradient', child: Text('gradient'.tr())),
                         ],
                         valueListenable: usernameColorType,
                         onChanged: (value) {
@@ -770,89 +594,47 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                               return options;
                             }
                             return options.where(
-                              (option) => option.toLowerCase().contains(
-                                textEditingValue.text.toLowerCase(),
-                              ),
+                              (option) => option.toLowerCase().contains(textEditingValue.text.toLowerCase()),
                             );
                           },
                           onSelected: (String selection) {
                             usernameColorValue.text = selection;
                           },
-                          fieldViewBuilder:
-                              (
-                                context,
-                                controller,
-                                focusNode,
-                                onFieldSubmitted,
-                              ) {
-                                // Initialize the controller with the current value
-                                if (controller.text.isEmpty &&
-                                    usernameColorValue.text.isNotEmpty) {
-                                  controller.text = usernameColorValue.text;
-                                }
+                          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                            // Initialize the controller with the current value
+                            if (controller.text.isEmpty && usernameColorValue.text.isNotEmpty) {
+                              controller.text = usernameColorValue.text;
+                            }
 
-                                return TextFormField(
-                                  controller: controller,
-                                  focusNode: focusNode,
-                                  decoration: InputDecoration(
-                                    labelText: 'colorValue'.tr(),
-                                    hintText: 'e.g. red or #ff6600',
-                                  ),
-                                  onChanged: (value) {
-                                    usernameColorValue.text = value;
-                                  },
-                                  onTapOutside: (_) => FocusManager
-                                      .instance
-                                      .primaryFocus
-                                      ?.unfocus(),
-                                );
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                labelText: 'colorValue'.tr(),
+                                hintText: 'e.g. red or #ff6600',
+                              ),
+                              onChanged: (value) {
+                                usernameColorValue.text = value;
                               },
+                              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                            );
+                          },
                         ),
                       if (usernameColorType.value == 'gradient') ...[
                         DropdownButtonFormField2<String>(
-                          decoration: InputDecoration(
-                            labelText: 'gradientDirection'.tr(),
-                          ),
+                          decoration: InputDecoration(labelText: 'gradientDirection'.tr()),
                           items: [
-                            DropdownItem(
-                              value: 'to right',
-                              child: Text('gradientDirectionToRight'.tr()),
-                            ),
-                            DropdownItem(
-                              value: 'to left',
-                              child: Text('gradientDirectionToLeft'.tr()),
-                            ),
-                            DropdownItem(
-                              value: 'to bottom',
-                              child: Text('gradientDirectionToBottom'.tr()),
-                            ),
-                            DropdownItem(
-                              value: 'to top',
-                              child: Text('gradientDirectionToTop'.tr()),
-                            ),
-                            DropdownItem(
-                              value: 'to bottom right',
-                              child: Text(
-                                'gradientDirectionToBottomRight'.tr(),
-                              ),
-                            ),
-                            DropdownItem(
-                              value: 'to bottom left',
-                              child: Text('gradientDirectionToBottomLeft'.tr()),
-                            ),
-                            DropdownItem(
-                              value: 'to top right',
-                              child: Text('gradientDirectionToTopRight'.tr()),
-                            ),
-                            DropdownItem(
-                              value: 'to top left',
-                              child: Text('gradientDirectionToTopLeft'.tr()),
-                            ),
+                            DropdownItem(value: 'to right', child: Text('gradientDirectionToRight'.tr())),
+                            DropdownItem(value: 'to left', child: Text('gradientDirectionToLeft'.tr())),
+                            DropdownItem(value: 'to bottom', child: Text('gradientDirectionToBottom'.tr())),
+                            DropdownItem(value: 'to top', child: Text('gradientDirectionToTop'.tr())),
+                            DropdownItem(value: 'to bottom right', child: Text('gradientDirectionToBottomRight'.tr())),
+                            DropdownItem(value: 'to bottom left', child: Text('gradientDirectionToBottomLeft'.tr())),
+                            DropdownItem(value: 'to top right', child: Text('gradientDirectionToTopRight'.tr())),
+                            DropdownItem(value: 'to top left', child: Text('gradientDirectionToTopLeft'.tr())),
                           ],
                           valueListenable: ValueNotifier<String>(
-                            usernameColorDirection.text.isNotEmpty
-                                ? usernameColorDirection.text
-                                : 'to right',
+                            usernameColorDirection.text.isNotEmpty ? usernameColorDirection.text : 'to right',
                           ),
                           onChanged: (value) {
                             usernameColorDirection.text = value ?? 'to right';
@@ -861,36 +643,25 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  usernameColorDirection.text.isNotEmpty
-                                      ? usernameColorDirection.text
-                                      : 'to right',
+                                  usernameColorDirection.text.isNotEmpty ? usernameColorDirection.text : 'to right',
                                 ),
                               ),
                               Icon(Symbols.arrow_drop_down),
                             ],
                           ),
                         ),
-                        Text(
-                          'gradientColors',
-                        ).tr().bold().fontSize(14).padding(top: 8),
+                        Text('gradientColors').tr().bold().fontSize(14).padding(top: 8),
                         Column(
-                          spacing: 8,
+                          spacing: 16,
                           children: [
-                            for (
-                              var i = 0;
-                              i < usernameColorColors.value.length;
-                              i++
-                            )
+                            for (var i = 0; i < usernameColorColors.value.length; i++)
                               Row(
-                                key: ValueKey(
-                                  usernameColorColors.value[i].hashCode,
-                                ),
+                                key: ValueKey(usernameColorColors.value[i].hashCode),
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Expanded(
                                     child: TextFormField(
-                                      initialValue:
-                                          usernameColorColors.value[i],
+                                      initialValue: usernameColorColors.value[i],
                                       decoration: InputDecoration(
                                         labelText: 'color'.tr(),
                                         hintText: 'e.g. #ff0000',
@@ -899,17 +670,13 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                                       onChanged: (value) {
                                         usernameColorColors.value[i] = value;
                                       },
-                                      onTapOutside: (_) => FocusManager
-                                          .instance
-                                          .primaryFocus
-                                          ?.unfocus(),
+                                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                                     ),
                                   ),
                                   IconButton(
                                     icon: const Icon(Symbols.delete),
                                     onPressed: () {
-                                      usernameColorColors
-                                          .value = usernameColorColors.value
+                                      usernameColorColors.value = usernameColorColors.value
                                           .whereIndexed((idx, _) => idx != i)
                                           .toList();
                                     },
@@ -920,9 +687,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                               alignment: Alignment.centerRight,
                               child: FilledButton.icon(
                                 onPressed: () {
-                                  usernameColorColors.value = List.from(
-                                    usernameColorColors.value,
-                                  )..add('');
+                                  usernameColorColors.value = List.from(usernameColorColors.value)..add('');
                                 },
                                 label: Text('addColor').tr(),
                                 icon: const Icon(Symbols.add),
@@ -935,7 +700,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                   ),
                   Text('links').tr().bold().fontSize(18).padding(top: 16),
                   Column(
-                    spacing: 8,
+                    spacing: 16,
                     children: [
                       for (var i = 0; i < links.value.length; i++)
                         Row(
@@ -945,46 +710,28 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                             Expanded(
                               child: TextFormField(
                                 initialValue: links.value[i].name,
-                                decoration: InputDecoration(
-                                  labelText: 'linkKey'.tr(),
-                                  isDense: true,
-                                ),
+                                decoration: InputDecoration(labelText: 'linkKey'.tr(), isDense: true),
                                 onChanged: (value) {
-                                  links.value[i] = links.value[i].copyWith(
-                                    name: value,
-                                  );
+                                  links.value[i] = links.value[i].copyWith(name: value);
                                 },
-                                onTapOutside: (_) => FocusManager
-                                    .instance
-                                    .primaryFocus
-                                    ?.unfocus(),
+                                onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                               ),
                             ),
                             const Gap(8),
                             Expanded(
                               child: TextFormField(
                                 initialValue: links.value[i].url,
-                                decoration: InputDecoration(
-                                  labelText: 'linkValue'.tr(),
-                                  isDense: true,
-                                ),
+                                decoration: InputDecoration(labelText: 'linkValue'.tr(), isDense: true),
                                 onChanged: (value) {
-                                  links.value[i] = links.value[i].copyWith(
-                                    url: value,
-                                  );
+                                  links.value[i] = links.value[i].copyWith(url: value);
                                 },
-                                onTapOutside: (_) => FocusManager
-                                    .instance
-                                    .primaryFocus
-                                    ?.unfocus(),
+                                onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Symbols.delete),
                               onPressed: () {
-                                links.value = links.value
-                                    .whereIndexed((idx, _) => idx != i)
-                                    .toList();
+                                links.value = links.value.whereIndexed((idx, _) => idx != i).toList();
                               },
                             ),
                           ],
@@ -993,8 +740,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                         alignment: Alignment.centerRight,
                         child: FilledButton.icon(
                           onPressed: () {
-                            links.value = List.from(links.value)
-                              ..add(ProfileLink(name: '', url: ''));
+                            links.value = List.from(links.value)..add(ProfileLink(name: '', url: ''));
                           },
                           label: Text('addLink').tr(),
                           icon: const Icon(Symbols.add),
@@ -1011,7 +757,7 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     ),
                   ),
                 ],
-              ).padding(horizontal: 24),
+              ).padding(horizontal: 24, bottom: 16),
             ),
           ],
         ),
