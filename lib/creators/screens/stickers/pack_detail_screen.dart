@@ -39,7 +39,11 @@ class CreatorStickerPackDetailScreen extends HookConsumerWidget {
                   titleText: 'createSticker'.tr(),
                   child: StickerForm(packId: packId),
                 ),
-              );
+              ).then((value) {
+                if (value != null) {
+                  ref.invalidate(stickerPackContentProvider(packId));
+                }
+              });
             },
           ),
           StickerPackActionMenu(

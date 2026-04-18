@@ -44,7 +44,7 @@ class CreatorStickerListScreen extends HookConsumerWidget {
             ),
           ).then((value) {
             if (value != null) {
-              ref.invalidate(stickerPacksProvider(pubName));
+              ref.read(stickerPacksProvider(pubName).notifier).refresh();
             }
           });
         },
@@ -224,7 +224,11 @@ class StickerPackForm extends HookConsumerWidget {
                         ),
                       ).then((value) {
                         if (value == null) return;
-                        icon.value = value[0].id;
+                        if (value is SnCloudFile) {
+                          icon.value = value.id;
+                        } else {
+                          icon.value = value[0].id;
+                        }
                       });
                     },
                     icon: const Icon(Symbols.cloud_upload),

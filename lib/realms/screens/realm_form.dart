@@ -1,4 +1,4 @@
-import 'package:croppy/croppy.dart' show CropAspectRatio;
+import 'package:island/core/widgets/content/image_picker_editor.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
@@ -6,12 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:island/core/services/image.dart';
 import 'package:island/realms/models/realm_quota_info.dart';
 import 'package:island/realms/screens/realms.dart';
 import 'package:island/core/network.dart';
-import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -75,46 +72,31 @@ class RealmEditScreen extends HookConsumerWidget {
     }, [realm]);
 
     void setPicture(String position) async {
-      showLoadingModal(context);
-      var result = await ref
-          .read(imagePickerProvider)
-          .pickImage(source: ImageSource.gallery);
-      if (result == null) {
-        if (context.mounted) hideLoadingModal(context);
-        return;
-      }
-      if (!context.mounted) return;
-      hideLoadingModal(context);
-      result = await cropImage(
+      final result = await showImagePickerEditor(
         context,
-        image: result,
-        allowedAspectRatios: [
-          if (position == 'background')
-            const CropAspectRatio(height: 7, width: 16)
-          else
-            const CropAspectRatio(height: 1, width: 1),
-        ],
+        config: position == 'background'
+            ? const ImageEditorConfig(
+                allowedAspectRatios: [ImageAspectRatio(width: 16, height: 7)],
+                allowMultiple: false,
+                allowCompression: true,
+                defaultCompressionQuality: 85,
+              )
+            : const ImageEditorConfig(
+                allowedAspectRatios: [ImageAspectRatio.square],
+                allowMultiple: false,
+                allowCompression: true,
+                defaultCompressionQuality: 90,
+              ),
+        title: position == 'background'
+            ? 'settingsBackgroundImage'.tr()
+            : 'accountProfile'.tr(),
       );
-      if (result == null) {
-        if (context.mounted) hideLoadingModal(context);
-        return;
-      }
-      if (!context.mounted) return;
+      if (result == null) return;
+
       showLoadingModal(context);
       submitting.value = true;
       try {
-        final cloudFile = await ref
-            .read(driveFileUploaderProvider)
-            .createCloudFile(
-              fileData: UniversalFile(
-                data: result,
-                type: UniversalFileType.image,
-              ),
-            )
-            .future;
-        if (cloudFile == null) {
-          throw ArgumentError('Failed to upload the file...');
-        }
+        final cloudFile = result as SnCloudFile;
         switch (position) {
           case 'picture':
             picture.value = cloudFile;
@@ -124,8 +106,8 @@ class RealmEditScreen extends HookConsumerWidget {
       } catch (err) {
         showErrorAlert(err);
       } finally {
-        if (context.mounted) hideLoadingModal(context);
         submitting.value = false;
+        if (context.mounted) hideLoadingModal(context);
       }
     }
 

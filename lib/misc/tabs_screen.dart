@@ -13,6 +13,7 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/navigation/conditional_bottom_nav.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/chat/pods/chat_summary.dart';
@@ -56,12 +57,9 @@ class _TabsScreenContent extends ConsumerStatefulWidget {
 }
 
 class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
-  late final GlobalKey<ScaffoldState> _scaffoldKey;
-
   @override
   void initState() {
     super.initState();
-    _scaffoldKey = GlobalKey<ScaffoldState>();
   }
 
   static List<_TabDestination> get _allDestinations => [
@@ -430,7 +428,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     if (wideScreen) {
       if (railDestinations.isEmpty) {
         return Scaffold(
-          key: _scaffoldKey,
+          key: rootScaffoldKey,
           drawer: isDrawerEnabled
               ? Drawer(child: buildNavigationDrawerContent())
               : null,
@@ -442,7 +440,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
           ),
           floatingActionButton: isDrawerEnabled
               ? FloatingActionButton.small(
-                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  onPressed: () => rootScaffoldKey.currentState?.openDrawer(),
                   child: const Icon(Symbols.menu_rounded),
                 )
               : null,
@@ -450,7 +448,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         );
       }
       return Scaffold(
-        key: _scaffoldKey,
+        key: rootScaffoldKey,
         drawer: isDrawerEnabled
             ? Drawer(child: buildNavigationDrawerContent())
             : null,
@@ -473,7 +471,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: FloatingActionButton(
                   onPressed: isDrawerEnabled
-                      ? () => _scaffoldKey.currentState?.openDrawer()
+                      ? () => rootScaffoldKey.currentState?.openDrawer()
                       : null,
                   child: const Icon(Symbols.menu_rounded),
                 ),
@@ -493,7 +491,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     }
 
     final scaffold = Scaffold(
-      key: _scaffoldKey,
+      key: rootScaffoldKey,
       backgroundColor: Colors.transparent,
       extendBody: true,
       resizeToAvoidBottomInset: false,
@@ -517,7 +515,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
           onDestinationSelected: (index) {
             if (index == 0) {
               if (isDrawerEnabled) {
-                _scaffoldKey.currentState?.openDrawer();
+                rootScaffoldKey.currentState?.openDrawer();
               }
             } else {
               onBottomNavDestinationSelected(index - 1);
@@ -551,7 +549,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
           _OpenDrawerIntent: CallbackAction<_OpenDrawerIntent>(
             onInvoke: (_) {
               if (isDrawerEnabled) {
-                _scaffoldKey.currentState?.openDrawer();
+                rootScaffoldKey.currentState?.openDrawer();
               }
               return null;
             },
