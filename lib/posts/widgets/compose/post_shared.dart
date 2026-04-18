@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:html2md/html2md.dart' as html2md;
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/widgets/compose/post_replies_sheet.dart';
@@ -220,6 +221,275 @@ class PostReplyPreview extends HookConsumerWidget {
     return ProfilePictureWidget(file: null, radius: radius);
   }
 
+  /// Builds a compact attachment preview list for inline display
+  Widget _buildAttachmentPreview(
+    BuildContext context,
+    List<SnCloudFile> attachments,
+  ) {
+    const maxVisible = 3;
+    final visibleAttachments = attachments.take(maxVisible).toList();
+    final remainingCount = attachments.length - maxVisible;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        for (final attachment in visibleAttachments)
+          _buildAttachmentThumbnail(context, attachment),
+        if (remainingCount > 0)
+          _buildRemainingCountBadge(context, remainingCount),
+      ],
+    );
+  }
+
+  /// Builds a small thumbnail for a single attachment
+  Widget _buildAttachmentThumbnail(
+    BuildContext context,
+    SnCloudFile attachment,
+  ) {
+    final isImage = attachment.mimeType?.startsWith('image') ?? false;
+    final isVideo = attachment.mimeType?.startsWith('video') ?? false;
+    final isAudio = attachment.mimeType?.startsWith('audio') ?? false;
+
+    Widget content;
+    if (isImage) {
+      // Show actual image thumbnail using CloudFileWidget which handles auth properly
+      content = ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: CloudFileWidget(
+          item: attachment,
+          fit: BoxFit.cover,
+          noBlurhash: true,
+        ),
+      );
+    } else if (isVideo) {
+      content = _buildFileTypeIcon(context, attachment, icon: Symbols.videocam);
+    } else if (isAudio) {
+      content = _buildFileTypeIcon(
+        context,
+        attachment,
+        icon: Symbols.audiotrack,
+      );
+    } else {
+      content = _buildFileTypeIcon(context, attachment);
+    }
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.5),
+        ),
+      ),
+      child: content,
+    );
+  }
+
+  /// Builds an icon-based representation for non-image files
+  Widget _buildFileTypeIcon(
+    BuildContext context,
+    SnCloudFile attachment, {
+    IconData? icon,
+  }) {
+    final fileIcon = icon ?? _getFileIcon(attachment.mimeType);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          fileIcon,
+          size: 20,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        if (attachment.name.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              attachment.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 8,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Gets appropriate icon for MIME type
+  IconData _getFileIcon(String? mimeType) {
+    if (mimeType == null) return Symbols.insert_drive_file;
+    if (mimeType.startsWith('image/')) return Symbols.image;
+    if (mimeType.startsWith('video/')) return Symbols.videocam;
+    if (mimeType.startsWith('audio/')) return Symbols.audiotrack;
+    if (mimeType.startsWith('text/')) return Symbols.description;
+    if (mimeType.contains('pdf')) return Symbols.picture_as_pdf;
+    if (mimeType.contains('zip') || mimeType.contains('compressed')) {
+      return Symbols.folder_zip;
+    }
+    return Symbols.attach_file;
+  }
+
+  /// Builds a badge showing remaining attachment count
+  Widget _buildRemainingCountBadge(BuildContext context, int count) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.5),
+        ),
+      ),
+      child: Center(
+        child: Text(
+          '+$count',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds a compact reaction preview for inline display
+  Widget _buildCompactReactions(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, int> reactions,
+  ) {
+    const maxVisible = 3;
+    final sortedReactions = reactions.entries.where((e) => e.value > 0).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final visibleReactions = sortedReactions.take(maxVisible).toList();
+    final remainingCount = sortedReactions.length - maxVisible;
+
+    if (visibleReactions.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        for (final entry in visibleReactions)
+          _buildCompactReactionChip(context, ref, entry.key, entry.value),
+        if (remainingCount > 0)
+          _buildRemainingReactionsBadge(context, remainingCount),
+      ],
+    );
+  }
+
+  /// Builds a single compact reaction chip
+  Widget _buildCompactReactionChip(
+    BuildContext context,
+    WidgetRef ref,
+    String symbol,
+    int count,
+  ) {
+    final reactionInfo = kReactionTemplates[symbol];
+    final hasSticker = _getReactionImageAvailable(symbol);
+    final isCustom = symbol.contains('+');
+
+    Widget icon;
+    if (isCustom) {
+      // Custom reactions use server-side sticker lookup
+      final serverUrl = ref.read(serverUrlProvider);
+      icon = ClipRRect(
+        borderRadius: BorderRadius.circular(2),
+        child: Image.network(
+          '$serverUrl/sphere/stickers/lookup/$symbol/open',
+          width: 14,
+          height: 14,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) =>
+              const Text('🏷️', style: TextStyle(fontSize: 10)),
+        ),
+      );
+    } else if (hasSticker) {
+      icon = Image.asset(
+        'assets/images/stickers/$symbol.png',
+        width: 14,
+        height: 14,
+        fit: BoxFit.contain,
+      );
+    } else {
+      // Fall back to emoji icon
+      icon = Text(
+        reactionInfo?.icon ?? '❓',
+        style: const TextStyle(fontSize: 10),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 3,
+        children: [
+          icon,
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds a badge showing remaining reaction count
+  Widget _buildRemainingReactionsBadge(BuildContext context, int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.3),
+        ),
+      ),
+      child: Text(
+        '+$count',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
+  /// Checks if reaction has a sticker image asset
+  /// Based on kAvailableStickers in post_reaction_sheet.dart
+  bool _getReactionImageAvailable(String symbol) {
+    return {
+      'angry',
+      'clap',
+      'confuse',
+      'pray',
+      'thumb_up',
+      'party',
+    }.contains(symbol);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repliesState = ref.watch(repliesProvider(parent.id));
@@ -250,35 +520,59 @@ class PostReplyPreview extends HookConsumerWidget {
     }) {
       final post = node.post;
       final children = repliesState.getChildrenOf(post.id);
+      final showReactions = post.reactionsCount.isNotEmpty;
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8,
+                spacing: 4,
                 children: [
-                  _buildProfilePicture(
-                    context,
-                    post,
-                    radius: 12,
-                  ).padding(top: 4),
-                  if (post.content?.isNotEmpty ?? false)
-                    Expanded(
-                      child: MarkdownTextContent(
-                        content: _convertContentToMarkdown(post),
-                        attachments: post.attachments,
-                        noMentionChip: post.fediverseUri != null,
-                      ).padding(top: 2),
-                    )
-                  else
-                    Expanded(
-                      child: Text(
-                        'postHasAttachments',
-                        style: TextStyle(height: 2),
-                      ).plural(post.attachments.length).padding(top: 2),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      _buildProfilePicture(
+                        context,
+                        post,
+                        radius: 12,
+                      ).padding(top: 4),
+                      if (post.content?.isNotEmpty ?? false)
+                        Expanded(
+                          child: MarkdownTextContent(
+                            content: _convertContentToMarkdown(post),
+                            attachments: post.attachments,
+                            noMentionChip: post.fediverseUri != null,
+                          ).padding(top: 2),
+                        )
+                      else if (post.attachments.isNotEmpty)
+                        Expanded(
+                          child: _buildAttachmentPreview(
+                            context,
+                            post.attachments,
+                          ).padding(top: 2),
+                        )
+                      else
+                        Expanded(
+                          child: Text(
+                            'postHasAttachments',
+                            style: TextStyle(height: 2),
+                          ).plural(post.attachments.length).padding(top: 2),
+                        ),
+                    ],
+                  ),
+                  if (showReactions)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: _buildCompactReactions(
+                        context,
+                        ref,
+                        post.reactionsCount,
+                      ),
                     ),
                 ],
               ),
@@ -346,28 +640,49 @@ class PostReplyPreview extends HookConsumerWidget {
           : (featuredReply!).map(
               data: (data) => ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: maxWidth),
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
                   children: [
-                    if (data.value != null)
-                      _buildProfilePicture(
-                        context,
-                        data.value!,
-                        radius: 12,
-                      ).padding(top: 4),
-                    if (data.value?.content?.isNotEmpty ?? false)
-                      Expanded(
-                        child: MarkdownTextContent(
-                          content: _convertContentToMarkdown(data.value!),
-                          attachments: data.value!.attachments,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
+                      children: [
+                        if (data.value != null)
+                          _buildProfilePicture(
+                            context,
+                            data.value!,
+                            radius: 12,
+                          ).padding(top: 4),
+                        if (data.value?.content?.isNotEmpty ?? false)
+                          Expanded(
+                            child: MarkdownTextContent(
+                              content: _convertContentToMarkdown(data.value!),
+                              attachments: data.value!.attachments,
+                            ),
+                          )
+                        else if (data.value?.attachments.isNotEmpty ?? false)
+                          Expanded(
+                            child: _buildAttachmentPreview(
+                              context,
+                              data.value!.attachments,
+                            ),
+                          )
+                        else
+                          Expanded(
+                            child: Text(
+                              'postHasAttachments',
+                            ).plural(data.value?.attachments.length ?? 0),
+                          ),
+                      ],
+                    ),
+                    if (data.value?.reactionsCount.isNotEmpty ?? false)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32),
+                        child: _buildCompactReactions(
+                          context,
+                          ref,
+                          data.value!.reactionsCount,
                         ),
-                      )
-                    else
-                      Expanded(
-                        child: Text(
-                          'postHasAttachments',
-                        ).plural(data.value?.attachments.length ?? 0),
                       ),
                   ],
                 ),
