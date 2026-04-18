@@ -29,6 +29,7 @@ class NewChatScreen extends StatelessWidget {
 @RoutePage()
 class EditChatScreen extends HookConsumerWidget {
   final String? id;
+
   const EditChatScreen({super.key, this.id});
 
   @override
@@ -57,9 +58,7 @@ class EditChatScreen extends HookConsumerWidget {
         background.value = chat.value!.background;
         isPublic.value = chat.value!.isPublic;
         isCommunity.value = chat.value!.isCommunity;
-        currentRealm.value = joinedRealms.value?.firstWhereOrNull(
-          (realm) => realm.id == chat.value!.realmId,
-        );
+        currentRealm.value = joinedRealms.value?.firstWhereOrNull((realm) => realm.id == chat.value!.realmId);
       }
       return;
     }, [chat, joinedRealms]);
@@ -80,12 +79,10 @@ class EditChatScreen extends HookConsumerWidget {
                 allowCompression: true,
                 defaultCompressionQuality: 90,
               ),
-        title: position == 'background'
-            ? 'settingsBackgroundImage'.tr()
-            : 'accountProfile'.tr(),
+        title: position == 'background' ? 'settingsBackgroundImage'.tr() : 'accountProfile'.tr(),
       );
       if (result == null) return;
-
+      if (!context.mounted) return;
       showLoadingModal(context);
       submitting.value = true;
       try {
@@ -151,10 +148,7 @@ class EditChatScreen extends HookConsumerWidget {
                     child: Container(
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
                       child: background.value != null
-                          ? CloudFileWidget(
-                              item: background.value!,
-                              fit: BoxFit.cover,
-                            )
+                          ? CloudFileWidget(item: background.value!, fit: BoxFit.cover)
                           : const SizedBox.shrink(),
                     ),
                     onTap: () {
@@ -165,11 +159,7 @@ class EditChatScreen extends HookConsumerWidget {
                     left: 20,
                     bottom: -32,
                     child: GestureDetector(
-                      child: ProfilePictureWidget(
-                        file: picture.value,
-                        radius: 40,
-                        fallbackIcon: Symbols.group,
-                      ),
+                      child: ProfilePictureWidget(file: picture.value, radius: 40, fallbackIcon: Symbols.group),
                       onTap: () {
                         setPicture('picture');
                       },
@@ -187,12 +177,9 @@ class EditChatScreen extends HookConsumerWidget {
                     controller: nameController,
                     decoration: InputDecoration(
                       labelText: 'Name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -200,36 +187,24 @@ class EditChatScreen extends HookConsumerWidget {
                     decoration: InputDecoration(
                       labelText: 'Description',
                       alignLabelWithHint: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     minLines: 3,
                     maxLines: null,
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<SnRealm>(
                     value: currentRealm.value,
                     decoration: InputDecoration(
                       labelText: 'realm'.tr(),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     items: [
-                      DropdownMenuItem<SnRealm>(
-                        value: null,
-                        child: Text('none'.tr()),
-                      ),
+                      DropdownMenuItem<SnRealm>(value: null, child: Text('none'.tr())),
                       ...joinedRealms.maybeWhen(
-                        data: (realms) => realms.map(
-                          (realm) => DropdownMenuItem(
-                            value: realm,
-                            child: Text(realm.name),
-                          ),
-                        ),
+                        data: (realms) =>
+                            realms.map((realm) => DropdownMenuItem(value: realm, child: Text(realm.name))),
                         orElse: () => [],
                       ),
                     ],
@@ -252,9 +227,7 @@ class EditChatScreen extends HookConsumerWidget {
                           onChanged: (value) {
                             isPublic.value = value ?? true;
                           },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         CheckboxListTile(
                           secondary: const Icon(Symbols.travel_explore),
@@ -264,9 +237,7 @@ class EditChatScreen extends HookConsumerWidget {
                           onChanged: (value) {
                             isCommunity.value = value ?? false;
                           },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       ],
                     ),

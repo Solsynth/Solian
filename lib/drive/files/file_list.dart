@@ -7,10 +7,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/drive/screens/file_list.dart';
+import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/drive/widgets/quota_sidebar.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/responsive_sidebar.dart';
 import 'package:island/drive/widgets/file_list_view.dart';
 import 'package:island/accounts/usage_overview.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -30,24 +33,109 @@ class FileListScreen extends HookConsumerWidget {
 
     final usageAsync = ref.watch(billingUsageProvider);
     final quotaAsync = ref.watch(billingQuotaProvider);
+    final poolsAsync = ref.watch(poolsProvider);
 
     final viewMode = useState(FileListViewMode.list);
     final isSelectionMode = useState<bool>(false);
     final recycled = useState<bool>(false);
     final query = useState<String?>(null);
+    final showSidebar = useState<bool>(false);
 
-    final unindexedNotifier = ref.read(unindexedFileListProvider.notifier);
+    // Notifiers should be read fresh each time to avoid disposal issues
 
-    return AppScaffold(
+    // Sidebar content widget
+    final sidebarContent = poolsAsync.when(
+      data: (pools) => usageAsync.when(
+        data: (usage) => quotaAsync.when(
+          data: (quota) => QuotaSidebarWidget(
+            usage: usage,
+            quota: quota,
+            pools: pools,
+            selectedPool: selectedPool.value,
+            onPoolSelected: (pool) {
+              selectedPool.value = pool;
+              if (mode.value == FileListMode.unindexed) {
+                ref.read(unindexedFileListProvider.notifier).setPool(pool?.id);
+              } else {
+                ref
+                    .read(indexedCloudFileListProvider.notifier)
+                    .setPool(pool?.id);
+              }
+            },
+            onViewDetails: () => _showUsageSheet(context, usage, quota),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) => Center(child: Text('errorLoadingQuota'.tr())),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => Center(child: Text('errorLoadingUsage'.tr())),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, _) => Center(child: Text('errorLoadingPools'.tr())),
+    );
+
+    // Drawer builder for narrow screens - uses builder to access providers
+    Consumer drawerBuilder(BuildContext sheetContext) {
+      return Consumer(
+        builder: (context, ref, _) {
+          final usage = ref.watch(billingUsageProvider);
+          final quota = ref.watch(billingQuotaProvider);
+          final pools = ref.watch(poolsProvider);
+
+          return pools.when(
+            data: (poolsData) => usage.when(
+              data: (usageData) => quota.when(
+                data: (quotaData) => DriveQuotaSidebar(
+                  usage: usageData,
+                  quota: quotaData,
+                  pools: poolsData,
+                  selectedPool: selectedPool.value,
+                  onPoolSelected: (pool) {
+                    selectedPool.value = pool;
+                    if (mode.value == FileListMode.unindexed) {
+                      ref
+                          .read(unindexedFileListProvider.notifier)
+                          .setPool(pool?.id);
+                    } else {
+                      ref
+                          .read(indexedCloudFileListProvider.notifier)
+                          .setPool(pool?.id);
+                    }
+                  },
+                  onViewDetails: () {
+                    Navigator.of(sheetContext).pop();
+                    _showUsageSheet(context, usageData, quotaData);
+                  },
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, _) => Center(child: Text('errorLoadingQuota'.tr())),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, _) => Center(child: Text('errorLoadingUsage'.tr())),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, _) => Center(child: Text('errorLoadingPools'.tr())),
+          );
+        },
+      );
+    }
+
+    // Main content widget
+    final mainContent = AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Symbols.menu),
+          onPressed: () {
+            rootScaffoldKey.currentState?.openDrawer();
+          },
+        ),
         title: SearchBar(
           constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
           hintText: 'searchFiles'.tr(),
-          hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
-          textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          hintStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 14)),
           onChanged: (value) {
-            // Update the query state that will be passed to FileListView
             query.value = value.isEmpty ? null : value;
           },
           leading: Icon(
@@ -56,7 +144,6 @@ class FileListScreen extends HookConsumerWidget {
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        leading: const PageBackButton(),
         actions: [
           // Selection mode toggle
           IconButton(
@@ -65,8 +152,8 @@ class FileListScreen extends HookConsumerWidget {
             ),
             onPressed: () => isSelectionMode.value = !isSelectionMode.value,
             tooltip: isSelectionMode.value
-                ? 'Exit Selection Mode'
-                : 'Enter Selection Mode',
+                ? 'exitSelectionMode'
+                : 'enterSelectionMode',
           ),
 
           // Recycle toggle (only in unindexed mode)
@@ -79,17 +166,18 @@ class FileListScreen extends HookConsumerWidget {
               ),
               onPressed: () {
                 recycled.value = !recycled.value;
-                unindexedNotifier.setRecycled(recycled.value);
+                ref
+                    .read(unindexedFileListProvider.notifier)
+                    .setRecycled(recycled.value);
               },
-              tooltip: recycled.value
-                  ? 'Show Active Files'
-                  : 'Show Recycle Bin',
+              tooltip: recycled.value ? 'showActiveFiles' : 'showRecycleBin',
             ),
 
+          // Storage sidebar toggle
           IconButton(
-            icon: const Icon(Symbols.bar_chart),
-            onPressed: () =>
-                _showUsageSheet(context, usageAsync.value, quotaAsync.value),
+            icon: const Icon(Symbols.storage),
+            onPressed: () => showSidebar.value = !showSidebar.value,
+            tooltip: 'storageOverview'.tr(),
           ),
           const Gap(8),
         ],
@@ -102,7 +190,7 @@ class FileListScreen extends HookConsumerWidget {
                 currentPath,
                 selectedPool,
               ),
-              tooltip: 'Add files or create directory',
+              tooltip: 'addFilesOrCreateDirectory'.tr(),
               child: const Icon(Symbols.add),
             )
           : null,
@@ -125,11 +213,21 @@ class FileListScreen extends HookConsumerWidget {
             query: query,
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error loading quota')),
+          error: (e, _) => Center(child: Text('errorLoadingQuota'.tr())),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error loading usage')),
+        error: (e, _) => Center(child: Text('errorLoadingUsage'.tr())),
       ),
+    );
+
+    return ResponsiveSidebar(
+      showSidebar: showSidebar,
+      sidebarWidth: 320,
+      minWideSidebarWidth: 280,
+      maxWideSidebarWidth: 400,
+      sidebarContent: sidebarContent,
+      drawerBuilder: drawerBuilder,
+      mainContent: mainContent,
     );
   }
 
@@ -147,14 +245,12 @@ class FileListScreen extends HookConsumerWidget {
       if (result != null && result.files.isNotEmpty) {
         for (final file in result.files) {
           if (file.path != null) {
-            // Create UniversalFile from the picked file
             final universalFile = UniversalFile(
               data: XFile(file.path!),
               type: UniversalFileType.file,
               displayName: file.name,
             );
 
-            // Upload the file with the current path
             final completer = ref
                 .read(driveFileUploaderProvider)
                 .createCloudFile(
@@ -162,7 +258,6 @@ class FileListScreen extends HookConsumerWidget {
                   path: currentPath,
                   poolId: poolId,
                   onProgress: (progress, _) {
-                    // Progress is handled by the upload tasks system
                     if (progress != null) {
                       debugPrint(
                         'Upload progress: ${(progress * 100).toInt()}%',
@@ -178,13 +273,15 @@ class FileListScreen extends HookConsumerWidget {
                   }
                 })
                 .catchError((error) {
-                  showSnackBar('Failed to upload file: $error');
+                  showSnackBar(
+                    'failedToUploadFile'.tr(args: [error.toString()]),
+                  );
                 });
           }
         }
       }
     } catch (e) {
-      showSnackBar('Error picking file: $e');
+      showSnackBar('errorPickingFile'.tr(args: [e.toString()]));
     }
   }
 
@@ -198,15 +295,12 @@ class FileListScreen extends HookConsumerWidget {
     void handleChangeDirectory(BuildContext context) {
       newPath = controller.text.trim();
       if (newPath!.isNotEmpty) {
-        // Normalize the path
         String fullPath = newPath!;
 
-        // Ensure it starts with /
         if (!fullPath.startsWith('/')) {
           fullPath = '/$fullPath';
         }
 
-        // Remove double slashes and normalize
         fullPath = fullPath.replaceAll(RegExp(r'/+'), '/');
 
         currentPath.value = fullPath;
@@ -217,7 +311,7 @@ class FileListScreen extends HookConsumerWidget {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Navigate to Directory'),
+        title: const Text('navigateToDirectory').tr(),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,13 +319,12 @@ class FileListScreen extends HookConsumerWidget {
             const Gap(8),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Directory path',
-                hintText: 'e.g., documents, projects/my-app',
-                helperText:
-                    'Enter a directory path. The directory will be created when you upload files to it.',
+              decoration: InputDecoration(
+                labelText: 'directoryPath'.tr(),
+                hintText: 'directoryPathHint'.tr(),
+                helperText: 'directoryPathHelper'.tr(),
                 helperMaxLines: 3,
-                border: OutlineInputBorder(
+                border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
               ),
@@ -244,11 +337,11 @@ class FileListScreen extends HookConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text('cancel').tr(),
           ),
           TextButton.icon(
             onPressed: () => handleChangeDirectory(context),
-            label: const Text('Go to Directory'),
+            label: Text('goToDirectory').tr(),
             icon: const Icon(Symbols.arrow_right_alt),
           ),
         ],
@@ -265,7 +358,7 @@ class FileListScreen extends HookConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) => SheetScaffold(
-        titleText: 'Usage Overview',
+        titleText: 'usageOverview'.tr(),
         child: UsageOverviewWidget(
           usage: usage,
           quota: quota,
@@ -289,7 +382,7 @@ class FileListScreen extends HookConsumerWidget {
           children: [
             ListTile(
               leading: const Icon(Symbols.create_new_folder),
-              title: const Text('Create Directory'),
+              title: Text('createDirectory').tr(),
               onTap: () {
                 Navigator.of(context).pop();
                 _showCreateDirectoryDialog(context, currentPath);
@@ -297,7 +390,7 @@ class FileListScreen extends HookConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Symbols.upload_file),
-              title: const Text('Upload File'),
+              title: Text('uploadFile').tr(),
               onTap: () {
                 Navigator.of(context).pop();
                 _pickAndUploadFile(

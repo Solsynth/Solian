@@ -18,16 +18,9 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'edit_bot.g.dart';
 
 @riverpod
-Future<Bot?> bot(
-  Ref ref,
-  String publisherName,
-  String projectId,
-  String id,
-) async {
+Future<Bot?> bot(Ref ref, String publisherName, String projectId, String id) async {
   final client = ref.watch(solarNetworkClientProvider).dio;
-  final resp = await client.get(
-    '/develop/developers/$publisherName/projects/$projectId/bots/$id',
-  );
+  final resp = await client.get('/develop/developers/$publisherName/projects/$projectId/bots/$id');
   return Bot.fromJson(resp.data);
 }
 
@@ -37,6 +30,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
   final String projectId;
   final String? id;
   final bool isModal;
+
   const DeveloperBotEditScreen({
     super.key,
     required this.pubName,
@@ -48,9 +42,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isNew = id == null;
-    final botData = isNew
-        ? null
-        : ref.watch(botProvider(pubName, projectId, id!));
+    final botData = isNew ? null : ref.watch(botProvider(pubName, projectId, id!));
 
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final submitting = useState(false);
@@ -109,12 +101,10 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                 allowCompression: true,
                 defaultCompressionQuality: 90,
               ),
-        title: position == 'background'
-            ? 'settingsBackgroundImage'.tr()
-            : 'accountProfile'.tr(),
+        title: position == 'background' ? 'settingsBackgroundImage'.tr() : 'accountProfile'.tr(),
       );
       if (result == null) return;
-
+      if (!context.mounted) return;
       showLoadingModal(context);
       submitting.value = true;
       try {
@@ -155,15 +145,9 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
       try {
         showLoadingModal(context);
         if (isNew) {
-          await client.post(
-            '/develop/developers/$pubName/projects/$projectId/bots',
-            data: data,
-          );
+          await client.post('/develop/developers/$pubName/projects/$projectId/bots', data: data);
         } else {
-          await client.patch(
-            '/develop/developers/$pubName/projects/$projectId/bots/$id',
-            data: data,
-          );
+          await client.patch('/develop/developers/$pubName/projects/$projectId/bots/$id', data: data);
         }
 
         if (context.mounted) {
@@ -194,14 +178,9 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                     children: [
                       GestureDetector(
                         child: Container(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHigh,
+                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
                           child: background.value != null
-                              ? CloudFileWidget(
-                                  item: background.value!,
-                                  fit: BoxFit.cover,
-                                )
+                              ? CloudFileWidget(item: background.value!, fit: BoxFit.cover)
                               : const SizedBox.shrink(),
                         ),
                         onTap: () {
@@ -212,11 +191,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                         left: 20,
                         bottom: -32,
                         child: GestureDetector(
-                          child: ProfilePictureWidget(
-                            file: picture.value,
-                            radius: 40,
-                            fallbackIcon: Symbols.smart_toy,
-                          ),
+                          child: ProfilePictureWidget(file: picture.value, radius: 40, fallbackIcon: Symbols.smart_toy),
                           onTap: () {
                             setPicture('picture');
                           },
@@ -233,9 +208,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                         controller: nameController,
                         decoration: InputDecoration(
                           labelText: 'name'.tr(),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -244,9 +217,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                         decoration: InputDecoration(
                           labelText: 'nickname'.tr(),
                           alignLabelWithHint: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -255,9 +226,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                         decoration: InputDecoration(
                           labelText: 'slug'.tr(),
                           helperText: 'slugHint'.tr(),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -266,9 +235,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                         decoration: InputDecoration(
                           labelText: 'bio'.tr(),
                           alignLabelWithHint: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                         ),
                         maxLines: 3,
                       ),
@@ -281,11 +248,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                               controller: firstNameController,
                               decoration: InputDecoration(
                                 labelText: 'firstName'.tr(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                               ),
                             ),
                           ),
@@ -294,11 +257,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                               controller: middleNameController,
                               decoration: InputDecoration(
                                 labelText: 'middleName'.tr(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                               ),
                             ),
                           ),
@@ -307,11 +266,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                               controller: lastNameController,
                               decoration: InputDecoration(
                                 labelText: 'lastName'.tr(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                               ),
                             ),
                           ),
@@ -326,11 +281,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                               controller: genderController,
                               decoration: InputDecoration(
                                 labelText: 'gender'.tr(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                               ),
                             ),
                           ),
@@ -339,11 +290,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                               controller: pronounsController,
                               decoration: InputDecoration(
                                 labelText: 'pronouns'.tr(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                               ),
                             ),
                           ),
@@ -358,11 +305,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                               controller: locationController,
                               decoration: InputDecoration(
                                 labelText: 'location'.tr(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                               ),
                             ),
                           ),
@@ -371,11 +314,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                               controller: timeZoneController,
                               decoration: InputDecoration(
                                 labelText: 'timeZone'.tr(),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                               ),
                             ),
                           ),
@@ -397,21 +336,13 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).dividerColor,
-                              width: 1,
-                            ),
+                            border: Border.all(color: Theme.of(context).dividerColor, width: 1),
                             borderRadius: BorderRadius.all(Radius.circular(12)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                'birthday'.tr(),
-                                style: TextStyle(
-                                  color: Theme.of(context).hintColor,
-                                ),
-                              ),
+                              Text('birthday'.tr(), style: TextStyle(color: Theme.of(context).hintColor)),
                               Text(
                                 birthday.value != null
                                     ? DateFormat.yMMMd().format(birthday.value!)

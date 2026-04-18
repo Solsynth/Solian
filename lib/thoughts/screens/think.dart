@@ -180,8 +180,13 @@ class ThoughtScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Symbols.menu),
+          onPressed: () {
+            rootScaffoldKey.currentState?.openDrawer();
+          },
+        ),
         title: Text(initialTopic ?? 'aiThought'.tr()),
-        automaticallyImplyLeading: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(52),
           child: Align(
