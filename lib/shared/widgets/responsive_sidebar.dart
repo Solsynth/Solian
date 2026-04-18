@@ -25,6 +25,11 @@ class ResponsiveSidebar extends HookConsumerWidget {
   /// If not provided, [sidebarContent] will be used inside a default [Drawer].
   final Widget? drawerWidget;
 
+  /// Optional builder function for drawer widget for narrow screens.
+  /// Use this instead of [drawerWidget] when you need access to context/providers.
+  /// If provided, this takes precedence over [drawerWidget].
+  final WidgetBuilder? drawerBuilder;
+
   /// Background color for the sidebar on wide screens.
   /// If not provided, uses [Theme.of(context).colorScheme.surfaceContainer].
   final Color? sidebarBackgroundColor;
@@ -57,6 +62,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
     required this.showSidebar,
     this.sidebarWidth = 480,
     this.drawerWidget,
+    this.drawerBuilder,
     this.sidebarBackgroundColor,
     this.sidebarElevation = 8,
     this.animationDuration = const Duration(milliseconds: 300),
@@ -189,9 +195,13 @@ class ResponsiveSidebar extends HookConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) =>
-          drawerWidget ??
-          SheetScaffold(showHeader: false, child: sidebarContent),
+      builder: (sheetContext) {
+        if (drawerBuilder != null) {
+          return drawerBuilder!(sheetContext);
+        }
+        return drawerWidget ??
+            SheetScaffold(showHeader: false, child: sidebarContent);
+      },
     ).then((_) {
       showSidebar.value = false;
     });

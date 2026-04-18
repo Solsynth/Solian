@@ -147,6 +147,17 @@ class UnindexedFileListNotifier
   @override
   FutureOr<PaginationState<FileListItem>> build() async {
     final items = await fetch();
+    // Check if still mounted after async operation
+    if (!ref.mounted) {
+      return PaginationState(
+        items: items,
+        isLoading: false,
+        isReloading: false,
+        totalCount: totalCount,
+        hasMore: false,
+        cursor: null,
+      );
+    }
     return PaginationState(
       items: items,
       isLoading: false,

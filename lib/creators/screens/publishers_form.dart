@@ -23,10 +23,7 @@ part 'publishers_form.g.dart';
 Future<List<SnPublisher>> publishersManaged(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/sphere/publishers');
-  return resp.data
-      .map((e) => SnPublisher.fromJson(e))
-      .cast<SnPublisher>()
-      .toList();
+  return resp.data.map((e) => SnPublisher.fromJson(e)).cast<SnPublisher>().toList();
 }
 
 @riverpod
@@ -50,6 +47,7 @@ class NewPublisherScreen extends StatelessWidget {
 @RoutePage()
 class EditPublisherScreen extends HookConsumerWidget {
   final String? name;
+
   const EditPublisherScreen({super.key, this.name});
 
   @override
@@ -75,12 +73,10 @@ class EditPublisherScreen extends HookConsumerWidget {
                 allowCompression: true,
                 defaultCompressionQuality: 90,
               ),
-        title: position == 'background'
-            ? 'settingsBackgroundImage'.tr()
-            : 'accountProfile'.tr(),
+        title: position == 'background' ? 'settingsBackgroundImage'.tr() : 'accountProfile'.tr(),
       );
       if (result == null) return;
-
+      if (!context.mounted) return;
       showLoadingModal(context);
       submitting.value = true;
       try {
@@ -102,12 +98,8 @@ class EditPublisherScreen extends HookConsumerWidget {
     final publisher = ref.watch(publisherNullableProvider(name));
 
     final formKey = useMemoized(GlobalKey<FormState>.new, const []);
-    final nameController = useTextEditingController(
-      text: publisher.value?.name,
-    );
-    final nickController = useTextEditingController(
-      text: publisher.value?.nick,
-    );
+    final nameController = useTextEditingController(text: publisher.value?.name);
+    final nickController = useTextEditingController(text: publisher.value?.nick);
     final bioController = useTextEditingController(text: publisher.value?.bio);
 
     final joinedRealms = ref.watch(realmsJoinedProvider);
@@ -120,9 +112,7 @@ class EditPublisherScreen extends HookConsumerWidget {
         nameController.text = publisher.value!.name;
         nickController.text = publisher.value!.nick;
         bioController.text = publisher.value!.bio;
-        currentRealm.value = joinedRealms.value?.firstWhereOrNull(
-          (realm) => realm.id == publisher.value!.realmId,
-        );
+        currentRealm.value = joinedRealms.value?.firstWhereOrNull((realm) => realm.id == publisher.value!.realmId);
       }
       return null;
     }, [publisher]);
@@ -176,10 +166,7 @@ class EditPublisherScreen extends HookConsumerWidget {
                     child: Container(
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
                       child: background.value != null
-                          ? CloudImageWidget(
-                              fileId: background.value!,
-                              fit: BoxFit.cover,
-                            )
+                          ? CloudImageWidget(fileId: background.value!, fit: BoxFit.cover)
                           : const SizedBox.shrink(),
                     ),
                     onTap: () {
@@ -190,10 +177,7 @@ class EditPublisherScreen extends HookConsumerWidget {
                     left: 20,
                     bottom: -32,
                     child: GestureDetector(
-                      child: ProfilePictureWidget(
-                        fileId: picture.value,
-                        radius: 40,
-                      ),
+                      child: ProfilePictureWidget(fileId: picture.value, radius: 40),
                       onTap: () {
                         setPicture('picture');
                       },
@@ -219,41 +203,28 @@ class EditPublisherScreen extends HookConsumerWidget {
                         prefixText: '@',
                       ),
                       readOnly: name != null,
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     TextFormField(
                       controller: nickController,
                       decoration: InputDecoration(labelText: 'nickname'.tr()),
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     TextFormField(
                       controller: bioController,
-                      decoration: InputDecoration(
-                        labelText: 'bio'.tr(),
-                        alignLabelWithHint: true,
-                      ),
+                      decoration: InputDecoration(labelText: 'bio'.tr(), alignLabelWithHint: true),
                       minLines: 3,
                       maxLines: null,
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
+                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     ),
                     DropdownButtonFormField<SnRealm>(
                       value: currentRealm.value,
                       decoration: InputDecoration(labelText: 'realm'.tr()),
                       items: [
-                        DropdownMenuItem<SnRealm>(
-                          value: null,
-                          child: Text('individual'.tr()),
-                        ),
+                        DropdownMenuItem<SnRealm>(value: null, child: Text('individual'.tr())),
                         ...joinedRealms.maybeWhen(
-                          data: (realms) => realms.map(
-                            (realm) => DropdownMenuItem(
-                              value: realm,
-                              child: Text(realm.name),
-                            ),
-                          ),
+                          data: (realms) =>
+                              realms.map((realm) => DropdownMenuItem(value: realm, child: Text(realm.name))),
                           orElse: () => [],
                         ),
                       ],
@@ -274,30 +245,21 @@ class EditPublisherScreen extends HookConsumerWidget {
                               nickController.text = user.value!.nick;
                               bioController.text = user.value!.profile.bio;
                               picture.value = user.value!.profile.picture?.id;
-                              background.value =
-                                  user.value!.profile.background?.id;
+                              background.value = user.value!.profile.background?.id;
                             } else {
                               nameController.text = currentRealm.value!.slug;
                               nickController.text = currentRealm.value!.name;
-                              bioController.text =
-                                  currentRealm.value!.description;
+                              bioController.text = currentRealm.value!.description;
                               picture.value = currentRealm.value!.picture?.id;
-                              background.value =
-                                  currentRealm.value!.background?.id;
+                              background.value = currentRealm.value!.background?.id;
                             }
                           },
-                          label: Text(
-                            currentRealm.value == null
-                                ? 'syncPublisher'
-                                : 'syncPublisherRealm',
-                          ).tr(),
+                          label: Text(currentRealm.value == null ? 'syncPublisher' : 'syncPublisherRealm').tr(),
                           icon: const Icon(Symbols.link),
                         ),
                         TextButton.icon(
                           onPressed: submitting.value ? null : performAction,
-                          label: Text(
-                            name == null ? 'create' : 'saveChanges',
-                          ).tr(),
+                          label: Text(name == null ? 'create' : 'saveChanges').tr(),
                           icon: const Icon(Symbols.save),
                         ),
                       ],
