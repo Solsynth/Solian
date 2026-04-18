@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -7,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -165,6 +169,7 @@ class EditableImage {
   String? displayName;
   bool isEdited;
   int compressionQuality;
+  bool isCropped;
 
   EditableImage({
     required this.file,
@@ -173,6 +178,7 @@ class EditableImage {
     this.displayName,
     this.isEdited = false,
     this.compressionQuality = 85,
+    this.isCropped = false,
   });
 
   EditableImage copyWith({
@@ -182,6 +188,7 @@ class EditableImage {
     String? displayName,
     bool? isEdited,
     int? compressionQuality,
+    bool? isCropped,
   }) {
     return EditableImage(
       file: file ?? this.file,
@@ -190,6 +197,7 @@ class EditableImage {
       displayName: displayName ?? this.displayName,
       isEdited: isEdited ?? this.isEdited,
       compressionQuality: compressionQuality ?? this.compressionQuality,
+      isCropped: isCropped ?? this.isCropped,
     );
   }
 
@@ -205,6 +213,19 @@ class EditableImage {
   Future<int> getSize() async {
     final bytes = await getBytes();
     return bytes.length;
+  }
+}
+
+/// Format bytes to human readable string
+String _formatFileSize(int bytes) {
+  if (bytes < 1024) {
+    return '$bytes B';
+  } else if (bytes < 1024 * 1024) {
+    return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  } else if (bytes < 1024 * 1024 * 1024) {
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  } else {
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 }
 
@@ -689,6 +710,43 @@ class ImagePickerEditor extends HookConsumerWidget {
       }
     }
 
+    Future<void> editImage(EditableImage image, {bool cropOnly = false}) async {
+      final bytes = await image.getBytes();
+
+      if (!context.mounted) return;
+
+      await Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (editorContext) => ProImageEditor.memory(
+            bytes,
+            callbacks: ProImageEditorCallbacks(
+              onImageEditingComplete: (Uint8List editedBytes) async {
+                final idx = images.value.indexWhere((i) => i.id == image.id);
+                if (idx != -1) {
+                  final updatedImages = [...images.value];
+                  updatedImages[idx] = images.value[idx].copyWith(
+                    editedBytes: editedBytes,
+                    isEdited: true,
+                    isCropped: true,
+                  );
+                  images.value = updatedImages;
+                }
+              },
+              onCloseEditor: (editorMode) {
+                Navigator.pop(editorContext);
+              },
+            ),
+            configs: createImageEditorConfigs(
+              context,
+              config: config,
+              allowedAspectRatios: config.allowedAspectRatios,
+            ),
+          ),
+        ),
+      );
+    }
+
     void pickImages() async {
       showLoadingModal(context);
       final ImagePicker picker = ImagePicker();
@@ -729,52 +787,36 @@ class ImagePickerEditor extends HookConsumerWidget {
         );
       }).toList();
 
+      // Check if cropping is required
+      final croppingRequired =
+          config.allowedAspectRatios != null &&
+          config.allowedAspectRatios!.isNotEmpty;
+
       if (!config.allowMultiple) {
         images.value = newImages;
         if (context.mounted) {
           hideLoadingModal(context);
+        }
+        // Auto-open crop editor if cropping is required
+        if (croppingRequired && newImages.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            editImage(newImages.first);
+          });
         }
         return;
       }
 
       images.value = [...images.value, ...newImages];
       if (context.mounted) hideLoadingModal(context);
-    }
 
-    Future<void> editImage(EditableImage image) async {
-      final bytes = await image.getBytes();
-
-      if (!context.mounted) return;
-
-      await Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (editorContext) => ProImageEditor.memory(
-            bytes,
-            callbacks: ProImageEditorCallbacks(
-              onImageEditingComplete: (Uint8List editedBytes) async {
-                final idx = images.value.indexWhere((i) => i.id == image.id);
-                if (idx != -1) {
-                  final updatedImages = [...images.value];
-                  updatedImages[idx] = images.value[idx].copyWith(
-                    editedBytes: editedBytes,
-                    isEdited: true,
-                  );
-                  images.value = updatedImages;
-                }
-              },
-              onCloseEditor: (editorMode) {
-                Navigator.pop(editorContext);
-              },
-            ),
-            configs: createImageEditorConfigs(
-              context,
-              config: config,
-              allowedAspectRatios: config.allowedAspectRatios,
-            ),
-          ),
-        ),
-      );
+      // Auto-open crop editor for each new image if cropping is required
+      if (croppingRequired && newImages.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          for (final image in newImages) {
+            editImage(image);
+          }
+        });
+      }
     }
 
     void showCompressionDialog(EditableImage image) {
@@ -832,6 +874,11 @@ class ImagePickerEditor extends HookConsumerWidget {
         compressionQuality: config.defaultCompressionQuality,
       );
 
+      // Check if cropping is required
+      final croppingRequired =
+          config.allowedAspectRatios != null &&
+          config.allowedAspectRatios!.isNotEmpty;
+
       if (!config.allowMultiple) {
         images.value = [newImage];
       } else {
@@ -839,103 +886,140 @@ class ImagePickerEditor extends HookConsumerWidget {
       }
 
       if (context.mounted) hideLoadingModal(context);
+
+      // Auto-open crop editor if cropping is required
+      if (croppingRequired) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          editImage(newImage);
+        });
+      }
     }
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 16,
-              left: 20,
-              right: 8,
-              bottom: 12,
-            ),
-            child: Row(
-              children: [
-                Text(
-                  title ?? 'pickImage'.tr(),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const Spacer(),
-                if (config.maxImages != null)
-                  Text(
-                    '${images.value.length}/${config.maxImages}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).hintColor,
-                    ),
-                  ),
-                IconButton(
-                  icon: const Icon(Symbols.close),
-                  onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(
-                    minimumSize: const Size(36, 36),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
+    // Check if camera is available (mobile only)
+    final isCameraAvailable = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+    // Calculate if cropping is required and the target aspect ratio
+    final requiresCropping =
+        config.allowedAspectRatios != null &&
+        config.allowedAspectRatios!.isNotEmpty;
+    final targetAspectRatio = requiresCropping
+        ? config.allowedAspectRatios!.first.ratio
+        : null;
+
+    // Check if all images are cropped when cropping is required
+    final allImagesCropped =
+        !requiresCropping || images.value.every((img) => img.isCropped);
+
+    return SheetScaffold(
+      titleText: title ?? 'pickImage'.tr(),
+      actions: [
+        if (config.maxImages != null)
+          Text(
+            '${images.value.length}/${config.maxImages}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).hintColor,
             ),
           ),
-          const Divider(),
-
-          // Content
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Upload progress
-                  if (uploadOverallProgress != null)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'uploadingProgress'.tr(
-                              args: [
-                                ((uploadPosition.value ?? 0) + 1).toString(),
-                                images.value.length.toString(),
-                              ],
-                            ),
-                          ).opacity(0.85),
-                          const Gap(6),
-                          LinearProgressIndicator(value: uploadOverallProgress),
+      ],
+      heightFactor: 0.7,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Upload progress
+            if (uploadOverallProgress != null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'uploadingProgress'.tr(
+                        args: [
+                          ((uploadPosition.value ?? 0) + 1).toString(),
+                          images.value.length.toString(),
                         ],
                       ),
-                    ),
+                    ).opacity(0.85),
+                    const Gap(6),
+                    LinearProgressIndicator(value: uploadOverallProgress),
+                  ],
+                ),
+              ),
 
-                  // Selected images preview
-                  if (images.value.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'selectedImages'.tr(),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          if (uploadOverallProgress == null)
-                            FilledButton.icon(
-                              onPressed: startUpload,
-                              icon: const Icon(Symbols.cloud_upload, size: 18),
-                              label: Text('upload'.tr()),
+            // Selected images preview
+            if (images.value.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    const Icon(Symbols.image).padding(horizontal: 4),
+                    FutureBuilder<int>(
+                      future: Future.wait(
+                        images.value.map((img) => img.getSize()),
+                      ).then((sizes) => sizes.fold<int>(0, (a, b) => a + b)),
+                      builder: (context, snapshot) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'selectedImages'.tr(),
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
-                        ],
-                      ),
+                            if (snapshot.hasData)
+                              Text(
+                                _formatFileSize(snapshot.data!),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context).hintColor,
+                                    ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
-                    const Gap(12),
+                    const Spacer(),
+                    if (uploadOverallProgress == null)
+                      FilledButton.icon(
+                        onPressed: allImagesCropped ? startUpload : null,
+                        icon: const Icon(Symbols.cloud_upload, size: 18),
+                        label: Text('upload'.tr()),
+                      ),
+                  ],
+                ),
+              ),
 
-                    // Images grid
-                    SizedBox(
+              // Crop required hint
+              if (!allImagesCropped && uploadOverallProgress == null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Symbols.crop,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const Gap(8),
+                      Text(
+                        'cropRequiredHint'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              const Gap(8),
+
+              // Images grid
+              config.allowMultiple
+                  ? SizedBox(
                       height: 180,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
@@ -946,6 +1030,7 @@ class ImagePickerEditor extends HookConsumerWidget {
                           final image = images.value[index];
                           return _ImagePreviewCard(
                             image: image,
+                            aspectRatio: targetAspectRatio,
                             onEdit: uploadOverallProgress == null
                                 ? () => editImage(image)
                                 : null,
@@ -960,68 +1045,95 @@ class ImagePickerEditor extends HookConsumerWidget {
                           );
                         },
                       ),
+                    )
+                  : ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 280),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: AspectRatio(
+                          aspectRatio: targetAspectRatio ?? 1.0,
+                          child: _ImagePreviewCard(
+                            image: images.value.first,
+                            isFullWidth: true,
+                            aspectRatio:
+                                null, // Don't apply aspect ratio inside the card
+                            onEdit: uploadOverallProgress == null
+                                ? () => editImage(images.value.first)
+                                : null,
+                            onDelete: uploadOverallProgress == null
+                                ? () => removeImage(images.value.first.id)
+                                : null,
+                            onCompression:
+                                config.allowCompression &&
+                                    uploadOverallProgress == null
+                                ? () =>
+                                      showCompressionDialog(images.value.first)
+                                : null,
+                          ),
+                        ),
+                      ).alignment(Alignment.centerLeft),
+                    ),
+            ],
+
+            // Empty state
+            if (images.value.isEmpty)
+              Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Symbols.photo_library,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.outline,
                     ),
                     const Gap(16),
-                  ],
-
-                  // Empty state
-                  if (images.value.isEmpty)
-                    Center(
-                      child: Column(
-                        children: [
-                          Icon(
-                            Symbols.photo_library,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          const Gap(16),
-                          Text(
-                            'noImagesSelected'.tr(),
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: Theme.of(context).hintColor),
-                          ),
-                          const Gap(8),
-                          Text(
-                            config.allowMultiple
-                                ? 'selectImagesHint'.tr()
-                                : 'selectImageHint'.tr(),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Theme.of(context).hintColor),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                    Text(
+                      'noImagesSelected'.tr(),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).hintColor,
                       ),
-                    ).padding(vertical: 48),
-
-                  // Action buttons
-                  Card(
-                    margin: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Symbols.photo_library),
-                          title: Text('pickFromGallery'.tr()),
-                          subtitle: config.allowMultiple
-                              ? Text('pickMultipleHint'.tr())
-                              : null,
-                          onTap: pickImages,
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Symbols.camera_alt),
-                          title: Text('takePhoto'.tr()),
-                          onTap: takePhoto,
-                        ),
-                      ],
                     ),
-                  ),
+                    const Gap(8),
+                    Text(
+                      config.allowMultiple
+                          ? 'selectImagesHint'.tr()
+                          : 'selectImageHint'.tr(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).hintColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ).padding(vertical: 48),
 
-                  const Gap(16),
+            // Action buttons
+            Card(
+              margin: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Symbols.photo_library),
+                    title: Text('pickFromGallery'.tr()),
+                    subtitle: config.allowMultiple
+                        ? Text('pickMultipleHint'.tr())
+                        : null,
+                    onTap: pickImages,
+                  ),
+                  if (isCameraAvailable) ...[
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Symbols.camera_alt),
+                      title: Text('takePhoto'.tr()),
+                      onTap: takePhoto,
+                    ),
+                  ],
                 ],
               ),
             ),
-          ),
-        ],
+
+            const Gap(16),
+          ],
+        ),
       ),
     );
   }
@@ -1062,15 +1174,18 @@ class _CompressionDialog extends HookWidget {
           Row(
             children: [
               Expanded(
-                child: Slider(
-                  value: quality.value.toDouble(),
-                  min: 10,
-                  max: 100,
-                  divisions: 18,
-                  label: '${quality.value}%',
-                  onChanged: (value) {
-                    quality.value = value.toInt();
-                  },
+                child: SliderTheme(
+                  data: SliderThemeData(year2023: true),
+                  child: Slider(
+                    value: quality.value.toDouble(),
+                    min: 10,
+                    max: 100,
+                    divisions: 18,
+                    label: '${quality.value}%',
+                    onChanged: (value) {
+                      quality.value = value.toInt();
+                    },
+                  ),
                 ),
               ),
               Text('${quality.value}%'),
@@ -1113,18 +1228,146 @@ class _ImagePreviewCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onCompression;
+  final bool isFullWidth;
+  final double? aspectRatio;
 
   const _ImagePreviewCard({
     required this.image,
     this.onEdit,
     this.onDelete,
     this.onCompression,
+    this.isFullWidth = false,
+    this.aspectRatio,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget imageContent = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Image preview
+          FutureBuilder<Uint8List>(
+            future: image.getBytes(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Image.memory(snapshot.data!, fit: BoxFit.cover);
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
+
+          // Edited indicator
+          if (image.isEdited)
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.edit,
+                      size: 12,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    const Gap(4),
+                    Text(
+                      'edited'.tr(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Compression quality indicator
+          if (onCompression != null)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: onCompression,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${image.compressionQuality}%',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Action buttons overlay
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                ),
+              ),
+              child: Row(
+                spacing: 6,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (onEdit != null)
+                    _ActionButton(
+                      icon: Symbols.edit,
+                      onTap: onEdit!,
+                      tooltip: 'edit'.tr(),
+                    ),
+                  if (onDelete != null)
+                    _ActionButton(
+                      icon: Symbols.delete,
+                      onTap: onDelete!,
+                      tooltip: 'delete'.tr(),
+                      color: Colors.red,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Wrap in AspectRatio if specified
+    if (aspectRatio != null) {
+      imageContent = AspectRatio(
+        aspectRatio: aspectRatio!,
+        child: imageContent,
+      );
+    }
+
     return Container(
-      width: 140,
+      width: isFullWidth ? double.infinity : 140,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
@@ -1135,123 +1378,7 @@ class _ImagePreviewCard extends StatelessWidget {
           width: image.isEdited ? 2 : 1,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Image preview
-            FutureBuilder<Uint8List>(
-              future: image.getBytes(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Image.memory(snapshot.data!, fit: BoxFit.cover);
-                }
-                return const Center(child: CircularProgressIndicator());
-              },
-            ),
-
-            // Edited indicator
-            if (image.isEdited)
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.edit,
-                        size: 12,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                      const Gap(4),
-                      Text(
-                        'edited'.tr(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // Compression quality indicator
-            if (onCompression != null)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: onCompression,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${image.compressionQuality}%',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-            // Action buttons overlay
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [Colors.black.withOpacity(0.7), Colors.transparent],
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    if (onEdit != null)
-                      _ActionButton(
-                        icon: Symbols.edit,
-                        onTap: onEdit!,
-                        tooltip: 'edit'.tr(),
-                      ),
-                    if (onDelete != null)
-                      _ActionButton(
-                        icon: Symbols.delete,
-                        onTap: onDelete!,
-                        tooltip: 'delete'.tr(),
-                        color: Colors.red,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: imageContent,
     );
   }
 }

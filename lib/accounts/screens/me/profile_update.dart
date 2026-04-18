@@ -7,12 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
-import 'package:island/core/services/image.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/drive/drive_service.dart';
 import 'package:island/core/services/timezone.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
@@ -46,47 +43,43 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
     final submitting = useState(false);
 
     void updateProfilePicture(String position) async {
-      showLoadingModal(context);
-      var result = await ref
-          .read(imagePickerProvider)
-          .pickImage(source: ImageSource.gallery);
-      if (result == null) {
-        if (context.mounted) hideLoadingModal(context);
-        return;
-      }
-      if (!context.mounted) return;
-      hideLoadingModal(context);
-      result = await cropImage(
+      final result = await showImagePickerEditor(
         context,
-        image: result,
-        allowedAspectRatios: [
-          if (position == 'background')
-            const ImageAspectRatio(height: 7, width: 16)
-          else
-            const ImageAspectRatio(height: 1, width: 1),
-        ],
+        config: position == 'background'
+            ? const ImageEditorConfig(
+                allowedAspectRatios: [ImageAspectRatio(width: 16, height: 7)],
+                allowMultiple: false,
+                allowCompression: true,
+                defaultCompressionQuality: 85,
+                enablePaint: false,
+                enableText: false,
+                enableEmoji: false,
+                enableFilters: false,
+                enableBlur: false,
+                enableAdjustments: false,
+              )
+            : const ImageEditorConfig(
+                allowedAspectRatios: [ImageAspectRatio.square],
+                allowMultiple: false,
+                allowCompression: true,
+                defaultCompressionQuality: 90,
+                enablePaint: false,
+                enableText: false,
+                enableEmoji: false,
+                enableFilters: false,
+                enableBlur: false,
+                enableAdjustments: false,
+              ),
+        title: position == 'background'
+            ? 'settingsBackgroundImage'.tr()
+            : 'accountProfile'.tr(),
       );
-      if (result == null) {
-        if (context.mounted) hideLoadingModal(context);
-        return;
-      }
-      if (!context.mounted) return;
-      showLoadingModal(context);
+      if (result == null) return;
 
+      showLoadingModal(context);
       submitting.value = true;
       try {
-        final cloudFile = await ref
-            .read(driveFileUploaderProvider)
-            .createCloudFile(
-              fileData: UniversalFile(
-                data: result,
-                type: UniversalFileType.image,
-              ),
-            )
-            .future;
-        if (cloudFile == null) {
-          throw ArgumentError('Failed to upload the file...');
-        }
+        final cloudFile = result as SnCloudFile;
         final client = ref.watch(apiClientProvider);
         await client.patch(
           '/passport/accounts/me/profile',

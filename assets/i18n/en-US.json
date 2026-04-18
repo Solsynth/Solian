@@ -2715,5 +2715,6 @@
   "imageEditorFontSize": "Font Size",
   "imageEditorBackground": "Background",
   "imageEditorSelectEmoji": "Select Emoji",
-  "imageEditorLoading": "Processing..."
+  "imageEditorLoading": "Processing...",
+  "cropRequiredHint": "Please crop the image before uploading"
 }
