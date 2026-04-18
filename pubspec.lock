@@ -2613,6 +2613,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  pro_image_editor:
+    dependency: "direct main"
+    description:
+      name: pro_image_editor
+      sha256: d8c7f3ab27a95e227e7d0cef9f96ae59e1b2d4c1b410f589b516f8e6c488f710
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.13.0"
   process_run:
     dependency: "direct main"
     description:

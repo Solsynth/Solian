@@ -2666,5 +2666,18 @@
   "notificationCustomTopicError": "Please enter both topic and description",
   "settingsMediaProxy": "Media Proxy",
   "settingsMediaProxyHelper": "Media proxy will run a local HTTP server on your device, to support streaming cache, provides better media playback experience.",
-  "openFullPost": "Open full post"
+  "openFullPost": "Open full post",
+  "project": "Project",
+  "pickImage": "Pick Image",
+  "selectedImages": "Selected Images",
+  "noImagesSelected": "No images selected",
+  "selectImageHint": "Tap below to select an image",
+  "selectImagesHint": "Tap below to select images",
+  "pickFromGallery": "Pick from Gallery",
+  "pickMultipleHint": "You can select multiple images",
+  "takePhoto": "Take Photo",
+  "compressionSettings": "Compression Settings",
+  "compressionQuality": "Compression Quality",
+  "compressionHint": "Higher quality means larger file size",
+  "maxImagesError": "You can only select up to {} images"
 }

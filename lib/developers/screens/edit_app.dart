@@ -1,4 +1,4 @@
-import 'package:croppy/croppy.dart' hide cropImage;
+import 'package:island/core/widgets/content/image_picker_editor.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -126,9 +126,9 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
         image: result,
         allowedAspectRatios: [
           if (position == 'background')
-            const CropAspectRatio(height: 7, width: 16)
+            const ImageAspectRatio(height: 7, width: 16)
           else
-            const CropAspectRatio(height: 1, width: 1),
+            const ImageAspectRatio(height: 1, width: 1),
         ],
       );
       if (result == null) {

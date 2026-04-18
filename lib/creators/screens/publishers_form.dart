@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:croppy/croppy.dart' hide cropImage;
+import 'package:island/core/widgets/content/image_picker_editor.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
@@ -79,9 +79,9 @@ class EditPublisherScreen extends HookConsumerWidget {
         replacePath: true,
         allowedAspectRatios: [
           if (position == 'background')
-            CropAspectRatio(height: 7, width: 16)
+            const ImageAspectRatio(height: 7, width: 16)
           else
-            CropAspectRatio(height: 1, width: 1),
+            const ImageAspectRatio(height: 1, width: 1),
         ],
       );
       if (result == null) {

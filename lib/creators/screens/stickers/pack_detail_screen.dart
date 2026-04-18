@@ -41,7 +41,7 @@ class CreatorStickerPackDetailScreen extends HookConsumerWidget {
                 ),
               ).then((value) {
                 if (value != null) {
-                  ref.refresh(stickerPackContentProvider(packId).future);
+                  ref.invalidate(stickerPackContentProvider(packId));
                 }
               });
             },
