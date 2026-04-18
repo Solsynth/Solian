@@ -201,15 +201,15 @@ class SettingsScreen extends HookConsumerWidget {
             items: [
               DropdownItem<String>(
                 value: 'bubble',
-                child: Text('Bubble').fontSize(14),
+                child: Text('settingsMessageDisplayStyleBubble').tr().fontSize(14),
               ),
               DropdownItem<String>(
                 value: 'column',
-                child: Text('Column').fontSize(14),
+                child: Text('settingsMessageDisplayStyleColumn').tr().fontSize(14),
               ),
               DropdownItem<String>(
                 value: 'compact',
-                child: Text('Compact').fontSize(14),
+                child: Text('settingsMessageDisplayStyleCompact').tr().fontSize(14),
               ),
             ],
             valueListenable: ValueNotifier<String>(
@@ -244,11 +244,11 @@ class SettingsScreen extends HookConsumerWidget {
             items: [
               DropdownItem<String>(
                 value: 'row',
-                child: Text('Row').fontSize(14),
+                child: Text('settingsAttachmentsListStyleRow').tr().fontSize(14),
               ),
               DropdownItem<String>(
                 value: 'column',
-                child: Text('Column').fontSize(14),
+                child: Text('settingsAttachmentsListStyleColumn').tr().fontSize(14),
               ),
             ],
             valueListenable: ValueNotifier<String>(
@@ -881,27 +881,27 @@ class SettingsScreen extends HookConsumerWidget {
       // Show chat event/system messages settings
       ListTile(
         minLeadingWidth: 48,
-        title: const Text('Show Chat Event Messages'),
+        title: const Text('settingsShowChatEventMessages').tr(),
         subtitle: const Text(
-          'Choose visibility level for event/system messages',
-        ),
+          'ShowChatEventsMessagesHelper',
+        ).tr(),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         leading: const Icon(Symbols.info),
         trailing: DropdownButtonHideUnderline(
           child: DropdownButton2<String>(
             isExpanded: true,
-            items: const [
+            items: [
               DropdownItem<String>(
                 value: kChatEventMessageModeVerbose,
-                child: Text('Verbose'),
+                child: Text('settingsChatEventMessageModeVerbose').tr(),
               ),
               DropdownItem<String>(
                 value: kChatEventMessageModeImportant,
-                child: Text('Important'),
+                child: Text('settingsChatEventMessageModeImportant').tr(),
               ),
               DropdownItem<String>(
                 value: kChatEventMessageModeNone,
-                child: Text('None'),
+                child: Text('settingsChatEventMessageModeNone').tr(),
               ),
             ],
             valueListenable: ValueNotifier<String>(
