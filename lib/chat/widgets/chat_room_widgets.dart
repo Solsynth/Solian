@@ -45,6 +45,7 @@ class ChatRoomAvatar extends StatelessWidget {
         loading: () => false,
         error: (_, _) => false,
       ),
+      label: Text('${summary.value?.unreadCount ?? 0}'),
       child: avatarChild,
     );
 
@@ -126,13 +127,6 @@ class ChatRoomSubtitle extends StatelessWidget {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (data.unreadCount > 0)
-                      Text(
-                        'unreadMessages'.plural(data.unreadCount),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
                     if (data.lastMessage == null)
                       Text(
                         room.description ?? 'descriptionNone'.tr(),

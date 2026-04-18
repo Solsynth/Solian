@@ -12,6 +12,7 @@ import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:island/realms/models/realm_overview.dart';
+import 'package:island/realms/widgets/realm_form_content.dart';
 import 'package:island/realms/widgets/realm_label.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:auto_route/auto_route.dart';
@@ -1112,7 +1113,12 @@ class _RealmActionMenu extends HookConsumerWidget {
         if (isModerator)
           PopupMenuItem(
             onTap: () {
-              context.router.push(RealmEditRoute(slug: realmSlug));
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useRootNavigator: true,
+                builder: (_) => _RealmEditSheet(slug: realmSlug),
+              );
             },
             child: Row(
               children: [
@@ -2020,6 +2026,35 @@ class _RealmBoostSheet extends HookConsumerWidget {
               label: const Text('Donate boost'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RealmEditSheet extends HookConsumerWidget {
+  final String? slug;
+
+  const _RealmEditSheet({this.slug});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SheetScaffold(
+      titleText: slug == null ? 'createRealm'.tr() : 'editRealm'.tr(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 16,
+        ),
+        child: RealmFormContent(
+          slug: slug,
+          isInSheet: true,
+          onSubmit: () {
+            if (slug == null) {
+              ref.invalidate(realmsJoinedProvider);
+            } else {
+              ref.invalidate(realmOverviewProvider(slug!));
+            }
+          },
         ),
       ),
     );
