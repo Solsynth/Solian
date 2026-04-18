@@ -11,6 +11,7 @@ import 'package:island/developers/models/dev_project.dart';
 import 'package:island/developers/models/developer.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -65,14 +66,10 @@ class DeveloperHubListScreen extends StatelessWidget {
 
 class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final SnDeveloper? currentDeveloper;
-  final SnDevProject? currentProject;
-  final ValueChanged<SnDevProject?> onProjectChanged;
   final ValueChanged<SnDeveloper?> onDeveloperChanged;
 
   const _ConsoleAppBar({
     required this.currentDeveloper,
-    required this.currentProject,
-    required this.onProjectChanged,
     required this.onDeveloperChanged,
   });
 
@@ -82,15 +79,23 @@ class _ConsoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: const PageBackButton(),
+      leading: IconButton(
+        icon: const Icon(Symbols.menu),
+        onPressed: () {
+          rootScaffoldKey.currentState?.openDrawer();
+        },
+      ),
       title: Text('developerHub').tr(),
       actions: [
-        if (currentProject != null)
-          ProjectSelector(
-            currentDeveloper: currentDeveloper,
-            currentProject: currentProject,
-            onProjectChanged: onProjectChanged,
-          ),
+        DeveloperSelector(
+          isReadOnly: false,
+          currentDeveloper: currentDeveloper,
+          onDeveloperChanged: (value) {
+            // Close all nested routes and clear project focus when switching developers
+            context.router.navigate(const DeveloperHubListRoute());
+            onDeveloperChanged(value);
+          },
+        ),
         const Gap(8),
       ],
     );
@@ -126,7 +131,7 @@ class _MainContentSection extends HookConsumerWidget {
                 child: _DeveloperUnselectedWidget(
                   onDeveloperSelected: onDeveloperSelected,
                 ),
-              ).center()
+              ).alignment(Alignment.topCenter)
             : Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -236,18 +241,28 @@ class DeveloperSelector extends HookConsumerWidget {
           .map(
             (item) => DropdownItem<SnDeveloper>(
               value: item,
-              child: ListTile(
-                minTileHeight: 48,
-                leading: ProfilePictureWidget(
-                  radius: 16,
-                  file: item.publisher?.picture,
-                ),
-                title: Text(item.publisher!.nick),
-                subtitle: Text('@${item.publisher!.name}'),
-                trailing: currentDeveloper?.id == item.id
-                    ? const Icon(Icons.check)
-                    : null,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item.publisher?.nick ?? '',
+                    style: DefaultTextStyle.of(context).style.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    '@${item.publisher?.name ?? ''}',
+                    style: DefaultTextStyle.of(context).style.copyWith(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           )
@@ -263,50 +278,71 @@ class DeveloperSelector extends HookConsumerWidget {
       ).center().padding(right: 8);
     }
 
+    // Ensure the selected value is valid
+    final currentValue = currentDeveloper;
+    final isValueValid =
+        currentValue != null &&
+        developersMenu.any((item) => item.value?.id == currentValue.id);
+
     return DropdownButtonHideUnderline(
       child: DropdownButton2<SnDeveloper>(
-        alignment: Alignment.centerRight,
-        valueListenable: ValueNotifier(currentDeveloper),
-        hint: CircleAvatar(
-          radius: 16,
-          child: Icon(
-            Symbols.person,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSecondaryContainer.withOpacity(0.9),
-            fill: 1,
+        valueListenable: ValueNotifier<SnDeveloper?>(
+          isValueValid ? currentValue : null,
+        ),
+        customButton: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: const BorderRadius.all(Radius.circular(20)),
           ),
-        ).center().padding(right: 8),
-        items: [...developersMenu],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              ProfilePictureWidget(
+                radius: 10,
+                file: isValueValid ? currentValue.publisher?.picture : null,
+              ),
+              Flexible(
+                child: Text(
+                  isValueValid
+                      ? currentValue.publisher!.nick
+                      : 'Select Developer',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                Symbols.keyboard_arrow_down,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+        items: developersMenu,
         onChanged: onDeveloperChanged,
-        selectedItemBuilder: (context) {
-          return [
-            ...developersMenu.map(
-              (e) => ProfilePictureWidget(
-                radius: 16,
-                file: e.value?.publisher?.picture,
-              ).center().padding(right: 8),
-            ),
-          ];
-        },
-        buttonStyleData: ButtonStyleData(
-          height: 40,
-          padding: const EdgeInsets.only(left: 14, right: 8),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+        isDense: true,
+        buttonStyleData: const ButtonStyleData(
+          padding: EdgeInsets.zero,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
         ),
         dropdownStyleData: DropdownStyleData(
-          width: 320,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
+          maxHeight: 300,
+          width: 240,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surfaceContainer,
+          ),
         ),
         menuItemStyleData: const MenuItemStyleData(
-          padding: EdgeInsets.only(left: 14, right: 14),
-        ),
-        iconStyleData: IconStyleData(
-          icon: Icon(Icons.arrow_drop_down),
-          iconSize: 19,
-          iconEnabledColor: Theme.of(context).appBarTheme.foregroundColor!,
-          iconDisabledColor: Theme.of(context).appBarTheme.foregroundColor!,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
     );
@@ -358,21 +394,7 @@ class ProjectSelector extends HookConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             spacing: 6,
             children: [
-              CircleAvatar(
-                radius: 10,
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                child: Text(
-                  isValueValid && currentValue.name.isNotEmpty
-                      ? currentValue.name[0].toUpperCase()
-                      : '?',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-              ),
-              Flexible(
+              Expanded(
                 child: Text(
                   isValueValid ? currentValue.name : 'Select Project',
                   style: TextStyle(
@@ -873,12 +895,9 @@ class DeveloperHubContentWidget extends HookConsumerWidget {
     return AppScaffold(
       appBar: _ConsoleAppBar(
         currentDeveloper: currentDeveloper.value,
-        currentProject: currentProject.value,
-        onProjectChanged: (value) {
-          currentProject.value = value;
-        },
         onDeveloperChanged: (value) {
           currentDeveloper.value = value;
+          currentProject.value = null;
         },
       ),
       body: Column(
@@ -906,6 +925,7 @@ class DeveloperHubContentWidget extends HookConsumerWidget {
                   },
                   onDeveloperSelected: (developer) {
                     currentDeveloper.value = developer;
+                    currentProject.value = null;
                   },
                   onCreateProject: () {
                     if (currentDeveloper.value != null) {
@@ -935,6 +955,37 @@ class DeveloperHubContentWidget extends HookConsumerWidget {
             ),
         ],
       ),
+      bottomNavigationBar: currentDeveloper.value != null
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(64),
+              child: BottomAppBar(
+                height: 64,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      'project',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ).tr(),
+                    const Gap(8),
+                    Expanded(
+                      child: ProjectSelector(
+                        currentDeveloper: currentDeveloper.value,
+                        currentProject: currentProject.value,
+                        onProjectChanged: (value) {
+                          // Close all nested routes when switching projects
+                          context.router.navigate(
+                            const DeveloperHubListRoute(),
+                          );
+                          currentProject.value = value;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

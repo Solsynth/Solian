@@ -930,13 +930,20 @@ class CreatorHubContentWidget extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: true,
       appBar: AppBar(
-        leading: const PageBackButton(),
+        leading: IconButton(
+          icon: const Icon(Symbols.menu),
+          onPressed: () {
+            rootScaffoldKey.currentState?.openDrawer();
+          },
+        ),
         title: Text('creatorHub').tr(),
         actions: [
           PublisherSelector(
             currentPublisher: currentPublisher.value,
             publishersMenu: publishersMenu,
             onChanged: (value) {
+              // Close all nested routes when switching publishers
+              context.router.navigate(const CreatorHubListRoute());
               currentPublisher.value = value;
             },
           ),
