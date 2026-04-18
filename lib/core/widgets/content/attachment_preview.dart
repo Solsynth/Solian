@@ -694,8 +694,8 @@ class AttachmentPreview extends HookConsumerWidget {
         children: [
           if (item.isOnDevice && item.type == UniversalFileType.image)
             MenuAction(
-              title: 'crop'.tr(),
-              image: MenuImage.icon(Symbols.crop),
+              title: 'edit'.tr(),
+              image: MenuImage.icon(Symbols.edit),
               callback: () async {
                 final result = await cropImage(
                   context,
