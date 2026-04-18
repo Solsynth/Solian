@@ -2682,6 +2682,7 @@
   "maxImagesError": "You can only select up to {} images",
   "imageEditorCrop": "Crop",
   "imageEditorRotate": "Rotate",
+  "imageEditorFlip": "Flip",
   "imageEditorPaint": "Draw",
   "imageEditorText": "Text",
   "imageEditorEmoji": "Emoji",
