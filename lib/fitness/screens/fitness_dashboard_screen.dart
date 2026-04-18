@@ -10,6 +10,7 @@ import 'package:island/fitness/screens/leaderboard_screen.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 @RoutePage()
 class FitnessDashboardScreen extends ConsumerWidget {
@@ -23,7 +24,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
     final isDismissed = ref.watch(dismissNewDataCardProvider);
 
     return AppScaffold(
-      appBar: AppBar(title: const Text('Fitness')),
+      appBar: AppBar(title: Text('fitness').tr()),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(goalStatsProvider);
@@ -80,7 +81,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'New health data available',
+                        'fitnessNewHealthDataHint'.tr(),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Theme.of(
                             context,
@@ -89,7 +90,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        'Tap to sync your latest workouts and metrics',
+                        'fitnessSyncHint'.tr(),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(
                             context,
@@ -103,7 +104,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
                   onPressed: () {
                     context.router.push(const HealthSyncRoute());
                   },
-                  child: const Text('Sync'),
+                  child: Text('fitnessSync').tr(),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -133,7 +134,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: _StatItem(
-                  label: 'Active Goals',
+                  label: 'ActiveGoals'.tr(),
                   value: stats.activeCount.toString(),
                   icon: Icons.flag,
                   color: Theme.of(context).colorScheme.primary,
@@ -146,7 +147,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: _StatItem(
-                  label: 'Completed',
+                  label: 'Completed'.tr(),
                   value: stats.completedCount.toString(),
                   icon: Icons.check_circle,
                   color: Theme.of(context).colorScheme.tertiary,
@@ -176,7 +177,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
       Expanded(
         child: _ActionCard(
           icon: Icons.flag_outlined,
-          label: 'Goals',
+          label: 'Goals'.tr(),
           onTap: () => context.router.push(const GoalsRoute()),
         ),
       ),
@@ -184,7 +185,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
       Expanded(
         child: _ActionCard(
           icon: Icons.show_chart,
-          label: 'Metrics',
+          label: 'Metrics'.tr(),
           onTap: () => context.router.push(const MetricsRoute()),
         ),
       ),
@@ -196,7 +197,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
         Expanded(
           child: _ActionCard(
             icon: Icons.cloud_upload_outlined,
-            label: 'Import',
+            label: 'Import'.tr(),
             onTap: () => context.router.push(const HealthSyncRoute()),
           ),
         ),
@@ -207,7 +208,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          'fitnessQuickActions'.tr(),
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -229,14 +230,14 @@ class FitnessDashboardScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Workouts',
+              'RecentWorkouts'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             FilledButton.tonal(
               onPressed: () => context.router.push(const WorkoutsRoute()),
-              child: const Text('See All'),
+              child: Text('SeeAll').tr(),
             ),
           ],
         ),
@@ -249,7 +250,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(32),
                   child: Center(
                     child: Text(
-                      'No workouts yet',
+                      'NoWorkoutsHint'.tr(),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -316,14 +317,14 @@ class FitnessDashboardScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Goals',
+              'Goals'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             FilledButton.tonal(
               onPressed: () => context.router.push(const GoalsRoute()),
-              child: const Text('See All'),
+              child: Text('SeeAll'.tr()),
             ),
           ],
         ),
@@ -338,8 +339,8 @@ class FitnessDashboardScreen extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
-            title: const Text('View Goals'),
-            subtitle: const Text('Track your fitness goals'),
+            title: Text('fitnessViewGoals').tr(),
+            subtitle: Text('TrackFitnessGoals').tr(),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.router.push(const GoalsRoute()),
           ),
@@ -356,14 +357,14 @@ class FitnessDashboardScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Metrics',
+              'Metrics'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             FilledButton.tonal(
               onPressed: () => context.router.push(const MetricsRoute()),
-              child: const Text('See All'),
+              child: Text('SeeAll'.tr()),
             ),
           ],
         ),
@@ -378,8 +379,8 @@ class FitnessDashboardScreen extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
-            title: const Text('View Metrics'),
-            subtitle: const Text('Track weight, steps, and more'),
+            title: const Text('ViewMetrics').tr(),
+            subtitle: const Text('fitnessTrackHint').tr(),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.router.push(const MetricsRoute()),
           ),
@@ -393,7 +394,7 @@ class FitnessDashboardScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Leaderboard',
+          'Leaderboard'.tr(),
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -409,8 +410,8 @@ class FitnessDashboardScreen extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.onSecondaryContainer,
               ),
             ),
-            title: const Text('View Leaderboard'),
-            subtitle: const Text('See how you rank against others'),
+            title: Text('ViewLeaderboard'.tr()),
+            subtitle: const Text('ViewLeaderboardHint').tr(),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => showModalBottomSheet(
               context: context,
