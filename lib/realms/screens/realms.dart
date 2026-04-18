@@ -9,6 +9,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/discovery/search.dart';
 import 'package:island/realms/widgets/realm_list_tile.dart';
 import 'package:island/realms/widgets/realm_tile.dart';
+import 'package:island/realms/widgets/realm_form_content.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -109,31 +110,7 @@ class RealmListScreen extends HookConsumerWidget {
                   context: context,
                   isScrollControlled: true,
                   useRootNavigator: true,
-                  builder: (context) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Gap(40),
-                      ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                        ),
-                        leading: const Icon(Symbols.group_add),
-                        title: Text('createRealm').tr(),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          context.router.push(const RealmNewRoute()).then((
-                            value,
-                          ) {
-                            if (value != null) {
-                              // Fire realm refresh event if needed
-                              // eventBus.fire(const RealmsRefreshEvent());
-                            }
-                          });
-                        },
-                      ),
-                      const Gap(16),
-                    ],
-                  ),
+                  builder: (context) => const _RealmCreateSheet(),
                 );
               },
             ).padding(bottom: MediaQuery.of(context).padding.bottom)
@@ -269,6 +246,26 @@ class _RealmInviteSheet extends HookConsumerWidget {
         error: (error, _) => ResponseErrorWidget(
           error: error,
           onRetry: () => ref.invalidate(realmInvitesProvider),
+        ),
+      ),
+    );
+  }
+}
+
+class _RealmCreateSheet extends HookConsumerWidget {
+  const _RealmCreateSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SheetScaffold(
+      titleText: 'createRealm'.tr(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 16,
+        ),
+        child: RealmFormContent(
+          isInSheet: true,
+          onSubmit: () => ref.invalidate(realmsJoinedProvider),
         ),
       ),
     );
