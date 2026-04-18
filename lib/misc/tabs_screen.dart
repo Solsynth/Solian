@@ -25,7 +25,7 @@ class TabsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AutoTabsRouter.pageView(
+    return AutoTabsRouter.tabBar(
       physics: const NeverScrollableScrollPhysics(),
       scrollDirection: isWideScreen(context) ? Axis.vertical : Axis.horizontal,
       routes: [
@@ -39,7 +39,6 @@ class TabsScreen extends StatelessWidget {
         CreatorHubRoute(),
         DeveloperHubRoute(),
       ],
-      duration: const Duration(milliseconds: 400),
       builder: (context, child, _) {
         return _TabsScreenContent(child: child);
       },
