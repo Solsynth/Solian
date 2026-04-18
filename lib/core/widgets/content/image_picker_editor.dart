@@ -763,6 +763,9 @@ class ImagePickerEditor extends HookConsumerWidget {
                   images.value = updatedImages;
                 }
               },
+              onCloseEditor: (editorMode) {
+                Navigator.pop(editorContext);
+              },
             ),
             configs: createImageEditorConfigs(
               context,
