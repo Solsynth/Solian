@@ -89,7 +89,6 @@ dependencies:
   open_file: ^3.5.11
   collection: ^1.19.1
   markdown_editor_plus: ^0.2.15
-  croppy: ^1.5.1
   pro_image_editor: ^9.0.0
   table_calendar: ^3.2.0
   relative_time: ^5.0.0

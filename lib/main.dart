@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -359,7 +358,6 @@ class IslandApp extends HookConsumerWidget {
       scrollBehavior: AppScrollBehavior(),
       localizationsDelegates: [
         ...context.localizationDelegates,
-        CroppyLocalizations.delegate,
         RelativeTimeLocalizations.delegate,
       ],
       locale: context.locale,

@@ -6,12 +6,14 @@ import 'package:island/core/widgets/content/image_picker_editor.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
 
 /// Opens the pro_image_editor for cropping and editing an image.
+/// Uses the shared configuration from image_picker_editor.dart for consistent styling.
 /// Returns the edited image as an XFile, or null if cancelled.
 Future<XFile?> cropImage(
   BuildContext context, {
   required XFile image,
   List<ImageAspectRatio>? allowedAspectRatios,
   bool replacePath = true,
+  ImageEditorConfig? config,
 }) async {
   if (!context.mounted) return null;
 
@@ -44,25 +46,10 @@ Future<XFile?> cropImage(
             // Editor is already closing, no need to pop again
           },
         ),
-        configs: ProImageEditorConfigs(
-          designMode: ImageEditorDesignMode.material,
-          theme: Theme.of(context),
-          mainEditor: const MainEditorConfigs(enableCloseButton: true),
-          cropRotateEditor: allowedAspectRatios != null
-              ? CropRotateEditorConfigs(
-                  enabled: true,
-                  aspectRatios: allowedAspectRatios.map((r) {
-                    return AspectRatioItem(text: r.label, value: r.ratio);
-                  }).toList(),
-                )
-              : const CropRotateEditorConfigs(enabled: true),
-          paintEditor: const PaintEditorConfigs(enabled: true),
-          textEditor: const TextEditorConfigs(enabled: true),
-          emojiEditor: const EmojiEditorConfigs(enabled: true),
-          filterEditor: const FilterEditorConfigs(enabled: true),
-          blurEditor: const BlurEditorConfigs(enabled: true),
-          stickerEditor: const StickerEditorConfigs(enabled: true),
-          tuneEditor: const TuneEditorConfigs(enabled: true),
+        configs: createImageEditorConfigs(
+          context,
+          config: config ?? const ImageEditorConfig(),
+          allowedAspectRatios: allowedAspectRatios,
         ),
       ),
     ),
@@ -78,6 +65,7 @@ Future<XFile?> pickAndEditImage(
   List<ImageAspectRatio>? allowedAspectRatios,
   bool allowMultiple = false,
   ImageSource source = ImageSource.gallery,
+  ImageEditorConfig? config,
 }) async {
   final ImagePicker picker = ImagePicker();
 
@@ -96,5 +84,6 @@ Future<XFile?> pickAndEditImage(
     context,
     image: pickedFile,
     allowedAspectRatios: allowedAspectRatios,
+    config: config,
   );
 }

@@ -1,7 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -45,9 +44,6 @@ class ImageEditorConfig {
   /// Whether to enable blur feature
   final bool enableBlur;
 
-  /// Whether to enable sticker feature
-  final bool enableStickers;
-
   /// Whether to enable adjust feature (brightness, contrast, saturation)
   final bool enableAdjustments;
 
@@ -62,7 +58,6 @@ class ImageEditorConfig {
     this.enableEmoji = true,
     this.enableFilters = true,
     this.enableBlur = true,
-    this.enableStickers = true,
     this.enableAdjustments = true,
   });
 
@@ -109,9 +104,38 @@ class ImageEditorConfig {
     enableEmoji: true,
     enableFilters: true,
     enableBlur: true,
-    enableStickers: true,
     enableAdjustments: true,
   );
+
+  /// Copy with modifications
+  ImageEditorConfig copyWith({
+    List<ImageAspectRatio>? allowedAspectRatios,
+    int? maxImages,
+    bool? allowMultiple,
+    bool? allowCompression,
+    int? defaultCompressionQuality,
+    bool? enablePaint,
+    bool? enableText,
+    bool? enableEmoji,
+    bool? enableFilters,
+    bool? enableBlur,
+    bool? enableStickers,
+    bool? enableAdjustments,
+  }) {
+    return ImageEditorConfig(
+      allowedAspectRatios: allowedAspectRatios ?? this.allowedAspectRatios,
+      maxImages: maxImages ?? this.maxImages,
+      allowMultiple: allowMultiple ?? this.allowMultiple,
+      allowCompression: allowCompression ?? this.allowCompression,
+      defaultCompressionQuality: defaultCompressionQuality ?? this.defaultCompressionQuality,
+      enablePaint: enablePaint ?? this.enablePaint,
+      enableText: enableText ?? this.enableText,
+      enableEmoji: enableEmoji ?? this.enableEmoji,
+      enableFilters: enableFilters ?? this.enableFilters,
+      enableBlur: enableBlur ?? this.enableBlur,
+      enableAdjustments: enableAdjustments ?? this.enableAdjustments,
+    );
+  }
 }
 
 /// Represents an aspect ratio for image cropping
@@ -183,17 +207,214 @@ class EditableImage {
   }
 }
 
+/// Creates i18n configuration for pro_image_editor
+I18n createImageEditorI18n(BuildContext context) {
+  return I18n(
+    cancel: 'cancel'.tr(),
+    undo: 'imageEditorUndo'.tr(),
+    redo: 'imageEditorRedo'.tr(),
+    done: 'done'.tr(),
+    doneLoadingMsg: 'imageEditorLoading'.tr(),
+    cropRotateEditor: I18nCropRotateEditor(
+      bottomNavigationBarText: 'imageEditorCrop'.tr(),
+      rotate: 'imageEditorRotate'.tr(),
+      ratio: 'imageEditorFree'.tr(),
+      back: 'back'.tr(),
+    ),
+    paintEditor: I18nPaintEditor(
+      bottomNavigationBarText: 'imageEditorPaint'.tr(),
+      freestyle: 'imageEditorBrush'.tr(),
+      line: 'imageEditorLine'.tr(),
+      lineWidth: 'imageEditorLineWidth'.tr(),
+      back: 'back'.tr(),
+    ),
+    textEditor: I18nTextEditor(
+      bottomNavigationBarText: 'imageEditorText'.tr(),
+      inputHintText: 'imageEditorAddText'.tr(),
+      backgroundMode: 'imageEditorBackground'.tr(),
+      back: 'back'.tr(),
+    ),
+    emojiEditor: I18nEmojiEditor(bottomNavigationBarText: 'imageEditorEmoji'.tr()),
+    filterEditor: I18nFilterEditor(bottomNavigationBarText: 'imageEditorFilters'.tr(), back: 'back'.tr()),
+    blurEditor: I18nBlurEditor(bottomNavigationBarText: 'imageEditorBlur'.tr(), back: 'back'.tr()),
+    tuneEditor: I18nTuneEditor(bottomNavigationBarText: 'imageEditorAdjust'.tr(), back: 'back'.tr()),
+    various: I18nVarious(
+      closeEditorWarningTitle: 'close'.tr(),
+      closeEditorWarningMessage: 'Are you sure you want to close the editor? Your changes will not be saved.',
+      closeEditorWarningConfirmBtn: 'yes'.tr(),
+      closeEditorWarningCancelBtn: 'no'.tr(),
+    ),
+  );
+}
+
+/// Creates editor configs with Material design and black background
+ProImageEditorConfigs createImageEditorConfigs(
+  BuildContext context, {
+  ImageEditorConfig? config,
+  List<ImageAspectRatio>? allowedAspectRatios,
+}) {
+  final effectiveConfig = config ?? const ImageEditorConfig();
+  final colorScheme = Theme.of(context).colorScheme;
+
+  // Create base theme with black background
+  final baseTheme = Theme.of(context).copyWith(
+    scaffoldBackgroundColor: Colors.black,
+    colorScheme: colorScheme.copyWith(surface: Colors.black, surfaceContainerHighest: Colors.grey[900]!),
+  );
+
+  return ProImageEditorConfigs(
+    designMode: ImageEditorDesignMode.material,
+    theme: baseTheme,
+    i18n: createImageEditorI18n(context),
+    mainEditor: MainEditorConfigs(
+      enableCloseButton: true,
+      widgets: MainEditorWidgets(
+        appBar: (state, stream) => ReactiveAppbar(
+          builder: (context) {
+            return AppBar(
+              actions: [
+                IconButton(onPressed: state.canUndo ? state.undoAction : null, icon: const Icon(Symbols.undo)),
+                IconButton(onPressed: state.canRedo ? state.redoAction : null, icon: const Icon(Symbols.redo)),
+                IconButton(onPressed: state.doneEditing, icon: const Icon(Symbols.check)),
+                const Gap(8),
+              ],
+            );
+          },
+          stream: stream,
+        ),
+        bottomBar: (state, stream, key) => ReactiveWidget(
+          stream: stream,
+          builder: (context) {
+            return BottomAppBar(
+              key: key,
+              child: Row(
+                children: [
+                  IconButton(onPressed: state.openPaintEditor, icon: const Icon(Symbols.draw)),
+                  // TODO add buttons to other editors, and add label
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    ),
+    cropRotateEditor: CropRotateEditorConfigs(
+      enabled: true,
+      aspectRatios:
+          allowedAspectRatios?.map((r) {
+            return AspectRatioItem(text: r.label, value: r.ratio);
+          }).toList() ??
+          [],
+      widgets: CropRotateEditorWidgets(
+        appBar: (state, stream) => ReactiveAppbar(
+          builder: (context) {
+            return AppBar(
+              actions: [
+                IconButton(onPressed: state.done, icon: const Icon(Symbols.check)),
+                const Gap(8),
+              ],
+            );
+          },
+          stream: stream,
+        ),
+      ),
+    ),
+    paintEditor: PaintEditorConfigs(
+      enabled: effectiveConfig.enablePaint,
+      widgets: PaintEditorWidgets(
+        appBar: (state, stream) => ReactiveAppbar(
+          builder: (context) {
+            return AppBar(
+              flexibleSpace: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: state.openLinWidthBottomSheet,
+                    icon: const Icon(Symbols.line_weight),
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                  IconButton(
+                    onPressed: state.openOpacityBottomSheet,
+                    icon: const Icon(Symbols.opacity),
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                  IconButton(
+                    onPressed: state.toggleFill,
+                    icon: Icon(Symbols.format_paint, fill: state.fillBackground ? 1 : 0),
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                ],
+              ).padding(vertical: 8),
+              actions: [
+                IconButton(onPressed: state.canUndo ? state.undoAction : null, icon: const Icon(Symbols.undo)),
+                IconButton(onPressed: state.canRedo ? state.redoAction : null, icon: const Icon(Symbols.redo)),
+                IconButton(onPressed: state.done, icon: const Icon(Symbols.check)),
+                const Gap(8),
+              ],
+            );
+          },
+          stream: stream,
+        ),
+      ),
+    ),
+    textEditor: TextEditorConfigs(
+      enabled: effectiveConfig.enableText,
+      widgets: TextEditorWidgets(
+        appBar: (state, stream) => ReactiveAppbar(
+          builder: (context) {
+            return AppBar(
+              flexibleSpace: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: state.toggleTextAlign,
+                    icon: switch (state.align) {
+                      TextAlign.left => const Icon(Symbols.align_start),
+                      TextAlign.center => const Icon(Symbols.align_center),
+                      _ => const Icon(Symbols.align_end),
+                    },
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                  IconButton(
+                    onPressed: state.openFontScaleBottomSheet,
+                    icon: const Icon(Symbols.format_size),
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                  IconButton(
+                    onPressed: state.toggleBackgroundMode,
+                    icon: Icon(Symbols.format_paint, fill: state.backgroundColorMode == .backgroundAndColor ? 1 : 0),
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                ],
+              ).padding(vertical: 8),
+              actions: [
+                IconButton(onPressed: state.done, icon: const Icon(Symbols.check)),
+                const Gap(8),
+              ],
+            );
+          },
+          stream: stream,
+        ),
+      ),
+    ),
+    // TODO update those editors appbar and bottom bars like above
+    emojiEditor: const EmojiEditorConfigs(enabled: false),
+    filterEditor: const FilterEditorConfigs(enabled: false),
+    blurEditor: const BlurEditorConfigs(enabled: false),
+    stickerEditor: const StickerEditorConfigs(enabled: false),
+    tuneEditor: const TuneEditorConfigs(enabled: false),
+  );
+}
+
 /// A dedicated image picker widget with preview and editing capabilities.
 /// Uses pro_image_editor for image editing.
 class ImagePickerEditor extends HookConsumerWidget {
   final ImageEditorConfig config;
   final String? title;
 
-  const ImagePickerEditor({
-    super.key,
-    this.config = const ImageEditorConfig(),
-    this.title,
-  });
+  const ImagePickerEditor({super.key, this.config = const ImageEditorConfig(), this.title});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -207,8 +428,7 @@ class ImagePickerEditor extends HookConsumerWidget {
       }
       final completedProgress = uploadPosition.value! * 100.0;
       final currentProgress = uploadProgress.value!;
-      return (completedProgress + currentProgress) /
-          (images.value.length * 100.0);
+      return (completedProgress + currentProgress) / (images.value.length * 100.0);
     }, [uploadPosition.value, uploadProgress.value, images.value.length]);
 
     Future<void> startUpload() async {
@@ -225,19 +445,12 @@ class ImagePickerEditor extends HookConsumerWidget {
           final image = images.value[idx];
 
           final bytes = await image.getBytes();
-          final xfile = XFile.fromData(
-            bytes,
-            name: image.displayName ?? image.file.name,
-            mimeType: 'image/jpeg',
-          );
+          final xfile = XFile.fromData(bytes, name: image.displayName ?? image.file.name, mimeType: 'image/jpeg');
 
           final cloudFile = await ref
               .read(driveFileUploaderProvider)
               .createCloudFile(
-                fileData: UniversalFile(
-                  data: xfile,
-                  type: UniversalFileType.image,
-                ),
+                fileData: UniversalFile(data: xfile, type: UniversalFileType.image),
                 onProgress: (progress, _) {
                   uploadProgress.value = progress;
                 },
@@ -270,9 +483,7 @@ class ImagePickerEditor extends HookConsumerWidget {
       if (config.allowMultiple) {
         results = await picker.pickMultiImage();
       } else {
-        final XFile? result = await picker.pickImage(
-          source: ImageSource.gallery,
-        );
+        final XFile? result = await picker.pickImage(source: ImageSource.gallery);
         results = result != null ? [result] : [];
       }
 
@@ -282,13 +493,10 @@ class ImagePickerEditor extends HookConsumerWidget {
       }
 
       // Check max images limit
-      if (config.maxImages != null &&
-          images.value.length + results.length > config.maxImages!) {
+      if (config.maxImages != null && images.value.length + results.length > config.maxImages!) {
         if (context.mounted) {
           hideLoadingModal(context);
-          showErrorAlert(
-            'maxImagesError'.tr(args: [config.maxImages.toString()]),
-          );
+          showErrorAlert('maxImagesError'.tr(args: [config.maxImages.toString()]));
         }
         return;
       }
@@ -319,47 +527,22 @@ class ImagePickerEditor extends HookConsumerWidget {
 
       if (!context.mounted) return;
 
-      await Navigator.push(
-        context,
+      await Navigator.of(context, rootNavigator: true).push(
         MaterialPageRoute(
-          builder: (context) => ProImageEditor.memory(
+          fullscreenDialog: true,
+          builder: (editorContext) => ProImageEditor.memory(
             bytes,
             callbacks: ProImageEditorCallbacks(
-              onImageEditingComplete: (Uint8List bytes) async {
+              onImageEditingComplete: (Uint8List editedBytes) async {
                 final idx = images.value.indexWhere((i) => i.id == image.id);
                 if (idx != -1) {
                   final updatedImages = [...images.value];
-                  updatedImages[idx] = images.value[idx].copyWith(
-                    editedBytes: bytes,
-                    isEdited: true,
-                  );
+                  updatedImages[idx] = images.value[idx].copyWith(editedBytes: editedBytes, isEdited: true);
                   images.value = updatedImages;
                 }
-                Navigator.pop(context);
               },
             ),
-            configs: ProImageEditorConfigs(
-              designMode: platformDesignMode,
-              theme: Theme.of(context),
-              mainEditor: const MainEditorConfigs(),
-              cropRotateEditor: CropRotateEditorConfigs(
-                enabled: true,
-                aspectRatios:
-                    config.allowedAspectRatios?.map((r) {
-                      return AspectRatioItem(text: r.label, value: r.ratio);
-                    }).toList() ??
-                    [],
-              ),
-              paintEditor: PaintEditorConfigs(enabled: config.enablePaint),
-              textEditor: TextEditorConfigs(enabled: config.enableText),
-              emojiEditor: EmojiEditorConfigs(enabled: config.enableEmoji),
-              filterEditor: FilterEditorConfigs(enabled: config.enableFilters),
-              blurEditor: BlurEditorConfigs(enabled: config.enableBlur),
-              stickerEditor: StickerEditorConfigs(
-                enabled: config.enableStickers,
-              ),
-              tuneEditor: TuneEditorConfigs(enabled: config.enableAdjustments),
-            ),
+            configs: createImageEditorConfigs(context, config: config, allowedAspectRatios: config.allowedAspectRatios),
           ),
         ),
       );
@@ -376,9 +559,7 @@ class ImagePickerEditor extends HookConsumerWidget {
               final idx = images.value.indexWhere((i) => i.id == image.id);
               if (idx != -1) {
                 final updatedImages = [...images.value];
-                updatedImages[idx] = images.value[idx].copyWith(
-                  compressionQuality: quality,
-                );
+                updatedImages[idx] = images.value[idx].copyWith(compressionQuality: quality);
                 images.value = updatedImages;
               }
             },
@@ -402,13 +583,10 @@ class ImagePickerEditor extends HookConsumerWidget {
       }
 
       // Check max images limit
-      if (config.maxImages != null &&
-          images.value.length + 1 > config.maxImages!) {
+      if (config.maxImages != null && images.value.length + 1 > config.maxImages!) {
         if (context.mounted) {
           hideLoadingModal(context);
-          showErrorAlert(
-            'maxImagesError'.tr(args: [config.maxImages.toString()]),
-          );
+          showErrorAlert('maxImagesError'.tr(args: [config.maxImages.toString()]));
         }
         return;
       }
@@ -430,35 +608,24 @@ class ImagePickerEditor extends HookConsumerWidget {
     }
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7,
-      ),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.only(
-              top: 16,
-              left: 20,
-              right: 8,
-              bottom: 12,
-            ),
+            padding: const EdgeInsets.only(top: 16, left: 20, right: 8, bottom: 12),
             child: Row(
               children: [
                 Text(
                   title ?? 'pickImage'.tr(),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 if (config.maxImages != null)
                   Text(
                     '${images.value.length}/${config.maxImages}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).hintColor,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).hintColor),
                   ),
                 IconButton(
                   icon: const Icon(Symbols.close),
@@ -488,10 +655,7 @@ class ImagePickerEditor extends HookConsumerWidget {
                         children: [
                           Text(
                             'uploadingProgress'.tr(
-                              args: [
-                                ((uploadPosition.value ?? 0) + 1).toString(),
-                                images.value.length.toString(),
-                              ],
+                              args: [((uploadPosition.value ?? 0) + 1).toString(), images.value.length.toString()],
                             ),
                           ).opacity(0.85),
                           const Gap(6),
@@ -507,10 +671,7 @@ class ImagePickerEditor extends HookConsumerWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'selectedImages'.tr(),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
+                          Text('selectedImages'.tr(), style: Theme.of(context).textTheme.titleMedium),
                           if (uploadOverallProgress == null)
                             FilledButton.icon(
                               onPressed: startUpload,
@@ -527,22 +688,16 @@ class ImagePickerEditor extends HookConsumerWidget {
                       height: 180,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         itemCount: images.value.length,
                         separatorBuilder: (_, _) => const Gap(12),
                         itemBuilder: (context, index) {
                           final image = images.value[index];
                           return _ImagePreviewCard(
                             image: image,
-                            onEdit: uploadOverallProgress == null
-                                ? () => editImage(image)
-                                : null,
-                            onDelete: uploadOverallProgress == null
-                                ? () => removeImage(image.id)
-                                : null,
-                            onCompression:
-                                config.allowCompression &&
-                                    uploadOverallProgress == null
+                            onEdit: uploadOverallProgress == null ? () => editImage(image) : null,
+                            onDelete: uploadOverallProgress == null ? () => removeImage(image.id) : null,
+                            onCompression: config.allowCompression && uploadOverallProgress == null
                                 ? () => showCompressionDialog(image)
                                 : null,
                           );
@@ -557,24 +712,16 @@ class ImagePickerEditor extends HookConsumerWidget {
                     Center(
                       child: Column(
                         children: [
-                          Icon(
-                            Symbols.photo_library,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                          Icon(Symbols.photo_library, size: 64, color: Theme.of(context).colorScheme.outline),
                           const Gap(16),
                           Text(
                             'noImagesSelected'.tr(),
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: Theme.of(context).hintColor),
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).hintColor),
                           ),
                           const Gap(8),
                           Text(
-                            config.allowMultiple
-                                ? 'selectImagesHint'.tr()
-                                : 'selectImageHint'.tr(),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Theme.of(context).hintColor),
+                            config.allowMultiple ? 'selectImagesHint'.tr() : 'selectImageHint'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -589,9 +736,7 @@ class ImagePickerEditor extends HookConsumerWidget {
                         ListTile(
                           leading: const Icon(Symbols.photo_library),
                           title: Text('pickFromGallery'.tr()),
-                          subtitle: config.allowMultiple
-                              ? Text('pickMultipleHint'.tr())
-                              : null,
+                          subtitle: config.allowMultiple ? Text('pickMultipleHint'.tr()) : null,
                           onTap: pickImages,
                         ),
                         const Divider(height: 1),
@@ -620,10 +765,7 @@ class _CompressionDialog extends HookWidget {
   final int initialQuality;
   final Function(int) onSave;
 
-  const _CompressionDialog({
-    required this.initialQuality,
-    required this.onSave,
-  });
+  const _CompressionDialog({required this.initialQuality, required this.onSave});
 
   @override
   Widget build(BuildContext context) {
@@ -637,15 +779,10 @@ class _CompressionDialog extends HookWidget {
         children: [
           Text(
             'compressionSettings'.tr(),
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Gap(24),
-          Text(
-            'compressionQuality'.tr(),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('compressionQuality'.tr(), style: Theme.of(context).textTheme.titleMedium),
           const Gap(8),
           Row(
             children: [
@@ -667,18 +804,13 @@ class _CompressionDialog extends HookWidget {
           const Gap(16),
           Text(
             'compressionHint'.tr(),
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).hintColor),
           ),
           const Gap(24),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('cancel'.tr()),
-              ),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text('cancel'.tr())),
               const Gap(8),
               FilledButton(
                 onPressed: () {
@@ -702,12 +834,7 @@ class _ImagePreviewCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onCompression;
 
-  const _ImagePreviewCard({
-    required this.image,
-    this.onEdit,
-    this.onDelete,
-    this.onCompression,
-  });
+  const _ImagePreviewCard({required this.image, this.onEdit, this.onDelete, this.onCompression});
 
   @override
   Widget build(BuildContext context) {
@@ -745,10 +872,7 @@ class _ImagePreviewCard extends StatelessWidget {
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(8),
@@ -756,11 +880,7 @@ class _ImagePreviewCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Symbols.edit,
-                        size: 12,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
+                      Icon(Symbols.edit, size: 12, color: Theme.of(context).colorScheme.onPrimary),
                       const Gap(4),
                       Text(
                         'edited'.tr(),
@@ -783,21 +903,14 @@ class _ImagePreviewCard extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onCompression,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       '${image.compressionQuality}%',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -820,19 +933,9 @@ class _ImagePreviewCard extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    if (onEdit != null)
-                      _ActionButton(
-                        icon: Symbols.edit,
-                        onTap: onEdit!,
-                        tooltip: 'edit'.tr(),
-                      ),
+                    if (onEdit != null) _ActionButton(icon: Symbols.edit, onTap: onEdit!, tooltip: 'edit'.tr()),
                     if (onDelete != null)
-                      _ActionButton(
-                        icon: Symbols.delete,
-                        onTap: onDelete!,
-                        tooltip: 'delete'.tr(),
-                        color: Colors.red,
-                      ),
+                      _ActionButton(icon: Symbols.delete, onTap: onDelete!, tooltip: 'delete'.tr(), color: Colors.red),
                   ],
                 ),
               ),
@@ -851,12 +954,7 @@ class _ActionButton extends StatelessWidget {
   final String tooltip;
   final Color? color;
 
-  const _ActionButton({
-    required this.icon,
-    required this.onTap,
-    required this.tooltip,
-    this.color,
-  });
+  const _ActionButton({required this.icon, required this.onTap, required this.tooltip, this.color});
 
   @override
   Widget build(BuildContext context) {

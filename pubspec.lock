@@ -265,14 +265,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
-  cassowary:
-    dependency: transitive
-    description:
-      name: cassowary
-      sha256: f304452beaf93b9349daaeeda23f853578c9dd8674c06c6100fda0319c46b967
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.3"
   characters:
     dependency: transitive
     description:
@@ -377,14 +369,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.15.0"
-  croppy:
-    dependency: "direct main"
-    description:
-      name: croppy
-      sha256: b92225559fd62368bd476910de11aad5799b880e45e65e06fe4f21247bd3717d
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.5.1"
   cross_file:
     dependency: "direct main"
     description:
