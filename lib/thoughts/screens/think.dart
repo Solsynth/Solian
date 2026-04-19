@@ -143,6 +143,7 @@ class ThoughtScreen extends HookConsumerWidget {
         ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
       }
       selectedSequenceId.value = null;
+      chatNotifier.clearChat();
       showSidebar.value = false;
     }
 
@@ -177,24 +178,6 @@ class ThoughtScreen extends HookConsumerWidget {
       });
     }
 
-    void handleServiceChanged(String serviceId) {
-      final previousServiceId = chatState.selectedServiceId;
-      if (serviceId == previousServiceId) {
-        return;
-      }
-
-      if (selectedSequenceId.value != null) {
-        ref.invalidate(thoughtSequenceProvider(selectedSequenceId.value!));
-      }
-      selectedSequenceId.value = null;
-      chatNotifier.clearChat(selectedServiceId: serviceId);
-      showSidebar.value = false;
-
-      if (serviceId == 'michan') {
-        chatNotifier.loadMichanCanonicalThread();
-      }
-    }
-
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
@@ -205,24 +188,8 @@ class ThoughtScreen extends HookConsumerWidget {
           },
         ),
         title: Text(initialTopic ?? 'aiThought'.tr()),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-              child: ServiceSelector(
-                services: chatState.services,
-                selectedServiceId: chatState.selectedServiceId,
-                onServiceChanged: handleServiceChanged,
-                isStreaming: chatState.isStreaming,
-                isDisabled: statusAsync.value == false,
-              ),
-            ),
-          ),
-        ),
         actions: [
-          const FreeQuotaIndicator(forcegroundColor: Colors.white),
+          FreeQuotaIndicator(forcegroundColor: Theme.of(context).appBarTheme.foregroundColor),
           const Gap(6),
           IconButton(
             icon: const Icon(Symbols.add_circle),

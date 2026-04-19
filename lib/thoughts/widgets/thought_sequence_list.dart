@@ -74,9 +74,33 @@ class ThoughtSequenceSelector extends HookConsumerWidget {
         provider: provider,
         notifier: provider.notifier,
         itemBuilder: (context, index, sequence) {
+          final colorScheme = Theme.of(context).colorScheme;
           return ListTile(
             title: Text(sequence.topic ?? 'Untitled Conversation'),
-            subtitle: Text(sequence.createdAt.formatSystem()),
+            subtitle: Row(
+              children: [
+                Expanded(child: Text(sequence.lastMessageAt.formatSystem())),
+                if (sequence.botName != null && sequence.botName!.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      sequence.botName!,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             onTap: () {
               onSequenceSelected(sequence.id);
               Navigator.of(context).pop();

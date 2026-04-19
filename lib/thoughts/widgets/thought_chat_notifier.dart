@@ -35,6 +35,7 @@ class ThoughtChatState {
   final int? archivedCount;
   final List<ThoughtService> services;
   final String selectedServiceId;
+  final String? selectedModel;
   final bool isStreaming;
   final List<StreamItem> streamingItems;
   final List<UniversalFile> attachments;
@@ -50,6 +51,7 @@ class ThoughtChatState {
     this.archivedCount,
     this.services = const [],
     this.selectedServiceId = '',
+    this.selectedModel,
     this.isStreaming = false,
     this.streamingItems = const [],
     this.attachments = const [],
@@ -66,6 +68,7 @@ class ThoughtChatState {
     int? archivedCount,
     List<ThoughtService>? services,
     String? selectedServiceId,
+    String? selectedModel,
     bool? isStreaming,
     List<StreamItem>? streamingItems,
     List<UniversalFile>? attachments,
@@ -81,6 +84,7 @@ class ThoughtChatState {
       archivedCount: archivedCount ?? this.archivedCount,
       services: services ?? this.services,
       selectedServiceId: selectedServiceId ?? this.selectedServiceId,
+      selectedModel: selectedModel ?? this.selectedModel,
       isStreaming: isStreaming ?? this.isStreaming,
       streamingItems: streamingItems ?? this.streamingItems,
       attachments: attachments ?? this.attachments,
@@ -88,6 +92,15 @@ class ThoughtChatState {
       hasInitialAttachmentsBeenSent:
           hasInitialAttachmentsBeenSent ?? this.hasInitialAttachmentsBeenSent,
     );
+  }
+
+  /// Gets the available models for the currently selected service
+  List<ThoughtServiceModel> get availableModels {
+    if (selectedServiceId.isEmpty) return [];
+    final service = services
+        .where((s) => s.id == selectedServiceId)
+        .firstOrNull;
+    return service?.availableModels ?? [];
   }
 }
 
@@ -165,12 +178,15 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
 
     // Initialize state from args and services
     String selectedServiceId = '';
+    String? selectedModel;
     List<ThoughtService> services = [];
 
     if (servicesAsync.hasValue) {
       final response = servicesAsync.value!;
       services = response.services;
       selectedServiceId = response.defaultBot;
+      // Default model is null (Auto - let server decide)
+      selectedModel = null;
     }
 
     // Handle initial message if provided
@@ -193,6 +209,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       currentTopic: args.initialTopic ?? 'aiThought'.tr(),
       services: services,
       selectedServiceId: selectedServiceId,
+      selectedModel: selectedModel,
     );
   }
 
@@ -227,6 +244,10 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         localThoughts: thoughts,
         currentTopic: sequence.topic ?? 'aiThought'.tr(),
         selectedServiceId: 'michan',
+        selectedModel: null,
+        attachments: const [],
+        attachmentProgress: const {},
+        hasInitialAttachmentsBeenSent: false,
       );
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } on DioException catch (error) {
@@ -236,6 +257,10 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
           localThoughts: const [],
           currentTopic: 'aiThought'.tr(),
           selectedServiceId: 'michan',
+          selectedModel: null,
+          attachments: const [],
+          attachmentProgress: const {},
+          hasInitialAttachmentsBeenSent: false,
         );
         return;
       }
@@ -273,15 +298,32 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         currentValue.isNotEmpty &&
         response.services.any((s) => s.id == currentValue);
 
+    final newServiceId = isValueValid ? currentValue : response.defaultBot;
+
     state = state.copyWith(
       services: response.services,
-      selectedServiceId: isValueValid ? currentValue : response.defaultBot,
+      selectedServiceId: newServiceId,
+      selectedModel: null,
     );
   }
 
   /// Sets the selected service ID
-  void setSelectedServiceId(String serviceId) {
-    state = state.copyWith(selectedServiceId: serviceId);
+  Future<void> setSelectedServiceId(String serviceId) async {
+    final previousServiceId = state.selectedServiceId;
+    if (serviceId == previousServiceId) return;
+
+    // Clear the chat state for the new service
+    clearChat(selectedServiceId: serviceId);
+
+    // Load michan canonical thread when switching to michan
+    if (serviceId == 'michan') {
+      await loadMichanCanonicalThread();
+    }
+  }
+
+  /// Sets the selected model ID
+  void setSelectedModel(String? modelId) {
+    state = state.copyWith(selectedModel: modelId);
   }
 
   /// Updates attachments
@@ -429,6 +471,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       bot: state.selectedServiceId.isNotEmpty
           ? state.selectedServiceId
           : 'snchan',
+      model: state.selectedModel,
     );
 
     // Mark initial attachments as sent after first message
@@ -595,6 +638,9 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                 state = state.copyWith(
                   localThoughts: [aiThought, ...state.localThoughts],
                   isStreaming: false,
+                  currentStatus: null,
+                  compactSummary: null,
+                  archivedCount: null,
                 );
                 if (state.sequenceId == null &&
                     aiThought.sequenceId.isNotEmpty) {
@@ -657,15 +703,21 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     state = state.copyWith(
       isStreaming: false,
       localThoughts: [errorThought, ...state.localThoughts],
+      currentStatus: null,
+      compactSummary: null,
+      archivedCount: null,
     );
   }
 
   /// Clears the chat state for a new conversation
   void clearChat({String? selectedServiceId}) {
+    final serviceId = selectedServiceId ?? state.selectedServiceId;
+
     state = ThoughtChatState(
       currentTopic: 'aiThought'.tr(),
       services: state.services,
-      selectedServiceId: selectedServiceId ?? state.selectedServiceId,
+      selectedServiceId: serviceId,
+      selectedModel: null,
     );
     messageController.clear();
   }

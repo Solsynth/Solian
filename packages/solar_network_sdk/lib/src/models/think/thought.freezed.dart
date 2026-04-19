@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StreamThinkingRequest {
 
- String get userMessage; String? get sequenceId; List<String> get acceptProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages; List<String>? get attachedFiles; String? get bot;
+ String get userMessage; String? get sequenceId; List<String> get acceptProposals; List<String>? get attachedPosts; List<Map<String, dynamic>>? get attachedMessages; List<String>? get attachedFiles; String? get bot; String? get model;
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $StreamThinkingRequestCopyWith<StreamThinkingRequest> get copyWith => _$StreamTh
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.acceptProposals, acceptProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&const DeepCollectionEquality().equals(other.attachedFiles, attachedFiles)&&(identical(other.bot, bot) || other.bot == bot));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other.acceptProposals, acceptProposals)&&const DeepCollectionEquality().equals(other.attachedPosts, attachedPosts)&&const DeepCollectionEquality().equals(other.attachedMessages, attachedMessages)&&const DeepCollectionEquality().equals(other.attachedFiles, attachedFiles)&&(identical(other.bot, bot) || other.bot == bot)&&(identical(other.model, model) || other.model == model));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(acceptProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),const DeepCollectionEquality().hash(attachedFiles),bot);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(acceptProposals),const DeepCollectionEquality().hash(attachedPosts),const DeepCollectionEquality().hash(attachedMessages),const DeepCollectionEquality().hash(attachedFiles),bot,model);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, acceptProposals: $acceptProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedFiles: $attachedFiles, bot: $bot)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, acceptProposals: $acceptProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedFiles: $attachedFiles, bot: $bot, model: $model)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $StreamThinkingRequestCopyWith<$Res>  {
   factory $StreamThinkingRequestCopyWith(StreamThinkingRequest value, $Res Function(StreamThinkingRequest) _then) = _$StreamThinkingRequestCopyWithImpl;
 @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> acceptProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, List<String>? attachedFiles, String? bot
+ String userMessage, String? sequenceId, List<String> acceptProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, List<String>? attachedFiles, String? bot, String? model
 });
 
 
@@ -65,7 +65,7 @@ class _$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? acceptProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedFiles = freezed,Object? bot = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? acceptProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedFiles = freezed,Object? bot = freezed,Object? model = freezed,}) {
   return _then(_self.copyWith(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
@@ -74,6 +74,7 @@ as List<String>,attachedPosts: freezed == attachedPosts ? _self.attachedPosts : 
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self.attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
 as List<Map<String, dynamic>>?,attachedFiles: freezed == attachedFiles ? _self.attachedFiles : attachedFiles // ignore: cast_nullable_to_non_nullable
 as List<String>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as String?,model: freezed == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> acceptProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> acceptProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot,  String? model)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot,_that.model);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> acceptProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userMessage,  String? sequenceId,  List<String> acceptProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot,  String? model)  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest():
-return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot);}
+return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot,_that.model);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -194,10 +195,10 @@ return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.a
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> acceptProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userMessage,  String? sequenceId,  List<String> acceptProposals,  List<String>? attachedPosts,  List<Map<String, dynamic>>? attachedMessages,  List<String>? attachedFiles,  String? bot,  String? model)?  $default,) {final _that = this;
 switch (_that) {
 case _StreamThinkingRequest() when $default != null:
-return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot);case _:
+return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.attachedPosts,_that.attachedMessages,_that.attachedFiles,_that.bot,_that.model);case _:
   return null;
 
 }
@@ -209,7 +210,7 @@ return $default(_that.userMessage,_that.sequenceId,_that.acceptProposals,_that.a
 @JsonSerializable()
 
 class _StreamThinkingRequest implements StreamThinkingRequest {
-  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> acceptProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, final  List<String>? attachedFiles, this.bot}): _acceptProposals = acceptProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages,_attachedFiles = attachedFiles;
+  const _StreamThinkingRequest({required this.userMessage, this.sequenceId, final  List<String> acceptProposals = const [], final  List<String>? attachedPosts, final  List<Map<String, dynamic>>? attachedMessages, final  List<String>? attachedFiles, this.bot, this.model}): _acceptProposals = acceptProposals,_attachedPosts = attachedPosts,_attachedMessages = attachedMessages,_attachedFiles = attachedFiles;
   factory _StreamThinkingRequest.fromJson(Map<String, dynamic> json) => _$StreamThinkingRequestFromJson(json);
 
 @override final  String userMessage;
@@ -249,6 +250,7 @@ class _StreamThinkingRequest implements StreamThinkingRequest {
 }
 
 @override final  String? bot;
+@override final  String? model;
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -263,16 +265,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._acceptProposals, _acceptProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&const DeepCollectionEquality().equals(other._attachedFiles, _attachedFiles)&&(identical(other.bot, bot) || other.bot == bot));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StreamThinkingRequest&&(identical(other.userMessage, userMessage) || other.userMessage == userMessage)&&(identical(other.sequenceId, sequenceId) || other.sequenceId == sequenceId)&&const DeepCollectionEquality().equals(other._acceptProposals, _acceptProposals)&&const DeepCollectionEquality().equals(other._attachedPosts, _attachedPosts)&&const DeepCollectionEquality().equals(other._attachedMessages, _attachedMessages)&&const DeepCollectionEquality().equals(other._attachedFiles, _attachedFiles)&&(identical(other.bot, bot) || other.bot == bot)&&(identical(other.model, model) || other.model == model));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_acceptProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),const DeepCollectionEquality().hash(_attachedFiles),bot);
+int get hashCode => Object.hash(runtimeType,userMessage,sequenceId,const DeepCollectionEquality().hash(_acceptProposals),const DeepCollectionEquality().hash(_attachedPosts),const DeepCollectionEquality().hash(_attachedMessages),const DeepCollectionEquality().hash(_attachedFiles),bot,model);
 
 @override
 String toString() {
-  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, acceptProposals: $acceptProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedFiles: $attachedFiles, bot: $bot)';
+  return 'StreamThinkingRequest(userMessage: $userMessage, sequenceId: $sequenceId, acceptProposals: $acceptProposals, attachedPosts: $attachedPosts, attachedMessages: $attachedMessages, attachedFiles: $attachedFiles, bot: $bot, model: $model)';
 }
 
 
@@ -283,7 +285,7 @@ abstract mixin class _$StreamThinkingRequestCopyWith<$Res> implements $StreamThi
   factory _$StreamThinkingRequestCopyWith(_StreamThinkingRequest value, $Res Function(_StreamThinkingRequest) _then) = __$StreamThinkingRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String userMessage, String? sequenceId, List<String> acceptProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, List<String>? attachedFiles, String? bot
+ String userMessage, String? sequenceId, List<String> acceptProposals, List<String>? attachedPosts, List<Map<String, dynamic>>? attachedMessages, List<String>? attachedFiles, String? bot, String? model
 });
 
 
@@ -300,7 +302,7 @@ class __$StreamThinkingRequestCopyWithImpl<$Res>
 
 /// Create a copy of StreamThinkingRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? acceptProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedFiles = freezed,Object? bot = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userMessage = null,Object? sequenceId = freezed,Object? acceptProposals = null,Object? attachedPosts = freezed,Object? attachedMessages = freezed,Object? attachedFiles = freezed,Object? bot = freezed,Object? model = freezed,}) {
   return _then(_StreamThinkingRequest(
 userMessage: null == userMessage ? _self.userMessage : userMessage // ignore: cast_nullable_to_non_nullable
 as String,sequenceId: freezed == sequenceId ? _self.sequenceId : sequenceId // ignore: cast_nullable_to_non_nullable
@@ -309,6 +311,7 @@ as List<String>,attachedPosts: freezed == attachedPosts ? _self._attachedPosts :
 as List<String>?,attachedMessages: freezed == attachedMessages ? _self._attachedMessages : attachedMessages // ignore: cast_nullable_to_non_nullable
 as List<Map<String, dynamic>>?,attachedFiles: freezed == attachedFiles ? _self._attachedFiles : attachedFiles // ignore: cast_nullable_to_non_nullable
 as List<String>?,bot: freezed == bot ? _self.bot : bot // ignore: cast_nullable_to_non_nullable
+as String?,model: freezed == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -2061,9 +2064,278 @@ $SnThinkingSequenceCopyWith<$Res>? get sequence {
 
 
 /// @nodoc
+mixin _$ThoughtServiceModel {
+
+ String get id;@JsonKey(name: "display_name") String get displayName; String get description;@JsonKey(name: "min_perk_level") int get minPerkLevel;@JsonKey(name: "is_default") bool get isDefault;
+/// Create a copy of ThoughtServiceModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ThoughtServiceModelCopyWith<ThoughtServiceModel> get copyWith => _$ThoughtServiceModelCopyWithImpl<ThoughtServiceModel>(this as ThoughtServiceModel, _$identity);
+
+  /// Serializes this ThoughtServiceModel to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtServiceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.description, description) || other.description == description)&&(identical(other.minPerkLevel, minPerkLevel) || other.minPerkLevel == minPerkLevel)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,displayName,description,minPerkLevel,isDefault);
+
+@override
+String toString() {
+  return 'ThoughtServiceModel(id: $id, displayName: $displayName, description: $description, minPerkLevel: $minPerkLevel, isDefault: $isDefault)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ThoughtServiceModelCopyWith<$Res>  {
+  factory $ThoughtServiceModelCopyWith(ThoughtServiceModel value, $Res Function(ThoughtServiceModel) _then) = _$ThoughtServiceModelCopyWithImpl;
+@useResult
+$Res call({
+ String id,@JsonKey(name: "display_name") String displayName, String description,@JsonKey(name: "min_perk_level") int minPerkLevel,@JsonKey(name: "is_default") bool isDefault
+});
+
+
+
+
+}
+/// @nodoc
+class _$ThoughtServiceModelCopyWithImpl<$Res>
+    implements $ThoughtServiceModelCopyWith<$Res> {
+  _$ThoughtServiceModelCopyWithImpl(this._self, this._then);
+
+  final ThoughtServiceModel _self;
+  final $Res Function(ThoughtServiceModel) _then;
+
+/// Create a copy of ThoughtServiceModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? description = null,Object? minPerkLevel = null,Object? isDefault = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,minPerkLevel: null == minPerkLevel ? _self.minPerkLevel : minPerkLevel // ignore: cast_nullable_to_non_nullable
+as int,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ThoughtServiceModel].
+extension ThoughtServiceModelPatterns on ThoughtServiceModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ThoughtServiceModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ThoughtServiceModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ThoughtServiceModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _ThoughtServiceModel():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ThoughtServiceModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ThoughtServiceModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: "display_name")  String displayName,  String description, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ThoughtServiceModel() when $default != null:
+return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,_that.isDefault);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: "display_name")  String displayName,  String description, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)  $default,) {final _that = this;
+switch (_that) {
+case _ThoughtServiceModel():
+return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,_that.isDefault);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: "display_name")  String displayName,  String description, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)?  $default,) {final _that = this;
+switch (_that) {
+case _ThoughtServiceModel() when $default != null:
+return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,_that.isDefault);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ThoughtServiceModel implements ThoughtServiceModel {
+  const _ThoughtServiceModel({required this.id, @JsonKey(name: "display_name") required this.displayName, required this.description, @JsonKey(name: "min_perk_level") this.minPerkLevel = 0, @JsonKey(name: "is_default") this.isDefault = false});
+  factory _ThoughtServiceModel.fromJson(Map<String, dynamic> json) => _$ThoughtServiceModelFromJson(json);
+
+@override final  String id;
+@override@JsonKey(name: "display_name") final  String displayName;
+@override final  String description;
+@override@JsonKey(name: "min_perk_level") final  int minPerkLevel;
+@override@JsonKey(name: "is_default") final  bool isDefault;
+
+/// Create a copy of ThoughtServiceModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ThoughtServiceModelCopyWith<_ThoughtServiceModel> get copyWith => __$ThoughtServiceModelCopyWithImpl<_ThoughtServiceModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ThoughtServiceModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtServiceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.description, description) || other.description == description)&&(identical(other.minPerkLevel, minPerkLevel) || other.minPerkLevel == minPerkLevel)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,displayName,description,minPerkLevel,isDefault);
+
+@override
+String toString() {
+  return 'ThoughtServiceModel(id: $id, displayName: $displayName, description: $description, minPerkLevel: $minPerkLevel, isDefault: $isDefault)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ThoughtServiceModelCopyWith<$Res> implements $ThoughtServiceModelCopyWith<$Res> {
+  factory _$ThoughtServiceModelCopyWith(_ThoughtServiceModel value, $Res Function(_ThoughtServiceModel) _then) = __$ThoughtServiceModelCopyWithImpl;
+@override @useResult
+$Res call({
+ String id,@JsonKey(name: "display_name") String displayName, String description,@JsonKey(name: "min_perk_level") int minPerkLevel,@JsonKey(name: "is_default") bool isDefault
+});
+
+
+
+
+}
+/// @nodoc
+class __$ThoughtServiceModelCopyWithImpl<$Res>
+    implements _$ThoughtServiceModelCopyWith<$Res> {
+  __$ThoughtServiceModelCopyWithImpl(this._self, this._then);
+
+  final _ThoughtServiceModel _self;
+  final $Res Function(_ThoughtServiceModel) _then;
+
+/// Create a copy of ThoughtServiceModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? description = null,Object? minPerkLevel = null,Object? isDefault = null,}) {
+  return _then(_ThoughtServiceModel(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,minPerkLevel: null == minPerkLevel ? _self.minPerkLevel : minPerkLevel // ignore: cast_nullable_to_non_nullable
+as int,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$ThoughtService {
 
- String get id; String get name; String get description;
+ String get id; String get name; String get description;@JsonKey(name: "available_models") List<ThoughtServiceModel> get availableModels;
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2076,16 +2348,16 @@ $ThoughtServiceCopyWith<ThoughtService> get copyWith => _$ThoughtServiceCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtService&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtService&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.availableModels, availableModels));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description);
+int get hashCode => Object.hash(runtimeType,id,name,description,const DeepCollectionEquality().hash(availableModels));
 
 @override
 String toString() {
-  return 'ThoughtService(id: $id, name: $name, description: $description)';
+  return 'ThoughtService(id: $id, name: $name, description: $description, availableModels: $availableModels)';
 }
 
 
@@ -2096,7 +2368,7 @@ abstract mixin class $ThoughtServiceCopyWith<$Res>  {
   factory $ThoughtServiceCopyWith(ThoughtService value, $Res Function(ThoughtService) _then) = _$ThoughtServiceCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description
+ String id, String name, String description,@JsonKey(name: "available_models") List<ThoughtServiceModel> availableModels
 });
 
 
@@ -2113,12 +2385,13 @@ class _$ThoughtServiceCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? availableModels = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,
+as String,availableModels: null == availableModels ? _self.availableModels : availableModels // ignore: cast_nullable_to_non_nullable
+as List<ThoughtServiceModel>,
   ));
 }
 
@@ -2200,10 +2473,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description, @JsonKey(name: "available_models")  List<ThoughtServiceModel> availableModels)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ThoughtService() when $default != null:
-return $default(_that.id,_that.name,_that.description);case _:
+return $default(_that.id,_that.name,_that.description,_that.availableModels);case _:
   return orElse();
 
 }
@@ -2221,10 +2494,10 @@ return $default(_that.id,_that.name,_that.description);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description, @JsonKey(name: "available_models")  List<ThoughtServiceModel> availableModels)  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtService():
-return $default(_that.id,_that.name,_that.description);}
+return $default(_that.id,_that.name,_that.description,_that.availableModels);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2238,10 +2511,10 @@ return $default(_that.id,_that.name,_that.description);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description, @JsonKey(name: "available_models")  List<ThoughtServiceModel> availableModels)?  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtService() when $default != null:
-return $default(_that.id,_that.name,_that.description);case _:
+return $default(_that.id,_that.name,_that.description,_that.availableModels);case _:
   return null;
 
 }
@@ -2253,12 +2526,19 @@ return $default(_that.id,_that.name,_that.description);case _:
 @JsonSerializable()
 
 class _ThoughtService implements ThoughtService {
-  const _ThoughtService({required this.id, required this.name, required this.description});
+  const _ThoughtService({required this.id, required this.name, required this.description, @JsonKey(name: "available_models") final  List<ThoughtServiceModel> availableModels = const []}): _availableModels = availableModels;
   factory _ThoughtService.fromJson(Map<String, dynamic> json) => _$ThoughtServiceFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String description;
+ final  List<ThoughtServiceModel> _availableModels;
+@override@JsonKey(name: "available_models") List<ThoughtServiceModel> get availableModels {
+  if (_availableModels is EqualUnmodifiableListView) return _availableModels;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_availableModels);
+}
+
 
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
@@ -2273,16 +2553,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtService&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtService&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._availableModels, _availableModels));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description);
+int get hashCode => Object.hash(runtimeType,id,name,description,const DeepCollectionEquality().hash(_availableModels));
 
 @override
 String toString() {
-  return 'ThoughtService(id: $id, name: $name, description: $description)';
+  return 'ThoughtService(id: $id, name: $name, description: $description, availableModels: $availableModels)';
 }
 
 
@@ -2293,7 +2573,7 @@ abstract mixin class _$ThoughtServiceCopyWith<$Res> implements $ThoughtServiceCo
   factory _$ThoughtServiceCopyWith(_ThoughtService value, $Res Function(_ThoughtService) _then) = __$ThoughtServiceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description
+ String id, String name, String description,@JsonKey(name: "available_models") List<ThoughtServiceModel> availableModels
 });
 
 
@@ -2310,12 +2590,13 @@ class __$ThoughtServiceCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtService
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? availableModels = null,}) {
   return _then(_ThoughtService(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,
+as String,availableModels: null == availableModels ? _self._availableModels : availableModels // ignore: cast_nullable_to_non_nullable
+as List<ThoughtServiceModel>,
   ));
 }
 

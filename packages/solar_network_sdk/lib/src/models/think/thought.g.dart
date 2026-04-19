@@ -26,6 +26,7 @@ _StreamThinkingRequest _$StreamThinkingRequestFromJson(
       ?.map((e) => e as String)
       .toList(),
   bot: json['bot'] as String?,
+  model: json['model'] as String?,
 );
 
 Map<String, dynamic> _$StreamThinkingRequestToJson(
@@ -38,6 +39,7 @@ Map<String, dynamic> _$StreamThinkingRequestToJson(
   'attached_messages': instance.attachedMessages,
   'attached_files': instance.attachedFiles,
   'bot': instance.bot,
+  'model': instance.model,
 };
 
 _SnThinkingChunk _$SnThinkingChunkFromJson(Map<String, dynamic> json) =>
@@ -199,19 +201,47 @@ Map<String, dynamic> _$SnThinkingThoughtToJson(_SnThinkingThought instance) =>
       'is_archived': instance.isArchived,
     };
 
+_ThoughtServiceModel _$ThoughtServiceModelFromJson(Map<String, dynamic> json) =>
+    _ThoughtServiceModel(
+      id: json['id'] as String,
+      displayName: json['display_name'] as String,
+      description: json['description'] as String,
+      minPerkLevel: (json['min_perk_level'] as num?)?.toInt() ?? 0,
+      isDefault: json['is_default'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$ThoughtServiceModelToJson(
+  _ThoughtServiceModel instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'display_name': instance.displayName,
+  'description': instance.description,
+  'min_perk_level': instance.minPerkLevel,
+  'is_default': instance.isDefault,
+};
+
 _ThoughtService _$ThoughtServiceFromJson(Map<String, dynamic> json) =>
     _ThoughtService(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
+      availableModels:
+          (json['available_models'] as List<dynamic>?)
+              ?.map(
+                (e) => ThoughtServiceModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
     );
 
-Map<String, dynamic> _$ThoughtServiceToJson(_ThoughtService instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'description': instance.description,
-    };
+Map<String, dynamic> _$ThoughtServiceToJson(
+  _ThoughtService instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'description': instance.description,
+  'available_models': instance.availableModels.map((e) => e.toJson()).toList(),
+};
 
 _ThoughtServicesResponse _$ThoughtServicesResponseFromJson(
   Map<String, dynamic> json,

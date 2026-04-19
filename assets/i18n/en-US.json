@@ -791,6 +791,8 @@
   "addAudio": "Add audio",
   "recordAudio": "Record Audio",
   "linkAttachment": "Link Attachment",
+  "linked": "Linked",
+  "linkedAttachments": "Linked Attachments",
   "fileIdCannotBeEmpty": "File ID cannot be empty",
   "fileIdLinkHint": "Haven't upload to the Solar Network? Tap here to open Solar Network Drive to customize your uploads.",
   "failedToFetchFile": "Failed to fetch file: {}",
