@@ -168,10 +168,11 @@ class ThoughtScreen extends HookConsumerWidget {
         next,
       ) {
         next.whenData((thoughts) {
-          if (thoughts.isNotEmpty && thoughts.first.sequence?.botName != null) {
-            final botName = thoughts.first.sequence!.botName!;
-            if (botName.isNotEmpty && chatState.selectedServiceId != botName) {
-              chatNotifier.setSelectedServiceId(botName);
+          if (thoughts.isNotEmpty) {
+            final botName =
+                thoughts.first.botName ?? thoughts.first.sequence?.botName;
+            if (botName != null && botName.isNotEmpty) {
+              chatNotifier.syncServiceId(botName);
             }
           }
         });
@@ -189,7 +190,9 @@ class ThoughtScreen extends HookConsumerWidget {
         ),
         title: Text(initialTopic ?? 'aiThought'.tr()),
         actions: [
-          FreeQuotaIndicator(forcegroundColor: Theme.of(context).appBarTheme.foregroundColor),
+          FreeQuotaIndicator(
+            forcegroundColor: Theme.of(context).appBarTheme.foregroundColor,
+          ),
           const Gap(6),
           IconButton(
             icon: const Icon(Symbols.add_circle),

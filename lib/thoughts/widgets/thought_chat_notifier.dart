@@ -184,8 +184,23 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     if (servicesAsync.hasValue) {
       final response = servicesAsync.value!;
       services = response.services;
-      selectedServiceId = response.defaultBot;
-      // Default model is null (Auto - let server decide)
+
+      // Check if initial thoughts have a botName to use as initial service
+      String? initialBotName;
+      final initialThoughts = args.initialThoughts;
+      if (initialThoughts != null && initialThoughts.isNotEmpty) {
+        initialBotName =
+            initialThoughts.first.botName ??
+            initialThoughts.first.sequence?.botName;
+      }
+
+      if (initialBotName != null &&
+          initialBotName!.isNotEmpty &&
+          response.services.any((s) => s.id == initialBotName)) {
+        selectedServiceId = initialBotName;
+      } else {
+        selectedServiceId = response.defaultBot;
+      }
       selectedModel = null;
     }
 
@@ -307,7 +322,13 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     );
   }
 
-  /// Sets the selected service ID
+  /// Sets the selected service ID without side effects (for syncing from loaded sequences)
+  void syncServiceId(String serviceId) {
+    if (serviceId == state.selectedServiceId) return;
+    state = state.copyWith(selectedServiceId: serviceId, selectedModel: null);
+  }
+
+  /// Sets the selected service ID (user-initiated, clears chat and loads michan if needed)
   Future<void> setSelectedServiceId(String serviceId) async {
     final previousServiceId = state.selectedServiceId;
     if (serviceId == previousServiceId) return;
@@ -657,7 +678,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         },
         onDone: () {
           if (state.isStreaming) {
-            _handleStreamError('thoughtParseError'.tr());
+            state = state.copyWith(isStreaming: false, currentStatus: null);
           }
         },
         onError: (error) {
