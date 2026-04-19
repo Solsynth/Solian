@@ -392,7 +392,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Realm Boost',
+                    'RealmBoost'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -427,7 +427,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     visualDensity: VisualDensity(vertical: -3),
                   ),
                   icon: const Icon(Symbols.volunteer_activism),
-                  label: const Text('Boost'),
+                  label: Text('Boost'.tr()),
                 ),
               ],
             ),
@@ -439,7 +439,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   spacing: 6,
                   children: [
                     Icon(Symbols.rocket_launch, size: 17, fill: 1),
-                    Text('Boost Level ${boost.boostLevel}').fontSize(12),
+                    Text('boostLevel'.tr(namedArgs: {'level': boost.boostLevel.toString()})).fontSize(12),
                   ],
                 ),
                 const Gap(4),
@@ -448,7 +448,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                   spacing: 6,
                   children: [
                     Icon(Symbols.label, size: 17, fill: 1),
-                    Text('Label cap ${boost.labelCap}').fontSize(12),
+                    Text('labelCap'.tr(namedArgs: {'cap': boost.labelCap.toString()})).fontSize(12),
                   ],
                 ),
               ],
@@ -460,7 +460,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                 Icon(Symbols.local_fire_department, size: 17, fill: 1),
                 Text(
                   nextThreshold == null
-                      ? 'Boost maxed out'
+                      ? 'BoostMax'.tr()
                       : '${boost.boostPoints}/$nextThreshold boosts',
                 ).fontSize(12),
               ],
@@ -479,18 +479,21 @@ class RealmDetailScreen extends HookConsumerWidget {
             const Gap(8),
             Text(
               boost.boostLevel >= 3
-                  ? 'All realm boost tiers unlocked.'
+                  ? 'BoostAllUnlocked'.tr()
                   : switch (boost.boostLevel) {
-                      0 => 'Level 1 unlocks custom labels.',
-                      1 => 'Level 2 unlocks elevated promotions.',
-                      2 => 'Level 3 unlocks the highest label capacity.',
-                      _ => 'Boost progress available.',
+                      0 => 'BoostLevel1Hint'.tr(),
+                      1 => 'BoostLevel2Hint'.tr(),
+                      2 => 'BoostLevel3Hint'.tr(),
+                      _ => 'BoostProgressAvailable'.tr(),
                     },
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const Gap(6),
-            Text(
-              'Boosts are active for ${boost.expiresAfterDays} days. Supported currencies: ${boost.supportedCurrencies.join(', ')}. One share is 1 gold or 1000 points.',
+              Text(
+                'boostInfo'.tr(namedArgs: {
+                  'days': boost.expiresAfterDays.toString(),
+                  'currencies': boost.supportedCurrencies.join(', '),
+                }),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -510,7 +513,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Realm Identity',
+                    'RealmIdentity'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -571,8 +574,8 @@ class RealmDetailScreen extends HookConsumerWidget {
                 (identity.nick?.isEmpty ?? true))
               Text(
                 realm.boostLevel >= 1
-                    ? 'No realm-specific profile set yet.'
-                    : 'Boost this realm to unlock custom nick and bio.',
+                    ? 'NoRealmSpecSet'.tr()
+                    : 'RealmBoostFunction'.tr(),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             if (identity.labelId != null) ...[
@@ -604,7 +607,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                             context,
                           ).colorScheme.onSecondaryContainer,
                         ),
-                        Text('Realm Label')
+                        Text('RealmLabel'.tr())
                             .fontSize(12)
                             .textColor(
                               Theme.of(
@@ -656,7 +659,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Realm Labels',
+                    'RealmLabels'.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -679,15 +682,18 @@ class RealmDetailScreen extends HookConsumerWidget {
                           );
                         },
                   icon: const Icon(Symbols.add),
-                  label: const Text('Add'),
+                  label: Text('Add'.tr()),
                 ),
               ],
             ),
             const Gap(8),
             Text(
               boost.boostLevel < 1
-                  ? 'Boost this realm to level 1 to unlock labels.'
-                  : 'Using ${realmLabels.asData?.value.length ?? 0} / ${boost.labelCap} labels',
+                  ? 'boostRequiredToUnlockLabels'.tr()
+                  : 'labelsUsage'.tr(namedArgs: {
+                    'used': (realmLabels.asData?.value.length ?? 0).toString(),
+                    'total': boost.labelCap.toString(),
+                  }),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const Gap(12),
@@ -700,7 +706,7 @@ class RealmDetailScreen extends HookConsumerWidget {
               data: (labels) {
                 if (labels.isEmpty) {
                   return Text(
-                    'No labels created yet.',
+                    'NoLabelsCreated'.tr(),
                     style: Theme.of(context).textTheme.bodySmall,
                   );
                 }
