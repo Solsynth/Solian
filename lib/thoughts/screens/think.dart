@@ -157,6 +157,24 @@ class ThoughtScreen extends HookConsumerWidget {
         ref.read(solarNetworkClientProvider),
         sequenceId,
       );
+      // The service will be updated when thoughts are loaded (see effect below)
+    }
+
+    // Effect to update selected service when sequence changes
+    if (selectedSequenceId.value != null) {
+      ref.listen(thoughtSequenceProvider(selectedSequenceId.value!), (
+        previous,
+        next,
+      ) {
+        next.whenData((thoughts) {
+          if (thoughts.isNotEmpty && thoughts.first.sequence?.botName != null) {
+            final botName = thoughts.first.sequence!.botName!;
+            if (botName.isNotEmpty && chatState.selectedServiceId != botName) {
+              chatNotifier.setSelectedServiceId(botName);
+            }
+          }
+        });
+      });
     }
 
     void handleServiceChanged(String serviceId) {

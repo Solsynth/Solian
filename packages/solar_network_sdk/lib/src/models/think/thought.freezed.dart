@@ -1450,7 +1450,7 @@ $SnFunctionResultCopyWith<$Res>? get functionResult {
 /// @nodoc
 mixin _$SnThinkingSequence {
 
- String get id; String? get topic; int get totalToken; int get paidToken; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;@JsonKey(name: "agent_initiated") bool get agentInitiated;@JsonKey(name: "user_last_read_at") DateTime? get userLastReadAt;@JsonKey(name: "last_message_at") DateTime get lastMessageAt;@JsonKey(name: "is_public") bool get isPublic;
+ String get id; String? get topic; int get totalToken; int get paidToken; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;@JsonKey(name: "agent_initiated") bool get agentInitiated;@JsonKey(name: "user_last_read_at") DateTime? get userLastReadAt;@JsonKey(name: "last_message_at") DateTime get lastMessageAt;@JsonKey(name: "is_public") bool get isPublic; String? get botName;
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1463,16 +1463,16 @@ $SnThinkingSequenceCopyWith<SnThinkingSequence> get copyWith => _$SnThinkingSequ
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.agentInitiated, agentInitiated) || other.agentInitiated == agentInitiated)&&(identical(other.userLastReadAt, userLastReadAt) || other.userLastReadAt == userLastReadAt)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.agentInitiated, agentInitiated) || other.agentInitiated == agentInitiated)&&(identical(other.userLastReadAt, userLastReadAt) || other.userLastReadAt == userLastReadAt)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.botName, botName) || other.botName == botName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt,agentInitiated,userLastReadAt,lastMessageAt,isPublic);
+int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt,agentInitiated,userLastReadAt,lastMessageAt,isPublic,botName);
 
 @override
 String toString() {
-  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, agentInitiated: $agentInitiated, userLastReadAt: $userLastReadAt, lastMessageAt: $lastMessageAt, isPublic: $isPublic)';
+  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, agentInitiated: $agentInitiated, userLastReadAt: $userLastReadAt, lastMessageAt: $lastMessageAt, isPublic: $isPublic, botName: $botName)';
 }
 
 
@@ -1483,7 +1483,7 @@ abstract mixin class $SnThinkingSequenceCopyWith<$Res>  {
   factory $SnThinkingSequenceCopyWith(SnThinkingSequence value, $Res Function(SnThinkingSequence) _then) = _$SnThinkingSequenceCopyWithImpl;
 @useResult
 $Res call({
- String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt,@JsonKey(name: "agent_initiated") bool agentInitiated,@JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,@JsonKey(name: "last_message_at") DateTime lastMessageAt,@JsonKey(name: "is_public") bool isPublic
+ String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt,@JsonKey(name: "agent_initiated") bool agentInitiated,@JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,@JsonKey(name: "last_message_at") DateTime lastMessageAt,@JsonKey(name: "is_public") bool isPublic, String? botName
 });
 
 
@@ -1500,7 +1500,7 @@ class _$SnThinkingSequenceCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? agentInitiated = null,Object? userLastReadAt = freezed,Object? lastMessageAt = null,Object? isPublic = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? agentInitiated = null,Object? userLastReadAt = freezed,Object? lastMessageAt = null,Object? isPublic = null,Object? botName = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: freezed == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
@@ -1514,7 +1514,8 @@ as DateTime?,agentInitiated: null == agentInitiated ? _self.agentInitiated : age
 as bool,userLastReadAt: freezed == userLastReadAt ? _self.userLastReadAt : userLastReadAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,lastMessageAt: null == lastMessageAt ? _self.lastMessageAt : lastMessageAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,botName: freezed == botName ? _self.botName : botName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1596,10 +1597,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic,  String? botName)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence() when $default != null:
-return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic);case _:
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic,_that.botName);case _:
   return orElse();
 
 }
@@ -1617,10 +1618,10 @@ return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.acco
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic,  String? botName)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence():
-return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic);}
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic,_that.botName);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1634,10 +1635,10 @@ return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.acco
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? topic,  int totalToken,  int paidToken,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt, @JsonKey(name: "agent_initiated")  bool agentInitiated, @JsonKey(name: "user_last_read_at")  DateTime? userLastReadAt, @JsonKey(name: "last_message_at")  DateTime lastMessageAt, @JsonKey(name: "is_public")  bool isPublic,  String? botName)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingSequence() when $default != null:
-return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic);case _:
+return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.agentInitiated,_that.userLastReadAt,_that.lastMessageAt,_that.isPublic,_that.botName);case _:
   return null;
 
 }
@@ -1649,7 +1650,7 @@ return $default(_that.id,_that.topic,_that.totalToken,_that.paidToken,_that.acco
 @JsonSerializable()
 
 class _SnThinkingSequence implements SnThinkingSequence {
-  const _SnThinkingSequence({required this.id, this.topic, this.totalToken = 0, this.paidToken = 0, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt, @JsonKey(name: "agent_initiated") this.agentInitiated = false, @JsonKey(name: "user_last_read_at") this.userLastReadAt, @JsonKey(name: "last_message_at") required this.lastMessageAt, @JsonKey(name: "is_public") this.isPublic = false});
+  const _SnThinkingSequence({required this.id, this.topic, this.totalToken = 0, this.paidToken = 0, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt, @JsonKey(name: "agent_initiated") this.agentInitiated = false, @JsonKey(name: "user_last_read_at") this.userLastReadAt, @JsonKey(name: "last_message_at") required this.lastMessageAt, @JsonKey(name: "is_public") this.isPublic = false, this.botName});
   factory _SnThinkingSequence.fromJson(Map<String, dynamic> json) => _$SnThinkingSequenceFromJson(json);
 
 @override final  String id;
@@ -1664,6 +1665,7 @@ class _SnThinkingSequence implements SnThinkingSequence {
 @override@JsonKey(name: "user_last_read_at") final  DateTime? userLastReadAt;
 @override@JsonKey(name: "last_message_at") final  DateTime lastMessageAt;
 @override@JsonKey(name: "is_public") final  bool isPublic;
+@override final  String? botName;
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
@@ -1678,16 +1680,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.agentInitiated, agentInitiated) || other.agentInitiated == agentInitiated)&&(identical(other.userLastReadAt, userLastReadAt) || other.userLastReadAt == userLastReadAt)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingSequence&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.totalToken, totalToken) || other.totalToken == totalToken)&&(identical(other.paidToken, paidToken) || other.paidToken == paidToken)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.agentInitiated, agentInitiated) || other.agentInitiated == agentInitiated)&&(identical(other.userLastReadAt, userLastReadAt) || other.userLastReadAt == userLastReadAt)&&(identical(other.lastMessageAt, lastMessageAt) || other.lastMessageAt == lastMessageAt)&&(identical(other.isPublic, isPublic) || other.isPublic == isPublic)&&(identical(other.botName, botName) || other.botName == botName));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt,agentInitiated,userLastReadAt,lastMessageAt,isPublic);
+int get hashCode => Object.hash(runtimeType,id,topic,totalToken,paidToken,accountId,createdAt,updatedAt,deletedAt,agentInitiated,userLastReadAt,lastMessageAt,isPublic,botName);
 
 @override
 String toString() {
-  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, agentInitiated: $agentInitiated, userLastReadAt: $userLastReadAt, lastMessageAt: $lastMessageAt, isPublic: $isPublic)';
+  return 'SnThinkingSequence(id: $id, topic: $topic, totalToken: $totalToken, paidToken: $paidToken, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, agentInitiated: $agentInitiated, userLastReadAt: $userLastReadAt, lastMessageAt: $lastMessageAt, isPublic: $isPublic, botName: $botName)';
 }
 
 
@@ -1698,7 +1700,7 @@ abstract mixin class _$SnThinkingSequenceCopyWith<$Res> implements $SnThinkingSe
   factory _$SnThinkingSequenceCopyWith(_SnThinkingSequence value, $Res Function(_SnThinkingSequence) _then) = __$SnThinkingSequenceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt,@JsonKey(name: "agent_initiated") bool agentInitiated,@JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,@JsonKey(name: "last_message_at") DateTime lastMessageAt,@JsonKey(name: "is_public") bool isPublic
+ String id, String? topic, int totalToken, int paidToken, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt,@JsonKey(name: "agent_initiated") bool agentInitiated,@JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,@JsonKey(name: "last_message_at") DateTime lastMessageAt,@JsonKey(name: "is_public") bool isPublic, String? botName
 });
 
 
@@ -1715,7 +1717,7 @@ class __$SnThinkingSequenceCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingSequence
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? agentInitiated = null,Object? userLastReadAt = freezed,Object? lastMessageAt = null,Object? isPublic = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? topic = freezed,Object? totalToken = null,Object? paidToken = null,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? agentInitiated = null,Object? userLastReadAt = freezed,Object? lastMessageAt = null,Object? isPublic = null,Object? botName = freezed,}) {
   return _then(_SnThinkingSequence(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: freezed == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
@@ -1729,7 +1731,8 @@ as DateTime?,agentInitiated: null == agentInitiated ? _self.agentInitiated : age
 as bool,userLastReadAt: freezed == userLastReadAt ? _self.userLastReadAt : userLastReadAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,lastMessageAt: null == lastMessageAt ? _self.lastMessageAt : lastMessageAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,botName: freezed == botName ? _self.botName : botName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

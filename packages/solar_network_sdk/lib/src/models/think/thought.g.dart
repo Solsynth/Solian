@@ -132,6 +132,7 @@ _SnThinkingSequence _$SnThinkingSequenceFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['user_last_read_at'] as String),
       lastMessageAt: DateTime.parse(json['last_message_at'] as String),
       isPublic: json['is_public'] as bool? ?? false,
+      botName: json['bot_name'] as String?,
     );
 
 Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
@@ -148,6 +149,7 @@ Map<String, dynamic> _$SnThinkingSequenceToJson(_SnThinkingSequence instance) =>
       'user_last_read_at': instance.userLastReadAt?.toIso8601String(),
       'last_message_at': instance.lastMessageAt.toIso8601String(),
       'is_public': instance.isPublic,
+      'bot_name': instance.botName,
     };
 
 _SnThinkingThought _$SnThinkingThoughtFromJson(Map<String, dynamic> json) =>

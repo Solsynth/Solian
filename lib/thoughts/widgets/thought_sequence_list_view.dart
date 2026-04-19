@@ -94,11 +94,38 @@ class ThoughtSequenceListView extends HookConsumerWidget {
                     ),
                 ],
               ),
-              subtitle: Text(
-                sequence.lastMessageAt.formatSystem(),
-                style: TextStyle(
-                  fontWeight: isUnread ? FontWeight.w500 : FontWeight.normal,
-                ),
+              subtitle: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      sequence.lastMessageAt.formatSystem(),
+                      style: TextStyle(
+                        fontWeight: isUnread
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                  if (sequence.botName != null && sequence.botName!.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        sequence.botName!,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               leading: Icon(
                 isSelected

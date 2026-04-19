@@ -159,6 +159,7 @@ sealed class SnThinkingSequence with _$SnThinkingSequence {
     @JsonKey(name: "user_last_read_at") DateTime? userLastReadAt,
     @JsonKey(name: "last_message_at") required DateTime lastMessageAt,
     @JsonKey(name: "is_public") @Default(false) bool isPublic,
+    String? botName,
   }) = _SnThinkingSequence;
 
   factory SnThinkingSequence.fromJson(Map<String, dynamic> json) =>
