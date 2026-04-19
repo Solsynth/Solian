@@ -270,6 +270,23 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       case 'messages.update':
       case 'messages.update.links':
         {
+          var eventMessage = LocalChatMessage.fromRemoteMessage(
+            message,
+            MessageStatus.sent,
+          );
+          final existingEvent = await _fetchMessageFromDb(
+            db,
+            message.id,
+            roomId,
+          );
+          if (existingEvent != null) {
+            eventMessage = _mergeReactionFieldsFromExisting(
+              eventMessage,
+              existingEvent,
+            );
+          }
+          await db.saveMessageWithSender(eventMessage);
+
           final targetId = pkt.data?['meta']?['message_id'] ?? message.id;
           final existingMsg = await _fetchMessageFromDb(db, targetId, roomId);
 
@@ -308,8 +325,26 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         }
       case 'messages.delete':
         {
+          var eventMessage = LocalChatMessage.fromRemoteMessage(
+            message,
+            MessageStatus.sent,
+          );
+          final existingEvent = await _fetchMessageFromDb(
+            db,
+            message.id,
+            roomId,
+          );
+          if (existingEvent != null) {
+            eventMessage = _mergeReactionFieldsFromExisting(
+              eventMessage,
+              existingEvent,
+            );
+          }
+          await db.saveMessageWithSender(eventMessage);
+
           final targetId = pkt.data?['meta']?['message_id'] ?? message.id;
           await _markMessageAsDeleted(db, targetId, roomId);
+          eventBus.fire(ChatMessageUpdateEvent(message));
           eventBus.fire(
             ChatMessageDeleteEvent(messageId: targetId, roomId: roomId),
           );
@@ -531,7 +566,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         reactionsMade[symbol] = true;
       }
     } else if (packet.type == 'messages.reaction.removed') {
-      final symbol = packet.meta['symbol']?.toString();
+      final symbol =
+          packet.meta['symbol']?.toString() ??
+          (packet.meta['reaction'] is Map
+              ? (packet.meta['reaction'] as Map)['symbol']?.toString()
+              : null);
       if (symbol == null || symbol.isEmpty) return false;
       if (snapshot == null) {
         final nextCount = (reactionsCount[symbol] ?? 0) - 1;

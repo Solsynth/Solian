@@ -179,7 +179,13 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     // Listen for message update events
     _updateMessageSub = eventBus.on<ChatMessageUpdateEvent>().listen((event) {
       if (event.message.chatRoomId != _chatRoom.id) return;
-      _messagesNotifier.receiveMessageUpdate(event.message);
+      if (event.message.type == 'messages.update' ||
+          event.message.type == 'messages.update.links' ||
+          event.message.type == 'messages.delete') {
+        _messagesNotifier.receiveMessage(event.message);
+      } else {
+        _messagesNotifier.receiveMessageUpdate(event.message);
+      }
     });
 
     // Listen for message delete events

@@ -1402,31 +1402,137 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
   }
 
+  LocalChatMessage _buildMessageUpdatedByEvent({
+    required LocalChatMessage existingMessage,
+    required LocalChatMessage updateEvent,
+  }) {
+    final updateRemote = updateEvent.toRemoteMessage();
+
+    if (updateEvent.type == 'messages.update.links') {
+      final existingRemote = existingMessage.toRemoteMessage();
+      final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
+      mergedMeta.addAll(updateRemote.meta);
+      mergedMeta.remove('message_id');
+
+      return LocalChatMessage.fromRemoteMessage(
+        existingRemote.copyWith(
+          meta: mergedMeta,
+          editedAt: updateEvent.createdAt,
+        ),
+        existingMessage.status,
+      );
+    }
+
+    return LocalChatMessage.fromRemoteMessage(
+      updateRemote.copyWith(
+        id: existingMessage.id,
+        createdAt: existingMessage.createdAt,
+        meta: Map.of(updateRemote.meta)..remove('message_id'),
+        type: 'text',
+        editedAt: updateEvent.createdAt,
+      ),
+      existingMessage.status,
+    );
+  }
+
+  void _upsertReceivedMessageInState(LocalChatMessage localMessage) {
+    final isMessageUpdate =
+        localMessage.type == 'messages.update' ||
+        localMessage.type == 'messages.update.links';
+    final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
+    final shouldShowMessage = _shouldIncludeInActiveList(localMessage);
+    final shouldShowEditTrail =
+        chatMode != kChatEventMessageModeNone && isMessageUpdate;
+
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    final existingIndex = currentMessages.indexWhere(
+      (m) =>
+          m.id == localMessage.id ||
+          (localMessage.clientMessageId != null &&
+              m.clientMessageId == localMessage.clientMessageId),
+    );
+
+    if (!ref.mounted) return;
+    if (existingIndex >= 0) {
+      final newList = [...currentMessages];
+      if (shouldShowMessage || shouldShowEditTrail) {
+        newList[existingIndex] = localMessage;
+      } else {
+        newList.removeAt(existingIndex);
+      }
+      state = AsyncValue.data(_sortMessages(newList));
+    } else if (shouldShowMessage || shouldShowEditTrail) {
+      state = AsyncValue.data(
+        _sortMessages([localMessage, ...currentMessages]),
+      );
+    }
+  }
+
+  Future<void> _processMessageSideEffects(SnChatMessage remoteMessage) async {
+    switch (remoteMessage.type) {
+      case "messages.delete":
+        await receiveMessageDeletion(
+          remoteMessage.meta['message_id'] ?? remoteMessage.id,
+        );
+      case "messages.update":
+      case "messages.update.links":
+        await receiveMessageUpdate(remoteMessage);
+      case "messages.reaction.added":
+        await receiveReactionAdded(remoteMessage);
+      case "messages.reaction.removed":
+        await receiveReactionRemoved(remoteMessage);
+    }
+  }
+
   /// Replaces pending message with sent message in DB and state.
-  void _applySendSuccess({
+  Future<void> _applySendSuccess({
     required LocalChatMessage pendingMessage,
     required LocalChatMessage sentMessage,
     SnChatMessage? editingTo,
-  }) {
+  }) async {
     _pendingMessages.remove(pendingMessage.id);
-    _database.deleteMessage(pendingMessage.id);
-    _database.saveMessageWithSender(sentMessage);
-
-    if (!ref.mounted) return;
-    final currentMessages = state.value ?? [];
+    await _database.deleteMessage(pendingMessage.id);
+    await _database.saveMessageWithSender(sentMessage);
+    _addToMessageCache(sentMessage);
 
     if (editingTo != null) {
-      // Remove pending + any WS echo with same nonce; replace original message.
+      final targetId =
+          sentMessage.meta['message_id']?.toString() ?? editingTo.id;
+      final existingMessage =
+          await fetchMessageById(targetId) ??
+          LocalChatMessage.fromRemoteMessage(editingTo, MessageStatus.sent);
+      final updatedOriginal = _buildMessageUpdatedByEvent(
+        existingMessage: existingMessage,
+        updateEvent: sentMessage,
+      );
+
+      await _database.saveMessage(updatedOriginal);
+      _addToMessageCache(updatedOriginal);
+
+      if (!ref.mounted) return;
+      final currentMessages = state.value ?? [];
+
+      // Remove pending + any WS echo with same nonce, keep the edit trail, and
+      // update the original message as a separate timeline item.
       final newMessages = currentMessages
           .where(
             (m) =>
                 m.id != pendingMessage.id &&
+                m.id != sentMessage.id &&
                 m.clientMessageId != pendingMessage.clientMessageId,
           )
-          .map((m) => m.id == editingTo.id ? sentMessage : m)
+          .map((m) => m.id == targetId ? updatedOriginal : m)
           .toList();
-      state = AsyncValue.data(newMessages);
+      if (!newMessages.any((m) => m.id == targetId)) {
+        newMessages.add(updatedOriginal);
+      }
+      if (_shouldIncludeInActiveList(sentMessage)) {
+        newMessages.add(sentMessage);
+      }
+      state = AsyncValue.data(_sortMessages(newMessages));
     } else {
+      if (!ref.mounted) return;
+      final currentMessages = state.value ?? [];
       final newMessages = currentMessages
           .where(
             (m) =>
@@ -1513,13 +1619,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       // ── 3. Send to server ──
-      var remoteMessage = await _sendMessageToServer(
+      final remoteMessage = await _sendMessageToServer(
         payload,
         editingTo: editingTo,
       );
-      if (editingTo != null) {
-        remoteMessage = remoteMessage.copyWith(createdAt: editingTo.createdAt);
-      }
 
       // ── 4. Preserve sender plaintext for E2EE ──
       final messageWithPlaintext = _applySenderPlaintext(
@@ -1533,7 +1636,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       );
 
       // ── 5. Update DB and state ──
-      _applySendSuccess(
+      await _applySendSuccess(
         pendingMessage: localMessage,
         sentMessage: updatedMessage,
         editingTo: editingTo,
@@ -1753,6 +1856,11 @@ class MessagesNotifier extends _$MessagesNotifier {
               pendingMsg.clientMessageId == remoteMessage.clientMessageId,
         );
       }
+      if (_isSystemEventType(remoteMessage.type)) {
+        _addToMessageCache(existingInDb);
+        _upsertReceivedMessageInState(existingInDb);
+        await _processMessageSideEffects(remoteMessage);
+      }
       return;
     }
 
@@ -1790,54 +1898,13 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     await _database.saveMessageWithSender(localMessage);
+    _addToMessageCache(localMessage);
 
     // ── Step 6: Update UI state ──
-    final isMessageUpdate =
-        remoteMessage.type == 'messages.update' ||
-        remoteMessage.type == 'messages.update.links';
-    final chatMode = ref.read(appSettingsProvider).chatEventMessageMode;
-    final shouldShowMessage = _shouldIncludeInActiveList(localMessage);
-    final shouldShowEditTrail =
-        chatMode != kChatEventMessageModeNone && isMessageUpdate;
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    final existingIndex = currentMessages.indexWhere(
-      (m) =>
-          m.id == localMessage.id ||
-          (localMessage.clientMessageId != null &&
-              m.clientMessageId == localMessage.clientMessageId),
-    );
-
-    if (ref.mounted) {
-      if (existingIndex >= 0) {
-        final newList = [...currentMessages];
-        if (shouldShowMessage || shouldShowEditTrail) {
-          newList[existingIndex] = localMessage;
-        } else {
-          newList.removeAt(existingIndex);
-        }
-        state = AsyncValue.data(_sortMessages(newList));
-      } else if (shouldShowMessage || shouldShowEditTrail) {
-        state = AsyncValue.data(
-          _sortMessages([localMessage, ...currentMessages]),
-        );
-      }
-    }
+    _upsertReceivedMessageInState(localMessage);
 
     // ── Step 7: Process system events ──
-    switch (remoteMessage.type) {
-      case "messages.delete":
-        await receiveMessageDeletion(
-          remoteMessage.meta['message_id'] ?? remoteMessage.id,
-        );
-      case "messages.update":
-      case "messages.update.links":
-        await receiveMessageUpdate(remoteMessage);
-      case "messages.reaction.added":
-        await receiveReactionAdded(remoteMessage);
-      case "messages.reaction.removed":
-        await receiveReactionRemoved(remoteMessage);
-    }
+    await _processMessageSideEffects(remoteMessage);
   }
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
@@ -1873,39 +1940,25 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
 
-    LocalChatMessage updatedMessage;
-
-    if (decryptedMessage.type == 'messages.update.links') {
-      // For link updates, merge meta with existing message instead of creating new one
-      final existingRemote = existingMessage.toRemoteMessage();
-      final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
-      mergedMeta.addAll(decryptedMessage.meta);
-      mergedMeta.remove('message_id'); // Remove the target message ID from meta
-
-      final updatedRemote = existingRemote.copyWith(
-        meta: mergedMeta,
-        editedAt: decryptedMessage.createdAt,
-      );
-
-      updatedMessage = LocalChatMessage.fromRemoteMessage(
-        updatedRemote,
-        existingMessage.status,
-      );
-    } else {
-      // Preserve original createdAt so edited messages keep their order.
-      updatedMessage = LocalChatMessage.fromRemoteMessage(
-        decryptedMessage.copyWith(
-          id: targetId,
-          createdAt: existingMessage.createdAt,
-          meta: Map.of(decryptedMessage.meta)..remove('message_id'),
-          type: 'text',
-          editedAt: decryptedMessage.createdAt,
-        ),
-        existingMessage.status,
-      );
-    }
+    final updateEvent = LocalChatMessage.fromRemoteMessage(
+      decryptedMessage,
+      MessageStatus.sent,
+    );
+    final updatedMessage = _buildMessageUpdatedByEvent(
+      existingMessage: existingMessage,
+      updateEvent: updateEvent,
+    );
 
     await _database.saveMessage(updatedMessage);
+    _addToMessageCache(updatedMessage);
+
+    final currentMessages = (ref.mounted ? state.value : null) ?? [];
+    final index = currentMessages.indexWhere((m) => m.id == targetId);
+    if (ref.mounted && index >= 0) {
+      final newList = [...currentMessages];
+      newList[index] = updatedMessage;
+      state = AsyncValue.data(_sortMessages(newList));
+    }
   }
 
   Future<void> receiveMessageDeletion(String messageId) async {
@@ -1981,11 +2034,19 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     try {
-      await _apiClient.delete(
+      final response = await _apiClient.delete(
         '/messager/chat/$roomId/messages/$messageId',
         options: _mlsWriteOptions(),
       );
-      await receiveMessageDeletion(messageId);
+      final deleteEvent = _tryParseChatMessage(
+        response.data,
+        context: 'delete response',
+      );
+      if (deleteEvent != null) {
+        await receiveMessage(deleteEvent);
+      } else {
+        await receiveMessageDeletion(messageId);
+      }
     } catch (err, stackTrace) {
       Logger.root.info('Error deleting message $messageId', err, stackTrace);
       showErrorAlert(err);
@@ -2132,6 +2193,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     await _database.saveMessage(updatedMessage);
+    _addToMessageCache(updatedMessage);
 
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final index = currentMessages.indexWhere((m) => m.id == messageId);
@@ -2172,6 +2234,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     await _database.saveMessage(updatedMessage);
+    _addToMessageCache(updatedMessage);
 
     final currentMessages = (ref.mounted ? state.value : null) ?? [];
     final index = currentMessages.indexWhere((m) => m.id == messageId);
@@ -2246,7 +2309,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     if (remoteMessage.chatRoomId != roomId) return;
 
     final targetId = remoteMessage.meta['message_id']?.toString();
-    final symbol = remoteMessage.meta['symbol']?.toString();
+    final symbol =
+        remoteMessage.meta['symbol']?.toString() ??
+        (remoteMessage.meta['reaction'] is Map
+            ? (remoteMessage.meta['reaction'] as Map)['symbol']?.toString()
+            : null);
     if (targetId == null || symbol == null || symbol.isEmpty) return;
     final snapshot = _extractReactionSnapshot(remoteMessage);
 
