@@ -1,6 +1,7 @@
 import 'dart:async';
 
-export 'package:flutter_nfc_kit/flutter_nfc_kit.dart' show NFCAvailability;
+export 'package:flutter_nfc_kit/flutter_nfc_kit.dart'
+    show NFCAvailability, NFCTag;
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:logging/logging.dart';
 import 'package:ndef/ndef.dart' as ndef;
@@ -56,10 +57,40 @@ class NfcScanService {
     String? iosAlertMessage,
     String? iosErrorMessage,
   }) async {
-    if (iosErrorMessage != null) {
-      await FlutterNfcKit.finish(iosErrorMessage: iosErrorMessage);
-    } else {
-      await FlutterNfcKit.finish(iosAlertMessage: iosAlertMessage ?? 'Success');
+    try {
+      if (iosErrorMessage != null) {
+        await FlutterNfcKit.finish(iosErrorMessage: iosErrorMessage);
+      } else {
+        await FlutterNfcKit.finish(
+          iosAlertMessage: iosAlertMessage ?? 'Success',
+        );
+      }
+    } catch (e) {
+      // Session might already be closed, ignore errors
+      Logger.root.fine(
+        'NfcScanService: finish() error (session may already be closed): $e',
+      );
+    }
+  }
+
+  /// Scans a tag and ensures the session is always properly finished.
+  /// Use this instead of [scanTag] + [finish] to avoid session leaks on iOS.
+  Future<T> withScanSession<T>({
+    required Future<T> Function(NFCTag tag) onScan,
+    Duration? timeout,
+    String? iosAlertMessage,
+    String? iosErrorMessage,
+  }) async {
+    NFCTag? tag;
+    try {
+      tag = await scanTag(timeout: timeout, iosAlertMessage: iosAlertMessage);
+      return await onScan(tag);
+    } finally {
+      // Always finish the session, even on error
+      await finish(
+        iosAlertMessage: iosAlertMessage,
+        iosErrorMessage: iosErrorMessage,
+      );
     }
   }
 

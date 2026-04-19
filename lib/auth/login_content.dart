@@ -190,6 +190,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
       isScanning.value = true;
       scanError.value = null;
 
+      NFCTag? tag;
       try {
         final availability = await NfcScanService().checkAvailability();
         if (availability != NFCAvailability.available) {
@@ -198,7 +199,7 @@ class _LoginCheckScreen extends HookConsumerWidget {
           return;
         }
 
-        final tag = await NfcScanService().scanTag();
+        tag = await NfcScanService().scanTag();
         final records = await NfcScanService().readNdefRecords(tag);
         String? uidHex;
         if (records.isNotEmpty) {
@@ -216,11 +217,13 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
         passwordController.text = '${tag.id}:$uidHex';
         isScanning.value = false;
-        await NfcScanService().finish();
         performCheckTicket();
       } catch (e) {
         scanError.value = e.toString();
         isScanning.value = false;
+      } finally {
+        // Always finish NFC session to prevent iOS session leak
+        await NfcScanService().finish();
       }
     }
 

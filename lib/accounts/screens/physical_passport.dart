@@ -575,13 +575,13 @@ class _AddPhysicalPassportSheetState
         _scannedTag = tag;
         _uidController.text = uid;
       });
-
-      await NfcScanService().finish();
     } catch (e) {
       if (mounted) {
         showErrorAlert(e);
       }
     } finally {
+      // Always finish NFC session to prevent iOS session leak
+      await NfcScanService().finish();
       if (mounted) {
         setState(() => _isScanning = false);
       }
@@ -919,13 +919,14 @@ class _PhysicalPassportScanSheetState
         _isScanning = false;
         _scannedUid = uidFromUri;
       });
-
-      await NfcScanService().finish();
     } catch (e) {
       setState(() {
         _error = e.toString();
         _isScanning = false;
       });
+    } finally {
+      // Always finish NFC session to prevent iOS session leak
+      await NfcScanService().finish();
     }
   }
 
@@ -1614,13 +1615,13 @@ class _AdminRegisterEncryptedTagSheetState
         _scannedTag = tag;
         _uidController.text = uid;
       });
-
-      await NfcScanService().finish();
     } catch (e) {
       if (mounted) {
         showErrorAlert(e);
       }
     } finally {
+      // Always finish NFC session to prevent iOS session leak
+      await NfcScanService().finish();
       if (mounted) {
         setState(() => _isScanning = false);
       }
