@@ -9,6 +9,8 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -636,18 +638,23 @@ ProImageEditorConfigs createImageEditorConfigs(
 class ImagePickerEditor extends HookConsumerWidget {
   final ImageEditorConfig config;
   final String? title;
+  final bool allowLinkAttachment;
 
   const ImagePickerEditor({
     super.key,
     this.config = const ImageEditorConfig(),
     this.title,
+    this.allowLinkAttachment = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final images = useState<List<EditableImage>>([]);
+    final linkedFiles = useState<List<SnCloudFile>>([]);
     final uploadPosition = useState<int?>(null);
     final uploadProgress = useState<double?>(null);
+
+    final totalCount = images.value.length + linkedFiles.value.length;
 
     final uploadOverallProgress = useMemoized<double?>(() {
       if (uploadPosition.value == null || uploadProgress.value == null) {
@@ -660,9 +667,20 @@ class ImagePickerEditor extends HookConsumerWidget {
     }, [uploadPosition.value, uploadProgress.value, images.value.length]);
 
     Future<void> startUpload() async {
-      if (images.value.isEmpty) return;
+      if (totalCount == 0) return;
 
-      List<SnCloudFile> result = List.empty(growable: true);
+      List<SnCloudFile> result = List.from(linkedFiles.value);
+
+      if (images.value.isEmpty) {
+        if (context.mounted) {
+          if (config.allowMultiple) {
+            Navigator.pop(context, result);
+          } else {
+            Navigator.pop(context, result.isNotEmpty ? result.first : null);
+          }
+        }
+        return;
+      }
 
       uploadProgress.value = 0;
       uploadPosition.value = 0;
@@ -768,7 +786,7 @@ class ImagePickerEditor extends HookConsumerWidget {
 
       // Check max images limit
       if (config.maxImages != null &&
-          images.value.length + results.length > config.maxImages!) {
+          totalCount + results.length > config.maxImages!) {
         if (context.mounted) {
           hideLoadingModal(context);
           showErrorAlert(
@@ -845,6 +863,15 @@ class ImagePickerEditor extends HookConsumerWidget {
       images.value = images.value.where((i) => i.id != id).toList();
     }
 
+    void removeLinkedFile(int index) {
+      linkedFiles.value = linkedFiles.value
+          .asMap()
+          .entries
+          .where((e) => e.key != index)
+          .map((e) => e.value)
+          .toList();
+    }
+
     Future<void> takePhoto() async {
       showLoadingModal(context);
       final ImagePicker picker = ImagePicker();
@@ -856,8 +883,7 @@ class ImagePickerEditor extends HookConsumerWidget {
       }
 
       // Check max images limit
-      if (config.maxImages != null &&
-          images.value.length + 1 > config.maxImages!) {
+      if (config.maxImages != null && totalCount + 1 > config.maxImages!) {
         if (context.mounted) {
           hideLoadingModal(context);
           showErrorAlert(
@@ -881,6 +907,7 @@ class ImagePickerEditor extends HookConsumerWidget {
 
       if (!config.allowMultiple) {
         images.value = [newImage];
+        linkedFiles.value = [];
       } else {
         images.value = [...images.value, newImage];
       }
@@ -893,6 +920,32 @@ class ImagePickerEditor extends HookConsumerWidget {
           editImage(newImage);
         });
       }
+    }
+
+    Future<void> pickLinkAttachment() async {
+      final result = await showModalBottomSheet<SnCloudFile>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => const ComposeLinkAttachment(),
+      );
+
+      if (result == null) return;
+      if (!context.mounted) return;
+
+      // Check max images limit
+      if (config.maxImages != null && totalCount + 1 > config.maxImages!) {
+        showErrorAlert(
+          'maxImagesError'.tr(args: [config.maxImages.toString()]),
+        );
+        return;
+      }
+
+      if (!config.allowMultiple) {
+        Navigator.pop(context, result);
+        return;
+      }
+
+      linkedFiles.value = [...linkedFiles.value, result];
     }
 
     // Check if camera is available (mobile only)
@@ -915,7 +968,7 @@ class ImagePickerEditor extends HookConsumerWidget {
       actions: [
         if (config.maxImages != null)
           Text(
-            '${images.value.length}/${config.maxImages}',
+            '$totalCount/${config.maxImages}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).hintColor,
             ),
@@ -948,7 +1001,7 @@ class ImagePickerEditor extends HookConsumerWidget {
               ),
 
             // Selected images preview
-            if (images.value.isNotEmpty) ...[
+            if (totalCount > 0) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -1018,65 +1071,110 @@ class ImagePickerEditor extends HookConsumerWidget {
               const Gap(8),
 
               // Images grid
-              config.allowMultiple
-                  ? SizedBox(
-                      height: 180,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        itemCount: images.value.length,
-                        separatorBuilder: (_, _) => const Gap(12),
-                        itemBuilder: (context, index) {
-                          final image = images.value[index];
-                          return _ImagePreviewCard(
-                            image: image,
-                            aspectRatio: targetAspectRatio,
-                            onEdit: uploadOverallProgress == null
-                                ? () => editImage(image)
-                                : null,
-                            onDelete: uploadOverallProgress == null
-                                ? () => removeImage(image.id)
-                                : null,
-                            onCompression:
-                                config.allowCompression &&
-                                    uploadOverallProgress == null
-                                ? () => showCompressionDialog(image)
-                                : null,
-                          );
-                        },
-                      ),
-                    )
-                  : ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 280),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: AspectRatio(
-                          aspectRatio: targetAspectRatio ?? 1.0,
-                          child: _ImagePreviewCard(
-                            image: images.value.first,
-                            isFullWidth: true,
-                            aspectRatio:
-                                null, // Don't apply aspect ratio inside the card
-                            onEdit: uploadOverallProgress == null
-                                ? () => editImage(images.value.first)
-                                : null,
-                            onDelete: uploadOverallProgress == null
-                                ? () => removeImage(images.value.first.id)
-                                : null,
-                            onCompression:
-                                config.allowCompression &&
-                                    uploadOverallProgress == null
-                                ? () =>
-                                      showCompressionDialog(images.value.first)
-                                : null,
-                          ),
+              if (images.value.isNotEmpty)
+                config.allowMultiple
+                    ? SizedBox(
+                        height: 180,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          itemCount: images.value.length,
+                          separatorBuilder: (_, _) => const Gap(12),
+                          itemBuilder: (context, index) {
+                            final image = images.value[index];
+                            return _ImagePreviewCard(
+                              image: image,
+                              aspectRatio: targetAspectRatio,
+                              onEdit: uploadOverallProgress == null
+                                  ? () => editImage(image)
+                                  : null,
+                              onDelete: uploadOverallProgress == null
+                                  ? () => removeImage(image.id)
+                                  : null,
+                              onCompression:
+                                  config.allowCompression &&
+                                      uploadOverallProgress == null
+                                  ? () => showCompressionDialog(image)
+                                  : null,
+                            );
+                          },
                         ),
-                      ).alignment(Alignment.centerLeft),
-                    ),
+                      )
+                    : ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 280),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: AspectRatio(
+                            aspectRatio: targetAspectRatio ?? 1.0,
+                            child: _ImagePreviewCard(
+                              image: images.value.first,
+                              isFullWidth: true,
+                              aspectRatio:
+                                  null, // Don't apply aspect ratio inside the card
+                              onEdit: uploadOverallProgress == null
+                                  ? () => editImage(images.value.first)
+                                  : null,
+                              onDelete: uploadOverallProgress == null
+                                  ? () => removeImage(images.value.first.id)
+                                  : null,
+                              onCompression:
+                                  config.allowCompression &&
+                                      uploadOverallProgress == null
+                                  ? () => showCompressionDialog(
+                                      images.value.first,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                        ).alignment(Alignment.centerLeft),
+                      ),
+
+              // Linked files preview
+              if (linkedFiles.value.isNotEmpty) ...[
+                const Gap(16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Symbols.link,
+                        size: 18,
+                        color: Theme.of(context).hintColor,
+                      ),
+                      const Gap(8),
+                      Text(
+                        'linkedAttachments'.tr(),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).hintColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Gap(8),
+                SizedBox(
+                  height: 100,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemCount: linkedFiles.value.length,
+                    separatorBuilder: (_, _) => const Gap(12),
+                    itemBuilder: (context, index) {
+                      final file = linkedFiles.value[index];
+                      return _LinkedFileCard(
+                        file: file,
+                        onDelete: uploadOverallProgress == null
+                            ? () => removeLinkedFile(index)
+                            : null,
+                      );
+                    },
+                  ),
+                ),
+              ],
             ],
 
             // Empty state
-            if (images.value.isEmpty)
+            if (totalCount == 0)
               Center(
                 child: Column(
                   children: [
@@ -1111,6 +1209,14 @@ class ImagePickerEditor extends HookConsumerWidget {
               margin: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  if (allowLinkAttachment) ...[
+                    ListTile(
+                      leading: const Icon(Symbols.link),
+                      title: Text('addLinkAttachment'.tr()),
+                      onTap: pickLinkAttachment,
+                    ),
+                    const Divider(height: 1),
+                  ],
                   ListTile(
                     leading: const Icon(Symbols.photo_library),
                     title: Text('pickFromGallery'.tr()),
@@ -1379,6 +1485,121 @@ class _ImagePreviewCard extends StatelessWidget {
         ),
       ),
       child: imageContent,
+    );
+  }
+}
+
+/// A card widget that displays a linked cloud file
+class _LinkedFileCard extends StatelessWidget {
+  final SnCloudFile file;
+  final VoidCallback? onDelete;
+
+  const _LinkedFileCard({required this.file, this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final isImage = file.mimeType?.startsWith('image/') ?? false;
+
+    return Container(
+      width: 160,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        ),
+      ),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
+                  child: isImage
+                      ? CloudImageWidget(file: file, fit: BoxFit.cover)
+                      : Icon(
+                          Symbols.link,
+                          size: 32,
+                          color: Theme.of(context).colorScheme.outline,
+                        ).center(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(
+                  file.name.isEmpty ? 'untitled'.tr() : file.name,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          // Link indicator
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.tertiary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Symbols.link,
+                    size: 12,
+                    color: Theme.of(context).colorScheme.onTertiary,
+                  ),
+                  const Gap(4),
+                  Text(
+                    'linked'.tr(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Theme.of(context).colorScheme.onTertiary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Delete button
+          if (onDelete != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _ActionButton(
+                      icon: Symbols.delete,
+                      onTap: onDelete!,
+                      tooltip: 'delete'.tr(),
+                      color: Colors.red,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
