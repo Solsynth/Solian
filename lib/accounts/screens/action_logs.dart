@@ -52,10 +52,16 @@ class ActionLogsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AppScaffold(
-      appBar: AppBar(title: Text('actionLogs').tr()),
+      appBar: AppBar(
+        title: Text('actionLogs').tr(),
+        centerTitle: true,
+        scrolledUnderElevation: 4,
+      ),
       body: PaginationList(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         provider: actionLogsNotifierProvider,
         notifier: actionLogsNotifierProvider.notifier,
         itemBuilder: (context, idx, log) {
@@ -65,74 +71,120 @@ class ActionLogsScreen extends ConsumerWidget {
             if (location?.country != null) location!.country,
           ].join(', ');
 
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _getActionColor(log.action).withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _getActionIcon(log.action),
-                color: _getActionColor(log.action),
-                size: 20,
-              ),
+          final actionColor = _getActionColor(log.action, colorScheme);
+          final actionContainerColor = actionColor.withOpacity(0.12);
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            elevation: 0,
+            color: colorScheme.surfaceContainerLow,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            title: Text(
-              _formatAction(log.action),
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (locationText.isNotEmpty)
-                  Text(
-                    locationText,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 12,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Action Icon Container - Material 3 tonal style
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: actionContainerColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getActionIcon(log.action),
+                      color: actionColor,
+                      size: 24,
                     ),
                   ),
-                Row(
-                  spacing: 4,
-                  children: [
-                    Icon(
-                      Symbols.schedule,
-                      size: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    Text(
-                      log.createdAt.toLocal().formatSystem(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  spacing: 4,
-                  children: [
-                    Icon(
-                      Symbols.dns,
-                      size: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    if (log.ipAddress?.isNotEmpty ?? false)
-                      Text(
-                        log.ipAddress!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 12,
+                  const SizedBox(width: 16),
+                  // Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Action Title
+                        Text(
+                          _formatAction(log.action),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
                         ),
-                      ),
-                  ],
-                ),
-              ],
+                        // Location
+                        if (locationText.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Symbols.location_on,
+                                  size: 14,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    locationText,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        // Time
+                        Row(
+                          children: [
+                            Icon(
+                              Symbols.schedule,
+                              size: 14,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              log.createdAt.toLocal().formatSystem(),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        // IP Address
+                        if (log.ipAddress?.isNotEmpty ?? false)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Symbols.dns,
+                                  size: 14,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  log.ipAddress!,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            isThreeLine: true,
           );
         },
       ),
@@ -168,34 +220,26 @@ IconData _getActionIcon(String action) {
   return Icons.history;
 }
 
-Color _getActionColor(String action) {
+Color _getActionColor(String action, ColorScheme colorScheme) {
   final actionLower = action.toLowerCase();
-  if (actionLower.contains('login')) return Colors.green;
-  if (actionLower.contains('logout')) return Colors.orange;
-  if (actionLower.contains('register')) return Colors.blue;
-  if (actionLower.contains('delete')) return Colors.red;
+  if (actionLower.contains('login')) return colorScheme.primary;
+  if (actionLower.contains('logout')) return colorScheme.tertiary;
+  if (actionLower.contains('register')) return colorScheme.secondary;
+  if (actionLower.contains('delete')) return colorScheme.error;
   if (actionLower.contains('error') || actionLower.contains('fail')) {
-    return Colors.red;
+    return colorScheme.error;
   }
-  if (actionLower.contains('password')) return Colors.amber;
+  if (actionLower.contains('password')) return colorScheme.tertiaryContainer;
   if (actionLower.contains('oauth') || actionLower.contains('connect')) {
-    return Colors.purple;
+    return colorScheme.primaryContainer;
   }
   if (actionLower.contains('verify') || actionLower.contains('enable')) {
-    return Colors.teal;
+    return colorScheme.secondaryContainer;
   }
-  return Colors.grey;
+  return colorScheme.outline;
 }
 
 String _formatAction(String action) {
-  return action
-      .replaceAll('.', ' ')
-      .replaceAll('_', ' ')
-      .split(' ')
-      .map(
-        (word) => word.isNotEmpty
-            ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
-            : '',
-      )
-      .join(' ');
+  // Return original action name without formatting
+  return action;
 }
