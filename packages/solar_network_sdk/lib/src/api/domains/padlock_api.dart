@@ -41,11 +41,13 @@ class PadlockApi extends BaseApi {
   /// [take] - Number of items to take.
   /// [type] - Filter by session type (0=Login, 1=OAuth, 2=Oidc).
   /// [clientId] - Filter by client/device ID.
+  /// [includeChildren] - Include child sessions in the response.
   Future<PaginatedResult<SnAuthSession>> getSessions({
     int offset = 0,
     int take = 20,
     int? type,
     String? clientId,
+    bool? includeChildren,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/sessions',
@@ -54,7 +56,30 @@ class PadlockApi extends BaseApi {
         'take': take,
         'type': ?type,
         'clientId': ?clientId,
+        'includeChildren': ?includeChildren,
       },
+    );
+
+    final totalCount = getTotalCount(response.headers);
+    return PaginatedResult(
+      items: parseList(response, SnAuthSession.fromJson),
+      totalCount: totalCount,
+    );
+  }
+
+  /// Gets direct children of a specific session.
+  ///
+  /// [sessionId] - The ID of the parent session.
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  Future<PaginatedResult<SnAuthSession>> getSessionChildren(
+    String sessionId, {
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/sessions/$sessionId/children',
+      queryParameters: {'offset': offset, 'take': take},
     );
 
     final totalCount = getTotalCount(response.headers);
