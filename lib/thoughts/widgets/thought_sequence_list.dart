@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
+import 'package:island/thoughts/widgets/bot_avatar_widget.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final thoughtSequenceListNotifierProvider = AsyncNotifierProvider.autoDispose(
   ThoughtSequenceListNotifier.new,
@@ -76,29 +79,44 @@ class ThoughtSequenceSelector extends HookConsumerWidget {
         itemBuilder: (context, index, sequence) {
           final colorScheme = Theme.of(context).colorScheme;
           return ListTile(
+            leading: sequence.botName != null && sequence.botName!.isNotEmpty
+                ? BotAvatarWidget(botName: sequence.botName!, radius: 14)
+                : Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      Symbols.smart_toy,
+                      size: 16,
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                  ),
             title: Text(sequence.topic ?? 'Untitled Conversation'),
             subtitle: Row(
               children: [
-                Expanded(child: Text(sequence.lastMessageAt.formatSystem())),
                 if (sequence.botName != null && sequence.botName!.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      sequence.botName!,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSecondaryContainer,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      BotNameWidget(
+                        botName: sequence.botName!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
+                      const Gap(8),
+                    ],
                   ),
+                Expanded(
+                  child: Text(
+                    sequence.lastMessageAt.formatSystem(),
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                ),
               ],
             ),
             onTap: () {

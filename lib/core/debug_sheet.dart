@@ -127,7 +127,7 @@ Future<void> _showSetTokenDialog(BuildContext context, WidgetRef ref) async {
   final prefs = ref.read(sharedPreferencesProvider);
 
   return showDialog<void>(
-    context: context,
+    context: ref.read(routerProvider).navigatorKey.currentState!.context,
     builder: (BuildContext context) {
       return AlertDialog(
         title: const Text('Set access token'),

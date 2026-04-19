@@ -1,12 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/thoughts/widgets/bot_avatar_widget.dart';
 import 'package:island/thoughts/widgets/thought_sequence_list.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 /// A widget that displays a list of thought sequences for sidebar selection.
 ///
@@ -59,15 +61,6 @@ class ThoughtSequenceListView extends HookConsumerWidget {
               selectedColor: colorScheme.onPrimaryContainer,
               title: Row(
                 children: [
-                  if (sequence.agentInitiated)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: Icon(
-                        Symbols.smart_toy,
-                        size: 16,
-                        color: colorScheme.primary,
-                      ),
-                    ),
                   Expanded(
                     child: Text(
                       sequence.topic ?? 'Untitled Conversation',
@@ -96,6 +89,23 @@ class ThoughtSequenceListView extends HookConsumerWidget {
               ),
               subtitle: Row(
                 children: [
+                  if (sequence.botName != null && sequence.botName!.isNotEmpty)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        BotNameWidget(
+                          botName: sequence.botName!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isUnread
+                                ? FontWeight.w500
+                                : FontWeight.normal,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const Gap(8),
+                      ],
+                    ),
                   Expanded(
                     child: Text(
                       sequence.lastMessageAt.formatSystem(),
@@ -103,38 +113,32 @@ class ThoughtSequenceListView extends HookConsumerWidget {
                         fontWeight: isUnread
                             ? FontWeight.w500
                             : FontWeight.normal,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
-                  if (sequence.botName != null && sequence.botName!.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        sequence.botName!,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
                 ],
               ),
-              leading: Icon(
-                isSelected
-                    ? Symbols.chat_bubble
-                    : isUnread
-                    ? Symbols.mark_chat_unread
-                    : Symbols.chat_bubble_outline,
-                fill: isSelected || isUnread ? 1 : 0,
-              ),
+              leading: sequence.botName != null && sequence.botName!.isNotEmpty
+                  ? BotAvatarWidget(botName: sequence.botName!, radius: 14)
+                  : Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        isSelected
+                            ? Symbols.chat_bubble
+                            : isUnread
+                            ? Symbols.mark_chat_unread
+                            : Symbols.chat_bubble_outline,
+                        size: 16,
+                        color: colorScheme.onSecondaryContainer,
+                        fill: isSelected || isUnread ? 1 : 0,
+                      ),
+                    ),
               trailing: sequence.isPublic
                   ? Icon(Symbols.public, size: 16, color: colorScheme.outline)
                   : null,
