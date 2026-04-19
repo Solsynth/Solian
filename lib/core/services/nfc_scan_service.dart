@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 export 'package:flutter_nfc_kit/flutter_nfc_kit.dart' show NFCAvailability;
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
@@ -76,11 +75,13 @@ class NfcScanService {
         'NfcScanService: Record[$i] type: ${record.runtimeType}',
       );
 
+      // Handle URI record directly
       if (record is ndef.UriRecord && record.uri != null) {
         Logger.root.info('NfcScanService: URI record found: ${record.uri}');
         return record.uri;
       }
 
+      // Handle text record containing a URL
       if (record is ndef.TextRecord) {
         final text = record.text;
         if (text == null) {
@@ -89,69 +90,20 @@ class NfcScanService {
         }
 
         Logger.root.info('NfcScanService: Text record[$i]: "$text"');
-        final uri = _tryParseUri(text);
-        if (uri != null) {
-          Logger.root.info('NfcScanService: Parsed URI from text: $uri');
-          return uri;
+        final trimmed = text.trim();
+
+        // Check if it looks like a solian:// URL
+        if (trimmed.toLowerCase().startsWith('solian://')) {
+          final uri = Uri.tryParse(trimmed);
+          if (uri != null) {
+            Logger.root.info('NfcScanService: Parsed solian URI: $uri');
+            return uri;
+          }
         }
       }
     }
 
     Logger.root.info('NfcScanService: No valid URI found in records');
     return null;
-  }
-
-  Uri? _tryParseUri(String input) {
-    final trimmed = input.trim();
-
-    if (_looksLikeUrl(trimmed)) {
-      return Uri.tryParse(trimmed);
-    }
-
-    if (!_isLikelyBase64(trimmed)) {
-      return null;
-    }
-
-    try {
-      final decoded = base64Decode(trimmed);
-      final decodedStr = utf8.decode(decoded, allowMalformed: true);
-
-      final startIdx = _findUrlStart(decodedStr);
-      if (startIdx < 0) return null;
-
-      final cleanStr = decodedStr.substring(startIdx);
-      final uri = Uri.tryParse(cleanStr.trim().split(' ').first);
-      if (uri != null && _looksLikeUrl(uri.toString())) {
-        return uri;
-      }
-    } catch (_) {}
-
-    return null;
-  }
-
-  bool _isLikelyBase64(String input) {
-    if (input.isEmpty) return false;
-    final base64Regex = RegExp(r'^[A-Za-z0-9+/]*={0,2}$');
-    return base64Regex.hasMatch(input);
-  }
-
-  int _findUrlStart(String input) {
-    final solianIdx = input.indexOf('solian://');
-    if (solianIdx >= 0) return solianIdx;
-
-    final httpsIdx = input.indexOf('https://');
-    if (httpsIdx >= 0) return httpsIdx;
-
-    final httpIdx = input.indexOf('http://');
-    if (httpIdx >= 0) return httpIdx;
-
-    return -1;
-  }
-
-  bool _looksLikeUrl(String input) {
-    final lower = input.toLowerCase();
-    return lower.startsWith('solian://') ||
-        lower.startsWith('https://') ||
-        lower.startsWith('http://');
   }
 }
