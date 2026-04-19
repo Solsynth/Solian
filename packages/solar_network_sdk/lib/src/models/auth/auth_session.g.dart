@@ -34,6 +34,7 @@ _SnAuthSession _$SnAuthSessionFromJson(
       ? null
       : DateTime.parse(json['deleted_at'] as String),
   isCurrent: json['is_current'] as bool? ?? false,
+  childrenCount: (json['children_count'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
@@ -53,4 +54,5 @@ Map<String, dynamic> _$SnAuthSessionToJson(_SnAuthSession instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'is_current': instance.isCurrent,
+      'children_count': instance.childrenCount,
     };
