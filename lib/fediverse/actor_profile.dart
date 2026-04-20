@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:html2md/html2md.dart' as html2md;
+import 'package:island/accounts/widgets/account/handle_chip.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
@@ -41,65 +42,58 @@ class FediverseActorRelationship {
     required this.isPending,
   });
 
-  factory FediverseActorRelationship.fromJson(Map<String, dynamic> json) =>
-      FediverseActorRelationship(
-        actorId: json['actor_id'] as String,
-        actorUsername: json['actor_username'] as String,
-        actorInstance: json['actor_instance'] as String?,
-        actorHandle: json['actor_handle'] as String,
-        isFollowing: json['is_following'] as bool? ?? false,
-        isFollowedBy: json['is_followed_by'] as bool? ?? false,
-        isPending: json['is_pending'] as bool? ?? false,
-      );
+  factory FediverseActorRelationship.fromJson(Map<String, dynamic> json) => FediverseActorRelationship(
+    actorId: json['actor_id'] as String,
+    actorUsername: json['actor_username'] as String,
+    actorInstance: json['actor_instance'] as String?,
+    actorHandle: json['actor_handle'] as String,
+    isFollowing: json['is_following'] as bool? ?? false,
+    isFollowedBy: json['is_followed_by'] as bool? ?? false,
+    isPending: json['is_pending'] as bool? ?? false,
+  );
 }
 
-final fediverseActorProvider =
-    FutureProvider.family<SnActivityPubActor, String>((ref, idOrHandle) async {
-      final client = ref.watch(solarNetworkClientProvider);
-      final isHandle = idOrHandle.contains('@');
+final fediverseActorProvider = FutureProvider.family<SnActivityPubActor, String>((ref, idOrHandle) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  final isHandle = idOrHandle.contains('@');
 
-      try {
-        final resp = await client.dio.get(
-          '/sphere/fediverse/actors/$idOrHandle',
-        );
-        return SnActivityPubActor.fromJson(resp.data);
-      } catch (err) {
-        if (err is DioException &&
-            err.response?.statusCode == 404 &&
-            !isHandle) {
-          rethrow;
-        }
-        rethrow;
-      }
-    });
+  try {
+    final resp = await client.dio.get('/sphere/fediverse/actors/$idOrHandle');
+    return SnActivityPubActor.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404 && !isHandle) {
+      rethrow;
+    }
+    rethrow;
+  }
+});
 
-final fediverseActorRelationshipProvider = FutureProvider.autoDispose
-    .family<FediverseActorRelationship?, String>((ref, actorId) async {
-      final client = ref.watch(solarNetworkClientProvider);
-      try {
-        final resp = await client.dio.get(
-          "/sphere/fediverse/actors/$actorId/relationship",
-        );
-        return FediverseActorRelationship.fromJson(resp.data);
-      } catch (err) {
-        if (err is DioException) {
-          if (err.response?.statusCode == 404) return null;
-          rethrow;
-        }
-      }
-      return null;
-    });
+final fediverseActorRelationshipProvider = FutureProvider.autoDispose.family<FediverseActorRelationship?, String>((
+  ref,
+  actorId,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  try {
+    final resp = await client.dio.get("/sphere/fediverse/actors/$actorId/relationship");
+    return FediverseActorRelationship.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException) {
+      if (err.response?.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+  return null;
+});
 
 final fediverseActorPostsProvider = AsyncNotifierProvider.autoDispose
-    .family<FediverseActorPostsNotifier, PaginationState<SnPost>, String>(
-      FediverseActorPostsNotifier.new,
-    );
+    .family<FediverseActorPostsNotifier, PaginationState<SnPost>, String>(FediverseActorPostsNotifier.new);
 
 class FediverseActorPostsNotifier extends AsyncNotifier<PaginationState<SnPost>>
     with AsyncPaginationController<SnPost> {
   static const int pageSize = 20;
 
   final String actorId;
+
   FediverseActorPostsNotifier(this.actorId);
 
   @override
@@ -126,9 +120,7 @@ class FediverseActorPostsNotifier extends AsyncNotifier<PaginationState<SnPost>>
 
     totalCount = response.data is List ? (response.data as List).length : 0;
     if (response.data is List) {
-      return (response.data as List)
-          .map((json) => SnPost.fromJson(json as Map<String, dynamic>))
-          .toList();
+      return (response.data as List).map((json) => SnPost.fromJson(json as Map<String, dynamic>)).toList();
     }
     return [];
   }
@@ -158,246 +150,174 @@ class _ActorBasisWidget extends HookWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 20,
-              children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundImage: data.avatarUrl != null
-                      ? CachedNetworkImageProvider(data.avatarUrl!)
-                      : null,
-                  backgroundColor: theme.colorScheme.surfaceContainer,
-                  child: data.avatarUrl == null
-                      ? Icon(
-                          Symbols.person,
-                          color: theme.colorScheme.onSurfaceVariant,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Banner/background image
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: AspectRatio(
+                  aspectRatio: 16 / 7,
+                  child: data.headerUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: data.headerUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => Container(color: theme.colorScheme.surfaceContainerHighest),
+                          errorWidget: (_, _, _) => Container(color: theme.colorScheme.surfaceContainerHighest),
                         )
-                      : null,
+                      : Container(color: theme.colorScheme.surfaceContainerHighest),
                 ),
-                Expanded(
-                  child: Column(
+              ),
+              // Profile picture positioned at bottom left
+              Positioned(
+                bottom: -24,
+                left: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.colorScheme.surface, width: 3),
+                  ),
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundImage: data.avatarUrl != null ? CachedNetworkImageProvider(data.avatarUrl!) : null,
+                    backgroundColor: theme.colorScheme.surfaceContainer,
+                    child: data.avatarUrl == null
+                        ? Icon(Symbols.person, color: theme.colorScheme.onSurfaceVariant)
+                        : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Gap(16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        data.displayName ?? data.username,
+                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (data.isBot)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: data.isBot ? theme.colorScheme.tertiaryContainer : theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'BOT',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: data.isBot
+                                ? theme.colorScheme.onTertiaryContainer
+                                : theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                    HandleChip(
+                      handle: data.username,
+                      domain: data.instance.domain,
+                      isRemote: true,
+                      allowCopy: true,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+                const Gap(12),
+                relationship.when(
+                  data: (rel) {
+                    return FilledButton.icon(
+                      onPressed: acting.value
+                          ? null
+                          : hasFediverseIdentity
+                          ? (rel?.isFollowing == true ? unfollow : follow)
+                          : () => showFediverseInteractionHint(context, 'fediverseFollowHint'),
+                      icon: Icon(rel?.isFollowing == true ? Symbols.remove_circle : Icons.person_add_outlined),
+                      label: Text(rel?.isFollowing == true ? 'unfollow' : 'follow').tr(),
+                      style: ButtonStyle(visualDensity: VisualDensity(vertical: -2)),
+                    );
+                  },
+                  error: (_, _) {
+                    return FilledButton.icon(
+                      onPressed: acting.value
+                          ? null
+                          : hasFediverseIdentity
+                          ? follow
+                          : () => showFediverseInteractionHint(context, 'fediverseFollowHint'),
+                      icon: const Icon(Icons.person_add_outlined),
+                      label: Text('follow').tr(),
+                      style: ButtonStyle(visualDensity: VisualDensity(vertical: -2)),
+                    );
+                  },
+                  loading: () => const SizedBox(
+                    height: 36,
+                    child: Center(
+                      child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                  ),
+                ),
+                if (data.bio?.isNotEmpty ?? false) ...[
+                  const Gap(12),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
-                        spacing: 6,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Flexible(
-                            child: Text(
-                              data.displayName ?? data.username,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              child: isBioExpanded.value
+                                  ? MarkdownTextContent(
+                                      key: const ValueKey('expanded'),
+                                      content: html2md.convert(data.bio!),
+                                      linesMargin: EdgeInsets.zero,
+                                    )
+                                  : Text(
+                                      html2md.convert(data.bio!),
+                                      key: const ValueKey('collapsed'),
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                      textAlign: TextAlign.left,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                            ).alignment(Alignment.centerLeft),
                           ),
-                          if (data.isBot || (data.metadata?['isCat'] == true))
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: data.isBot
-                                    ? theme.colorScheme.tertiaryContainer
-                                    : theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                          InkWell(
+                            onTap: () {
+                              isBioExpanded.value = !isBioExpanded.value;
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
                               child: Text(
-                                data.isBot ? 'BOT' : '🐱',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: data.isBot
-                                      ? theme.colorScheme.onTertiaryContainer
-                                      : theme.colorScheme.onPrimaryContainer,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      Row(
-                        spacing: 6,
-                        children: [
-                          Text(
-                            '@${data.fullHandle}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.colorScheme.onSurfaceVariant,
+                                isBioExpanded.value ? 'collapse'.tr() : 'expand'.tr(),
+                                style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary),
+                              ).tr(),
                             ),
                           ),
                         ],
-                      ),
-                      const Gap(4),
-                      Row(
-                        spacing: 6,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.secondaryContainer,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 4,
-                              children: [
-                                Icon(
-                                  Symbols.public,
-                                  size: 12,
-                                  color: theme.colorScheme.onSecondaryContainer,
-                                ),
-                                Text(
-                                  data.instance.name ?? data.instance.domain,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color:
-                                        theme.colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (data.instance.software != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    theme.colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                data.instance.software!,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const Gap(12),
-                      relationship.when(
-                        data: (rel) {
-                          return FilledButton.icon(
-                            onPressed: acting.value
-                                ? null
-                                : hasFediverseIdentity
-                                ? (rel?.isFollowing == true ? unfollow : follow)
-                                : () => showFediverseInteractionHint(
-                                    context,
-                                    'fediverseFollowHint',
-                                  ),
-                            icon: Icon(
-                              rel?.isFollowing == true
-                                  ? Symbols.remove_circle
-                                  : Icons.person_add_outlined,
-                            ),
-                            label: Text(
-                              rel?.isFollowing == true ? 'unfollow' : 'follow',
-                            ).tr(),
-                            style: ButtonStyle(
-                              visualDensity: VisualDensity(vertical: -2),
-                            ),
-                          );
-                        },
-                        error: (_, _) {
-                          return FilledButton.icon(
-                            onPressed: acting.value
-                                ? null
-                                : hasFediverseIdentity
-                                ? follow
-                                : () => showFediverseInteractionHint(
-                                    context,
-                                    'fediverseFollowHint',
-                                  ),
-                            icon: const Icon(Icons.person_add_outlined),
-                            label: Text('follow').tr(),
-                            style: ButtonStyle(
-                              visualDensity: VisualDensity(vertical: -2),
-                            ),
-                          );
-                        },
-                        loading: () => const SizedBox(
-                          height: 36,
-                          child: Center(
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (data.bio?.isNotEmpty ?? false) ...[
-              const Gap(12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 200),
-                          child: isBioExpanded.value
-                              ? MarkdownTextContent(
-                                  key: const ValueKey('expanded'),
-                                  content: html2md.convert(data.bio!),
-                                  linesMargin: EdgeInsets.zero,
-                                )
-                              : Text(
-                                  html2md.convert(data.bio!),
-                                  key: const ValueKey('expanded'),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                  textAlign: TextAlign.left,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                        ).alignment(Alignment.centerLeft),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          isBioExpanded.value = !isBioExpanded.value;
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Text(
-                            isBioExpanded.value
-                                ? 'collapse'.tr()
-                                : 'expand'.tr(),
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                            ),
-                          ).tr(),
-                        ),
                       ),
                     ],
                   ),
                 ],
-              ),
-            ],
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -418,7 +338,7 @@ class _FediverseHintWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: data.webUrl != null ? () => launchUrlString(data.webUrl!) : null,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Icon(Symbols.hub, size: 20, color: theme.colorScheme.primary),
@@ -429,27 +349,18 @@ class _FediverseHintWidget extends StatelessWidget {
                   children: [
                     Text(
                       'fediverseProfileHint'.tr(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                     if (data.webUrl != null) ...[
                       Text(
                         'viewOnOriginalSite'.tr(),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
+                        style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
                       ),
                     ],
                   ],
                 ),
               ),
-              if (data.webUrl != null)
-                Icon(
-                  Symbols.open_in_new,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
+              if (data.webUrl != null) Icon(Symbols.open_in_new, size: 16, color: theme.colorScheme.primary),
             ],
           ),
         ),
@@ -488,7 +399,7 @@ class _ActorTagsWidget extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -508,14 +419,8 @@ class _ActorTagsWidget extends StatelessWidget {
                             width: 24,
                             height: 24,
                             fit: BoxFit.contain,
-                            placeholder: (context, url) => Text(
-                              name,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            errorWidget: (context, url, error) => Text(
-                              name,
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                            placeholder: (context, url) => Text(name, style: const TextStyle(fontSize: 16)),
+                            errorWidget: (context, url, error) => Text(name, style: const TextStyle(fontSize: 16)),
                           )
                         : Text(name, style: const TextStyle(fontSize: 16)),
                   );
@@ -531,16 +436,11 @@ class _ActorTagsWidget extends StatelessWidget {
                   final href = tag['href'] as String?;
                   final name = tag['name'] as String? ?? '';
                   return ActionChip(
-                    label: Text(
-                      name,
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
+                    label: Text(name, style: Theme.of(context).textTheme.labelSmall),
                     avatar: const Icon(Symbols.tag, size: 14),
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
-                    onPressed: href != null
-                        ? () => launchUrlString(href)
-                        : null,
+                    onPressed: href != null ? () => launchUrlString(href) : null,
                   );
                 }).toList(),
               ),
@@ -579,7 +479,7 @@ class _ActorAttachmentsWidget extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -597,9 +497,7 @@ class _ActorAttachmentsWidget extends StatelessWidget {
                       width: 120,
                       child: Text(
                         name,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ),
                     Expanded(child: _PropertyValueRenderer(html: value)),
@@ -626,9 +524,9 @@ class _PropertyValueRenderer extends StatelessWidget {
 
     final child = Text(
       plainText,
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: uri != null ? Theme.of(context).colorScheme.primary : null,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: uri != null ? Theme.of(context).colorScheme.primary : null),
     );
 
     if (uri != null) {
@@ -679,18 +577,14 @@ class _FollowedMessageWidget extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.favorite,
-              size: 16,
-              color: Theme.of(context).colorScheme.onSecondaryContainer,
-            ),
+            Icon(Icons.favorite, size: 16, color: Theme.of(context).colorScheme.onSecondaryContainer),
             const Gap(8),
             Expanded(
               child: MarkdownTextContent(
                 content: message,
-                textStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSecondaryContainer,
-                ),
+                textStyle: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSecondaryContainer),
               ),
             ),
           ],
@@ -720,13 +614,11 @@ class _ActorPostsWidget extends ConsumerWidget {
       ),
       itemBuilder: (context, index, post) {
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          margin: const EdgeInsets.symmetric(vertical: 4),
           child: PostActionableItem(
             item: post,
             borderRadius: 8,
-            onTap: !post.isCached && post.fediverseUri != null
-                ? () => launchUrlString(post.fediverseUri!)
-                : null,
+            onTap: !post.isCached && post.fediverseUri != null ? () => launchUrlString(post.fediverseUri!) : null,
           ),
         );
       },
@@ -739,11 +631,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
   final String id;
   final String? fullHandle;
 
-  const FediverseActorProfileScreen({
-    super.key,
-    required this.id,
-    this.fullHandle,
-  });
+  const FediverseActorProfileScreen({super.key, required this.id, this.fullHandle});
 
   String get requestKey {
     if (id.contains('@')) return id;
@@ -761,9 +649,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
       final client = ref.watch(solarNetworkClientProvider);
       acting.value = true;
       try {
-        await client.dio.post(
-          "/sphere/fediverse/actors/${actorData.id}/follow",
-        );
+        await client.dio.post("/sphere/fediverse/actors/${actorData.id}/follow");
         ref.invalidate(fediverseActorRelationshipProvider(actorData.id));
         HapticFeedback.heavyImpact();
       } catch (err) {
@@ -777,9 +663,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
       final client = ref.watch(solarNetworkClientProvider);
       acting.value = true;
       try {
-        await client.dio.post(
-          "/sphere/fediverse/actors/${actorData.id}/unfollow",
-        );
+        await client.dio.post("/sphere/fediverse/actors/${actorData.id}/unfollow");
         ref.invalidate(fediverseActorRelationshipProvider(actorData.id));
         HapticFeedback.heavyImpact();
       } catch (err) {
@@ -791,17 +675,12 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
 
     return actor.when(
       data: (data) {
-        final relationship = ref.watch(
-          fediverseActorRelationshipProvider(data.id),
-        );
+        final relationship = ref.watch(fediverseActorRelationshipProvider(data.id));
         final hasFediverseIdentity = ref.watch(hasFediverseIdentityProvider);
 
         return AppScaffold(
           isNoBackground: false,
-          appBar: AppBar(
-            leading: AutoLeadingButton(),
-            title: Text(data.displayName ?? data.username),
-          ),
+          appBar: AppBar(leading: AutoLeadingButton(), title: Text(data.displayName ?? data.username)),
           body: isWideScreen(context)
               ? Row(
                   spacing: 12,
@@ -826,28 +705,6 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                             spacing: 12,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              if (data.headerUrl != null)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: CachedNetworkImage(
-                                    imageUrl: data.headerUrl!,
-                                    height: 120,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    placeholder: (_, _) => Container(
-                                      height: 120,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerHighest,
-                                    ),
-                                    errorWidget: (_, _, _) => Container(
-                                      height: 120,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerHighest,
-                                    ),
-                                  ),
-                                ),
                               _ActorBasisWidget(
                                 data: data,
                                 relationship: relationship,
@@ -856,7 +713,7 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                                 unfollow: () => unfollow(data),
                                 hasFediverseIdentity: hasFediverseIdentity,
                               ),
-                              _FollowedMessageWidget(data: data),
+                              if (data.metadata?['_misskey_followedMessage'] != null) _FollowedMessageWidget(data: data),
                               _FediverseHintWidget(data: data),
                               _ActorTagsWidget(data: data),
                               _ActorAttachmentsWidget(data: data),
@@ -870,23 +727,13 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                                         Icon(
                                           Symbols.schedule,
                                           size: 16,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         ),
                                         const Gap(8),
                                         Expanded(
                                           child: Text(
-                                            'lastActive'.tr(
-                                              args: [
-                                                _formatDate(
-                                                  data.lastActivityAt!,
-                                                ),
-                                              ],
-                                            ),
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall,
+                                            'lastActive'.tr(args: [_formatDate(data.lastActivityAt!)]),
+                                            style: Theme.of(context).textTheme.bodySmall,
                                           ),
                                         ),
                                       ],
@@ -904,28 +751,6 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                   slivers: [
                     const SliverGap(12),
                     SliverToBoxAdapter(
-                      child: data.headerUrl != null
-                          ? CachedNetworkImage(
-                              imageUrl: data.headerUrl!,
-                              height: 180,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (_, _) => Container(
-                                height: 180,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                              ),
-                              errorWidget: (_, _, _) => Container(
-                                height: 180,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                    SliverToBoxAdapter(
                       child: _ActorBasisWidget(
                         data: data,
                         relationship: relationship,
@@ -937,16 +762,15 @@ class FediverseActorProfileScreen extends HookConsumerWidget {
                     ),
                     const SliverGap(12),
                     SliverToBoxAdapter(child: _FediverseHintWidget(data: data)),
-                    const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _FollowedMessageWidget(data: data),
-                    ),
+                    if(data.metadata?['_misskey_followedMessage'] != null)
+                      ...[
+                        const SliverGap(12),
+                        SliverToBoxAdapter(child: _FollowedMessageWidget(data: data)),
+                      ],
                     const SliverGap(12),
                     SliverToBoxAdapter(child: _ActorTagsWidget(data: data)),
                     const SliverGap(12),
-                    SliverToBoxAdapter(
-                      child: _ActorAttachmentsWidget(data: data),
-                    ),
+                    SliverToBoxAdapter(child: _ActorAttachmentsWidget(data: data)),
                     const SliverGap(12),
                     _ActorPostsWidget(actorId: data.id),
                     SliverGap(MediaQuery.of(context).padding.bottom + 16),

@@ -9,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:html2md/html2md.dart' as html2md;
 import 'package:island/accounts/widgets/account/account_name.dart';
+import 'package:island/accounts/widgets/account/handle_chip.dart';
 import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
@@ -1130,6 +1131,38 @@ class PostHeader extends HookConsumerWidget {
     return post.publisher?.verification;
   }
 
+  Widget _buildHandleChip(BuildContext context, SnPost post) {
+    final theme = Theme.of(context);
+
+    // Handle publisher case
+    if (post.publisher != null) {
+      return HandleChip(
+        handle: post.publisher!.name,
+        allowCopy: false,
+        maxLines: 1,
+        textStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        borderRadius: 8,
+      );
+    }
+
+    // Handle actor case (fediverse) - always show as remote with domain
+    if (post.actor != null) {
+      return HandleChip(
+        handle: post.actor!.username,
+        domain: post.actor!.instance.domain,
+        isRemote: true,
+        allowCopy: false,
+        maxLines: 1,
+        textStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        borderRadius: 8,
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
@@ -1251,11 +1284,7 @@ class PostHeader extends HookConsumerWidget {
                         Flexible(
                           child: isCompact
                               ? const SizedBox.shrink()
-                              : Text(
-                                  '@${_getPublisherName(item) ?? 'unknown'}',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ).fontSize(11),
+                              : _buildHandleChip(context, item),
                         )
                       else
                         ...([

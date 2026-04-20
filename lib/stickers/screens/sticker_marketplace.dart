@@ -17,8 +17,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'dart:async';
 
-import 'package:styled_widget/styled_widget.dart';
-
 part 'sticker_marketplace.freezed.dart';
 
 @freezed
@@ -119,27 +117,26 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
                 ? 'orderByPopularity'.tr()
                 : 'orderByReleaseDate'.tr(),
           ),
-          const Gap(8),
+          const Gap(16),
         ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.all(16),
             child: SearchBar(
-              elevation: WidgetStateProperty.all(4),
               controller: searchController,
               focusNode: focusNode,
               hintText: 'search'.tr(),
               leading: const Icon(Symbols.search),
               padding: WidgetStateProperty.all(
-                const EdgeInsets.symmetric(horizontal: 24),
+                const EdgeInsets.symmetric(horizontal: 16),
               ),
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
               trailing: [
                 if (query.value.query != null && query.value.query!.isNotEmpty)
-                  IconButton(
+                  IconButton.filledTonal(
                     icon: const Icon(Symbols.close),
                     onPressed: () {
                       query.value = query.value.copyWith(query: null);
@@ -147,6 +144,7 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
                       searchController.clear();
                       focusNode.unfocus();
                     },
+                    visualDensity: VisualDensity.compact,
                   ),
               ],
               onChanged: (value) {
@@ -169,21 +167,30 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
           ),
           Expanded(
             child: PaginationList(
-              padding: EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               provider: marketplaceStickerPacksNotifierProvider,
               notifier: marketplaceStickerPacksNotifierProvider.notifier,
-              itemBuilder: (context, idx, pack) => Card(
-                margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              itemBuilder: (context, idx, pack) => Card.filled(
+                margin: const EdgeInsets.only(bottom: 12),
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
                     if (pack.stickers.isNotEmpty)
-                      Container(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 20,
+                      Card.filled(
+                        margin: EdgeInsets.zero,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHigh,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(16),
                           ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -195,27 +202,29 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
                                     padding: EdgeInsets.only(
                                       right: index < 3 ? 8 : 0,
                                     ),
-                                    child: Container(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 80,
-                                      ),
-                                      decoration: BoxDecoration(
+                                    child: Card.outlined(
+                                      elevation: 0,
+                                      margin: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.tertiaryContainer,
                                       ),
-                                      child: CloudImageWidget(
-                                        file: pack.stickers[index].image,
-                                        noBlurhash: true,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: SizedBox(
+                                          width: 72,
+                                          height: 72,
+                                          child: CloudImageWidget(
+                                            file: pack.stickers[index].image,
+                                            noBlurhash: true,
+                                          ),
+                                        ),
                                       ),
-                                    ).clipRRect(all: 8),
+                                    ),
                                   ),
                                 ),
                               ),
-                              if (pack.stickers.length > 4)
-                                const SizedBox(height: 8),
-                              if (pack.stickers.length > 4)
+                              if (pack.stickers.length > 4) ...[
+                                const Gap(8),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: List.generate(
@@ -224,56 +233,79 @@ class StickerMarketplaceScreen extends HookConsumerWidget {
                                       padding: EdgeInsets.only(
                                         right: index < 3 ? 8 : 0,
                                       ),
-                                      child: Container(
-                                        constraints: const BoxConstraints(
-                                          maxWidth: 80,
-                                        ),
-                                        decoration: BoxDecoration(
+                                      child: Card.outlined(
+                                        elevation: 0,
+                                        margin: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.tertiaryContainer,
                                         ),
-                                        child: CloudImageWidget(
-                                          file: pack.stickers[index + 4].image,
-                                          noBlurhash: true,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: SizedBox(
+                                            width: 72,
+                                            height: 72,
+                                            child: CloudImageWidget(
+                                              file: pack
+                                                  .stickers[index + 4]
+                                                  .image,
+                                              noBlurhash: true,
+                                            ),
+                                          ),
                                         ),
-                                      ).clipRRect(all: 8),
+                                      ),
                                     ),
                                   ),
                                 ),
+                              ],
                             ],
                           ),
                         ),
-                      ).clipRRect(topLeft: 8, topRight: 8),
+                      ),
                     ListTile(
-                      leading: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.tertiaryContainer,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: Card.outlined(
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: CloudImageWidget(
+                              file:
+                                  pack.icon ?? pack.stickers.firstOrNull?.image,
+                              noBlurhash: true,
+                            ),
                           ),
                         ),
-                        child: CloudImageWidget(
-                          file: pack.icon ?? pack.stickers.firstOrNull?.image,
-                          noBlurhash: true,
-                        ),
-                      ).width(40).height(40).clipRRect(all: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(8),
+                      ),
+                      title: Text(
+                        pack.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      subtitle: Text(
+                        pack.description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      title: Text(pack.name),
-                      subtitle: Text(pack.description),
-                      trailing: const Icon(Symbols.chevron_right),
+                      trailing: Icon(
+                        Symbols.chevron_right,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       onTap: () {
-                        // Navigate to user-facing sticker pack detail page.
-                        // Adjust the route name/parameters if your app uses different ones.
                         context.router.push(
                           StickerMarketplacePackDetailRoute(id: pack.id),
                         );

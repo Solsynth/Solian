@@ -74,13 +74,6 @@ class HandleChip extends StatelessWidget {
     return '@$handle';
   }
 
-  String get _displayHandle {
-    if (domain != null && domain!.isNotEmpty) {
-      return '@$handle@$domain';
-    }
-    return '@$handle';
-  }
-
   Future<void> _copyToClipboard(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: _fullHandle));
     if (context.mounted) {
@@ -91,6 +84,41 @@ class HandleChip extends StatelessWidget {
         ),
       );
     }
+  }
+
+  Widget _buildHandleText(BuildContext context, Color fgColor) {
+    final theme = Theme.of(context);
+    final baseStyle =
+        textStyle ??
+        theme.textTheme.bodySmall?.copyWith(
+          color: fgColor,
+          fontWeight: FontWeight.w500,
+        );
+
+    // If there's a domain, render with styled spans
+    if (domain != null && domain!.isNotEmpty) {
+      return Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '@$handle', style: baseStyle),
+            TextSpan(
+              text: '@$domain',
+              style: baseStyle?.copyWith(color: fgColor.withOpacity(0.85)),
+            ),
+          ],
+        ),
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    // Simple handle without domain
+    return Text(
+      '@$handle',
+      style: baseStyle,
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 
   @override
@@ -119,19 +147,7 @@ class HandleChip extends StatelessWidget {
             Icon(Symbols.public, size: 12, color: theme.colorScheme.secondary),
             const SizedBox(width: 4),
           ],
-          Flexible(
-            child: Text(
-              _displayHandle,
-              style:
-                  textStyle ??
-                  theme.textTheme.bodySmall?.copyWith(
-                    color: fgColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-              maxLines: maxLines,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
+          Flexible(child: _buildHandleText(context, fgColor)),
           if (allowCopy) ...[
             const SizedBox(width: 4),
             InkWell(
