@@ -271,21 +271,6 @@ Future<void> publisherRemoveSubscriber(
   );
 }
 
-@riverpod
-Future<SnPublisherSubscription> publisherUpdateSubscriberNotify(
-  Ref ref,
-  String publisherName,
-  String accountId,
-  bool notify,
-) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.patch(
-    '/sphere/publishers/$publisherName/subscribers/$accountId/notify',
-    data: {'notify': notify},
-  );
-  return SnPublisherSubscription.fromJson(response.data);
-}
-
 @RoutePage()
 class CreatorHubListScreen extends StatelessWidget {
   const CreatorHubListScreen({super.key});
@@ -1826,18 +1811,6 @@ class _PublisherSubscriberSheet extends HookConsumerWidget {
       }
     }
 
-    Future<void> toggleNotify(String accountId, bool currentNotify) async {
-      try {
-        await apiClient.patch(
-          '/sphere/publishers/$publisherUname/subscribers/$accountId/notify',
-          data: {'notify': !currentNotify},
-        );
-        subscriberNotifier.refresh();
-      } catch (err) {
-        showErrorAlert(err);
-      }
-    }
-
     final isManager = (publisherIdentity.value?.role ?? 0) >= 50;
 
     return Container(
@@ -2033,16 +2006,6 @@ class _PublisherSubscriberSheet extends HookConsumerWidget {
                           ? Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                IconButton(
-                                  icon: Icon(
-                                    notify
-                                        ? Symbols.notifications
-                                        : Symbols.notifications_off,
-                                    color: notify ? Colors.green : Colors.grey,
-                                  ),
-                                  onPressed: () =>
-                                      toggleNotify(accountId, notify),
-                                ),
                                 IconButton(
                                   icon: const Icon(
                                     Symbols.delete,

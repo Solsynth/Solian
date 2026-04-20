@@ -260,37 +260,98 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
     final workoutAsync = ref.watch(workoutDetailProvider(id));
 
     return workoutAsync.when(
-      data: (workout) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                _getWorkoutIcon(workout.type),
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+      data: (workout) {
+        final duration = workout.endTime?.difference(workout.startTime);
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(
+                  _getWorkoutIcon(workout.type),
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    workout.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (workout.caloriesBurned != null)
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      '${workout.caloriesBurned} kcal',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      workout.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDate(workout.startTime),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (workout.caloriesBurned != null || duration != null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          if (duration != null) ...[
+                            Icon(
+                              Icons.timer_outlined,
+                              size: 14,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatDuration(duration),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ],
+                          if (duration != null &&
+                              workout.caloriesBurned != null)
+                            const SizedBox(width: 12),
+                          if (workout.caloriesBurned != null) ...[
+                            Icon(
+                              Icons.local_fire_department_outlined,
+                              size: 14,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${workout.caloriesBurned} ${'calories'.tr()}',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                    if (workout.distance != null ||
+                        workout.averageHeartRate != null ||
+                        workout.averageSpeed != null ||
+                        workout.elevationGain != null ||
+                        (workout.meta != null &&
+                            workout.meta!['steps'] != null)) ...[
+                      const SizedBox(height: 8),
+                      _buildWorkoutMetaChips(context, workout),
+                    ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
       loading: () => const Padding(
         padding: EdgeInsets.all(16),
         child: Center(child: CircularProgressIndicator()),
@@ -302,6 +363,80 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
     );
   }
 
+  Widget _buildWorkoutMetaChips(BuildContext context, SnWorkout workout) {
+    final chips = <Widget>[];
+
+    if (workout.distance != null) {
+      chips.add(
+        _buildMetaChip(
+          context,
+          Icons.straighten,
+          '${workout.distance} ${workout.distanceUnit ?? 'km'}',
+        ),
+      );
+    }
+
+    if (workout.meta != null && workout.meta!['steps'] != null) {
+      chips.add(
+        _buildMetaChip(
+          context,
+          Icons.directions_walk,
+          '${workout.meta!['steps']}',
+        ),
+      );
+    }
+
+    if (workout.averageHeartRate != null) {
+      chips.add(
+        _buildMetaChip(
+          context,
+          Icons.monitor_heart,
+          '~${workout.averageHeartRate} bpm',
+        ),
+      );
+    }
+
+    if (workout.averageSpeed != null) {
+      chips.add(
+        _buildMetaChip(context, Icons.speed, '${workout.averageSpeed} km/h'),
+      );
+    }
+
+    if (workout.elevationGain != null) {
+      chips.add(
+        _buildMetaChip(context, Icons.terrain, '+${workout.elevationGain}m'),
+      );
+    }
+
+    if (chips.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(spacing: 6, runSpacing: 6, children: chips);
+  }
+
+  Widget _buildMetaChip(BuildContext context, IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMetricContent(WidgetRef ref, String id) {
     final metricAsync = ref.watch(metricDetailProvider(id));
 
@@ -309,6 +444,7 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
       data: (metric) => Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -324,11 +460,34 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
                 children: [
                   Text(
                     _getMetricTypeName(metric.metricType),
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.monitor_weight_outlined,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${metric.value} ${metric.unit}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
                   Text(
-                    '${metric.value} ${metric.unit}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    _formatDate(metric.recordedAt),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -351,37 +510,80 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
     final goalAsync = ref.watch(goalDetailProvider(id));
 
     return goalAsync.when(
-      data: (goal) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                Icons.flag,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+      data: (goal) {
+        final progress =
+            goal.targetValue != null &&
+                goal.currentValue != null &&
+                goal.targetValue! > 0
+            ? (goal.currentValue! / goal.targetValue! * 100).clamp(0.0, 100.0)
+            : 0.0;
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(
+                  Icons.flag,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    goal.title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (goal.targetValue != null)
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      '${goal.currentValue?.toStringAsFixed(0) ?? 0} / ${goal.targetValue!.toStringAsFixed(0)} ${goal.unit ?? ''}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      goal.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                ],
+                    if (goal.targetValue != null) ...[
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: progress / 100,
+                          minHeight: 6,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${goal.currentValue?.toStringAsFixed(0) ?? 0} ${goal.unit ?? ''}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                          Text(
+                            '${progress.toStringAsFixed(0)}%',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
       loading: () => const Padding(
         padding: EdgeInsets.all(16),
         child: Center(child: CircularProgressIndicator()),
@@ -430,6 +632,33 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
       FitnessMetricType.custom => 'Custom',
     };
   }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes}m';
+  }
 }
 
 class _FitnessDetailSheet extends ConsumerWidget {
@@ -450,6 +679,8 @@ class _FitnessDetailSheet extends ConsumerWidget {
 
   Widget _buildWorkoutSheet(BuildContext context, WidgetRef ref) {
     final workoutAsync = ref.watch(workoutDetailProvider(id));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return workoutAsync.when(
       data: (workout) {
@@ -457,50 +688,192 @@ class _FitnessDetailSheet extends ConsumerWidget {
 
         return SheetScaffold(
           titleText: workout.name,
-          heightFactor: 0.6,
+          heightFactor: 0.75,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildDetailRow(
-                context,
-                'workoutType'.tr(),
-                _getWorkoutTypeName(workout.type),
-                icon: _getWorkoutIcon(workout.type),
+              // Header Card with Key Stats
+              Card(
+                elevation: 0,
+                color: colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getWorkoutIcon(workout.type),
+                        size: 32,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getWorkoutTypeName(workout.type),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _formatDate(workout.startTime),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onPrimaryContainer
+                                    .withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              _buildDetailRow(
-                context,
-                'startTime'.tr(),
-                _formatDate(workout.startTime),
-                icon: Icons.access_time,
+              const SizedBox(height: 16),
+
+              // Quick Stats Row
+              if (duration != null ||
+                  workout.caloriesBurned != null ||
+                  workout.distance != null)
+                Row(
+                  children: [
+                    if (duration != null)
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          Icons.timer_outlined,
+                          _formatDuration(duration),
+                          'duration'.tr(),
+                          colorScheme.primary,
+                        ),
+                      ),
+                    if (duration != null &&
+                        (workout.caloriesBurned != null ||
+                            workout.distance != null))
+                      const SizedBox(width: 12),
+                    if (workout.caloriesBurned != null)
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          Icons.local_fire_department_outlined,
+                          '${workout.caloriesBurned}',
+                          'calories'.tr(),
+                          colorScheme.error,
+                        ),
+                      ),
+                    if (workout.caloriesBurned != null &&
+                        workout.distance != null)
+                      const SizedBox(width: 12),
+                    if (workout.distance != null)
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          Icons.straighten,
+                          '${workout.distance}',
+                          workout.distanceUnit ?? 'km',
+                          colorScheme.secondary,
+                        ),
+                      ),
+                  ],
+                ),
+              if (duration != null ||
+                  workout.caloriesBurned != null ||
+                  workout.distance != null)
+                const SizedBox(height: 16),
+
+              // Details Section
+              Text(
+                'details'.tr(),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              if (duration != null)
-                _buildDetailRow(
-                  context,
-                  'duration'.tr(),
-                  _formatDuration(duration),
-                  icon: Icons.timer,
+              const SizedBox(height: 8),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              if (workout.caloriesBurned != null)
-                _buildDetailRow(
-                  context,
-                  'caloriesBurned'.tr(),
-                  '${workout.caloriesBurned} kcal',
-                  icon: Icons.local_fire_department,
+                color: colorScheme.surface,
+                child: Column(
+                  children: [
+                    _buildListTile(
+                      context,
+                      icon: Icons.access_time,
+                      title: 'startTime'.tr(),
+                      subtitle: _formatDateTime(workout.startTime),
+                    ),
+                    if (workout.endTime != null)
+                      Divider(
+                        height: 1,
+                        indent: 56,
+                        endIndent: 16,
+                        color: colorScheme.outlineVariant,
+                      ),
+                    if (workout.endTime != null)
+                      _buildListTile(
+                        context,
+                        icon: Icons.schedule,
+                        title: 'endTime'.tr(),
+                        subtitle: _formatDateTime(workout.endTime!),
+                      ),
+                  ],
                 ),
-              if (workout.description != null)
-                _buildDetailRow(
-                  context,
-                  'description'.tr(),
-                  workout.description!,
-                  icon: Icons.description,
-                ),
-              if (workout.notes != null)
-                _buildDetailRow(
-                  context,
+              ),
+
+              // Description & Notes
+              if (workout.description != null || workout.notes != null) ...[
+                const SizedBox(height: 16),
+                Text(
                   'notes'.tr(),
-                  workout.notes!,
-                  icon: Icons.note,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(color: colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  color: colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (workout.description != null)
+                          _buildNoteRow(
+                            context,
+                            Icons.description_outlined,
+                            workout.description!,
+                          ),
+                        if (workout.description != null &&
+                            workout.notes != null)
+                          Divider(
+                            height: 24,
+                            color: colorScheme.outlineVariant,
+                          ),
+                        if (workout.notes != null)
+                          _buildNoteRow(
+                            context,
+                            Icons.note_outlined,
+                            workout.notes!,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+
+              // Activity Details Chips
               if (workout.distance != null ||
                   workout.averageHeartRate != null ||
                   workout.maxHeartRate != null ||
@@ -508,25 +881,16 @@ class _FitnessDetailSheet extends ConsumerWidget {
                   workout.maxSpeed != null ||
                   workout.elevationGain != null ||
                   (workout.meta != null && workout.meta!['steps'] != null)) ...[
-                const Divider(height: 24),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'details'.tr(),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
+                const SizedBox(height: 16),
+                Text(
+                  'activityData'.tr(),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                _buildMetaDetails(context, workout),
+                const SizedBox(height: 12),
+                _buildActivityChips(context, workout),
               ],
             ],
           ),
@@ -543,35 +907,292 @@ class _FitnessDetailSheet extends ConsumerWidget {
     );
   }
 
+  Widget _buildStatCard(
+    BuildContext context,
+    IconData icon,
+    String value,
+    String label,
+    Color iconColor,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        child: Column(
+          children: [
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return ListTile(
+      leading: Icon(icon, color: colorScheme.primary),
+      title: Text(
+        title,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoteRow(BuildContext context, IconData icon, String content) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: colorScheme.primary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            content,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityChips(BuildContext context, SnWorkout workout) {
+    final chips = <Widget>[];
+
+    if (workout.distance != null) {
+      chips.add(
+        _buildAssistChip(
+          context,
+          Icons.straighten,
+          '${workout.distance} ${workout.distanceUnit ?? 'km'}',
+        ),
+      );
+    }
+
+    if (workout.meta != null && workout.meta!['steps'] != null) {
+      chips.add(
+        _buildAssistChip(
+          context,
+          Icons.directions_walk,
+          '${workout.meta!['steps']} steps',
+        ),
+      );
+    }
+
+    if (workout.averageHeartRate != null) {
+      chips.add(
+        _buildAssistChip(
+          context,
+          Icons.monitor_heart,
+          'Avg ${workout.averageHeartRate} bpm',
+        ),
+      );
+    }
+
+    if (workout.maxHeartRate != null) {
+      chips.add(
+        _buildAssistChip(
+          context,
+          Icons.favorite,
+          'Max ${workout.maxHeartRate} bpm',
+        ),
+      );
+    }
+
+    if (workout.averageSpeed != null) {
+      chips.add(
+        _buildAssistChip(
+          context,
+          Icons.speed,
+          'Avg ${workout.averageSpeed} km/h',
+        ),
+      );
+    }
+
+    if (workout.maxSpeed != null) {
+      chips.add(
+        _buildAssistChip(context, Icons.bolt, 'Max ${workout.maxSpeed} km/h'),
+      );
+    }
+
+    if (workout.elevationGain != null) {
+      chips.add(
+        _buildAssistChip(context, Icons.terrain, '+${workout.elevationGain}m'),
+      );
+    }
+
+    return Wrap(spacing: 8, runSpacing: 8, children: chips);
+  }
+
+  Widget _buildAssistChip(BuildContext context, IconData icon, String label) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Chip(
+      avatar: Icon(icon, size: 18, color: colorScheme.primary),
+      label: Text(label),
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+    );
+  }
+
   Widget _buildMetricSheet(BuildContext context, WidgetRef ref) {
     final metricAsync = ref.watch(metricDetailProvider(id));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return metricAsync.when(
       data: (metric) => SheetScaffold(
         titleText: _getMetricTypeName(metric.metricType),
-        heightFactor: 0.5,
+        heightFactor: 0.6,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _buildDetailRow(
-              context,
-              'metricValue'.tr(),
-              '${metric.value} ${metric.unit}',
-              icon: _getMetricIcon(metric.metricType),
-            ),
-            _buildDetailRow(
-              context,
-              'recordedAt'.tr(),
-              _formatDate(metric.recordedAt),
-              icon: Icons.calendar_today,
-            ),
-            if (metric.notes != null)
-              _buildDetailRow(
-                context,
-                'notes'.tr(),
-                metric.notes!,
-                icon: Icons.note,
+            // Value Card
+            Card(
+              elevation: 0,
+              color: colorScheme.primaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Icon(
+                      _getMetricIcon(metric.metricType),
+                      size: 48,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '${metric.value}',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      metric.unit,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+            const SizedBox(height: 16),
+
+            // Details
+            Text(
+              'details'.tr(),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                side: BorderSide(color: colorScheme.outlineVariant),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: colorScheme.surface,
+              child: Column(
+                children: [
+                  _buildListTile(
+                    context,
+                    icon: Icons.calendar_today,
+                    title: 'recordedAt'.tr(),
+                    subtitle: _formatDateTime(metric.recordedAt),
+                  ),
+                  if (metric.metricType == FitnessMetricType.weight ||
+                      metric.metricType == FitnessMetricType.bodyFat) ...[
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      endIndent: 16,
+                      color: colorScheme.outlineVariant,
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: Icons.monitor_weight,
+                      title: 'metricType'.tr(),
+                      subtitle: _getMetricTypeName(metric.metricType),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // Notes
+            if (metric.notes != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                'notes'.tr(),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: colorScheme.surface,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildNoteRow(
+                    context,
+                    Icons.note_outlined,
+                    metric.notes!,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -588,6 +1209,8 @@ class _FitnessDetailSheet extends ConsumerWidget {
 
   Widget _buildGoalSheet(BuildContext context, WidgetRef ref) {
     final goalAsync = ref.watch(goalDetailProvider(id));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return goalAsync.when(
       data: (goal) {
@@ -597,73 +1220,184 @@ class _FitnessDetailSheet extends ConsumerWidget {
                 goal.targetValue! > 0
             ? (goal.currentValue! / goal.targetValue! * 100).clamp(0.0, 100.0)
             : 0.0;
+        final isCompleted = progress >= 100;
 
         return SheetScaffold(
           titleText: goal.title,
-          heightFactor: 0.7,
+          heightFactor: 0.75,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Center(
-                child: SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: Stack(
-                    alignment: Alignment.center,
+              // Progress Card
+              Card(
+                elevation: 0,
+                color: isCompleted
+                    ? colorScheme.tertiaryContainer
+                    : colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
                     children: [
-                      CircularProgressIndicator(
-                        value: progress / 100,
-                        strokeWidth: 8,
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: CircularProgressIndicator(
+                              value: progress / 100,
+                              strokeWidth: 10,
+                              backgroundColor:
+                                  (isCompleted
+                                          ? colorScheme.onTertiaryContainer
+                                          : colorScheme.onPrimaryContainer)
+                                      .withOpacity(0.2),
+                              color: isCompleted
+                                  ? colorScheme.onTertiaryContainer
+                                  : colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                '${progress.toStringAsFixed(0)}%',
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: isCompleted
+                                      ? colorScheme.onTertiaryContainer
+                                      : colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                              Text(
+                                isCompleted
+                                    ? 'completed'.tr()
+                                    : 'inProgress'.tr(),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color:
+                                      (isCompleted
+                                              ? colorScheme.onTertiaryContainer
+                                              : colorScheme.onPrimaryContainer)
+                                          .withOpacity(0.8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      Text(
-                        '${progress.toStringAsFixed(0)}%',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                      if (goal.targetValue != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          '${goal.currentValue?.toStringAsFixed(0) ?? 0} / ${goal.targetValue!.toStringAsFixed(0)} ${goal.unit ?? ''}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: isCompleted
+                                ? colorScheme.onTertiaryContainer
+                                : colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              if (goal.targetValue != null)
-                _buildDetailRow(
-                  context,
-                  'progress'.tr(),
-                  '${goal.currentValue?.toStringAsFixed(0) ?? 0} / ${goal.targetValue!.toStringAsFixed(0)} ${goal.unit ?? ''}',
-                  icon: Icons.trending_up,
+
+              // Goal Details
+              Text(
+                'goalDetails'.tr(),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
                 ),
-              _buildDetailRow(
-                context,
-                'goalType'.tr(),
-                _getGoalTypeName(goal.goalType),
-                icon: Icons.flag,
               ),
-              _buildDetailRow(
-                context,
-                'startDate'.tr(),
-                _formatDate(goal.startDate),
-                icon: Icons.calendar_today,
+              const SizedBox(height: 8),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: colorScheme.surface,
+                child: Column(
+                  children: [
+                    _buildListTile(
+                      context,
+                      icon: _getGoalIcon(goal.goalType),
+                      title: 'goalType'.tr(),
+                      subtitle: _getGoalTypeName(goal.goalType),
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      endIndent: 16,
+                      color: colorScheme.outlineVariant,
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: Icons.calendar_today,
+                      title: 'startDate'.tr(),
+                      subtitle: _formatDate(goal.startDate),
+                    ),
+                    if (goal.endDate != null)
+                      Divider(
+                        height: 1,
+                        indent: 56,
+                        endIndent: 16,
+                        color: colorScheme.outlineVariant,
+                      ),
+                    if (goal.endDate != null)
+                      _buildListTile(
+                        context,
+                        icon: Icons.event,
+                        title: 'endDate'.tr(),
+                        subtitle: _formatDate(goal.endDate!),
+                      ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      endIndent: 16,
+                      color: colorScheme.outlineVariant,
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: Icons.visibility,
+                      title: 'visibility'.tr(),
+                      subtitle: goal.visibility == FitnessVisibility.public
+                          ? 'visibilityPublic'.tr()
+                          : 'visibilityPrivate'.tr(),
+                    ),
+                  ],
+                ),
               ),
-              _buildDetailRow(
-                context,
-                'endDate'.tr(),
-                goal.endDate != null ? _formatDate(goal.endDate!) : 'none'.tr(),
-                icon: Icons.event,
-              ),
-              _buildDetailRow(
-                context,
-                'visibility'.tr(),
-                goal.visibility == FitnessVisibility.public
-                    ? 'visibilityPublic'.tr()
-                    : 'visibilityPrivate'.tr(),
-                icon: Icons.visibility,
-              ),
-              if (goal.description != null)
-                _buildDetailRow(
-                  context,
+
+              // Description
+              if (goal.description != null) ...[
+                const SizedBox(height: 16),
+                Text(
                   'description'.tr(),
-                  goal.description!,
-                  icon: Icons.description,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(color: colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  color: colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildNoteRow(
+                      context,
+                      Icons.description_outlined,
+                      goal.description!,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         );
@@ -679,156 +1413,14 @@ class _FitnessDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailRow(
-    BuildContext context,
-    String label,
-    String value, {
-    IconData? icon,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 12),
-          ],
-          SizedBox(
-            width: icon != null ? 100 : 120,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetaDetails(BuildContext context, SnWorkout workout) {
-    final items = <Widget>[];
-
-    if (workout.distance != null) {
-      items.add(
-        _buildMetaRow(
-          context,
-          Icons.straighten,
-          'Distance',
-          '${workout.distance} ${workout.distanceUnit ?? 'km'}',
-        ),
-      );
-    }
-    if (workout.meta != null && workout.meta!['steps'] != null) {
-      items.add(
-        _buildMetaRow(
-          context,
-          Icons.directions_walk,
-          'Steps',
-          '${workout.meta!['steps']}',
-        ),
-      );
-    }
-    if (workout.averageHeartRate != null) {
-      items.add(
-        _buildMetaRow(
-          context,
-          Icons.monitor_heart,
-          'Avg Heart Rate',
-          '${workout.averageHeartRate} bpm',
-        ),
-      );
-    }
-    if (workout.maxHeartRate != null) {
-      items.add(
-        _buildMetaRow(
-          context,
-          Icons.favorite,
-          'Max Heart Rate',
-          '${workout.maxHeartRate} bpm',
-        ),
-      );
-    }
-    if (workout.averageSpeed != null) {
-      items.add(
-        _buildMetaRow(
-          context,
-          Icons.speed,
-          'Avg Speed',
-          '${workout.averageSpeed} km/h',
-        ),
-      );
-    }
-    if (workout.maxSpeed != null) {
-      items.add(
-        _buildMetaRow(
-          context,
-          Icons.bolt,
-          'Max Speed',
-          '${workout.maxSpeed} km/h',
-        ),
-      );
-    }
-    if (workout.elevationGain != null) {
-      items.add(
-        _buildMetaRow(
-          context,
-          Icons.terrain,
-          'Elevation Gain',
-          '+${workout.elevationGain}m',
-        ),
-      );
-    }
-
-    if (items.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: items,
-    );
-  }
-
-  Widget _buildMetaRow(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String value,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
-          const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes % 60;
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    }
-    return '${minutes}m';
+  IconData _getWorkoutIcon(WorkoutType type) {
+    return switch (type) {
+      WorkoutType.strength => Icons.fitness_center,
+      WorkoutType.cardio => Icons.directions_run,
+      WorkoutType.hiit => Icons.flash_on,
+      WorkoutType.yoga => Icons.self_improvement,
+      WorkoutType.other => Icons.sports,
+    };
   }
 
   String _getWorkoutTypeName(WorkoutType type) {
@@ -841,28 +1433,17 @@ class _FitnessDetailSheet extends ConsumerWidget {
     };
   }
 
-  IconData _getWorkoutIcon(WorkoutType type) {
+  IconData _getMetricIcon(FitnessMetricType type) {
     return switch (type) {
-      WorkoutType.strength => Icons.fitness_center,
-      WorkoutType.cardio => Icons.directions_run,
-      WorkoutType.hiit => Icons.flash_on,
-      WorkoutType.yoga => Icons.self_improvement,
-      WorkoutType.other => Icons.sports,
-    };
-  }
-
-  String _getGoalTypeName(FitnessGoalType type) {
-    return switch (type) {
-      FitnessGoalType.weightLoss => 'goalTypeWeightLoss'.tr(),
-      FitnessGoalType.weightGain => 'goalTypeWeightGain'.tr(),
-      FitnessGoalType.steps => 'goalTypeSteps'.tr(),
-      FitnessGoalType.distance => 'goalTypeDistance'.tr(),
-      FitnessGoalType.duration => 'goalTypeDuration'.tr(),
-      FitnessGoalType.reps => 'goalTypeReps'.tr(),
-      FitnessGoalType.strength => 'goalTypeStrength'.tr(),
-      FitnessGoalType.cardio => 'goalTypeCardio'.tr(),
-      FitnessGoalType.flexibility => 'goalTypeFlexibility'.tr(),
-      FitnessGoalType.custom => 'goalTypeCustom'.tr(),
+      FitnessMetricType.weight => Icons.monitor_weight,
+      FitnessMetricType.bodyFat => Icons.percent,
+      FitnessMetricType.steps => Icons.directions_walk,
+      FitnessMetricType.heartRate => Icons.monitor_heart,
+      FitnessMetricType.sleep => Icons.bedtime,
+      FitnessMetricType.calories => Icons.local_fire_department,
+      FitnessMetricType.waterIntake => Icons.water_drop,
+      FitnessMetricType.distance => Icons.straighten,
+      FitnessMetricType.custom => Icons.show_chart,
     };
   }
 
@@ -880,17 +1461,33 @@ class _FitnessDetailSheet extends ConsumerWidget {
     };
   }
 
-  IconData _getMetricIcon(FitnessMetricType type) {
+  IconData _getGoalIcon(FitnessGoalType type) {
     return switch (type) {
-      FitnessMetricType.weight => Icons.monitor_weight,
-      FitnessMetricType.bodyFat => Icons.percent,
-      FitnessMetricType.steps => Icons.directions_walk,
-      FitnessMetricType.heartRate => Icons.monitor_heart,
-      FitnessMetricType.sleep => Icons.bedtime,
-      FitnessMetricType.calories => Icons.local_fire_department,
-      FitnessMetricType.waterIntake => Icons.water_drop,
-      FitnessMetricType.distance => Icons.straighten,
-      FitnessMetricType.custom => Icons.show_chart,
+      FitnessGoalType.weightLoss => Icons.trending_down,
+      FitnessGoalType.weightGain => Icons.trending_up,
+      FitnessGoalType.steps => Icons.directions_walk,
+      FitnessGoalType.distance => Icons.straighten,
+      FitnessGoalType.duration => Icons.timer,
+      FitnessGoalType.reps => Icons.fitness_center,
+      FitnessGoalType.strength => Icons.fitness_center,
+      FitnessGoalType.cardio => Icons.directions_run,
+      FitnessGoalType.flexibility => Icons.self_improvement,
+      FitnessGoalType.custom => Icons.flag,
+    };
+  }
+
+  String _getGoalTypeName(FitnessGoalType type) {
+    return switch (type) {
+      FitnessGoalType.weightLoss => 'goalTypeWeightLoss'.tr(),
+      FitnessGoalType.weightGain => 'goalTypeWeightGain'.tr(),
+      FitnessGoalType.steps => 'goalTypeSteps'.tr(),
+      FitnessGoalType.distance => 'goalTypeDistance'.tr(),
+      FitnessGoalType.duration => 'goalTypeDuration'.tr(),
+      FitnessGoalType.reps => 'goalTypeReps'.tr(),
+      FitnessGoalType.strength => 'goalTypeStrength'.tr(),
+      FitnessGoalType.cardio => 'goalTypeCardio'.tr(),
+      FitnessGoalType.flexibility => 'goalTypeFlexibility'.tr(),
+      FitnessGoalType.custom => 'goalTypeCustom'.tr(),
     };
   }
 
@@ -910,5 +1507,19 @@ class _FitnessDetailSheet extends ConsumerWidget {
       'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _formatDateTime(DateTime date) {
+    final timeFormat = DateFormat.jm();
+    return '${_formatDate(date)} · ${timeFormat.format(date)}';
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes}m';
   }
 }

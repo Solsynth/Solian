@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
 import 'package:island/creators/screens/webfeed/webfeed_edit.dart';
 import 'package:island/discovery/webfeed.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
