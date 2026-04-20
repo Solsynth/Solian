@@ -1453,6 +1453,24 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     if (!ref.mounted) return;
+
+    // System events (like messages.update) should never replace or remove
+    // existing messages in the list. They reference target messages via
+    // meta['message_id'], not by sharing the same ID. The actual content
+    // update is handled by receiveMessageUpdate(). Here we only add the
+    // event to the timeline if it should be shown.
+    if (_isSystemEventType(localMessage.type)) {
+      if (shouldShowMessage || shouldShowEditTrail) {
+        // Only add if not already in the list (avoid duplicates)
+        if (existingIndex < 0) {
+          state = AsyncValue.data(
+            _sortMessages([localMessage, ...currentMessages]),
+          );
+        }
+      }
+      return;
+    }
+
     if (existingIndex >= 0) {
       final newList = [...currentMessages];
       if (shouldShowMessage || shouldShowEditTrail) {
