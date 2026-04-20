@@ -195,7 +195,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
       }
 
       if (initialBotName != null &&
-          initialBotName!.isNotEmpty &&
+          initialBotName.isNotEmpty &&
           response.services.any((s) => s.id == initialBotName)) {
         selectedServiceId = initialBotName;
       } else {

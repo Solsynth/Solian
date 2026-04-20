@@ -127,7 +127,6 @@ class ThoughtScreen extends HookConsumerWidget {
     );
 
     // Get chat state for service selector from the notifier
-    final chatState = ref.watch(thoughtChatProvider(args));
     final chatNotifier = ref.read(thoughtChatProvider(args).notifier);
 
     void refreshStatus() => ref.invalidate(thoughtAvailableStausProvider);
