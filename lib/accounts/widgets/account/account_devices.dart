@@ -1577,8 +1577,8 @@ class _SessionsTab extends StatelessWidget {
                         ),
                         FilterChip(
                           label: Text('sessionTypeApiKey'.tr()),
-                          selected: selectedType == 4,
-                          onSelected: (_) => onTypeChanged(4),
+                          selected: selectedType == 3,
+                          onSelected: (_) => onTypeChanged(3),
                         ),
                       ],
                     ),

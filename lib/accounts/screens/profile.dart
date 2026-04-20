@@ -45,11 +45,7 @@ class _AccountBasicInfo extends HookWidget {
   final String uname;
   final AsyncValue<SnDeveloper?> accountDeveloper;
 
-  const _AccountBasicInfo({
-    required this.data,
-    required this.uname,
-    required this.accountDeveloper,
-  });
+  const _AccountBasicInfo({required this.data, required this.uname, required this.accountDeveloper});
 
   String _getFirstLine(String bio) {
     final lines = bio.split('\n');
@@ -71,15 +67,10 @@ class _AccountBasicInfo extends HookWidget {
             clipBehavior: Clip.none,
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 child: AspectRatio(
                   aspectRatio: 16 / 7,
-                  child: CloudImageWidget(
-                    file: data.profile.background,
-                    fit: BoxFit.cover,
-                  ),
+                  child: CloudImageWidget(file: data.profile.background, fit: BoxFit.cover),
                 ),
               ),
               Positioned(
@@ -88,15 +79,9 @@ class _AccountBasicInfo extends HookWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: theme.colorScheme.surface,
-                      width: 3,
-                    ),
+                    border: Border.all(color: theme.colorScheme.surface, width: 3),
                   ),
-                  child: ProfilePictureWidget(
-                    file: data.profile.picture,
-                    radius: 32,
-                  ),
+                  child: ProfilePictureWidget(file: data.profile.picture, radius: 32),
                 ),
               ),
             ],
@@ -124,80 +109,58 @@ class _AccountBasicInfo extends HookWidget {
                                   Flexible(
                                     child: AccountName(
                                       account: data,
-                                      style: theme.textTheme.bodyLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: theme
-                                          .colorScheme
-                                          .surfaceContainerHighest,
+                                      color: theme.colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       '@${data.name}',
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                               const Gap(4),
-                              AccountStatusWidget(
-                                uname: uname,
-                                padding: EdgeInsets.zero,
-                              ),
+                              AccountStatusWidget(uname: uname, padding: EdgeInsets.zero),
                               if (accountDeveloper.value != null) ...[
                                 const Gap(12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.secondaryContainer
-                                        .withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 8,
-                                    children: [
-                                      Icon(
-                                        Symbols.smart_toy,
-                                        size: 18,
-                                        color: theme
-                                            .colorScheme
-                                            .onSecondaryContainer,
-                                      ),
-                                      Text(
-                                        'botAutomatedBy'.tr(
-                                          args: [
-                                            accountDeveloper
-                                                .value!
-                                                .publisher!
-                                                .nick,
-                                          ],
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(12),
+                                  onTap: () {
+                                    context.router.push(
+                                      PublisherProfileRoute(name: accountDeveloper.value!.publisher!.name),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.secondaryContainer.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      spacing: 8,
+                                      children: [
+                                        Icon(
+                                          Symbols.smart_toy,
+                                          size: 18,
+                                          color: theme.colorScheme.onSecondaryContainer,
                                         ),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSecondaryContainer,
-                                            ),
-                                      ),
-                                    ],
+                                        Text(
+                                          'botAutomatedBy'.tr(args: [accountDeveloper.value!.publisher!.nick]),
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: theme.colorScheme.onSecondaryContainer,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
@@ -213,18 +176,9 @@ class _AccountBasicInfo extends HookWidget {
                           ),
                           child: IconButton(
                             onPressed: () {
-                              SharePlus.instance.share(
-                                ShareParams(
-                                  uri: Uri.parse(
-                                    'https://solian.app/@${data.name}',
-                                  ),
-                                ),
-                              );
+                              SharePlus.instance.share(ShareParams(uri: Uri.parse('https://solian.app/@${data.name}')));
                             },
-                            icon: Icon(
-                              Symbols.share,
-                              color: theme.colorScheme.primary,
-                            ),
+                            icon: Icon(Symbols.share, color: theme.colorScheme.primary),
                           ),
                         ),
                       ],
@@ -249,10 +203,7 @@ class _AccountBasicInfo extends HookWidget {
                                       content: data.profile.bio,
                                       linesMargin: EdgeInsets.zero,
                                     )
-                                  : Text(
-                                      _getFirstLine(data.profile.bio),
-                                      key: const ValueKey('collapsed'),
-                                    ),
+                                  : Text(_getFirstLine(data.profile.bio), key: const ValueKey('collapsed')),
                             ).alignment(Alignment.centerLeft),
                           ),
                           InkWell(
@@ -260,16 +211,10 @@ class _AccountBasicInfo extends HookWidget {
                               isBioExpanded.value = !isBioExpanded.value;
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
                               child: Text(
-                                isBioExpanded.value
-                                    ? 'collapse'.tr()
-                                    : 'expand'.tr(),
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                ),
+                                isBioExpanded.value ? 'collapse'.tr() : 'expand'.tr(),
+                                style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary),
                               ).tr(),
                             ),
                           ),
@@ -283,12 +228,7 @@ class _AccountBasicInfo extends HookWidget {
                   Column(
                     spacing: 8,
                     children: data.profile.links
-                        .map(
-                          (link) => _LinkCard(
-                            name: link.name.capitalizeEachWord(),
-                            url: link.url,
-                          ),
-                        )
+                        .map((link) => _LinkCard(name: link.name.capitalizeEachWord(), url: link.url))
                         .toList(),
                   ).padding(top: 12),
               ],
@@ -325,19 +265,10 @@ class _AccountProfileDetail extends StatelessWidget {
                     color: theme.colorScheme.primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    Symbols.badge,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
+                  child: Icon(Symbols.badge, size: 18, color: theme.colorScheme.primary),
                 ),
                 const Gap(12),
-                Text(
-                  'about',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
+                Text('about', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)).tr(),
               ],
             ),
             const Gap(12),
@@ -347,9 +278,7 @@ class _AccountProfileDetail extends StatelessWidget {
               children: [
                 _DetailChip(
                   icon: Symbols.calendar_month,
-                  label: 'joinedAt'.tr(
-                    args: [data.createdAt.formatCustom('yyyy-MM-dd')],
-                  ),
+                  label: 'joinedAt'.tr(args: [data.createdAt.formatCustom('yyyy-MM-dd')]),
                 ),
                 if (data.profile.birthday != null)
                   _DetailChip(
@@ -374,10 +303,7 @@ class _AccountProfileDetail extends StatelessWidget {
                       '${data.profile.gender.isEmpty ? 'unspecified'.tr() : data.profile.gender} · ${data.profile.pronouns.isEmpty ? 'unspecified'.tr() : data.profile.pronouns}',
                 ),
                 if (data.profile.location.isNotEmpty)
-                  _DetailChip(
-                    icon: Symbols.location_on,
-                    label: data.profile.location,
-                  ),
+                  _DetailChip(icon: Symbols.location_on, label: data.profile.location),
                 Tooltip(
                   message: 'creditsStatus'.tr(),
                   child: _DetailChip(
@@ -404,17 +330,12 @@ class _AccountProfileDetail extends StatelessWidget {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withOpacity(0.3),
+                        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Symbols.schedule,
-                            size: 20,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                          Icon(Symbols.schedule, size: 20, color: theme.colorScheme.onSurfaceVariant),
                           const Gap(12),
                           Expanded(
                             child: Column(
@@ -432,40 +353,27 @@ class _AccountProfileDetail extends StatelessWidget {
                                   children: [
                                     Text(
                                       data.profile.timeZone,
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color:
-                                            theme.colorScheme.primaryContainer,
+                                        color: theme.colorScheme.primaryContainer,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
                                         tzInfo.$2.formatCustomGlobal('HH:mm'),
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onPrimaryContainer,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onPrimaryContainer,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                     Text(
                                       'UTC${tzInfo.$1.formatOffset()}',
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -531,9 +439,7 @@ class _DetailChip extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -576,17 +482,11 @@ class _LinkCard extends StatelessWidget {
             Expanded(
               child: Text(
                 name,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(
-              Symbols.arrow_outward,
-              size: 14,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            Icon(Symbols.arrow_outward, size: 14, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -621,28 +521,14 @@ class _AccountProfileContacts extends StatelessWidget {
                     color: theme.colorScheme.primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    Symbols.contact_phone,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
+                  child: Icon(Symbols.contact_phone, size: 18, color: theme.colorScheme.primary),
                 ),
                 const Gap(12),
-                Text(
-                  'contactMethod',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
+                Text('contactMethod', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)).tr(),
               ],
             ),
             const Gap(12),
-            Column(
-              spacing: 8,
-              children: publicContacts
-                  .map((contact) => _ContactCard(contact: contact))
-                  .toList(),
-            ),
+            Column(spacing: 8, children: publicContacts.map((contact) => _ContactCard(contact: contact)).toList()),
           ],
         ),
       ),
@@ -705,26 +591,18 @@ class _ContactCard extends StatelessWidget {
                 children: [
                   Text(
                     typeLabel,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                    style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                   const Gap(2),
                   Text(
                     contact.content,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            Icon(
-              Symbols.chevron_right,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            Icon(Symbols.chevron_right, size: 18, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -759,19 +637,10 @@ class _AccountPublisherList extends StatelessWidget {
                     color: theme.colorScheme.primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    Symbols.verified,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
+                  child: Icon(Symbols.verified, size: 18, color: theme.colorScheme.primary),
                 ),
                 const Gap(12),
-                Text(
-                  'publishers',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).tr(),
+                Text('publishers', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)).tr(),
               ],
             ),
             const Gap(16),
@@ -782,9 +651,7 @@ class _AccountPublisherList extends StatelessWidget {
                   publisher: publisher,
                   onTap: () {
                     Navigator.pop(context, true);
-                    context.router.push(
-                      PublisherProfileRoute(name: publisher.name),
-                    );
+                    context.router.push(PublisherProfileRoute(name: publisher.name));
                   },
                 ),
               ),
@@ -820,9 +687,7 @@ class _PublisherCard extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                ),
+                border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
               ),
               child: ProfilePictureWidget(file: publisher.picture, radius: 24),
             ),
@@ -831,34 +696,20 @@ class _PublisherCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    publisher.nick,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(publisher.nick, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
                   const Gap(2),
                   Text(
                     publisher.bio.isNotEmpty
-                        ? publisher.bio
-                              .split('\n')
-                              .where((line) => line.trim().isNotEmpty)
-                              .join('\n')
+                        ? publisher.bio.split('\n').where((line) => line.trim().isNotEmpty).join('\n')
                         : 'descriptionNone'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            Icon(
-              Symbols.chevron_right,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            Icon(Symbols.chevron_right, size: 18, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -892,11 +743,7 @@ class _AccountPunishment extends StatelessWidget {
                   color: theme.colorScheme.errorContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  Symbols.warning,
-                  color: theme.colorScheme.onErrorContainer,
-                  size: 20,
-                ),
+                child: Icon(Symbols.warning, color: theme.colorScheme.onErrorContainer, size: 20),
               ),
               const Gap(12),
               Expanded(
@@ -905,24 +752,17 @@ class _AccountPunishment extends StatelessWidget {
                   children: [
                     Text(
                       'accountRestrictions'.tr(),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const Gap(2),
                     Text(
                       'tapToViewDetails'.tr(),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Symbols.chevron_right,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              Icon(Symbols.chevron_right, color: theme.colorScheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -951,12 +791,8 @@ class _AccountAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isBlocked =
-        accountRelationship.value != null &&
-        accountRelationship.value!.status <= -100;
-    final isFriend =
-        accountRelationship.value != null &&
-        accountRelationship.value!.status > -100;
+    final isBlocked = accountRelationship.value != null && accountRelationship.value!.status <= -100;
+    final isFriend = accountRelationship.value != null && accountRelationship.value!.status > -100;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -975,10 +811,7 @@ class _AccountAction extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             spacing: 6,
-                            children: [
-                              const Icon(Symbols.person_check, size: 18),
-                              Text('added').tr(),
-                            ],
+                            children: [const Icon(Symbols.person_check, size: 18), Text('added').tr()],
                           ),
                         )
                       : FilledButton.tonal(
@@ -986,10 +819,7 @@ class _AccountAction extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             spacing: 6,
-                            children: [
-                              const Icon(Symbols.person_add, size: 18),
-                              Text('addFriendShort').tr(),
-                            ],
+                            children: [const Icon(Symbols.person_add, size: 18), Text('addFriendShort').tr()],
                           ),
                         ),
                 ),
@@ -1000,10 +830,7 @@ class _AccountAction extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             spacing: 6,
-                            children: [
-                              const Icon(Symbols.person_cancel, size: 18),
-                              Text('unblockUser').tr(),
-                            ],
+                            children: [const Icon(Symbols.person_cancel, size: 18), Text('unblockUser').tr()],
                           ),
                         )
                       : OutlinedButton(
@@ -1011,10 +838,7 @@ class _AccountAction extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             spacing: 6,
-                            children: [
-                              const Icon(Symbols.block, size: 18),
-                              Text('blockUser').tr(),
-                            ],
+                            children: [const Icon(Symbols.block, size: 18), Text('blockUser').tr()],
                           ),
                         ),
                 ),
@@ -1032,26 +856,16 @@ class _AccountAction extends StatelessWidget {
                       spacing: 6,
                       children: [
                         const Icon(Symbols.chat, size: 18),
-                        Text(
-                          accountChat.value == null
-                              ? 'createDirectMessage'
-                              : 'gotoDirectMessage',
-                          maxLines: 1,
-                        ).tr(),
+                        Text(accountChat.value == null ? 'createDirectMessage' : 'gotoDirectMessage', maxLines: 1).tr(),
                       ],
                     ),
                   ),
                 ),
                 Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
                   child: IconButton.filled(
                     onPressed: () {
-                      showAbuseReportSheet(
-                        context,
-                        resourceIdentifier: 'account/${data.id}',
-                      );
+                      showAbuseReportSheet(context, resourceIdentifier: 'account/${data.id}');
                     },
                     icon: const Icon(Symbols.flag, size: 18),
                     style: IconButton.styleFrom(
@@ -1118,9 +932,7 @@ Future<SnDeveloper?> accountBotDeveloper(Ref ref, String uname) async {
   if (account.automatedId == null) return null;
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get(
-      "/develop/bots/${account.automatedId}/developer",
-    );
+    final resp = await apiClient.get("/develop/bots/${account.automatedId}/developer");
     return SnDeveloper.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -1141,15 +953,10 @@ Future<List<SnPublisher>> accountPublishers(Ref ref, String id) async {
 }
 
 @riverpod
-Future<SnAccountPunishment?> accountPunishmentOverview(
-  Ref ref,
-  String uname,
-) async {
+Future<SnAccountPunishment?> accountPunishmentOverview(Ref ref, String uname) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
-    final response = await client.dio.get(
-      '/padlock/accounts/$uname/punishments/overview',
-    );
+    final response = await client.dio.get('/padlock/accounts/$uname/punishments/overview');
     if (response.data == null) return null;
     return SnAccountPunishment.fromJson(response.data);
   } catch (err) {
@@ -1158,18 +965,14 @@ Future<SnAccountPunishment?> accountPunishmentOverview(
 }
 
 final accountTimelineProvider = AsyncNotifierProvider.autoDispose
-    .family<
-      AccountTimelineNotifier,
-      PaginationState<SnAccountTimelineItem>,
-      String
-    >(AccountTimelineNotifier.new);
+    .family<AccountTimelineNotifier, PaginationState<SnAccountTimelineItem>, String>(AccountTimelineNotifier.new);
 
-class AccountTimelineNotifier
-    extends AsyncNotifier<PaginationState<SnAccountTimelineItem>>
+class AccountTimelineNotifier extends AsyncNotifier<PaginationState<SnAccountTimelineItem>>
     with AsyncPaginationController<SnAccountTimelineItem> {
   static const int pageSize = 20;
 
   final String arg;
+
   AccountTimelineNotifier(this.arg);
 
   @override
@@ -1189,11 +992,7 @@ class AccountTimelineNotifier
   Future<List<SnAccountTimelineItem>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
 
-    final result = await client.accounts.getAccountTimeline(
-      username: arg,
-      offset: fetchedCount,
-      take: pageSize,
-    );
+    final result = await client.accounts.getAccountTimeline(username: arg, offset: fetchedCount, take: pageSize);
 
     totalCount = result.totalCount;
     return result.items;
@@ -1203,10 +1002,8 @@ class AccountTimelineNotifier
 @RoutePage()
 class AccountProfileScreen extends HookConsumerWidget {
   final String name;
-  const AccountProfileScreen({
-    super.key,
-    @PathParam("name") required this.name,
-  });
+
+  const AccountProfileScreen({super.key, @PathParam("name") required this.name});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1214,26 +1011,19 @@ class AccountProfileScreen extends HookConsumerWidget {
 
     final account = ref.watch(accountProvider(name));
     final accountEvents = ref.watch(
-      eventCalendarProvider(
-        EventCalendarQuery(uname: name, year: now.year, month: now.month),
-      ),
+      eventCalendarProvider(EventCalendarQuery(uname: name, year: now.year, month: now.month)),
     );
     final accountChat = ref.watch(accountDirectChatProvider(name));
     final accountRelationship = ref.watch(accountRelationshipProvider(name));
     final accountDeveloper = ref.watch(accountBotDeveloperProvider(name));
-    final accountPunishment = ref.watch(
-      accountPunishmentOverviewProvider(name),
-    );
+    final accountPunishment = ref.watch(accountPunishmentOverviewProvider(name));
 
     void showPunishmentSheet() {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         useRootNavigator: true,
-        builder: (context) => UserPunishmentsSheet(
-          username: name,
-          initialOverview: accountPunishment.value,
-        ),
+        builder: (context) => UserPunishmentsSheet(username: name, initialOverview: accountPunishment.value),
       );
     }
 
@@ -1290,19 +1080,14 @@ class AccountProfileScreen extends HookConsumerWidget {
     }
 
     final user = ref.watch(userInfoProvider);
-    final isCurrentUser = useMemoized(
-      () => user.value?.id == account.value?.id,
-      [user, account],
-    );
+    final isCurrentUser = useMemoized(() => user.value?.id == account.value?.id, [user, account]);
 
     return account.when(
       data: (data) {
         final accountPublishers = ref.watch(accountPublishersProvider(data.id));
         return AppScaffold(
           isNoBackground: false,
-          appBar: isWideScreen(context)
-              ? AppBar(leading: AutoLeadingButton(), title: Text(data.nick))
-              : null,
+          appBar: isWideScreen(context) ? AppBar(leading: AutoLeadingButton(), title: Text(data.nick)) : null,
           body: isWideScreen(context)
               ? Row(
                   spacing: 12,
@@ -1327,15 +1112,8 @@ class AccountProfileScreen extends HookConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             spacing: 12,
                             children: [
-                              _AccountBasicInfo(
-                                data: data,
-                                uname: name,
-                                accountDeveloper: accountDeveloper,
-                              ),
-                              ActivityPresenceWidget(
-                                uname: name,
-                                isCompact: false,
-                              ),
+                              _AccountBasicInfo(data: data, uname: name, accountDeveloper: accountDeveloper),
+                              ActivityPresenceWidget(uname: name, isCompact: false),
                               if (data.badges.isNotEmpty)
                                 Card(
                                   margin: EdgeInsets.zero,
@@ -1355,24 +1133,16 @@ class AccountProfileScreen extends HookConsumerWidget {
                                   if (data.profile.verification != null)
                                     Card(
                                       margin: EdgeInsets.zero,
-                                      child: VerificationStatusCard(
-                                        mark: data.profile.verification!,
-                                      ),
+                                      child: VerificationStatusCard(mark: data.profile.verification!),
                                     ),
                                 ],
                               ),
-                              if (data.contacts.any((c) => c.isPublic))
-                                _AccountProfileContacts(data: data),
+                              if (data.contacts.any((c) => c.isPublic)) _AccountProfileContacts(data: data),
                               _AccountProfileDetail(data: data),
-                              _AccountPublisherList(
-                                publishers: accountPublishers.value ?? [],
-                              ),
+                              _AccountPublisherList(publishers: accountPublishers.value ?? []),
                               ?accountPunishment.whenOrNull(
                                 data: (data) => data != null
-                                    ? _AccountPunishment(
-                                        punishment: data,
-                                        onTap: showPunishmentSheet,
-                                      )
+                                    ? _AccountPunishment(punishment: data, onTap: showPunishmentSheet)
                                     : null,
                               ),
                               if (user.value != null && !isCurrentUser)
@@ -1407,13 +1177,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                       title: Text(data.nick),
                       flexibleSpace: Stack(
                         children: [
-                          Positioned.fill(
-                            child: Container(
-                              color: Theme.of(
-                                context,
-                              ).appBarTheme.backgroundColor,
-                            ),
-                          ),
+                          Positioned.fill(child: Container(color: Theme.of(context).appBarTheme.backgroundColor)),
                         ],
                       ),
                     ),
@@ -1422,11 +1186,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                         spacing: 12,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _AccountBasicInfo(
-                            data: data,
-                            uname: name,
-                            accountDeveloper: accountDeveloper,
-                          ),
+                          _AccountBasicInfo(data: data, uname: name, accountDeveloper: accountDeveloper),
                           ActivityPresenceWidget(uname: name, isCompact: false),
                           if (data.badges.isNotEmpty)
                             Card(
@@ -1447,25 +1207,16 @@ class AccountProfileScreen extends HookConsumerWidget {
                               if (data.profile.verification != null)
                                 Card(
                                   margin: EdgeInsets.zero,
-                                  child: VerificationStatusCard(
-                                    mark: data.profile.verification!,
-                                  ),
+                                  child: VerificationStatusCard(mark: data.profile.verification!),
                                 ),
                             ],
                           ),
-                          if (data.contacts.any((c) => c.isPublic))
-                            _AccountProfileContacts(data: data),
-                          _AccountPublisherList(
-                            publishers: accountPublishers.value ?? [],
-                          ),
+                          if (data.contacts.any((c) => c.isPublic)) _AccountProfileContacts(data: data),
+                          _AccountPublisherList(publishers: accountPublishers.value ?? []),
                           _AccountProfileDetail(data: data),
                           ?accountPunishment.whenOrNull(
-                            data: (data) => data != null
-                                ? _AccountPunishment(
-                                    punishment: data,
-                                    onTap: showPunishmentSheet,
-                                  )
-                                : null,
+                            data: (data) =>
+                                data != null ? _AccountPunishment(punishment: data, onTap: showPunishmentSheet) : null,
                           ),
                           if (user.value != null && !isCurrentUser)
                             _AccountAction(
@@ -1480,10 +1231,7 @@ class AccountProfileScreen extends HookConsumerWidget {
                             margin: EdgeInsets.zero,
                             child: Padding(
                               padding: const EdgeInsets.all(20),
-                              child: FortuneGraphWidget(
-                                events: accountEvents,
-                                eventCalandarUser: data.name,
-                              ),
+                              child: FortuneGraphWidget(events: accountEvents, eventCalandarUser: data.name),
                             ),
                           ),
                         ],

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
@@ -16,8 +17,13 @@ final actionLogsNotifierProvider = AsyncNotifierProvider.autoDispose(
 );
 
 class ActionLogsNotifier extends AsyncNotifier<PaginationState<SnActionLog>>
-    with AsyncPaginationController<SnActionLog> {
+    with
+        AsyncPaginationController<SnActionLog>,
+        AsyncPaginationFilter<String?, SnActionLog> {
   static const int pageSize = 20;
+
+  @override
+  String? currentFilter;
 
   @override
   FutureOr<PaginationState<SnActionLog>> build() async {
@@ -39,6 +45,7 @@ class ActionLogsNotifier extends AsyncNotifier<PaginationState<SnActionLog>>
     final result = await client.padlock.getActionLogs(
       offset: fetchedCount,
       take: pageSize,
+      action: currentFilter,
     );
 
     totalCount = result.totalCount;
@@ -47,12 +54,33 @@ class ActionLogsNotifier extends AsyncNotifier<PaginationState<SnActionLog>>
 }
 
 @RoutePage()
-class ActionLogsScreen extends ConsumerWidget {
+class ActionLogsScreen extends HookConsumerWidget {
   const ActionLogsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final searchController = useTextEditingController();
+    final focusNode = useFocusNode();
+    final debounceTimer = useState<Timer?>(null);
+    final currentQuery = useState<String?>(null);
+
+    final notifier = ref.watch(actionLogsNotifierProvider.notifier);
+
+    // Clean up timer on dispose
+    useEffect(() {
+      return () {
+        debounceTimer.value?.cancel();
+      };
+    }, []);
+
+    // Clear search when query is cleared externally
+    useEffect(() {
+      if (currentQuery.value == null || currentQuery.value!.isEmpty) {
+        searchController.clear();
+      }
+      return null;
+    }, [currentQuery.value]);
 
     return AppScaffold(
       appBar: AppBar(
@@ -60,133 +88,190 @@ class ActionLogsScreen extends ConsumerWidget {
         centerTitle: true,
         scrolledUnderElevation: 4,
       ),
-      body: PaginationList(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        provider: actionLogsNotifierProvider,
-        notifier: actionLogsNotifierProvider.notifier,
-        itemBuilder: (context, idx, log) {
-          final location = log.location;
-          final locationText = [
-            if (location?.city != null) location!.city,
-            if (location?.country != null) location!.country,
-          ].join(', ');
-
-          final actionColor = _getActionColor(log.action, colorScheme);
-          final actionContainerColor = actionColor.withOpacity(0.12);
-
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            elevation: 0,
-            color: colorScheme.surfaceContainerLow,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Action Icon Container - Material 3 tonal style
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: actionContainerColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      _getActionIcon(log.action),
-                      color: actionColor,
-                      size: 24,
-                    ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: SearchBar(
+              elevation: WidgetStateProperty.all(4),
+              controller: searchController,
+              focusNode: focusNode,
+              hintText: 'searchByAction'.tr(),
+              leading: const Icon(Symbols.search),
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(horizontal: 24),
+              ),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
+              trailing: [
+                if (currentQuery.value != null &&
+                    currentQuery.value!.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Symbols.close),
+                    onPressed: () {
+                      currentQuery.value = null;
+                      notifier.applyFilter(null);
+                      searchController.clear();
+                      focusNode.unfocus();
+                    },
                   ),
-                  const SizedBox(width: 16),
-                  // Content
-                  Expanded(
-                    child: Column(
+              ],
+              onChanged: (value) {
+                // Debounce search to avoid excessive API calls
+                debounceTimer.value?.cancel();
+                debounceTimer.value = Timer(
+                  const Duration(milliseconds: 500),
+                  () {
+                    currentQuery.value = value;
+                    notifier.applyFilter(value.isEmpty ? null : value);
+                  },
+                );
+              },
+              onSubmitted: (value) {
+                debounceTimer.value?.cancel();
+                currentQuery.value = value;
+                notifier.applyFilter(value.isEmpty ? null : value);
+                focusNode.unfocus();
+              },
+            ),
+          ),
+          Expanded(
+            child: PaginationList(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              provider: actionLogsNotifierProvider,
+              notifier: actionLogsNotifierProvider.notifier,
+              itemBuilder: (context, idx, log) {
+                final location = log.location;
+                final locationText = [
+                  if (location?.city != null) location!.city,
+                  if (location?.country != null) location!.country,
+                ].join(', ');
+
+                final actionColor = _getActionColor(log.action, colorScheme);
+                final actionContainerColor = actionColor.withOpacity(0.12);
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 0,
+                  color: colorScheme.surfaceContainerLow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Action Title
-                        Text(
-                          _formatAction(log.action),
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface,
-                              ),
+                        // Action Icon Container - Material 3 tonal style
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: actionContainerColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            _getActionIcon(log.action),
+                            color: actionColor,
+                            size: 24,
+                          ),
                         ),
-                        // Location
-                        if (locationText.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Symbols.location_on,
-                                  size: 14,
-                                  color: colorScheme.onSurfaceVariant,
+                        const SizedBox(width: 16),
+                        // Content
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Action Title
+                              Text(
+                                _formatAction(log.action),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface,
+                                    ),
+                              ),
+                              // Location
+                              if (locationText.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Symbols.location_on,
+                                        size: 14,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          locationText,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    locationText,
+                              // Time
+                              Row(
+                                children: [
+                                  Icon(
+                                    Symbols.schedule,
+                                    size: 14,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    log.createdAt.toLocal().formatSystem(),
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: colorScheme.onSurfaceVariant,
                                         ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        // Time
-                        Row(
-                          children: [
-                            Icon(
-                              Symbols.schedule,
-                              size: 14,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              log.createdAt.toLocal().formatSystem(),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                        ),
-                        // IP Address
-                        if (log.ipAddress?.isNotEmpty ?? false)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Symbols.dns,
-                                  size: 14,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  log.ipAddress!,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
+                                ],
+                              ),
+                              // IP Address
+                              if (log.ipAddress?.isNotEmpty ?? false)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Symbols.dns,
+                                        size: 14,
                                         color: colorScheme.onSurfaceVariant,
                                       ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        log.ipAddress!,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

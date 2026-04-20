@@ -19,13 +19,15 @@ class PadlockApi extends BaseApi {
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
+  /// [action] - Filter by action type.
   Future<PaginatedResult<SnActionLog>> getActionLogs({
     int offset = 0,
     int take = 20,
+    String? action,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/actions',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {'offset': offset, 'take': take, 'action': action},
     );
 
     final totalCount = getTotalCount(response.headers);
