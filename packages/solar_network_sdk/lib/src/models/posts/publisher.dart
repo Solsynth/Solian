@@ -29,6 +29,7 @@ sealed class SnPublisher with _$SnPublisher {
     @Default(null) DateTime? updatedAt,
     DateTime? deletedAt,
     String? realmId,
+    SnRealm? realm,
     SnVerificationMark? verification,
     @Default(false) bool isShadowbanned,
     @Default(false) bool isGatekept,

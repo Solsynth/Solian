@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/discovery/models/webfeed.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -80,32 +81,32 @@ class FeedMarketplaceScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: const Text('webFeeds').tr(),
         leading: const AutoLeadingButton(),
-        actions: const [Gap(8)],
+        actions: const [Gap(16)],
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
             child: SearchBar(
-              elevation: WidgetStateProperty.all(4),
               controller: searchController,
               focusNode: focusNode,
               hintText: 'search'.tr(),
               leading: const Icon(Symbols.search),
               padding: WidgetStateProperty.all(
-                const EdgeInsets.symmetric(horizontal: 24),
+                const EdgeInsets.symmetric(horizontal: 16),
               ),
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
               trailing: [
                 if (query.value != null && query.value!.isNotEmpty)
-                  IconButton(
+                  IconButton.filledTonal(
                     icon: const Icon(Symbols.close),
                     onPressed: () {
                       query.value = null;
                       searchController.clear();
                       focusNode.unfocus();
                     },
+                    visualDensity: VisualDensity.compact,
                   ),
               ],
               onChanged: (value) {
@@ -128,19 +129,97 @@ class FeedMarketplaceScreen extends HookConsumerWidget {
             child: PaginationList(
               provider: marketplaceWebFeedsNotifierProvider,
               notifier: marketplaceWebFeedsNotifierProvider.notifier,
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemBuilder: (context, index, feed) {
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  title: Text(feed.title),
-                  subtitle: Text(feed.description ?? ''),
-                  trailing: const Icon(Symbols.chevron_right),
-                  onTap: () {
-                    // Navigate to web feed detail page
-                    context.router.push(
-                      FeedMarketplaceDetailRoute(id: feed.id),
-                    );
-                  },
+                return Card.filled(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    leading: Card.outlined(
+                      elevation: 0,
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Icon(
+                          Symbols.rss_feed,
+                          size: 24,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      feed.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (feed.description != null &&
+                            feed.description!.isNotEmpty)
+                          Text(
+                            feed.description!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        if (feed.publisher != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Symbols.account_circle,
+                                size: 14,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              Text(
+                                feed.publisher!.nick,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                    trailing: Icon(
+                      Symbols.chevron_right,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onTap: () {
+                      // Navigate to web feed detail page
+                      context.router.push(
+                        FeedMarketplaceDetailRoute(id: feed.id),
+                      );
+                    },
+                  ),
                 );
               },
             ),

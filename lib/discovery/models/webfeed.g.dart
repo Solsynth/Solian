@@ -23,6 +23,9 @@ _SnWebFeed _$SnWebFeedFromJson(Map<String, dynamic> json) => _SnWebFeed(
   config: json['config'] == null
       ? const SnWebFeedConfig()
       : SnWebFeedConfig.fromJson(json['config'] as Map<String, dynamic>),
+  publisher: json['publisher'] == null
+      ? null
+      : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
   publisherId: json['publisher_id'] as String,
   articles:
       (json['articles'] as List<dynamic>?)
@@ -44,6 +47,7 @@ Map<String, dynamic> _$SnWebFeedToJson(_SnWebFeed instance) =>
       'description': instance.description,
       'preview': instance.preview?.toJson(),
       'config': instance.config.toJson(),
+      'publisher': instance.publisher?.toJson(),
       'publisher_id': instance.publisherId,
       'articles': instance.articles.map((e) => e.toJson()).toList(),
       'created_at': instance.createdAt.toIso8601String(),

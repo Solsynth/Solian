@@ -122,27 +122,10 @@ class ArticleStandScreen extends ConsumerWidget {
               title: const Text('Articles'),
               bottom: TabBar(
                 isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 tabs: [
-                  Tab(
-                    child: Text(
-                      'All',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).appBarTheme.foregroundColor!,
-                      ),
-                    ),
-                  ),
-                  ...feeds.map(
-                    (feed) => Tab(
-                      child: Text(
-                        feed.title,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context).appBarTheme.foregroundColor!,
-                        ),
-                      ),
-                    ),
-                  ),
+                  const Tab(text: 'All'),
+                  ...feeds.map((feed) => Tab(text: feed.title)),
                 ],
               ),
             ),
@@ -154,10 +137,9 @@ class ArticleStandScreen extends ConsumerWidget {
                     child: CustomScrollView(
                       slivers: [
                         SliverPadding(
-                          padding: const EdgeInsets.only(
-                            top: 12,
-                            left: 8,
-                            right: 8,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
                           sliver: SliverArticlesList(),
                         ),
@@ -172,10 +154,9 @@ class ArticleStandScreen extends ConsumerWidget {
                       child: CustomScrollView(
                         slivers: [
                           SliverPadding(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              left: 8,
-                              right: 8,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
                             ),
                             sliver: SliverArticlesList(feedId: feed.id),
                           ),

@@ -24,6 +24,7 @@ sealed class SnWebFeed with _$SnWebFeed {
     String? description,
     SnScrappedLink? preview,
     @Default(SnWebFeedConfig()) SnWebFeedConfig config,
+    SnPublisher? publisher,
     required String publisherId,
     @Default([]) List<SnWebArticle> articles,
     required DateTime createdAt,

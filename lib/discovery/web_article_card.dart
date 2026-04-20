@@ -26,10 +26,13 @@ class WebArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
-      child: Card(
+      child: Card.filled(
         margin: EdgeInsets.zero,
+        color: theme.colorScheme.surfaceContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => _onTap(context),
@@ -48,21 +51,35 @@ class WebArticleCard extends StatelessWidget {
               ListTile(
                 isThreeLine: true,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 4,
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-                trailing: const Icon(Symbols.chevron_right),
-                title: Text(article.title),
+                trailing: Icon(
+                  Symbols.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                title: Text(
+                  article.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${article.createdAt.formatSystem()} · ${article.createdAt.formatRelative(context)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     Text(
                       article.feed?.title ?? 'Unknown Source',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),

@@ -2,9 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/discovery/models/webfeed.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -110,62 +113,133 @@ class FeedMarketplaceDetailScreen extends HookConsumerWidget {
     );
 
     return AppScaffold(
-      appBar: AppBar(title: Text(feed.value?.title ?? 'loading'.tr())),
+      appBar: AppBar(
+        title: Text(feed.value?.title ?? 'loading'.tr()),
+        actions: [
+          if (feed.value?.publisher != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: _PublisherChip(publisher: feed.value!.publisher!),
+            ),
+        ],
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Feed meta
+          // Feed meta section with Material 3 Card
           feed
               .when(
-                data: (data) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(data.description ?? 'descriptionNone'.tr()),
-                    Row(
-                      spacing: 4,
+                data: (data) => Card.filled(
+                  margin: const EdgeInsets.all(16),
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 12,
                       children: [
-                        const Icon(Symbols.rss_feed, size: 16),
-                        Text(
-                          'webFeedArticleCount'.plural(
-                            feedNotifier.totalCount ?? 0,
-                          ),
+                        // Feed title header
+                        Row(
+                          spacing: 16,
+                          children: [
+                            Card.outlined(
+                              elevation: 0,
+                              margin: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: SizedBox(
+                                width: 56,
+                                height: 56,
+                                child: Icon(
+                                  Symbols.rss_feed,
+                                  size: 28,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 4,
+                                children: [
+                                  Text(
+                                    data.title,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  if (data.description != null &&
+                                      data.description!.isNotEmpty)
+                                    Text(
+                                      data.description!,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Metadata chips
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _FeedMetadataChip(
+                              icon: Symbols.article,
+                              label: 'webFeedArticleCount'.plural(
+                                feedNotifier.totalCount ?? 0,
+                              ),
+                            ),
+                            _FeedMetadataChip(
+                              icon: Symbols.link,
+                              label: data.url,
+                              isSelectable: true,
+                            ),
+                          ],
                         ),
                       ],
-                    ).opacity(0.85),
-                    Row(
-                      spacing: 4,
-                      children: [
-                        const Icon(Symbols.link, size: 16),
-                        SelectableText(data.url),
-                      ],
-                    ).opacity(0.85),
-                  ],
+                    ),
+                  ),
                 ),
-                error: (err, _) => Text(err.toString()),
-                loading: () => CircularProgressIndicator().center(),
+                error: (err, _) => Text(err.toString()).center(),
+                loading: () => const CircularProgressIndicator().center(),
               )
-              .padding(horizontal: 24, vertical: 24),
-          const Divider(height: 1),
+              .padding(horizontal: 0, vertical: 0),
           // Articles list
           Expanded(
             child: PaginationList(
               spacing: 8,
-              padding: EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               provider: marketplaceWebFeedContentNotifierProvider(id),
               notifier: marketplaceWebFeedContentNotifierProvider(id).notifier,
               itemBuilder: (context, index, article) {
-                return WebArticleCard(article: article).padding(horizontal: 12);
+                return WebArticleCard(article: article);
               },
             ),
           ),
+          // Action button container
           Container(
             padding: EdgeInsets.only(
               bottom: 16 + MediaQuery.of(context).padding.bottom,
-              left: 24,
-              right: 24,
-              top: 16,
+              left: 16,
+              right: 16,
+              top: 8,
             ),
-            color: Theme.of(context).colorScheme.surfaceContainer,
+            color: Theme.of(context).colorScheme.surface,
             child: subscribed.when(
               data: (isSubscribed) => FilledButton.icon(
                 onPressed: isSubscribed ? unsubscribeFromFeed : subscribeToFeed,
@@ -175,21 +249,116 @@ class FeedMarketplaceDetailScreen extends HookConsumerWidget {
                 label: Text(
                   isSubscribed ? 'unsubscribe'.tr() : 'subscribe'.tr(),
                 ),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
               loading: () => const SizedBox(
-                height: 32,
-                width: 32,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ).center(),
+                height: 48,
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
               error: (_, _) => OutlinedButton.icon(
                 onPressed: subscribeToFeed,
                 icon: const Icon(Symbols.add_circle),
                 label: Text('subscribe').tr(),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PublisherChip extends StatelessWidget {
+  final SnPublisher publisher;
+
+  const _PublisherChip({required this.publisher});
+
+  @override
+  Widget build(BuildContext context) {
+    return ActionChip(
+      avatar: publisher.picture != null
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CloudImageWidget(
+                  file: publisher.picture!,
+                  fit: BoxFit.cover,
+                  noBlurhash: true,
+                ),
+              ),
+            )
+          : Icon(
+              Symbols.account_circle,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+      label: Text(
+        publisher.nick,
+        style: Theme.of(context).textTheme.labelLarge,
+      ),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      side: BorderSide.none,
+      onPressed: () {
+        context.router.push(PublisherProfileRoute(name: publisher.name));
+      },
+    );
+  }
+}
+
+class _FeedMetadataChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelectable;
+
+  const _FeedMetadataChip({
+    required this.icon,
+    required this.label,
+    this.isSelectable = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 6,
+      children: [
+        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+        isSelectable
+            ? SelectableText(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            : Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+      ],
+    );
+
+    return Chip(
+      label: content,
+      backgroundColor: theme.colorScheme.surfaceContainerLow,
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      visualDensity: VisualDensity.compact,
     );
   }
 }

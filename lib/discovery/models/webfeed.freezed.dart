@@ -272,7 +272,7 @@ as bool,
 /// @nodoc
 mixin _$SnWebFeed {
 
- String get id; String get url; String get title; String? get description; SnScrappedLink? get preview; SnWebFeedConfig get config; String get publisherId; List<SnWebArticle> get articles; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get url; String get title; String? get description; SnScrappedLink? get preview; SnWebFeedConfig get config; SnPublisher? get publisher; String get publisherId; List<SnWebArticle> get articles; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnWebFeed
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -285,16 +285,16 @@ $SnWebFeedCopyWith<SnWebFeed> get copyWith => _$SnWebFeedCopyWithImpl<SnWebFeed>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWebFeed&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.preview, preview) || other.preview == preview)&&(identical(other.config, config) || other.config == config)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&const DeepCollectionEquality().equals(other.articles, articles)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWebFeed&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.preview, preview) || other.preview == preview)&&(identical(other.config, config) || other.config == config)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&const DeepCollectionEquality().equals(other.articles, articles)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,title,description,preview,config,publisherId,const DeepCollectionEquality().hash(articles),createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,url,title,description,preview,config,publisher,publisherId,const DeepCollectionEquality().hash(articles),createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnWebFeed(id: $id, url: $url, title: $title, description: $description, preview: $preview, config: $config, publisherId: $publisherId, articles: $articles, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnWebFeed(id: $id, url: $url, title: $title, description: $description, preview: $preview, config: $config, publisher: $publisher, publisherId: $publisherId, articles: $articles, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -305,11 +305,11 @@ abstract mixin class $SnWebFeedCopyWith<$Res>  {
   factory $SnWebFeedCopyWith(SnWebFeed value, $Res Function(SnWebFeed) _then) = _$SnWebFeedCopyWithImpl;
 @useResult
 $Res call({
- String id, String url, String title, String? description, SnScrappedLink? preview, SnWebFeedConfig config, String publisherId, List<SnWebArticle> articles, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String url, String title, String? description, SnScrappedLink? preview, SnWebFeedConfig config, SnPublisher? publisher, String publisherId, List<SnWebArticle> articles, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnScrappedLinkCopyWith<$Res>? get preview;$SnWebFeedConfigCopyWith<$Res> get config;
+$SnScrappedLinkCopyWith<$Res>? get preview;$SnWebFeedConfigCopyWith<$Res> get config;$SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -322,7 +322,7 @@ class _$SnWebFeedCopyWithImpl<$Res>
 
 /// Create a copy of SnWebFeed
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? url = null,Object? title = null,Object? description = freezed,Object? preview = freezed,Object? config = null,Object? publisherId = null,Object? articles = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? url = null,Object? title = null,Object? description = freezed,Object? preview = freezed,Object? config = null,Object? publisher = freezed,Object? publisherId = null,Object? articles = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -330,7 +330,8 @@ as String,title: null == title ? _self.title : title // ignore: cast_nullable_to
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,preview: freezed == preview ? _self.preview : preview // ignore: cast_nullable_to_non_nullable
 as SnScrappedLink?,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
-as SnWebFeedConfig,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as SnWebFeedConfig,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,articles: null == articles ? _self.articles : articles // ignore: cast_nullable_to_non_nullable
 as List<SnWebArticle>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -358,6 +359,18 @@ $SnWebFeedConfigCopyWith<$Res> get config {
   
   return $SnWebFeedConfigCopyWith<$Res>(_self.config, (value) {
     return _then(_self.copyWith(config: value));
+  });
+}/// Create a copy of SnWebFeed
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherCopyWith<$Res>? get publisher {
+    if (_self.publisher == null) {
+    return null;
+  }
+
+  return $SnPublisherCopyWith<$Res>(_self.publisher!, (value) {
+    return _then(_self.copyWith(publisher: value));
   });
 }
 }
@@ -438,10 +451,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String url,  String title,  String? description,  SnScrappedLink? preview,  SnWebFeedConfig config,  String publisherId,  List<SnWebArticle> articles,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String url,  String title,  String? description,  SnScrappedLink? preview,  SnWebFeedConfig config,  SnPublisher? publisher,  String publisherId,  List<SnWebArticle> articles,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnWebFeed() when $default != null:
-return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_that.config,_that.publisherId,_that.articles,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_that.config,_that.publisher,_that.publisherId,_that.articles,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -459,10 +472,10 @@ return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String url,  String title,  String? description,  SnScrappedLink? preview,  SnWebFeedConfig config,  String publisherId,  List<SnWebArticle> articles,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String url,  String title,  String? description,  SnScrappedLink? preview,  SnWebFeedConfig config,  SnPublisher? publisher,  String publisherId,  List<SnWebArticle> articles,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnWebFeed():
-return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_that.config,_that.publisherId,_that.articles,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_that.config,_that.publisher,_that.publisherId,_that.articles,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -476,10 +489,10 @@ return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String url,  String title,  String? description,  SnScrappedLink? preview,  SnWebFeedConfig config,  String publisherId,  List<SnWebArticle> articles,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String url,  String title,  String? description,  SnScrappedLink? preview,  SnWebFeedConfig config,  SnPublisher? publisher,  String publisherId,  List<SnWebArticle> articles,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnWebFeed() when $default != null:
-return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_that.config,_that.publisherId,_that.articles,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_that.config,_that.publisher,_that.publisherId,_that.articles,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -491,7 +504,7 @@ return $default(_that.id,_that.url,_that.title,_that.description,_that.preview,_
 @JsonSerializable()
 
 class _SnWebFeed implements SnWebFeed {
-  const _SnWebFeed({required this.id, required this.url, required this.title, this.description, this.preview, this.config = const SnWebFeedConfig(), required this.publisherId, final  List<SnWebArticle> articles = const [], required this.createdAt, required this.updatedAt, this.deletedAt}): _articles = articles;
+  const _SnWebFeed({required this.id, required this.url, required this.title, this.description, this.preview, this.config = const SnWebFeedConfig(), this.publisher, required this.publisherId, final  List<SnWebArticle> articles = const [], required this.createdAt, required this.updatedAt, this.deletedAt}): _articles = articles;
   factory _SnWebFeed.fromJson(Map<String, dynamic> json) => _$SnWebFeedFromJson(json);
 
 @override final  String id;
@@ -500,6 +513,7 @@ class _SnWebFeed implements SnWebFeed {
 @override final  String? description;
 @override final  SnScrappedLink? preview;
 @override@JsonKey() final  SnWebFeedConfig config;
+@override final  SnPublisher? publisher;
 @override final  String publisherId;
  final  List<SnWebArticle> _articles;
 @override@JsonKey() List<SnWebArticle> get articles {
@@ -525,16 +539,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWebFeed&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.preview, preview) || other.preview == preview)&&(identical(other.config, config) || other.config == config)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&const DeepCollectionEquality().equals(other._articles, _articles)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWebFeed&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.preview, preview) || other.preview == preview)&&(identical(other.config, config) || other.config == config)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&const DeepCollectionEquality().equals(other._articles, _articles)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,title,description,preview,config,publisherId,const DeepCollectionEquality().hash(_articles),createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,url,title,description,preview,config,publisher,publisherId,const DeepCollectionEquality().hash(_articles),createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnWebFeed(id: $id, url: $url, title: $title, description: $description, preview: $preview, config: $config, publisherId: $publisherId, articles: $articles, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnWebFeed(id: $id, url: $url, title: $title, description: $description, preview: $preview, config: $config, publisher: $publisher, publisherId: $publisherId, articles: $articles, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -545,11 +559,11 @@ abstract mixin class _$SnWebFeedCopyWith<$Res> implements $SnWebFeedCopyWith<$Re
   factory _$SnWebFeedCopyWith(_SnWebFeed value, $Res Function(_SnWebFeed) _then) = __$SnWebFeedCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String url, String title, String? description, SnScrappedLink? preview, SnWebFeedConfig config, String publisherId, List<SnWebArticle> articles, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String url, String title, String? description, SnScrappedLink? preview, SnWebFeedConfig config, SnPublisher? publisher, String publisherId, List<SnWebArticle> articles, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnScrappedLinkCopyWith<$Res>? get preview;@override $SnWebFeedConfigCopyWith<$Res> get config;
+@override $SnScrappedLinkCopyWith<$Res>? get preview;@override $SnWebFeedConfigCopyWith<$Res> get config;@override $SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -562,7 +576,7 @@ class __$SnWebFeedCopyWithImpl<$Res>
 
 /// Create a copy of SnWebFeed
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? url = null,Object? title = null,Object? description = freezed,Object? preview = freezed,Object? config = null,Object? publisherId = null,Object? articles = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? url = null,Object? title = null,Object? description = freezed,Object? preview = freezed,Object? config = null,Object? publisher = freezed,Object? publisherId = null,Object? articles = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnWebFeed(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -570,7 +584,8 @@ as String,title: null == title ? _self.title : title // ignore: cast_nullable_to
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,preview: freezed == preview ? _self.preview : preview // ignore: cast_nullable_to_non_nullable
 as SnScrappedLink?,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
-as SnWebFeedConfig,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
+as SnWebFeedConfig,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,articles: null == articles ? _self._articles : articles // ignore: cast_nullable_to_non_nullable
 as List<SnWebArticle>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -599,6 +614,18 @@ $SnWebFeedConfigCopyWith<$Res> get config {
   
   return $SnWebFeedConfigCopyWith<$Res>(_self.config, (value) {
     return _then(_self.copyWith(config: value));
+  });
+}/// Create a copy of SnWebFeed
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnPublisherCopyWith<$Res>? get publisher {
+    if (_self.publisher == null) {
+    return null;
+  }
+
+  return $SnPublisherCopyWith<$Res>(_self.publisher!, (value) {
+    return _then(_self.copyWith(publisher: value));
   });
 }
 }

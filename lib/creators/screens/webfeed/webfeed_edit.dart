@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/discovery/models/webfeed.dart';
 import 'package:island/discovery/webfeed.dart';
@@ -161,7 +162,7 @@ class WebfeedForm extends HookConsumerWidget {
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
             TextFormField(
               controller: urlController,
               decoration: const InputDecoration(
@@ -185,7 +186,7 @@ class WebfeedForm extends HookConsumerWidget {
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
             ),
-            const SizedBox(height: 16),
+            const Gap(16),
             TextFormField(
               controller: descriptionController,
               decoration: const InputDecoration(
@@ -199,37 +200,45 @@ class WebfeedForm extends HookConsumerWidget {
                   FocusManager.instance.primaryFocus?.unfocus(),
               maxLines: 3,
             ),
-            const SizedBox(height: 24),
-            Card(
+            const Gap(24),
+            Card.filled(
               margin: EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SwitchListTile(
-                    title: const Text('Scrape web page for content'),
-                    subtitle: const Text(
-                      'When enabled, the system will attempt to extract full content from the web page',
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    value: isScrapEnabled.value,
-                    onChanged: (value) => isScrapEnabled.value = value,
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: SwitchListTile(
+                title: Text(
+                  'Scrape web page for content',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Text(
+                  'When enabled, the system will attempt to extract full content from the web page',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                ],
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                value: isScrapEnabled.value,
+                onChanged: (value) => isScrapEnabled.value = value,
               ),
             ),
-            const SizedBox(height: 20),
+            const Gap(20),
             if (feedId != null) ...[
-              TextButton.icon(
+              FilledButton.icon(
                 onPressed: isLoading.value ? null : scrapNow,
                 icon: const Icon(Symbols.refresh),
                 label: const Text('Scrape Now'),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.standard,
+                ),
               ).alignment(Alignment.centerRight),
-              const SizedBox(height: 16),
+              const Gap(16),
             ],
           ],
-        ).padding(all: 20);
+        ).padding(horizontal: 20, vertical: 16);
 
         final formWidget = Form(
           key: formKey,
@@ -243,16 +252,27 @@ class WebfeedForm extends HookConsumerWidget {
                 onPressed: isLoading.value ? null : deleteFeed,
                 icon: const Icon(Symbols.delete_forever),
                 label: const Text('Delete Web Feed'),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
               ),
             const Spacer(),
-            TextButton.icon(
+            FilledButton.icon(
               onPressed: isLoading.value ? null : saveFeed,
-              icon: const Icon(Symbols.save),
+              icon: isLoading.value
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Symbols.save),
               label: Text('saveChanges').tr(),
             ),
           ],
-        ).padding(horizontal: 20, vertical: 12);
+        ).padding(horizontal: 20, vertical: 16);
 
         return Column(
           children: [

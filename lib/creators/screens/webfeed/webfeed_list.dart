@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:island/creators/screens/webfeed/webfeed_edit.dart';
 import 'package:island/discovery/webfeed.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
@@ -50,25 +51,46 @@ class CreatorFeedListScreen extends ConsumerWidget {
           return ExtendedRefreshIndicator(
             onRefresh: () => ref.refresh(webFeedListProvider(pubName).future),
             child: ListView.builder(
-              padding: EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               itemCount: feeds.length,
               itemBuilder: (context, index) {
                 final feed = feeds[index];
                 return ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 640),
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: Card.filled(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: ListTile(
-                      leading: const Icon(Symbols.rss_feed, size: 32),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      leading: Card.outlined(
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: Icon(
+                            Symbols.rss_feed,
+                            size: 24,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                       ),
                       title: Text(
                         feed.title,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w500),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -76,8 +98,14 @@ class CreatorFeedListScreen extends ConsumerWidget {
                         feed.url,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                      trailing: const Icon(Symbols.chevron_right),
+                      trailing: Icon(
+                        Symbols.chevron_right,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
