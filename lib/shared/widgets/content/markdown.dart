@@ -17,6 +17,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/shared/widgets/content/markdown_latex.dart';
+import 'package:island/shared/widgets/content/sticker_sheet.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -713,23 +714,36 @@ class StickerSpanNode extends SpanNode {
   InlineSpan build() {
     final size = isEnlarged ? 96.0 : 24.0;
     final stickerUri = '$baseUrl/sphere/stickers/lookup/$placeholder/open';
+    // Parse placeholder to get pack prefix and sticker slug
+    final parts = placeholder.split('+');
+    final packPrefix = parts.isNotEmpty ? parts[0] : '';
+    final stickerCode = ':$placeholder:';
+
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: backgroundColor.withOpacity(0.1),
+      child: Builder(
+        builder: (context) {
+          return InkWell(
+            onTap: () => showStickerPackSheet(context, packPrefix, stickerCode),
             borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          child: UniversalImage(
-            uri: stickerUri,
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-            noCacheOptimization: true,
-          ),
-        ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: backgroundColor.withOpacity(0.1),
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                ),
+                child: UniversalImage(
+                  uri: stickerUri,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.contain,
+                  noCacheOptimization: true,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
