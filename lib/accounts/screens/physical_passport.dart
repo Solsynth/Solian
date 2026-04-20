@@ -884,7 +884,6 @@ class _PhysicalPassportScanSheetState
         return;
       }
       final uri = firstRecord.uri!;
-      String? uidFromUri;
 
       final client = ref.read(solarNetworkClientProvider);
       SnScanResult? result;
