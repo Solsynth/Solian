@@ -216,7 +216,9 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
               if (_isSquare == true) ...[
                 SizedBox(
                   width: 100,
+                  height: 100,
                   child: UniversalImage(
+                    height: 100,
                     uri: widget.link.imageUrl!,
                     fit: BoxFit.cover,
                   ),
@@ -233,7 +235,7 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
                         _isSquare != true)
                       Container(
                         width: double.infinity,
-                        constraints: const BoxConstraints(maxHeight: 200),
+                        constraints: const BoxConstraints(maxHeight: 320),
                         color: theme.colorScheme.surfaceContainerHighest,
                         child: UniversalImage(
                           uri: widget.link.imageUrl!,
