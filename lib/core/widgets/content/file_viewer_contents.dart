@@ -149,10 +149,7 @@ class VideoFileContent extends HookConsumerWidget {
     if (ratio == 0) ratio = 16 / 9;
 
     return Center(
-      child: AspectRatio(
-        aspectRatio: ratio,
-        child: UniversalVideo(uri: uri, autoplay: true),
-      ),
+      child: UniversalVideo(uri: uri, autoplay: true, aspectRatio: ratio,),
     );
   }
 }

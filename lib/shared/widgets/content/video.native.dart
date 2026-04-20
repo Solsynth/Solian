@@ -161,6 +161,8 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       aspectRatio: widget.aspectRatio != 1 ? widget.aspectRatio : null,
       fit: BoxFit.contain,
       controls: isMobile ? MaterialVideoControls : MaterialDesktopVideoControls,
+      fill: Colors.transparent,
+      filterQuality: FilterQuality.high,
     );
 
     if (isMobile) {
@@ -233,18 +235,7 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       );
     }
 
-    return Stack(
-      children: [
-        video,
-        if (_isInitialLoading)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black54,
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-          ),
-      ],
-    );
+    return video;
   }
 }
 
