@@ -29,7 +29,6 @@ class UniversalVideo extends ConsumerStatefulWidget {
 class UniversalVideoState extends ConsumerState<UniversalVideo> {
   Player? _ownPlayer;
   VideoController? _videoController;
-  bool _isInitialLoading = true;
   String? _errorMessage;
   bool _hasError = false;
   bool _isPlaying = false;
@@ -71,18 +70,9 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       if (mounted) {
         setState(() {
           _isPlaying = playing;
-          _isInitialLoading = false;
           _hasError = false;
           _errorMessage = null;
         });
-      }
-    });
-
-    _ownPlayer!.stream.buffering.listen((buffering) {
-      if (mounted && buffering) {
-        setState(() => _isInitialLoading = true);
-      } else if (mounted && !buffering && _ownPlayer!.state.playing) {
-        setState(() => _isInitialLoading = false);
       }
     });
 
@@ -90,7 +80,6 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       debugPrint('Video player error: $error');
       if (mounted) {
         setState(() {
-          _isInitialLoading = false;
           _hasError = true;
           _errorMessage = error;
         });
@@ -113,7 +102,6 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
     setState(() {
       _hasError = false;
       _errorMessage = null;
-      _isInitialLoading = true;
     });
     _disposePlayer();
     _initPlayer();
