@@ -816,7 +816,7 @@ class _PhysicalPassportScanSheetState
                   });
                 },
               ),
-              if (_scanResult?.account == null && _scannedUid != null) ...[
+              if (_scanResult!.actions.contains("claim_tag") && _scannedUid != null) ...[
                 const Gap(8),
                 FilledButton.icon(
                   onPressed: (_isScanning || _isClaiming)
@@ -899,7 +899,6 @@ class _PhysicalPassportScanSheetState
         // Forward all query parameters directly to /passport/nfc
         // This handles both encrypted (e, c, mac) and unencrypted (uid) tags
         final queryParams = uri.queryParameters;
-        uidFromUri = queryParams['uid']; // Store UID for potential claim
         if (queryParams.isEmpty) {
           setState(() {
             _error = 'nfcTagInvalid'.tr();
@@ -917,7 +916,7 @@ class _PhysicalPassportScanSheetState
       setState(() {
         _scanResult = result;
         _isScanning = false;
-        _scannedUid = uidFromUri;
+        _scannedUid = tag.id;
       });
     } catch (e) {
       setState(() {
