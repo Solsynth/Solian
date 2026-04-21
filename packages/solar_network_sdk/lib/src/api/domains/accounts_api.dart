@@ -326,10 +326,12 @@ class AccountsApi extends BaseApi {
   /// [username] - Username to fetch calendar for, null for current user.
   /// [year] - Year to fetch.
   /// [month] - Month to fetch (1-12).
+  /// [includeNotableDays] - Whether to include notable days (holidays).
   Future<List<SnEventCalendarEntry>> getEventCalendar({
     String? username,
     required int year,
     required int month,
+    bool includeNotableDays = false,
   }) async {
     final path = username != null
         ? '$_basePath/accounts/$username/calendar'
@@ -337,10 +339,223 @@ class AccountsApi extends BaseApi {
 
     final response = await get<List<dynamic>>(
       path,
-      queryParameters: {'year': year, 'month': month},
+      queryParameters: {
+        'year': year,
+        'month': month,
+        'includeNotableDays': includeNotableDays,
+      },
     );
 
     return parseList(response, SnEventCalendarEntry.fromJson);
+  }
+
+  /// Gets merged calendar for the authenticated user.
+  ///
+  /// [year] - Year to fetch.
+  /// [month] - Month to fetch (1-12).
+  Future<SnEventCalendarEntry> getMergedCalendar({
+    required int year,
+    required int month,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/accounts/me/calendar/merged',
+      queryParameters: {'year': year, 'month': month},
+    );
+
+    return SnEventCalendarEntry.fromJson(response.data!);
+  }
+
+  /// Gets merged calendar for another user.
+  ///
+  /// [username] - Username to fetch calendar for.
+  /// [year] - Year to fetch.
+  /// [month] - Month to fetch (1-12).
+  Future<SnEventCalendarEntry> getUserMergedCalendar({
+    required String username,
+    required int year,
+    required int month,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/accounts/$username/calendar/merged',
+      queryParameters: {'year': year, 'month': month},
+    );
+
+    return SnEventCalendarEntry.fromJson(response.data!);
+  }
+
+  // ==========================================
+  // Calendar Events CRUD endpoints
+  // ==========================================
+
+  /// Lists calendar events for the authenticated user.
+  ///
+  /// [startTime] - Filter events starting after this time.
+  /// [endTime] - Filter events ending before this time.
+  /// [offset] - Pagination offset.
+  /// [take] - Number of results to return.
+  Future<PaginatedResult<SnUserCalendarEvent>> listCalendarEvents({
+    DateTime? startTime,
+    DateTime? endTime,
+    int offset = 0,
+    int take = 50,
+  }) async {
+    final queryParameters = <String, dynamic>{'offset': offset, 'take': take};
+
+    if (startTime != null) {
+      queryParameters['startTime'] = startTime.toUtc().toIso8601String();
+    }
+    if (endTime != null) {
+      queryParameters['endTime'] = endTime.toUtc().toIso8601String();
+    }
+
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/calendar/events',
+      queryParameters: queryParameters,
+    );
+
+    final totalCount = getTotalCount(response.headers);
+    return PaginatedResult(
+      items: parseList(response, SnUserCalendarEvent.fromJson),
+      totalCount: totalCount,
+    );
+  }
+
+  /// Creates a new calendar event.
+  ///
+  /// [title] - Event title (required, max 256 chars).
+  /// [startTime] - Event start time in UTC (required).
+  /// [endTime] - Event end time in UTC (required).
+  /// [description] - Event description (optional, max 4096 chars).
+  /// [location] - Event location (optional, max 512 chars).
+  /// [isAllDay] - Whether this is an all-day event.
+  /// [visibility] - Visibility level (0=Private, 100=Friends, 200=Public).
+  /// [recurrence] - Recurrence pattern.
+  /// [meta] - Custom metadata.
+  Future<SnUserCalendarEvent> createCalendarEvent({
+    required String title,
+    required DateTime startTime,
+    required DateTime endTime,
+    String? description,
+    String? location,
+    bool isAllDay = false,
+    int visibility = SnEventVisibility.private,
+    SnRecurrencePattern? recurrence,
+    Map<String, dynamic>? meta,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/accounts/me/calendar/events',
+      data: {
+        'title': title,
+        'start_time': startTime.toUtc().toIso8601String(),
+        'end_time': endTime.toUtc().toIso8601String(),
+        'description': ?description,
+        'location': ?location,
+        'is_all_day': isAllDay,
+        'visibility': visibility,
+        if (recurrence != null)
+          'recurrence': {
+            'frequency': _recurrenceFrequencyToString(recurrence.frequency),
+            'interval': recurrence.interval,
+            if (recurrence.endDate != null)
+              'end_date': recurrence.endDate!.toUtc().toIso8601String(),
+            if (recurrence.occurrences != null)
+              'occurrences': recurrence.occurrences,
+            if (recurrence.daysOfWeek != null)
+              'days_of_week': recurrence.daysOfWeek,
+            if (recurrence.dayOfMonth != null)
+              'day_of_month': recurrence.dayOfMonth,
+            if (recurrence.monthOfYear != null)
+              'month_of_year': recurrence.monthOfYear,
+          },
+        'meta': ?meta,
+      },
+    );
+
+    return SnUserCalendarEvent.fromJson(response.data!);
+  }
+
+  /// Gets a specific calendar event by ID.
+  ///
+  /// [id] - Event ID.
+  Future<SnUserCalendarEvent> getCalendarEvent(String id) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/accounts/me/calendar/events/$id',
+    );
+    return SnUserCalendarEvent.fromJson(response.data!);
+  }
+
+  /// Updates an existing calendar event.
+  ///
+  /// [id] - Event ID.
+  /// All other fields are optional - only provided fields will be updated.
+  Future<SnUserCalendarEvent> updateCalendarEvent({
+    required String id,
+    String? title,
+    DateTime? startTime,
+    DateTime? endTime,
+    String? description,
+    String? location,
+    bool? isAllDay,
+    int? visibility,
+    SnRecurrencePattern? recurrence,
+    Map<String, dynamic>? meta,
+  }) async {
+    final data = <String, dynamic>{
+      'title': ?title,
+      if (startTime != null) 'start_time': startTime.toUtc().toIso8601String(),
+      if (endTime != null) 'end_time': endTime.toUtc().toIso8601String(),
+      'description': ?description,
+      'location': ?location,
+      'is_all_day': ?isAllDay,
+      'visibility': ?visibility,
+      if (recurrence != null)
+        'recurrence': recurrence.frequency == SnRecurrenceFrequency.none
+            ? null
+            : {
+                'frequency': _recurrenceFrequencyToString(recurrence.frequency),
+                'interval': recurrence.interval,
+                if (recurrence.endDate != null)
+                  'end_date': recurrence.endDate!.toUtc().toIso8601String(),
+                if (recurrence.occurrences != null)
+                  'occurrences': recurrence.occurrences,
+                if (recurrence.daysOfWeek != null)
+                  'days_of_week': recurrence.daysOfWeek,
+                if (recurrence.dayOfMonth != null)
+                  'day_of_month': recurrence.dayOfMonth,
+                if (recurrence.monthOfYear != null)
+                  'month_of_year': recurrence.monthOfYear,
+              },
+      'meta': ?meta,
+    };
+
+    final response = await put<Map<String, dynamic>>(
+      '$_basePath/accounts/me/calendar/events/$id',
+      data: data,
+    );
+
+    return SnUserCalendarEvent.fromJson(response.data!);
+  }
+
+  /// Deletes a calendar event (soft delete).
+  ///
+  /// [id] - Event ID.
+  Future<void> deleteCalendarEvent(String id) async {
+    await delete('$_basePath/accounts/me/calendar/events/$id');
+  }
+
+  String _recurrenceFrequencyToString(int frequency) {
+    switch (frequency) {
+      case SnRecurrenceFrequency.daily:
+        return 'Daily';
+      case SnRecurrenceFrequency.weekly:
+        return 'Weekly';
+      case SnRecurrenceFrequency.monthly:
+        return 'Monthly';
+      case SnRecurrenceFrequency.yearly:
+        return 'Yearly';
+      default:
+        return 'None';
+    }
   }
 
   // ==========================================

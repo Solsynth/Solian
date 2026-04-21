@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/accounts/widgets/account/account_nameplate.dart';
+import 'package:island/accounts/widgets/account/calendar_event_creation_sheet.dart';
 import 'package:island/accounts/widgets/account/event_calendar.dart';
 import 'package:island/accounts/widgets/account/fortune_graph.dart';
 import 'package:island/accounts/event_calendar.dart';
@@ -66,6 +67,19 @@ class EventCalendarContent extends HookConsumerWidget {
               showEventDetails: true,
               onMonthChanged: onMonthChanged,
               onDaySelected: onDaySelected,
+              canAddEvents: name == 'me',
+              onAddEvent: name == 'me'
+                  ? (date) async {
+                      final result = await showCalendarEventSheet(
+                        context,
+                        initialDate: date,
+                      );
+                      if (result == true) {
+                        // Refresh the calendar
+                        ref.invalidate(eventCalendarProvider(query.value));
+                      }
+                    }
+                  : null,
             ),
 
             // Add the fortune graph widget
@@ -101,6 +115,21 @@ class EventCalendarContent extends HookConsumerWidget {
                             showEventDetails: true,
                             onMonthChanged: onMonthChanged,
                             onDaySelected: onDaySelected,
+                            canAddEvents: name == 'me',
+                            onAddEvent: name == 'me'
+                                ? (date) async {
+                                    final result = await showCalendarEventSheet(
+                                      context,
+                                      initialDate: date,
+                                    );
+                                    if (result == true) {
+                                      // Refresh the calendar
+                                      ref.invalidate(
+                                        eventCalendarProvider(query.value),
+                                      );
+                                    }
+                                  }
+                                : null,
                           ),
                         ],
                       ),
@@ -128,6 +157,21 @@ class EventCalendarContent extends HookConsumerWidget {
                     showEventDetails: true,
                     onMonthChanged: onMonthChanged,
                     onDaySelected: onDaySelected,
+                    canAddEvents: name == 'me',
+                    onAddEvent: name == 'me'
+                        ? (date) async {
+                            final result = await showCalendarEventSheet(
+                              context,
+                              initialDate: date,
+                            );
+                            if (result == true) {
+                              // Refresh the calendar
+                              ref.invalidate(
+                                eventCalendarProvider(query.value),
+                              );
+                            }
+                          }
+                        : null,
                   ),
 
                   // Add the fortune graph widget

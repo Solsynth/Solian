@@ -64,12 +64,98 @@ sealed class SnFortuneTip with _$SnFortuneTip {
       _$SnFortuneTipFromJson(json);
 }
 
+/// Event visibility levels (int values matching backend enum)
+/// Private = 0, Friends = 100, Public = 200
+class SnEventVisibility {
+  static const int private = 0;
+  static const int friends = 100;
+  static const int public = 200;
+}
+
+/// Recurrence frequency (int values matching backend enum)
+/// None = 0, Daily = 1, Weekly = 2, Monthly = 3, Yearly = 4
+class SnRecurrenceFrequency {
+  static const int none = 0;
+  static const int daily = 1;
+  static const int weekly = 2;
+  static const int monthly = 3;
+  static const int yearly = 4;
+}
+
+/// Merged calendar event types
+class SnMergedEventType {
+  static const String userEvent = 'UserEvent';
+  static const String checkIn = 'CheckIn';
+  static const String status = 'Status';
+  static const String notableDay = 'NotableDay';
+}
+
+@freezed
+sealed class SnRecurrencePattern with _$SnRecurrencePattern {
+  const factory SnRecurrencePattern({
+    required int frequency,
+    @Default(1) int interval,
+    DateTime? endDate,
+    int? occurrences,
+    List<String>? daysOfWeek,
+    int? dayOfMonth,
+    int? monthOfYear,
+  }) = _SnRecurrencePattern;
+
+  factory SnRecurrencePattern.fromJson(Map<String, dynamic> json) =>
+      _$SnRecurrencePatternFromJson(json);
+}
+
+@freezed
+sealed class SnUserCalendarEvent with _$SnUserCalendarEvent {
+  const factory SnUserCalendarEvent({
+    required String id,
+    required String title,
+    String? description,
+    String? location,
+    required DateTime startTime,
+    required DateTime endTime,
+    @Default(false) bool isAllDay,
+    @Default(SnEventVisibility.private) int visibility,
+    SnRecurrencePattern? recurrence,
+    Map<String, dynamic>? meta,
+    required String accountId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    DateTime? deletedAt,
+  }) = _SnUserCalendarEvent;
+
+  factory SnUserCalendarEvent.fromJson(Map<String, dynamic> json) =>
+      _$SnUserCalendarEventFromJson(json);
+}
+
+@freezed
+sealed class SnMergedCalendarEvent with _$SnMergedCalendarEvent {
+  const factory SnMergedCalendarEvent({
+    String? id,
+    required String type,
+    required String title,
+    String? description,
+    String? location,
+    required DateTime startTime,
+    required DateTime endTime,
+    @Default(false) bool isAllDay,
+    Map<String, dynamic>? meta,
+  }) = _SnMergedCalendarEvent;
+
+  factory SnMergedCalendarEvent.fromJson(Map<String, dynamic> json) =>
+      _$SnMergedCalendarEventFromJson(json);
+}
+
 @freezed
 sealed class SnEventCalendarEntry with _$SnEventCalendarEntry {
   const factory SnEventCalendarEntry({
     required DateTime date,
-    required SnCheckInResult? checkInResult,
-    required List<SnAccountStatus> statuses,
+    SnCheckInResult? checkInResult,
+    @Default([]) List<SnAccountStatus> statuses,
+    @Default([]) List<SnUserCalendarEvent> userEvents,
+    @Default([]) List<SnNotableDay> notableDays,
+    List<SnMergedCalendarEvent>? mergedEvents,
   }) = _SnEventCalendarEntry;
 
   factory SnEventCalendarEntry.fromJson(Map<String, dynamic> json) =>

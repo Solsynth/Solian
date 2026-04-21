@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/event_details_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -32,6 +33,12 @@ class EventCalendarWidget extends HookConsumerWidget {
   /// Callback when the focused month changes
   final void Function(int year, int month)? onMonthChanged;
 
+  /// Callback when the user wants to add a new event
+  final void Function(DateTime)? onAddEvent;
+
+  /// Whether to show the add event button (only shown when onAddEvent is provided)
+  final bool canAddEvents;
+
   const EventCalendarWidget({
     super.key,
     required this.events,
@@ -41,6 +48,8 @@ class EventCalendarWidget extends HookConsumerWidget {
     this.maxWidth = 480,
     this.onDaySelected,
     this.onMonthChanged,
+    this.onAddEvent,
+    this.canAddEvents = false,
   });
 
   @override
@@ -48,6 +57,9 @@ class EventCalendarWidget extends HookConsumerWidget {
     final selectedMonth = useState(initialDate?.month ?? DateTime.now().month);
     final selectedYear = useState(initialDate?.year ?? DateTime.now().year);
     final selectedDay = useState(initialDate ?? DateTime.now());
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     final content = Column(
       children: [
@@ -75,33 +87,42 @@ class EventCalendarWidget extends HookConsumerWidget {
             onMonthChanged?.call(focusedDay.year, focusedDay.month);
           },
           eventLoader: (day) {
-            return events.value
-                    ?.where((e) => isSameDay(e.date, day))
-                    .expand((e) => [...e.statuses, e.checkInResult])
-                    .where((e) => e != null)
-                    .toList() ??
-                [];
+            final entry = events.value?.firstWhere(
+              (e) => isSameDay(e.date, day),
+              orElse: () => SnEventCalendarEntry(date: day),
+            );
+            if (entry == null) return [];
+
+            return [
+              ...entry.statuses,
+              if (entry.checkInResult != null) entry.checkInResult!,
+              ...entry.userEvents,
+              ...entry.notableDays,
+            ];
           },
           calendarBuilders: CalendarBuilders(
             dowBuilder: (context, day) {
               final text = DateFormat.EEEEE().format(day);
               return Center(child: Text(text));
             },
-            markerBuilder: (context, day, events) {
-              final checkInResult = events
+            markerBuilder: (context, day, dayEvents) {
+              final checkInResult = dayEvents
                   .whereType<SnCheckInResult>()
                   .firstOrNull;
-              final statuses = events.whereType<SnAccountStatus>().toList();
+              final statuses = dayEvents.whereType<SnAccountStatus>().toList();
+              final userEvents = dayEvents
+                  .whereType<SnUserCalendarEvent>()
+                  .toList();
+              final notableDays = dayEvents.whereType<SnNotableDay>().toList();
 
-              final textColor = isSameDay(selectedDay.value, day)
-                  ? Colors.white
-                  : isSameDay(DateTime.now(), day)
-                  ? Colors.white
-                  : Theme.of(context).colorScheme.onSurface;
+              final isSelected = isSameDay(selectedDay.value, day);
+              final isToday = isSameDay(DateTime.now(), day);
 
-              final shadow =
-                  isSameDay(selectedDay.value, day) ||
-                      isSameDay(DateTime.now(), day)
+              final textColor = isSelected || isToday
+                  ? Colors.white
+                  : colorScheme.onSurface;
+
+              final shadow = isSelected || isToday
                   ? [
                       Shadow(
                         color: Colors.black.withOpacity(0.5),
@@ -111,52 +132,106 @@ class EventCalendarWidget extends HookConsumerWidget {
                     ]
                   : null;
 
+              final markers = <Widget>[];
+
+              // Check-in result marker
               if (checkInResult != null) {
-                return Positioned(
-                  top: 32,
-                  child: Row(
-                    spacing: 2,
-                    children: [
-                      Text(
-                        'checkInResultT${checkInResult.level}'.tr(),
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: textColor,
-                          shadows: shadow,
-                        ),
-                      ),
-                      if (statuses.isNotEmpty) ...[
-                        Icon(
-                          switch (statuses.first.attitude) {
-                            0 => Symbols.sentiment_satisfied,
-                            2 => Symbols.sentiment_dissatisfied,
-                            _ => Symbols.sentiment_neutral,
-                          },
-                          size: 12,
-                          color: textColor,
-                          shadows: shadow,
-                        ),
-                      ],
-                    ],
+                markers.add(
+                  Text(
+                    'checkInResultT${checkInResult.level}'.tr(),
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: textColor,
+                      shadows: shadow,
+                    ),
                   ),
                 );
               }
-              return null;
+
+              // Status marker
+              if (statuses.isNotEmpty) {
+                markers.add(
+                  Icon(
+                    switch (statuses.first.attitude) {
+                      0 => Symbols.sentiment_satisfied,
+                      2 => Symbols.sentiment_dissatisfied,
+                      _ => Symbols.sentiment_neutral,
+                    },
+                    size: 12,
+                    color: textColor,
+                    shadows: shadow,
+                  ),
+                );
+              }
+
+              // User events marker
+              if (userEvents.isNotEmpty) {
+                markers.add(
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: isSelected || isToday
+                          ? Colors.white
+                          : colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                );
+              }
+
+              // Notable days marker
+              if (notableDays.isNotEmpty) {
+                markers.add(
+                  Icon(
+                    Symbols.celebration,
+                    size: 10,
+                    color: isSelected || isToday
+                        ? Colors.white
+                        : colorScheme.tertiary,
+                    shadows: shadow,
+                  ),
+                );
+              }
+
+              if (markers.isEmpty) return null;
+
+              return Positioned(
+                top: 32,
+                child: Row(
+                  spacing: 4,
+                  mainAxisSize: MainAxisSize.min,
+                  children: markers,
+                ),
+              );
             },
           ),
         ),
+        if (canAddEvents && onAddEvent != null) ...[
+          const Gap(8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.icon(
+              onPressed: () => onAddEvent!(selectedDay.value),
+              icon: const Icon(Symbols.add, size: 18),
+              label: Text('calendarEventAdd'.tr()),
+            ),
+          ),
+        ],
         if (showEventDetails) ...[
           const Divider(height: 1).padding(top: 8),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: Builder(
               builder: (context) {
-                final event = events.value
-                    ?.where((e) => isSameDay(e.date, selectedDay.value))
-                    .firstOrNull;
+                final event = events.value?.firstWhere(
+                  (e) => isSameDay(e.date, selectedDay.value),
+                  orElse: () => SnEventCalendarEntry(date: selectedDay.value),
+                );
                 return EventDetailsWidget(
                   selectedDay: selectedDay.value,
                   event: event,
+                  onEditEvent: canAddEvents ? onAddEvent : null,
                 );
               },
             ),
