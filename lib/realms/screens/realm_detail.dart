@@ -14,6 +14,7 @@ import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:island/realms/models/realm_overview.dart';
 import 'package:island/realms/widgets/realm_form_content.dart';
 import 'package:island/realms/widgets/realm_label.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -385,8 +386,8 @@ class _RealmBasisWidget extends HookConsumerWidget {
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
                           child: isDescExpanded.value
-                              ? Text(
-                                  data.description,
+                              ? MarkdownTextContent(
+                                  content: data.description,
                                   key: const ValueKey('expanded'),
                                 )
                               : Text(
@@ -413,7 +414,6 @@ class _RealmBasisWidget extends HookConsumerWidget {
                         ),
                     ],
                   ),
-                  const Gap(12),
                 ],
                 realmIdentity.when(
                   data: (identity) {
@@ -437,7 +437,7 @@ class _RealmBasisWidget extends HookConsumerWidget {
                         style: ButtonStyle(
                           visualDensity: VisualDensity(vertical: -2),
                         ),
-                      );
+                      ).padding(top: 12);
                     }
                     return const SizedBox.shrink();
                   },
@@ -450,7 +450,7 @@ class _RealmBasisWidget extends HookConsumerWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
-                  ),
+                  ).padding(top: 12),
                   error: (_, _) => const SizedBox.shrink(),
                 ),
               ],
@@ -1748,8 +1748,8 @@ class _RealmIdentityEditorSheet extends HookConsumerWidget {
                       ? null
                       : () async {
                           final confirm = await showConfirmAlert(
-                            'clearRealmIdentity'.tr(),
                             'clearRealmIdentityHint'.tr(),
+                            'clearRealmIdentity'.tr(),
                             isDanger: true,
                           );
                           if (confirm != true) return;
@@ -1795,6 +1795,7 @@ class _RealmMemberLabelSheet extends HookConsumerWidget {
 
     return SheetScaffold(
       titleText: 'Assign Label',
+      heightFactor: 0.5,
       child: labels.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
@@ -1811,10 +1812,7 @@ class _RealmMemberLabelSheet extends HookConsumerWidget {
               const Gap(12),
               DropdownButtonFormField<String?>(
                 value: selectedLabelId.value,
-                decoration: const InputDecoration(
-                  labelText: 'Label',
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(labelText: 'Label'),
                 items: [
                   const DropdownMenuItem<String?>(
                     value: null,
@@ -1835,9 +1833,10 @@ class _RealmMemberLabelSheet extends HookConsumerWidget {
                   try {
                     final client = ref.read(solarNetworkClientProvider);
                     if (selectedLabelId.value == null) {
-                      await client.realms.removeLabel(
+                      await client.realms.assignLabel(
                         slug: realmSlug,
                         accountId: member.accountId,
+                        labelId: null,
                       );
                     } else {
                       await client.realms.assignLabel(

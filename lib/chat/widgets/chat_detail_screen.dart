@@ -16,7 +16,6 @@ import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/e2ee/mls_client.dart';
-
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -36,6 +35,227 @@ part 'chat_detail_screen.g.dart';
 Future<int> totalMessagesCount(Ref ref, String roomId) async {
   final database = ref.watch(databaseProvider);
   return database.getTotalMessagesForRoom(roomId);
+}
+
+class _ChatBasisWidget extends HookConsumerWidget {
+  final SnChatRoom data;
+  final String roomId;
+
+  const _ChatBasisWidget({required this.data, required this.roomId});
+
+  String _getFirstLine(String text) {
+    final lines = text.split('\n');
+    if (lines.isEmpty) return '';
+    return lines.first.trim();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDescExpanded = useState(false);
+    final theme = Theme.of(context);
+    final roomIdentity = ref.watch(chatRoomIdentityProvider(roomId));
+
+    // Get background image
+    Widget backgroundWidget;
+    if (data.type == 1 && data.background != null) {
+      backgroundWidget = CloudImageWidget(
+        file: data.background!,
+        fit: BoxFit.cover,
+      );
+    } else if (data.type == 1 &&
+        data.members?.length == 1 &&
+        data.members!.first.account.profile.background?.id != null) {
+      backgroundWidget = CloudImageWidget(
+        file: data.members!.first.account.profile.background!,
+        fit: BoxFit.cover,
+      );
+    } else if (data.background != null) {
+      backgroundWidget = CloudImageWidget(
+        file: data.background!,
+        fit: BoxFit.cover,
+      );
+    } else {
+      backgroundWidget = Container(color: theme.colorScheme.primaryContainer);
+    }
+
+    // Get chat name
+    final chatName = (data.type == 1 && data.name == null)
+        ? data.members?.map((e) => e.account.nick).join(', ') ?? 'Chat'
+        : data.name ?? 'Chat';
+
+    // Get chat picture
+    SnCloudFile? pictureFile;
+    if (data.picture != null) {
+      pictureFile = data.picture;
+    } else if (data.type == 1 && data.members?.isNotEmpty == true) {
+      pictureFile = data.members!.first.account.profile.picture;
+    }
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+                child: AspectRatio(
+                  aspectRatio: 16 / 7,
+                  child: backgroundWidget,
+                ),
+              ),
+              Positioned(
+                bottom: -24,
+                left: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.surface,
+                      width: 3,
+                    ),
+                  ),
+                  child: ProfilePictureWidget(
+                    file: pictureFile,
+                    radius: 32,
+                    fallbackIcon: data.type == 1
+                        ? Symbols.person
+                        : Symbols.group,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Gap(16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        chatName,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (!data.isPublic)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'private',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSecondaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ).tr(),
+                      ),
+                  ],
+                ),
+                const Gap(4),
+                if (data.description?.isNotEmpty == true) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: isDescExpanded.value
+                              ? Text(
+                                  data.description!,
+                                  key: const ValueKey('expanded'),
+                                )
+                              : Text(
+                                  _getFirstLine(data.description!),
+                                  key: const ValueKey('collapsed'),
+                                ),
+                        ).alignment(Alignment.centerLeft),
+                      ),
+                      if (data.description!.contains('\n'))
+                        InkWell(
+                          onTap: () =>
+                              isDescExpanded.value = !isDescExpanded.value,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Text(
+                              isDescExpanded.value
+                                  ? 'collapse'.tr()
+                                  : 'expand'.tr(),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    'descriptionNone'.tr(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+                roomIdentity.when(
+                  data: (identity) {
+                    if (identity == null) {
+                      // Not joined - show join button
+                      return FilledButton.icon(
+                        onPressed: () async {
+                          try {
+                            final client = ref.read(apiClientProvider);
+                            await client.post('/messager/chat/$roomId/join');
+                            ref.invalidate(chatRoomIdentityProvider(roomId));
+                            ref.invalidate(chatRoomProvider(roomId));
+                            ref.invalidate(chatRoomJoinedProvider);
+                            showSnackBar('chatJoinSuccess'.tr());
+                          } catch (err) {
+                            showErrorAlert(err);
+                          }
+                        },
+                        icon: const Icon(Symbols.add),
+                        label: Text('chatJoin'.tr()),
+                        style: ButtonStyle(
+                          visualDensity: VisualDensity(vertical: -2),
+                        ),
+                      ).padding(top: 12);
+                    }
+                    return const SizedBox.shrink();
+                  },
+                  loading: () => const SizedBox(
+                    height: 40,
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ).padding(top: 12),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 @RoutePage()
@@ -264,219 +484,171 @@ class ChatDetailScreen extends HookConsumerWidget {
       );
     }
 
-    const iconShadow = Shadow(
-      color: Colors.black54,
-      blurRadius: 5.0,
-      offset: Offset(1.0, 1.0),
-    );
-
     return AppScaffold(
+      appBar: AppBar(
+        leading: AutoLeadingButton(),
+        title: roomState.when(
+          data: (currentRoom) => Text(
+            (currentRoom?.type == 1 && currentRoom?.name == null)
+                ? currentRoom?.members?.map((e) => e.account.nick).join(', ') ??
+                      'Chat'
+                : currentRoom?.name ?? 'Chat',
+          ),
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.people),
+            onPressed: () {
+              showModalBottomSheet(
+                isScrollControlled: true,
+                context: context,
+                builder: (context) => _ChatMemberListSheet(roomId: id),
+              );
+            },
+          ),
+          _ChatRoomActionMenu(id: id),
+          const Gap(8),
+        ],
+      ),
       body: roomState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
             Center(child: Text('errorGeneric'.tr(args: [error.toString()]))),
         data: (currentRoom) => CustomScrollView(
           slivers: [
-            SliverAppBar(
-              expandedHeight: 180,
-              pinned: true,
-              leading: AutoLeadingButton(),
-              flexibleSpace: FlexibleSpaceBar(
-                background:
-                    (currentRoom!.type == 1 && currentRoom.background != null)
-                    ? CloudImageWidget(file: currentRoom.background!)
-                    : (currentRoom.type == 1 &&
-                          currentRoom.members!.length == 1 &&
-                          currentRoom
-                                  .members!
-                                  .first
-                                  .account
-                                  .profile
-                                  .background
-                                  ?.id !=
-                              null)
-                    ? CloudImageWidget(
-                        file: currentRoom
-                            .members!
-                            .first
-                            .account
-                            .profile
-                            .background!,
-                      )
-                    : currentRoom.background != null
-                    ? CloudImageWidget(
-                        file: currentRoom.background!,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        color: Theme.of(context).appBarTheme.backgroundColor,
-                      ),
-                title: Text(
-                  (currentRoom.type == 1 && currentRoom.name == null)
-                      ? currentRoom.members!
-                            .map((e) => e.account.nick)
-                            .join(', ')
-                      : currentRoom.name!,
-                  style: TextStyle(
-                    color: Theme.of(context).appBarTheme.foregroundColor,
-                    shadows: [iconShadow],
-                  ),
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.people, shadows: [iconShadow]),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      isScrollControlled: true,
-                      context: context,
-                      builder: (context) => _ChatMemberListSheet(roomId: id),
-                    );
-                  },
-                ),
-                _ChatRoomActionMenu(id: id, iconShadow: iconShadow),
-                const Gap(8),
-              ],
+            const SliverGap(12),
+            SliverToBoxAdapter(
+              child: _ChatBasisWidget(
+                data: currentRoom!,
+                roomId: id,
+              ).padding(horizontal: 12),
             ),
+            const SliverGap(12),
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    currentRoom.description ?? 'descriptionNone'.tr(),
-                    style: const TextStyle(fontSize: 16),
-                  ).padding(all: 24),
-                  const Divider(height: 1),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Pin/Unpin Switch
-                      if (isPinned.value != null)
-                        SwitchListTile(
-                          contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                          secondary: Icon(
-                            Symbols.push_pin,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                  // Pin/Unpin Switch
+                  if (isPinned.value != null)
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                      secondary: Icon(
+                        Symbols.push_pin,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      title: const Text('pinChatRoom').tr(),
+                      subtitle: const Text('pinChatRoomDescription').tr(),
+                      value: isPinned.value!,
+                      onChanged: (value) async {
+                        // Update local state immediately for instant UI feedback
+                        isPinned.value = value;
+                        final db = ref.read(databaseProvider);
+                        await db.toggleChatRoomPinned(id);
+                        // Re-verify the state from database in case of error
+                        final room = await db.getChatRoomById(id);
+                        final actualPinned = room?.isPinned ?? false;
+                        if (actualPinned != value) {
+                          // Revert if database operation failed
+                          isPinned.value = actualPinned;
+                        }
+                        showSnackBar(
+                          value
+                              ? 'chatRoomPinned'.tr()
+                              : 'chatRoomUnpinned'.tr(),
+                        );
+                      },
+                    ),
+                  roomIdentity.when(
+                    data: (identity) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (identity != null) ...[
+                          ListTile(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            leading: const Icon(Symbols.edit),
+                            trailing: const Icon(Symbols.chevron_right),
+                            title: const Text('nickname').tr(),
+                            subtitle: Text(
+                              identity.nick?.isNotEmpty ?? false
+                                  ? identity.nick!
+                                  : 'No chat-specific nick set yet.',
+                            ),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                useRootNavigator: true,
+                                builder: (_) => _ChatIdentityEditorSheet(
+                                  roomId: identity.chatRoomId,
+                                  identity: identity,
+                                ),
+                              );
+                            },
                           ),
-                          title: const Text('pinChatRoom').tr(),
-                          subtitle: const Text('pinChatRoomDescription').tr(),
-                          value: isPinned.value!,
-                          onChanged: (value) async {
-                            // Update local state immediately for instant UI feedback
-                            isPinned.value = value;
-                            final db = ref.read(databaseProvider);
-                            await db.toggleChatRoomPinned(id);
-                            // Re-verify the state from database in case of error
-                            final room = await db.getChatRoomById(id);
-                            final actualPinned = room?.isPinned ?? false;
-                            if (actualPinned != value) {
-                              // Revert if database operation failed
-                              isPinned.value = actualPinned;
-                            }
-                            showSnackBar(
-                              value
-                                  ? 'chatRoomPinned'.tr()
-                                  : 'chatRoomUnpinned'.tr(),
+                          ListTile(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            leading: const Icon(Symbols.notifications),
+                            trailing: const Icon(Symbols.chevron_right),
+                            title: const Text('chatNotifyLevel').tr(),
+                            subtitle: Text(
+                              kNotifyLevelText[identity.notify].tr(),
+                            ),
+                            onTap: () => showNotifyLevelBottomSheet(identity),
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            leading: const Icon(Icons.timer),
+                            trailing: const Icon(Symbols.chevron_right),
+                            title: const Text('chatBreak').tr(),
+                            subtitle:
+                                identity.breakUntil != null &&
+                                    identity.breakUntil!.isAfter(DateTime.now())
+                                ? Text(
+                                    DateFormat(
+                                      'yyyy-MM-dd HH:mm',
+                                    ).format(identity.breakUntil!),
+                                  )
+                                : const Text('chatBreakNone').tr(),
+                            onTap: () => showChatBreakDialog(),
+                          ),
+                        ],
+                        ListTile(
+                          contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                          leading: const Icon(Icons.search),
+                          trailing: const Icon(Symbols.chevron_right),
+                          title: const Text('searchMessages').tr(),
+                          subtitle: totalMessages.when(
+                            data: (count) => Text(
+                              'messagesCount'.tr(args: [count.toString()]),
+                            ),
+                            loading: () => const CircularProgressIndicator(),
+                            error: (err, stack) =>
+                                Text('errorGeneric'.tr(args: [err.toString()])),
+                          ),
+                          onTap: () async {
+                            final result = await context.router.push(
+                              SearchMessagesRoute(roomId: id),
                             );
+                            if (result is SearchMessagesResult) {
+                              // Navigate back to room screen with message to jump to
+                              if (context.mounted) {
+                                context.pop(result);
+                              }
+                            }
                           },
                         ),
-                      roomIdentity.when(
-                        data: (identity) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ListTile(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              leading: const Icon(Symbols.edit),
-                              trailing: const Icon(Symbols.chevron_right),
-                              title: const Text('nickname').tr(),
-                              subtitle: Text(
-                                identity?.nick?.isNotEmpty ?? false
-                                    ? identity!.nick!
-                                    : 'No chat-specific nick set yet.',
-                              ),
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  useRootNavigator: true,
-                                  builder: (_) => _ChatIdentityEditorSheet(
-                                    roomId: identity!.chatRoomId,
-                                    identity: identity,
-                                  ),
-                                );
-                              },
-                            ),
-                            ListTile(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              leading: const Icon(Symbols.notifications),
-                              trailing: const Icon(Symbols.chevron_right),
-                              title: const Text('chatNotifyLevel').tr(),
-                              subtitle: Text(
-                                kNotifyLevelText[identity!.notify].tr(),
-                              ),
-                              onTap: () => showNotifyLevelBottomSheet(identity),
-                            ),
-                            ListTile(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              leading: const Icon(Icons.timer),
-                              trailing: const Icon(Symbols.chevron_right),
-                              title: const Text('chatBreak').tr(),
-                              subtitle:
-                                  identity.breakUntil != null &&
-                                      identity.breakUntil!.isAfter(
-                                        DateTime.now(),
-                                      )
-                                  ? Text(
-                                      DateFormat(
-                                        'yyyy-MM-dd HH:mm',
-                                      ).format(identity.breakUntil!),
-                                    )
-                                  : const Text('chatBreakNone').tr(),
-                              onTap: () => showChatBreakDialog(),
-                            ),
-                            ListTile(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              leading: const Icon(Icons.search),
-                              trailing: const Icon(Symbols.chevron_right),
-                              title: const Text('searchMessages').tr(),
-                              subtitle: totalMessages.when(
-                                data: (count) => Text(
-                                  'messagesCount'.tr(args: [count.toString()]),
-                                ),
-                                loading: () =>
-                                    const CircularProgressIndicator(),
-                                error: (err, stack) => Text(
-                                  'errorGeneric'.tr(args: [err.toString()]),
-                                ),
-                              ),
-                              onTap: () async {
-                                final result = await context.router.push(
-                                  SearchMessagesRoute(roomId: id),
-                                );
-                                if (result is SearchMessagesResult) {
-                                  // Navigate back to room screen with message to jump to
-                                  if (context.mounted) {
-                                    context.pop(result);
-                                  }
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                        error: (_, _) => const SizedBox.shrink(),
-                        loading: () => const SizedBox.shrink(),
-                      ),
-                    ],
+                      ],
+                    ),
+                    error: (_, _) => const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
                   ),
                 ],
               ),
@@ -490,9 +662,8 @@ class ChatDetailScreen extends HookConsumerWidget {
 
 class _ChatRoomActionMenu extends HookConsumerWidget {
   final String id;
-  final Shadow iconShadow;
 
-  const _ChatRoomActionMenu({required this.id, required this.iconShadow});
+  const _ChatRoomActionMenu({required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -507,7 +678,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
     final hasMls = !canEnableMls;
 
     return PopupMenuButton(
-      icon: Icon(Icons.more_vert, shadows: [iconShadow]),
+      icon: const Icon(Icons.more_vert),
       itemBuilder: (context) => [
         if (isManagable)
           PopupMenuItem(
@@ -1072,30 +1243,65 @@ class _ChatIdentityEditorSheet extends HookConsumerWidget {
               decoration: InputDecoration(labelText: 'nickname'.tr()),
             ),
             const Gap(16),
-            FilledButton.icon(
-              onPressed: () async {
-                try {
-                  final apiClient = ref.read(apiClientProvider);
-                  await apiClient.patch(
-                    '/messager/chat/$roomId/members/me',
-                    data: {
-                      'nick': nickController.text.trim().isEmpty
-                          ? null
-                          : nickController.text.trim(),
+            Row(
+              spacing: 12,
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      try {
+                        final apiClient = ref.read(apiClientProvider);
+                        await apiClient.patch(
+                          '/messager/chat/$roomId/members/me',
+                          data: {
+                            'nick': nickController.text.trim().isEmpty
+                                ? null
+                                : nickController.text.trim(),
+                          },
+                        );
+                        ref.invalidate(chatRoomIdentityProvider(roomId));
+                        ref.invalidate(chatMemberListProvider(roomId));
+                        if (context.mounted) {
+                          showSnackBar('saveChanges'.tr());
+                          Navigator.pop(context, true);
+                        }
+                      } catch (err) {
+                        showErrorAlert(err);
+                      }
                     },
-                  );
-                  ref.invalidate(chatRoomIdentityProvider(roomId));
-                  ref.invalidate(chatMemberListProvider(roomId));
-                  if (context.mounted) {
-                    showSnackBar('saveChanges'.tr());
-                    Navigator.pop(context, true);
-                  }
-                } catch (err) {
-                  showErrorAlert(err);
-                }
-              },
-              icon: const Icon(Symbols.save),
-              label: const Text('saveChanges').tr(),
+                    icon: const Icon(Symbols.save),
+                    label: const Text('saveChanges').tr(),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: identity.nick?.isNotEmpty != true
+                      ? null
+                      : () async {
+                          final confirm = await showConfirmAlert(
+                            'clearChatIdentityHint'.tr(),
+                            'clearChatIdentity'.tr(),
+                            isDanger: true,
+                          );
+                          if (confirm != true) return;
+                          try {
+                            final apiClient = ref.read(apiClientProvider);
+                            await apiClient.delete(
+                              '/messager/chat/$roomId/members/me/profile',
+                            );
+                            ref.invalidate(chatRoomIdentityProvider(roomId));
+                            ref.invalidate(chatMemberListProvider(roomId));
+                            if (context.mounted) {
+                              showSnackBar('cleared'.tr());
+                              Navigator.pop(context, true);
+                            }
+                          } catch (err) {
+                            showErrorAlert(err);
+                          }
+                        },
+                  icon: const Icon(Symbols.delete_forever),
+                  label: const Text('clear').tr(),
+                ),
+              ],
             ),
           ],
         ),
