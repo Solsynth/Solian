@@ -2987,4 +2987,305 @@ $SnAccountStatusCopyWith<$Res>? get status {
 }
 }
 
+
+/// @nodoc
+mixin _$SnEventCountdownItem {
+
+ String? get eventId; int get eventType; String get title; String? get description; String? get location; DateTime get startTime; DateTime get endTime; bool get isAllDay; int get daysRemaining; int get hoursRemaining; bool get isOngoing; Map<String, dynamic>? get meta; String? get accountId;
+/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnEventCountdownItemCopyWith<SnEventCountdownItem> get copyWith => _$SnEventCountdownItemCopyWithImpl<SnEventCountdownItem>(this as SnEventCountdownItem, _$identity);
+
+  /// Serializes this SnEventCountdownItem to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEventCountdownItem&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.daysRemaining, daysRemaining) || other.daysRemaining == daysRemaining)&&(identical(other.hoursRemaining, hoursRemaining) || other.hoursRemaining == hoursRemaining)&&(identical(other.isOngoing, isOngoing) || other.isOngoing == isOngoing)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,eventId,eventType,title,description,location,startTime,endTime,isAllDay,daysRemaining,hoursRemaining,isOngoing,const DeepCollectionEquality().hash(meta),accountId);
+
+@override
+String toString() {
+  return 'SnEventCountdownItem(eventId: $eventId, eventType: $eventType, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, daysRemaining: $daysRemaining, hoursRemaining: $hoursRemaining, isOngoing: $isOngoing, meta: $meta, accountId: $accountId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnEventCountdownItemCopyWith<$Res>  {
+  factory $SnEventCountdownItemCopyWith(SnEventCountdownItem value, $Res Function(SnEventCountdownItem) _then) = _$SnEventCountdownItemCopyWithImpl;
+@useResult
+$Res call({
+ String? eventId, int eventType, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int daysRemaining, int hoursRemaining, bool isOngoing, Map<String, dynamic>? meta, String? accountId
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnEventCountdownItemCopyWithImpl<$Res>
+    implements $SnEventCountdownItemCopyWith<$Res> {
+  _$SnEventCountdownItemCopyWithImpl(this._self, this._then);
+
+  final SnEventCountdownItem _self;
+  final $Res Function(SnEventCountdownItem) _then;
+
+/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? eventId = freezed,Object? eventType = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? daysRemaining = null,Object? hoursRemaining = null,Object? isOngoing = null,Object? meta = freezed,Object? accountId = freezed,}) {
+  return _then(_self.copyWith(
+eventId: freezed == eventId ? _self.eventId : eventId // ignore: cast_nullable_to_non_nullable
+as String?,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
+as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
+as bool,daysRemaining: null == daysRemaining ? _self.daysRemaining : daysRemaining // ignore: cast_nullable_to_non_nullable
+as int,hoursRemaining: null == hoursRemaining ? _self.hoursRemaining : hoursRemaining // ignore: cast_nullable_to_non_nullable
+as int,isOngoing: null == isOngoing ? _self.isOngoing : isOngoing // ignore: cast_nullable_to_non_nullable
+as bool,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnEventCountdownItem].
+extension SnEventCountdownItemPatterns on SnEventCountdownItem {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnEventCountdownItem value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnEventCountdownItem() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnEventCountdownItem value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnEventCountdownItem():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnEventCountdownItem value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnEventCountdownItem() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnEventCountdownItem() when $default != null:
+return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId)  $default,) {final _that = this;
+switch (_that) {
+case _SnEventCountdownItem():
+return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId)?  $default,) {final _that = this;
+switch (_that) {
+case _SnEventCountdownItem() when $default != null:
+return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnEventCountdownItem implements SnEventCountdownItem {
+  const _SnEventCountdownItem({this.eventId, required this.eventType, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, required this.daysRemaining, required this.hoursRemaining, required this.isOngoing, final  Map<String, dynamic>? meta, this.accountId}): _meta = meta;
+  factory _SnEventCountdownItem.fromJson(Map<String, dynamic> json) => _$SnEventCountdownItemFromJson(json);
+
+@override final  String? eventId;
+@override final  int eventType;
+@override final  String title;
+@override final  String? description;
+@override final  String? location;
+@override final  DateTime startTime;
+@override final  DateTime endTime;
+@override@JsonKey() final  bool isAllDay;
+@override final  int daysRemaining;
+@override final  int hoursRemaining;
+@override final  bool isOngoing;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+@override final  String? accountId;
+
+/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnEventCountdownItemCopyWith<_SnEventCountdownItem> get copyWith => __$SnEventCountdownItemCopyWithImpl<_SnEventCountdownItem>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnEventCountdownItemToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEventCountdownItem&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.daysRemaining, daysRemaining) || other.daysRemaining == daysRemaining)&&(identical(other.hoursRemaining, hoursRemaining) || other.hoursRemaining == hoursRemaining)&&(identical(other.isOngoing, isOngoing) || other.isOngoing == isOngoing)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,eventId,eventType,title,description,location,startTime,endTime,isAllDay,daysRemaining,hoursRemaining,isOngoing,const DeepCollectionEquality().hash(_meta),accountId);
+
+@override
+String toString() {
+  return 'SnEventCountdownItem(eventId: $eventId, eventType: $eventType, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, daysRemaining: $daysRemaining, hoursRemaining: $hoursRemaining, isOngoing: $isOngoing, meta: $meta, accountId: $accountId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnEventCountdownItemCopyWith<$Res> implements $SnEventCountdownItemCopyWith<$Res> {
+  factory _$SnEventCountdownItemCopyWith(_SnEventCountdownItem value, $Res Function(_SnEventCountdownItem) _then) = __$SnEventCountdownItemCopyWithImpl;
+@override @useResult
+$Res call({
+ String? eventId, int eventType, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int daysRemaining, int hoursRemaining, bool isOngoing, Map<String, dynamic>? meta, String? accountId
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnEventCountdownItemCopyWithImpl<$Res>
+    implements _$SnEventCountdownItemCopyWith<$Res> {
+  __$SnEventCountdownItemCopyWithImpl(this._self, this._then);
+
+  final _SnEventCountdownItem _self;
+  final $Res Function(_SnEventCountdownItem) _then;
+
+/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? eventId = freezed,Object? eventType = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? daysRemaining = null,Object? hoursRemaining = null,Object? isOngoing = null,Object? meta = freezed,Object? accountId = freezed,}) {
+  return _then(_SnEventCountdownItem(
+eventId: freezed == eventId ? _self.eventId : eventId // ignore: cast_nullable_to_non_nullable
+as String?,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
+as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
+as bool,daysRemaining: null == daysRemaining ? _self.daysRemaining : daysRemaining // ignore: cast_nullable_to_non_nullable
+as int,hoursRemaining: null == hoursRemaining ? _self.hoursRemaining : hoursRemaining // ignore: cast_nullable_to_non_nullable
+as int,isOngoing: null == isOngoing ? _self.isOngoing : isOngoing // ignore: cast_nullable_to_non_nullable
+as bool,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
 // dart format on

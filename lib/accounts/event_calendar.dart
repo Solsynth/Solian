@@ -149,3 +149,55 @@ Future<SnUserCalendarEvent> calendarEvent(Ref ref, String eventId) async {
   final client = ref.watch(solarNetworkClientProvider);
   return await client.accounts.getCalendarEvent(eventId);
 }
+
+/// Provider for fetching upcoming event countdowns
+@riverpod
+Future<List<SnEventCountdownItem>> eventCountdowns(
+  Ref ref, {
+  int take = 5,
+  String? username,
+}) async {
+  final client = ref.watch(solarNetworkClientProvider);
+
+  if (username != null && username != 'me') {
+    return await client.accounts.getUserEventCountdowns(username, take: take);
+  }
+
+  return await client.accounts.getEventCountdowns(take: take);
+}
+
+/// Provider for countdowns within the next week
+@riverpod
+Future<List<SnEventCountdownItem>> weekCountdowns(
+  Ref ref, {
+  String? username,
+}) async {
+  final allCountdowns = await ref.watch(
+    eventCountdownsProvider(take: 20, username: username).future,
+  );
+  return allCountdowns.where((item) => item.daysRemaining <= 7).toList();
+}
+
+/// Provider for countdowns within the next month
+@riverpod
+Future<List<SnEventCountdownItem>> monthCountdowns(
+  Ref ref, {
+  String? username,
+}) async {
+  final allCountdowns = await ref.watch(
+    eventCountdownsProvider(take: 20, username: username).future,
+  );
+  return allCountdowns.where((item) => item.daysRemaining <= 30).toList();
+}
+
+/// Provider for countdowns within the next year
+@riverpod
+Future<List<SnEventCountdownItem>> yearCountdowns(
+  Ref ref, {
+  String? username,
+}) async {
+  final allCountdowns = await ref.watch(
+    eventCountdownsProvider(take: 50, username: username).future,
+  );
+  return allCountdowns.where((item) => item.daysRemaining <= 365).toList();
+}

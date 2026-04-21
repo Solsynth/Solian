@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/event_details_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -100,10 +99,58 @@ class EventCalendarWidget extends HookConsumerWidget {
               ...entry.notableDays,
             ];
           },
+          calendarStyle: CalendarStyle(
+            todayDecoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            todayTextStyle: TextStyle(color: colorScheme.onPrimaryContainer),
+            selectedDecoration: BoxDecoration(
+              color: colorScheme.primary,
+              shape: BoxShape.circle,
+            ),
+            selectedTextStyle: TextStyle(color: colorScheme.onPrimary),
+            markerSize: 0,
+            cellMargin: const EdgeInsets.all(4),
+          ),
+          headerStyle: HeaderStyle(
+            titleCentered: true,
+            formatButtonVisible: false,
+            leftChevronIcon: Icon(
+              Symbols.chevron_left,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            rightChevronIcon: Icon(
+              Symbols.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            titleTextStyle: theme.textTheme.titleMedium!.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            headerPadding: const EdgeInsets.symmetric(vertical: 8),
+          ),
+          daysOfWeekStyle: DaysOfWeekStyle(
+            weekdayStyle: theme.textTheme.labelMedium!.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+            weekendStyle: theme.textTheme.labelMedium!.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           calendarBuilders: CalendarBuilders(
             dowBuilder: (context, day) {
               final text = DateFormat.EEEEE().format(day);
-              return Center(child: Text(text));
+              return Center(
+                child: Text(
+                  text,
+                  style: theme.textTheme.labelMedium!.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
             },
             markerBuilder: (context, day, dayEvents) {
               final checkInResult = dayEvents
@@ -118,19 +165,11 @@ class EventCalendarWidget extends HookConsumerWidget {
               final isSelected = isSameDay(selectedDay.value, day);
               final isToday = isSameDay(DateTime.now(), day);
 
-              final textColor = isSelected || isToday
-                  ? Colors.white
+              final textColor = isSelected
+                  ? colorScheme.onPrimary
+                  : isToday
+                  ? colorScheme.onPrimaryContainer
                   : colorScheme.onSurface;
-
-              final shadow = isSelected || isToday
-                  ? [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.5),
-                        offset: const Offset(0, 1),
-                        blurRadius: 4,
-                      ),
-                    ]
-                  : null;
 
               final markers = <Widget>[];
 
@@ -139,10 +178,10 @@ class EventCalendarWidget extends HookConsumerWidget {
                 markers.add(
                   Text(
                     'checkInResultT${checkInResult.level}'.tr(),
-                    style: TextStyle(
-                      fontSize: 9,
+                    style: theme.textTheme.labelSmall!.copyWith(
+                      fontSize: 10,
                       color: textColor,
-                      shadows: shadow,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 );
@@ -157,9 +196,8 @@ class EventCalendarWidget extends HookConsumerWidget {
                       2 => Symbols.sentiment_dissatisfied,
                       _ => Symbols.sentiment_neutral,
                     },
-                    size: 12,
+                    size: 14,
                     color: textColor,
-                    shadows: shadow,
                   ),
                 );
               }
@@ -168,11 +206,11 @@ class EventCalendarWidget extends HookConsumerWidget {
               if (userEvents.isNotEmpty) {
                 markers.add(
                   Container(
-                    width: 6,
-                    height: 6,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
-                      color: isSelected || isToday
-                          ? Colors.white
+                      color: isSelected
+                          ? colorScheme.onPrimary
                           : colorScheme.primary,
                       shape: BoxShape.circle,
                     ),
@@ -185,11 +223,10 @@ class EventCalendarWidget extends HookConsumerWidget {
                 markers.add(
                   Icon(
                     Symbols.celebration,
-                    size: 10,
-                    color: isSelected || isToday
-                        ? Colors.white
+                    size: 14,
+                    color: isSelected
+                        ? colorScheme.onPrimary
                         : colorScheme.tertiary,
-                    shadows: shadow,
                   ),
                 );
               }
@@ -197,7 +234,7 @@ class EventCalendarWidget extends HookConsumerWidget {
               if (markers.isEmpty) return null;
 
               return Positioned(
-                top: 32,
+                bottom: 2,
                 child: Row(
                   spacing: 4,
                   mainAxisSize: MainAxisSize.min,
@@ -207,17 +244,6 @@ class EventCalendarWidget extends HookConsumerWidget {
             },
           ),
         ),
-        if (canAddEvents && onAddEvent != null) ...[
-          const Gap(8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton.icon(
-              onPressed: () => onAddEvent!(selectedDay.value),
-              icon: const Icon(Symbols.add, size: 18),
-              label: Text('calendarEventAdd'.tr()),
-            ),
-          ),
-        ],
         if (showEventDetails) ...[
           const Divider(height: 1).padding(top: 8),
           AnimatedSwitcher(

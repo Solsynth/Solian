@@ -559,6 +559,36 @@ class AccountsApi extends BaseApi {
   }
 
   // ==========================================
+  // Event Countdown endpoints
+  // ==========================================
+
+  /// Gets upcoming event countdowns for the authenticated user.
+  ///
+  /// [take] - Number of countdowns to return (default 5).
+  Future<List<SnEventCountdownItem>> getEventCountdowns({int take = 5}) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/calendar/countdown',
+      queryParameters: {'take': take},
+    );
+    return parseList(response, SnEventCountdownItem.fromJson);
+  }
+
+  /// Gets upcoming event countdowns for another user.
+  ///
+  /// [username] - Username to fetch countdowns for.
+  /// [take] - Number of countdowns to return (default 5).
+  Future<List<SnEventCountdownItem>> getUserEventCountdowns(
+    String username, {
+    int take = 5,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/$username/calendar/countdown',
+      queryParameters: {'take': take},
+    );
+    return parseList(response, SnEventCountdownItem.fromJson);
+  }
+
+  // ==========================================
   // Social Credit endpoints
   // ==========================================
 

@@ -302,3 +302,39 @@ Map<String, dynamic> _$SnAccountTimelineItemToJson(
   'activity': instance.activity?.toJson(),
   'status': instance.status?.toJson(),
 };
+
+_SnEventCountdownItem _$SnEventCountdownItemFromJson(
+  Map<String, dynamic> json,
+) => _SnEventCountdownItem(
+  eventId: json['event_id'] as String?,
+  eventType: (json['event_type'] as num).toInt(),
+  title: json['title'] as String,
+  description: json['description'] as String?,
+  location: json['location'] as String?,
+  startTime: DateTime.parse(json['start_time'] as String),
+  endTime: DateTime.parse(json['end_time'] as String),
+  isAllDay: json['is_all_day'] as bool? ?? false,
+  daysRemaining: (json['days_remaining'] as num).toInt(),
+  hoursRemaining: (json['hours_remaining'] as num).toInt(),
+  isOngoing: json['is_ongoing'] as bool,
+  meta: json['meta'] as Map<String, dynamic>?,
+  accountId: json['account_id'] as String?,
+);
+
+Map<String, dynamic> _$SnEventCountdownItemToJson(
+  _SnEventCountdownItem instance,
+) => <String, dynamic>{
+  'event_id': instance.eventId,
+  'event_type': instance.eventType,
+  'title': instance.title,
+  'description': instance.description,
+  'location': instance.location,
+  'start_time': instance.startTime.toIso8601String(),
+  'end_time': instance.endTime.toIso8601String(),
+  'is_all_day': instance.isAllDay,
+  'days_remaining': instance.daysRemaining,
+  'hours_remaining': instance.hoursRemaining,
+  'is_ongoing': instance.isOngoing,
+  'meta': instance.meta,
+  'account_id': instance.accountId,
+};
