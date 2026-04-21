@@ -201,21 +201,33 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
         tag = await NfcScanService().scanTag();
         final records = await NfcScanService().readNdefRecords(tag);
-        String? uidHex;
-        if (records.isNotEmpty) {
-          final firstRecord = records.first;
-          if (firstRecord is UriRecord && firstRecord.uri != null) {
-            final uri = firstRecord.uri!;
-            uidHex = uri.queryParameters['uid'];
-          }
-        }
 
-        if (uidHex == null) {
-          showErrorAlert("No acceptable data found.");
+        // Use parseDeepLinkUri to properly extract URI from records
+        final uri = NfcScanService().parseDeepLinkUri(records);
+        if (uri == null) {
+          scanError.value = 'nfcTagInvalid'.tr();
+          isScanning.value = false;
           return;
         }
 
-        passwordController.text = '${tag.id}:$uidHex';
+        // Extract tag ID from the deep link
+        // Format: solian://phpass/{tag_id} or solian://?uid=...&...
+        String? tagId;
+        if (uri.host == 'phpass' && uri.pathSegments.isNotEmpty) {
+          // Path-based format: solian://phpass/{tag_id}
+          tagId = uri.pathSegments.first;
+        } else {
+          // Query-based format: solian://?uid=...
+          tagId = uri.queryParameters['uid'];
+        }
+
+        if (tagId == null || tagId.isEmpty) {
+          scanError.value = 'nfcTagInvalid'.tr();
+          isScanning.value = false;
+          return;
+        }
+
+        passwordController.text = '${tag.id}:$tagId';
         isScanning.value = false;
         performCheckTicket();
       } catch (e) {
