@@ -352,14 +352,31 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       case 'messages.reaction.added':
       case 'messages.reaction.removed':
         {
+          var eventMessage = LocalChatMessage.fromRemoteMessage(
+            message,
+            MessageStatus.sent,
+          );
+          final existingEvent = await _fetchMessageFromDb(
+            db,
+            message.id,
+            roomId,
+          );
+          if (existingEvent != null) {
+            eventMessage = _mergeReactionFieldsFromExisting(
+              eventMessage,
+              existingEvent,
+            );
+          }
+          await db.saveMessageWithSender(eventMessage);
+
           final applied = await _applyReactionUpdate(
             db,
             message,
             currentUserId: currentUserId,
           );
-          if (applied) {
-            eventBus.fire(ChatMessageUpdateEvent(message));
-          }
+          eventBus.fire(
+            ChatMessageUpdateEvent(message, appliedInBackground: applied),
+          );
         }
     }
   }

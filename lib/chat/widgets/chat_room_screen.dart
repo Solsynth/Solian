@@ -181,7 +181,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     useEffect(() {
       Future.microtask(() async {
         if (!context.mounted) return;
-        await messagesNotifier.initialize(forceRemoteRefresh: false);
+        await messagesNotifier.syncMessages();
       });
       return null;
     }, [id]);
@@ -319,8 +319,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     useEffect(() {
       final controller = scrollControllerRef.value;
       void updateAtLatestState() {
-        if (!controller.hasClients) return;
-        final atLatest = controller.position.pixels <= 80;
+        if (!controller.hasClients || controller.positions.length != 1) return;
+        final atLatest = controller.positions.first.pixels <= 80;
         if (lastAtLatestRef.value == atLatest) return;
         lastAtLatestRef.value = atLatest;
         isAtLatestMessages.value = atLatest;
@@ -364,8 +364,11 @@ class ChatRoomScreen extends HookConsumerWidget {
         isBackToBottomVisible.value = true;
 
         void onScroll() {
-          if (!scrollControllerRef.value.hasClients) return;
-          final currentPos = scrollControllerRef.value.position.pixels;
+          final controller = scrollControllerRef.value;
+          if (!controller.hasClients || controller.positions.length != 1) {
+            return;
+          }
+          final currentPos = controller.positions.first.pixels;
           final delta = (currentPos - lastScrollPosition.value).abs();
 
           // Reset timer on significant scroll movement
@@ -657,7 +660,16 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 chatIdentity: chatIdentity,
                                 onJump: onJump,
                               ),
-                        loading: () => const SizedBox.shrink(),
+                        loading: () => Center(
+                          key: const ValueKey('messages-loading'),
+                          child: ConfuseSpinner(
+                            size: 40,
+                            speed: 6,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                          ),
+                        ),
                         error: (_, _) => const SizedBox.shrink(),
                       ),
                     ),

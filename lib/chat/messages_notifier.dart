@@ -47,6 +47,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   bool? _withAttachments;
 
   static const int _pageSize = 20;
+  static const int _initialRemoteFetchSize = 60;
   static const int _fetchBatchSize =
       1000; // Max API take (1k) to minimize network requests
   bool _hasMore = true;
@@ -607,7 +608,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<List<LocalChatMessage>> _eagerPrefetchIfShort(
     List<LocalChatMessage> initial, {
     required bool enabled,
-    int minimumCount = 100,
+    int minimumCount = 60,
   }) async {
     if (!enabled) return initial;
     if (initial.length >= minimumCount) return initial;
@@ -1133,10 +1134,10 @@ class MessagesNotifier extends _$MessagesNotifier {
           () => ref.read(chatSyncingProvider.notifier).set(true),
         );
       }
-      // Fetch more from API than displayed to reduce network requests
+      // Fetch a moderate first batch to reduce time-to-first-render.
       final remoteMessages = await _fetchAndCacheMessages(
         offset: 0,
-        take: _fetchBatchSize,
+        take: _initialRemoteFetchSize,
       );
       Logger.root.info(
         'LoadInitial: fetched ${remoteMessages.length} from remote, _allRemoteMessagesFetched=$_allRemoteMessagesFetched',
@@ -1846,7 +1847,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  Future<void> receiveMessage(SnChatMessage remoteMessage) async {
+  Future<void> receiveMessage(
+    SnChatMessage remoteMessage, {
+    bool applySideEffects = true,
+  }) async {
     if (remoteMessage.chatRoomId != roomId) return;
 
     if (_isJumping) {
@@ -1922,7 +1926,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     _upsertReceivedMessageInState(localMessage);
 
     // ── Step 7: Process system events ──
-    await _processMessageSideEffects(remoteMessage);
+    if (applySideEffects) {
+      await _processMessageSideEffects(remoteMessage);
+    }
   }
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {

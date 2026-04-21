@@ -179,6 +179,14 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     // Listen for message update events
     _updateMessageSub = eventBus.on<ChatMessageUpdateEvent>().listen((event) {
       if (event.message.chatRoomId != _chatRoom.id) return;
+      if (event.message.type == 'messages.reaction.added' ||
+          event.message.type == 'messages.reaction.removed') {
+        _messagesNotifier.receiveMessage(
+          event.message,
+          applySideEffects: !event.appliedInBackground,
+        );
+        return;
+      }
       if (event.message.type == 'messages.update' ||
           event.message.type == 'messages.update.links' ||
           event.message.type == 'messages.delete') {

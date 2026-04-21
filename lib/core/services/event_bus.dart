@@ -58,8 +58,12 @@ class ChatMessageNewEvent {
 /// Event fired when a chat message is updated
 class ChatMessageUpdateEvent {
   final SnChatMessage message;
+  final bool appliedInBackground;
 
-  const ChatMessageUpdateEvent(this.message);
+  const ChatMessageUpdateEvent(
+    this.message, {
+    this.appliedInBackground = false,
+  });
 }
 
 /// Event fired when a chat message is deleted

@@ -160,9 +160,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   }
 
   void _onScroll() {
-    if (!scrollController.hasClients) return;
+    final position = _getSingleScrollPosition();
+    if (position == null) return;
 
-    final position = scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 200) {
       if (!_isLoadingMore) {
         _isLoadingMore = true;
@@ -179,9 +179,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   void checkAutoFill(int messageCount) {
     if (_autoFillPasses >= _kMaxAutoFillPasses) return;
     if (_autoFillInProgress) return;
-    if (!scrollController.hasClients) return;
+    final position = _getSingleScrollPosition();
+    if (position == null) return;
 
-    final position = scrollController.position;
     final isScrollable = position.maxScrollExtent > 0;
     if (isScrollable) {
       _autoFillPasses = 0;
@@ -208,6 +208,18 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     notifier.loadMore().whenComplete(() {
       _autoFillInProgress = false;
     });
+  }
+
+  ScrollPosition? _getSingleScrollPosition() {
+    if (!scrollController.hasClients) return null;
+    final positions = scrollController.positions;
+    if (positions.length != 1) {
+      Logger.root.fine(
+        'Skip scroll action because controller has ${positions.length} positions (roomId=$roomId)',
+      );
+      return null;
+    }
+    return positions.first;
   }
 
   // ==================== Selection Mode ====================
