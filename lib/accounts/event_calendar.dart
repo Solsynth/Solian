@@ -15,10 +15,18 @@ class EventCalendarQuery {
   /// Month to fetch calendar for
   final int month;
 
+  /// Whether to include notable days (holidays)
+  final bool includeNotableDays;
+
+  /// Whether to use merged calendar view
+  final bool useMergedView;
+
   const EventCalendarQuery({
     required this.uname,
     required this.year,
     required this.month,
+    this.includeNotableDays = true,
+    this.useMergedView = false,
   });
 
   @override
@@ -28,10 +36,17 @@ class EventCalendarQuery {
           runtimeType == other.runtimeType &&
           uname == other.uname &&
           year == other.year &&
-          month == other.month;
+          month == other.month &&
+          includeNotableDays == other.includeNotableDays &&
+          useMergedView == other.useMergedView;
 
   @override
-  int get hashCode => uname.hashCode ^ year.hashCode ^ month.hashCode;
+  int get hashCode =>
+      uname.hashCode ^
+      year.hashCode ^
+      month.hashCode ^
+      includeNotableDays.hashCode ^
+      useMergedView.hashCode;
 }
 
 /// Provider for fetching event calendar data
@@ -42,9 +57,95 @@ Future<List<SnEventCalendarEntry>> eventCalendar(
   EventCalendarQuery query,
 ) async {
   final client = ref.watch(solarNetworkClientProvider);
+
+  if (query.useMergedView) {
+    // For merged view, we fetch a single day and wrap it in a list
+    // The merged view returns one entry per request with mergedEvents
+    final mergedEntry = await client.accounts.getEventCalendar(
+      username: query.uname,
+      year: query.year,
+      month: query.month,
+      includeNotableDays: query.includeNotableDays,
+    );
+    return mergedEntry;
+  }
+
   return await client.accounts.getEventCalendar(
     username: query.uname,
     year: query.year,
     month: query.month,
+    includeNotableDays: query.includeNotableDays,
   );
+}
+
+/// Provider for fetching merged calendar for a specific month
+@riverpod
+Future<SnEventCalendarEntry> mergedCalendar(
+  Ref ref, {
+  required int year,
+  required int month,
+  String? username,
+}) async {
+  final client = ref.watch(solarNetworkClientProvider);
+
+  if (username != null) {
+    return await client.accounts.getUserMergedCalendar(
+      username: username,
+      year: year,
+      month: month,
+    );
+  }
+
+  return await client.accounts.getMergedCalendar(year: year, month: month);
+}
+
+/// Query parameters for listing calendar events
+class CalendarEventListQuery {
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final int offset;
+  final int take;
+
+  const CalendarEventListQuery({
+    this.startTime,
+    this.endTime,
+    this.offset = 0,
+    this.take = 50,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CalendarEventListQuery &&
+          runtimeType == other.runtimeType &&
+          startTime == other.startTime &&
+          endTime == other.endTime &&
+          offset == other.offset &&
+          take == other.take;
+
+  @override
+  int get hashCode =>
+      startTime.hashCode ^ endTime.hashCode ^ offset.hashCode ^ take.hashCode;
+}
+
+/// Provider for listing user's calendar events
+@riverpod
+Future<PaginatedResult<SnUserCalendarEvent>> calendarEvents(
+  Ref ref,
+  CalendarEventListQuery query,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.listCalendarEvents(
+    startTime: query.startTime,
+    endTime: query.endTime,
+    offset: query.offset,
+    take: query.take,
+  );
+}
+
+/// Provider for a single calendar event
+@riverpod
+Future<SnUserCalendarEvent> calendarEvent(Ref ref, String eventId) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getCalendarEvent(eventId);
 }

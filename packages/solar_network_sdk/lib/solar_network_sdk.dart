@@ -20,6 +20,10 @@ export 'src/models/accounts/punishment.dart';
 export 'src/models/activity/activity.dart';
 export 'src/models/activity/activitypub.dart';
 
+// Calendar event visibility constants
+export 'src/models/activity/activity.dart'
+    show SnEventVisibility, SnRecurrenceFrequency, SnMergedEventType;
+
 // Auth models
 export 'src/models/auth/auth_session.dart';
 export 'src/models/auth/auth_challenge.dart';

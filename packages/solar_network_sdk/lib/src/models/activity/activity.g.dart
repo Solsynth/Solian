@@ -96,6 +96,105 @@ Map<String, dynamic> _$SnFortuneTipToJson(_SnFortuneTip instance) =>
       'content': instance.content,
     };
 
+_SnRecurrencePattern _$SnRecurrencePatternFromJson(Map<String, dynamic> json) =>
+    _SnRecurrencePattern(
+      frequency: (json['frequency'] as num).toInt(),
+      interval: (json['interval'] as num?)?.toInt() ?? 1,
+      endDate: json['end_date'] == null
+          ? null
+          : DateTime.parse(json['end_date'] as String),
+      occurrences: (json['occurrences'] as num?)?.toInt(),
+      daysOfWeek: (json['days_of_week'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      dayOfMonth: (json['day_of_month'] as num?)?.toInt(),
+      monthOfYear: (json['month_of_year'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$SnRecurrencePatternToJson(
+  _SnRecurrencePattern instance,
+) => <String, dynamic>{
+  'frequency': instance.frequency,
+  'interval': instance.interval,
+  'end_date': instance.endDate?.toIso8601String(),
+  'occurrences': instance.occurrences,
+  'days_of_week': instance.daysOfWeek,
+  'day_of_month': instance.dayOfMonth,
+  'month_of_year': instance.monthOfYear,
+};
+
+_SnUserCalendarEvent _$SnUserCalendarEventFromJson(Map<String, dynamic> json) =>
+    _SnUserCalendarEvent(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String?,
+      location: json['location'] as String?,
+      startTime: DateTime.parse(json['start_time'] as String),
+      endTime: DateTime.parse(json['end_time'] as String),
+      isAllDay: json['is_all_day'] as bool? ?? false,
+      visibility:
+          (json['visibility'] as num?)?.toInt() ?? SnEventVisibility.private,
+      recurrence: json['recurrence'] == null
+          ? null
+          : SnRecurrencePattern.fromJson(
+              json['recurrence'] as Map<String, dynamic>,
+            ),
+      meta: json['meta'] as Map<String, dynamic>?,
+      accountId: json['account_id'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      deletedAt: json['deleted_at'] == null
+          ? null
+          : DateTime.parse(json['deleted_at'] as String),
+    );
+
+Map<String, dynamic> _$SnUserCalendarEventToJson(
+  _SnUserCalendarEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'title': instance.title,
+  'description': instance.description,
+  'location': instance.location,
+  'start_time': instance.startTime.toIso8601String(),
+  'end_time': instance.endTime.toIso8601String(),
+  'is_all_day': instance.isAllDay,
+  'visibility': instance.visibility,
+  'recurrence': instance.recurrence?.toJson(),
+  'meta': instance.meta,
+  'account_id': instance.accountId,
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+  'deleted_at': instance.deletedAt?.toIso8601String(),
+};
+
+_SnMergedCalendarEvent _$SnMergedCalendarEventFromJson(
+  Map<String, dynamic> json,
+) => _SnMergedCalendarEvent(
+  id: json['id'] as String?,
+  type: json['type'] as String,
+  title: json['title'] as String,
+  description: json['description'] as String?,
+  location: json['location'] as String?,
+  startTime: DateTime.parse(json['start_time'] as String),
+  endTime: DateTime.parse(json['end_time'] as String),
+  isAllDay: json['is_all_day'] as bool? ?? false,
+  meta: json['meta'] as Map<String, dynamic>?,
+);
+
+Map<String, dynamic> _$SnMergedCalendarEventToJson(
+  _SnMergedCalendarEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'title': instance.title,
+  'description': instance.description,
+  'location': instance.location,
+  'start_time': instance.startTime.toIso8601String(),
+  'end_time': instance.endTime.toIso8601String(),
+  'is_all_day': instance.isAllDay,
+  'meta': instance.meta,
+};
+
 _SnEventCalendarEntry _$SnEventCalendarEntryFromJson(
   Map<String, dynamic> json,
 ) => _SnEventCalendarEntry(
@@ -105,8 +204,23 @@ _SnEventCalendarEntry _$SnEventCalendarEntryFromJson(
       : SnCheckInResult.fromJson(
           json['check_in_result'] as Map<String, dynamic>,
         ),
-  statuses: (json['statuses'] as List<dynamic>)
-      .map((e) => SnAccountStatus.fromJson(e as Map<String, dynamic>))
+  statuses:
+      (json['statuses'] as List<dynamic>?)
+          ?.map((e) => SnAccountStatus.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  userEvents:
+      (json['user_events'] as List<dynamic>?)
+          ?.map((e) => SnUserCalendarEvent.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  notableDays:
+      (json['notable_days'] as List<dynamic>?)
+          ?.map((e) => SnNotableDay.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  mergedEvents: (json['merged_events'] as List<dynamic>?)
+      ?.map((e) => SnMergedCalendarEvent.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 
@@ -116,6 +230,9 @@ Map<String, dynamic> _$SnEventCalendarEntryToJson(
   'date': instance.date.toIso8601String(),
   'check_in_result': instance.checkInResult?.toJson(),
   'statuses': instance.statuses.map((e) => e.toJson()).toList(),
+  'user_events': instance.userEvents.map((e) => e.toJson()).toList(),
+  'notable_days': instance.notableDays.map((e) => e.toJson()).toList(),
+  'merged_events': instance.mergedEvents?.map((e) => e.toJson()).toList(),
 };
 
 _SnPresenceActivity _$SnPresenceActivityFromJson(Map<String, dynamic> json) =>

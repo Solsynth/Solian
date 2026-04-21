@@ -1137,9 +1137,909 @@ as String,
 
 
 /// @nodoc
+mixin _$SnRecurrencePattern {
+
+ int get frequency; int get interval; DateTime? get endDate; int? get occurrences; List<String>? get daysOfWeek; int? get dayOfMonth; int? get monthOfYear;
+/// Create a copy of SnRecurrencePattern
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnRecurrencePatternCopyWith<SnRecurrencePattern> get copyWith => _$SnRecurrencePatternCopyWithImpl<SnRecurrencePattern>(this as SnRecurrencePattern, _$identity);
+
+  /// Serializes this SnRecurrencePattern to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRecurrencePattern&&(identical(other.frequency, frequency) || other.frequency == frequency)&&(identical(other.interval, interval) || other.interval == interval)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.occurrences, occurrences) || other.occurrences == occurrences)&&const DeepCollectionEquality().equals(other.daysOfWeek, daysOfWeek)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.monthOfYear, monthOfYear) || other.monthOfYear == monthOfYear));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,frequency,interval,endDate,occurrences,const DeepCollectionEquality().hash(daysOfWeek),dayOfMonth,monthOfYear);
+
+@override
+String toString() {
+  return 'SnRecurrencePattern(frequency: $frequency, interval: $interval, endDate: $endDate, occurrences: $occurrences, daysOfWeek: $daysOfWeek, dayOfMonth: $dayOfMonth, monthOfYear: $monthOfYear)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnRecurrencePatternCopyWith<$Res>  {
+  factory $SnRecurrencePatternCopyWith(SnRecurrencePattern value, $Res Function(SnRecurrencePattern) _then) = _$SnRecurrencePatternCopyWithImpl;
+@useResult
+$Res call({
+ int frequency, int interval, DateTime? endDate, int? occurrences, List<String>? daysOfWeek, int? dayOfMonth, int? monthOfYear
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnRecurrencePatternCopyWithImpl<$Res>
+    implements $SnRecurrencePatternCopyWith<$Res> {
+  _$SnRecurrencePatternCopyWithImpl(this._self, this._then);
+
+  final SnRecurrencePattern _self;
+  final $Res Function(SnRecurrencePattern) _then;
+
+/// Create a copy of SnRecurrencePattern
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? frequency = null,Object? interval = null,Object? endDate = freezed,Object? occurrences = freezed,Object? daysOfWeek = freezed,Object? dayOfMonth = freezed,Object? monthOfYear = freezed,}) {
+  return _then(_self.copyWith(
+frequency: null == frequency ? _self.frequency : frequency // ignore: cast_nullable_to_non_nullable
+as int,interval: null == interval ? _self.interval : interval // ignore: cast_nullable_to_non_nullable
+as int,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,occurrences: freezed == occurrences ? _self.occurrences : occurrences // ignore: cast_nullable_to_non_nullable
+as int?,daysOfWeek: freezed == daysOfWeek ? _self.daysOfWeek : daysOfWeek // ignore: cast_nullable_to_non_nullable
+as List<String>?,dayOfMonth: freezed == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as int?,monthOfYear: freezed == monthOfYear ? _self.monthOfYear : monthOfYear // ignore: cast_nullable_to_non_nullable
+as int?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnRecurrencePattern].
+extension SnRecurrencePatternPatterns on SnRecurrencePattern {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnRecurrencePattern value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnRecurrencePattern() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnRecurrencePattern value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnRecurrencePattern():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnRecurrencePattern value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnRecurrencePattern() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int frequency,  int interval,  DateTime? endDate,  int? occurrences,  List<String>? daysOfWeek,  int? dayOfMonth,  int? monthOfYear)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnRecurrencePattern() when $default != null:
+return $default(_that.frequency,_that.interval,_that.endDate,_that.occurrences,_that.daysOfWeek,_that.dayOfMonth,_that.monthOfYear);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int frequency,  int interval,  DateTime? endDate,  int? occurrences,  List<String>? daysOfWeek,  int? dayOfMonth,  int? monthOfYear)  $default,) {final _that = this;
+switch (_that) {
+case _SnRecurrencePattern():
+return $default(_that.frequency,_that.interval,_that.endDate,_that.occurrences,_that.daysOfWeek,_that.dayOfMonth,_that.monthOfYear);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int frequency,  int interval,  DateTime? endDate,  int? occurrences,  List<String>? daysOfWeek,  int? dayOfMonth,  int? monthOfYear)?  $default,) {final _that = this;
+switch (_that) {
+case _SnRecurrencePattern() when $default != null:
+return $default(_that.frequency,_that.interval,_that.endDate,_that.occurrences,_that.daysOfWeek,_that.dayOfMonth,_that.monthOfYear);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnRecurrencePattern implements SnRecurrencePattern {
+  const _SnRecurrencePattern({required this.frequency, this.interval = 1, this.endDate, this.occurrences, final  List<String>? daysOfWeek, this.dayOfMonth, this.monthOfYear}): _daysOfWeek = daysOfWeek;
+  factory _SnRecurrencePattern.fromJson(Map<String, dynamic> json) => _$SnRecurrencePatternFromJson(json);
+
+@override final  int frequency;
+@override@JsonKey() final  int interval;
+@override final  DateTime? endDate;
+@override final  int? occurrences;
+ final  List<String>? _daysOfWeek;
+@override List<String>? get daysOfWeek {
+  final value = _daysOfWeek;
+  if (value == null) return null;
+  if (_daysOfWeek is EqualUnmodifiableListView) return _daysOfWeek;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+@override final  int? dayOfMonth;
+@override final  int? monthOfYear;
+
+/// Create a copy of SnRecurrencePattern
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnRecurrencePatternCopyWith<_SnRecurrencePattern> get copyWith => __$SnRecurrencePatternCopyWithImpl<_SnRecurrencePattern>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnRecurrencePatternToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRecurrencePattern&&(identical(other.frequency, frequency) || other.frequency == frequency)&&(identical(other.interval, interval) || other.interval == interval)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.occurrences, occurrences) || other.occurrences == occurrences)&&const DeepCollectionEquality().equals(other._daysOfWeek, _daysOfWeek)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.monthOfYear, monthOfYear) || other.monthOfYear == monthOfYear));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,frequency,interval,endDate,occurrences,const DeepCollectionEquality().hash(_daysOfWeek),dayOfMonth,monthOfYear);
+
+@override
+String toString() {
+  return 'SnRecurrencePattern(frequency: $frequency, interval: $interval, endDate: $endDate, occurrences: $occurrences, daysOfWeek: $daysOfWeek, dayOfMonth: $dayOfMonth, monthOfYear: $monthOfYear)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnRecurrencePatternCopyWith<$Res> implements $SnRecurrencePatternCopyWith<$Res> {
+  factory _$SnRecurrencePatternCopyWith(_SnRecurrencePattern value, $Res Function(_SnRecurrencePattern) _then) = __$SnRecurrencePatternCopyWithImpl;
+@override @useResult
+$Res call({
+ int frequency, int interval, DateTime? endDate, int? occurrences, List<String>? daysOfWeek, int? dayOfMonth, int? monthOfYear
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnRecurrencePatternCopyWithImpl<$Res>
+    implements _$SnRecurrencePatternCopyWith<$Res> {
+  __$SnRecurrencePatternCopyWithImpl(this._self, this._then);
+
+  final _SnRecurrencePattern _self;
+  final $Res Function(_SnRecurrencePattern) _then;
+
+/// Create a copy of SnRecurrencePattern
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? frequency = null,Object? interval = null,Object? endDate = freezed,Object? occurrences = freezed,Object? daysOfWeek = freezed,Object? dayOfMonth = freezed,Object? monthOfYear = freezed,}) {
+  return _then(_SnRecurrencePattern(
+frequency: null == frequency ? _self.frequency : frequency // ignore: cast_nullable_to_non_nullable
+as int,interval: null == interval ? _self.interval : interval // ignore: cast_nullable_to_non_nullable
+as int,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,occurrences: freezed == occurrences ? _self.occurrences : occurrences // ignore: cast_nullable_to_non_nullable
+as int?,daysOfWeek: freezed == daysOfWeek ? _self._daysOfWeek : daysOfWeek // ignore: cast_nullable_to_non_nullable
+as List<String>?,dayOfMonth: freezed == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as int?,monthOfYear: freezed == monthOfYear ? _self.monthOfYear : monthOfYear // ignore: cast_nullable_to_non_nullable
+as int?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnUserCalendarEvent {
+
+ String get id; String get title; String? get description; String? get location; DateTime get startTime; DateTime get endTime; bool get isAllDay; int get visibility; SnRecurrencePattern? get recurrence; Map<String, dynamic>? get meta; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+/// Create a copy of SnUserCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnUserCalendarEventCopyWith<SnUserCalendarEvent> get copyWith => _$SnUserCalendarEventCopyWithImpl<SnUserCalendarEvent>(this as SnUserCalendarEvent, _$identity);
+
+  /// Serializes this SnUserCalendarEvent to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnUserCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.recurrence, recurrence) || other.recurrence == recurrence)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,description,location,startTime,endTime,isAllDay,visibility,recurrence,const DeepCollectionEquality().hash(meta),accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnUserCalendarEvent(id: $id, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, visibility: $visibility, recurrence: $recurrence, meta: $meta, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnUserCalendarEventCopyWith<$Res>  {
+  factory $SnUserCalendarEventCopyWith(SnUserCalendarEvent value, $Res Function(SnUserCalendarEvent) _then) = _$SnUserCalendarEventCopyWithImpl;
+@useResult
+$Res call({
+ String id, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int visibility, SnRecurrencePattern? recurrence, Map<String, dynamic>? meta, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+$SnRecurrencePatternCopyWith<$Res>? get recurrence;
+
+}
+/// @nodoc
+class _$SnUserCalendarEventCopyWithImpl<$Res>
+    implements $SnUserCalendarEventCopyWith<$Res> {
+  _$SnUserCalendarEventCopyWithImpl(this._self, this._then);
+
+  final SnUserCalendarEvent _self;
+  final $Res Function(SnUserCalendarEvent) _then;
+
+/// Create a copy of SnUserCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? visibility = null,Object? recurrence = freezed,Object? meta = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
+as bool,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as int,recurrence: freezed == recurrence ? _self.recurrence : recurrence // ignore: cast_nullable_to_non_nullable
+as SnRecurrencePattern?,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of SnUserCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnRecurrencePatternCopyWith<$Res>? get recurrence {
+    if (_self.recurrence == null) {
+    return null;
+  }
+
+  return $SnRecurrencePatternCopyWith<$Res>(_self.recurrence!, (value) {
+    return _then(_self.copyWith(recurrence: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnUserCalendarEvent].
+extension SnUserCalendarEventPatterns on SnUserCalendarEvent {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnUserCalendarEvent value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnUserCalendarEvent() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnUserCalendarEvent value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnUserCalendarEvent():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnUserCalendarEvent value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnUserCalendarEvent() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  Map<String, dynamic>? meta,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnUserCalendarEvent() when $default != null:
+return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.meta,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  Map<String, dynamic>? meta,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnUserCalendarEvent():
+return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.meta,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int visibility,  SnRecurrencePattern? recurrence,  Map<String, dynamic>? meta,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnUserCalendarEvent() when $default != null:
+return $default(_that.id,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.visibility,_that.recurrence,_that.meta,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnUserCalendarEvent implements SnUserCalendarEvent {
+  const _SnUserCalendarEvent({required this.id, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, this.visibility = SnEventVisibility.private, this.recurrence, final  Map<String, dynamic>? meta, required this.accountId, required this.createdAt, required this.updatedAt, this.deletedAt}): _meta = meta;
+  factory _SnUserCalendarEvent.fromJson(Map<String, dynamic> json) => _$SnUserCalendarEventFromJson(json);
+
+@override final  String id;
+@override final  String title;
+@override final  String? description;
+@override final  String? location;
+@override final  DateTime startTime;
+@override final  DateTime endTime;
+@override@JsonKey() final  bool isAllDay;
+@override@JsonKey() final  int visibility;
+@override final  SnRecurrencePattern? recurrence;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+@override final  String accountId;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  DateTime? deletedAt;
+
+/// Create a copy of SnUserCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnUserCalendarEventCopyWith<_SnUserCalendarEvent> get copyWith => __$SnUserCalendarEventCopyWithImpl<_SnUserCalendarEvent>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnUserCalendarEventToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnUserCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.recurrence, recurrence) || other.recurrence == recurrence)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,description,location,startTime,endTime,isAllDay,visibility,recurrence,const DeepCollectionEquality().hash(_meta),accountId,createdAt,updatedAt,deletedAt);
+
+@override
+String toString() {
+  return 'SnUserCalendarEvent(id: $id, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, visibility: $visibility, recurrence: $recurrence, meta: $meta, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnUserCalendarEventCopyWith<$Res> implements $SnUserCalendarEventCopyWith<$Res> {
+  factory _$SnUserCalendarEventCopyWith(_SnUserCalendarEvent value, $Res Function(_SnUserCalendarEvent) _then) = __$SnUserCalendarEventCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int visibility, SnRecurrencePattern? recurrence, Map<String, dynamic>? meta, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+});
+
+
+@override $SnRecurrencePatternCopyWith<$Res>? get recurrence;
+
+}
+/// @nodoc
+class __$SnUserCalendarEventCopyWithImpl<$Res>
+    implements _$SnUserCalendarEventCopyWith<$Res> {
+  __$SnUserCalendarEventCopyWithImpl(this._self, this._then);
+
+  final _SnUserCalendarEvent _self;
+  final $Res Function(_SnUserCalendarEvent) _then;
+
+/// Create a copy of SnUserCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? visibility = null,Object? recurrence = freezed,Object? meta = freezed,Object? accountId = null,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+  return _then(_SnUserCalendarEvent(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
+as bool,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
+as int,recurrence: freezed == recurrence ? _self.recurrence : recurrence // ignore: cast_nullable_to_non_nullable
+as SnRecurrencePattern?,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of SnUserCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnRecurrencePatternCopyWith<$Res>? get recurrence {
+    if (_self.recurrence == null) {
+    return null;
+  }
+
+  return $SnRecurrencePatternCopyWith<$Res>(_self.recurrence!, (value) {
+    return _then(_self.copyWith(recurrence: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$SnMergedCalendarEvent {
+
+ String? get id; String get type; String get title; String? get description; String? get location; DateTime get startTime; DateTime get endTime; bool get isAllDay; Map<String, dynamic>? get meta;
+/// Create a copy of SnMergedCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnMergedCalendarEventCopyWith<SnMergedCalendarEvent> get copyWith => _$SnMergedCalendarEventCopyWithImpl<SnMergedCalendarEvent>(this as SnMergedCalendarEvent, _$identity);
+
+  /// Serializes this SnMergedCalendarEvent to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnMergedCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&const DeepCollectionEquality().equals(other.meta, meta));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,type,title,description,location,startTime,endTime,isAllDay,const DeepCollectionEquality().hash(meta));
+
+@override
+String toString() {
+  return 'SnMergedCalendarEvent(id: $id, type: $type, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, meta: $meta)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnMergedCalendarEventCopyWith<$Res>  {
+  factory $SnMergedCalendarEventCopyWith(SnMergedCalendarEvent value, $Res Function(SnMergedCalendarEvent) _then) = _$SnMergedCalendarEventCopyWithImpl;
+@useResult
+$Res call({
+ String? id, String type, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, Map<String, dynamic>? meta
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnMergedCalendarEventCopyWithImpl<$Res>
+    implements $SnMergedCalendarEventCopyWith<$Res> {
+  _$SnMergedCalendarEventCopyWithImpl(this._self, this._then);
+
+  final SnMergedCalendarEvent _self;
+  final $Res Function(SnMergedCalendarEvent) _then;
+
+/// Create a copy of SnMergedCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? type = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? meta = freezed,}) {
+  return _then(_self.copyWith(
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
+as bool,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnMergedCalendarEvent].
+extension SnMergedCalendarEventPatterns on SnMergedCalendarEvent {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnMergedCalendarEvent value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnMergedCalendarEvent() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnMergedCalendarEvent value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnMergedCalendarEvent():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnMergedCalendarEvent value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnMergedCalendarEvent() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String type,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  Map<String, dynamic>? meta)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnMergedCalendarEvent() when $default != null:
+return $default(_that.id,_that.type,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.meta);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String type,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  Map<String, dynamic>? meta)  $default,) {final _that = this;
+switch (_that) {
+case _SnMergedCalendarEvent():
+return $default(_that.id,_that.type,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.meta);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String type,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  Map<String, dynamic>? meta)?  $default,) {final _that = this;
+switch (_that) {
+case _SnMergedCalendarEvent() when $default != null:
+return $default(_that.id,_that.type,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.meta);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnMergedCalendarEvent implements SnMergedCalendarEvent {
+  const _SnMergedCalendarEvent({this.id, required this.type, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, final  Map<String, dynamic>? meta}): _meta = meta;
+  factory _SnMergedCalendarEvent.fromJson(Map<String, dynamic> json) => _$SnMergedCalendarEventFromJson(json);
+
+@override final  String? id;
+@override final  String type;
+@override final  String title;
+@override final  String? description;
+@override final  String? location;
+@override final  DateTime startTime;
+@override final  DateTime endTime;
+@override@JsonKey() final  bool isAllDay;
+ final  Map<String, dynamic>? _meta;
+@override Map<String, dynamic>? get meta {
+  final value = _meta;
+  if (value == null) return null;
+  if (_meta is EqualUnmodifiableMapView) return _meta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
+
+/// Create a copy of SnMergedCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnMergedCalendarEventCopyWith<_SnMergedCalendarEvent> get copyWith => __$SnMergedCalendarEventCopyWithImpl<_SnMergedCalendarEvent>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnMergedCalendarEventToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnMergedCalendarEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&const DeepCollectionEquality().equals(other._meta, _meta));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,type,title,description,location,startTime,endTime,isAllDay,const DeepCollectionEquality().hash(_meta));
+
+@override
+String toString() {
+  return 'SnMergedCalendarEvent(id: $id, type: $type, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, meta: $meta)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnMergedCalendarEventCopyWith<$Res> implements $SnMergedCalendarEventCopyWith<$Res> {
+  factory _$SnMergedCalendarEventCopyWith(_SnMergedCalendarEvent value, $Res Function(_SnMergedCalendarEvent) _then) = __$SnMergedCalendarEventCopyWithImpl;
+@override @useResult
+$Res call({
+ String? id, String type, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, Map<String, dynamic>? meta
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnMergedCalendarEventCopyWithImpl<$Res>
+    implements _$SnMergedCalendarEventCopyWith<$Res> {
+  __$SnMergedCalendarEventCopyWithImpl(this._self, this._then);
+
+  final _SnMergedCalendarEvent _self;
+  final $Res Function(_SnMergedCalendarEvent) _then;
+
+/// Create a copy of SnMergedCalendarEvent
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? type = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? meta = freezed,}) {
+  return _then(_SnMergedCalendarEvent(
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
+as DateTime,endTime: null == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
+as DateTime,isAllDay: null == isAllDay ? _self.isAllDay : isAllDay // ignore: cast_nullable_to_non_nullable
+as bool,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnEventCalendarEntry {
 
- DateTime get date; SnCheckInResult? get checkInResult; List<SnAccountStatus> get statuses;
+ DateTime get date; SnCheckInResult? get checkInResult; List<SnAccountStatus> get statuses; List<SnUserCalendarEvent> get userEvents; List<SnNotableDay> get notableDays; List<SnMergedCalendarEvent>? get mergedEvents;
 /// Create a copy of SnEventCalendarEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1152,16 +2052,16 @@ $SnEventCalendarEntryCopyWith<SnEventCalendarEntry> get copyWith => _$SnEventCal
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEventCalendarEntry&&(identical(other.date, date) || other.date == date)&&(identical(other.checkInResult, checkInResult) || other.checkInResult == checkInResult)&&const DeepCollectionEquality().equals(other.statuses, statuses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEventCalendarEntry&&(identical(other.date, date) || other.date == date)&&(identical(other.checkInResult, checkInResult) || other.checkInResult == checkInResult)&&const DeepCollectionEquality().equals(other.statuses, statuses)&&const DeepCollectionEquality().equals(other.userEvents, userEvents)&&const DeepCollectionEquality().equals(other.notableDays, notableDays)&&const DeepCollectionEquality().equals(other.mergedEvents, mergedEvents));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,date,checkInResult,const DeepCollectionEquality().hash(statuses));
+int get hashCode => Object.hash(runtimeType,date,checkInResult,const DeepCollectionEquality().hash(statuses),const DeepCollectionEquality().hash(userEvents),const DeepCollectionEquality().hash(notableDays),const DeepCollectionEquality().hash(mergedEvents));
 
 @override
 String toString() {
-  return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses)';
+  return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses, userEvents: $userEvents, notableDays: $notableDays, mergedEvents: $mergedEvents)';
 }
 
 
@@ -1172,7 +2072,7 @@ abstract mixin class $SnEventCalendarEntryCopyWith<$Res>  {
   factory $SnEventCalendarEntryCopyWith(SnEventCalendarEntry value, $Res Function(SnEventCalendarEntry) _then) = _$SnEventCalendarEntryCopyWithImpl;
 @useResult
 $Res call({
- DateTime date, SnCheckInResult? checkInResult, List<SnAccountStatus> statuses
+ DateTime date, SnCheckInResult? checkInResult, List<SnAccountStatus> statuses, List<SnUserCalendarEvent> userEvents, List<SnNotableDay> notableDays, List<SnMergedCalendarEvent>? mergedEvents
 });
 
 
@@ -1189,12 +2089,15 @@ class _$SnEventCalendarEntryCopyWithImpl<$Res>
 
 /// Create a copy of SnEventCalendarEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? checkInResult = freezed,Object? statuses = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? checkInResult = freezed,Object? statuses = null,Object? userEvents = null,Object? notableDays = null,Object? mergedEvents = freezed,}) {
   return _then(_self.copyWith(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,checkInResult: freezed == checkInResult ? _self.checkInResult : checkInResult // ignore: cast_nullable_to_non_nullable
 as SnCheckInResult?,statuses: null == statuses ? _self.statuses : statuses // ignore: cast_nullable_to_non_nullable
-as List<SnAccountStatus>,
+as List<SnAccountStatus>,userEvents: null == userEvents ? _self.userEvents : userEvents // ignore: cast_nullable_to_non_nullable
+as List<SnUserCalendarEvent>,notableDays: null == notableDays ? _self.notableDays : notableDays // ignore: cast_nullable_to_non_nullable
+as List<SnNotableDay>,mergedEvents: freezed == mergedEvents ? _self.mergedEvents : mergedEvents // ignore: cast_nullable_to_non_nullable
+as List<SnMergedCalendarEvent>?,
   ));
 }
 /// Create a copy of SnEventCalendarEntry
@@ -1288,10 +2191,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses,  List<SnUserCalendarEvent> userEvents,  List<SnNotableDay> notableDays,  List<SnMergedCalendarEvent>? mergedEvents)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnEventCalendarEntry() when $default != null:
-return $default(_that.date,_that.checkInResult,_that.statuses);case _:
+return $default(_that.date,_that.checkInResult,_that.statuses,_that.userEvents,_that.notableDays,_that.mergedEvents);case _:
   return orElse();
 
 }
@@ -1309,10 +2212,10 @@ return $default(_that.date,_that.checkInResult,_that.statuses);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses,  List<SnUserCalendarEvent> userEvents,  List<SnNotableDay> notableDays,  List<SnMergedCalendarEvent>? mergedEvents)  $default,) {final _that = this;
 switch (_that) {
 case _SnEventCalendarEntry():
-return $default(_that.date,_that.checkInResult,_that.statuses);}
+return $default(_that.date,_that.checkInResult,_that.statuses,_that.userEvents,_that.notableDays,_that.mergedEvents);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1326,10 +2229,10 @@ return $default(_that.date,_that.checkInResult,_that.statuses);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  SnCheckInResult? checkInResult,  List<SnAccountStatus> statuses,  List<SnUserCalendarEvent> userEvents,  List<SnNotableDay> notableDays,  List<SnMergedCalendarEvent>? mergedEvents)?  $default,) {final _that = this;
 switch (_that) {
 case _SnEventCalendarEntry() when $default != null:
-return $default(_that.date,_that.checkInResult,_that.statuses);case _:
+return $default(_that.date,_that.checkInResult,_that.statuses,_that.userEvents,_that.notableDays,_that.mergedEvents);case _:
   return null;
 
 }
@@ -1341,16 +2244,39 @@ return $default(_that.date,_that.checkInResult,_that.statuses);case _:
 @JsonSerializable()
 
 class _SnEventCalendarEntry implements SnEventCalendarEntry {
-  const _SnEventCalendarEntry({required this.date, required this.checkInResult, required final  List<SnAccountStatus> statuses}): _statuses = statuses;
+  const _SnEventCalendarEntry({required this.date, this.checkInResult, final  List<SnAccountStatus> statuses = const [], final  List<SnUserCalendarEvent> userEvents = const [], final  List<SnNotableDay> notableDays = const [], final  List<SnMergedCalendarEvent>? mergedEvents}): _statuses = statuses,_userEvents = userEvents,_notableDays = notableDays,_mergedEvents = mergedEvents;
   factory _SnEventCalendarEntry.fromJson(Map<String, dynamic> json) => _$SnEventCalendarEntryFromJson(json);
 
 @override final  DateTime date;
 @override final  SnCheckInResult? checkInResult;
  final  List<SnAccountStatus> _statuses;
-@override List<SnAccountStatus> get statuses {
+@override@JsonKey() List<SnAccountStatus> get statuses {
   if (_statuses is EqualUnmodifiableListView) return _statuses;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_statuses);
+}
+
+ final  List<SnUserCalendarEvent> _userEvents;
+@override@JsonKey() List<SnUserCalendarEvent> get userEvents {
+  if (_userEvents is EqualUnmodifiableListView) return _userEvents;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_userEvents);
+}
+
+ final  List<SnNotableDay> _notableDays;
+@override@JsonKey() List<SnNotableDay> get notableDays {
+  if (_notableDays is EqualUnmodifiableListView) return _notableDays;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_notableDays);
+}
+
+ final  List<SnMergedCalendarEvent>? _mergedEvents;
+@override List<SnMergedCalendarEvent>? get mergedEvents {
+  final value = _mergedEvents;
+  if (value == null) return null;
+  if (_mergedEvents is EqualUnmodifiableListView) return _mergedEvents;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
 }
 
 
@@ -1367,16 +2293,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEventCalendarEntry&&(identical(other.date, date) || other.date == date)&&(identical(other.checkInResult, checkInResult) || other.checkInResult == checkInResult)&&const DeepCollectionEquality().equals(other._statuses, _statuses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEventCalendarEntry&&(identical(other.date, date) || other.date == date)&&(identical(other.checkInResult, checkInResult) || other.checkInResult == checkInResult)&&const DeepCollectionEquality().equals(other._statuses, _statuses)&&const DeepCollectionEquality().equals(other._userEvents, _userEvents)&&const DeepCollectionEquality().equals(other._notableDays, _notableDays)&&const DeepCollectionEquality().equals(other._mergedEvents, _mergedEvents));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,date,checkInResult,const DeepCollectionEquality().hash(_statuses));
+int get hashCode => Object.hash(runtimeType,date,checkInResult,const DeepCollectionEquality().hash(_statuses),const DeepCollectionEquality().hash(_userEvents),const DeepCollectionEquality().hash(_notableDays),const DeepCollectionEquality().hash(_mergedEvents));
 
 @override
 String toString() {
-  return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses)';
+  return 'SnEventCalendarEntry(date: $date, checkInResult: $checkInResult, statuses: $statuses, userEvents: $userEvents, notableDays: $notableDays, mergedEvents: $mergedEvents)';
 }
 
 
@@ -1387,7 +2313,7 @@ abstract mixin class _$SnEventCalendarEntryCopyWith<$Res> implements $SnEventCal
   factory _$SnEventCalendarEntryCopyWith(_SnEventCalendarEntry value, $Res Function(_SnEventCalendarEntry) _then) = __$SnEventCalendarEntryCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime date, SnCheckInResult? checkInResult, List<SnAccountStatus> statuses
+ DateTime date, SnCheckInResult? checkInResult, List<SnAccountStatus> statuses, List<SnUserCalendarEvent> userEvents, List<SnNotableDay> notableDays, List<SnMergedCalendarEvent>? mergedEvents
 });
 
 
@@ -1404,12 +2330,15 @@ class __$SnEventCalendarEntryCopyWithImpl<$Res>
 
 /// Create a copy of SnEventCalendarEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? checkInResult = freezed,Object? statuses = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? checkInResult = freezed,Object? statuses = null,Object? userEvents = null,Object? notableDays = null,Object? mergedEvents = freezed,}) {
   return _then(_SnEventCalendarEntry(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,checkInResult: freezed == checkInResult ? _self.checkInResult : checkInResult // ignore: cast_nullable_to_non_nullable
 as SnCheckInResult?,statuses: null == statuses ? _self._statuses : statuses // ignore: cast_nullable_to_non_nullable
-as List<SnAccountStatus>,
+as List<SnAccountStatus>,userEvents: null == userEvents ? _self._userEvents : userEvents // ignore: cast_nullable_to_non_nullable
+as List<SnUserCalendarEvent>,notableDays: null == notableDays ? _self._notableDays : notableDays // ignore: cast_nullable_to_non_nullable
+as List<SnNotableDay>,mergedEvents: freezed == mergedEvents ? _self._mergedEvents : mergedEvents // ignore: cast_nullable_to_non_nullable
+as List<SnMergedCalendarEvent>?,
   ));
 }
 
