@@ -142,7 +142,7 @@ class RealmsApi extends BaseApi {
     required Map<String, dynamic> data,
   }) async {
     final response = await patch<Map<String, dynamic>>(
-      '$_basePath/$slug/members/me',
+      '$_basePath/$slug/members/me/profile',
       data: data,
     );
     return SnRealmMember.fromJson(response.data!);
@@ -292,14 +292,15 @@ class RealmsApi extends BaseApi {
   /// Boosts a realm.
   ///
   /// [slug] - The realm slug.
-  /// [amount] - The boost amount.
+  /// [shares] - The boost amount.
   Future<Map<String, dynamic>> boostRealm({
     required String slug,
-    required double amount,
+    required int shares,
+    required String? currency,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/$slug/boosts',
-      data: {'amount': amount},
+      data: {'shares': shares, 'currency': currency},
     );
     return response.data!;
   }
