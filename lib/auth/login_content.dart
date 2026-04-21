@@ -21,7 +21,6 @@ import 'package:island/core/services/notify.dart';
 import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:ndef/records/well_known/uri.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:pinput/pinput.dart';
