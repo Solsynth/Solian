@@ -243,23 +243,12 @@ class RealmsApi extends BaseApi {
   Future<void> assignLabel({
     required String slug,
     required String accountId,
-    required String labelId,
+    required String? labelId,
   }) async {
-    await post(
+    await patch(
       '$_basePath/$slug/members/$accountId/label',
       data: {'label_id': labelId},
     );
-  }
-
-  /// Removes a label from a member.
-  ///
-  /// [slug] - The realm slug.
-  /// [accountId] - The account ID.
-  Future<void> removeLabel({
-    required String slug,
-    required String accountId,
-  }) async {
-    await delete('$_basePath/$slug/members/$accountId/label');
   }
 
   // ==========================================

@@ -201,3 +201,34 @@ sealed class SnAccountTimelineItem with _$SnAccountTimelineItem {
   factory SnAccountTimelineItem.fromJson(Map<String, dynamic> json) =>
       _$SnAccountTimelineItemFromJson(json);
 }
+
+/// Event countdown item types (int values matching backend enum)
+/// UserEvent = 0, CheckIn = 1, Status = 2, NotableDay = 3
+class SnEventCountdownType {
+  static const int userEvent = 0;
+  static const int checkIn = 1;
+  static const int status = 2;
+  static const int notableDay = 3;
+}
+
+@freezed
+sealed class SnEventCountdownItem with _$SnEventCountdownItem {
+  const factory SnEventCountdownItem({
+    String? eventId,
+    required int eventType,
+    required String title,
+    String? description,
+    String? location,
+    required DateTime startTime,
+    required DateTime endTime,
+    @Default(false) bool isAllDay,
+    required int daysRemaining,
+    required int hoursRemaining,
+    required bool isOngoing,
+    Map<String, dynamic>? meta,
+    String? accountId,
+  }) = _SnEventCountdownItem;
+
+  factory SnEventCountdownItem.fromJson(Map<String, dynamic> json) =>
+      _$SnEventCountdownItemFromJson(json);
+}

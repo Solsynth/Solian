@@ -16,6 +16,7 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/event_countdown_sheet.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
@@ -29,8 +30,8 @@ import 'package:island/accounts/check_in.dart';
 import 'package:island/auth/login_modal.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:slide_countdown/slide_countdown.dart';
 import 'package:island/sharing/share_sheet.dart';
+import 'package:slide_countdown/slide_countdown.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/misc/dashboard/dash_customize.dart';
 import 'package:island/core/config.dart';
@@ -444,7 +445,7 @@ class ClockCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final time = useState(DateTime.now());
     final timer = useRef<Timer?>(null);
-    final notableDay = ref.watch(recentNotableDayProvider);
+    final countdowns = ref.watch(eventCountdownsProvider(take: 5));
 
     // Determine icon based on time of day
     final int hour = time.value.hour;
@@ -466,115 +467,147 @@ class ClockCard extends HookConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      child: Padding(
-        padding: compact
-            ? EdgeInsets.zero
-            : const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  timeIcon,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        spacing: 8,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.ideographic,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              '${time.value.hour.toString().padLeft(2, '0')}:${time.value.minute.toString().padLeft(2, '0')}:${time.value.second.toString().padLeft(2, '0')}',
-                              style: GoogleFonts.robotoMono(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+      child: InkWell(
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => const EventCountdownSheet(),
+          );
+        },
+        child: Padding(
+          padding: compact
+              ? EdgeInsets.zero
+              : const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    timeIcon,
+                    size: 32,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          spacing: 8,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.ideographic,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                '${time.value.hour.toString().padLeft(2, '0')}:${time.value.minute.toString().padLeft(2, '0')}:${time.value.second.toString().padLeft(2, '0')}',
+                                style: GoogleFonts.robotoMono(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                          Flexible(
-                            child: Text(
-                              '${time.value.month.toString().padLeft(2, '0')}/${time.value.day.toString().padLeft(2, '0')}',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          spacing: 5,
-                          children: [
-                            notableDay.when(
-                              data: (day) => day == null
-                                  ? Text('unauthorized').tr()
-                                  : _buildNotableDayText(context, day),
-                              error: (err, _) =>
-                                  Text(err.toString()).fontSize(12),
-                              loading: () =>
-                                  const Text('loading').tr().fontSize(12),
+                            Flexible(
+                              child: Text(
+                                '${time.value.month.toString().padLeft(2, '0')}/${time.value.day.toString().padLeft(2, '0')}',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            spacing: 5,
+                            children: [
+                              countdowns.when(
+                                data: (items) => items.isEmpty
+                                    ? Text('countdownEmpty').tr().fontSize(12)
+                                    : _buildCountdownText(context, items.first),
+                                error: (err, _) =>
+                                    Text(err.toString()).fontSize(12),
+                                loading: () =>
+                                    const Text('loading').tr().fontSize(12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildNotableDayText(BuildContext context, SnNotableDay notableDay) {
-    final today = DateTime.now();
-    final isToday =
-        notableDay.date.year == today.year &&
-        notableDay.date.month == today.month &&
-        notableDay.date.day == today.day;
+  Widget _buildCountdownText(BuildContext context, SnEventCountdownItem item) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isUserEvent = item.eventType == SnEventCountdownType.userEvent;
+    final icon = isUserEvent ? Symbols.event : Symbols.celebration;
 
-    if (isToday) {
+    if (item.isOngoing) {
       return Row(
+        mainAxisSize: MainAxisSize.min,
         spacing: 5,
         children: [
-          Text('notableDayToday').tr(args: [notableDay.localName]).fontSize(12),
-          Icon(
-            Symbols.celebration_rounded,
-            size: 16,
-            color: Theme.of(context).colorScheme.primary,
+          Icon(icon, size: 14, color: colorScheme.primary),
+          Text(
+            item.title,
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
           ),
-        ],
-      );
-    } else {
-      return Row(
-        spacing: 5,
-        children: [
-          Text('notableDayNext').tr(args: [notableDay.localName]).fontSize(12),
-          SlideCountdown(
-            decoration: const BoxDecoration(),
-            style: const TextStyle(fontSize: 12),
-            separatorStyle: const TextStyle(fontSize: 12),
-            padding: EdgeInsets.zero,
-            duration: notableDay.date.difference(DateTime.now()),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'countdownOngoing'.tr(),
+              style: TextStyle(
+                fontSize: 10,
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       );
     }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 5,
+      children: [
+        Icon(icon, size: 14, color: colorScheme.primary),
+        Text(
+          item.title,
+          style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
+        ),
+        SlideCountdown(
+          decoration: const BoxDecoration(),
+          style: TextStyle(
+            fontSize: 12,
+            color: colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+          separatorStyle: TextStyle(fontSize: 12, color: colorScheme.primary),
+          padding: EdgeInsets.zero,
+          duration: item.startTime.difference(DateTime.now()),
+        ),
+      ],
+    );
   }
 }
 
