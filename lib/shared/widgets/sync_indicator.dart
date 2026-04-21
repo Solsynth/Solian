@@ -1,8 +1,8 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
+import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 /// A reusable widget that shows an animated sync indicator
@@ -24,27 +24,46 @@ class ChatSyncIndicator extends HookConsumerWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       child: isLoading
-          ? Container(
+          ? Padding(
               key: const ValueKey('sync-indicator'),
-              height: height,
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: Row(
-                spacing: 8,
-                children: [
-                  const SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
+              padding: EdgeInsets.only(
+                top: MediaQuery.paddingOf(context).top + 24,
+              ),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  Text(syncHint ?? 'retrievingData'.tr())
-                      .fontSize(16)
-                      .textColor(
-                        Theme.of(context).colorScheme.onPrimaryContainer,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ConfuseSpinner(
+                        size: 20,
+                        speed: 7,
+                        fontSize: 10,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                ],
-              ).padding(horizontal: 22),
+                      if (syncHint != null) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          syncHint,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ).bold(),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
             )
           : const SizedBox(key: ValueKey('no-sync')),
-    ).padding(top: MediaQuery.paddingOf(context).top);
+    );
   }
 }

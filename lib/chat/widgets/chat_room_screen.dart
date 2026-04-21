@@ -28,7 +28,7 @@ import 'package:island/core/websocket.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/core/services/responsive.dart';
+
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/attachment_uploader.dart';
@@ -161,8 +161,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     }
 
     final messages = ref.watch(messagesProvider(id));
-    final isSyncing = ref.watch(chatSyncingProvider);
-    final syncHint = ref.watch(chatSyncHintProvider);
     final isAtLatestMessages = useState(true);
     final savedLastReadAt = useState<DateTime?>(chatIdentity.value?.lastReadAt);
 
@@ -680,49 +678,6 @@ class ChatRoomScreen extends HookConsumerWidget {
                       error: (_, _) => const SizedBox.shrink(),
                       loading: () => const SizedBox.shrink(),
                     ),
-                    if (isSyncing)
-                      Positioned(
-                        top: 12,
-                        left: 0,
-                        right: 0,
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest
-                                  .withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ConfuseSpinner(
-                                  size: 20,
-                                  speed: 7,
-                                  fontSize: 10,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                                if (syncHint != null) ...[
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    syncHint,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                     // Follow Back FAB - top right, small circular, ignores safe area
                     Positioned(
                       top: 12,
@@ -973,7 +928,7 @@ class ChatRoomScreen extends HookConsumerWidget {
             ],
           ),
         ),
-        if (!isWideScreen(context)) const ChatSyncIndicator(height: 56),
+        const ChatSyncIndicator(height: 56),
       ],
     );
   }

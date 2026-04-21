@@ -26,7 +26,7 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
-import 'package:island/shared/widgets/sync_indicator.dart';
+
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -1088,7 +1088,6 @@ class ChatListWidget extends HookConsumerWidget {
                         ),
                       ],
                     ),
-                  if (!isCollapsed.value) ChatSyncIndicator(),
                   if (!isCollapsed.value)
                     Positioned(
                       bottom: 0,
@@ -1187,10 +1186,7 @@ class ChatListWidget extends HookConsumerWidget {
       appBar: AppBar(
         leading: null,
         flexibleSpace: Stack(
-          children: [
-            _ChatListAppBar(tabController: tabController),
-            ChatSyncIndicator(height: 64),
-          ],
+          children: [_ChatListAppBar(tabController: tabController)],
         ),
       ),
       body: userInfo.value == null
