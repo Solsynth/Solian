@@ -14,6 +14,7 @@ import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/core/database.dart';
+import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/core/network.dart';
 import 'package:island/e2ee/mls_client.dart';
 import 'package:island/route.gr.dart';
@@ -1159,6 +1160,8 @@ class _MemberListTile extends HookConsumerWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+          if (member.realmLabel != null)
+            RealmLabelWidget(label: member.realmLabel!, fontSize: 10),
           if (member.joinedAt == null)
             const Icon(Symbols.pending_actions, size: 20),
           if (isE2eeReady)

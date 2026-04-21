@@ -1187,7 +1187,6 @@ class _NotificationCustomTopicSheetState
               decoration: InputDecoration(
                 labelText: 'notificationCustomTopic'.tr(),
                 hintText: 'notificationCustomTopicHint'.tr(),
-                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
@@ -1195,7 +1194,6 @@ class _NotificationCustomTopicSheetState
               controller: _descriptionController,
               decoration: InputDecoration(
                 labelText: 'notificationCustomDescription'.tr(),
-                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 24),

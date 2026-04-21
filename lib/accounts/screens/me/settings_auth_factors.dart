@@ -87,7 +87,6 @@ class AuthFactorSheet extends HookConsumerWidget {
                       maxLength: 6,
                       decoration: InputDecoration(
                         labelText: 'authFactorPin'.tr(),
-                        border: const OutlineInputBorder(),
                       ),
                     )
                   else

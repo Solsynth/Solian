@@ -210,7 +210,6 @@ class _HomePageState extends State<HomePage> {
                             controller: _portController,
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
                               hintText: '40000',
                             ),
                           ),
