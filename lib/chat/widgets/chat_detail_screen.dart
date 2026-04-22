@@ -1255,7 +1255,7 @@ class _ChatIdentityEditorSheet extends HookConsumerWidget {
                       try {
                         final apiClient = ref.read(apiClientProvider);
                         await apiClient.patch(
-                          '/messager/chat/$roomId/members/me',
+                          '/messager/chat/$roomId/members/me/profile',
                           data: {
                             'nick': nickController.text.trim().isEmpty
                                 ? null
