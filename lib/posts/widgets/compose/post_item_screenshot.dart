@@ -1,16 +1,17 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
-import 'package:island/posts/widgets/compose/post_item.dart';
+import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class PostItemScreenshot extends ConsumerWidget {
+class PostItemScreenshot extends HookConsumerWidget {
   final SnPost item;
   final EdgeInsets? padding;
   final bool isFullPost;
@@ -29,6 +30,16 @@ class PostItemScreenshot extends ConsumerWidget {
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
     final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
+
+    // Preload replies for screenshot
+    useEffect(() {
+      if (item.threadedRepliesCount > 0) {
+        Future.microtask(() {
+          ref.read(repliesProvider(item.id).notifier).fetchMore(3);
+        });
+      }
+      return null;
+    }, [item.id, item.threadedRepliesCount]);
 
     return Material(
       elevation: 0,
@@ -62,15 +73,46 @@ class PostItemScreenshot extends ConsumerWidget {
               renderingPadding: renderingPadding,
             ),
           if (item.reactionsCount.isNotEmpty)
-            PostReactionList(
+            Padding(
               padding: EdgeInsets.only(
                 left: renderingPadding.horizontal,
                 right: renderingPadding.horizontal,
                 top: 8,
               ),
-              item: item,
-              reactions: item.reactionsCount,
-              reactionsMade: item.reactionsMade,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (final symbol in item.reactionsCount.keys)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (item.reactionsMade[symbol] ?? false)
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.2)
+                            : Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildReactionIcon(symbol, 20),
+                          const Gap(4),
+                          Text(
+                            'x${item.reactionsCount[symbol]}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           if (item.threadedRepliesCount > 0)
             Consumer(
@@ -176,6 +218,15 @@ class PostItemScreenshot extends ConsumerWidget {
                         ).padding(horizontal: 5),
                       if (topLevelPosts.isNotEmpty)
                         ...topLevelPosts.map((post) => buildReplyNode(post)),
+                      if (topLevelPosts.isEmpty && !repliesState.loading)
+                        Text(
+                          'viewRepliesHint',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ).tr().padding(horizontal: 5),
                     ],
                   ),
                 );
