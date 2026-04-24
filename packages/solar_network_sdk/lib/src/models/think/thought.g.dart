@@ -205,7 +205,6 @@ _ThoughtServiceModel _$ThoughtServiceModelFromJson(Map<String, dynamic> json) =>
     _ThoughtServiceModel(
       id: json['id'] as String,
       displayName: json['display_name'] as String,
-      description: json['description'] as String,
       minPerkLevel: (json['min_perk_level'] as num?)?.toInt() ?? 0,
       isDefault: json['is_default'] as bool? ?? false,
     );
@@ -215,7 +214,6 @@ Map<String, dynamic> _$ThoughtServiceModelToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'display_name': instance.displayName,
-  'description': instance.description,
   'min_perk_level': instance.minPerkLevel,
   'is_default': instance.isDefault,
 };

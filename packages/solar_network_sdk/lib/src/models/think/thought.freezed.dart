@@ -2066,7 +2066,7 @@ $SnThinkingSequenceCopyWith<$Res>? get sequence {
 /// @nodoc
 mixin _$ThoughtServiceModel {
 
- String get id;@JsonKey(name: "display_name") String get displayName; String get description;@JsonKey(name: "min_perk_level") int get minPerkLevel;@JsonKey(name: "is_default") bool get isDefault;
+ String get id;@JsonKey(name: "display_name") String get displayName;@JsonKey(name: "min_perk_level") int get minPerkLevel;@JsonKey(name: "is_default") bool get isDefault;
 /// Create a copy of ThoughtServiceModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2079,16 +2079,16 @@ $ThoughtServiceModelCopyWith<ThoughtServiceModel> get copyWith => _$ThoughtServi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtServiceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.description, description) || other.description == description)&&(identical(other.minPerkLevel, minPerkLevel) || other.minPerkLevel == minPerkLevel)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThoughtServiceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.minPerkLevel, minPerkLevel) || other.minPerkLevel == minPerkLevel)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,description,minPerkLevel,isDefault);
+int get hashCode => Object.hash(runtimeType,id,displayName,minPerkLevel,isDefault);
 
 @override
 String toString() {
-  return 'ThoughtServiceModel(id: $id, displayName: $displayName, description: $description, minPerkLevel: $minPerkLevel, isDefault: $isDefault)';
+  return 'ThoughtServiceModel(id: $id, displayName: $displayName, minPerkLevel: $minPerkLevel, isDefault: $isDefault)';
 }
 
 
@@ -2099,7 +2099,7 @@ abstract mixin class $ThoughtServiceModelCopyWith<$Res>  {
   factory $ThoughtServiceModelCopyWith(ThoughtServiceModel value, $Res Function(ThoughtServiceModel) _then) = _$ThoughtServiceModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: "display_name") String displayName, String description,@JsonKey(name: "min_perk_level") int minPerkLevel,@JsonKey(name: "is_default") bool isDefault
+ String id,@JsonKey(name: "display_name") String displayName,@JsonKey(name: "min_perk_level") int minPerkLevel,@JsonKey(name: "is_default") bool isDefault
 });
 
 
@@ -2116,11 +2116,10 @@ class _$ThoughtServiceModelCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtServiceModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? description = null,Object? minPerkLevel = null,Object? isDefault = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? displayName = null,Object? minPerkLevel = null,Object? isDefault = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,minPerkLevel: null == minPerkLevel ? _self.minPerkLevel : minPerkLevel // ignore: cast_nullable_to_non_nullable
 as int,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -2205,10 +2204,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: "display_name")  String displayName,  String description, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: "display_name")  String displayName, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ThoughtServiceModel() when $default != null:
-return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,_that.isDefault);case _:
+return $default(_that.id,_that.displayName,_that.minPerkLevel,_that.isDefault);case _:
   return orElse();
 
 }
@@ -2226,10 +2225,10 @@ return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: "display_name")  String displayName,  String description, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: "display_name")  String displayName, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtServiceModel():
-return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,_that.isDefault);}
+return $default(_that.id,_that.displayName,_that.minPerkLevel,_that.isDefault);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2243,10 +2242,10 @@ return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: "display_name")  String displayName,  String description, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: "display_name")  String displayName, @JsonKey(name: "min_perk_level")  int minPerkLevel, @JsonKey(name: "is_default")  bool isDefault)?  $default,) {final _that = this;
 switch (_that) {
 case _ThoughtServiceModel() when $default != null:
-return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,_that.isDefault);case _:
+return $default(_that.id,_that.displayName,_that.minPerkLevel,_that.isDefault);case _:
   return null;
 
 }
@@ -2258,12 +2257,11 @@ return $default(_that.id,_that.displayName,_that.description,_that.minPerkLevel,
 @JsonSerializable()
 
 class _ThoughtServiceModel implements ThoughtServiceModel {
-  const _ThoughtServiceModel({required this.id, @JsonKey(name: "display_name") required this.displayName, required this.description, @JsonKey(name: "min_perk_level") this.minPerkLevel = 0, @JsonKey(name: "is_default") this.isDefault = false});
+  const _ThoughtServiceModel({required this.id, @JsonKey(name: "display_name") required this.displayName, @JsonKey(name: "min_perk_level") this.minPerkLevel = 0, @JsonKey(name: "is_default") this.isDefault = false});
   factory _ThoughtServiceModel.fromJson(Map<String, dynamic> json) => _$ThoughtServiceModelFromJson(json);
 
 @override final  String id;
 @override@JsonKey(name: "display_name") final  String displayName;
-@override final  String description;
 @override@JsonKey(name: "min_perk_level") final  int minPerkLevel;
 @override@JsonKey(name: "is_default") final  bool isDefault;
 
@@ -2280,16 +2278,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtServiceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.description, description) || other.description == description)&&(identical(other.minPerkLevel, minPerkLevel) || other.minPerkLevel == minPerkLevel)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThoughtServiceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.minPerkLevel, minPerkLevel) || other.minPerkLevel == minPerkLevel)&&(identical(other.isDefault, isDefault) || other.isDefault == isDefault));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,displayName,description,minPerkLevel,isDefault);
+int get hashCode => Object.hash(runtimeType,id,displayName,minPerkLevel,isDefault);
 
 @override
 String toString() {
-  return 'ThoughtServiceModel(id: $id, displayName: $displayName, description: $description, minPerkLevel: $minPerkLevel, isDefault: $isDefault)';
+  return 'ThoughtServiceModel(id: $id, displayName: $displayName, minPerkLevel: $minPerkLevel, isDefault: $isDefault)';
 }
 
 
@@ -2300,7 +2298,7 @@ abstract mixin class _$ThoughtServiceModelCopyWith<$Res> implements $ThoughtServ
   factory _$ThoughtServiceModelCopyWith(_ThoughtServiceModel value, $Res Function(_ThoughtServiceModel) _then) = __$ThoughtServiceModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: "display_name") String displayName, String description,@JsonKey(name: "min_perk_level") int minPerkLevel,@JsonKey(name: "is_default") bool isDefault
+ String id,@JsonKey(name: "display_name") String displayName,@JsonKey(name: "min_perk_level") int minPerkLevel,@JsonKey(name: "is_default") bool isDefault
 });
 
 
@@ -2317,11 +2315,10 @@ class __$ThoughtServiceModelCopyWithImpl<$Res>
 
 /// Create a copy of ThoughtServiceModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? description = null,Object? minPerkLevel = null,Object? isDefault = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? displayName = null,Object? minPerkLevel = null,Object? isDefault = null,}) {
   return _then(_ThoughtServiceModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,minPerkLevel: null == minPerkLevel ? _self.minPerkLevel : minPerkLevel // ignore: cast_nullable_to_non_nullable
 as int,isDefault: null == isDefault ? _self.isDefault : isDefault // ignore: cast_nullable_to_non_nullable
 as bool,

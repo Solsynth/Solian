@@ -193,7 +193,6 @@ sealed class ThoughtServiceModel with _$ThoughtServiceModel {
   const factory ThoughtServiceModel({
     required String id,
     @JsonKey(name: "display_name") required String displayName,
-    required String description,
     @JsonKey(name: "min_perk_level") @Default(0) int minPerkLevel,
     @JsonKey(name: "is_default") @Default(false) bool isDefault,
   }) = _ThoughtServiceModel;
