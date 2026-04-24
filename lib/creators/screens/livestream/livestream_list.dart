@@ -483,7 +483,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                           ],
                         ),
                       ),
-                    if (status.toLowerCase() != 'active')
+                    if (stream.status != SnLiveStreamStatus.active)
                       PopupMenuItem(
                         value: 'start',
                         child: Row(
@@ -494,7 +494,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
                           ],
                         ),
                       ),
-                    if (status.toLowerCase() == 'active')
+                    if (stream.status == SnLiveStreamStatus.active)
                       PopupMenuItem(
                         value: 'end',
                         child: Row(
