@@ -386,6 +386,73 @@ class FileUploader {
   late final _client = ref.watch(solarNetworkClientProvider).dio;
   FileUploader(this.ref);
 
+  List<Map<String, dynamic>> _extractChildrenPayload(dynamic responseData) {
+    if (responseData is List) {
+      return responseData
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+
+    if (responseData is Map<String, dynamic>) {
+      final data = responseData['data'];
+      if (data is List) {
+        return data
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+    }
+
+    return const [];
+  }
+
+  Future<String?> _resolveParentIdFromPath({
+    String? path,
+    String? poolId,
+  }) async {
+    final normalizedPath = (path ?? '').trim();
+    if (normalizedPath.isEmpty || normalizedPath == '/') return null;
+
+    final parts = normalizedPath
+        .split('/')
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return null;
+
+    String? parentId;
+    for (final part in parts) {
+      final endpoint = parentId == null
+          ? '/drive/files/root/children'
+          : '/drive/files/$parentId/children';
+      final response = await _client.get(
+        endpoint,
+        queryParameters: {
+          'pool': ?poolId,
+        },
+      );
+
+      final children = _extractChildrenPayload(response.data);
+      final matchedFolder = children
+          .where(
+            (item) =>
+                item['is_folder'] == true && item['name']?.toString() == part,
+          )
+          .firstOrNull;
+
+      if (matchedFolder == null) {
+        throw StateError('Cannot resolve upload directory from path: $path');
+      }
+
+      parentId = matchedFolder['id']?.toString();
+      if (parentId == null || parentId.isEmpty) {
+        throw StateError('Folder ID missing while resolving path: $path');
+      }
+    }
+
+    return parentId;
+  }
+
   bool shouldUseDirectUpload({required int totalSize, int? customChunkSize}) {
     if (customChunkSize != null) return false;
     return totalSize <= driveDirectUploadMaxFileSizeBytes;
@@ -435,6 +502,7 @@ class FileUploader {
     String? poolId,
     String? bundleId,
     String? expiredAt,
+    String? parentId,
     String? path,
     String? encryptionScheme,
     String? encryptionHeader,
@@ -470,7 +538,8 @@ class FileUploader {
         contentType: multipartContentType,
       ),
       'poolId': poolId,
-      'path': path,
+      'parent_id':
+          parentId ?? await _resolveParentIdFromPath(path: path, poolId: poolId),
       'bundleId': bundleId,
       'expiredAt': expiredAt,
     };
@@ -556,6 +625,7 @@ class FileUploader {
     String? encryptionSignature,
     String? expiredAt,
     int? chunkSize,
+    String? parentId,
     String? path,
   }) async {
     final stepTimer = Stopwatch()..start();
@@ -601,7 +671,8 @@ class FileUploader {
       'bundle_id': bundleId,
       'expired_at': expiredAt,
       'chunk_size': chunkSize,
-      'path': path,
+      'parent_id':
+          parentId ?? await _resolveParentIdFromPath(path: path, poolId: poolId),
     };
 
     if (encryptionScheme != null && encryptionScheme.isNotEmpty) {
@@ -759,6 +830,7 @@ class FileUploader {
     String? encryptPassword,
     String? expiredAt,
     int? customChunkSize,
+    String? parentId,
     String? path,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
@@ -810,6 +882,7 @@ class FileUploader {
         poolId: poolId,
         bundleId: bundleId,
         expiredAt: expiredAt,
+        parentId: parentId,
         path: path,
         encryptionScheme: encryptionScheme,
         encryptionHeader: encryptionHeader,
@@ -852,6 +925,7 @@ class FileUploader {
       encryptionSignature: encryptionSignature,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
+      parentId: parentId,
       path: path,
     );
     createTimer.stop();
@@ -981,6 +1055,7 @@ class FileUploader {
   Completer<SnCloudFile?> createCloudFile({
     required UniversalFile fileData,
     String? poolId,
+    String? parentId,
     String? path,
     String? encryptPassword,
     FileUploadMode? mode,
@@ -1021,6 +1096,7 @@ class FileUploader {
               (_) => _processUpload(
                 fileData,
                 poolId,
+                parentId,
                 path,
                 encryptPassword,
                 onProgress,
@@ -1032,6 +1108,7 @@ class FileUploader {
               return _processUpload(
                 fileData,
                 poolId,
+                parentId,
                 path,
                 encryptPassword,
                 onProgress,
@@ -1046,6 +1123,7 @@ class FileUploader {
     _processUpload(
       fileData,
       poolId,
+      parentId,
       path,
       encryptPassword,
       onProgress,
@@ -1058,6 +1136,7 @@ class FileUploader {
   Completer<SnCloudFile?> _processUpload(
     UniversalFile fileData,
     String? poolId,
+    String? parentId,
     String? path,
     String? encryptPassword,
     Function(double? progress, Duration estimate)? onProgress,
@@ -1074,6 +1153,7 @@ class FileUploader {
       _performUpload(
         fileData: data,
         fileName: fileData.displayName ?? data.name,
+        parentId: parentId,
         path: path,
         encryptPassword: encryptPassword,
         contentType: actualMimetype,
@@ -1103,6 +1183,7 @@ class FileUploader {
         fileData: bytes,
         fileName: actualFilename,
         contentType: actualMimetype,
+        parentId: parentId,
         path: path,
         encryptPassword: encryptPassword,
         poolId: poolId,
@@ -1120,6 +1201,7 @@ class FileUploader {
     required String fileName,
     required String contentType,
     String? poolId,
+    String? parentId,
     String? path,
     String? encryptPassword,
     Function(double? progress, Duration estimate)? onProgress,
@@ -1136,6 +1218,7 @@ class FileUploader {
           fileName: fileName,
           contentType: contentType,
           poolId: poolId,
+          parentId: parentId,
           path: path,
           encryptPassword: encryptPassword,
           onProgress: onProgress,

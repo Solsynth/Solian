@@ -399,6 +399,7 @@ class EnhancedFileUploader extends FileUploader {
     String? encryptPassword,
     String? expiredAt,
     int? customChunkSize,
+    String? parentId,
     String? path,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
@@ -474,6 +475,7 @@ class EnhancedFileUploader extends FileUploader {
           poolId: poolId,
           bundleId: bundleId,
           expiredAt: expiredAt,
+          parentId: parentId,
           path: path,
           encryptionScheme: encryptionScheme,
           encryptionHeader: encryptionHeader,
@@ -538,6 +540,7 @@ class EnhancedFileUploader extends FileUploader {
       encryptionSignature: encryptionSignature,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
+      parentId: parentId,
       path: path,
     );
     createTimer.stop();
