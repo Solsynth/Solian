@@ -167,7 +167,6 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
       'github',
       'discord',
       'afdian',
-      'spotify',
       'steam',
     ];
 
