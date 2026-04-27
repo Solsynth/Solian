@@ -385,7 +385,7 @@ class FileListView extends HookConsumerWidget {
                           final allIds = currentVisibleItems.value
                               .expand(
                                 (item) => item.maybeMap(
-                                  file: (f) => [f.fileIndex.id],
+                                  file: (f) => [f.fileIndex.file.id],
                                   unindexedFile: (u) => [u.file.id],
                                   orElse: () => <String>[],
                                 ),
@@ -406,7 +406,7 @@ class FileListView extends HookConsumerWidget {
                               : currentVisibleItems.value
                                     .expand(
                                       (item) => item.maybeMap(
-                                        file: (f) => [f.fileIndex.id],
+                                        file: (f) => [f.fileIndex.file.id],
                                         unindexedFile: (u) => [u.file.id],
                                         orElse: () => <String>[],
                                       ),
@@ -509,12 +509,12 @@ class FileListView extends HookConsumerWidget {
               ref,
               context,
               isSelectionMode.value,
-              selectedFileIds.value.contains(fileItem.fileIndex.id),
+              selectedFileIds.value.contains(fileItem.fileIndex.file.id),
               () {
-                if (selectedFileIds.value.contains(fileItem.fileIndex.id)) {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.fileIndex.id);
+                if (selectedFileIds.value.contains(fileItem.fileIndex.file.id)) {
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.fileIndex.file.id);
                 } else {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.fileIndex.id);
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.fileIndex.file.id);
                 }
               },
             ),
@@ -540,12 +540,12 @@ class FileListView extends HookConsumerWidget {
               ref,
               context,
               isSelectionMode.value,
-              selectedFileIds.value.contains(fileItem.fileIndex.id),
+              selectedFileIds.value.contains(fileItem.fileIndex.file.id),
               () {
-                if (selectedFileIds.value.contains(fileItem.fileIndex.id)) {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.fileIndex.id);
+                if (selectedFileIds.value.contains(fileItem.fileIndex.file.id)) {
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.fileIndex.file.id);
                 } else {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.fileIndex.id);
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.fileIndex.file.id);
                 }
               },
             ),
@@ -635,7 +635,7 @@ class FileListView extends HookConsumerWidget {
   ) {
     return _buildWaterfallFileTileBase(
       fileItem.fileIndex.file,
-      () => '/files/${fileItem.fileIndex.id}',
+      () => '/files/${fileItem.fileIndex.file.id}',
       ref,
       context,
       [
@@ -650,7 +650,7 @@ class FileListView extends HookConsumerWidget {
             }
             try {
               final client = ref.read(solarNetworkClientProvider).dio;
-              await client.delete('/drive/index/remove/${fileItem.fileIndex.id}');
+              await client.delete('/drive/files/${fileItem.fileIndex.file.id}');
               ref.invalidate(indexedCloudFileListProvider);
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
@@ -940,7 +940,7 @@ class FileListView extends HookConsumerWidget {
           }
           try {
             final client = ref.read(solarNetworkClientProvider).dio;
-            await client.delete('/drive/index/remove/${fileItem.fileIndex.id}');
+            await client.delete('/drive/files/${fileItem.fileIndex.file.id}');
             ref.invalidate(indexedCloudFileListProvider);
           } catch (e) {
             showSnackBar('failedToDeleteFile'.tr());
