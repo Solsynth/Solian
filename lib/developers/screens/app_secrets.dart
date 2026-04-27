@@ -225,7 +225,9 @@ class AppSecretsScreen extends HookConsumerWidget {
                     return ListTile(
                       title: Text(secret.description ?? secret.id),
                       subtitle: Text(
-                        'createdAt'.tr(args: [secret.createdAt.formatSystem()]),
+                        'createdAt'.tr(
+                          args: [secret.createdAt?.formatSystem() ?? '-'],
+                        ),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
