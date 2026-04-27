@@ -132,20 +132,7 @@ class IndexedCloudFileListNotifier
       return FileListItem.folder(file.name);
     }
 
-    return FileListItem.file(_toLegacyFileIndex(file));
-  }
-
-  SnCloudFileIndex _toLegacyFileIndex(SnCloudFile file) {
-    final path = _currentPath == '/' ? '/${file.name}' : '$_currentPath/${file.name}';
-    return SnCloudFileIndex(
-      id: file.id,
-      path: path,
-      fileId: file.id,
-      file: file,
-      createdAt: file.createdAt,
-      updatedAt: file.updatedAt,
-      deletedAt: file.deletedAt,
-    );
+    return FileListItem.file(file);
   }
 
   Future<({bool found, String? parentId})> _resolveParentIdForPath(
