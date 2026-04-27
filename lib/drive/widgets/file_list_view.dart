@@ -385,7 +385,7 @@ class FileListView extends HookConsumerWidget {
                           final allIds = currentVisibleItems.value
                               .expand(
                                 (item) => item.maybeMap(
-                                  file: (f) => [f.fileIndex.file.id],
+                                  file: (f) => [f.file.id],
                                   unindexedFile: (u) => [u.file.id],
                                   orElse: () => <String>[],
                                 ),
@@ -406,7 +406,7 @@ class FileListView extends HookConsumerWidget {
                               : currentVisibleItems.value
                                     .expand(
                                       (item) => item.maybeMap(
-                                        file: (f) => [f.fileIndex.file.id],
+                                        file: (f) => [f.file.id],
                                         unindexedFile: (u) => [u.file.id],
                                         orElse: () => <String>[],
                                       ),
@@ -509,12 +509,12 @@ class FileListView extends HookConsumerWidget {
               ref,
               context,
               isSelectionMode.value,
-              selectedFileIds.value.contains(fileItem.fileIndex.file.id),
+              selectedFileIds.value.contains(fileItem.file.id),
               () {
-                if (selectedFileIds.value.contains(fileItem.fileIndex.file.id)) {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.fileIndex.file.id);
+                if (selectedFileIds.value.contains(fileItem.file.id)) {
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.file.id);
                 } else {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.fileIndex.file.id);
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.file.id);
                 }
               },
             ),
@@ -540,12 +540,12 @@ class FileListView extends HookConsumerWidget {
               ref,
               context,
               isSelectionMode.value,
-              selectedFileIds.value.contains(fileItem.fileIndex.file.id),
+              selectedFileIds.value.contains(fileItem.file.id),
               () {
-                if (selectedFileIds.value.contains(fileItem.fileIndex.file.id)) {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.fileIndex.file.id);
+                if (selectedFileIds.value.contains(fileItem.file.id)) {
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..remove(fileItem.file.id);
                 } else {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.fileIndex.file.id);
+                  selectedFileIds.value = Set.from(selectedFileIds.value)..add(fileItem.file.id);
                 }
               },
             ),
@@ -634,8 +634,8 @@ class FileListView extends HookConsumerWidget {
     VoidCallback? toggleSelection,
   ) {
     return _buildWaterfallFileTileBase(
-      fileItem.fileIndex.file,
-      () => '/files/${fileItem.fileIndex.file.id}',
+      fileItem.file,
+      () => '/files/${fileItem.file.id}',
       ref,
       context,
       [
@@ -650,7 +650,7 @@ class FileListView extends HookConsumerWidget {
             }
             try {
               final client = ref.read(solarNetworkClientProvider).dio;
-              await client.delete('/drive/files/${fileItem.fileIndex.file.id}');
+              await client.delete('/drive/files/${fileItem.file.id}');
               ref.invalidate(indexedCloudFileListProvider);
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
@@ -906,7 +906,7 @@ class FileListView extends HookConsumerWidget {
     bool isSelected,
     VoidCallback toggleSelection,
   ) {
-    final file = fileItem.fileIndex.file;
+    final file = fileItem.file;
     return ListTile(
       leading: Row(
         mainAxisSize: MainAxisSize.min,
@@ -940,7 +940,7 @@ class FileListView extends HookConsumerWidget {
           }
           try {
             final client = ref.read(solarNetworkClientProvider).dio;
-            await client.delete('/drive/files/${fileItem.fileIndex.file.id}');
+            await client.delete('/drive/files/${fileItem.file.id}');
             ref.invalidate(indexedCloudFileListProvider);
           } catch (e) {
             showSnackBar('failedToDeleteFile'.tr());
