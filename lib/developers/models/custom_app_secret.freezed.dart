@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CustomAppSecret {
 
- String get id; String? get secret; DateTime get createdAt; String? get description; int? get expiresIn; bool? get isOidc;
+ String get id; String? get secret; DateTime? get createdAt; String? get description; int? get expiresIn; bool get isOidc;
 /// Create a copy of CustomAppSecret
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $CustomAppSecretCopyWith<$Res>  {
   factory $CustomAppSecretCopyWith(CustomAppSecret value, $Res Function(CustomAppSecret) _then) = _$CustomAppSecretCopyWithImpl;
 @useResult
 $Res call({
- String id, String? secret, DateTime createdAt, String? description, int? expiresIn, bool? isOidc
+ String id, String? secret, DateTime? createdAt, String? description, int? expiresIn, bool isOidc
 });
 
 
@@ -65,15 +65,15 @@ class _$CustomAppSecretCopyWithImpl<$Res>
 
 /// Create a copy of CustomAppSecret
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? secret = freezed,Object? createdAt = null,Object? description = freezed,Object? expiresIn = freezed,Object? isOidc = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? secret = freezed,Object? createdAt = freezed,Object? description = freezed,Object? expiresIn = freezed,Object? isOidc = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,secret: freezed == secret ? _self.secret : secret // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,expiresIn: freezed == expiresIn ? _self.expiresIn : expiresIn // ignore: cast_nullable_to_non_nullable
-as int?,isOidc: freezed == isOidc ? _self.isOidc : isOidc // ignore: cast_nullable_to_non_nullable
-as bool?,
+as int?,isOidc: null == isOidc ? _self.isOidc : isOidc // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? secret,  DateTime createdAt,  String? description,  int? expiresIn,  bool? isOidc)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? secret,  DateTime? createdAt,  String? description,  int? expiresIn,  bool isOidc)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CustomAppSecret() when $default != null:
 return $default(_that.id,_that.secret,_that.createdAt,_that.description,_that.expiresIn,_that.isOidc);case _:
@@ -176,7 +176,7 @@ return $default(_that.id,_that.secret,_that.createdAt,_that.description,_that.ex
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? secret,  DateTime createdAt,  String? description,  int? expiresIn,  bool? isOidc)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? secret,  DateTime? createdAt,  String? description,  int? expiresIn,  bool isOidc)  $default,) {final _that = this;
 switch (_that) {
 case _CustomAppSecret():
 return $default(_that.id,_that.secret,_that.createdAt,_that.description,_that.expiresIn,_that.isOidc);}
@@ -193,7 +193,7 @@ return $default(_that.id,_that.secret,_that.createdAt,_that.description,_that.ex
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? secret,  DateTime createdAt,  String? description,  int? expiresIn,  bool? isOidc)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? secret,  DateTime? createdAt,  String? description,  int? expiresIn,  bool isOidc)?  $default,) {final _that = this;
 switch (_that) {
 case _CustomAppSecret() when $default != null:
 return $default(_that.id,_that.secret,_that.createdAt,_that.description,_that.expiresIn,_that.isOidc);case _:
@@ -208,15 +208,15 @@ return $default(_that.id,_that.secret,_that.createdAt,_that.description,_that.ex
 @JsonSerializable()
 
 class _CustomAppSecret implements CustomAppSecret {
-  const _CustomAppSecret({required this.id, required this.secret, required this.createdAt, this.description, this.expiresIn, this.isOidc});
+  const _CustomAppSecret({this.id = '', this.secret, this.createdAt, this.description, this.expiresIn, this.isOidc = false});
   factory _CustomAppSecret.fromJson(Map<String, dynamic> json) => _$CustomAppSecretFromJson(json);
 
-@override final  String id;
+@override@JsonKey() final  String id;
 @override final  String? secret;
-@override final  DateTime createdAt;
+@override final  DateTime? createdAt;
 @override final  String? description;
 @override final  int? expiresIn;
-@override final  bool? isOidc;
+@override@JsonKey() final  bool isOidc;
 
 /// Create a copy of CustomAppSecret
 /// with the given fields replaced by the non-null parameter values.
@@ -251,7 +251,7 @@ abstract mixin class _$CustomAppSecretCopyWith<$Res> implements $CustomAppSecret
   factory _$CustomAppSecretCopyWith(_CustomAppSecret value, $Res Function(_CustomAppSecret) _then) = __$CustomAppSecretCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? secret, DateTime createdAt, String? description, int? expiresIn, bool? isOidc
+ String id, String? secret, DateTime? createdAt, String? description, int? expiresIn, bool isOidc
 });
 
 
@@ -268,15 +268,15 @@ class __$CustomAppSecretCopyWithImpl<$Res>
 
 /// Create a copy of CustomAppSecret
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? secret = freezed,Object? createdAt = null,Object? description = freezed,Object? expiresIn = freezed,Object? isOidc = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? secret = freezed,Object? createdAt = freezed,Object? description = freezed,Object? expiresIn = freezed,Object? isOidc = null,}) {
   return _then(_CustomAppSecret(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,secret: freezed == secret ? _self.secret : secret // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,expiresIn: freezed == expiresIn ? _self.expiresIn : expiresIn // ignore: cast_nullable_to_non_nullable
-as int?,isOidc: freezed == isOidc ? _self.isOidc : isOidc // ignore: cast_nullable_to_non_nullable
-as bool?,
+as int?,isOidc: null == isOidc ? _self.isOidc : isOidc // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
