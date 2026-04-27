@@ -316,6 +316,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<SnChatMessage?> _decryptMessageIfEncrypted(
     SnChatMessage message,
   ) async {
+    if (!_isE2eeRoom) return message;
+
     // Skip decryption if recovery has already failed in this session
     if (_e2eeRecoveryState == E2eeRecoveryState.failed) {
       return null;
@@ -357,7 +359,7 @@ class MessagesNotifier extends _$MessagesNotifier {
             Logger.root.fine(
               'Skipping decrypt for own message ${message.id} (device: $senderDeviceId), no pending plaintext',
             );
-            return null; // Cannot show message without plaintext
+            return message.attachments.isNotEmpty ? message : null;
           }
         }
       } catch (e) {
@@ -376,7 +378,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       updatedMeta['e2ee_decrypted_content'] = content;
       return message.copyWith(content: content, meta: updatedMeta);
     }
-    return null; // Empty content after decrypt - cannot show meaningful message
+    return message.attachments.isNotEmpty ? message : null;
   }
 
   @override
@@ -1866,9 +1868,14 @@ class MessagesNotifier extends _$MessagesNotifier {
     // ── Step 1: Dedup ──
     // Skip if already saved by sendMessage before WebSocket echo arrives.
     final existingInDb = await _database.getMessageById(remoteMessage.id);
+    final existingNeedsAttachmentRefresh =
+        existingInDb != null &&
+        existingInDb.attachments.isEmpty &&
+        remoteMessage.attachments.isNotEmpty;
     if (existingInDb != null &&
         existingInDb.content != null &&
-        existingInDb.content!.isNotEmpty) {
+        existingInDb.content!.isNotEmpty &&
+        !existingNeedsAttachmentRefresh) {
       Logger.root.fine(
         'Message ${remoteMessage.id} already in DB with content, skipping duplicate',
       );
