@@ -67,7 +67,25 @@ class IndexedCloudFileListNotifier
   Future<List<FileListItem>> fetch() async {
     final client = ref.read(solarNetworkClientProvider).dio;
 
-    final queryParameters = <String, String>{'path': _currentPath};
+    final resolution = await _resolveParentIdForPath(client);
+    if (!resolution.found) return const [];
+
+    final queryParameters = _buildQueryParameters();
+    final endpoint = resolution.parentId == null
+        ? '/drive/files/root/children'
+        : '/drive/files/${resolution.parentId}/children';
+
+    final response = await client.get(
+      endpoint,
+      queryParameters: queryParameters,
+    );
+
+    final rawItems = _extractChildren(response.data);
+    return rawItems.map(_toFileListItem).toList();
+  }
+
+  Map<String, String> _buildQueryParameters() {
+    final queryParameters = <String, String>{};
 
     if (_poolId != null) {
       queryParameters['pool'] = _poolId!;
@@ -82,25 +100,92 @@ class IndexedCloudFileListNotifier
     }
 
     queryParameters['orderDesc'] = _orderDesc.toString();
+    return queryParameters;
+  }
 
-    final response = await client.get(
-      '/drive/index/browse',
-      queryParameters: queryParameters,
+  List<Map<String, dynamic>> _extractChildren(dynamic responseData) {
+    if (responseData is List) {
+      return responseData
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+
+    if (responseData is Map<String, dynamic>) {
+      final data = responseData['data'];
+      if (data is List) {
+        return data
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+    }
+
+    return const [];
+  }
+
+  FileListItem _toFileListItem(Map<String, dynamic> json) {
+    final file = SnCloudFile.fromJson(json);
+    final isFolder = json['is_folder'] == true;
+
+    if (isFolder) {
+      return FileListItem.folder(file.name);
+    }
+
+    return FileListItem.file(_toLegacyFileIndex(file));
+  }
+
+  SnCloudFileIndex _toLegacyFileIndex(SnCloudFile file) {
+    final path = _currentPath == '/' ? '/${file.name}' : '$_currentPath/${file.name}';
+    return SnCloudFileIndex(
+      id: file.id,
+      path: path,
+      fileId: file.id,
+      file: file,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
+      deletedAt: file.deletedAt,
     );
+  }
 
-    final List<String> folders = (response.data['folders'] as List)
-        .map((e) => e as String)
-        .toList();
-    final List<SnCloudFileIndex> files = (response.data['files'] as List)
-        .map((e) => SnCloudFileIndex.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<({bool found, String? parentId})> _resolveParentIdForPath(
+    dynamic client,
+  ) async {
+    final parts = _currentPath.split('/').where((part) => part.isNotEmpty).toList();
+    if (parts.isEmpty) {
+      return (found: true, parentId: null);
+    }
 
-    final List<FileListItem> items = [
-      ...folders.map((folderName) => FileListItem.folder(folderName)),
-      ...files.map((file) => FileListItem.file(file)),
-    ];
+    String? parentId;
+    for (final part in parts) {
+      final endpoint = parentId == null
+          ? '/drive/files/root/children'
+          : '/drive/files/$parentId/children';
+      final response = await client.get(
+        endpoint,
+        queryParameters: {
+          'pool': ?_poolId,
+        },
+      );
 
-    return items;
+      final children = _extractChildren(response.data);
+      final matchedFolder = children.where((item) {
+        final isFolder = item['is_folder'] == true;
+        final name = item['name']?.toString();
+        return isFolder && name == part;
+      }).firstOrNull;
+
+      if (matchedFolder == null) {
+        return (found: false, parentId: null);
+      }
+
+      parentId = matchedFolder['id']?.toString();
+      if (parentId == null || parentId.isEmpty) {
+        return (found: false, parentId: null);
+      }
+    }
+
+    return (found: true, parentId: parentId);
   }
 }
 
@@ -196,7 +281,7 @@ class UnindexedFileListNotifier
     queryParameters['orderDesc'] = _orderDesc.toString();
 
     final response = await client.get(
-      '/drive/index/unindexed',
+      '/drive/files/unindexed',
       queryParameters: queryParameters,
     );
 
