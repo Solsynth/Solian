@@ -93,6 +93,7 @@ _CustomAppOauthConfig _$CustomAppOauthConfigFromJson(
       const ['authorization_code', 'refresh_token'],
   requirePkce: json['require_pkce'] as bool? ?? true,
   allowOfflineAccess: json['allow_offline_access'] as bool? ?? false,
+  isPublicClient: json['is_public_client'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$CustomAppOauthConfigToJson(
@@ -105,12 +106,13 @@ Map<String, dynamic> _$CustomAppOauthConfigToJson(
   'allowed_grant_types': instance.allowedGrantTypes,
   'require_pkce': instance.requirePkce,
   'allow_offline_access': instance.allowOfflineAccess,
+  'is_public_client': instance.isPublicClient,
 };
 
 _CustomAppSecret _$CustomAppSecretFromJson(Map<String, dynamic> json) =>
     _CustomAppSecret(
       id: json['id'] as String? ?? '',
-      secret: json['secret'] as String? ?? '',
+      secret: json['secret'] as String?,
       description: json['description'] as String?,
       expiredAt: json['expired_at'] == null
           ? null

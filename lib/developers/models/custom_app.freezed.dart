@@ -694,7 +694,7 @@ as String?,
 /// @nodoc
 mixin _$CustomAppOauthConfig {
 
- String? get clientUri; List<String> get redirectUris; List<String>? get postLogoutRedirectUris; List<String> get allowedScopes; List<String> get allowedGrantTypes; bool get requirePkce; bool get allowOfflineAccess;
+ String? get clientUri; List<String> get redirectUris; List<String>? get postLogoutRedirectUris; List<String> get allowedScopes; List<String> get allowedGrantTypes; bool get requirePkce; bool get allowOfflineAccess; bool get isPublicClient;
 /// Create a copy of CustomAppOauthConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -707,16 +707,16 @@ $CustomAppOauthConfigCopyWith<CustomAppOauthConfig> get copyWith => _$CustomAppO
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomAppOauthConfig&&(identical(other.clientUri, clientUri) || other.clientUri == clientUri)&&const DeepCollectionEquality().equals(other.redirectUris, redirectUris)&&const DeepCollectionEquality().equals(other.postLogoutRedirectUris, postLogoutRedirectUris)&&const DeepCollectionEquality().equals(other.allowedScopes, allowedScopes)&&const DeepCollectionEquality().equals(other.allowedGrantTypes, allowedGrantTypes)&&(identical(other.requirePkce, requirePkce) || other.requirePkce == requirePkce)&&(identical(other.allowOfflineAccess, allowOfflineAccess) || other.allowOfflineAccess == allowOfflineAccess));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomAppOauthConfig&&(identical(other.clientUri, clientUri) || other.clientUri == clientUri)&&const DeepCollectionEquality().equals(other.redirectUris, redirectUris)&&const DeepCollectionEquality().equals(other.postLogoutRedirectUris, postLogoutRedirectUris)&&const DeepCollectionEquality().equals(other.allowedScopes, allowedScopes)&&const DeepCollectionEquality().equals(other.allowedGrantTypes, allowedGrantTypes)&&(identical(other.requirePkce, requirePkce) || other.requirePkce == requirePkce)&&(identical(other.allowOfflineAccess, allowOfflineAccess) || other.allowOfflineAccess == allowOfflineAccess)&&(identical(other.isPublicClient, isPublicClient) || other.isPublicClient == isPublicClient));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,clientUri,const DeepCollectionEquality().hash(redirectUris),const DeepCollectionEquality().hash(postLogoutRedirectUris),const DeepCollectionEquality().hash(allowedScopes),const DeepCollectionEquality().hash(allowedGrantTypes),requirePkce,allowOfflineAccess);
+int get hashCode => Object.hash(runtimeType,clientUri,const DeepCollectionEquality().hash(redirectUris),const DeepCollectionEquality().hash(postLogoutRedirectUris),const DeepCollectionEquality().hash(allowedScopes),const DeepCollectionEquality().hash(allowedGrantTypes),requirePkce,allowOfflineAccess,isPublicClient);
 
 @override
 String toString() {
-  return 'CustomAppOauthConfig(clientUri: $clientUri, redirectUris: $redirectUris, postLogoutRedirectUris: $postLogoutRedirectUris, allowedScopes: $allowedScopes, allowedGrantTypes: $allowedGrantTypes, requirePkce: $requirePkce, allowOfflineAccess: $allowOfflineAccess)';
+  return 'CustomAppOauthConfig(clientUri: $clientUri, redirectUris: $redirectUris, postLogoutRedirectUris: $postLogoutRedirectUris, allowedScopes: $allowedScopes, allowedGrantTypes: $allowedGrantTypes, requirePkce: $requirePkce, allowOfflineAccess: $allowOfflineAccess, isPublicClient: $isPublicClient)';
 }
 
 
@@ -727,7 +727,7 @@ abstract mixin class $CustomAppOauthConfigCopyWith<$Res>  {
   factory $CustomAppOauthConfigCopyWith(CustomAppOauthConfig value, $Res Function(CustomAppOauthConfig) _then) = _$CustomAppOauthConfigCopyWithImpl;
 @useResult
 $Res call({
- String? clientUri, List<String> redirectUris, List<String>? postLogoutRedirectUris, List<String> allowedScopes, List<String> allowedGrantTypes, bool requirePkce, bool allowOfflineAccess
+ String? clientUri, List<String> redirectUris, List<String>? postLogoutRedirectUris, List<String> allowedScopes, List<String> allowedGrantTypes, bool requirePkce, bool allowOfflineAccess, bool isPublicClient
 });
 
 
@@ -744,7 +744,7 @@ class _$CustomAppOauthConfigCopyWithImpl<$Res>
 
 /// Create a copy of CustomAppOauthConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? clientUri = freezed,Object? redirectUris = null,Object? postLogoutRedirectUris = freezed,Object? allowedScopes = null,Object? allowedGrantTypes = null,Object? requirePkce = null,Object? allowOfflineAccess = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? clientUri = freezed,Object? redirectUris = null,Object? postLogoutRedirectUris = freezed,Object? allowedScopes = null,Object? allowedGrantTypes = null,Object? requirePkce = null,Object? allowOfflineAccess = null,Object? isPublicClient = null,}) {
   return _then(_self.copyWith(
 clientUri: freezed == clientUri ? _self.clientUri : clientUri // ignore: cast_nullable_to_non_nullable
 as String?,redirectUris: null == redirectUris ? _self.redirectUris : redirectUris // ignore: cast_nullable_to_non_nullable
@@ -753,6 +753,7 @@ as List<String>?,allowedScopes: null == allowedScopes ? _self.allowedScopes : al
 as List<String>,allowedGrantTypes: null == allowedGrantTypes ? _self.allowedGrantTypes : allowedGrantTypes // ignore: cast_nullable_to_non_nullable
 as List<String>,requirePkce: null == requirePkce ? _self.requirePkce : requirePkce // ignore: cast_nullable_to_non_nullable
 as bool,allowOfflineAccess: null == allowOfflineAccess ? _self.allowOfflineAccess : allowOfflineAccess // ignore: cast_nullable_to_non_nullable
+as bool,isPublicClient: null == isPublicClient ? _self.isPublicClient : isPublicClient // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -835,10 +836,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? clientUri,  List<String> redirectUris,  List<String>? postLogoutRedirectUris,  List<String> allowedScopes,  List<String> allowedGrantTypes,  bool requirePkce,  bool allowOfflineAccess)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? clientUri,  List<String> redirectUris,  List<String>? postLogoutRedirectUris,  List<String> allowedScopes,  List<String> allowedGrantTypes,  bool requirePkce,  bool allowOfflineAccess,  bool isPublicClient)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CustomAppOauthConfig() when $default != null:
-return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,_that.allowedScopes,_that.allowedGrantTypes,_that.requirePkce,_that.allowOfflineAccess);case _:
+return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,_that.allowedScopes,_that.allowedGrantTypes,_that.requirePkce,_that.allowOfflineAccess,_that.isPublicClient);case _:
   return orElse();
 
 }
@@ -856,10 +857,10 @@ return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? clientUri,  List<String> redirectUris,  List<String>? postLogoutRedirectUris,  List<String> allowedScopes,  List<String> allowedGrantTypes,  bool requirePkce,  bool allowOfflineAccess)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? clientUri,  List<String> redirectUris,  List<String>? postLogoutRedirectUris,  List<String> allowedScopes,  List<String> allowedGrantTypes,  bool requirePkce,  bool allowOfflineAccess,  bool isPublicClient)  $default,) {final _that = this;
 switch (_that) {
 case _CustomAppOauthConfig():
-return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,_that.allowedScopes,_that.allowedGrantTypes,_that.requirePkce,_that.allowOfflineAccess);}
+return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,_that.allowedScopes,_that.allowedGrantTypes,_that.requirePkce,_that.allowOfflineAccess,_that.isPublicClient);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -873,10 +874,10 @@ return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? clientUri,  List<String> redirectUris,  List<String>? postLogoutRedirectUris,  List<String> allowedScopes,  List<String> allowedGrantTypes,  bool requirePkce,  bool allowOfflineAccess)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? clientUri,  List<String> redirectUris,  List<String>? postLogoutRedirectUris,  List<String> allowedScopes,  List<String> allowedGrantTypes,  bool requirePkce,  bool allowOfflineAccess,  bool isPublicClient)?  $default,) {final _that = this;
 switch (_that) {
 case _CustomAppOauthConfig() when $default != null:
-return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,_that.allowedScopes,_that.allowedGrantTypes,_that.requirePkce,_that.allowOfflineAccess);case _:
+return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,_that.allowedScopes,_that.allowedGrantTypes,_that.requirePkce,_that.allowOfflineAccess,_that.isPublicClient);case _:
   return null;
 
 }
@@ -888,7 +889,7 @@ return $default(_that.clientUri,_that.redirectUris,_that.postLogoutRedirectUris,
 @JsonSerializable()
 
 class _CustomAppOauthConfig implements CustomAppOauthConfig {
-  const _CustomAppOauthConfig({this.clientUri, final  List<String> redirectUris = const [], final  List<String>? postLogoutRedirectUris, final  List<String> allowedScopes = const ['openid', 'profile', 'email'], final  List<String> allowedGrantTypes = const ['authorization_code', 'refresh_token'], this.requirePkce = true, this.allowOfflineAccess = false}): _redirectUris = redirectUris,_postLogoutRedirectUris = postLogoutRedirectUris,_allowedScopes = allowedScopes,_allowedGrantTypes = allowedGrantTypes;
+  const _CustomAppOauthConfig({this.clientUri, final  List<String> redirectUris = const [], final  List<String>? postLogoutRedirectUris, final  List<String> allowedScopes = const ['openid', 'profile', 'email'], final  List<String> allowedGrantTypes = const ['authorization_code', 'refresh_token'], this.requirePkce = true, this.allowOfflineAccess = false, this.isPublicClient = false}): _redirectUris = redirectUris,_postLogoutRedirectUris = postLogoutRedirectUris,_allowedScopes = allowedScopes,_allowedGrantTypes = allowedGrantTypes;
   factory _CustomAppOauthConfig.fromJson(Map<String, dynamic> json) => _$CustomAppOauthConfigFromJson(json);
 
 @override final  String? clientUri;
@@ -924,6 +925,7 @@ class _CustomAppOauthConfig implements CustomAppOauthConfig {
 
 @override@JsonKey() final  bool requirePkce;
 @override@JsonKey() final  bool allowOfflineAccess;
+@override@JsonKey() final  bool isPublicClient;
 
 /// Create a copy of CustomAppOauthConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -938,16 +940,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomAppOauthConfig&&(identical(other.clientUri, clientUri) || other.clientUri == clientUri)&&const DeepCollectionEquality().equals(other._redirectUris, _redirectUris)&&const DeepCollectionEquality().equals(other._postLogoutRedirectUris, _postLogoutRedirectUris)&&const DeepCollectionEquality().equals(other._allowedScopes, _allowedScopes)&&const DeepCollectionEquality().equals(other._allowedGrantTypes, _allowedGrantTypes)&&(identical(other.requirePkce, requirePkce) || other.requirePkce == requirePkce)&&(identical(other.allowOfflineAccess, allowOfflineAccess) || other.allowOfflineAccess == allowOfflineAccess));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomAppOauthConfig&&(identical(other.clientUri, clientUri) || other.clientUri == clientUri)&&const DeepCollectionEquality().equals(other._redirectUris, _redirectUris)&&const DeepCollectionEquality().equals(other._postLogoutRedirectUris, _postLogoutRedirectUris)&&const DeepCollectionEquality().equals(other._allowedScopes, _allowedScopes)&&const DeepCollectionEquality().equals(other._allowedGrantTypes, _allowedGrantTypes)&&(identical(other.requirePkce, requirePkce) || other.requirePkce == requirePkce)&&(identical(other.allowOfflineAccess, allowOfflineAccess) || other.allowOfflineAccess == allowOfflineAccess)&&(identical(other.isPublicClient, isPublicClient) || other.isPublicClient == isPublicClient));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,clientUri,const DeepCollectionEquality().hash(_redirectUris),const DeepCollectionEquality().hash(_postLogoutRedirectUris),const DeepCollectionEquality().hash(_allowedScopes),const DeepCollectionEquality().hash(_allowedGrantTypes),requirePkce,allowOfflineAccess);
+int get hashCode => Object.hash(runtimeType,clientUri,const DeepCollectionEquality().hash(_redirectUris),const DeepCollectionEquality().hash(_postLogoutRedirectUris),const DeepCollectionEquality().hash(_allowedScopes),const DeepCollectionEquality().hash(_allowedGrantTypes),requirePkce,allowOfflineAccess,isPublicClient);
 
 @override
 String toString() {
-  return 'CustomAppOauthConfig(clientUri: $clientUri, redirectUris: $redirectUris, postLogoutRedirectUris: $postLogoutRedirectUris, allowedScopes: $allowedScopes, allowedGrantTypes: $allowedGrantTypes, requirePkce: $requirePkce, allowOfflineAccess: $allowOfflineAccess)';
+  return 'CustomAppOauthConfig(clientUri: $clientUri, redirectUris: $redirectUris, postLogoutRedirectUris: $postLogoutRedirectUris, allowedScopes: $allowedScopes, allowedGrantTypes: $allowedGrantTypes, requirePkce: $requirePkce, allowOfflineAccess: $allowOfflineAccess, isPublicClient: $isPublicClient)';
 }
 
 
@@ -958,7 +960,7 @@ abstract mixin class _$CustomAppOauthConfigCopyWith<$Res> implements $CustomAppO
   factory _$CustomAppOauthConfigCopyWith(_CustomAppOauthConfig value, $Res Function(_CustomAppOauthConfig) _then) = __$CustomAppOauthConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String? clientUri, List<String> redirectUris, List<String>? postLogoutRedirectUris, List<String> allowedScopes, List<String> allowedGrantTypes, bool requirePkce, bool allowOfflineAccess
+ String? clientUri, List<String> redirectUris, List<String>? postLogoutRedirectUris, List<String> allowedScopes, List<String> allowedGrantTypes, bool requirePkce, bool allowOfflineAccess, bool isPublicClient
 });
 
 
@@ -975,7 +977,7 @@ class __$CustomAppOauthConfigCopyWithImpl<$Res>
 
 /// Create a copy of CustomAppOauthConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? clientUri = freezed,Object? redirectUris = null,Object? postLogoutRedirectUris = freezed,Object? allowedScopes = null,Object? allowedGrantTypes = null,Object? requirePkce = null,Object? allowOfflineAccess = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? clientUri = freezed,Object? redirectUris = null,Object? postLogoutRedirectUris = freezed,Object? allowedScopes = null,Object? allowedGrantTypes = null,Object? requirePkce = null,Object? allowOfflineAccess = null,Object? isPublicClient = null,}) {
   return _then(_CustomAppOauthConfig(
 clientUri: freezed == clientUri ? _self.clientUri : clientUri // ignore: cast_nullable_to_non_nullable
 as String?,redirectUris: null == redirectUris ? _self._redirectUris : redirectUris // ignore: cast_nullable_to_non_nullable
@@ -984,6 +986,7 @@ as List<String>?,allowedScopes: null == allowedScopes ? _self._allowedScopes : a
 as List<String>,allowedGrantTypes: null == allowedGrantTypes ? _self._allowedGrantTypes : allowedGrantTypes // ignore: cast_nullable_to_non_nullable
 as List<String>,requirePkce: null == requirePkce ? _self.requirePkce : requirePkce // ignore: cast_nullable_to_non_nullable
 as bool,allowOfflineAccess: null == allowOfflineAccess ? _self.allowOfflineAccess : allowOfflineAccess // ignore: cast_nullable_to_non_nullable
+as bool,isPublicClient: null == isPublicClient ? _self.isPublicClient : isPublicClient // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -995,7 +998,7 @@ as bool,
 /// @nodoc
 mixin _$CustomAppSecret {
 
- String get id; String get secret; String? get description; DateTime? get expiredAt; bool get isOidc; String get appId;
+ String get id; String? get secret; String? get description; DateTime? get expiredAt; bool get isOidc; String get appId;
 /// Create a copy of CustomAppSecret
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1028,7 +1031,7 @@ abstract mixin class $CustomAppSecretCopyWith<$Res>  {
   factory $CustomAppSecretCopyWith(CustomAppSecret value, $Res Function(CustomAppSecret) _then) = _$CustomAppSecretCopyWithImpl;
 @useResult
 $Res call({
- String id, String secret, String? description, DateTime? expiredAt, bool isOidc, String appId
+ String id, String? secret, String? description, DateTime? expiredAt, bool isOidc, String appId
 });
 
 
@@ -1045,11 +1048,11 @@ class _$CustomAppSecretCopyWithImpl<$Res>
 
 /// Create a copy of CustomAppSecret
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? secret = null,Object? description = freezed,Object? expiredAt = freezed,Object? isOidc = null,Object? appId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? secret = freezed,Object? description = freezed,Object? expiredAt = freezed,Object? isOidc = null,Object? appId = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,secret: null == secret ? _self.secret : secret // ignore: cast_nullable_to_non_nullable
-as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,secret: freezed == secret ? _self.secret : secret // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,isOidc: null == isOidc ? _self.isOidc : isOidc // ignore: cast_nullable_to_non_nullable
 as bool,appId: null == appId ? _self.appId : appId // ignore: cast_nullable_to_non_nullable
@@ -1135,7 +1138,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String secret,  String? description,  DateTime? expiredAt,  bool isOidc,  String appId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? secret,  String? description,  DateTime? expiredAt,  bool isOidc,  String appId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CustomAppSecret() when $default != null:
 return $default(_that.id,_that.secret,_that.description,_that.expiredAt,_that.isOidc,_that.appId);case _:
@@ -1156,7 +1159,7 @@ return $default(_that.id,_that.secret,_that.description,_that.expiredAt,_that.is
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String secret,  String? description,  DateTime? expiredAt,  bool isOidc,  String appId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? secret,  String? description,  DateTime? expiredAt,  bool isOidc,  String appId)  $default,) {final _that = this;
 switch (_that) {
 case _CustomAppSecret():
 return $default(_that.id,_that.secret,_that.description,_that.expiredAt,_that.isOidc,_that.appId);}
@@ -1173,7 +1176,7 @@ return $default(_that.id,_that.secret,_that.description,_that.expiredAt,_that.is
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String secret,  String? description,  DateTime? expiredAt,  bool isOidc,  String appId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? secret,  String? description,  DateTime? expiredAt,  bool isOidc,  String appId)?  $default,) {final _that = this;
 switch (_that) {
 case _CustomAppSecret() when $default != null:
 return $default(_that.id,_that.secret,_that.description,_that.expiredAt,_that.isOidc,_that.appId);case _:
@@ -1188,11 +1191,11 @@ return $default(_that.id,_that.secret,_that.description,_that.expiredAt,_that.is
 @JsonSerializable()
 
 class _CustomAppSecret implements CustomAppSecret {
-  const _CustomAppSecret({this.id = '', this.secret = '', this.description, this.expiredAt, this.isOidc = false, this.appId = ''});
+  const _CustomAppSecret({this.id = '', this.secret, this.description, this.expiredAt, this.isOidc = false, this.appId = ''});
   factory _CustomAppSecret.fromJson(Map<String, dynamic> json) => _$CustomAppSecretFromJson(json);
 
 @override@JsonKey() final  String id;
-@override@JsonKey() final  String secret;
+@override final  String? secret;
 @override final  String? description;
 @override final  DateTime? expiredAt;
 @override@JsonKey() final  bool isOidc;
@@ -1231,7 +1234,7 @@ abstract mixin class _$CustomAppSecretCopyWith<$Res> implements $CustomAppSecret
   factory _$CustomAppSecretCopyWith(_CustomAppSecret value, $Res Function(_CustomAppSecret) _then) = __$CustomAppSecretCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String secret, String? description, DateTime? expiredAt, bool isOidc, String appId
+ String id, String? secret, String? description, DateTime? expiredAt, bool isOidc, String appId
 });
 
 
@@ -1248,11 +1251,11 @@ class __$CustomAppSecretCopyWithImpl<$Res>
 
 /// Create a copy of CustomAppSecret
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? secret = null,Object? description = freezed,Object? expiredAt = freezed,Object? isOidc = null,Object? appId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? secret = freezed,Object? description = freezed,Object? expiredAt = freezed,Object? isOidc = null,Object? appId = null,}) {
   return _then(_CustomAppSecret(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,secret: null == secret ? _self.secret : secret // ignore: cast_nullable_to_non_nullable
-as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,secret: freezed == secret ? _self.secret : secret // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,isOidc: null == isOidc ? _self.isOidc : isOidc // ignore: cast_nullable_to_non_nullable
 as bool,appId: null == appId ? _self.appId : appId // ignore: cast_nullable_to_non_nullable
