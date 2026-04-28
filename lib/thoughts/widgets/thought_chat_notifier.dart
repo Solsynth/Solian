@@ -596,12 +596,30 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                     }
                     break;
                   case 'reasoning':
-                    state = state.copyWith(
-                      streamingItems: [
-                        ...state.streamingItems,
-                        StreamItem('reasoning', eventData),
-                      ],
-                    );
+                    final lastItem = state.streamingItems.isNotEmpty
+                        ? state.streamingItems.last
+                        : null;
+                    if (lastItem != null && lastItem.type == 'reasoning') {
+                      state = state.copyWith(
+                        streamingItems: [
+                          ...state.streamingItems.sublist(
+                            0,
+                            state.streamingItems.length - 1,
+                          ),
+                          StreamItem(
+                            'reasoning',
+                            '${lastItem.data}$eventData',
+                          ),
+                        ],
+                      );
+                    } else {
+                      state = state.copyWith(
+                        streamingItems: [
+                          ...state.streamingItems,
+                          StreamItem('reasoning', eventData),
+                        ],
+                      );
+                    }
                     break;
                   case 'status':
                     final statusText = eventData as String?;
@@ -659,6 +677,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
                 state = state.copyWith(
                   localThoughts: [aiThought, ...state.localThoughts],
                   isStreaming: false,
+                  streamingItems: [],
                   currentStatus: null,
                   compactSummary: null,
                   archivedCount: null,
@@ -678,7 +697,11 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
         },
         onDone: () {
           if (state.isStreaming) {
-            state = state.copyWith(isStreaming: false, currentStatus: null);
+            state = state.copyWith(
+              isStreaming: false,
+              streamingItems: [],
+              currentStatus: null,
+            );
           }
         },
         onError: (error) {
@@ -724,6 +747,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
     state = state.copyWith(
       isStreaming: false,
       localThoughts: [errorThought, ...state.localThoughts],
+      streamingItems: [],
       currentStatus: null,
       compactSummary: null,
       archivedCount: null,

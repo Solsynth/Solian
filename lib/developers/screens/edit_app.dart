@@ -83,6 +83,7 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
     ]);
     final requirePkce = useState(true);
     final allowOfflineAccess = useState(false);
+    final isPublicClient = useState(false);
 
     useEffect(() {
       if (app?.value != null) {
@@ -103,6 +104,7 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
           allowedGrantTypes.value = app.value!.oauthConfig!.allowedGrantTypes;
           requirePkce.value = app.value!.oauthConfig!.requirePkce;
           allowOfflineAccess.value = app.value!.oauthConfig!.allowOfflineAccess;
+          isPublicClient.value = app.value!.oauthConfig!.isPublicClient;
         }
       }
       return null;
@@ -281,6 +283,7 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
           'allowed_grant_types': allowedGrantTypes.value,
           'require_pkce': requirePkce.value,
           'allow_offline_access': allowOfflineAccess.value,
+          'is_public_client': isPublicClient.value,
         }
             : null,
       };
@@ -543,6 +546,15 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
+                          SwitchListTile(
+                            title: const Text('Public client (PKCE-only)'),
+                            subtitle: const Text(
+                              'For SPA/mobile/desktop apps without a client secret.',
+                            ),
+                            value: isPublicClient.value,
+                            onChanged: (value) =>
+                            isPublicClient.value = value,
+                          ),
                           SwitchListTile(
                             title: Text('requirePkce'.tr()),
                             value: requirePkce.value,

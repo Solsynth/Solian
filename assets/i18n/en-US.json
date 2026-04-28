@@ -384,7 +384,6 @@
   "invitePending": "Invite pending",
   "timedOutUntil": "Timed out until {}",
   "originalNick": "Original nick: {}",
-  "joinedAt": "Joined {} · {}",
   "timeoutActions": "Timeout Actions",
   "timeoutFor10Minutes": "Timeout for 10 minutes",
   "timeoutFor1Hour": "Timeout for 1 hour",
@@ -2898,5 +2897,6 @@
   "directoryPathHelper": "Enter a directory path. The directory will be created when you upload files to it.",
   "goToDirectory": "Go to Directory",
   "uploadFile": "Upload File",
-  "errorPickingFile": "Error picking file: {}"
+  "errorPickingFile": "Error picking file: {}",
+  "reasoning": "Reasoning"
 }
