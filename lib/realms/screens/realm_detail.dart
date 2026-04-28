@@ -959,7 +959,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     ChatRoomListTile(
                       room: room,
                       onTap: () {
-                        context.router.push(ChatRoomRoute(id: room.id));
+                        context.router.navigate(ChatRoomRoute(id: room.id));
                       },
                     ),
                 ],
