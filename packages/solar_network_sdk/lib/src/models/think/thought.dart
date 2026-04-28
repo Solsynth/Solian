@@ -42,7 +42,8 @@ class ThinkingChunkTypeConverter
 enum ThinkingMessagePartType {
   text(0),
   functionCall(1),
-  functionResult(2);
+  functionResult(2),
+  reasoning(3);
 
   const ThinkingMessagePartType(this.value);
   final int value;
@@ -135,6 +136,7 @@ sealed class SnThinkingMessagePart with _$SnThinkingMessagePart {
   const factory SnThinkingMessagePart({
     @ThinkingMessagePartTypeConverter() required ThinkingMessagePartType type,
     String? text,
+    String? reasoning,
     Map<String, dynamic>? metadata,
     List<SnCloudFile>? files,
     SnFunctionCall? functionCall,

@@ -91,6 +91,7 @@ _SnThinkingMessagePart _$SnThinkingMessagePartFromJson(
     (json['type'] as num).toInt(),
   ),
   text: json['text'] as String?,
+  reasoning: json['reasoning'] as String?,
   metadata: json['metadata'] as Map<String, dynamic>?,
   files: (json['files'] as List<dynamic>?)
       ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
@@ -110,6 +111,7 @@ Map<String, dynamic> _$SnThinkingMessagePartToJson(
 ) => <String, dynamic>{
   'type': const ThinkingMessagePartTypeConverter().toJson(instance.type),
   'text': instance.text,
+  'reasoning': instance.reasoning,
   'metadata': instance.metadata,
   'files': instance.files?.map((e) => e.toJson()).toList(),
   'function_call': instance.functionCall?.toJson(),

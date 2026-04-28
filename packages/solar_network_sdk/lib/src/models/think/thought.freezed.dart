@@ -1117,7 +1117,7 @@ as bool,
 /// @nodoc
 mixin _$SnThinkingMessagePart {
 
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType get type; String? get text; Map<String, dynamic>? get metadata; List<SnCloudFile>? get files; SnFunctionCall? get functionCall; SnFunctionResult? get functionResult;
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType get type; String? get text; String? get reasoning; Map<String, dynamic>? get metadata; List<SnCloudFile>? get files; SnFunctionCall? get functionCall; SnFunctionResult? get functionResult;
 /// Create a copy of SnThinkingMessagePart
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1130,16 +1130,16 @@ $SnThinkingMessagePartCopyWith<SnThinkingMessagePart> get copyWith => _$SnThinki
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&const DeepCollectionEquality().equals(other.files, files)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&(identical(other.reasoning, reasoning) || other.reasoning == reasoning)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&const DeepCollectionEquality().equals(other.files, files)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,text,const DeepCollectionEquality().hash(metadata),const DeepCollectionEquality().hash(files),functionCall,functionResult);
+int get hashCode => Object.hash(runtimeType,type,text,reasoning,const DeepCollectionEquality().hash(metadata),const DeepCollectionEquality().hash(files),functionCall,functionResult);
 
 @override
 String toString() {
-  return 'SnThinkingMessagePart(type: $type, text: $text, metadata: $metadata, files: $files, functionCall: $functionCall, functionResult: $functionResult)';
+  return 'SnThinkingMessagePart(type: $type, text: $text, reasoning: $reasoning, metadata: $metadata, files: $files, functionCall: $functionCall, functionResult: $functionResult)';
 }
 
 
@@ -1150,7 +1150,7 @@ abstract mixin class $SnThinkingMessagePartCopyWith<$Res>  {
   factory $SnThinkingMessagePartCopyWith(SnThinkingMessagePart value, $Res Function(SnThinkingMessagePart) _then) = _$SnThinkingMessagePartCopyWithImpl;
 @useResult
 $Res call({
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, String? reasoning, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
 });
 
 
@@ -1167,10 +1167,11 @@ class _$SnThinkingMessagePartCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingMessagePart
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? text = freezed,Object? metadata = freezed,Object? files = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? text = freezed,Object? reasoning = freezed,Object? metadata = freezed,Object? files = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,reasoning: freezed == reasoning ? _self.reasoning : reasoning // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,files: freezed == files ? _self.files : files // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
@@ -1281,10 +1282,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart() when $default != null:
-return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
+return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
   return orElse();
 
 }
@@ -1302,10 +1303,10 @@ return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionC
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart():
-return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionCall,_that.functionResult);}
+return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files,_that.functionCall,_that.functionResult);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1319,10 +1320,10 @@ return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionC
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart() when $default != null:
-return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
+return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
   return null;
 
 }
@@ -1334,11 +1335,12 @@ return $default(_that.type,_that.text,_that.metadata,_that.files,_that.functionC
 @JsonSerializable()
 
 class _SnThinkingMessagePart implements SnThinkingMessagePart {
-  const _SnThinkingMessagePart({@ThinkingMessagePartTypeConverter() required this.type, this.text, final  Map<String, dynamic>? metadata, final  List<SnCloudFile>? files, this.functionCall, this.functionResult}): _metadata = metadata,_files = files;
+  const _SnThinkingMessagePart({@ThinkingMessagePartTypeConverter() required this.type, this.text, this.reasoning, final  Map<String, dynamic>? metadata, final  List<SnCloudFile>? files, this.functionCall, this.functionResult}): _metadata = metadata,_files = files;
   factory _SnThinkingMessagePart.fromJson(Map<String, dynamic> json) => _$SnThinkingMessagePartFromJson(json);
 
 @override@ThinkingMessagePartTypeConverter() final  ThinkingMessagePartType type;
 @override final  String? text;
+@override final  String? reasoning;
  final  Map<String, dynamic>? _metadata;
 @override Map<String, dynamic>? get metadata {
   final value = _metadata;
@@ -1373,16 +1375,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&const DeepCollectionEquality().equals(other._files, _files)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnThinkingMessagePart&&(identical(other.type, type) || other.type == type)&&(identical(other.text, text) || other.text == text)&&(identical(other.reasoning, reasoning) || other.reasoning == reasoning)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&const DeepCollectionEquality().equals(other._files, _files)&&(identical(other.functionCall, functionCall) || other.functionCall == functionCall)&&(identical(other.functionResult, functionResult) || other.functionResult == functionResult));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,text,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_files),functionCall,functionResult);
+int get hashCode => Object.hash(runtimeType,type,text,reasoning,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_files),functionCall,functionResult);
 
 @override
 String toString() {
-  return 'SnThinkingMessagePart(type: $type, text: $text, metadata: $metadata, files: $files, functionCall: $functionCall, functionResult: $functionResult)';
+  return 'SnThinkingMessagePart(type: $type, text: $text, reasoning: $reasoning, metadata: $metadata, files: $files, functionCall: $functionCall, functionResult: $functionResult)';
 }
 
 
@@ -1393,7 +1395,7 @@ abstract mixin class _$SnThinkingMessagePartCopyWith<$Res> implements $SnThinkin
   factory _$SnThinkingMessagePartCopyWith(_SnThinkingMessagePart value, $Res Function(_SnThinkingMessagePart) _then) = __$SnThinkingMessagePartCopyWithImpl;
 @override @useResult
 $Res call({
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, String? reasoning, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
 });
 
 
@@ -1410,10 +1412,11 @@ class __$SnThinkingMessagePartCopyWithImpl<$Res>
 
 /// Create a copy of SnThinkingMessagePart
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? text = freezed,Object? metadata = freezed,Object? files = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? text = freezed,Object? reasoning = freezed,Object? metadata = freezed,Object? files = freezed,Object? functionCall = freezed,Object? functionResult = freezed,}) {
   return _then(_SnThinkingMessagePart(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String?,reasoning: freezed == reasoning ? _self.reasoning : reasoning // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,files: freezed == files ? _self._files : files // ignore: cast_nullable_to_non_nullable
 as List<SnCloudFile>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
