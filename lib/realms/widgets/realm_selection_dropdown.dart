@@ -23,11 +23,14 @@ class RealmSelectionDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ensure the selected value is in the items list
+    final effectiveValue = value != null && !realms.contains(value) ? null : value;
+    
     return DropdownButtonHideUnderline(
       child: DropdownButton2<SnRealm?>(
         isExpanded: true,
         hint: Text('realmSelection').tr(),
-        valueListenable: ValueNotifier(value),
+        value: effectiveValue,
         items: [
           DropdownItem<SnRealm?>(
             value: null,
@@ -42,23 +45,22 @@ class RealmSelectionDropdown extends StatelessWidget {
               ],
             ),
           ),
-          if (!isLoading && error == null)
-            ...realms.map(
-              (realm) => DropdownItem<SnRealm?>(
-                value: realm,
-                child: Row(
-                  children: [
-                    ProfilePictureWidget(
-                      file: realm.picture,
-                      fallbackIcon: Symbols.workspaces,
-                      radius: 16,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(realm.name),
-                  ],
-                ),
+          ...realms.map(
+            (realm) => DropdownItem<SnRealm?>(
+              value: realm,
+              child: Row(
+                children: [
+                  ProfilePictureWidget(
+                    file: realm.picture,
+                    fallbackIcon: Symbols.workspaces,
+                    radius: 16,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(realm.name),
+                ],
               ),
             ),
+          ),
         ],
         onChanged: onChanged,
         buttonStyleData: const ButtonStyleData(
