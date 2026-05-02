@@ -10,6 +10,7 @@ import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/discovery/discovery_feedback_service.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/route.gr.dart';
@@ -63,9 +64,14 @@ class PostActionableItem extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
+    final publishersManaged = ref.watch(publishersManagedProvider);
     final isAuthor = useMemoized(
-      () => user.value != null && item.publisher?.accountId == user.value?.id,
-      [user],
+      () =>
+          user.value != null &&
+          (item.publisher?.accountId == user.value?.id ||
+              publishersManaged.value?.any((p) => p.id == item.publisher?.id) ==
+                  true),
+      [user, publishersManaged],
     );
 
     Widget buildMenuItem({required String label, required IconData icon}) {
