@@ -43,6 +43,8 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
   isShadowbanned: json['is_shadowbanned'] as bool? ?? false,
   isGatekept: json['is_gatekept'] as bool? ?? false,
   isModerateSubscription: json['is_moderate_subscription'] as bool? ?? false,
+  rating: (json['rating'] as num?)?.toDouble() ?? 100.0,
+  ratingLevel: (json['rating_level'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
@@ -65,6 +67,8 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'is_shadowbanned': instance.isShadowbanned,
       'is_gatekept': instance.isGatekept,
       'is_moderate_subscription': instance.isModerateSubscription,
+      'rating': instance.rating,
+      'rating_level': instance.ratingLevel,
     };
 
 _SnPublisherMember _$SnPublisherMemberFromJson(Map<String, dynamic> json) =>

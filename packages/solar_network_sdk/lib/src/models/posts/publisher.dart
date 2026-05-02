@@ -34,6 +34,8 @@ sealed class SnPublisher with _$SnPublisher {
     @Default(false) bool isShadowbanned,
     @Default(false) bool isGatekept,
     @Default(false) bool isModerateSubscription,
+    @Default(100.0) double rating,
+    @JsonKey(name: 'rating_level') @Default(0) int ratingLevel,
   }) = _SnPublisher;
 
   factory SnPublisher.fromJson(Map<String, dynamic> json) =>
