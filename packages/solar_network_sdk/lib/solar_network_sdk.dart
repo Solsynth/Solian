@@ -50,6 +50,7 @@ export 'src/models/posts/post.dart';
 export 'src/models/posts/post_category.dart';
 export 'src/models/posts/post_tag.dart';
 export 'src/models/posts/publisher.dart';
+export 'src/models/posts/tag_quota.dart';
 
 // Realms models
 export 'src/models/realms/realm.dart';
