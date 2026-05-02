@@ -2,10 +2,12 @@ import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/accounts/discovery.dart';
 import 'package:solar_network_sdk/src/models/accounts/publishing_settings.dart';
 import 'package:solar_network_sdk/src/models/posts/post.dart';
+import 'package:solar_network_sdk/src/models/posts/post_tag.dart';
 import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 import 'package:solar_network_sdk/src/models/posts/post_category.dart';
 import 'package:solar_network_sdk/src/models/posts/embed.dart';
 import 'package:solar_network_sdk/src/models/posts/heatmap.dart';
+import 'package:solar_network_sdk/src/models/posts/tag_quota.dart';
 
 /// API for posts-related endpoints (/sphere).
 ///
@@ -431,6 +433,167 @@ class SphereApi extends BaseApi {
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnPost.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Gets a tag by slug.
+  ///
+  /// [slug] - The tag slug.
+  Future<SnPostTag> getTag(String slug) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/posts/tags/$slug',
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
+  /// Creates a new tag.
+  ///
+  /// [slug] - Unique tag identifier.
+  /// [name] - Display name (optional).
+  /// [description] - Tag description (optional).
+  /// [publisherName] - Publisher name to associate with the tag.
+  Future<SnPostTag> createTag({
+    required String slug,
+    String? name,
+    String? description,
+    String? publisherName,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/posts/tags',
+      queryParameters: {if (publisherName != null) 'pub': publisherName},
+      data: {
+        'slug': slug,
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+      },
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
+  /// Updates a tag.
+  ///
+  /// [slug] - The tag slug.
+  /// [name] - New display name (optional).
+  /// [description] - New description (optional).
+  /// [publisherName] - Publisher name for authorization.
+  Future<SnPostTag> updateTag({
+    required String slug,
+    String? name,
+    String? description,
+    String? publisherName,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/posts/tags/$slug',
+      queryParameters: {if (publisherName != null) 'pub': publisherName},
+      data: {
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+      },
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
+  /// Claims ownership of an unowned tag.
+  ///
+  /// [slug] - The tag slug to claim.
+  /// [publisherName] - Publisher name that will own the tag.
+  Future<SnPostTag> claimTag({
+    required String slug,
+    String? publisherName,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/posts/tags/$slug/claim',
+      queryParameters: {if (publisherName != null) 'pub': publisherName},
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
+  /// Gets the protected tag quota for a publisher.
+  ///
+  /// [slug] - The tag slug.
+  /// [publisherName] - Publisher name to check quota for.
+  Future<SnTagQuota> getProtectedTagQuota({
+    required String slug,
+    String? publisherName,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/posts/tags/$slug/quota',
+      queryParameters: {if (publisherName != null) 'pub': publisherName},
+    );
+    return SnTagQuota.fromJson(response.data!);
+  }
+
+  // ==========================================
+  // Admin tag endpoints
+  // ==========================================
+
+  /// Assigns a tag to a publisher (admin only).
+  ///
+  /// [slug] - The tag slug.
+  /// [publisherId] - The publisher ID to assign ownership to.
+  Future<SnPostTag> assignTagOwnership({
+    required String slug,
+    required String publisherId,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/admin/posts/tags/$slug/assign',
+      data: {'publisher_id': publisherId},
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
+  /// Toggles protected status on a tag (admin only).
+  ///
+  /// [slug] - The tag slug.
+  /// [isProtected] - Whether the tag should be protected.
+  Future<SnPostTag> toggleTagProtection({
+    required String slug,
+    required bool isProtected,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/admin/posts/tags/$slug/protect',
+      data: {'is_protected': isProtected},
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
+  /// Sets or removes event status on a tag (admin only).
+  ///
+  /// [slug] - The tag slug.
+  /// [isEvent] - Whether the tag is an event tag.
+  /// [endsAt] - When the event tag expires (required if isEvent is true).
+  Future<SnPostTag> setTagEventStatus({
+    required String slug,
+    required bool isEvent,
+    DateTime? endsAt,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/admin/posts/tags/$slug/event',
+      data: {
+        'is_event': isEvent,
+        if (endsAt != null) 'ends_at': endsAt.toIso8601String(),
+      },
+    );
+    return SnPostTag.fromJson(response.data!);
+  }
+
+  /// Updates a tag as admin (admin only).
+  ///
+  /// [slug] - The tag slug.
+  /// [name] - New display name (optional).
+  /// [description] - New description (optional).
+  Future<SnPostTag> adminUpdateTag({
+    required String slug,
+    String? name,
+    String? description,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/admin/posts/tags/$slug',
+      data: {
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+      },
+    );
+    return SnPostTag.fromJson(response.data!);
   }
 
   // ==========================================
