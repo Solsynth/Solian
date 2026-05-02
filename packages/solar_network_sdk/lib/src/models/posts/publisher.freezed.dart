@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPublisher {
 
- String get id; int get type; String get name; String get nick; String get bio; SnCloudFile? get picture; SnCloudFile? get background; SnAccount? get account; String? get accountId; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String? get realmId; SnRealm? get realm; SnVerificationMark? get verification; bool get isShadowbanned; bool get isGatekept; bool get isModerateSubscription;
+ String get id; int get type; String get name; String get nick; String get bio; SnCloudFile? get picture; SnCloudFile? get background; SnAccount? get account; String? get accountId; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String? get realmId; SnRealm? get realm; SnVerificationMark? get verification; bool get isShadowbanned; bool get isGatekept; bool get isModerateSubscription; double get rating;@JsonKey(name: 'rating_level') int get ratingLevel;
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPublisherCopyWith<SnPublisher> get copyWith => _$SnPublisherCopyWithImpl<SnPu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.isShadowbanned, isShadowbanned) || other.isShadowbanned == isShadowbanned)&&(identical(other.isGatekept, isGatekept) || other.isGatekept == isGatekept)&&(identical(other.isModerateSubscription, isModerateSubscription) || other.isModerateSubscription == isModerateSubscription));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.isShadowbanned, isShadowbanned) || other.isShadowbanned == isShadowbanned)&&(identical(other.isGatekept, isGatekept) || other.isGatekept == isGatekept)&&(identical(other.isModerateSubscription, isModerateSubscription) || other.isModerateSubscription == isModerateSubscription)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.ratingLevel, ratingLevel) || other.ratingLevel == ratingLevel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,realm,verification,isShadowbanned,isGatekept,isModerateSubscription);
+int get hashCode => Object.hashAll([runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,realm,verification,isShadowbanned,isGatekept,isModerateSubscription,rating,ratingLevel]);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, realm: $realm, verification: $verification, isShadowbanned: $isShadowbanned, isGatekept: $isGatekept, isModerateSubscription: $isModerateSubscription)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, realm: $realm, verification: $verification, isShadowbanned: $isShadowbanned, isGatekept: $isGatekept, isModerateSubscription: $isModerateSubscription, rating: $rating, ratingLevel: $ratingLevel)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnPublisherCopyWith<$Res>  {
   factory $SnPublisherCopyWith(SnPublisher value, $Res Function(SnPublisher) _then) = _$SnPublisherCopyWithImpl;
 @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnRealm? realm, SnVerificationMark? verification, bool isShadowbanned, bool isGatekept, bool isModerateSubscription
+ String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnRealm? realm, SnVerificationMark? verification, bool isShadowbanned, bool isGatekept, bool isModerateSubscription, double rating,@JsonKey(name: 'rating_level') int ratingLevel
 });
 
 
@@ -65,7 +65,7 @@ class _$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? realm = freezed,Object? verification = freezed,Object? isShadowbanned = null,Object? isGatekept = null,Object? isModerateSubscription = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? realm = freezed,Object? verification = freezed,Object? isShadowbanned = null,Object? isGatekept = null,Object? isModerateSubscription = null,Object? rating = null,Object? ratingLevel = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -85,7 +85,9 @@ as SnRealm?,verification: freezed == verification ? _self.verification : verific
 as SnVerificationMark?,isShadowbanned: null == isShadowbanned ? _self.isShadowbanned : isShadowbanned // ignore: cast_nullable_to_non_nullable
 as bool,isGatekept: null == isGatekept ? _self.isGatekept : isGatekept // ignore: cast_nullable_to_non_nullable
 as bool,isModerateSubscription: null == isModerateSubscription ? _self.isModerateSubscription : isModerateSubscription // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as double,ratingLevel: null == ratingLevel ? _self.ratingLevel : ratingLevel // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 /// Create a copy of SnPublisher
@@ -227,10 +229,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnRealm? realm,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnRealm? realm,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription,  double rating, @JsonKey(name: 'rating_level')  int ratingLevel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublisher() when $default != null:
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.realm,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription);case _:
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.realm,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription,_that.rating,_that.ratingLevel);case _:
   return orElse();
 
 }
@@ -248,10 +250,10 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnRealm? realm,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnRealm? realm,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription,  double rating, @JsonKey(name: 'rating_level')  int ratingLevel)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisher():
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.realm,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription);}
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.realm,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription,_that.rating,_that.ratingLevel);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -265,10 +267,10 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnRealm? realm,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int type,  String name,  String nick,  String bio,  SnCloudFile? picture,  SnCloudFile? background,  SnAccount? account,  String? accountId,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String? realmId,  SnRealm? realm,  SnVerificationMark? verification,  bool isShadowbanned,  bool isGatekept,  bool isModerateSubscription,  double rating, @JsonKey(name: 'rating_level')  int ratingLevel)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisher() when $default != null:
-return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.realm,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription);case _:
+return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.picture,_that.background,_that.account,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.realmId,_that.realm,_that.verification,_that.isShadowbanned,_that.isGatekept,_that.isModerateSubscription,_that.rating,_that.ratingLevel);case _:
   return null;
 
 }
@@ -280,7 +282,7 @@ return $default(_that.id,_that.type,_that.name,_that.nick,_that.bio,_that.pictur
 @JsonSerializable()
 
 class _SnPublisher implements SnPublisher {
-  const _SnPublisher({this.id = '', this.type = 0, this.name = '', this.nick = '', this.bio = '', this.picture, this.background, this.account, this.accountId, this.createdAt = null, this.updatedAt = null, this.deletedAt, this.realmId, this.realm, this.verification, this.isShadowbanned = false, this.isGatekept = false, this.isModerateSubscription = false});
+  const _SnPublisher({this.id = '', this.type = 0, this.name = '', this.nick = '', this.bio = '', this.picture, this.background, this.account, this.accountId, this.createdAt = null, this.updatedAt = null, this.deletedAt, this.realmId, this.realm, this.verification, this.isShadowbanned = false, this.isGatekept = false, this.isModerateSubscription = false, this.rating = 100.0, @JsonKey(name: 'rating_level') this.ratingLevel = 0});
   factory _SnPublisher.fromJson(Map<String, dynamic> json) => _$SnPublisherFromJson(json);
 
 @override@JsonKey() final  String id;
@@ -301,6 +303,8 @@ class _SnPublisher implements SnPublisher {
 @override@JsonKey() final  bool isShadowbanned;
 @override@JsonKey() final  bool isGatekept;
 @override@JsonKey() final  bool isModerateSubscription;
+@override@JsonKey() final  double rating;
+@override@JsonKey(name: 'rating_level') final  int ratingLevel;
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
@@ -315,16 +319,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.isShadowbanned, isShadowbanned) || other.isShadowbanned == isShadowbanned)&&(identical(other.isGatekept, isGatekept) || other.isGatekept == isGatekept)&&(identical(other.isModerateSubscription, isModerateSubscription) || other.isModerateSubscription == isModerateSubscription));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPublisher&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&(identical(other.nick, nick) || other.nick == nick)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.realmId, realmId) || other.realmId == realmId)&&(identical(other.realm, realm) || other.realm == realm)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.isShadowbanned, isShadowbanned) || other.isShadowbanned == isShadowbanned)&&(identical(other.isGatekept, isGatekept) || other.isGatekept == isGatekept)&&(identical(other.isModerateSubscription, isModerateSubscription) || other.isModerateSubscription == isModerateSubscription)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.ratingLevel, ratingLevel) || other.ratingLevel == ratingLevel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,realm,verification,isShadowbanned,isGatekept,isModerateSubscription);
+int get hashCode => Object.hashAll([runtimeType,id,type,name,nick,bio,picture,background,account,accountId,createdAt,updatedAt,deletedAt,realmId,realm,verification,isShadowbanned,isGatekept,isModerateSubscription,rating,ratingLevel]);
 
 @override
 String toString() {
-  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, realm: $realm, verification: $verification, isShadowbanned: $isShadowbanned, isGatekept: $isGatekept, isModerateSubscription: $isModerateSubscription)';
+  return 'SnPublisher(id: $id, type: $type, name: $name, nick: $nick, bio: $bio, picture: $picture, background: $background, account: $account, accountId: $accountId, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, realmId: $realmId, realm: $realm, verification: $verification, isShadowbanned: $isShadowbanned, isGatekept: $isGatekept, isModerateSubscription: $isModerateSubscription, rating: $rating, ratingLevel: $ratingLevel)';
 }
 
 
@@ -335,7 +339,7 @@ abstract mixin class _$SnPublisherCopyWith<$Res> implements $SnPublisherCopyWith
   factory _$SnPublisherCopyWith(_SnPublisher value, $Res Function(_SnPublisher) _then) = __$SnPublisherCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnRealm? realm, SnVerificationMark? verification, bool isShadowbanned, bool isGatekept, bool isModerateSubscription
+ String id, int type, String name, String nick, String bio, SnCloudFile? picture, SnCloudFile? background, SnAccount? account, String? accountId, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String? realmId, SnRealm? realm, SnVerificationMark? verification, bool isShadowbanned, bool isGatekept, bool isModerateSubscription, double rating,@JsonKey(name: 'rating_level') int ratingLevel
 });
 
 
@@ -352,7 +356,7 @@ class __$SnPublisherCopyWithImpl<$Res>
 
 /// Create a copy of SnPublisher
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? realm = freezed,Object? verification = freezed,Object? isShadowbanned = null,Object? isGatekept = null,Object? isModerateSubscription = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? name = null,Object? nick = null,Object? bio = null,Object? picture = freezed,Object? background = freezed,Object? account = freezed,Object? accountId = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? realmId = freezed,Object? realm = freezed,Object? verification = freezed,Object? isShadowbanned = null,Object? isGatekept = null,Object? isModerateSubscription = null,Object? rating = null,Object? ratingLevel = null,}) {
   return _then(_SnPublisher(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -372,7 +376,9 @@ as SnRealm?,verification: freezed == verification ? _self.verification : verific
 as SnVerificationMark?,isShadowbanned: null == isShadowbanned ? _self.isShadowbanned : isShadowbanned // ignore: cast_nullable_to_non_nullable
 as bool,isGatekept: null == isGatekept ? _self.isGatekept : isGatekept // ignore: cast_nullable_to_non_nullable
 as bool,isModerateSubscription: null == isModerateSubscription ? _self.isModerateSubscription : isModerateSubscription // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as double,ratingLevel: null == ratingLevel ? _self.ratingLevel : ratingLevel // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
