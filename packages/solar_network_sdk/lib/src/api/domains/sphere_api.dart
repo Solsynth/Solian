@@ -9,6 +9,7 @@ import 'package:solar_network_sdk/src/models/posts/embed.dart';
 import 'package:solar_network_sdk/src/models/posts/heatmap.dart';
 import 'package:solar_network_sdk/src/models/posts/tag_quota.dart';
 import 'package:solar_network_sdk/src/models/posts/publisher_rating_record.dart';
+import 'package:solar_network_sdk/src/models/posts/publisher_leaderboard.dart';
 
 /// API for posts-related endpoints (/sphere).
 ///
@@ -352,6 +353,33 @@ class SphereApi extends BaseApi {
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnPublisherRatingRecord.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Gets a publisher's rating overview with percentile and grade.
+  ///
+  /// [name] - The publisher name.
+  Future<SnPublisherRatingOverview> getPublisherRatingOverview(String name) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/publishers/$name/rating/overview',
+    );
+    return SnPublisherRatingOverview.fromJson(response.data!);
+  }
+
+  /// Gets the publisher leaderboard sorted by rating descending.
+  ///
+  /// [take] - Number of items to take (default: 20).
+  /// [offset] - Pagination offset (default: 0).
+  Future<PaginatedResult<SnPublisherLeaderboardEntry>> getPublisherLeaderboard({
+    int take = 20,
+    int offset = 0,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/publishers/leaderboard',
+      queryParameters: {'take': take, 'offset': offset},
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnPublisherLeaderboardEntry.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
