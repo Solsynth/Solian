@@ -8,6 +8,7 @@ import 'package:solar_network_sdk/src/models/posts/post_category.dart';
 import 'package:solar_network_sdk/src/models/posts/embed.dart';
 import 'package:solar_network_sdk/src/models/posts/heatmap.dart';
 import 'package:solar_network_sdk/src/models/posts/tag_quota.dart';
+import 'package:solar_network_sdk/src/models/posts/publisher_rating_record.dart';
 
 /// API for posts-related endpoints (/sphere).
 ///
@@ -323,6 +324,35 @@ class SphereApi extends BaseApi {
   /// [username] - The publisher username.
   Future<void> unsubscribeFromPublisher(String username) async {
     await post('$_basePath/publishers/$username/unsubscribe');
+  }
+
+  /// Gets a publisher's current rating score.
+  ///
+  /// [name] - The publisher name.
+  Future<double> getPublisherRating(String name) async {
+    final response = await get<double>(
+      '$_basePath/publishers/$name/rating',
+    );
+    return response.data!;
+  }
+
+  /// Gets a paginated list of rating history records for a publisher.
+  ///
+  /// [name] - The publisher name.
+  /// [take] - Number of items to take (default: 20).
+  /// [offset] - Pagination offset (default: 0).
+  Future<PaginatedResult<SnPublisherRatingRecord>> getPublisherRatingHistory(
+    String name, {
+    int take = 20,
+    int offset = 0,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/publishers/$name/rating/history',
+      queryParameters: {'take': take, 'offset': offset},
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnPublisherRatingRecord.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
   }
 
   /// Gets publisher features.
