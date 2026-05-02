@@ -393,7 +393,6 @@ ProImageEditorConfigs createImageEditorConfigs(
       ),
     ),
     cropRotateEditor: CropRotateEditorConfigs(
-      enabled: true,
       enableTransformLayers: true,
       style: CropRotateEditorStyle(
         cropCornerColor: Theme.of(context).colorScheme.primary,
@@ -460,7 +459,6 @@ ProImageEditorConfigs createImageEditorConfigs(
       ),
     ),
     paintEditor: PaintEditorConfigs(
-      enabled: effectiveConfig.enablePaint,
       widgets: PaintEditorWidgets(
         appBar: (state, stream) => ReactiveAppbar(
           builder: (context) {
@@ -511,7 +509,6 @@ ProImageEditorConfigs createImageEditorConfigs(
       ),
     ),
     textEditor: TextEditorConfigs(
-      enabled: effectiveConfig.enableText,
       widgets: TextEditorWidgets(
         appBar: (state, stream) => ReactiveAppbar(
           builder: (context) {
@@ -559,9 +556,8 @@ ProImageEditorConfigs createImageEditorConfigs(
         ),
       ),
     ),
-    emojiEditor: EmojiEditorConfigs(enabled: effectiveConfig.enableEmoji),
+    emojiEditor: const EmojiEditorConfigs(),
     filterEditor: FilterEditorConfigs(
-      enabled: effectiveConfig.enableFilters,
       widgets: FilterEditorWidgets(
         appBar: (state, stream) => ReactiveAppbar(
           builder: (context) {
@@ -580,7 +576,6 @@ ProImageEditorConfigs createImageEditorConfigs(
       ),
     ),
     blurEditor: BlurEditorConfigs(
-      enabled: effectiveConfig.enableBlur,
       widgets: BlurEditorWidgets(
         appBar: (state, stream) => ReactiveAppbar(
           builder: (context) {
@@ -598,9 +593,8 @@ ProImageEditorConfigs createImageEditorConfigs(
         ),
       ),
     ),
-    stickerEditor: const StickerEditorConfigs(enabled: false),
+    stickerEditor: const StickerEditorConfigs(),
     tuneEditor: TuneEditorConfigs(
-      enabled: effectiveConfig.enableAdjustments,
       widgets: TuneEditorWidgets(
         appBar: (state, stream) => ReactiveAppbar(
           builder: (context) {
