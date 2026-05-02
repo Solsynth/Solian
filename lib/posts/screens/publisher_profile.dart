@@ -138,6 +138,7 @@ class _PublisherBasisWidget extends HookWidget {
   final SnPublisher data;
   final AsyncValue<SnPublisherSubscriptionStatus?> subStatus;
   final AsyncValue<SnLiveStream?> liveStatus;
+  final AsyncValue<SnPublisherRatingOverview?> ratingOverview;
   final ValueNotifier<bool> subscribing;
   final VoidCallback subscribe;
   final VoidCallback unsubscribe;
@@ -147,6 +148,7 @@ class _PublisherBasisWidget extends HookWidget {
     required this.data,
     required this.subStatus,
     required this.liveStatus,
+    required this.ratingOverview,
     required this.subscribing,
     required this.subscribe,
     required this.unsubscribe,
@@ -157,6 +159,15 @@ class _PublisherBasisWidget extends HookWidget {
     final lines = bio.split('\n');
     if (lines.isEmpty) return '';
     return lines.first.trim();
+  }
+
+  String _formatRating(double rating) {
+    if (rating >= 1000000) {
+      return '${(rating / 1000000).toStringAsFixed(1)}M';
+    } else if (rating >= 1000) {
+      return '${(rating / 1000).toStringAsFixed(1)}K';
+    }
+    return rating.toStringAsFixed(0);
   }
 
   @override
@@ -220,6 +231,82 @@ class _PublisherBasisWidget extends HookWidget {
                           : Text(data.nick, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                     ),
                     if (data.verification != null) VerificationMark(mark: data.verification!),
+                    // Rating grade indicator
+                    ratingOverview.when(
+                      data: (overview) {
+                        if (overview == null) return const SizedBox.shrink();
+                        final textColor = switch (overview.grade) {
+                          'S++' => theme.colorScheme.tertiary,
+                          'S+' => theme.colorScheme.tertiary,
+                          'S' => theme.colorScheme.primary,
+                          'A++' => theme.colorScheme.primary,
+                          'A+' => theme.colorScheme.primary,
+                          'A' => theme.colorScheme.primary,
+                          'A-' => theme.colorScheme.primary,
+                          'B+' => theme.colorScheme.secondary,
+                          'B' => theme.colorScheme.secondary,
+                          'C' => theme.colorScheme.onSurfaceVariant,
+                          'D' => theme.colorScheme.error,
+                          _ => theme.colorScheme.onSurfaceVariant,
+                        };
+                        return Tooltip(
+                          message: '${overview.rating.toStringAsFixed(1)} · ${'ratingPercentile'.tr(args: [overview.percentile.toStringAsFixed(1)])}',
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: switch (overview.grade) {
+                                'S++' => theme.colorScheme.tertiaryContainer,
+                                'S+' => theme.colorScheme.tertiaryContainer,
+                                'S' => theme.colorScheme.primaryContainer,
+                                'A++' => theme.colorScheme.primaryContainer,
+                                'A+' => theme.colorScheme.primaryContainer,
+                                'A' => theme.colorScheme.primaryContainer,
+                                'A-' => theme.colorScheme.primaryContainer,
+                                'B+' => theme.colorScheme.secondaryContainer,
+                                'B' => theme.colorScheme.secondaryContainer,
+                                'C' => theme.colorScheme.surfaceContainerHighest,
+                                'D' => theme.colorScheme.errorContainer,
+                                _ => theme.colorScheme.surfaceContainerHighest,
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  switch (overview.grade) {
+                                    'S++' => Symbols.emoji_events,
+                                    'S+' => Symbols.emoji_events,
+                                    'S' => Symbols.star,
+                                    'A++' => Symbols.trending_up,
+                                    'A+' => Symbols.trending_up,
+                                    'A' => Symbols.trending_up,
+                                    'A-' => Symbols.trending_up,
+                                    'B+' => Symbols.thumb_up,
+                                    'B' => Symbols.thumb_up,
+                                    'C' => Symbols.remove,
+                                    'D' => Symbols.trending_down,
+                                    _ => Symbols.remove,
+                                  },
+                                  size: 14,
+                                  color: textColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${overview.grade} ${_formatRating(overview.rating)}',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                    ),
                     liveStatus.when(
                       data: (stream) => stream == null
                           ? const SizedBox.shrink()
@@ -547,6 +634,19 @@ Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
   return await client.sphere.getPublisherHeatmap(uname);
 }
 
+@riverpod
+Future<SnPublisherRatingOverview?> publisherRatingOverview(Ref ref, String pubName) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  try {
+    return await client.sphere.getPublisherRatingOverview(pubName);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
+    }
+    rethrow;
+  }
+}
+
 final publisherActiveLivestreamProvider = FutureProvider.family.autoDispose<SnLiveStream?, String>((
   ref,
   publisherId,
@@ -583,6 +683,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
     final badges = ref.watch(publisherBadgesProvider(name));
     final subStatus = ref.watch(publisherSubscriptionStatusProvider(name));
     final heatmap = ref.watch(publisherHeatmapProvider(name));
+    final ratingOverview = ref.watch(publisherRatingOverviewProvider(name));
 
     final categoryTabController = useTabController(initialLength: 3);
 
@@ -691,6 +792,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                 data: data,
                                 subStatus: subStatus,
                                 liveStatus: liveStatus,
+                                ratingOverview: ratingOverview,
                                 subscribing: subscribing,
                                 subscribe: subscribe,
                                 unsubscribe: unsubscribe,
@@ -720,6 +822,7 @@ class PublisherProfileScreen extends HookConsumerWidget {
                         data: data,
                         subStatus: subStatus,
                         liveStatus: liveStatus,
+                        ratingOverview: ratingOverview,
                         subscribing: subscribing,
                         subscribe: subscribe,
                         unsubscribe: unsubscribe,

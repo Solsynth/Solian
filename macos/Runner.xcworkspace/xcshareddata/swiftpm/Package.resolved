@@ -23,17 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/firebase-ios-sdk",
       "state" : {
-        "revision" : "52548902007e7beda99fcdca31f62eccc4befe38",
-        "version" : "12.11.0"
-      }
-    },
-    {
-      "identity" : "flutterfire",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/firebase/flutterfire",
-      "state" : {
-        "revision" : "a10a4148e769fadb01b1ff8d6bb76e9137f35b81",
-        "version" : "4.6.0-firebase-core-swift"
+        "revision" : "46579c364d39b86ec9fb8f613e19f023700a929c",
+        "version" : "12.12.1"
       }
     },
     {
@@ -41,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/googleads/google-ads-on-device-conversion-ios-sdk",
       "state" : {
-        "revision" : "7b722132d1f2ab421c88a2e5c384c984cebd0d00",
-        "version" : "3.4.0"
+        "revision" : "19dffda9a9caf8d86570ff846535902d8509d7bf",
+        "version" : "3.5.0"
       }
     },
     {
@@ -50,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/GoogleAppMeasurement.git",
       "state" : {
-        "revision" : "1657f705bc70255ff9d66dfcc697a85db164998f",
-        "version" : "12.11.0"
+        "revision" : "5100f946bd32778662047a823bf145c6da32d85d",
+        "version" : "12.12.1"
       }
     },
     {

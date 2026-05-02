@@ -478,3 +478,86 @@ final class PublisherHeatmapFamily extends $Family
   @override
   String toString() => r'publisherHeatmapProvider';
 }
+
+@ProviderFor(publisherRatingOverview)
+final publisherRatingOverviewProvider = PublisherRatingOverviewFamily._();
+
+final class PublisherRatingOverviewProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SnPublisherRatingOverview?>,
+          SnPublisherRatingOverview?,
+          FutureOr<SnPublisherRatingOverview?>
+        >
+    with
+        $FutureModifier<SnPublisherRatingOverview?>,
+        $FutureProvider<SnPublisherRatingOverview?> {
+  PublisherRatingOverviewProvider._({
+    required PublisherRatingOverviewFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'publisherRatingOverviewProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$publisherRatingOverviewHash();
+
+  @override
+  String toString() {
+    return r'publisherRatingOverviewProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnPublisherRatingOverview?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnPublisherRatingOverview?> create(Ref ref) {
+    final argument = this.argument as String;
+    return publisherRatingOverview(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublisherRatingOverviewProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$publisherRatingOverviewHash() =>
+    r'03526e1032d4e2465c3896ad4418937ee7be49c5';
+
+final class PublisherRatingOverviewFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<SnPublisherRatingOverview?>,
+          String
+        > {
+  PublisherRatingOverviewFamily._()
+    : super(
+        retry: null,
+        name: r'publisherRatingOverviewProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PublisherRatingOverviewProvider call(String pubName) =>
+      PublisherRatingOverviewProvider._(argument: pubName, from: this);
+
+  @override
+  String toString() => r'publisherRatingOverviewProvider';
+}

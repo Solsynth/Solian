@@ -32,6 +32,8 @@ PODS:
   - passkeys_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
+  - pro_image_editor (12.0.8):
+    - FlutterMacOS
   - protocol_handler_macos (0.0.1):
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
@@ -41,6 +43,8 @@ PODS:
   - super_native_extensions (0.0.1):
     - FlutterMacOS
   - tray_manager (0.0.1):
+    - FlutterMacOS
+  - ua_client_hints (1.7.0):
     - FlutterMacOS
   - webcrypto (0.1.1):
     - Flutter
@@ -60,11 +64,13 @@ DEPENDENCIES:
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - objectbox_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos`)
   - passkeys_darwin (from `Flutter/ephemeral/.symlinks/plugins/passkeys_darwin/darwin`)
+  - pro_image_editor (from `Flutter/ephemeral/.symlinks/plugins/pro_image_editor/macos`)
   - protocol_handler_macos (from `Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
   - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
+  - ua_client_hints (from `Flutter/ephemeral/.symlinks/plugins/ua_client_hints/macos`)
   - webcrypto (from `Flutter/ephemeral/.symlinks/plugins/webcrypto/darwin`)
 
 SPEC REPOS:
@@ -99,6 +105,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos
   passkeys_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/passkeys_darwin/darwin
+  pro_image_editor:
+    :path: Flutter/ephemeral/.symlinks/plugins/pro_image_editor/macos
   protocol_handler_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/protocol_handler_macos/macos
   screen_retriever_macos:
@@ -109,6 +117,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos
   tray_manager:
     :path: Flutter/ephemeral/.symlinks/plugins/tray_manager/macos
+  ua_client_hints:
+    :path: Flutter/ephemeral/.symlinks/plugins/ua_client_hints/macos
   webcrypto:
     :path: Flutter/ephemeral/.symlinks/plugins/webcrypto/darwin
 
@@ -128,11 +138,13 @@ SPEC CHECKSUMS:
   objectbox_flutter_libs: 3adf97321750a5e89c199bda09d3c0ce659022d8
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   passkeys_darwin: 0a09d3b26cea8de1ec3bb8f8c7c159981f63bbc7
+  pro_image_editor: e4f2ca0bcf5d755d81620d531b00e0906ccaa0ae
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   sign_in_with_apple: 6673c03c9e3643f6c8d33601943fbfa9ae99f94e
   super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
   tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
+  ua_client_hints: bb84da85d9d5d605d40598b3c1ae3bfd2598e201
   webcrypto: a5f5eb3e375cf0a99993e207e97cdcab5c94ce2e
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 

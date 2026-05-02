@@ -366,7 +366,13 @@ class ComposeLogic {
       ),
       reactions: [],
       tags: state.tags.value
-          .map((tag) => SnPostTag(id: tag, slug: tag, name: tag))
+          .map((tag) => SnPostTag(
+                  id: tag,
+                  slug: tag,
+                  name: tag,
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                ))
           .toList(),
       categories: state.categories.value,
       collections: [],
