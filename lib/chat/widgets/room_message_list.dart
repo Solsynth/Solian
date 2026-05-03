@@ -129,9 +129,10 @@ class RoomMessageList extends HookConsumerWidget {
       () => {...allGroupIds}..removeAll(chatState.collapsedBotGroupIds),
       [allGroupIds, chatState.collapsedBotGroupIds],
     );
+    final useColumnDisplay = settings.messageDisplayStyle == 'column';
     final useBubbleDisplay =
-        settings.messageDisplayStyle != 'compact' &&
-        settings.messageDisplayStyle != 'column';
+        settings.messageDisplayStyle != 'compact' && !useColumnDisplay;
+    final useStickyGroupedDisplay = useBubbleDisplay || useColumnDisplay;
 
     int lastReturnedIndex = -1;
 
@@ -188,12 +189,12 @@ class RoomMessageList extends HookConsumerWidget {
             !isSameSenderGroup(nextMessage) ||
             (botGroup != null && isCollapsed && index == botGroup.endIndex);
         final isFirstInGroup = !isSameSenderGroup(previousMessage);
-        if (useBubbleDisplay && !isFirstInGroup) {
+        if (useStickyGroupedDisplay && !isFirstInGroup) {
           return const SizedBox.shrink();
         }
 
         final groupedMessages = <LocalChatMessage>[message];
-        if (useBubbleDisplay) {
+        if (useStickyGroupedDisplay) {
           for (var i = index + 1; i < messages.length; i++) {
             final groupedMessage = messages[i];
             if (groupedMessage.senderId != message.senderId ||
@@ -220,12 +221,14 @@ class RoomMessageList extends HookConsumerWidget {
           int itemIndex, {
           required bool showItemAvatar,
           required bool drawBubbleAvatar,
+          required bool drawColumnAvatar,
         }) {
           return MessageItemWrapper(
             message: item,
             index: itemIndex,
             isLastInGroup: showItemAvatar,
             showBubbleAvatar: drawBubbleAvatar,
+            showColumnAvatar: drawColumnAvatar,
             isSelectionMode: chatState.isSelectionMode,
             selectedMessages: chatState.selectedMessageIds,
             chatIdentity: chatIdentity,
@@ -239,10 +242,14 @@ class RoomMessageList extends HookConsumerWidget {
           );
         }
 
-        final messageContent = useBubbleDisplay && groupedMessages.length > 1
+        final messageContent =
+            useStickyGroupedDisplay && groupedMessages.length > 1
             ? _StickyBubbleMessageGroup(
                 roomId: roomId,
                 sender: message.toRemoteMessage().sender,
+                avatarSize: useColumnDisplay ? 24 : 32,
+                avatarLeft: 12,
+                avatarTop: useColumnDisplay ? 8 : 9,
                 children: [
                   for (var i = groupedMessages.length - 1; i >= 0; i--)
                     buildMessage(
@@ -250,6 +257,7 @@ class RoomMessageList extends HookConsumerWidget {
                       index + i,
                       showItemAvatar: i == groupedMessages.length - 1,
                       drawBubbleAvatar: false,
+                      drawColumnAvatar: false,
                     ),
                 ],
               )
@@ -258,6 +266,7 @@ class RoomMessageList extends HookConsumerWidget {
                 index,
                 showItemAvatar: isLastInGroup,
                 drawBubbleAvatar: true,
+                drawColumnAvatar: true,
               );
 
         return Column(
@@ -339,19 +348,22 @@ class RoomMessageList extends HookConsumerWidget {
 }
 
 class _StickyBubbleMessageGroup extends StatefulWidget {
-  static const double _avatarSize = 32;
-  static const double _avatarLeft = 12;
-  static const double _avatarTop = 9;
   static const double _viewportTopMargin = 12;
   static const Duration _stickDuration = Duration(milliseconds: 70);
 
   final String roomId;
   final SnChatMember sender;
+  final double avatarSize;
+  final double avatarLeft;
+  final double avatarTop;
   final List<Widget> children;
 
   const _StickyBubbleMessageGroup({
     required this.roomId,
     required this.sender,
+    required this.avatarSize,
+    required this.avatarLeft,
+    required this.avatarTop,
     required this.children,
   });
 
@@ -403,27 +415,26 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
 
   double _avatarOffset() {
     final scrollable = Scrollable.maybeOf(context);
-    if (scrollable == null) return _StickyBubbleMessageGroup._avatarTop;
+    if (scrollable == null) return widget.avatarTop;
 
     final box = _key.currentContext?.findRenderObject() as RenderBox?;
     final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
     if (box == null || viewportBox == null || !box.hasSize) {
-      return _StickyBubbleMessageGroup._avatarTop;
+      return widget.avatarTop;
     }
 
     final double groupTop;
     try {
       groupTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
     } catch (_) {
-      return _StickyBubbleMessageGroup._avatarTop;
+      return widget.avatarTop;
     }
     final stickyDelta = _StickyBubbleMessageGroup._viewportTopMargin - groupTop;
-    final maxOffset = (box.size.height - _StickyBubbleMessageGroup._avatarSize)
-        .clamp(0.0, double.infinity);
-    return (_StickyBubbleMessageGroup._avatarTop + stickyDelta).clamp(
-      _StickyBubbleMessageGroup._avatarTop,
-      maxOffset,
+    final maxOffset = (box.size.height - widget.avatarSize).clamp(
+      0.0,
+      double.infinity,
     );
+    return (widget.avatarTop + stickyDelta).clamp(widget.avatarTop, maxOffset);
   }
 
   @override
@@ -440,7 +451,7 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
           children: widget.children,
         ),
         Positioned(
-          left: _StickyBubbleMessageGroup._avatarLeft,
+          left: widget.avatarLeft,
           top: 0,
           child: TweenAnimationBuilder<double>(
             tween: Tween<double>(end: offset),
@@ -455,7 +466,7 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
               member: widget.sender,
               child: ProfilePictureWidget(
                 file: widget.sender.account.profile.picture,
-                radius: _StickyBubbleMessageGroup._avatarSize / 2,
+                radius: widget.avatarSize / 2,
               ),
             ),
           ),
