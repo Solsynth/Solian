@@ -58,13 +58,13 @@ PODS:
     - FlutterMacOS
   - permission_handler_apple (9.3.0):
     - Flutter
+  - pro_image_editor (12.0.8):
+    - Flutter
   - protocol_handler_ios (0.0.1):
     - Flutter
   - sign_in_with_apple (0.0.1):
     - Flutter
   - super_native_extensions (0.0.1):
-    - Flutter
-  - ua_client_hints (1.4.1):
     - Flutter
   - video_thumbnail (0.0.1):
     - Flutter
@@ -93,10 +93,10 @@ DEPENDENCIES:
   - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
   - passkeys_darwin (from `.symlinks/plugins/passkeys_darwin/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - pro_image_editor (from `.symlinks/plugins/pro_image_editor/ios`)
   - protocol_handler_ios (from `.symlinks/plugins/protocol_handler_ios/ios`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
-  - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
   - video_thumbnail (from `.symlinks/plugins/video_thumbnail/ios`)
   - webcrypto (from `.symlinks/plugins/webcrypto/darwin`)
 
@@ -144,14 +144,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/passkeys_darwin/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  pro_image_editor:
+    :path: ".symlinks/plugins/pro_image_editor/ios"
   protocol_handler_ios:
     :path: ".symlinks/plugins/protocol_handler_ios/ios"
   sign_in_with_apple:
     :path: ".symlinks/plugins/sign_in_with_apple/ios"
   super_native_extensions:
     :path: ".symlinks/plugins/super_native_extensions/ios"
-  ua_client_hints:
-    :path: ".symlinks/plugins/ua_client_hints/ios"
   video_thumbnail:
     :path: ".symlinks/plugins/video_thumbnail/ios"
   webcrypto:
@@ -179,10 +179,10 @@ SPEC CHECKSUMS:
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   passkeys_darwin: 0a09d3b26cea8de1ec3bb8f8c7c159981f63bbc7
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  pro_image_editor: 3dedac450f82a389877286fa9eb08852cefb04ea
   protocol_handler_ios: 59f23ee71f3ec602d67902ca7f669a80957888d5
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
-  ua_client_hints: 92fe0d139619b73ec9fcb46cc7e079a26178f586
   video_thumbnail: b637e0ad5f588ca9945f6e2c927f73a69a661140
   webcrypto: a5f5eb3e375cf0a99993e207e97cdcab5c94ce2e
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
