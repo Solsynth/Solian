@@ -47,6 +47,99 @@ class ArticleEditScreen extends HookConsumerWidget {
   }
 }
 
+class _ArticlePreviewPane extends HookWidget {
+  final ComposeState state;
+  final ThemeData theme;
+  final ColorScheme colorScheme;
+
+  const _ArticlePreviewPane({
+    required this.state,
+    required this.theme,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final title = useValueListenable(state.titleController);
+    final description = useValueListenable(state.descriptionController);
+    final content = useValueListenable(state.contentController);
+    final attachments = useValueListenable(state.attachments);
+
+    final widgetItem = SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.text.isNotEmpty) ...[
+            Text(
+              title.text,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Gap(20),
+          ],
+          if (description.text.isNotEmpty) ...[
+            Text(
+              description.text,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+            const Gap(20),
+          ],
+          if (content.text.isNotEmpty)
+            MarkdownTextContent(
+              content: content.text,
+              textStyle: theme.textTheme.bodyMedium,
+              attachments: attachments
+                  .where((e) => e.isOnCloud)
+                  .map((e) => e.data)
+                  .cast<SnCloudFile>()
+                  .toList(),
+            ),
+        ],
+      ),
+    );
+
+    if (isWideScreen(context)) {
+      return Align(alignment: Alignment.topLeft, child: widgetItem);
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Symbols.preview, size: 20),
+                const Gap(8),
+                Text('preview'.tr(), style: theme.textTheme.titleMedium),
+              ],
+            ),
+          ),
+          Expanded(child: widgetItem),
+        ],
+      ),
+    );
+  }
+}
+
 @RoutePage()
 class ArticleComposeScreen extends HookConsumerWidget {
   final SnPost? originalPost;
@@ -195,96 +288,6 @@ class ArticleComposeScreen extends HookConsumerWidget {
     }, [originalPost, initialState, restorePrompted.value]);
 
     // Helper methods
-    Widget buildPreviewPane() {
-      final widgetItem = SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
-        child: ValueListenableBuilder<TextEditingValue>(
-          valueListenable: state.titleController,
-          builder: (context, titleValue, _) {
-            return ValueListenableBuilder<TextEditingValue>(
-              valueListenable: state.descriptionController,
-              builder: (context, descriptionValue, _) {
-                return ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: state.contentController,
-                  builder: (context, contentValue, _) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (titleValue.text.isNotEmpty) ...[
-                          Text(
-                            titleValue.text,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Gap(20),
-                        ],
-                        if (descriptionValue.text.isNotEmpty) ...[
-                          Text(
-                            descriptionValue.text,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                          ),
-                          const Gap(20),
-                        ],
-                        if (contentValue.text.isNotEmpty)
-                          MarkdownTextContent(
-                            content: contentValue.text,
-                            textStyle: theme.textTheme.bodyMedium,
-                            attachments: state.attachments.value
-                                .where((e) => e.isOnCloud)
-                                .map((e) => e.data)
-                                .cast<SnCloudFile>()
-                                .toList(),
-                          ),
-                      ],
-                    );
-                  },
-                );
-              },
-            );
-          },
-        ),
-      );
-
-      if (isWideScreen(context)) {
-        return Align(alignment: Alignment.topLeft, child: widgetItem);
-      }
-
-      return Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(Symbols.preview, size: 20),
-                  const Gap(8),
-                  Text('preview'.tr(), style: theme.textTheme.titleMedium),
-                ],
-              ),
-            ),
-            Expanded(child: widgetItem),
-          ],
-        ),
-      );
-    }
-
     Widget buildEditorPane() {
       final editorContent = Center(
         child: ConstrainedBox(
@@ -358,26 +361,30 @@ class ArticleComposeScreen extends HookConsumerWidget {
             },
           ),
           actions: [
-            // Info banner for article compose
             const SizedBox.shrink(),
-            IconButton(
-              icon: ProfilePictureWidget(
-                file: state.currentPublisher.value?.picture,
-                radius: 12,
-                fallbackIcon: state.currentPublisher.value == null
-                    ? Symbols.question_mark
-                    : null,
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  isScrollControlled: true,
-                  context: context,
-                  builder: (context) => const PublisherModal(),
-                ).then((value) {
-                  if (value != null) {
-                    state.currentPublisher.value = value;
-                  }
-                });
+            ValueListenableBuilder<SnPublisher?>(
+              valueListenable: state.currentPublisher,
+              builder: (context, publisher, _) {
+                return IconButton(
+                  icon: ProfilePictureWidget(
+                    file: publisher?.picture,
+                    radius: 12,
+                    fallbackIcon: publisher == null
+                        ? Symbols.question_mark
+                        : null,
+                  ),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      isScrollControlled: true,
+                      context: context,
+                      builder: (context) => const PublisherModal(),
+                    ).then((value) {
+                      if (value != null) {
+                        state.currentPublisher.value = value;
+                      }
+                    });
+                  },
+                );
               },
             ),
             IconButton(
@@ -499,13 +506,23 @@ class ArticleComposeScreen extends HookConsumerWidget {
                             children: [
                               Expanded(child: buildEditorPane()),
                               if (showPreview.value)
-                                Expanded(child: buildPreviewPane()),
+                                Expanded(
+                                  child: _ArticlePreviewPane(
+                                    state: state,
+                                    theme: theme,
+                                    colorScheme: colorScheme,
+                                  ),
+                                ),
                             ],
                           )
                         : Container(
                             key: ValueKey('narrow-${showPreview.value}'),
                             child: showPreview.value
-                                ? buildPreviewPane()
+                                ? _ArticlePreviewPane(
+                                    state: state,
+                                    theme: theme,
+                                    colorScheme: colorScheme,
+                                  )
                                 : buildEditorPane(),
                           ),
                   ),
