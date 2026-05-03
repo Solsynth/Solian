@@ -1455,7 +1455,12 @@ class _StickyAvatarMessageRowState extends State<_StickyAvatarMessageRow> {
     final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
     if (box == null || viewportBox == null || !box.hasSize) return 0;
 
-    final rowTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    final double rowTop;
+    try {
+      rowTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    } catch (_) {
+      return 0;
+    }
     final maxOffset = (box.size.height - _StickyAvatarMessageRow._size).clamp(
       0.0,
       double.infinity,
