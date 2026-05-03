@@ -56,6 +56,8 @@ class AppWrapper extends HookConsumerWidget {
     final networkStateShowing = useState(false);
     final websocketState = ref.watch(websocketStateProvider);
     final apiState = ref.watch(networkStatusProvider);
+    final connectivityStatus = ref.watch(connectivityStatusProvider);
+    final hasConnectivity = hasNetworkConnectivityValue(connectivityStatus);
     final token = ref.watch(tokenProvider);
     final isShowSnow = useState(false);
     final isSnowGone = useState(false);
@@ -72,6 +74,19 @@ class AppWrapper extends HookConsumerWidget {
     // Handle network status modal
     useEffect(() {
       bool triedOpen = false;
+      if (!hasConnectivity && !networkStateShowing.value && !triedOpen) {
+        networkStateShowing.value = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = ref.read(routerProvider).navigatorKey.currentContext!;
+          showModalBottomSheet(
+            context: ctx,
+            isScrollControlled: true,
+            builder: (context) => const NetworkStatusSheet(),
+          ).then((_) => networkStateShowing.value = false);
+        });
+        triedOpen = true;
+      }
+
       if (websocketState == WebSocketState.duplicateDevice() &&
           !networkStateShowing.value &&
           !triedOpen) {
@@ -87,7 +102,8 @@ class AppWrapper extends HookConsumerWidget {
         triedOpen = true;
       }
 
-      if (apiState != NetworkStatus.online &&
+      if (hasConnectivity &&
+          apiState != NetworkStatus.online &&
           !networkStateShowing.value &&
           !triedOpen) {
         networkStateShowing.value = true;
@@ -102,7 +118,26 @@ class AppWrapper extends HookConsumerWidget {
         triedOpen = true;
       }
       return null;
-    }, [websocketState, apiState]);
+    }, [websocketState, apiState, hasConnectivity]);
+
+    useEffect(() {
+      if (!hasConnectivity) {
+        ref.read(networkStatusProvider.notifier).setOffline();
+        return null;
+      }
+
+      if (token == null) return null;
+      final shouldReconnect = websocketState.maybeWhen(
+        disconnected: () => true,
+        serverDown: () => true,
+        error: (_) => true,
+        orElse: () => false,
+      );
+      if (shouldReconnect) {
+        Future(() => ref.read(websocketStateProvider.notifier).connect());
+      }
+      return null;
+    }, [hasConnectivity, token, websocketState]);
 
     // Initialize services and listeners
     useEffect(() {

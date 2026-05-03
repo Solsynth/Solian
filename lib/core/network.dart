@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +32,24 @@ class RefreshTokenExpiredException implements Exception {
 
 // Network status enum to track different states
 enum NetworkStatus { online, notReady, maintenance, offline }
+
+final connectivityProvider = Provider<Connectivity>((ref) => Connectivity());
+
+final connectivityStatusProvider = StreamProvider<List<ConnectivityResult>>((
+  ref,
+) async* {
+  final connectivity = ref.watch(connectivityProvider);
+  yield await connectivity.checkConnectivity();
+  yield* connectivity.onConnectivityChanged;
+});
+
+bool hasNetworkConnectivity(List<ConnectivityResult> results) {
+  return results.any((result) => result != ConnectivityResult.none);
+}
+
+bool hasNetworkConnectivityValue(AsyncValue<List<ConnectivityResult>> value) {
+  return value.maybeWhen(data: hasNetworkConnectivity, orElse: () => true);
+}
 
 // Provider for network status using Riverpod v3 annotation
 @riverpod
