@@ -142,23 +142,12 @@ class MessageSenderInfo extends StatelessWidget {
     }
 
     return Row(
-      spacing: 8,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showAvatar)
-          ChatRoomMemberRegion(
-            roomId: roomId,
-            member: s,
-            child: ProfilePictureWidget(
-              file: s.account.profile.picture,
-              radius: 16,
-            ),
-          ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 2,
           children: [
-            Text(timestamp, style: TextStyle(fontSize: 10, color: textColor)),
             Row(
               children: [
                 AccountName(
@@ -173,6 +162,13 @@ class MessageSenderInfo extends StatelessWidget {
                 if (s.realmLabel != null)
                   RealmLabelWidget(label: s.realmLabel!).padding(left: 6),
               ],
+            ),
+            Text(
+              timestamp,
+              style: TextStyle(
+                fontSize: 10,
+                color: textColor.withOpacity(0.7),
+              ),
             ),
           ],
         ),
