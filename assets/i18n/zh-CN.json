@@ -811,6 +811,7 @@
   "ratingGrade": "等级",
   "ratingPercentile": "前 {}%",
   "ratingRank": "排名 # {}",
+  "publisherLeaderboard": "发布者排行榜",
   "gradeSPlusPlus": "S++",
   "gradeSPlus": "S+",
   "gradeS": "S",
