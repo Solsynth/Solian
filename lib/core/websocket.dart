@@ -85,6 +85,14 @@ class WebSocketService {
     _isConnecting = true;
     final connectionGeneration = ++_connectionGeneration;
     await _disposeActiveChannel(suppressReconnect: true);
+
+    if (!hasNetworkConnectivityValue(ref.read(connectivityStatusProvider))) {
+      Logger.root.info('[WebSocket] Refusing connect: no network connectivity');
+      _isConnecting = false;
+      _addStatus(WebSocketState.disconnected());
+      return;
+    }
+
     _addStatus(WebSocketState.connecting());
 
     final baseUrl = ref.read(serverUrlProvider);
@@ -183,6 +191,7 @@ class WebSocketService {
       );
     } catch (err) {
       if (connectionGeneration != _connectionGeneration || _isClosing) return;
+      _isConnecting = false;
       Logger.root.severe('[WebSocket] Failed to connect: $err');
       _addStatus(WebSocketState.error(err.toString()));
       _scheduleReconnect();
@@ -218,6 +227,14 @@ class WebSocketService {
       Logger.root.severe(
         '[WebSocket] Cannot schedule reconnect: ref not initialized',
       );
+      return;
+    }
+
+    if (!hasNetworkConnectivityValue(ref.read(connectivityStatusProvider))) {
+      Logger.root.info(
+        '[WebSocket] Reconnect paused until network connectivity returns',
+      );
+      _addStatus(WebSocketState.disconnected());
       return;
     }
 
@@ -274,6 +291,14 @@ class WebSocketService {
       return;
     }
     Logger.root.info('[WebSocket] Manual reconnect triggered by user');
+
+    if (!hasNetworkConnectivityValue(ref.read(connectivityStatusProvider))) {
+      Logger.root.info('[WebSocket] Manual reconnect refused: offline');
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
+      _addStatus(WebSocketState.disconnected());
+      return;
+    }
 
     // Cancel any pending reconnect timers
     _reconnectTimer?.cancel();
