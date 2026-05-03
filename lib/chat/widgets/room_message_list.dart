@@ -282,6 +282,8 @@ class RoomMessageList extends HookConsumerWidget {
 }
 
 class _BotGroupExpandBar extends StatelessWidget {
+  static const double _bubbleContentOffset = 64;
+
   final int hiddenCount;
   final VoidCallback onToggle;
   final bool isExpanded;
@@ -296,7 +298,7 @@ class _BotGroupExpandBar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isExpanded) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+        padding: const EdgeInsets.fromLTRB(_bubbleContentOffset, 4, 12, 4),
         child: InkWell(
           onTap: onToggle,
           borderRadius: BorderRadius.circular(16),
@@ -337,7 +339,7 @@ class _BotGroupExpandBar extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      padding: const EdgeInsets.fromLTRB(_bubbleContentOffset, 4, 12, 4),
       child: InkWell(
         onTap: onToggle,
         borderRadius: BorderRadius.circular(16),
