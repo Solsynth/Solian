@@ -57,7 +57,6 @@ class MessagesNotifier extends _$MessagesNotifier {
   /// than we display (_pageSize)
   int _lastApiFetchOffset = 0;
 
-  StreamSubscription<ChatMessagesSyncedEvent>? _syncEventsSub;
   final Set<String> _prefetchedVoiceUrls = <String>{};
 
   late Future<SnAccount?> Function(String) _fetchAccount;
@@ -234,8 +233,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   /// since MLS forward secrecy prevents self-decryption - plaintext is preserved from pending.
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
-    _apiClient = ref.watch(apiClientProvider);
-    _database = ref.watch(databaseProvider);
+    _apiClient = ref.read(apiClientProvider);
+    _database = ref.read(databaseProvider);
     _messageCache = MessageCache(maxSize: PaginationConfig.maxCacheSize);
     _pendingCache = PendingMessageCache();
     _repository = MessageRepository(ref, roomId, _messageCache);
@@ -276,21 +275,27 @@ class MessagesNotifier extends _$MessagesNotifier {
         }
         _emitMessages(list);
       },
-      onMessageDelete: (messageId) {
-        final list = _currentMessages.where((m) => m.id != messageId).toList();
+      onMessageDelete: (message) {
+        final list = [..._currentMessages];
+        final index = list.indexWhere((m) => m.id == message.id);
+        if (index >= 0) {
+          list[index] = message;
+        } else {
+          list.add(message);
+        }
         _emitMessages(list);
       },
       onReconnectionNeeded: () {
         unawaited(loadInitial(forceRemoteRefresh: false));
       },
     );
-    final room = await ref.watch(chatRoomProvider(roomId).future);
-    final identity = await ref.watch(chatRoomIdentityProvider(roomId).future);
+    final room = await ref.read(chatRoomProvider(roomId).future);
+    final identity = await ref.read(chatRoomIdentityProvider(roomId).future);
 
     // Initialize fetch account method for corrupted data recovery
     _fetchAccount = (String accountId) async {
       try {
-        return await ref.watch(accountProvider(accountId).future);
+        return await ref.read(accountProvider(accountId).future);
       } catch (_) {
         return null;
       }
@@ -356,17 +361,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     Logger.root.info('MessagesNotifier built for room $roomId');
 
     _realtime.startListening();
-
-    _syncEventsSub?.cancel();
-    _syncEventsSub = eventBus.on<ChatMessagesSyncedEvent>().listen((event) {
-      if (!event.roomIds.contains(roomId)) return;
-      if (_isJumping || _isLoadingInitial || !ref.mounted) return;
-
-      Logger.root.info(
-        'Received global sync completion for room $roomId, reloading in-memory messages from cache',
-      );
-      loadInitial(forceRemoteRefresh: false);
-    });
 
     StreamSubscription<MlsExternalJoinStartedEvent>? e2eeStartSub;
     StreamSubscription<MlsExternalJoinCompletedEvent>? e2eeCompleteSub;
@@ -468,8 +462,6 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     ref.onDispose(() {
       _realtime.stopListening();
-      _syncEventsSub?.cancel();
-      _syncEventsSub = null;
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();
       e2eeFailedSub?.cancel();
@@ -702,10 +694,25 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isLoadingInitial = true;
 
     try {
+      final previous = _currentMessages;
       final messages = await _loadInitialMessages(
         forceRemoteRefresh: forceRemoteRefresh,
       );
-      if (ref.mounted) _emitMessages(messages);
+      if (ref.mounted) {
+        if (messages.isEmpty && previous.isNotEmpty && !forceRemoteRefresh) {
+          Logger.root.info(
+            'Initial reload returned empty; preserving existing in-memory messages',
+          );
+          _emitMessages(previous);
+          Future.delayed(const Duration(milliseconds: 600), () {
+            if (ref.mounted) {
+              unawaited(loadInitial(forceRemoteRefresh: true));
+            }
+          });
+        } else {
+          _emitMessages(messages);
+        }
+      }
     } finally {
       _isLoadingInitial = false;
     }
