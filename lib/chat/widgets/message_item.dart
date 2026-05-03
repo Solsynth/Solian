@@ -61,6 +61,7 @@ class MessageItem extends HookConsumerWidget {
   final Map<int, double?>? progress;
   final bool showAvatar;
   final bool showBubbleAvatar;
+  final bool showColumnAvatar;
   final Function(String messageId) onJump;
   final bool isSelectionMode;
   final bool isSelected;
@@ -75,6 +76,7 @@ class MessageItem extends HookConsumerWidget {
     required this.progress,
     required this.showAvatar,
     this.showBubbleAvatar = true,
+    this.showColumnAvatar = true,
     required this.onJump,
     this.isSelectionMode = false,
     this.isSelected = false,
@@ -360,6 +362,7 @@ class MessageItem extends HookConsumerWidget {
                           isCurrentUser: isCurrentUser,
                           progress: progress,
                           showAvatar: showAvatar,
+                          showColumnAvatar: showColumnAvatar,
                           onJump: onJump,
                           translatedText: translatedText.value,
                           translating: translating.value,
@@ -1651,6 +1654,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
   final bool isCurrentUser;
   final Map<int, double?>? progress;
   final bool showAvatar;
+  final bool showColumnAvatar;
   final Function(String messageId) onJump;
   final String? translatedText;
   final bool translating;
@@ -1661,6 +1665,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
     required this.isCurrentUser,
     required this.progress,
     required this.showAvatar,
+    required this.showColumnAvatar,
     required this.onJump,
     required this.translatedText,
     required this.translating,
@@ -1683,14 +1688,17 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                 Row(
                   spacing: 8,
                   children: [
-                    ChatRoomMemberRegion(
-                      roomId: message.roomId,
-                      member: sender,
-                      child: ProfilePictureWidget(
-                        file: sender.account.profile.picture,
-                        radius: kAvatarRadius,
-                      ),
-                    ),
+                    if (showColumnAvatar)
+                      ChatRoomMemberRegion(
+                        roomId: message.roomId,
+                        member: sender,
+                        child: ProfilePictureWidget(
+                          file: sender.account.profile.picture,
+                          radius: kAvatarRadius,
+                        ),
+                      )
+                    else
+                      const SizedBox(width: kAvatarRadius * 2),
                     MessageSenderInfo(
                       roomId: message.roomId,
                       sender: sender,
