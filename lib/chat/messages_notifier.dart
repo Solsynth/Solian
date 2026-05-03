@@ -121,7 +121,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     isE2eeRoom: _isE2eeRoom,
   );
 
-
   bool _isSystemEventType(String type) {
     if (type.startsWith('system.')) return true;
     switch (type) {
@@ -307,15 +306,22 @@ class MessagesNotifier extends _$MessagesNotifier {
     _roomEncryptionMode = room.encryptionMode;
     _mlsGroupId = room.mlsGroupId;
 
+    var disposed = false;
+
     // Defer heavy MLS operations to post-frame callback to not block initial build
     Future.microtask(() async {
+      if (disposed || !ref.mounted) return;
+
       // Set account ID for MLS operations
       if (identity != null) {
         final mlsClient = ref.read(mlsClientProvider);
         await mlsClient.setCurrentAccountId(identity.accountId);
+        if (disposed || !ref.mounted) return;
         // Fetch pending E2EE envelopes (Welcome, Commit, Proposal)
         await mlsClient.fetchAndProcessPendingEnvelopes();
       }
+
+      if (disposed || !ref.mounted) return;
 
       // Ensure MLS group is bootstrapped for E2EE rooms
       if (_isE2eeRoom) {
@@ -325,12 +331,14 @@ class MessagesNotifier extends _$MessagesNotifier {
           );
         } else {
           try {
+            if (disposed || !ref.mounted) return;
             final mlsClient = ref.read(mlsClientProvider);
 
             // Check current epoch for logging purposes
             final currentEpoch = await mlsClient.getCurrentEpoch(
               room.mlsGroupId!,
             );
+            if (disposed || !ref.mounted) return;
             Logger.root.fine(
               'Current MLS epoch for room $roomId (group: ${room.mlsGroupId}): $currentEpoch',
             );
@@ -461,6 +469,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     ref.onDispose(() {
+      disposed = true;
       _realtime.stopListening();
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();
@@ -477,7 +486,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return messages;
   }
-
 
   Future<void> _updateStateSafely(List<LocalChatMessage> messages) async {
     if (_isUpdatingState) {
@@ -763,7 +771,6 @@ class MessagesNotifier extends _$MessagesNotifier {
       _setGlobalSyncing(false);
     }
   }
-
 
   void _upsertReceivedMessageInState(LocalChatMessage localMessage) {
     final isMessageUpdate =
@@ -1126,7 +1133,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     try {
-      final jump = await _syncService.loadAroundMessage(messageId, chunkSize: 100);
+      final jump = await _syncService.loadAroundMessage(
+        messageId,
+        chunkSize: 100,
+      );
       if (!jump.found || jump.targetMessage == null) {
         Logger.root.info('Message $messageId not found');
         showSnackBar('messageNotFound'.tr());
@@ -1179,9 +1189,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Wait a bit for the UI to rebuild with new messages
       await Future.delayed(const Duration(milliseconds: 100));
 
-      final finalIndex = _currentMessages.indexWhere(
-        (m) => m.id == messageId,
-      );
+      final finalIndex = _currentMessages.indexWhere((m) => m.id == messageId);
       Logger.root.info('Final index for message $messageId is $finalIndex');
 
       // Verify the message is actually in the list before returning

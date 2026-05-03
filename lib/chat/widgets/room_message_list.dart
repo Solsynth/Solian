@@ -411,7 +411,12 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
       return _StickyBubbleMessageGroup._avatarTop;
     }
 
-    final groupTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    final double groupTop;
+    try {
+      groupTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    } catch (_) {
+      return _StickyBubbleMessageGroup._avatarTop;
+    }
     final stickyDelta = _StickyBubbleMessageGroup._viewportTopMargin - groupTop;
     final maxOffset = (box.size.height - _StickyBubbleMessageGroup._avatarSize)
         .clamp(0.0, double.infinity);
