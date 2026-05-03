@@ -25,6 +25,7 @@ class CloudFileList extends HookConsumerWidget {
   final EdgeInsets? padding;
   final bool isColumn;
   final bool initiallyCollapsed;
+  final String heroTagPrefix;
   const CloudFileList({
     super.key,
     required this.files,
@@ -36,7 +37,10 @@ class CloudFileList extends HookConsumerWidget {
     this.padding,
     this.isColumn = false,
     this.initiallyCollapsed = true,
+    this.heroTagPrefix = 'cloud-file',
   });
+
+  String _heroTag(String fileId) => '$heroTagPrefix-$fileId';
 
   double calculateAspectRatio() {
     final ratios = <double>[];
@@ -148,7 +152,7 @@ class CloudFileList extends HookConsumerWidget {
       CloudFileLightbox(
         items: viewableFiles.map((e) => e.value).toList(),
         initialIndex: viewableIndex,
-        heroTag: 'cloud-file-${files[index].id}',
+        heroTag: _heroTag(files[index].id),
       ),
       rootNavigator: true,
     );
@@ -182,7 +186,7 @@ class CloudFileList extends HookConsumerWidget {
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: _CloudFileListEntry(
             file: file,
-            heroTag: 'cloud-file-${files[i].id}',
+            heroTag: _heroTag(files[i].id),
             isImage: isImage,
             disableZoomIn: disableZoomIn,
             onTap: () {
@@ -245,7 +249,7 @@ class CloudFileList extends HookConsumerWidget {
                               height: 120,
                               child: _CloudFileListEntry(
                                 file: filesToShow[i],
-                                heroTag: 'cloud-file-${files[i].id}',
+                                heroTag: _heroTag(files[i].id),
                                 isImage: false,
                                 disableZoomIn: disableZoomIn,
                               ),
@@ -257,7 +261,7 @@ class CloudFileList extends HookConsumerWidget {
                                   1.0,
                               child: _CloudFileListEntry(
                                 file: filesToShow[i],
-                                heroTag: 'cloud-file-${files[i].id}',
+                                heroTag: _heroTag(files[i].id),
                                 isImage:
                                     filesToShow[i].mimeType?.startsWith(
                                       'image',
@@ -334,7 +338,7 @@ class CloudFileList extends HookConsumerWidget {
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: _CloudFileListEntry(
           file: files.first,
-          heroTag: 'cloud-file-${files.first.id}',
+          heroTag: _heroTag(files.first.id),
           isImage: isImage,
           disableZoomIn: disableZoomIn,
           onTap: () {
@@ -396,7 +400,7 @@ class CloudFileList extends HookConsumerWidget {
                         children: [
                           _CloudFileListEntry(
                             file: files[i],
-                            heroTag: 'cloud-file-${files[i].id}',
+                            heroTag: _heroTag(files[i].id),
                             isImage:
                                 files[i].mimeType?.startsWith('image') ?? false,
                             disableZoomIn: disableZoomIn,
@@ -448,7 +452,7 @@ class CloudFileList extends HookConsumerWidget {
                     borderRadius: const BorderRadius.all(Radius.circular(16)),
                     child: _CloudFileListEntry(
                       file: files[index],
-                      heroTag: 'cloud-file-${files[index].id}',
+                      heroTag: _heroTag(files[index].id),
                       isImage:
                           files[index].mimeType?.startsWith('image') ?? false,
                       disableZoomIn: disableZoomIn,
