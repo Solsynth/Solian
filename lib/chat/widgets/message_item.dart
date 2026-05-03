@@ -1339,7 +1339,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
           children: [
             if (showAvatar)
               Padding(
-                padding: const EdgeInsets.only(left: 8 + 16 * 2, bottom: 2),
+                padding: const EdgeInsets.only(left: 10 + 16 * 2, bottom: 4),
                 child: header,
               ),
             Row(
@@ -1774,8 +1774,8 @@ class MessageQuoteWidget extends HookConsumerWidget {
                           maxWidth: 180,
                           maxHeight: 96,
                           minWidth: 120,
-                          disableZoomIn: true,
                           initiallyCollapsed: false,
+                          heroTagPrefix: 'cloud-file-quote-${message.id}',
                           padding: const EdgeInsets.only(top: 4),
                         ),
                       ),
