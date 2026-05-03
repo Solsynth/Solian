@@ -117,13 +117,11 @@ class NetworkStatusSheet extends HookConsumerWidget {
                   child: hasConnectivity
                       ? const Icon(
                           Symbols.check_circle,
-                          key: ValueKey('connectivity-online'),
                           color: Colors.green,
                           size: 16,
                         )
                       : const Icon(
                           Symbols.wifi_off,
-                          key: ValueKey('connectivity-offline'),
                           color: Colors.red,
                           size: 16,
                         ),
@@ -151,40 +149,19 @@ class NetworkStatusSheet extends HookConsumerWidget {
                   child: wsState.when(
                     connected: () => Icon(
                       Symbols.check_circle,
-                      key: ValueKey(WebSocketState.connected),
                       color: Colors.green,
                       size: 16,
                     ),
-                    connecting: () => Icon(
-                      Symbols.sync,
-                      key: ValueKey(WebSocketState.connecting),
-                      color: Colors.orange,
-                      size: 16,
-                    ),
-                    disconnected: () => Icon(
-                      Symbols.wifi_off,
-                      key: ValueKey(WebSocketState.disconnected),
-                      color: Colors.grey,
-                      size: 16,
-                    ),
-                    serverDown: () => Icon(
-                      Symbols.cloud_off,
-                      key: ValueKey(WebSocketState.serverDown),
-                      color: Colors.red,
-                      size: 16,
-                    ),
-                    duplicateDevice: () => Icon(
-                      Symbols.devices,
-                      key: ValueKey(WebSocketState.duplicateDevice),
-                      color: Colors.orange,
-                      size: 16,
-                    ),
-                    error: (message) => Icon(
-                      Symbols.error,
-                      key: ValueKey(WebSocketState.error),
-                      color: Colors.red,
-                      size: 16,
-                    ),
+                    connecting: () =>
+                        Icon(Symbols.sync, color: Colors.orange, size: 16),
+                    disconnected: () =>
+                        Icon(Symbols.wifi_off, color: Colors.grey, size: 16),
+                    serverDown: () =>
+                        Icon(Symbols.cloud_off, color: Colors.red, size: 16),
+                    duplicateDevice: () =>
+                        Icon(Symbols.devices, color: Colors.orange, size: 16),
+                    error: (message) =>
+                        Icon(Symbols.error, color: Colors.red, size: 16),
                   ),
                 ),
               ],
@@ -207,30 +184,18 @@ class NetworkStatusSheet extends HookConsumerWidget {
                   child: apiState == NetworkStatus.online
                       ? Icon(
                           Symbols.check_circle,
-                          key: ValueKey(NetworkStatus.online),
                           color: Colors.green,
                           size: 16,
                         )
                       : apiState == NetworkStatus.notReady
-                      ? Icon(
-                          Symbols.warning,
-                          key: ValueKey(NetworkStatus.notReady),
-                          color: Colors.orange,
-                          size: 16,
-                        )
+                      ? Icon(Symbols.warning, color: Colors.orange, size: 16)
                       : apiState == NetworkStatus.maintenance
                       ? Icon(
                           Symbols.construction,
-                          key: ValueKey(NetworkStatus.maintenance),
                           color: Colors.orange,
                           size: 16,
                         )
-                      : Icon(
-                          Symbols.cloud_off,
-                          key: ValueKey(NetworkStatus.offline),
-                          color: Colors.red,
-                          size: 16,
-                        ),
+                      : Icon(Symbols.cloud_off, color: Colors.red, size: 16),
                 ),
               ],
             ),

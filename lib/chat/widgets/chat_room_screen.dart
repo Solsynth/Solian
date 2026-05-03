@@ -176,7 +176,7 @@ class ChatRoomScreen extends HookConsumerWidget {
     final lastBackgroundTime = useRef<DateTime?>(null);
     const backgroundSyncThreshold = Duration(seconds: 30);
 
-    final lastResyncAt = useRef<DateTime?>(DateTime.now());
+    final lastResyncAt = useRef<DateTime?>(null);
     final isResyncing = useRef(false);
 
     Future<void> resyncRoom({
@@ -198,6 +198,14 @@ class ChatRoomScreen extends HookConsumerWidget {
         isResyncing.value = false;
       }
     }
+
+    useEffect(() {
+      Future.microtask(() {
+        if (!context.mounted) return;
+        resyncRoom(force: true, reason: 'room-open');
+      });
+      return null;
+    }, [id]);
 
     useEffect(() {
       Future.microtask(() {

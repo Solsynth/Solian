@@ -60,6 +60,7 @@ class MessageItem extends HookConsumerWidget {
   final Function(String action)? onAction;
   final Map<int, double?>? progress;
   final bool showAvatar;
+  final bool showBubbleAvatar;
   final Function(String messageId) onJump;
   final bool isSelectionMode;
   final bool isSelected;
@@ -73,6 +74,7 @@ class MessageItem extends HookConsumerWidget {
     required this.onAction,
     required this.progress,
     required this.showAvatar,
+    this.showBubbleAvatar = true,
     required this.onJump,
     this.isSelectionMode = false,
     this.isSelected = false,
@@ -367,6 +369,7 @@ class MessageItem extends HookConsumerWidget {
                           isCurrentUser: isCurrentUser,
                           progress: progress,
                           showAvatar: showAvatar,
+                          showBubbleAvatar: showBubbleAvatar,
                           onJump: onJump,
                           translatedText: translatedText.value,
                           translating: translating.value,
@@ -1229,10 +1232,16 @@ class MessageReactionChips extends HookConsumerWidget {
 }
 
 class MessageItemDisplayBubble extends HookConsumerWidget {
+  static const double _avatarRadius = 16;
+  static const double _avatarSize = _avatarRadius * 2;
+  static const double _avatarGap = 8;
+  static const double _contentOffset = _avatarSize + _avatarGap;
+
   final LocalChatMessage message;
   final bool isCurrentUser;
   final Map<int, double?>? progress;
   final bool showAvatar;
+  final bool showBubbleAvatar;
   final Function(String messageId) onJump;
   final String? translatedText;
   final bool translating;
@@ -1243,6 +1252,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     required this.isCurrentUser,
     required this.progress,
     required this.showAvatar,
+    required this.showBubbleAvatar,
     required this.onJump,
     required this.translatedText,
     required this.translating,
@@ -1265,7 +1275,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
       member: sender,
       child: ProfilePictureWidget(
         file: sender.account.profile.picture,
-        radius: 16,
+        radius: _avatarRadius,
       ),
     );
 
@@ -1339,34 +1349,163 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
           children: [
             if (showAvatar)
               Padding(
-                padding: const EdgeInsets.only(left: 10 + 16 * 2, bottom: 4),
+                padding: const EdgeInsets.only(left: _contentOffset, bottom: 4),
                 child: header,
               ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (showAvatar) avatar else const SizedBox(width: 16 * 2),
-                const Gap(8),
-                Flexible(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(child: messageBody),
-                      const Gap(4),
-                      MessageIndicators(
-                        editedAt: remoteMessage.editedAt,
-                        status: message.status,
-                        isCurrentUser: isCurrentUser,
-                        textColor: textColor,
-                      ),
-                    ],
+            _StickyAvatarMessageRow(
+              showAvatar: showAvatar && showBubbleAvatar,
+              avatar: avatar,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(child: messageBody),
+                        const Gap(4),
+                        MessageIndicators(
+                          editedAt: remoteMessage.editedAt,
+                          status: message.status,
+                          isCurrentUser: isCurrentUser,
+                          textColor: textColor,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StickyAvatarMessageRow extends StatefulWidget {
+  static const double _size = MessageItemDisplayBubble._avatarSize;
+  static const double _contentOffset = MessageItemDisplayBubble._contentOffset;
+  static const double _viewportTopMargin = 12;
+  static const Duration _stickDuration = Duration(milliseconds: 70);
+
+  final bool showAvatar;
+  final Widget avatar;
+  final Widget child;
+
+  const _StickyAvatarMessageRow({
+    required this.showAvatar,
+    required this.avatar,
+    required this.child,
+  });
+
+  @override
+  State<_StickyAvatarMessageRow> createState() =>
+      _StickyAvatarMessageRowState();
+}
+
+class _StickyAvatarMessageRowState extends State<_StickyAvatarMessageRow> {
+  final _key = GlobalKey();
+  ScrollPosition? _position;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateScrollPosition();
+  }
+
+  @override
+  void dispose() {
+    _position?.removeListener(_handleScroll);
+    super.dispose();
+  }
+
+  void _updateScrollPosition() {
+    final nextPosition = _readScrollPosition();
+    if (identical(_position, nextPosition)) return;
+
+    _position?.removeListener(_handleScroll);
+    _position = nextPosition;
+    _position?.addListener(_handleScroll);
+  }
+
+  ScrollPosition? _readScrollPosition() {
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable == null) return null;
+
+    try {
+      return scrollable.position;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _handleScroll() {
+    if (!mounted || !widget.showAvatar) return;
+    setState(() {});
+  }
+
+  double _avatarOffset() {
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable == null) return 0;
+
+    final box = _key.currentContext?.findRenderObject() as RenderBox?;
+    final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
+    if (box == null || viewportBox == null || !box.hasSize) return 0;
+
+    final rowTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    final maxOffset = (box.size.height - _StickyAvatarMessageRow._size).clamp(
+      0.0,
+      double.infinity,
+    );
+    return (_StickyAvatarMessageRow._viewportTopMargin - rowTop).clamp(
+      0.0,
+      maxOffset,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _updateScrollPosition();
+    final offset = widget.showAvatar ? _avatarOffset() : 0.0;
+
+    return SizedBox(
+      key: _key,
+      width: double.infinity,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              left: _StickyAvatarMessageRow._contentOffset,
+            ),
+            child: widget.child,
+          ),
+          if (widget.showAvatar)
+            Positioned(
+              left: 0,
+              top: 0,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(end: offset),
+                duration: MediaQuery.disableAnimationsOf(context)
+                    ? Duration.zero
+                    : _StickyAvatarMessageRow._stickDuration,
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) =>
+                    Transform.translate(offset: Offset(0, value), child: child),
+                child: SizedBox(
+                  width: _StickyAvatarMessageRow._size,
+                  height: _StickyAvatarMessageRow._size,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: widget.avatar,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
