@@ -50,7 +50,7 @@ final class MessagesNotifierProvider
   }
 }
 
-String _$messagesNotifierHash() => r'8e81ef089e9d6a97204da320d99370a45923d868';
+String _$messagesNotifierHash() => r'4053b4d6e0fcd4ea263a08b9621d472ffd992c50';
 
 final class MessagesNotifierFamily extends $Family
     with

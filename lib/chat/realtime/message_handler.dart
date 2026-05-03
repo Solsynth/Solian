@@ -31,7 +31,7 @@ class RealtimeMessageHandler {
   // Callbacks for UI updates
   final void Function(LocalChatMessage message)? onNewMessage;
   final void Function(LocalChatMessage message)? onMessageUpdate;
-  final void Function(String messageId)? onMessageDelete;
+  final void Function(LocalChatMessage message)? onMessageDelete;
   final void Function()? onReconnectionNeeded;
 
   bool _isJumping = false;
@@ -98,8 +98,6 @@ class RealtimeMessageHandler {
 
   /// Stops listening to real-time events.
   void stopListening() {
-    _logger.info('Stopping real-time message listener for room $_roomId');
-
     _wsSubscription?.cancel();
     _newMessageSub?.cancel();
     _updateMessageSub?.cancel();
@@ -281,7 +279,6 @@ class RealtimeMessageHandler {
 
     final message = await _repository.getLocalMessage(messageId);
     if (message == null) {
-      onMessageDelete?.call(messageId);
       return;
     }
 
@@ -300,7 +297,7 @@ class RealtimeMessageHandler {
 
     await _repository.saveMessage(deleted);
     _messageCache.put(deleted);
-    onMessageDelete?.call(messageId);
+    onMessageDelete?.call(deleted);
   }
 
   void _handleE2eeEnabled() {

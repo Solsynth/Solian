@@ -50,7 +50,6 @@ class MessageCache {
   /// Clears the entire cache.
   void clear() {
     _cache.clear();
-    _logger.info('Cache cleared');
   }
 
   /// Checks if a message is in the cache.
