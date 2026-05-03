@@ -48,6 +48,8 @@ class StartupSplashScreen extends HookConsumerWidget {
     }
 
     final subtitle = useState<String?>(null);
+    final connectivityStatus = ref.watch(connectivityStatusProvider);
+    final hasConnectivity = hasNetworkConnectivityValue(connectivityStatus);
     final stages = useMemoized(
       () => <_BootstrapStage>[
         _BootstrapStage(
@@ -93,7 +95,7 @@ class StartupSplashScreen extends HookConsumerWidget {
           label: 'Connecting realtime gateway',
           isCritical: true,
           action: () async {
-            ref.read(websocketStateProvider.notifier).connect();
+            await ref.read(websocketStateProvider.notifier).connect();
           },
         ),
         _BootstrapStage(
@@ -129,6 +131,7 @@ class StartupSplashScreen extends HookConsumerWidget {
     final isBusy = useState(true);
     final isErrored = useState(false);
     final isDismissable = useState(true);
+    final isWaitingForConnectivity = useState(false);
     final periodCursor = useState(0);
     final showSkip = useState(false);
     final isCurrentStageSkippable = useState(false);
@@ -144,12 +147,25 @@ class StartupSplashScreen extends HookConsumerWidget {
       isBusy.value = true;
       isErrored.value = false;
       isDismissable.value = true;
+      isWaitingForConnectivity.value = false;
       subtitle.value = null;
       showSkip.value = false;
       warnings.value = [];
 
       for (var idx = 0; idx < stages.length; idx++) {
         if (phaseNonce.value != phase) return;
+
+        if (!hasNetworkConnectivityValue(
+          ref.read(connectivityStatusProvider),
+        )) {
+          isBusy.value = false;
+          isErrored.value = true;
+          isDismissable.value = false;
+          isWaitingForConnectivity.value = true;
+          subtitle.value = 'No internet connection. Waiting to resume startup.';
+          return;
+        }
+
         final stage = stages[idx];
         periodCursor.value = idx;
         isCurrentStageSkippable.value = !stage.isCritical;
@@ -203,11 +219,20 @@ class StartupSplashScreen extends HookConsumerWidget {
         subtitle.value = null;
         return null;
       }
+      if (!hasConnectivity) {
+        phaseNonce.value++;
+        isBusy.value = false;
+        isErrored.value = true;
+        isDismissable.value = false;
+        isWaitingForConnectivity.value = true;
+        subtitle.value = 'No internet connection. Waiting to resume startup.';
+        return null;
+      }
       Future(() => runStages());
       return () {
         phaseNonce.value++;
       };
-    }, [runBootstrap]);
+    }, [runBootstrap, hasConnectivity]);
 
     return Material(
       color: Theme.of(context).colorScheme.surface,
@@ -243,7 +268,12 @@ class StartupSplashScreen extends HookConsumerWidget {
             Column(
               children: [
                 if (isErrored.value && !isDismissable.value && !isBusy.value)
-                  const Icon(Icons.cancel, size: 24),
+                  Icon(
+                    isWaitingForConnectivity.value
+                        ? Icons.wifi_off
+                        : Icons.cancel,
+                    size: 24,
+                  ),
                 if (isErrored.value && isDismissable.value && !isBusy.value)
                   const Icon(Icons.warning, size: 24),
                 if ((isErrored.value && isDismissable.value && isBusy.value) ||

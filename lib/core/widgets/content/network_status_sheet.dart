@@ -19,11 +19,14 @@ class NetworkStatusSheet extends HookConsumerWidget {
     final ws = ref.watch(websocketProvider);
     final wsState = ref.watch(websocketStateProvider);
     final apiState = ref.watch(networkStatusProvider);
+    final connectivityStatus = ref.watch(connectivityStatusProvider);
+    final hasConnectivity = hasNetworkConnectivityValue(connectivityStatus);
     final serverUrl = ref.watch(serverUrlProvider);
 
     final wsNotifier = ref.watch(websocketStateProvider.notifier);
 
     final checks = [
+      hasConnectivity,
       wsState == WebSocketState.connected(),
       apiState == NetworkStatus.online,
     ];
@@ -32,6 +35,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
       if (!autoClose) return;
 
       final checks = [
+        hasConnectivity,
         wsState == WebSocketState.connected(),
         apiState == NetworkStatus.online,
       ];
@@ -42,7 +46,7 @@ class NetworkStatusSheet extends HookConsumerWidget {
       }
 
       return null;
-    }, [wsState, apiState]);
+    }, [wsState, apiState, hasConnectivity]);
 
     return SheetScaffold(
       heightFactor: 0.6,
@@ -78,9 +82,13 @@ class NetworkStatusSheet extends HookConsumerWidget {
                         Text('Everything is operational.'),
                       if (!checks[0])
                         Text(
-                          'WebSocket is disconnected. Realtime updates are not available. You can try tap the reconnect button below to try connect again.',
+                          'Your device is offline. Reconnect to Wi-Fi or cellular data to resume startup and realtime updates.',
                         ),
                       if (!checks[1])
+                        Text(
+                          'WebSocket is disconnected. Realtime updates are not available. You can try tap the reconnect button below to try connect again.',
+                        ),
+                      if (!checks[2])
                         ...([
                           Text(
                             'API is unreachable, you can try again later. If the issue persists, please contact support. Or you can check the service status.',
@@ -98,6 +106,29 @@ class NetworkStatusSheet extends HookConsumerWidget {
                   ),
                 ],
               ),
+            ),
+            Row(
+              spacing: 8,
+              children: [
+                Text('Internet').bold(),
+                Text(hasConnectivity ? 'Available' : 'Offline'),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: hasConnectivity
+                      ? const Icon(
+                          Symbols.check_circle,
+                          key: ValueKey('connectivity-online'),
+                          color: Colors.green,
+                          size: 16,
+                        )
+                      : const Icon(
+                          Symbols.wifi_off,
+                          key: ValueKey('connectivity-offline'),
+                          color: Colors.red,
+                          size: 16,
+                        ),
+                ),
+              ],
             ),
             Row(
               spacing: 8,
@@ -217,9 +248,11 @@ class NetworkStatusSheet extends HookConsumerWidget {
                 FilledButton.icon(
                   icon: const Icon(Symbols.wifi),
                   label: const Text('Reconnect'),
-                  onPressed: () {
-                    wsNotifier.manualReconnect();
-                  },
+                  onPressed: hasConnectivity
+                      ? () {
+                          wsNotifier.manualReconnect();
+                        }
+                      : null,
                 ),
               ],
             ),
