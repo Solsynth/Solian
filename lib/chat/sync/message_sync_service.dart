@@ -264,7 +264,11 @@ class MessageSyncService {
       if (existing != null &&
           existing.content?.isNotEmpty == true &&
           !_needsAttachmentRefresh(existing, remote)) {
-        localMessages.add(existing);
+        final mergedExisting = _mergeRemoteReactionSnapshots(existing, remote);
+        localMessages.add(mergedExisting);
+        if (!identical(mergedExisting, existing)) {
+          toBatchSave.add(mergedExisting);
+        }
         continue;
       }
 
@@ -428,6 +432,58 @@ class MessageSyncService {
       repliedMessageId: incoming.repliedMessageId,
       forwardedMessageId: incoming.forwardedMessageId,
       localAttachments: incoming.localAttachments ?? existing.localAttachments,
+    );
+  }
+
+  LocalChatMessage _mergeRemoteReactionSnapshots(
+    LocalChatMessage existing,
+    SnChatMessage remote,
+  ) {
+    if (remote.reactionsCount.isEmpty && remote.reactionsMade.isEmpty) {
+      return existing;
+    }
+
+    final mergedData = Map<String, dynamic>.from(existing.data);
+    if (remote.reactionsCount.isNotEmpty) {
+      mergedData['reactions_count'] = Map<String, int>.from(
+        remote.reactionsCount,
+      );
+    }
+    if (remote.reactionsMade.isNotEmpty) {
+      mergedData['reactions_made'] = Map<String, bool>.from(
+        remote.reactionsMade,
+      );
+    }
+    return _copyWithData(existing, mergedData);
+  }
+
+  LocalChatMessage _copyWithData(
+    LocalChatMessage message,
+    Map<String, dynamic> data,
+  ) {
+    return LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: message.sender,
+      data: data,
+      createdAt: message.createdAt,
+      status: message.status,
+      clientMessageId: message.clientMessageId,
+      nonce: message.nonce,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
     );
   }
 
