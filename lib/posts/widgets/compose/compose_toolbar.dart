@@ -10,6 +10,8 @@ import 'package:island/posts/widgets/compose/draft_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
+import 'package:flutter_popup_card/flutter_popup_cars.dart';
 
 class ComposeToolbar extends HookConsumerWidget {
   final ComposeState state;
@@ -105,6 +107,32 @@ class ComposeToolbar extends HookConsumerWidget {
       );
     }
 
+  void pickSticker() async {
+    final renderBox = context.findRenderObject() as RenderBox?;
+    final offset = renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    await showStickerPickerPopover(
+      context,
+      offset,
+      alignment: Alignment.bottomCenter,
+      onPick: (placeholder) {
+        final controller = state.contentController;
+        final text = controller.text;
+        final selection = controller.selection
+        final newText = text.replaceRange(
+          selection.start,
+          selection.end,
+         '$placeholder',
+        );
+       controller.text = newText;
+       controller.selection = TextSelection.fromPosition(
+       TextPosition(offset: selection.start + placeholder.length + 2),
+                );
+       HapticFeedback.selectionClick();
+                  },
+           );
+}
+
+
     void showDraftManager() {
       showModalBottomSheet(
         context: context,
@@ -123,7 +151,7 @@ class ComposeToolbar extends HookConsumerWidget {
               state.visibility.value = draft.visibility;
               state.attachments.value = draft.attachments
                   .map((e) => UniversalFile.fromAttachment(e))
-                  .toList();
+                i.toList();
             }
           },
         ),
@@ -142,6 +170,7 @@ class ComposeToolbar extends HookConsumerWidget {
     return Material(
       elevation: 8,
       color: Theme.of(context).colorScheme.surfaceContainer,
+
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
@@ -239,7 +268,15 @@ class ComposeToolbar extends HookConsumerWidget {
                             },
                           ),
                           // Embed button with visual state when embed is present
-                          ListenableBuilder(
+
+                     IconButton()
+		       onPressed: pickSticker
+		       icon:const
+                     Icon(Symbols.sticky_note_2)
+		     Symbols.sticky_note_2
+		       tooltip: 'stickers'.tr()
+		       color: colorShame.primary,
+                          ListenableBuilder
                             listenable: state.embedView,
                             builder: (context, _) {
                               return IconButton(
