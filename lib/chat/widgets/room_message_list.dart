@@ -2,10 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/pods/chat_room_state.dart';
 import 'package:island/chat/widgets/message_item_wrapper.dart';
 import 'package:island/core/config.dart';
 import 'package:island/data/message.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -127,6 +129,9 @@ class RoomMessageList extends HookConsumerWidget {
       () => {...allGroupIds}..removeAll(chatState.collapsedBotGroupIds),
       [allGroupIds, chatState.collapsedBotGroupIds],
     );
+    final useBubbleDisplay =
+        settings.messageDisplayStyle != 'compact' &&
+        settings.messageDisplayStyle != 'column';
 
     int lastReturnedIndex = -1;
 
@@ -171,16 +176,37 @@ class RoomMessageList extends HookConsumerWidget {
         final nextMessage = index < messages.length - 1
             ? messages[index + 1]
             : null;
+        final previousMessage = index > 0 ? messages[index - 1] : null;
+        bool isSameSenderGroup(LocalChatMessage? other) {
+          return other != null &&
+              other.senderId == message.senderId &&
+              other.createdAt.difference(message.createdAt).inMinutes.abs() <=
+                  3;
+        }
 
         final isLastInGroup =
-            nextMessage == null ||
-            nextMessage.senderId != message.senderId ||
-            nextMessage.createdAt
-                    .difference(message.createdAt)
-                    .inMinutes
-                    .abs() >
-                3 ||
+            !isSameSenderGroup(nextMessage) ||
             (botGroup != null && isCollapsed && index == botGroup.endIndex);
+        final isFirstInGroup = !isSameSenderGroup(previousMessage);
+        if (useBubbleDisplay && !isFirstInGroup) {
+          return const SizedBox.shrink();
+        }
+
+        final groupedMessages = <LocalChatMessage>[message];
+        if (useBubbleDisplay) {
+          for (var i = index + 1; i < messages.length; i++) {
+            final groupedMessage = messages[i];
+            if (groupedMessage.senderId != message.senderId ||
+                groupedMessage.createdAt
+                        .difference(groupedMessages.last.createdAt)
+                        .inMinutes
+                        .abs() >
+                    3) {
+              break;
+            }
+            groupedMessages.add(groupedMessage);
+          }
+        }
 
         final key = Key(
           '$messageKeyPrefix${message.clientMessageId ?? message.id}',
@@ -188,6 +214,51 @@ class RoomMessageList extends HookConsumerWidget {
         final showLastReadMarker =
             chatState.lastReadAnchorMessageId != null &&
             message.id == chatState.lastReadAnchorMessageId;
+
+        Widget buildMessage(
+          LocalChatMessage item,
+          int itemIndex, {
+          required bool showItemAvatar,
+          required bool drawBubbleAvatar,
+        }) {
+          return MessageItemWrapper(
+            message: item,
+            index: itemIndex,
+            isLastInGroup: showItemAvatar,
+            showBubbleAvatar: drawBubbleAvatar,
+            isSelectionMode: chatState.isSelectionMode,
+            selectedMessages: chatState.selectedMessageIds,
+            chatIdentity: chatIdentity,
+            toggleSelectionMode: chatStateNotifier.toggleSelectionMode,
+            toggleMessageSelection: chatStateNotifier.toggleMessageSelection,
+            onMessageAction: chatStateNotifier.onMessageAction,
+            onJump: onJump,
+            attachmentProgress: chatState.attachmentProgress,
+            disableAnimation: settings.disableAnimation,
+            roomOpenTime: chatState.roomOpenTime,
+          );
+        }
+
+        final messageContent = useBubbleDisplay && groupedMessages.length > 1
+            ? _StickyBubbleMessageGroup(
+                roomId: roomId,
+                sender: message.toRemoteMessage().sender,
+                children: [
+                  for (var i = groupedMessages.length - 1; i >= 0; i--)
+                    buildMessage(
+                      groupedMessages[i],
+                      index + i,
+                      showItemAvatar: i == groupedMessages.length - 1,
+                      drawBubbleAvatar: false,
+                    ),
+                ],
+              )
+            : buildMessage(
+                message,
+                index,
+                showItemAvatar: isLastInGroup,
+                drawBubbleAvatar: true,
+              );
 
         return Column(
           key: key,
@@ -243,21 +314,7 @@ class RoomMessageList extends HookConsumerWidget {
                   ),
                 ),
               ),
-            MessageItemWrapper(
-              message: message,
-              index: index,
-              isLastInGroup: isLastInGroup,
-              isSelectionMode: chatState.isSelectionMode,
-              selectedMessages: chatState.selectedMessageIds,
-              chatIdentity: chatIdentity,
-              toggleSelectionMode: chatStateNotifier.toggleSelectionMode,
-              toggleMessageSelection: chatStateNotifier.toggleMessageSelection,
-              onMessageAction: chatStateNotifier.onMessageAction,
-              onJump: onJump,
-              attachmentProgress: chatState.attachmentProgress,
-              disableAnimation: settings.disableAnimation,
-              roomOpenTime: chatState.roomOpenTime,
-            ),
+            messageContent,
             if (botGroup != null && isCollapsed && index == botGroup.startIndex)
               _BotGroupExpandBar(
                 hiddenCount: botGroup.messageCount - 1,
@@ -278,6 +335,128 @@ class RoomMessageList extends HookConsumerWidget {
     );
 
     return listWidget;
+  }
+}
+
+class _StickyBubbleMessageGroup extends StatefulWidget {
+  static const double _avatarSize = 32;
+  static const double _avatarLeft = 12;
+  static const double _avatarTop = 9;
+  static const double _viewportTopMargin = 12;
+  static const Duration _stickDuration = Duration(milliseconds: 70);
+
+  final String roomId;
+  final SnChatMember sender;
+  final List<Widget> children;
+
+  const _StickyBubbleMessageGroup({
+    required this.roomId,
+    required this.sender,
+    required this.children,
+  });
+
+  @override
+  State<_StickyBubbleMessageGroup> createState() =>
+      _StickyBubbleMessageGroupState();
+}
+
+class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
+  final _key = GlobalKey();
+  ScrollPosition? _position;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateScrollPosition();
+  }
+
+  @override
+  void dispose() {
+    _position?.removeListener(_handleScroll);
+    super.dispose();
+  }
+
+  void _updateScrollPosition() {
+    final nextPosition = _readScrollPosition();
+    if (identical(_position, nextPosition)) return;
+
+    _position?.removeListener(_handleScroll);
+    _position = nextPosition;
+    _position?.addListener(_handleScroll);
+  }
+
+  ScrollPosition? _readScrollPosition() {
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable == null) return null;
+
+    try {
+      return scrollable.position;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _handleScroll() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  double _avatarOffset() {
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable == null) return _StickyBubbleMessageGroup._avatarTop;
+
+    final box = _key.currentContext?.findRenderObject() as RenderBox?;
+    final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
+    if (box == null || viewportBox == null || !box.hasSize) {
+      return _StickyBubbleMessageGroup._avatarTop;
+    }
+
+    final groupTop = box.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    final stickyDelta = _StickyBubbleMessageGroup._viewportTopMargin - groupTop;
+    final maxOffset = (box.size.height - _StickyBubbleMessageGroup._avatarSize)
+        .clamp(0.0, double.infinity);
+    return (_StickyBubbleMessageGroup._avatarTop + stickyDelta).clamp(
+      _StickyBubbleMessageGroup._avatarTop,
+      maxOffset,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _updateScrollPosition();
+    final offset = _avatarOffset();
+
+    return Stack(
+      key: _key,
+      clipBehavior: Clip.none,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: widget.children,
+        ),
+        Positioned(
+          left: _StickyBubbleMessageGroup._avatarLeft,
+          top: 0,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: offset),
+            duration: MediaQuery.disableAnimationsOf(context)
+                ? Duration.zero
+                : _StickyBubbleMessageGroup._stickDuration,
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) =>
+                Transform.translate(offset: Offset(0, value), child: child),
+            child: ChatRoomMemberRegion(
+              roomId: widget.roomId,
+              member: widget.sender,
+              child: ProfilePictureWidget(
+                file: widget.sender.account.profile.picture,
+                radius: _StickyBubbleMessageGroup._avatarSize / 2,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
