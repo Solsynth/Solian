@@ -1,26 +1,25 @@
 import "dart:async";
-import "dart:convert";
 import "package:dio/dio.dart";
 import "package:easy_localization/easy_localization.dart";
-import "package:flutter/foundation.dart";
 import "package:flutter_cache_manager/flutter_cache_manager.dart";
 import "package:hooks_riverpod/hooks_riverpod.dart";
-import "package:http_parser/http_parser.dart";
 import "package:island/chat/pods/chat_room.dart";
+import "package:island/chat/data/message_cache.dart";
+import "package:island/chat/data/message_repository.dart";
+import "package:island/chat/models/chat_view_state.dart";
+import "package:island/chat/realtime/message_handler.dart";
+import "package:island/chat/send/message_sender.dart";
+import "package:island/chat/sync/message_sync_service.dart";
 import "package:island/data/database.dart";
 import "package:island/data/message.dart";
 import "package:island/core/config.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
-import "package:island/core/websocket.dart";
-import "package:island/drive/drive_service.dart";
 import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
 import "package:logging/logging.dart";
-import "package:mime/mime.dart";
 import "package:island/shared/widgets/alert.dart";
-import "package:path/path.dart" as p;
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import "package:island/accounts/screens/profile.dart";
@@ -35,21 +34,15 @@ class MessagesNotifier extends _$MessagesNotifier {
   late Dio _apiClient;
   late AppDatabase _database;
   late SnChatMember _identity;
-  bool _hasIdentity = false;
   int _roomEncryptionMode = 0;
   String? _mlsGroupId;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
-  final Map<String, Map<int, double?>> _fileUploadProgress = {};
-  int? _totalCount;
   String? _searchQuery;
   bool? _withLinks;
   bool? _withAttachments;
 
   static const int _pageSize = 20;
-  static const int _initialRemoteFetchSize = 60;
-  static const int _fetchBatchSize =
-      1000; // Max API take (1k) to minimize network requests
   bool _hasMore = true;
   bool _isSyncing = false;
   bool _isJumping = false;
@@ -76,13 +69,38 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<void>? _loadInitialOperation;
   bool _isInitializing = false;
 
-  /// LRU memory cache for frequently accessed messages
-  final Map<String, LocalChatMessage> _messageCache = {};
-  final List<String> _messageCacheKeys = [];
-  static const int _maxCacheSize = 100;
+  Future<void> _runDeduped({
+    required Future<void>? operation,
+    required void Function(Future<void>?) setOperation,
+    required Future<void> Function() task,
+    required String logLabel,
+  }) async {
+    if (operation != null) {
+      Logger.root.info('$logLabel already in progress, joining existing task');
+      return operation;
+    }
 
-  /// Pending message fetches to prevent duplicate concurrent requests
-  final Map<String, Future<LocalChatMessage?>> _pendingMessageFetches = {};
+    final created = task();
+    setOperation(created);
+    try {
+      await created;
+    } finally {
+      setOperation(null);
+    }
+  }
+
+  late final MessageCache _messageCache;
+  late final PendingMessageCache _pendingCache;
+  late final MessageRepository _repository;
+  late final MessageSyncService _syncService;
+  late final MessageSender _sender;
+  late final RealtimeMessageHandler _realtime;
+
+  MessageFilter get _activeFilter => MessageFilter(
+    searchQuery: _searchQuery,
+    withLinks: _withLinks,
+    withAttachments: _withAttachments,
+  );
 
   E2eeRecoveryState get e2eeRecoveryState => _e2eeRecoveryState;
 
@@ -104,105 +122,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     isE2eeRoom: _isE2eeRoom,
   );
 
-  bool _isWebSocketConnected() => ref
-      .read(websocketStateProvider)
-      .maybeWhen(connected: () => true, orElse: () => false);
-
-  Future<SnChatMessage> _sendMessageViaWebSocket({
-    required String targetRoomId,
-    required String clientMessageId,
-    required Map<String, dynamic> payload,
-    Duration ackTimeout = const Duration(seconds: 12),
-  }) async {
-    if (!_isWebSocketConnected()) {
-      throw StateError('WebSocket is not connected.');
-    }
-
-    final ws = ref.read(websocketProvider);
-    final wsState = ref.read(websocketStateProvider.notifier);
-    final packet = WebSocketPacket(
-      type: 'messages.send',
-      endpoint: 'messager',
-      data: {
-        'chat_room_id': targetRoomId,
-        ...payload,
-        if (!payload.containsKey('client_message_id'))
-          'client_message_id': clientMessageId,
-      },
-    );
-
-    final ackFuture = ws.dataStream
-        .where((pkt) => pkt.type == 'messages.delivered')
-        .map((pkt) => pkt.data)
-        .where((data) => data is Map<String, dynamic>)
-        .cast<Map<String, dynamic>>()
-        .where((data) {
-          final pktRoomId = data['chat_room_id']?.toString();
-          if (pktRoomId != targetRoomId) return false;
-          final packetClientMessageId =
-              data['client_message_id']?.toString() ??
-              data['nonce']?.toString();
-          return packetClientMessageId == clientMessageId;
-        })
-        .map(
-          (data) =>
-              _tryParseChatMessage(data, context: 'ws messages.delivered'),
-        )
-        .where((message) => message != null)
-        .cast<SnChatMessage>()
-        .first
-        .timeout(
-          ackTimeout,
-          onTimeout: () => throw TimeoutException(
-            'Timed out waiting for websocket delivery ack.',
-          ),
-        );
-
-    wsState.sendMessage(jsonEncode(packet));
-    return ackFuture;
-  }
-
-  Future<SnChatMessage> _sendNewMessageWithFallback({
-    required String targetRoomId,
-    required String clientMessageId,
-    required Map<String, dynamic> payload,
-    required String context,
-  }) async {
-    // MLS writes require strict header enforcement; use HTTP path directly.
-    if (_isE2eeRoom) {
-      final response = await _apiClient.post(
-        '/messager/chat/$targetRoomId/messages',
-        data: payload,
-        options: _mlsWriteOptions(),
-      );
-      return _tryParseChatMessage(response.data, context: context) ??
-          (throw Exception('Invalid chat message response.'));
-    }
-
-    if (_isWebSocketConnected()) {
-      try {
-        return await _sendMessageViaWebSocket(
-          targetRoomId: targetRoomId,
-          clientMessageId: clientMessageId,
-          payload: payload,
-        );
-      } catch (err, stackTrace) {
-        Logger.root.info(
-          'WebSocket send failed, falling back to HTTP ($context)',
-          err,
-          stackTrace,
-        );
-      }
-    }
-
-    final response = await _apiClient.post(
-      '/messager/chat/$targetRoomId/messages',
-      data: payload,
-      options: _mlsWriteOptions(),
-    );
-    return _tryParseChatMessage(response.data, context: context) ??
-        (throw Exception('Invalid chat message response.'));
-  }
 
   bool _isSystemEventType(String type) {
     if (type.startsWith('system.')) return true;
@@ -313,78 +232,58 @@ class MessagesNotifier extends _$MessagesNotifier {
   /// - E2EE recovery has already failed (no retries within same session)
   /// Skips decryption for messages sent by current device (identified by device ID in header)
   /// since MLS forward secrecy prevents self-decryption - plaintext is preserved from pending.
-  Future<SnChatMessage?> _decryptMessageIfEncrypted(
-    SnChatMessage message,
-  ) async {
-    if (!_isE2eeRoom) return message;
-
-    // Skip decryption if recovery has already failed in this session
-    if (_e2eeRecoveryState == E2eeRecoveryState.failed) {
-      return null;
-    }
-
-    // Check if message was sent by this device by comparing device IDs
-    final headerStr = message.meta['e2ee_header']?.toString();
-    if (headerStr != null && headerStr.isNotEmpty) {
-      try {
-        final headerBytes = base64Decode(headerStr);
-        final headerJson = utf8.decode(headerBytes);
-        final header = jsonDecode(headerJson) as Map<String, dynamic>;
-        final senderDeviceId = header['deviceId']?.toString();
-
-        if (senderDeviceId != null) {
-          final currentDeviceId = await ref
-              .read(mlsClientProvider)
-              .getDeviceId();
-          if (currentDeviceId != null && senderDeviceId == currentDeviceId) {
-            // Own message - try to get plaintext from pending messages by client_message_id
-            final clientMessageId =
-                message.clientMessageId ??
-                message.meta['e2ee_client_message_id']?.toString();
-            String? plaintext;
-            if (clientMessageId != null) {
-              final pending = _pendingMessages.values
-                  .where((m) => m.clientMessageId == clientMessageId)
-                  .firstOrNull;
-              plaintext = pending?.content;
-            }
-            if (plaintext != null && plaintext.isNotEmpty) {
-              final updatedMeta = Map<String, dynamic>.from(message.meta);
-              updatedMeta['e2ee_decrypted_content'] = plaintext;
-              Logger.root.fine(
-                'Skipping decrypt for own message ${message.id}, using plaintext from pending',
-              );
-              return message.copyWith(content: plaintext, meta: updatedMeta);
-            }
-            Logger.root.fine(
-              'Skipping decrypt for own message ${message.id} (device: $senderDeviceId), no pending plaintext',
-            );
-            return message.attachments.isNotEmpty ? message : null;
-          }
-        }
-      } catch (e) {
-        // Header parse failed, proceed with decryption
-        Logger.root.fine('Failed to parse encryption header: $e');
-      }
-    }
-
-    final result = await _e2eeService.decryptMessage(message);
-    if (result == null) {
-      return null; // Decryption failed - cannot show message
-    }
-    final content = result['content']?.toString();
-    if (content != null && content.isNotEmpty) {
-      final updatedMeta = Map<String, dynamic>.from(message.meta);
-      updatedMeta['e2ee_decrypted_content'] = content;
-      return message.copyWith(content: content, meta: updatedMeta);
-    }
-    return message.attachments.isNotEmpty ? message : null;
-  }
-
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
     _apiClient = ref.watch(apiClientProvider);
     _database = ref.watch(databaseProvider);
+    _messageCache = MessageCache(maxSize: PaginationConfig.maxCacheSize);
+    _pendingCache = PendingMessageCache();
+    _repository = MessageRepository(ref, roomId, _messageCache);
+    _syncService = MessageSyncService(
+      ref,
+      roomId,
+      _repository,
+      _messageCache,
+      _pendingCache,
+      e2eeService: _e2eeService,
+    );
+    _sender = MessageSender(
+      ref,
+      roomId,
+      _repository,
+      _pendingCache,
+      e2eeService: _e2eeService,
+      fileEncryptKey: _fileEncryptKey,
+    );
+    _realtime = RealtimeMessageHandler(
+      ref,
+      roomId,
+      _repository,
+      _syncService,
+      _pendingCache,
+      _messageCache,
+      e2eeService: _e2eeService,
+      onNewMessage: (message) {
+        _upsertReceivedMessageInState(message);
+      },
+      onMessageUpdate: (message) {
+        final list = [..._currentMessages];
+        final index = list.indexWhere((m) => m.id == message.id);
+        if (index >= 0) {
+          list[index] = message;
+        } else {
+          list.add(message);
+        }
+        _emitMessages(list);
+      },
+      onMessageDelete: (messageId) {
+        final list = _currentMessages.where((m) => m.id != messageId).toList();
+        _emitMessages(list);
+      },
+      onReconnectionNeeded: () {
+        unawaited(loadInitial(forceRemoteRefresh: false));
+      },
+    );
     final room = await ref.watch(chatRoomProvider(roomId).future);
     final identity = await ref.watch(chatRoomIdentityProvider(roomId).future);
 
@@ -452,22 +351,11 @@ class MessagesNotifier extends _$MessagesNotifier {
     // Allow building even if identity is null for public rooms
     if (identity != null) {
       _identity = identity;
-      _hasIdentity = true;
     }
 
     Logger.root.info('MessagesNotifier built for room $roomId');
 
-    // Direct WebSocket listener for real-time messages (bypasses event bus chain)
-    final ws = ref.watch(websocketProvider);
-    final wsSub = ws.dataStream.listen((pkt) {
-      if (pkt.type != 'messages.new' || pkt.data == null) return;
-      final message = _tryParseChatMessage(
-        pkt.data,
-        context: 'ws messages.new',
-      );
-      if (message == null || message.chatRoomId != roomId) return;
-      receiveMessage(message);
-    });
+    _realtime.startListening();
 
     _syncEventsSub?.cancel();
     _syncEventsSub = eventBus.on<ChatMessagesSyncedEvent>().listen((event) {
@@ -579,14 +467,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
 
     ref.onDispose(() {
-      wsSub.cancel();
+      _realtime.stopListening();
       _syncEventsSub?.cancel();
       _syncEventsSub = null;
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();
       e2eeFailedSub?.cancel();
-      _clearMessageCache(); // Clear memory cache on dispose
-      _pendingMessageFetches.clear(); // Clear pending fetches
+      _messageCache.clear();
+      _messageCache.clearPendingFetches();
+      _pendingCache.clear();
     });
 
     return _loadInitialMessages(forceRemoteRefresh: false);
@@ -597,74 +486,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     return messages;
   }
 
-  List<LocalChatMessage> _mergeDedupMessages(List<LocalChatMessage> messages) {
-    final sorted = _sortMessages(messages);
-    final unique = <LocalChatMessage>[];
-    final seenIds = <String>{};
-    for (final msg in sorted) {
-      if (seenIds.add(msg.id)) unique.add(msg);
-    }
-    return unique;
-  }
-
-  Future<List<LocalChatMessage>> _eagerPrefetchIfShort(
-    List<LocalChatMessage> initial, {
-    required bool enabled,
-    int minimumCount = 60,
-  }) async {
-    if (!enabled) return initial;
-    if (initial.length >= minimumCount) return initial;
-
-    var combined = _mergeDedupMessages(initial);
-    var passes = 0;
-    const maxPasses = 3; // Reduced from 8 to limit sequential requests
-    const eagerMaxTake = 100; // Server-side maximum is 100
-    final hint = ref.read(chatSyncHintProvider.notifier);
-    hint.set('Loading history: ${combined.length}/$minimumCount');
-
-    try {
-      while (_hasMore && combined.length < minimumCount && passes < maxPasses) {
-        final offset = combined.length;
-        final remaining = minimumCount - combined.length;
-        final eagerTake = remaining.clamp(_pageSize, eagerMaxTake);
-        Logger.root.info(
-          'EagerPrefetch pass $passes: offset=$offset, eagerTake=$eagerTake, combined=${combined.length}, minCount=$minimumCount',
-        );
-        final older = await listMessages(offset: offset, take: eagerTake);
-        Logger.root.info(
-          'EagerPrefetch pass $passes: fetched ${older.length} messages, hasMore=$_hasMore, allFetched=$_allRemoteMessagesFetched',
-        );
-        if (older.isEmpty || _allRemoteMessagesFetched) {
-          _hasMore = false;
-          break;
-        }
-
-        final nextCombined = _mergeDedupMessages([...combined, ...older]);
-        if (nextCombined.length == combined.length) {
-          Logger.root.info('EagerPrefetch: no growth, setting hasMore=false');
-          _hasMore = false;
-          break;
-        }
-        combined = nextCombined;
-        passes += 1;
-        hint.set(
-          'Loading history: ${combined.length}/$minimumCount (batch $passes)',
-        );
-      }
-      Logger.root.info(
-        'EagerPrefetch done: combined=${combined.length}, hasMore=$_hasMore, passes=$passes',
-      );
-    } finally {
-      hint.clear();
-      if (ref.mounted) {
-        Future.microtask(
-          () => ref.read(chatSyncingProvider.notifier).set(false),
-        );
-      }
-    }
-
-    return combined;
-  }
 
   Future<void> _updateStateSafely(List<LocalChatMessage> messages) async {
     if (_isUpdatingState) {
@@ -688,6 +509,19 @@ class MessagesNotifier extends _$MessagesNotifier {
     } finally {
       _isUpdatingState = false;
     }
+  }
+
+  List<LocalChatMessage> get _currentMessages =>
+      (ref.mounted ? state.value : null) ?? [];
+
+  void _setGlobalSyncing(bool value) {
+    if (!ref.mounted) return;
+    Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(value));
+  }
+
+  void _emitMessages(List<LocalChatMessage> messages) {
+    if (!ref.mounted) return;
+    state = AsyncValue.data(_filterActiveMessages(_sortMessages(messages)));
   }
 
   Future<List<LocalChatMessage>> _getCachedMessages({
@@ -763,201 +597,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     return _filterActiveMessages(uniqueMessages);
   }
 
-  /// Get all messages without search filters for jump operations
-  Future<List<LocalChatMessage>> _getAllMessagesForJump({
-    int offset = 0,
-    int take = 20,
-  }) async {
-    Logger.root.info(
-      'Getting all messages for jump from offset $offset, take $take',
-    );
-    final dbMessages = await _database.getMessagesForRoom(
-      roomId,
-      offset: offset,
-      limit: take,
-    );
-    // Voice prefetching deferred - only prefetch when messages become visible
-
-    // Always ensure unique messages to prevent duplicate keys
-    final uniqueMessages = <LocalChatMessage>[];
-    final seenIds = <String>{};
-    for (final message in dbMessages) {
-      if (seenIds.add(message.id)) {
-        uniqueMessages.add(message);
-      }
-    }
-
-    if (offset == 0) {
-      final pendingForRoom = _pendingMessages.values
-          .where((msg) => msg.roomId == roomId)
-          .toList();
-
-      final allMessages = [...pendingForRoom, ...uniqueMessages];
-      _sortMessages(allMessages);
-
-      final finalUniqueMessages = <LocalChatMessage>[];
-      final finalSeenIds = <String>{};
-      for (final message in allMessages) {
-        if (finalSeenIds.add(message.id)) {
-          finalUniqueMessages.add(message);
-        }
-      }
-      return _filterActiveMessages(finalUniqueMessages);
-    }
-
-    return _filterActiveMessages(uniqueMessages);
-  }
-
-  Future<List<LocalChatMessage>> _fetchAndCacheMessages({
-    int offset = 0,
-    int take = 20,
-  }) async {
-    Logger.root.info('Fetching messages from API, offset $offset, take $take');
-
-    // Single API call to fetch messages - total count is read from response header
-    final response = await _apiClient.get(
-      '/messager/chat/$roomId/messages',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-
-    // Extract total count from response header (available in single request)
-    _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
-
-    if (offset >= _totalCount!) {
-      _allRemoteMessagesFetched = true;
-      return [];
-    }
-
-    final List<dynamic> data = response.data;
-    _totalCount = int.parse(response.headers['x-total']?.firstOrNull ?? '0');
-
-    final messages = <LocalChatMessage>[];
-    final pendingReactionEvents = <SnChatMessage>[];
-    final messagesToBatchSave = <LocalChatMessage>[];
-
-    for (final json in data) {
-      final remoteMessage = _tryParseChatMessage(
-        json,
-        context: 'room messages page',
-      );
-      if (remoteMessage == null) continue;
-
-      // Check for existing message in DB first - if it has content, use it directly
-      // This handles resync of own messages after pending is removed
-      final existing = await _database.getMessageById(remoteMessage.id);
-      if (existing != null &&
-          existing.content != null &&
-          existing.content!.isNotEmpty) {
-        Logger.root.fine(
-          'Using existing content from DB for message ${remoteMessage.id}',
-        );
-        messages.add(existing);
-        _addToMessageCache(existing); // Add to memory cache
-        continue;
-      }
-
-      // No existing content - try to decrypt
-      final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
-      if (decryptedMessage == null) continue;
-
-      // Check for pending message (shouldn't exist for resync, but check anyway)
-      final pendingByClientId = decryptedMessage.clientMessageId != null
-          ? _pendingMessages.values
-                .where(
-                  (m) => m.clientMessageId == decryptedMessage.clientMessageId,
-                )
-                .firstOrNull
-          : null;
-
-      // Preserve sender plaintext for own E2EE messages
-      final messageToConvert = E2eeMessageService.preserveSenderPlaintext(
-        decryptedMessage,
-        existingDbContent: existing?.content,
-        pendingContent: pendingByClientId?.content,
-      );
-
-      var localMessage = LocalChatMessage.fromRemoteMessage(
-        messageToConvert,
-        MessageStatus.sent,
-      );
-
-      if (existing != null) {
-        final mergedData = _mergeMessageData(localMessage.data, existing.data);
-        if (mergedData.length != localMessage.data.length) {
-          localMessage = _copyWithMergedData(localMessage, mergedData);
-        }
-      }
-
-      if ((remoteMessage.type == 'messages.reaction.added' ||
-          remoteMessage.type == 'messages.reaction.removed')) {
-        // Defer reaction application until after this page is fully cached, so
-        // target messages from the same page are available.
-        if (existing == null) {
-          pendingReactionEvents.add(remoteMessage);
-        }
-      }
-
-      // Queue for batch save instead of immediate save
-      messagesToBatchSave.add(localMessage);
-      _addToMessageCache(localMessage); // Add to memory cache
-
-      // Defer voice prefetching - don't block message loading
-      if (remoteMessage.type == 'voice') {
-        _prefetchVoiceForRemoteMessage(remoteMessage);
-      }
-
-      if (localMessage.clientMessageId != null) {
-        _pendingMessages.removeWhere(
-          (_, pendingMsg) =>
-              pendingMsg.clientMessageId == localMessage.clientMessageId,
-        );
-      }
-      messages.add(localMessage);
-    }
-
-    // Batch save all messages in a single database transaction
-    if (messagesToBatchSave.isNotEmpty) {
-      try {
-        await _database.saveMessagesWithSenders(messagesToBatchSave);
-        Logger.root.info(
-          'Batch saved ${messagesToBatchSave.length} messages to database',
-        );
-      } catch (e) {
-        Logger.root.info('Error batch-saving messages: $e');
-        // Fallback to individual saves if batch fails
-        for (final msg in messagesToBatchSave) {
-          try {
-            await _database.saveMessageWithSender(msg);
-          } catch (e) {
-            Logger.root.info('Error saving individual message ${msg.id}: $e');
-          }
-        }
-      }
-    }
-
-    // Process reaction events after batch save
-    for (final event in pendingReactionEvents) {
-      if (event.type == 'messages.reaction.added') {
-        await receiveReactionAdded(event);
-      } else {
-        await receiveReactionRemoved(event);
-      }
-    }
-
-    // Track the last API fetch offset for pagination
-    _lastApiFetchOffset = offset + messages.length;
-
-    // Check if we've fetched all remote messages
-    if (_lastApiFetchOffset >= _totalCount!) {
-      _allRemoteMessagesFetched = true;
-    }
-    Logger.root.info(
-      'FetchAndCache done: offset=$offset, rawCount=${messages.length}, totalCount=$_totalCount, allFetched=$_allRemoteMessagesFetched, lastApiOffset=$_lastApiFetchOffset',
-    );
-
-    return messages;
-  }
-
   /// Consolidated initialization that handles pagination reset, sync, and initial load
   /// with debouncing to prevent redundant calls
   Future<void> initialize({bool forceRemoteRefresh = false}) async {
@@ -978,25 +617,17 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> syncMessages() async {
-    // Deduplication: return existing operation if one is in progress
-    if (_syncOperation != null) {
-      Logger.root.info(
-        'Sync operation already in progress, joining existing task',
-      );
-      return _syncOperation!;
-    }
-
     if (_isSyncing) {
       Logger.root.info('Sync already in progress, skipping.');
       return;
     }
 
-    _syncOperation = _syncMessagesImpl();
-    try {
-      await _syncOperation!;
-    } finally {
-      _syncOperation = null;
-    }
+    await _runDeduped(
+      operation: _syncOperation,
+      setOperation: (op) => _syncOperation = op,
+      task: _syncMessagesImpl,
+      logLabel: 'Sync operation',
+    );
   }
 
   Future<void> _syncMessagesImpl() async {
@@ -1022,205 +653,48 @@ class MessagesNotifier extends _$MessagesNotifier {
     int take = 20,
     bool synced = false,
   }) async {
-    try {
-      final localMessages = await _getCachedMessages(
-        offset: offset,
-        take: take,
-        searchQuery: _searchQuery,
-        withLinks: _withLinks,
-        withAttachments: _withAttachments,
-      );
-
-      // If local returned full page, return local - no need to fetch remote
-      if (localMessages.length >= take) {
-        return localMessages;
-      }
-
-      // If local has some messages but less than requested, check if we've
-      // already fetched all remote data. If so, return local.
-      if (localMessages.isNotEmpty && _allRemoteMessagesFetched) {
-        return localMessages;
-      }
-
-      // If we haven't fetched all remote messages, check remote even if we have local
-      // OR if we have no local messages at all
-      if (_searchQuery == null || _searchQuery!.isEmpty) {
-        // Only fetch from API if we haven't fetched all messages yet
-        // Use _lastApiFetchOffset to track what we've already fetched
-        // This prevents overlapping fetches when we fetch in large batches
-        if (_allRemoteMessagesFetched ||
-            (_totalCount != null && _lastApiFetchOffset >= _totalCount!)) {
-          return localMessages;
-        }
-
-        // Fetch more from API than requested to reduce network requests
-        // Use _lastApiFetchOffset for API call, not the UI offset
-        final remoteMessages = await _fetchAndCacheMessages(
-          offset: _lastApiFetchOffset,
-          take: _fetchBatchSize,
-        );
-
-        // If we got remote messages, re-fetch from cache to get merged result
-        if (remoteMessages.isNotEmpty) {
-          if (kIsWeb) {
-            return remoteMessages;
-          }
-          return await _getCachedMessages(
-            offset: offset,
-            take: take,
-            searchQuery: _searchQuery,
-            withLinks: _withLinks,
-            withAttachments: _withAttachments,
-          );
-        }
-
-        // No remote messages, return local (if any)
-        return localMessages;
-      } else {
-        // For search queries, return local only
-        return localMessages;
-      }
-    } catch (e) {
-      final localMessages = await _getCachedMessages(
-        offset: offset,
-        take: take,
-        searchQuery: _searchQuery,
-        withLinks: _withLinks,
-        withAttachments: _withAttachments,
-      );
-
-      if (localMessages.isNotEmpty) {
-        return localMessages;
-      }
-      rethrow;
-    }
+    final currentCount = _currentMessages.length;
+    return _syncService.loadMore(
+      currentCount: offset > 0 ? offset : currentCount,
+      take: take,
+      filter: _activeFilter,
+    );
   }
 
   Future<List<LocalChatMessage>> _loadInitialMessages({
     bool forceRemoteRefresh = true,
   }) async {
-    _allRemoteMessagesFetched = false;
-    _lastApiFetchOffset = 0; // Reset API fetch offset on initial load
-
-    final cachedMessages = await _getCachedMessages(
-      offset: 0,
-      take: _pageSize,
-      searchQuery: _searchQuery,
-      withLinks: _withLinks,
-      withAttachments: _withAttachments,
-    );
-
-    final canFetchRemote =
-        (_searchQuery == null || _searchQuery!.isEmpty) &&
-        _withLinks != true &&
-        _withAttachments != true;
-    final shouldRefreshRemote =
-        canFetchRemote && (forceRemoteRefresh || cachedMessages.isEmpty);
-
-    if (!shouldRefreshRemote) {
-      // If remote fetching is allowed, don't assume "no more" from cache size.
-      // Small local cache should still probe remote pages eagerly.
-      _hasMore = canFetchRemote ? true : cachedMessages.length == _pageSize;
-      Logger.root.info(
-        'LoadInitial: using cache (cached=${cachedMessages.length}), _hasMore=$_hasMore, shouldRefreshRemote=$shouldRefreshRemote',
-      );
-      return _eagerPrefetchIfShort(cachedMessages, enabled: canFetchRemote);
-    }
-
+    _setGlobalSyncing(true);
     try {
-      // Reset total count so resumed sessions and long-lived notifiers do not
-      // keep stale pagination metadata.
-      _totalCount = null;
-      if (ref.mounted) {
-        Future.microtask(
-          () => ref.read(chatSyncingProvider.notifier).set(true),
-        );
-      }
-      // Fetch a moderate first batch to reduce time-to-first-render.
-      final remoteMessages = await _fetchAndCacheMessages(
-        offset: 0,
-        take: _initialRemoteFetchSize,
+      final initial = await _syncService.loadInitial(
+        forceRemote: forceRemoteRefresh,
+        filter: _activeFilter,
       );
-      Logger.root.info(
-        'LoadInitial: fetched ${remoteMessages.length} from remote, _allRemoteMessagesFetched=$_allRemoteMessagesFetched',
+      final prefetched = await _syncService.eagerPrefetchIfNeeded(
+        initial,
+        filter: _activeFilter,
       );
-      if (kIsWeb) {
-        _hasMore =
-            remoteMessages.length == _pageSize || !_allRemoteMessagesFetched;
-        Logger.root.info(
-          'LoadInitial (web): _hasMore=$_hasMore (remoteLen=${remoteMessages.length}, pageSize=$_pageSize, allFetched=$_allRemoteMessagesFetched)',
-        );
-        final result = await _eagerPrefetchIfShort(
-          remoteMessages,
-          enabled: canFetchRemote,
-        );
-        if (ref.mounted) {
-          Future.microtask(
-            () => ref.read(chatSyncingProvider.notifier).set(false),
-          );
-        }
-        return result;
-      }
-      final refreshedMessages = await _getCachedMessages(
-        offset: 0,
-        take: _pageSize,
-        searchQuery: _searchQuery,
-        withLinks: _withLinks,
-        withAttachments: _withAttachments,
-      );
-      _hasMore =
-          refreshedMessages.length == _pageSize || !_allRemoteMessagesFetched;
-      Logger.root.info(
-        'LoadInitial: _hasMore=$_hasMore (refreshedLen=${refreshedMessages.length}, pageSize=$_pageSize, allFetched=$_allRemoteMessagesFetched)',
-      );
-      final result = await _eagerPrefetchIfShort(
-        refreshedMessages,
-        enabled: canFetchRemote,
-      );
-      if (ref.mounted) {
-        Future.microtask(
-          () => ref.read(chatSyncingProvider.notifier).set(false),
-        );
-      }
-      return result;
-    } catch (err, stackTrace) {
-      Logger.root.info(
-        'Error refreshing initial messages from remote, falling back to cache',
-        err,
-        stackTrace,
-      );
-      _hasMore = cachedMessages.length == _pageSize;
-      if (ref.mounted) {
-        Future.microtask(
-          () => ref.read(chatSyncingProvider.notifier).set(false),
-        );
-      }
-      return cachedMessages;
+      _allRemoteMessagesFetched = _syncService.allRemoteFetched;
+      _lastApiFetchOffset = _syncService.lastApiOffset;
+      _hasMore = !_allRemoteMessagesFetched;
+      return prefetched;
+    } finally {
+      _setGlobalSyncing(false);
     }
   }
 
   Future<void> loadInitial({bool forceRemoteRefresh = true}) async {
-    // Deduplication: return existing operation if one is in progress
-    if (_loadInitialOperation != null) {
-      Logger.root.info(
-        'LoadInitial operation already in progress, joining existing task',
-      );
-      return _loadInitialOperation!;
-    }
-
     if (_isLoadingInitial) {
       Logger.root.info('Initial load already in progress, skipping.');
       return;
     }
 
-    _loadInitialOperation = _loadInitialImpl(
-      forceRemoteRefresh: forceRemoteRefresh,
+    await _runDeduped(
+      operation: _loadInitialOperation,
+      setOperation: (op) => _loadInitialOperation = op,
+      task: () => _loadInitialImpl(forceRemoteRefresh: forceRemoteRefresh),
+      logLabel: 'LoadInitial operation',
     );
-    try {
-      await _loadInitialOperation!;
-    } finally {
-      _loadInitialOperation = null;
-    }
   }
 
   Future<void> _loadInitialImpl({bool forceRemoteRefresh = true}) async {
@@ -1231,7 +705,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       final messages = await _loadInitialMessages(
         forceRemoteRefresh: forceRemoteRefresh,
       );
-      if (ref.mounted) state = AsyncValue.data(messages);
+      if (ref.mounted) _emitMessages(messages);
     } finally {
       _isLoadingInitial = false;
     }
@@ -1240,7 +714,6 @@ class MessagesNotifier extends _$MessagesNotifier {
   void resetPaginationState() {
     _hasMore = true;
     _allRemoteMessagesFetched = false;
-    _totalCount = null;
     _lastApiFetchOffset = 0;
   }
 
@@ -1254,29 +727,22 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isLoadingMore = true;
     // Use the current displayed message count as offset for UI pagination
     // This is different from _lastApiFetchOffset which tracks API fetch progress
-    final offset = state.value?.length ?? 0;
+    final offset = _currentMessages.length;
     Logger.root.info(
       'Loading more messages (displayOffset=$offset, take=$_pageSize, lastApiOffset=$_lastApiFetchOffset)',
     );
 
-    if (ref.mounted) {
-      Future.microtask(() => ref.read(chatSyncingProvider.notifier).set(true));
-    }
+    _setGlobalSyncing(true);
 
     try {
       final newMessages = await listMessages(offset: offset, take: _pageSize);
 
-      if (newMessages.isEmpty || _allRemoteMessagesFetched) {
-        _hasMore = false;
-      }
+      _allRemoteMessagesFetched = _syncService.allRemoteFetched;
+      _lastApiFetchOffset = _syncService.lastApiOffset;
+      _hasMore = !_allRemoteMessagesFetched;
 
       if (ref.mounted) {
-        final currentMessages = state.value ?? [];
-        state = AsyncValue.data(
-          _filterActiveMessages(
-            _sortMessages([...currentMessages, ...newMessages]),
-          ),
-        );
+        _emitMessages([..._currentMessages, ...newMessages]);
       }
       Logger.root.info(
         'loadMore complete (fetched=${newMessages.length}, hasMore=$_hasMore, allRemoteFetched=$_allRemoteMessagesFetched)',
@@ -1287,156 +753,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     } finally {
       _isLoadingMore = false;
       // Always reset global syncing state, regardless of disposal
-      Future.microtask(() {
-        if (ref.mounted) ref.read(chatSyncingProvider.notifier).set(false);
-      });
+      _setGlobalSyncing(false);
     }
   }
 
-  // ── Send flow helpers ───────────────────────────────────────────────
-
-  /// Uploads attachments to cloud storage, returns cloud file list.
-  Future<List<SnCloudFile>> _uploadAttachments(
-    List<UniversalFile> attachments,
-    String pendingMessageId, {
-    Function(String, Map<int, double?>)? onProgress,
-  }) async {
-    final cloudAttachments = <SnCloudFile>[];
-    for (var idx = 0; idx < attachments.length; idx++) {
-      final cloudFile = await ref
-          .read(driveFileUploaderProvider)
-          .createCloudFile(
-            fileData: attachments[idx],
-            encryptPassword: _fileEncryptKey,
-            onProgress: (progress, _) {
-              _fileUploadProgress[pendingMessageId]?[idx] = progress ?? 0.0;
-              onProgress?.call(
-                pendingMessageId,
-                _fileUploadProgress[pendingMessageId] ?? {},
-              );
-            },
-          )
-          .future;
-      if (cloudFile == null) {
-        throw ArgumentError('Failed to upload the file...');
-      }
-      cloudAttachments.add(cloudFile);
-    }
-    return cloudAttachments;
-  }
-
-  /// Builds the message payload (E2EE encrypted or plain).
-  /// Returns [serverPayload, plaintextEnvelope (null for non-E2EE)].
-  Future<
-    ({Map<String, dynamic> payload, Map<String, dynamic>? plaintextEnvelope})
-  >
-  _buildMessagePayload({
-    required String clientMessageId,
-    required String content,
-    required List<String> attachmentIds,
-    String? repliedMessageId,
-    String? forwardedMessageId,
-    String? pollId,
-    String? fundId,
-    bool isEditing = false,
-  }) async {
-    if (_isE2eeRoom) {
-      final result = await _e2eeService.buildMessagePayload(
-        clientMessageId: clientMessageId,
-        messageType: isEditing ? 'messages.update' : 'text',
-        content: content,
-        attachmentIds: attachmentIds,
-        repliedMessageId: repliedMessageId,
-        forwardedMessageId: forwardedMessageId,
-        pollId: pollId,
-        fundId: fundId,
-      );
-      return (
-        payload: result.serverPayload,
-        plaintextEnvelope: result.localEnvelope,
-      );
-    }
-    return (
-      payload: {
-        'content': content,
-        'attachments_id': attachmentIds,
-        'replied_message_id': repliedMessageId,
-        'forwarded_message_id': forwardedMessageId,
-        'poll_id': pollId,
-        'fund_id': fundId,
-        'meta': {},
-        'client_message_id': clientMessageId,
-      },
-      plaintextEnvelope: null,
-    );
-  }
-
-  /// Sends message to server (new or edit).
-  Future<SnChatMessage> _sendMessageToServer(
-    Map<String, dynamic> payload, {
-    SnChatMessage? editingTo,
-  }) async {
-    if (editingTo != null) {
-      final response = await _apiClient.patch(
-        '/messager/chat/$roomId/messages/${editingTo.id}',
-        data: payload,
-        options: _mlsWriteOptions(),
-      );
-      return _tryParseChatMessage(response.data, context: 'send response') ??
-          (throw Exception('Invalid chat message response.'));
-    }
-    return _sendNewMessageWithFallback(
-      targetRoomId: roomId,
-      clientMessageId: payload['client_message_id'] ?? payload['nonce'] ?? '',
-      payload: payload,
-      context: 'send response',
-    );
-  }
-
-  /// Preserves sender plaintext in E2EE messages (MLS forward secrecy).
-  SnChatMessage _applySenderPlaintext(
-    SnChatMessage message,
-    Map<String, dynamic>? plaintextEnvelope,
-  ) {
-    if (!_isE2eeRoom || plaintextEnvelope == null) return message;
-    return E2eeMessageService.preserveSenderPlaintext(
-      message,
-      plaintextEnvelope: plaintextEnvelope,
-    );
-  }
-
-  LocalChatMessage _buildMessageUpdatedByEvent({
-    required LocalChatMessage existingMessage,
-    required LocalChatMessage updateEvent,
-  }) {
-    final updateRemote = updateEvent.toRemoteMessage();
-
-    if (updateEvent.type == 'messages.update.links') {
-      final existingRemote = existingMessage.toRemoteMessage();
-      final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
-      mergedMeta.addAll(updateRemote.meta);
-      mergedMeta.remove('message_id');
-
-      return LocalChatMessage.fromRemoteMessage(
-        existingRemote.copyWith(
-          meta: mergedMeta,
-          editedAt: updateEvent.createdAt,
-        ),
-        existingMessage.status,
-      );
-    }
-
-    return LocalChatMessage.fromRemoteMessage(
-      updateRemote.copyWith(
-        id: existingMessage.id,
-        createdAt: existingMessage.createdAt,
-        meta: Map.of(updateRemote.meta)..remove('message_id'),
-        type: 'text',
-        editedAt: updateEvent.createdAt,
-      ),
-      existingMessage.status,
-    );
-  }
 
   void _upsertReceivedMessageInState(LocalChatMessage localMessage) {
     final isMessageUpdate =
@@ -1466,9 +786,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       if (shouldShowMessage || shouldShowEditTrail) {
         // Only add if not already in the list (avoid duplicates)
         if (existingIndex < 0) {
-          state = AsyncValue.data(
-            _sortMessages([localMessage, ...currentMessages]),
-          );
+          _emitMessages([localMessage, ...currentMessages]);
         }
       }
       return;
@@ -1481,11 +799,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       } else {
         newList.removeAt(existingIndex);
       }
-      state = AsyncValue.data(_sortMessages(newList));
+      _emitMessages(newList);
     } else if (shouldShowMessage || shouldShowEditTrail) {
-      state = AsyncValue.data(
-        _sortMessages([localMessage, ...currentMessages]),
-      );
+      _emitMessages([localMessage, ...currentMessages]);
     }
   }
 
@@ -1505,85 +821,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
   }
 
-  /// Replaces pending message with sent message in DB and state.
-  Future<void> _applySendSuccess({
-    required LocalChatMessage pendingMessage,
-    required LocalChatMessage sentMessage,
-    SnChatMessage? editingTo,
-  }) async {
-    _pendingMessages.remove(pendingMessage.id);
-    await _database.deleteMessage(pendingMessage.id);
-    await _database.saveMessageWithSender(sentMessage);
-    _addToMessageCache(sentMessage);
-
-    if (editingTo != null) {
-      final targetId =
-          sentMessage.meta['message_id']?.toString() ?? editingTo.id;
-      final existingMessage =
-          await fetchMessageById(targetId) ??
-          LocalChatMessage.fromRemoteMessage(editingTo, MessageStatus.sent);
-      final updatedOriginal = _buildMessageUpdatedByEvent(
-        existingMessage: existingMessage,
-        updateEvent: sentMessage,
-      );
-
-      await _database.saveMessage(updatedOriginal);
-      _addToMessageCache(updatedOriginal);
-
-      if (!ref.mounted) return;
-      final currentMessages = state.value ?? [];
-
-      // Remove pending + any WS echo with same nonce, keep the edit trail, and
-      // update the original message as a separate timeline item.
-      final newMessages = currentMessages
-          .where(
-            (m) =>
-                m.id != pendingMessage.id &&
-                m.id != sentMessage.id &&
-                m.clientMessageId != pendingMessage.clientMessageId,
-          )
-          .map((m) => m.id == targetId ? updatedOriginal : m)
-          .toList();
-      if (!newMessages.any((m) => m.id == targetId)) {
-        newMessages.add(updatedOriginal);
-      }
-      if (_shouldIncludeInActiveList(sentMessage)) {
-        newMessages.add(sentMessage);
-      }
-      state = AsyncValue.data(_sortMessages(newMessages));
-    } else {
-      if (!ref.mounted) return;
-      final currentMessages = state.value ?? [];
-      final newMessages = currentMessages
-          .where(
-            (m) =>
-                m.id != pendingMessage.id &&
-                m.clientMessageId != pendingMessage.clientMessageId,
-          )
-          .toList();
-      newMessages.add(sentMessage);
-      state = AsyncValue.data(_sortMessages(newMessages));
-    }
-  }
-
-  /// Marks pending message as failed in DB and state.
-  void _applySendFailure(LocalChatMessage pendingMessage) {
-    pendingMessage.status = MessageStatus.failed;
-    _pendingMessages[pendingMessage.id] = pendingMessage;
-    _database.updateMessageStatus(pendingMessage.id, MessageStatus.failed);
-
-    if (!ref.mounted) return;
-    final newMessages = (state.value ?? []).map((m) {
-      if (m.id == pendingMessage.id) return m..status = MessageStatus.failed;
-      return m;
-    }).toList();
-    state = AsyncValue.data(newMessages);
-  }
-
   // ── Public send methods ────────────────────────────────────────────
 
   Future<void> sendMessage(
-    WidgetRef outerRef,
     String content,
     List<UniversalFile> attachments, {
     SnPoll? poll,
@@ -1593,82 +833,26 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? replyingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
-    final clientMessageId = const Uuid().v4();
-    Logger.root.info('[send:$clientMessageId] Start');
+    if (content.trim().isEmpty && attachments.isEmpty) return;
 
-    final mockMessage = SnChatMessage(
-      id: 'pending_$clientMessageId',
-      chatRoomId: roomId,
-      senderId: _identity.id,
+    final result = await _sender.sendTextMessage(
       content: content,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      clientMessageId: clientMessageId,
+      attachments: attachments,
       sender: _identity,
+      editingTo: editingTo,
+      replyingTo: replyingTo,
+      forwardingTo: forwardingTo,
+      poll: poll,
+      fund: fund,
+      onProgress: onProgress,
     );
 
-    final localMessage = LocalChatMessage.fromRemoteMessage(
-      mockMessage,
-      MessageStatus.pending,
-    );
-
-    _pendingMessages[localMessage.id] = localMessage;
-    _fileUploadProgress[localMessage.id] = {};
-    await _database.saveMessageWithSender(localMessage);
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    state = AsyncValue.data([localMessage, ...currentMessages]);
-
-    try {
-      // ── 1. Upload attachments ──
-      final cloudAttachments = await _uploadAttachments(
-        attachments,
-        localMessage.id,
-        onProgress: onProgress,
-      );
-
-      // ── 2. Build payload ──
-      final (:payload, :plaintextEnvelope) = await _buildMessagePayload(
-        clientMessageId: clientMessageId,
-        content: content,
-        attachmentIds: cloudAttachments.map((e) => e.id).toList(),
-        isEditing: editingTo != null,
-        repliedMessageId: replyingTo?.id,
-        forwardedMessageId: forwardingTo?.id,
-        pollId: poll?.id,
-        fundId: fund?.id,
-      );
-
-      // ── 3. Send to server ──
-      final remoteMessage = await _sendMessageToServer(
-        payload,
-        editingTo: editingTo,
-      );
-
-      // ── 4. Preserve sender plaintext for E2EE ──
-      final messageWithPlaintext = _applySenderPlaintext(
-        remoteMessage,
-        plaintextEnvelope,
-      );
-
-      final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        messageWithPlaintext,
-        MessageStatus.sent,
-      );
-
-      // ── 5. Update DB and state ──
-      await _applySendSuccess(
-        pendingMessage: localMessage,
-        sentMessage: updatedMessage,
-        editingTo: editingTo,
-      );
-
-      Logger.root.info('[send:$clientMessageId] Sent successfully');
-    } catch (e, stackTrace) {
-      Logger.root.info('[send:$clientMessageId] Failed', e, stackTrace);
-      _applySendFailure(localMessage);
-      showErrorAlert(e);
+    if (!result.success || result.message == null) {
+      showErrorAlert(result.error ?? 'Failed to send message');
+      return;
     }
+
+    _emitMessages([result.message!, ..._currentMessages]);
   }
 
   Future<void> sendVoiceMessage(
@@ -1677,366 +861,54 @@ class MessagesNotifier extends _$MessagesNotifier {
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
   }) async {
-    if (_isE2eeRoom) {
-      final err = UnsupportedError(
-        'Voice endpoint is not supported for E2EE rooms in v1.',
-      );
-      showErrorAlert(err);
-      throw err;
-    }
-
-    final clientMessageId = const Uuid().v4();
-    Logger.root.info(
-      'Sending voice message with client_message_id $clientMessageId',
-    );
-
-    final mockMessage = SnChatMessage(
-      id: 'pending_$clientMessageId',
-      chatRoomId: roomId,
-      senderId: _identity.id,
-      type: 'voice',
-      content: null,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      clientMessageId: clientMessageId,
+    final result = await _sender.sendVoiceMessage(
+      filePath: filePath,
       sender: _identity,
-      meta: {
-        'file_name': p.basename(filePath),
-        ...?durationMs == null ? null : {'duration_ms': durationMs},
-      },
+      durationMs: durationMs,
+      forwardingTo: forwardingTo,
+      replyingTo: replyingTo,
     );
 
-    final localMessage = LocalChatMessage.fromRemoteMessage(
-      mockMessage,
-      MessageStatus.pending,
-    );
-    _pendingMessages[localMessage.id] = localMessage;
-    await _database.saveMessageWithSender(localMessage);
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    if (ref.mounted && _shouldIncludeInActiveList(localMessage)) {
-      state = AsyncValue.data(
-        _sortMessages([localMessage, ...currentMessages]),
-      );
+    if (!result.success || result.message == null) {
+      showErrorAlert(result.error ?? 'Failed to send voice message');
+      return;
     }
 
-    try {
-      final mimeType = lookupMimeType(filePath) ?? 'audio/m4a';
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          filePath,
-          filename: p.basename(filePath),
-          contentType: MediaType.parse(mimeType),
-        ),
-        'client_message_id': clientMessageId,
-        if (replyingTo != null) 'repliedMessageId': replyingTo.id,
-        if (forwardingTo != null) 'forwardedMessageId': forwardingTo.id,
-        ...?durationMs == null ? null : {'durationMs': durationMs},
-      });
-
-      final response = await _apiClient.post(
-        '/messager/chat/$roomId/messages/voice',
-        data: formData,
-      );
-      final remoteMessage = SnChatMessage.fromJson(response.data);
-      final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
-        MessageStatus.sent,
-      );
-      unawaited(_prefetchVoiceForRemoteMessage(remoteMessage));
-
-      _pendingMessages.remove(localMessage.id);
-      await _database.deleteMessage(localMessage.id);
-      await _database.saveMessageWithSender(updatedMessage);
-
-      if (ref.mounted) {
-        final list = (state.value ?? []).map((m) {
-          if (m.id == localMessage.id) return updatedMessage;
-          return m;
-        }).toList();
-        state = AsyncValue.data(_sortMessages(list));
-      }
-    } catch (e, stackTrace) {
-      Logger.root.info(
-        'Failed to send voice message with client_message_id $clientMessageId',
-        e,
-        stackTrace,
-      );
-      localMessage.status = MessageStatus.failed;
-      _pendingMessages[localMessage.id] = localMessage;
-      await _database.updateMessageStatus(
-        localMessage.id,
-        MessageStatus.failed,
-      );
-      if (ref.mounted) {
-        final list = (state.value ?? []).map((m) {
-          if (m.id == localMessage.id) return m..status = MessageStatus.failed;
-          return m;
-        }).toList();
-        state = AsyncValue.data(_sortMessages(list));
-      }
-      showErrorAlert(e);
-      rethrow;
-    }
+    _emitMessages([result.message!, ..._currentMessages]);
   }
 
   Future<void> retryMessage(String pendingMessageId) async {
-    Logger.root.info('[retry:$pendingMessageId] Start');
-    final message = await fetchMessageById(pendingMessageId);
-    if (message == null) {
-      throw Exception('Message not found');
-    }
-
-    message.status = MessageStatus.pending;
-    _pendingMessages[pendingMessageId] = message;
-    await _database.updateMessageStatus(
+    final result = await _sender.retryMessage(
       pendingMessageId,
-      MessageStatus.pending,
+      sender: _identity,
     );
 
-    try {
-      final remoteMessage = message.toRemoteMessage();
-      final clientMessageId = message.clientMessageId ?? const Uuid().v4();
-      final attachmentIds = remoteMessage.attachments.map((e) => e.id).toList();
-
-      final (:payload, :plaintextEnvelope) = await _buildMessagePayload(
-        clientMessageId: clientMessageId,
-        content: remoteMessage.content ?? '',
-        attachmentIds: attachmentIds,
-      );
-
-      var sentMessage = await _sendMessageToServer(payload);
-      final messageWithPlaintext = _applySenderPlaintext(
-        sentMessage,
-        plaintextEnvelope,
-      );
-
-      final updatedMessage = LocalChatMessage.fromRemoteMessage(
-        messageWithPlaintext,
-        MessageStatus.sent,
-      );
-
-      _pendingMessages.remove(pendingMessageId);
-      await _database.deleteMessage(pendingMessageId);
-      await _database.saveMessageWithSender(updatedMessage);
-
-      if (ref.mounted) {
-        final newMessages = (state.value ?? []).map((m) {
-          if (m.id == pendingMessageId) return updatedMessage;
-          return m;
-        }).toList();
-        state = AsyncValue.data(newMessages);
-      }
-      Logger.root.info('[retry:$pendingMessageId] Sent successfully');
-    } catch (e, stackTrace) {
-      Logger.root.info('[retry:$pendingMessageId] Failed', e, stackTrace);
-      message.status = MessageStatus.failed;
-      _pendingMessages[pendingMessageId] = message;
-      await _database.updateMessageStatus(
-        pendingMessageId,
-        MessageStatus.failed,
-      );
-      if (ref.mounted) {
-        final newMessages = (state.value ?? []).map((m) {
-          if (m.id == pendingMessageId) {
-            return m..status = MessageStatus.failed;
-          }
-          return m;
-        }).toList();
-        state = AsyncValue.data(_sortMessages(newMessages));
-      }
-      showErrorAlert(e);
+    if (!result.success || result.message == null) {
+      showErrorAlert(result.error ?? 'Failed to retry message');
+      return;
     }
+
+    final updated = _currentMessages.map((m) {
+      if (m.id == pendingMessageId) return result.message!;
+      return m;
+    }).toList();
+    _emitMessages(updated);
   }
 
   Future<void> receiveMessage(
     SnChatMessage remoteMessage, {
     bool applySideEffects = true,
   }) async {
-    if (remoteMessage.chatRoomId != roomId) return;
-
-    if (_isJumping) {
-      _hasPendingRealtimeRefresh = true;
-      Logger.root.info(
-        'Received message during jump; queueing post-jump refresh for room $roomId',
-      );
-      return;
-    }
-
-    Logger.root.info('Received new message ${remoteMessage.id}');
-
-    // ── Step 1: Dedup ──
-    // Skip if already saved by sendMessage before WebSocket echo arrives.
-    final existingInDb = await _database.getMessageById(remoteMessage.id);
-    final existingNeedsAttachmentRefresh =
-        existingInDb != null &&
-        existingInDb.attachments.isEmpty &&
-        remoteMessage.attachments.isNotEmpty;
-    if (existingInDb != null &&
-        existingInDb.content != null &&
-        existingInDb.content!.isNotEmpty &&
-        !existingNeedsAttachmentRefresh) {
-      Logger.root.fine(
-        'Message ${remoteMessage.id} already in DB with content, skipping duplicate',
-      );
-      if (remoteMessage.clientMessageId != null) {
-        _pendingMessages.removeWhere(
-          (_, pendingMsg) =>
-              pendingMsg.clientMessageId == remoteMessage.clientMessageId,
-        );
-      }
-      if (_isSystemEventType(remoteMessage.type)) {
-        _addToMessageCache(existingInDb);
-        _upsertReceivedMessageInState(existingInDb);
-        await _processMessageSideEffects(remoteMessage);
-      }
-      return;
-    }
-
-    // ── Step 2: Lookup pending (has plaintext) ──
-    LocalChatMessage? pendingMessage;
-    if (remoteMessage.clientMessageId != null) {
-      pendingMessage = _pendingMessages.values
-          .where((m) => m.clientMessageId == remoteMessage.clientMessageId)
-          .firstOrNull;
-    }
-
-    // ── Step 3: Decrypt ──
-    final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
-    if (decryptedMessage == null) return;
-
-    // ── Step 4: Preserve sender plaintext for own E2EE messages ──
-    final messageToConvert = E2eeMessageService.preserveSenderPlaintext(
-      decryptedMessage,
-      existingDbContent: existingInDb?.content,
-      pendingContent: pendingMessage?.content,
-    );
-
-    // ── Step 5: Save ──
-    final localMessage = LocalChatMessage.fromRemoteMessage(
-      messageToConvert,
-      MessageStatus.sent,
-    );
-    unawaited(_prefetchVoiceForRemoteMessage(decryptedMessage));
-
-    if (remoteMessage.clientMessageId != null) {
-      _pendingMessages.removeWhere(
-        (_, pendingMsg) =>
-            pendingMsg.clientMessageId == remoteMessage.clientMessageId,
-      );
-    }
-
-    await _database.saveMessageWithSender(localMessage);
-    _addToMessageCache(localMessage);
-
-    // ── Step 6: Update UI state ──
-    _upsertReceivedMessageInState(localMessage);
-
-    // ── Step 7: Process system events ──
-    if (applySideEffects) {
-      await _processMessageSideEffects(remoteMessage);
-    }
+    await _realtime.processNewMessage(remoteMessage);
+    if (applySideEffects) await _processMessageSideEffects(remoteMessage);
   }
 
   Future<void> receiveMessageUpdate(SnChatMessage remoteMessage) async {
-    if (remoteMessage.chatRoomId != roomId) return;
-
-    if (_isJumping) {
-      _hasPendingRealtimeRefresh = true;
-      Logger.root.info(
-        'Received message update during jump; queueing post-jump refresh for room $roomId',
-      );
-      return;
-    }
-
-    Logger.root.info('Received message update ${remoteMessage.id}');
-
-    if (remoteMessage.type == 'messages.reaction.added') {
-      await receiveReactionAdded(remoteMessage);
-      return;
-    }
-    if (remoteMessage.type == 'messages.reaction.removed') {
-      await receiveReactionRemoved(remoteMessage);
-      return;
-    }
-
-    final decryptedMessage = await _decryptMessageIfEncrypted(remoteMessage);
-    if (decryptedMessage == null) return;
-
-    final targetId = decryptedMessage.meta['message_id'] ?? decryptedMessage.id;
-
-    final existingMessage = await fetchMessageById(targetId);
-    if (existingMessage == null) {
-      Logger.root.info('Cannot update non-existent message $targetId');
-      return;
-    }
-
-    final updateEvent = LocalChatMessage.fromRemoteMessage(
-      decryptedMessage,
-      MessageStatus.sent,
-    );
-    final updatedMessage = _buildMessageUpdatedByEvent(
-      existingMessage: existingMessage,
-      updateEvent: updateEvent,
-    );
-
-    await _database.saveMessage(updatedMessage);
-    _addToMessageCache(updatedMessage);
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    final index = currentMessages.indexWhere((m) => m.id == targetId);
-    if (ref.mounted && index >= 0) {
-      final newList = [...currentMessages];
-      newList[index] = updatedMessage;
-      state = AsyncValue.data(_sortMessages(newList));
-    }
+    await _realtime.processMessageUpdate(remoteMessage);
   }
 
   Future<void> receiveMessageDeletion(String messageId) async {
-    if (_isJumping) {
-      _hasPendingRealtimeRefresh = true;
-      Logger.root.info(
-        'Received message deletion during jump; queueing post-jump refresh for room $roomId',
-      );
-      return;
-    }
-
-    Logger.root.info('Received message deletion $messageId');
-    _pendingMessages.remove(messageId);
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    final messageIndex = currentMessages.indexWhere((m) => m.id == messageId);
-
-    LocalChatMessage? messageToUpdate;
-    if (messageIndex != -1) {
-      messageToUpdate = currentMessages[messageIndex];
-    } else {
-      messageToUpdate = await fetchMessageById(messageId);
-    }
-
-    if (messageToUpdate == null) return;
-
-    final remote = messageToUpdate.toRemoteMessage();
-    final updatedRemote = remote.copyWith(
-      content: 'This message was deleted',
-      deletedAt: DateTime.now(),
-      attachments: [],
-    );
-
-    final deletedMessage = LocalChatMessage.fromRemoteMessage(
-      updatedRemote,
-      messageToUpdate.status,
-    );
-
-    await _database.saveMessageWithSender(deletedMessage);
-
-    if (ref.mounted) {
-      if (messageIndex != -1) {
-        final newList = [...currentMessages];
-        newList[messageIndex] = deletedMessage;
-        state = AsyncValue.data(newList);
-      }
-    }
+    await _realtime.processMessageDeletion(messageId);
   }
 
   Future<void> deleteMessage(String messageId) async {
@@ -2054,13 +926,13 @@ class MessagesNotifier extends _$MessagesNotifier {
       Logger.root.info('Skipping server delete for failed message $messageId');
       // For failed messages, remove them completely from the active list
       _pendingMessages.remove(messageId);
-      await _database.deleteMessage(messageId);
+      await _repository.deleteMessage(messageId);
 
       final currentMessages = (ref.mounted ? state.value : null) ?? [];
       final newMessages = currentMessages
           .where((m) => m.id != messageId)
           .toList();
-      state = AsyncValue.data(newMessages);
+      _emitMessages(newMessages);
       return;
     }
 
@@ -2081,198 +953,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     } catch (err, stackTrace) {
       Logger.root.info('Error deleting message $messageId', err, stackTrace);
       showErrorAlert(err);
-    }
-  }
-
-  Map<String, int> _extractReactionsCount(LocalChatMessage message) {
-    final raw = message.data['reactions_count'];
-    if (raw is! Map) return {};
-    return raw.map((key, value) {
-      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
-      return MapEntry(key.toString(), count);
-    });
-  }
-
-  Map<String, bool> _extractReactionsMade(LocalChatMessage message) {
-    final raw = message.data['reactions_made'];
-    if (raw is! Map) return {};
-    return raw.map((key, value) => MapEntry(key.toString(), value == true));
-  }
-
-  Map<String, int>? _extractReactionSnapshot(SnChatMessage remoteMessage) {
-    final raw = remoteMessage.meta['reactions_count'];
-    if (raw is! Map) return null;
-    return raw.map((key, value) {
-      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
-      return MapEntry(key.toString(), count);
-    });
-  }
-
-  Map<String, dynamic> _mergeMessageData(
-    Map<String, dynamic> incoming,
-    Map<String, dynamic> existing,
-  ) {
-    final merged = Map<String, dynamic>.from(incoming);
-    for (final key in const ['sender', 'reactions_count', 'reactions_made']) {
-      if (!merged.containsKey(key) && existing.containsKey(key)) {
-        merged[key] = existing[key];
-      }
-    }
-    return merged;
-  }
-
-  LocalChatMessage _copyWithReactionMaps(
-    LocalChatMessage message, {
-    required Map<String, int> reactionsCount,
-    required Map<String, bool> reactionsMade,
-  }) {
-    final updatedData = Map<String, dynamic>.from(message.data);
-    updatedData['reactions_count'] = reactionsCount;
-    updatedData['reactions_made'] = reactionsMade;
-
-    return LocalChatMessage(
-      id: message.id,
-      roomId: message.roomId,
-      senderId: message.senderId,
-      sender: message.sender,
-      data: updatedData,
-      createdAt: message.createdAt,
-      clientMessageId: message.clientMessageId,
-      nonce: message.nonce,
-      status: message.status,
-      content: message.content,
-      isDeleted: message.isDeleted,
-      updatedAt: message.updatedAt,
-      deletedAt: message.deletedAt,
-      type: message.type,
-      meta: message.meta,
-      membersMentioned: message.membersMentioned,
-      editedAt: message.editedAt,
-      attachments: message.attachments,
-      reactions: message.reactions,
-      repliedMessageId: message.repliedMessageId,
-      forwardedMessageId: message.forwardedMessageId,
-      localAttachments: message.localAttachments,
-    );
-  }
-
-  LocalChatMessage _copyWithMergedData(
-    LocalChatMessage message,
-    Map<String, dynamic> mergedData,
-  ) {
-    return LocalChatMessage(
-      id: message.id,
-      roomId: message.roomId,
-      senderId: message.senderId,
-      sender: message.sender,
-      data: mergedData,
-      createdAt: message.createdAt,
-      clientMessageId: message.clientMessageId,
-      status: message.status,
-      content: message.content,
-      isDeleted: message.isDeleted,
-      updatedAt: message.updatedAt,
-      deletedAt: message.deletedAt,
-      type: message.type,
-      meta: message.meta,
-      membersMentioned: message.membersMentioned,
-      editedAt: message.editedAt,
-      attachments: message.attachments,
-      reactions: message.reactions,
-      repliedMessageId: message.repliedMessageId,
-      forwardedMessageId: message.forwardedMessageId,
-      localAttachments: message.localAttachments,
-    );
-  }
-
-  Future<void> _applyReactionDelta({
-    required String messageId,
-    required String symbol,
-    required int delta,
-    bool? madeByCurrentUser,
-  }) async {
-    final message = await fetchMessageById(messageId);
-    if (message == null) {
-      Logger.root.info(
-        'Cannot apply reaction delta: message $messageId not found',
-      );
-      return;
-    }
-
-    final reactionsCount = _extractReactionsCount(message);
-    final reactionsMade = _extractReactionsMade(message);
-
-    final nextCount = (reactionsCount[symbol] ?? 0) + delta;
-    if (nextCount > 0) {
-      reactionsCount[symbol] = nextCount;
-    } else {
-      reactionsCount.remove(symbol);
-    }
-
-    if (madeByCurrentUser != null) {
-      if (madeByCurrentUser) {
-        reactionsMade[symbol] = true;
-      } else {
-        reactionsMade.remove(symbol);
-      }
-    }
-
-    final updatedMessage = _copyWithReactionMaps(
-      message,
-      reactionsCount: reactionsCount,
-      reactionsMade: reactionsMade,
-    );
-
-    await _database.saveMessage(updatedMessage);
-    _addToMessageCache(updatedMessage);
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    final index = currentMessages.indexWhere((m) => m.id == messageId);
-    if (ref.mounted && index >= 0) {
-      final newList = [...currentMessages];
-      newList[index] = updatedMessage;
-      state = AsyncValue.data(newList);
-    }
-  }
-
-  Future<void> _applyReactionSnapshot({
-    required String messageId,
-    required Map<String, int> reactionsCount,
-    bool? madeByCurrentUser,
-    String? symbol,
-  }) async {
-    final message = await fetchMessageById(messageId);
-    if (message == null) {
-      Logger.root.info(
-        'Cannot apply reaction snapshot: message $messageId not found',
-      );
-      return;
-    }
-
-    final reactionsMade = _extractReactionsMade(message);
-    if (symbol != null && symbol.isNotEmpty && madeByCurrentUser != null) {
-      if (madeByCurrentUser) {
-        reactionsMade[symbol] = true;
-      } else {
-        reactionsMade.remove(symbol);
-      }
-    }
-
-    final updatedMessage = _copyWithReactionMaps(
-      message,
-      reactionsCount: reactionsCount,
-      reactionsMade: reactionsMade,
-    );
-
-    await _database.saveMessage(updatedMessage);
-    _addToMessageCache(updatedMessage);
-
-    final currentMessages = (ref.mounted ? state.value : null) ?? [];
-    final index = currentMessages.indexWhere((m) => m.id == messageId);
-    if (ref.mounted && index >= 0) {
-      final newList = [...currentMessages];
-      newList[index] = updatedMessage;
-      state = AsyncValue.data(newList);
     }
   }
 
@@ -2300,74 +980,11 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> receiveReactionAdded(SnChatMessage remoteMessage) async {
-    if (remoteMessage.chatRoomId != roomId) return;
-
-    final targetId = remoteMessage.meta['message_id']?.toString();
-    final symbol =
-        remoteMessage.meta['symbol']?.toString() ??
-        (remoteMessage.meta['reaction'] is Map
-            ? (remoteMessage.meta['reaction'] as Map)['symbol']?.toString()
-            : null);
-    if (symbol == null || symbol.isEmpty) return;
-
-    if (targetId == null || targetId.isEmpty) return;
-    final reactionSenderId = remoteMessage.senderId;
-    final snapshot = _extractReactionSnapshot(remoteMessage);
-
-    if (snapshot != null) {
-      await _applyReactionSnapshot(
-        messageId: targetId,
-        reactionsCount: snapshot,
-        symbol: symbol,
-        madeByCurrentUser: _hasIdentity
-            ? (reactionSenderId.isNotEmpty && reactionSenderId == _identity.id)
-            : null,
-      );
-      return;
-    }
-
-    await _applyReactionDelta(
-      messageId: targetId,
-      symbol: symbol,
-      delta: 1,
-      madeByCurrentUser: _hasIdentity
-          ? (reactionSenderId.isNotEmpty && reactionSenderId == _identity.id)
-          : null,
-    );
+    await _realtime.processReactionAdded(remoteMessage);
   }
 
   Future<void> receiveReactionRemoved(SnChatMessage remoteMessage) async {
-    if (remoteMessage.chatRoomId != roomId) return;
-
-    final targetId = remoteMessage.meta['message_id']?.toString();
-    final symbol =
-        remoteMessage.meta['symbol']?.toString() ??
-        (remoteMessage.meta['reaction'] is Map
-            ? (remoteMessage.meta['reaction'] as Map)['symbol']?.toString()
-            : null);
-    if (targetId == null || symbol == null || symbol.isEmpty) return;
-    final snapshot = _extractReactionSnapshot(remoteMessage);
-
-    if (snapshot != null) {
-      await _applyReactionSnapshot(
-        messageId: targetId,
-        reactionsCount: snapshot,
-        symbol: symbol,
-        madeByCurrentUser: _hasIdentity
-            ? (remoteMessage.senderId == _identity.id ? false : null)
-            : null,
-      );
-      return;
-    }
-
-    await _applyReactionDelta(
-      messageId: targetId,
-      symbol: symbol,
-      delta: -1,
-      madeByCurrentUser: _hasIdentity
-          ? (remoteMessage.senderId == _identity.id ? false : null)
-          : null,
-    );
+    await _realtime.processReactionRemoved(remoteMessage);
   }
 
   /// Get search results without updating shared state
@@ -2434,7 +1051,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         withLinks: _withLinks,
         withAttachments: _withAttachments,
       );
-      state = AsyncValue.data(messages);
+      _emitMessages(messages);
     } catch (e, stackTrace) {
       Logger.root.info('Error searching messages', e, stackTrace);
       state = AsyncValue.error(e, stackTrace);
@@ -2449,92 +1066,33 @@ class MessagesNotifier extends _$MessagesNotifier {
     loadInitial();
   }
 
-  /// Add a message to the LRU cache
-  void _addToMessageCache(LocalChatMessage message) {
-    // Remove if already exists to update LRU order
-    if (_messageCache.containsKey(message.id)) {
-      _messageCacheKeys.remove(message.id);
-    }
-
-    // Add to cache
-    _messageCache[message.id] = message;
-    _messageCacheKeys.add(message.id);
-
-    // Trim cache if exceeds max size
-    _trimMessageCache();
-  }
-
-  /// Trim the cache to max size using LRU eviction
-  void _trimMessageCache() {
-    while (_messageCacheKeys.length > _maxCacheSize) {
-      final oldestKey = _messageCacheKeys.removeAt(0);
-      _messageCache.remove(oldestKey);
-    }
-  }
-
-  /// Clear the message cache (useful when room changes)
-  void _clearMessageCache() {
-    _messageCache.clear();
-    _messageCacheKeys.clear();
-  }
-
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
-    // Check memory cache first - synchronous, no logging
-    if (_messageCache.containsKey(messageId)) {
-      return _messageCache[messageId];
+    final cached = _messageCache.get(messageId);
+    if (cached != null) return cached;
+
+    if (_messageCache.hasPendingFetch(messageId)) {
+      return _messageCache.getPendingFetch(messageId)!;
     }
 
-    // Check if there's an ongoing fetch for this message
-    if (_pendingMessageFetches.containsKey(messageId)) {
-      return _pendingMessageFetches[messageId]!;
-    }
-
-    // Create the fetch future and cache it to prevent duplicate concurrent fetches
     final fetchFuture = _fetchMessageByIdInternal(messageId);
-    _pendingMessageFetches[messageId] = fetchFuture;
-
-    try {
-      final result = await fetchFuture;
-      return result;
-    } finally {
-      _pendingMessageFetches.remove(messageId);
-    }
+    _messageCache.registerPendingFetch(messageId, fetchFuture);
+    return fetchFuture;
   }
 
   Future<LocalChatMessage?> _fetchMessageByIdInternal(String messageId) async {
     Logger.root.info('Fetching message by id $messageId from DB/API');
     try {
-      // Double-check cache after any async gap
-      if (_messageCache.containsKey(messageId)) {
-        Logger.root.fine(
-          'Message $messageId found in memory cache (post-check)',
-        );
-        return _messageCache[messageId];
-      }
+      final localMessage = await _repository.getLocalMessage(messageId);
+      if (localMessage != null) return localMessage;
 
-      final localMessage = await _database.getMessageById(messageId);
-      if (localMessage != null) {
-        Logger.root.fine('Message $messageId found in local database');
-        _addToMessageCache(localMessage);
-        return localMessage;
-      }
-
-      Logger.root.info('Message $messageId not in DB, fetching from API');
-      final response = await _apiClient.get(
-        '/messager/chat/$roomId/messages/$messageId',
-      );
-      final remoteMessage = _tryParseChatMessage(
-        response.data,
-        context: 'fetch message by id',
-      );
+      final remoteMessage = await _repository.fetchRemoteMessage(messageId);
       if (remoteMessage == null) return null;
       final message = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
       );
 
-      await _database.saveMessageWithSender(message);
-      _addToMessageCache(message);
+      await _repository.saveMessage(message);
 
       // Defer voice prefetching
       if (remoteMessage.type == 'voice') {
@@ -2561,9 +1119,8 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
 
     try {
-      Logger.root.info('Fetching message $messageId');
-      final message = await fetchMessageById(messageId);
-      if (message == null) {
+      final jump = await _syncService.loadAroundMessage(messageId, chunkSize: 100);
+      if (!jump.found || jump.targetMessage == null) {
         Logger.root.info('Message $messageId not found');
         showSnackBar('messageNotFound'.tr());
         return -1;
@@ -2585,26 +1142,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         'Message $messageId not in current state, calculating position and loading messages around it',
       );
 
-      // Count messages newer than the target message to calculate optimal offset
-      // Use full message list (not filtered by search) for accurate position calculation
-      final newerCount = await _database.countMessagesNewerThan(
-        roomId,
-        message.createdAt,
-      );
-
-      // Calculate offset to position target message in the middle of the loaded chunk
-      const chunkSize = 100; // Load 100 messages around the target
-      final offset = (newerCount - chunkSize ~/ 2)
-          .clamp(0, double.infinity)
-          .toInt();
-      Logger.root.info(
-        'Calculated offset $offset for target message (newer: $newerCount, chunk: $chunkSize)',
-      );
-      // Use full message list (not filtered by search) for jump operations
-      final loadedMessages = await _getAllMessagesForJump(
-        offset: offset,
-        take: chunkSize,
-      );
+      final loadedMessages = jump.messages;
 
       // Check if loaded messages are already in current state
       final currentIds = currentMessages.map((m) => m.id).toSet();
@@ -2634,7 +1172,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       // Wait a bit for the UI to rebuild with new messages
       await Future.delayed(const Duration(milliseconds: 100));
 
-      final finalIndex = (state.value ?? []).indexWhere(
+      final finalIndex = _currentMessages.indexWhere(
         (m) => m.id == messageId,
       );
       Logger.root.info('Final index for message $messageId is $finalIndex');
@@ -2647,7 +1185,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         // Try to fetch and add the specific message if it's still not found
         final directMessage = await fetchMessageById(messageId);
         if (directMessage != null) {
-          final currentList = state.value ?? [];
+          final currentList = _currentMessages;
           final updatedList = [...currentList, directMessage];
           await _updateStateSafely(updatedList);
           final newIndex = updatedList.indexWhere((m) => m.id == messageId);
