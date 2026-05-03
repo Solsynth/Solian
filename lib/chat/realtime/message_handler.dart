@@ -300,6 +300,7 @@ class RealtimeMessageHandler {
       content: 'This message was deleted',
       deletedAt: DateTime.now(),
       attachments: [],
+      meta: <String, dynamic>{},
     );
 
     final deleted = LocalChatMessage.fromRemoteMessage(

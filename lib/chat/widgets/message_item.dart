@@ -375,6 +375,7 @@ class MessageItem extends HookConsumerWidget {
                       MessageReactionChips(
                         displayStyle: settings.messageDisplayStyle,
                         isCurrentUser: isCurrentUser,
+                        showAvatar: showAvatar,
                         reactionsCount: reactionsCount,
                         reactionsMade: reactionsMade,
                         isExpanded: isSystemInfoExpanded.value,
@@ -1117,6 +1118,7 @@ class MessageHoverActionMenu extends StatelessWidget {
 class MessageReactionChips extends HookConsumerWidget {
   final String displayStyle;
   final bool isCurrentUser;
+  final bool showAvatar;
   final Map<String, int> reactionsCount;
   final Map<String, bool> reactionsMade;
   final bool isExpanded;
@@ -1127,6 +1129,7 @@ class MessageReactionChips extends HookConsumerWidget {
     super.key,
     required this.displayStyle,
     required this.isCurrentUser,
+    required this.showAvatar,
     required this.reactionsCount,
     required this.reactionsMade,
     required this.isExpanded,
@@ -1148,7 +1151,8 @@ class MessageReactionChips extends HookConsumerWidget {
 
     final sectionPadding = switch (displayStyle) {
       'compact' => const EdgeInsets.only(left: 12, right: 12, bottom: 2),
-      _ => const EdgeInsets.only(left: 12, right: 12, bottom: 6),
+      'column' => const EdgeInsets.only(left: 60, right: 12, bottom: 6),
+      _ => const EdgeInsets.only(left: 52, right: 12, bottom: 6),
     };
     final sectionAlign = Alignment.centerLeft;
 
@@ -1256,94 +1260,108 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
 
+    final avatar = ChatRoomMemberRegion(
+      roomId: message.roomId,
+      member: sender,
+      child: ProfilePictureWidget(
+        file: sender.account.profile.picture,
+        radius: 16,
+      ),
+    );
+
+    final header = MessageSenderInfo(
+      roomId: message.roomId,
+      sender: sender,
+      createdAt: message.createdAt,
+      textColor: textColor,
+      showAvatar: false,
+      isCompact: true,
+    );
+
+    final messageBody = Container(
+      decoration: BoxDecoration(
+        color: containerColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (remoteMessage.repliedMessageId != null)
+            MessageQuoteWidget(
+              message: message,
+              textColor: textColor,
+              isReply: true,
+            ).padding(vertical: 4),
+          if (remoteMessage.forwardedMessageId != null)
+            MessageQuoteWidget(
+              message: message,
+              textColor: textColor,
+              isReply: false,
+            ).padding(vertical: 4),
+          if (MessageContent.hasContent(remoteMessage))
+            MessageContent(item: remoteMessage, translatedText: translatedText),
+          if (remoteMessage.attachments.isNotEmpty)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return CloudFileList(
+                  files: remoteMessage.attachments,
+                  maxWidth: constraints.maxWidth,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                );
+              },
+            ),
+          if (remoteMessage.meta['embeds'] != null &&
+              kMessageEnableEmbedTypes.contains(message.type))
+            EmbedListWidget(
+              embeds: remoteMessage.meta['embeds'] as List<dynamic>,
+              isInteractive: true,
+              isFullPost: false,
+              renderingPadding: EdgeInsets.zero,
+              maxWidth: 480,
+            ),
+          FileUploadProgressWidget(
+            progress: progress,
+            textColor: textColor,
+            hasContent: MessageContent.hasContent(remoteMessage),
+          ),
+        ],
+      ),
+    );
+
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (showAvatar) ...[
-              const Gap(8),
-              MessageSenderInfo(
-                roomId: message.roomId,
-                sender: sender,
-                createdAt: message.createdAt,
-                textColor: textColor,
+            if (showAvatar)
+              Padding(
+                padding: const EdgeInsets.only(left: 8 + 16 * 2, bottom: 2),
+                child: header,
               ),
-              const Gap(4),
-            ],
-            const Gap(2),
             Row(
-              spacing: 4,
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (showAvatar) avatar else const SizedBox(width: 16 * 2),
+                const Gap(8),
                 Flexible(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: containerColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (remoteMessage.repliedMessageId != null)
-                          MessageQuoteWidget(
-                            message: message,
-                            textColor: textColor,
-                            isReply: true,
-                          ).padding(vertical: 4),
-                        if (remoteMessage.forwardedMessageId != null)
-                          MessageQuoteWidget(
-                            message: message,
-                            textColor: textColor,
-                            isReply: false,
-                          ).padding(vertical: 4),
-                        if (MessageContent.hasContent(remoteMessage))
-                          MessageContent(
-                            item: remoteMessage,
-                            translatedText: translatedText,
-                          ),
-                        if (remoteMessage.attachments.isNotEmpty)
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              return CloudFileList(
-                                files: remoteMessage.attachments,
-                                maxWidth: constraints.maxWidth,
-                                padding: EdgeInsets.symmetric(vertical: 4),
-                              );
-                            },
-                          ),
-                        if (remoteMessage.meta['embeds'] != null &&
-                            kMessageEnableEmbedTypes.contains(message.type))
-                          EmbedListWidget(
-                            embeds:
-                                remoteMessage.meta['embeds'] as List<dynamic>,
-                            isInteractive: true,
-                            isFullPost: false,
-                            renderingPadding: EdgeInsets.zero,
-                            maxWidth: 480,
-                          ),
-                        FileUploadProgressWidget(
-                          progress: progress,
-                          textColor: textColor,
-                          hasContent: MessageContent.hasContent(remoteMessage),
-                        ),
-                      ],
-                    ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(child: messageBody),
+                      const Gap(4),
+                      MessageIndicators(
+                        editedAt: remoteMessage.editedAt,
+                        status: message.status,
+                        isCurrentUser: isCurrentUser,
+                        textColor: textColor,
+                      ),
+                    ],
                   ),
-                ),
-                MessageIndicators(
-                  editedAt: remoteMessage.editedAt,
-                  status: message.status,
-                  isCurrentUser: isCurrentUser,
-                  textColor: textColor,
                 ),
               ],
             ),
@@ -1749,19 +1767,18 @@ class MessageQuoteWidget extends HookConsumerWidget {
                     if (MessageContent.hasContent(remoteMessage))
                       MessageContent(item: remoteMessage),
                     if (remoteMessage.attachments.isNotEmpty)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Symbols.attach_file, size: 12, color: textColor),
-                          const SizedBox(width: 4),
-                          Text(
-                            'hasAttachments'.plural(
-                              remoteMessage.attachments.length,
-                            ),
-                            style: TextStyle(color: textColor, fontSize: 12),
-                          ),
-                        ],
-                      ).padding(vertical: 2),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 180),
+                        child: CloudFileList(
+                          files: remoteMessage.attachments,
+                          maxWidth: 180,
+                          maxHeight: 96,
+                          minWidth: 120,
+                          disableZoomIn: true,
+                          initiallyCollapsed: false,
+                          padding: const EdgeInsets.only(top: 4),
+                        ),
+                      ),
                   ],
                 ),
               ),
