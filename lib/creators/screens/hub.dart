@@ -21,6 +21,7 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/posts/activity_heatmap.dart';
+import 'package:island/posts/widgets/publisher_leaderboard_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -763,6 +764,22 @@ class CreatorHubContentWidget extends HookConsumerWidget {
       ];
 
       final rightItems = [
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
+          title: Text('publisherLeaderboard').tr(),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.emoji_events),
+          onTap: () {
+            showModalBottomSheet(
+              isScrollControlled: true,
+              context: context,
+              builder: (context) => const PublisherLeaderboardSheet(),
+            );
+          },
+        ),
         ListTile(
           shape: RoundedRectangleBorder(
             borderRadius: const BorderRadius.all(Radius.circular(8)),
