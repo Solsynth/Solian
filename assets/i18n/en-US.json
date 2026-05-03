@@ -816,6 +816,7 @@
   "ratingGrade": "Grade",
   "ratingPercentile": "Top {}%",
   "ratingRank": "Rank # {}",
+  "publisherLeaderboard": "Publisher Leaderboard",
   "gradeSPlusPlus": "S++",
   "gradeSPlus": "S+",
   "gradeS": "S",
