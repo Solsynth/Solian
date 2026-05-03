@@ -3,10 +3,7 @@ import "dart:convert";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:island/chat/widgets/call_button.dart";
 import "package:island/chat/messages_notifier.dart";
-import "package:just_audio/just_audio.dart";
-import "package:island/core/config.dart";
 import "package:island/chat/pods/chat_room.dart";
 import "package:island/core/lifecycle.dart";
 import "package:island/core/services/event_bus.dart";
@@ -34,7 +31,6 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   static const Duration _subscribeRefreshInterval = Duration(minutes: 4);
   late SnChatRoom _chatRoom;
   late SnChatMember _chatIdentity;
-  late MessagesNotifier _messagesNotifier;
 
   final List<SnChatMember> _typingStatuses = [];
   Timer? _typingCleanupTimer;
@@ -42,10 +38,6 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   Timer? _periodicSubscribeTimer;
   Function? _sendMessage;
 
-  // Event bus subscriptions
-  StreamSubscription<ChatMessageNewEvent>? _newMessageSub;
-  StreamSubscription<ChatMessageUpdateEvent>? _updateMessageSub;
-  StreamSubscription<ChatMessageDeleteEvent>? _deleteMessageSub;
   StreamSubscription<ChatTypingEvent>? _typingSub;
 
   bool get _isDesktop =>
@@ -114,9 +106,6 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       _periodicSubscribeTimer!.cancel();
       _periodicSubscribeTimer = null;
     }
-    _newMessageSub?.cancel();
-    _updateMessageSub?.cancel();
-    _deleteMessageSub?.cancel();
     _typingSub?.cancel();
   }
 
@@ -124,7 +113,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   List<SnChatMember> build(String roomId) {
     final chatRoomAsync = ref.watch(chatRoomProvider(roomId));
     final chatIdentityAsync = ref.watch(chatRoomIdentityProvider(roomId));
-    _messagesNotifier = ref.watch(messagesProvider(roomId).notifier);
+    ref.watch(messagesProvider(roomId));
 
     _cleanupResources();
 
@@ -151,56 +140,8 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     // Send initial read receipt
     sendReadReceipt();
 
-    // Set up Event Bus listeners for real-time updates (DB operations handled by ChatGlobalSyncNotifier)
-    _newMessageSub = eventBus.on<ChatMessageNewEvent>().listen((event) {
-      if (event.message.chatRoomId != _chatRoom.id) return;
-
-      // Handle call messages
-      if (event.message.type.startsWith('call')) {
-        ref.invalidate(ongoingCallProvider(event.message.chatRoomId));
-      }
-
-      // Update local messages state (DB already updated by ChatGlobalSyncNotifier)
-      _messagesNotifier.receiveMessage(event.message);
-
-      // Send read receipt for new message
-      sendReadReceipt();
-
-      // Play sound for new messages when app is unfocused
-      if (!ref.mounted) return;
-      if (event.message.senderId != _chatIdentity.id &&
-          ref.read(appLifecycleStateProvider).value !=
-              AppLifecycleState.resumed &&
-          ref.read(appSettingsProvider).soundEffects) {
-        _playNotificationSound();
-      }
-    });
-
-    // Listen for message update events
-    _updateMessageSub = eventBus.on<ChatMessageUpdateEvent>().listen((event) {
-      if (event.message.chatRoomId != _chatRoom.id) return;
-      if (event.message.type == 'messages.reaction.added' ||
-          event.message.type == 'messages.reaction.removed') {
-        _messagesNotifier.receiveMessage(
-          event.message,
-          applySideEffects: !event.appliedInBackground,
-        );
-        return;
-      }
-      if (event.message.type == 'messages.update' ||
-          event.message.type == 'messages.update.links' ||
-          event.message.type == 'messages.delete') {
-        _messagesNotifier.receiveMessage(event.message);
-      } else {
-        _messagesNotifier.receiveMessageUpdate(event.message);
-      }
-    });
-
-    // Listen for message delete events
-    _deleteMessageSub = eventBus.on<ChatMessageDeleteEvent>().listen((event) {
-      if (event.roomId != _chatRoom.id) return;
-      _messagesNotifier.receiveMessageDeletion(event.messageId);
-    });
+    // Real-time message events are handled directly by MessagesNotifier
+    // through RealtimeMessageHandler to avoid duplicate event processing.
 
     // Listen for typing events via Event Bus
     _typingSub = eventBus.on<ChatTypingEvent>().listen((event) {
@@ -309,14 +250,6 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     });
 
     return _typingStatuses;
-  }
-
-  Future<void> _playNotificationSound() async {
-    final player = AudioPlayer();
-    await player.setVolume(0.75);
-    await player.setAudioSource(AudioSource.asset('assets/audio/messages.mp3'));
-    await player.play();
-    player.dispose();
   }
 
   void sendReadReceipt() {

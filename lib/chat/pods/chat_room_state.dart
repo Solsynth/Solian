@@ -382,7 +382,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     }
   }
 
-  void sendMessage(WidgetRef outerRef) {
+  void sendMessage() {
     final text = messageController.text.trim();
     if (text.isEmpty &&
         state.attachments.isEmpty &&
@@ -394,7 +394,6 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     // Read fresh notifier each time to avoid using disposed instance
     final notifier = ref.read(messagesProvider(roomId).notifier);
     notifier.sendMessage(
-      outerRef,
       text,
       state.attachments,
       poll: state.selectedPoll,
