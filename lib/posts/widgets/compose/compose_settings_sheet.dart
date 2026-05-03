@@ -44,9 +44,6 @@ class ComposeSettingsSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     // Listen to visibility changes to trigger rebuilds
     final currentVisibility = useValueListenable(state.visibility);
     final currentLanguage = useValueListenable(state.language);
@@ -76,89 +73,6 @@ class ComposeSettingsSheet extends HookConsumerWidget {
         orElse: () => (code: code, name: code),
       );
       return lang.name;
-    }
-
-    IconData getVisibilityIcon(int visibilityValue) {
-      switch (visibilityValue) {
-        case 1:
-          return Symbols.group;
-        case 2:
-          return Symbols.link_off;
-        case 3:
-          return Symbols.lock;
-        default:
-          return Symbols.public;
-      }
-    }
-
-    String getVisibilityText(int visibilityValue) {
-      switch (visibilityValue) {
-        case 1:
-          return 'postVisibilityFriends';
-        case 2:
-          return 'postVisibilityUnlisted';
-        case 3:
-          return 'postVisibilityPrivate';
-        default:
-          return 'postVisibilityPublic';
-      }
-    }
-
-    Widget buildVisibilityOption(
-      BuildContext context,
-      int value,
-      IconData icon,
-      String textKey,
-    ) {
-      return ListTile(
-        leading: Icon(icon),
-        title: Text(textKey.tr()),
-        onTap: () {
-          state.visibility.value = value;
-          Navigator.pop(context);
-        },
-        selected: state.visibility.value == value,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-      );
-    }
-
-    void showVisibilitySheet() {
-      showModalBottomSheet(
-        context: context,
-        builder: (context) => SheetScaffold(
-          heightFactor: 0.6,
-          showHeader: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              buildVisibilityOption(
-                context,
-                0,
-                Symbols.public,
-                'postVisibilityPublic',
-              ),
-              buildVisibilityOption(
-                context,
-                1,
-                Symbols.group,
-                'postVisibilityFriends',
-              ),
-              buildVisibilityOption(
-                context,
-                2,
-                Symbols.link_off,
-                'postVisibilityUnlisted',
-              ),
-              buildVisibilityOption(
-                context,
-                3,
-                Symbols.lock,
-                'postVisibilityPrivate',
-              ),
-            ],
-          ),
-        ),
-      );
     }
 
     final tagInputController = useTextEditingController();
@@ -416,7 +330,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               items: languages.map((lang) {
                 return DropdownItem<String?>(
                   value: lang.code,
-                  child: Text(lang.name),
+                  child: Text(lang.name).padding(left: 16, right: 8),
                 );
               }).toList(),
               valueListenable: ValueNotifier(currentLanguage),
@@ -503,25 +417,51 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 state.realm.value = value;
               },
               selectedItemBuilder: (context) {
-                return (userRealms.value ?? []).map((_) {
-                  return Row(
+                final items = <Widget>[];
+                items.add(
+                  Row(
                     children: [
-                      if (currentRealm == null)
-                        const CircleAvatar(
-                          radius: 16,
-                          child: Icon(Symbols.link_off, fill: 1),
-                        )
-                      else
+                      const CircleAvatar(
+                        radius: 16,
+                        child: Icon(Symbols.link_off, fill: 1),
+                      ),
+                      const SizedBox(width: 12),
+                      Text('postUnlinkRealm'.tr()),
+                    ],
+                  ),
+                );
+                if (currentRealm != null &&
+                    !(userRealms.value ?? []).any((r) => r.id == currentRealm.id)) {
+                  items.add(
+                    Row(
+                      children: [
                         ProfilePictureWidget(
                           file: currentRealm.picture,
                           fallbackIcon: Symbols.workspaces,
                           radius: 16,
                         ),
-                      const SizedBox(width: 12),
-                      Text(currentRealm?.name ?? 'postUnlinkRealm'.tr()),
-                    ],
+                        const SizedBox(width: 12),
+                        Text(currentRealm.name),
+                      ],
+                    ),
                   );
-                }).toList();
+                }
+                items.addAll(
+                  (userRealms.value ?? []).map((realm) {
+                    return Row(
+                      children: [
+                        ProfilePictureWidget(
+                          file: realm.picture,
+                          fallbackIcon: Symbols.workspaces,
+                          radius: 16,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(realm.name),
+                      ],
+                    );
+                  }),
+                );
+                return items;
               },
               buttonStyleData: const FormFieldButtonStyleData(
                 padding: EdgeInsets.only(left: 16, right: 8),
@@ -532,25 +472,101 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               ),
             ),
 
-            // Visibility setting
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: colorScheme.outline, width: 1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                leading: Icon(getVisibilityIcon(currentVisibility)),
-                title: Text('postVisibility'.tr()),
-                subtitle: Text(getVisibilityText(currentVisibility).tr()),
-                trailing: const Icon(Symbols.chevron_right),
-                onTap: showVisibilitySheet,
-                shape: RoundedRectangleBorder(
+            DropdownButtonFormField2<int>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: 'postVisibility'.tr(),
+                contentPadding: const EdgeInsets.symmetric(vertical: 9),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+              ),
+              items: [
+                DropdownItem<int>(
+                  value: 0,
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.public),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityPublic'.tr()),
+                    ],
+                  ).padding(left: 16, right: 8),
                 ),
+                DropdownItem<int>(
+                  value: 1,
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.group),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityFriends'.tr()),
+                    ],
+                  ).padding(left: 16, right: 8),
+                ),
+                DropdownItem<int>(
+                  value: 2,
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.link_off),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityUnlisted'.tr()),
+                    ],
+                  ).padding(left: 16, right: 8),
+                ),
+                DropdownItem<int>(
+                  value: 3,
+                  child: Row(
+                    children: [
+                      const Icon(Symbols.lock),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityPrivate'.tr()),
+                    ],
+                  ).padding(left: 16, right: 8),
+                ),
+              ],
+              valueListenable: ValueNotifier(currentVisibility),
+              onChanged: (value) {
+                if (value != null) {
+                  state.visibility.value = value;
+                }
+              },
+              selectedItemBuilder: (context) {
+                return [
+                  Row(
+                    children: [
+                      const Icon(Symbols.public),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityPublic'.tr()),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Symbols.group),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityFriends'.tr()),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Symbols.link_off),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityUnlisted'.tr()),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Symbols.lock),
+                      const SizedBox(width: 12),
+                      Text('postVisibilityPrivate'.tr()),
+                    ],
+                  ),
+                ];
+              },
+              buttonStyleData: const FormFieldButtonStyleData(
+                padding: EdgeInsets.only(left: 16, right: 8),
+                height: 40,
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.zero,
               ),
             ),
           ],
