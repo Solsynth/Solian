@@ -30,7 +30,7 @@ class RealmSelectionDropdown extends StatelessWidget {
       child: DropdownButton2<SnRealm?>(
         isExpanded: true,
         hint: Text('realmSelection').tr(),
-        value: effectiveValue,
+        valueListenable: ValueNotifier(effectiveValue),
         items: [
           DropdownItem<SnRealm?>(
             value: null,
