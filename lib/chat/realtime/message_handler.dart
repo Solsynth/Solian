@@ -248,11 +248,23 @@ class RealtimeMessageHandler {
     final existing = await _repository.getLocalMessage(targetId);
     if (existing == null) return;
 
-    // Extract reaction data from meta
-    final reactionsCount = _extractReactionsCount(remoteMessage);
-    final reactionsMade = _extractReactionsMade(remoteMessage);
+    final countSnapshot = _extractReactionsCount(remoteMessage);
+    final madeSnapshot = _extractReactionsMade(remoteMessage);
+    final reactionsCount = countSnapshot ?? _extractExistingReactionsCount(existing);
+    final reactionsMade = madeSnapshot ?? _extractExistingReactionsMade(existing);
 
-    // Merge with existing data
+    if (countSnapshot == null) {
+      final symbol = _extractReactionSymbol(remoteMessage);
+      if (symbol == null || symbol.isEmpty) return;
+      final delta = remoteMessage.type == 'messages.reaction.removed' ? -1 : 1;
+      final nextCount = (reactionsCount[symbol] ?? 0) + delta;
+      if (nextCount > 0) {
+        reactionsCount[symbol] = nextCount;
+      } else {
+        reactionsCount.remove(symbol);
+      }
+    }
+
     final updatedData = Map<String, dynamic>.from(existing.data);
     updatedData['reactions_count'] = reactionsCount;
     updatedData['reactions_made'] = reactionsMade;
@@ -461,8 +473,29 @@ class RealtimeMessageHandler {
     };
   }
 
-  Map<String, dynamic> _extractReactionsCount(SnChatMessage message) {
+  Map<String, int>? _extractReactionsCount(SnChatMessage message) {
+    if (message.reactionsCount.isNotEmpty) {
+      return Map<String, int>.from(message.reactionsCount);
+    }
     final raw = message.meta['reactions_count'];
+    if (raw is! Map) return null;
+    return raw.map((key, value) {
+      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
+      return MapEntry(key.toString(), count);
+    });
+  }
+
+  Map<String, bool>? _extractReactionsMade(SnChatMessage message) {
+    if (message.reactionsMade.isNotEmpty) {
+      return Map<String, bool>.from(message.reactionsMade);
+    }
+    final raw = message.meta['reactions_made'];
+    if (raw is! Map) return null;
+    return raw.map((key, value) => MapEntry(key.toString(), value == true));
+  }
+
+  Map<String, int> _extractExistingReactionsCount(LocalChatMessage message) {
+    final raw = message.data['reactions_count'];
     if (raw is! Map) return {};
     return raw.map((key, value) {
       final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
@@ -470,10 +503,18 @@ class RealtimeMessageHandler {
     });
   }
 
-  Map<String, dynamic> _extractReactionsMade(SnChatMessage message) {
-    final raw = message.meta['reactions_made'];
+  Map<String, bool> _extractExistingReactionsMade(LocalChatMessage message) {
+    final raw = message.data['reactions_made'];
     if (raw is! Map) return {};
     return raw.map((key, value) => MapEntry(key.toString(), value == true));
+  }
+
+  String? _extractReactionSymbol(SnChatMessage message) {
+    final direct = message.meta['symbol']?.toString();
+    if (direct != null && direct.isNotEmpty) return direct;
+    final reaction = message.meta['reaction'];
+    if (reaction is Map) return reaction['symbol']?.toString();
+    return null;
   }
 
   Map<String, dynamic> _buildSystemSender(DateTime now) => {
