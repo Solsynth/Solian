@@ -48,6 +48,21 @@ Future<SnHeatmap?> publisherHeatmap(Ref ref, String? uname) async {
 }
 
 @riverpod
+Future<SnPublisherRatingOverview?> publisherRatingOverview(Ref ref, String? uname) async {
+  if (uname == null) return null;
+  final apiClient = ref.watch(apiClientProvider);
+  try {
+    final resp = await apiClient.get('/sphere/publishers/$uname/rating/overview');
+    return SnPublisherRatingOverview.fromJson(resp.data);
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
+    }
+    rethrow;
+  }
+}
+
+@riverpod
 Future<SnPublisherMember?> publisherIdentity(Ref ref, String uname) async {
   try {
     final apiClient = ref.watch(apiClientProvider);
@@ -671,6 +686,10 @@ class CreatorHubContentWidget extends HookConsumerWidget {
       publisherHeatmapProvider(currentPublisher.value?.name),
     );
 
+    final publisherRatingOverview = ref.watch(
+      publisherRatingOverviewProvider(currentPublisher.value?.name),
+    );
+
     final publisherFeatures = ref.watch(
       publisherFeaturesProvider(currentPublisher.value?.name),
     );
@@ -764,22 +783,6 @@ class CreatorHubContentWidget extends HookConsumerWidget {
       ];
 
       final rightItems = [
-        ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
-          title: Text('publisherLeaderboard').tr(),
-          trailing: const Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.emoji_events),
-          onTap: () {
-            showModalBottomSheet(
-              isScrollControlled: true,
-              context: context,
-              builder: (context) => const PublisherLeaderboardSheet(),
-            );
-          },
-        ),
         ListTile(
           shape: RoundedRectangleBorder(
             borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -973,6 +976,11 @@ class CreatorHubContentWidget extends HookConsumerWidget {
                         heatmap: publisherHeatmap.value,
                       ).padding(horizontal: 16),
                     buildNavigationWidget(),
+                    if (publisherRatingOverview.value != null)
+                      _buildRatingCardStatic(
+                        context,
+                        publisherRatingOverview.value!,
+                      ).padding(horizontal: 16),
                   ],
                 ),
         ),
@@ -1131,6 +1139,143 @@ class _PublisherStatsWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildRatingCardStatic(BuildContext context, SnPublisherRatingOverview overview) {
+  final theme = Theme.of(context);
+  final textColor = switch (overview.grade) {
+    'S++' => theme.colorScheme.tertiary,
+    'S+' => theme.colorScheme.tertiary,
+    'S' => theme.colorScheme.primary,
+    'A++' => theme.colorScheme.primary,
+    'A+' => theme.colorScheme.primary,
+    'A' => theme.colorScheme.primary,
+    'A-' => theme.colorScheme.primary,
+    'B+' => theme.colorScheme.secondary,
+    'B' => theme.colorScheme.secondary,
+    'C' => theme.colorScheme.onSurfaceVariant,
+    'D' => theme.colorScheme.error,
+    _ => theme.colorScheme.onSurfaceVariant,
+  };
+  final bgColor = switch (overview.grade) {
+    'S++' => theme.colorScheme.tertiaryContainer,
+    'S+' => theme.colorScheme.tertiaryContainer,
+    'S' => theme.colorScheme.primaryContainer,
+    'A++' => theme.colorScheme.primaryContainer,
+    'A+' => theme.colorScheme.primaryContainer,
+    'A' => theme.colorScheme.primaryContainer,
+    'A-' => theme.colorScheme.primaryContainer,
+    'B+' => theme.colorScheme.secondaryContainer,
+    'B' => theme.colorScheme.secondaryContainer,
+    'C' => theme.colorScheme.surfaceContainerHighest,
+    'D' => theme.colorScheme.errorContainer,
+    _ => theme.colorScheme.surfaceContainerHighest,
+  };
+
+  return InkWell(
+    onTap: () {
+      showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) => const PublisherLeaderboardSheet(),
+      );
+    },
+    borderRadius: BorderRadius.circular(12),
+    child: Card(
+      margin: EdgeInsets.zero,
+      color: bgColor,
+      child: SizedBox(
+        height: 140,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          switch (overview.grade) {
+                            'S++' => Symbols.emoji_events,
+                            'S+' => Symbols.emoji_events,
+                            'S' => Symbols.star,
+                            'A++' => Symbols.trending_up,
+                            'A+' => Symbols.trending_up,
+                            'A' => Symbols.trending_up,
+                            'A-' => Symbols.trending_up,
+                            'B+' => Symbols.thumb_up,
+                            'B' => Symbols.thumb_up,
+                            'C' => Symbols.remove,
+                            'D' => Symbols.trending_down,
+                            _ => Symbols.remove,
+                          },
+                          color: textColor,
+                          size: 24,
+                        ),
+                        const Gap(8),
+                        Text(
+                          overview.grade,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Gap(8),
+                    Text(
+                      'ratingTooltip'.tr(args: [overview.rating.toStringAsFixed(1)]),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: textColor.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _formatRatingStatic(overview.rating),
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const Gap(4),
+                  Text(
+                    'ratingRank'.tr(args: ['${overview.rank}']),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: textColor.withOpacity(0.8),
+                    ),
+                  ),
+                  Text(
+                    'ratingPercentile'.tr(args: [overview.percentile.toStringAsFixed(1)]),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: textColor.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+String _formatRatingStatic(double rating) {
+  if (rating >= 1000000) {
+    return '${(rating / 1000000).toStringAsFixed(1)}M';
+  } else if (rating >= 1000) {
+    return '${(rating / 1000).toStringAsFixed(1)}K';
+  }
+  return rating.toStringAsFixed(0);
 }
 
 class PublisherMemberState {
