@@ -354,9 +354,9 @@ class ExploreScreen extends HookConsumerWidget {
                           valueListenable: currentAggressive,
                           builder: (context, value, child) {
                             return CheckboxListTile(
-                              title: Text('Aggressive Mode'),
+                              title: Text('AggressiveModeTitle').tr(),
                               subtitle: Text(
-                                'Hide low rank post from your timeline.',
+                                'AggressiveModeDescription'.tr(),
                               ),
                               value: value,
                               onChanged: (value) {
@@ -379,9 +379,9 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                           ),
                           child: ListTile(
-                            title: const Text('Discovery Profile'),
-                            subtitle: const Text(
-                              'View your personalized recommendation profile',
+                            title: Text('DiscoveryProfile').tr(),
+                            subtitle: Text(
+                              'DiscoveryProfileDescription'.tr(),
                             ),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () => showDiscoveryProfileSheet(context),
@@ -639,9 +639,9 @@ class ExploreScreen extends HookConsumerWidget {
                           valueListenable: currentAggressive,
                           builder: (context, value, child) {
                             return CheckboxListTile(
-                              title: Text('Aggressive Mode'),
+                              title: Text('AggressiveMode').tr(),
                               subtitle: Text(
-                                'Hide low rank post from your timeline.',
+                                'AggressiveModeDescription'.tr(),
                               ),
                               value: value,
                               onChanged: (value) {
@@ -664,9 +664,9 @@ class ExploreScreen extends HookConsumerWidget {
                           ),
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           child: ListTile(
-                            title: const Text('Discovery Profile'),
-                            subtitle: const Text(
-                              'View your personalized recommendation profile',
+                            title: Text('DiscoveryProfile').tr(),
+                            subtitle: Text(
+                              'DiscoveryProfileDescription'.tr(),
                             ),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () => showDiscoveryProfileSheet(context),
@@ -719,13 +719,13 @@ class ExploreScreen extends HookConsumerWidget {
                   const Icon(Symbols.emoji_people_rounded, size: 40),
                   const Gap(8),
                   Text(
-                    'Welcome to\nthe Solar Network',
+                    'WelcomeTitle'.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ).bold(),
                   const Gap(2),
                   Text(
-                    'Login to explore more!',
+                    'WelcomeDescription'.tr(),
                     style: Theme.of(context).textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
@@ -1458,13 +1458,13 @@ class _TimelineModeDropdown extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
 
           onChanged: onChanged,
-          items: const [
+          items: [
             DropdownMenuItem(
               value: 'personalized',
-              child: Text('Personalized'),
+              child: Text('timelineModePersonalized'.tr()),
             ),
-            DropdownMenuItem(value: 'top', child: Text('Top')),
-            DropdownMenuItem(value: 'latest', child: Text('Latest')),
+            DropdownMenuItem(value: 'top', child: Text('timelineModeTop'.tr())),
+            DropdownMenuItem(value: 'latest', child: Text('timelineModeLatest'.tr())),
           ],
         ),
       ),
@@ -1622,7 +1622,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Top Pick',
+                            'TopPick'.tr(),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1642,7 +1642,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Not Recommended',
+                            'NotRecommended'.tr(),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1693,7 +1693,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
         final reasons =
             (item['reasons'] as List?)?.whereType<String>().toList() ??
             const <String>[];
-        if (reasons.isEmpty) reasons.add('We think you might like this.');
+        if (reasons.isEmpty) reasons.add('SuggestReasonEmpty'.tr());
         final rank = item['score'] is num
             ? (item['score'] as num).toDouble()
             : null;
@@ -1742,11 +1742,9 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                   children: [
                     const Icon(Symbols.rule, size: 16),
                     Text(
-                      'Rank: $rank',
+                      'rankPrefix'.tr(args: [rank.toString()]),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
                       ),
                     ),
                   ],
