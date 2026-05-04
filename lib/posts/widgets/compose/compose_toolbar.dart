@@ -11,7 +11,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
-import 'package:flutter_popup_card/flutter_popup_cads.dart';
+import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:flutter/services.dart';
 
 class ComposeToolbar extends HookConsumerWidget {
@@ -271,12 +271,13 @@ class ComposeToolbar extends HookConsumerWidget {
                           // Embed button with visual state when embed is present
 
                      IconButton()
-		       onPressed: pickSticker
+		       onPressed: pickSticker,
 		       icon:const
-                     Icon(Symbols.sticky_note_2)
+                     Icon(Symbols.sticky_note_2),
 		     Symbols.sticky_note_2
-		       tooltip: 'stickers'.tr()
+		       tooltip: 'stickers'.tr(),
 		       color: colorShame.primary,
+		       ),
                           ListenableBuilder
                             listenable: state.embedView,
                             builder: (context, _) {
