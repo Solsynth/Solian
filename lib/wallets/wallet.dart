@@ -15,6 +15,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/payments/payment_overlay.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/realms/screens/realms.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:pinput/pinput.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -39,13 +40,33 @@ Future<SnWallet?> walletCurrent(Ref ref) async {
 }
 
 @riverpod
+Future<List<SnWallet>> walletList(Ref ref) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  final wallets = await client.wallet.getWallets();
+  // Deduplicate by ID in case server returns duplicates
+  final uniqueWallets = <String, SnWallet>{};
+  for (final wallet in wallets) {
+    uniqueWallets.putIfAbsent(wallet.id, () => wallet);
+  }
+  return uniqueWallets.values.toList();
+}
+
+@riverpod
+Future<SnWallet> walletById(Ref ref, String id) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.wallet.getWalletById(id);
+}
+
+@riverpod
 Future<SnWalletStats> walletStats(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
   return await client.wallet.getWalletStats();
 }
 
 class CreateFundSheet extends StatefulWidget {
-  const CreateFundSheet({super.key});
+  final String? payerWalletId;
+
+  const CreateFundSheet({super.key, this.payerWalletId});
 
   @override
   State<CreateFundSheet> createState() => _CreateFundSheetState();
@@ -508,7 +529,8 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
       'message': messageController.text.trim().isEmpty
           ? null
           : messageController.text.trim(),
-      'pin_code': '', // Will be filled by PIN verification
+      'pin_code': '',
+      if (widget.payerWalletId != null) 'payer_wallet_id': widget.payerWalletId,
     };
 
     // Ask for PIN confirmation before creating fund
@@ -523,7 +545,9 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
 }
 
 class CreateTransferSheet extends StatefulWidget {
-  const CreateTransferSheet({super.key});
+  final String? payerWalletId;
+
+  const CreateTransferSheet({super.key, this.payerWalletId});
 
   @override
   State<CreateTransferSheet> createState() => _CreateTransferSheetState();
@@ -532,13 +556,16 @@ class CreateTransferSheet extends StatefulWidget {
 class _CreateTransferSheetState extends State<CreateTransferSheet> {
   final amountController = TextEditingController();
   final remarkController = TextEditingController();
+  final publicIdController = TextEditingController();
   String selectedCurrency = 'golds';
   SnAccount? selectedPayee;
+  int payeeType = 0;
 
   @override
   void dispose() {
     amountController.dispose();
     remarkController.dispose();
+    publicIdController.dispose();
     super.dispose();
   }
 
@@ -653,80 +680,114 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
                             ],
                           ),
                           const Gap(16),
-                          if (selectedPayee != null)
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: ProfilePictureWidget(
-                                file: selectedPayee!.profile.picture,
+                          SegmentedButton<int>(
+                            segments: [
+                              ButtonSegment(
+                                value: 0,
+                                label: Text('account'.tr()),
                               ),
-                              title: Text(
-                                selectedPayee!.nick,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
+                              ButtonSegment(
+                                value: 1,
+                                label: Text('walletPublicId'.tr()),
+                              ),
+                            ],
+                            selected: {payeeType},
+                            onSelectionChanged: (values) {
+                              setState(() => payeeType = values.first);
+                            },
+                          ),
+                          const Gap(16),
+                          if (payeeType == 0) ...[
+                            if (selectedPayee != null)
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: ProfilePictureWidget(
+                                  file: selectedPayee!.profile.picture,
+                                ),
+                                title: Text(
+                                  selectedPayee!.nick,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                subtitle: Text('selectedPayee'.tr()),
+                                trailing: IconButton(
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: theme.colorScheme.error,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => selectedPayee = null),
                                 ),
                               ),
-                              subtitle: Text('selectedPayee'.tr()),
-                              trailing: IconButton(
-                                icon: Icon(
-                                  Icons.close,
-                                  color: theme.colorScheme.error,
+                            if (selectedPayee == null)
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: theme
+                                      .colorScheme
+                                      .surfaceContainerHighest
+                                      .withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                onPressed: () =>
-                                    setState(() => selectedPayee = null),
-                              ),
-                            ),
-                          if (selectedPayee == null)
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest
-                                    .withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.person_add_outlined,
-                                    size: 40,
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  const Gap(8),
-                                  Text(
-                                    'noPayeeSelected'.tr(),
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                  const Gap(4),
-                                  Text(
-                                    'selectPayeeToTransfer'.tr(),
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.person_add_outlined,
+                                      size: 40,
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
+                                    const Gap(8),
+                                    Text(
+                                      'noPayeeSelected'.tr(),
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                    const Gap(4),
+                                    Text(
+                                      'selectPayeeToTransfer'.tr(),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const Gap(12),
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                final payee =
+                                    await showModalBottomSheet<SnAccount>(
+                                      context: context,
+                                      useRootNavigator: true,
+                                      isScrollControlled: true,
+                                      builder: (context) =>
+                                          const AccountPickerSheet(),
+                                    );
+                                if (payee != null) {
+                                  setState(() => selectedPayee = payee);
+                                }
+                              },
+                              icon: const Icon(Icons.person_search),
+                              label: Text('selectPayee'.tr()),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 48),
                               ),
                             ),
-                          const Gap(12),
-                          OutlinedButton.icon(
-                            onPressed: () async {
-                              final payee =
-                                  await showModalBottomSheet<SnAccount>(
-                                    context: context,
-                                    useRootNavigator: true,
-                                    isScrollControlled: true,
-                                    builder: (context) =>
-                                        const AccountPickerSheet(),
-                                  );
-                              if (payee != null) {
-                                setState(() => selectedPayee = payee);
-                              }
-                            },
-                            icon: const Icon(Icons.person_search),
-                            label: Text('selectPayee'.tr()),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 48),
+                          ],
+                          if (payeeType == 1) ...[
+                            TextField(
+                              controller: publicIdController,
+                              decoration: InputDecoration(
+                                labelText: 'walletPublicId'.tr(),
+                                hintText: 'DNW-XXXX-XXXX-XXXX',
+                              ),
+                              textCapitalization: TextCapitalization.characters,
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -892,39 +953,53 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
       return;
     }
 
-    if (selectedPayee == null) {
+    if (payeeType == 0 && selectedPayee == null) {
       showErrorAlert('noPayeeSelected'.tr());
       return;
     }
 
-    final data = {
+    if (payeeType == 1 && publicIdController.text.trim().isEmpty) {
+      showErrorAlert('enterPublicId'.tr());
+      return;
+    }
+
+    final data = <String, dynamic>{
       'amount': amount,
       'currency': selectedCurrency,
-      'payee_account_id': selectedPayee!.id,
       'remark': remarkController.text.trim().isEmpty
           ? null
           : remarkController.text.trim(),
     };
 
-    // Ask for PIN confirmation before creating transfer
+    if (widget.payerWalletId != null) {
+      data['payer_wallet_id'] = widget.payerWalletId;
+    }
+
+    if (payeeType == 0) {
+      data['payee_account_id'] = selectedPayee!.id;
+    } else {
+      data['payee_public_id'] = publicIdController.text.trim().toUpperCase();
+    }
+
     final enteredPin = await _showPinVerificationDialog(context);
     if (enteredPin == null || enteredPin.isEmpty) return;
 
-    // Add PIN to the transfer data
     data['pin_code'] = enteredPin;
 
     if (mounted) Navigator.of(context).pop(data);
   }
 }
 
-final transactionListProvider = AsyncNotifierProvider.autoDispose(
+final transactionListProvider = AsyncNotifierProvider.autoDispose.family(
   TransactionListNotifier.new,
 );
 
-class TransactionListNotifier
-    extends AsyncNotifier<PaginationState<SnTransaction>>
+class TransactionListNotifier extends AsyncNotifier<PaginationState<SnTransaction>>
     with AsyncPaginationController<SnTransaction> {
   static const int pageSize = 20;
+
+  final ({String? walletId, String? direction, String? type}) arg;
+  TransactionListNotifier(this.arg);
 
   @override
   Future<List<SnTransaction>> fetch() async {
@@ -934,6 +1009,9 @@ class TransactionListNotifier
     final result = await client.wallet.getTransactions(
       offset: offset,
       take: pageSize,
+      wallet: arg.walletId,
+      direction: arg.direction,
+      type: arg.type,
     );
     totalCount = result.totalCount;
     return result.items;
@@ -1119,18 +1197,21 @@ class TransactionDetailSheet extends StatelessWidget {
             label: 'transactionId'.tr(),
             value: transaction.id,
             theme: theme,
+            copyable: true,
           ),
           const Gap(8),
           _DetailRow(
             label: 'payerWalletId'.tr(),
             value: transaction.payerWalletId ?? '-',
             theme: theme,
+            copyable: true,
           ),
           const Gap(8),
           _DetailRow(
             label: 'payeeWalletId'.tr(),
             value: transaction.payeeWalletId ?? '-',
             theme: theme,
+            copyable: true,
           ),
           const Gap(24),
         ],
@@ -1206,11 +1287,13 @@ class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
   final ThemeData theme;
+  final bool copyable;
 
   const _DetailRow({
     required this.label,
     required this.value,
     required this.theme,
+    this.copyable = false,
   });
 
   @override
@@ -1227,7 +1310,37 @@ class _DetailRow extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
+        Expanded(
+          child: copyable && value != '-'
+              ? InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: value));
+                    showSnackBar('copiedToClipboard'.tr());
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          value,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Gap(4),
+                      Icon(
+                        Symbols.content_copy,
+                        size: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                )
+              : Text(value, style: theme.textTheme.bodyMedium),
+        ),
       ],
     );
   }
@@ -1239,15 +1352,16 @@ class WalletScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wallet = ref.watch(walletCurrentProvider);
+    final wallets = ref.watch(walletListProvider);
+    final realmsAsync = ref.watch(realmsJoinedProvider);
     final tabController = useTabController(initialLength: 2);
     final currentTabIndex = useState(0);
     final selectedCurrency = useState<String>('points');
     final isBalanceVisible = useState<bool>(true);
     final isFullAmountVisible = useState<bool>(false);
-    final transactionFilter = useState<int>(0); // 0: All, 1: Income, 2: Expense
+    final transactionFilter = useState<int>(0);
+    final selectedWalletId = useState<String?>(null);
 
-    // Animation controller for balance counting animation
     final balanceAnimationController = useAnimationController(
       duration: const Duration(milliseconds: 1500),
     );
@@ -1262,57 +1376,244 @@ class WalletScreen extends HookConsumerWidget {
       return () => tabController.removeListener(listener);
     }, [tabController]);
 
-    // Trigger animation only when wallet data loads (not on currency change)
     useEffect(() {
-      wallet.whenData((data) {
-        if (data != null) {
-          final pocket = data.pockets.firstWhere(
-            (p) => p.currency == selectedCurrency.value,
-            orElse: () => SnWalletPocket(
-              id: '',
-              currency: selectedCurrency.value,
-              amount: 0.0,
-              walletId: '',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-              deletedAt: null,
-            ),
+      wallets.whenData((data) {
+        if (data.isNotEmpty && selectedWalletId.value == null) {
+          final primaryWallet = data.firstWhere(
+            (w) => w.isPrimary,
+            orElse: () => data.first,
           );
-          animatedBalance.value = pocket.amount;
-          balanceAnimationController.forward(from: 0);
+          selectedWalletId.value = primaryWallet.id;
         }
       });
       return null;
-    }, [wallet]);
+    }, [wallets]);
 
-    // Update animated balance when currency changes (without animation)
+    final selectedWallet = useMemoized(() {
+      if (!wallets.hasValue || wallets.value == null) return null;
+      final walletList = wallets.value!;
+      if (selectedWalletId.value == null) return null;
+      return walletList
+          .where((w) => w.id == selectedWalletId.value)
+          .firstOrNull;
+    }, [wallets, selectedWalletId.value]);
+
     useEffect(() {
-      wallet.whenData((data) {
-        if (data != null) {
-          final pocket = data.pockets.firstWhere(
-            (p) => p.currency == selectedCurrency.value,
-            orElse: () => SnWalletPocket(
-              id: '',
-              currency: selectedCurrency.value,
-              amount: 0.0,
-              walletId: '',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-              deletedAt: null,
-            ),
-          );
-          // Update the value directly without animation
-          animatedBalance.value = pocket.amount;
-        }
-      });
+      if (selectedWallet != null) {
+        final pocket = selectedWallet.pockets.firstWhere(
+          (p) => p.currency == selectedCurrency.value,
+          orElse: () => SnWalletPocket(
+            id: '',
+            currency: selectedCurrency.value,
+            amount: 0.0,
+            walletId: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            deletedAt: null,
+          ),
+        );
+        animatedBalance.value = pocket.amount;
+        balanceAnimationController.forward(from: 0);
+      }
+      return null;
+    }, [selectedWallet]);
+
+    useEffect(() {
+      if (selectedWallet != null) {
+        final pocket = selectedWallet.pockets.firstWhere(
+          (p) => p.currency == selectedCurrency.value,
+          orElse: () => SnWalletPocket(
+            id: '',
+            currency: selectedCurrency.value,
+            amount: 0.0,
+            walletId: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            deletedAt: null,
+          ),
+        );
+        animatedBalance.value = pocket.amount;
+      }
       return null;
     }, [selectedCurrency.value]);
 
     Future<void> createWallet() async {
+      final nameController = TextEditingController();
+      final realms = realmsAsync.value ?? [];
+
+      final result = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        builder: (context) => HookBuilder(
+          builder: (context) {
+            final selected = useState<SnRealm?>(null);
+            final theme = Theme.of(context);
+
+            return SheetScaffold(
+              titleText: 'walletCreateNew'.tr(),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'walletName'.tr(),
+                        hintText: 'walletNameHint'.tr(),
+                      ),
+                    ),
+                    const Gap(16),
+                    Row(
+                      children: [
+                        Text(
+                          'walletOwner'.tr(),
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
+                    const Gap(8),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton2<SnRealm?>(
+                        isExpanded: true,
+                        hint: Text('selectWalletOwner'.tr()),
+                        valueListenable: selected,
+                        items: [
+                          DropdownItem<SnRealm?>(
+                            value: null,
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  radius: 16,
+                                  child: Icon(Symbols.person, fill: 1),
+                                ),
+                                const SizedBox(width: 12),
+                                Text('personalWallet'.tr()),
+                              ],
+                            ),
+                          ),
+                          ...realms.map(
+                            (realm) => DropdownItem<SnRealm?>(
+                              value: realm,
+                              child: Row(
+                                children: [
+                                  ProfilePictureWidget(
+                                    file: realm.picture,
+                                    fallbackIcon: Symbols.workspaces,
+                                    radius: 16,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      realm.name,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          selected.value = value;
+                        },
+                        buttonStyleData: ButtonStyleData(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: theme.colorScheme.outline,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        dropdownStyleData: DropdownStyleData(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Gap(8),
+                    Text(
+                      selected.value != null
+                          ? 'realmWalletHint'.tr()
+                          : 'personalWalletHint'.tr(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Gap(20),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(context, {
+                        'name': nameController.text,
+                        'realm_id': selected.value?.id,
+                      }),
+                      child: Text('create'.tr()),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+      if (result == null) return;
+      if ((result['name'] as String?)?.isEmpty ?? true) return;
+
       final client = ref.read(solarNetworkClientProvider);
       try {
-        await client.wallet.createWallet();
+        showLoadingModal(context);
+        await client.wallet.createWallet(
+          name: result['name'],
+          realmId: result['realm_id'],
+        );
+        ref.invalidate(walletListProvider);
         ref.invalidate(walletCurrentProvider);
+        if (context.mounted) hideLoadingModal(context);
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> setDefaultWallet(String walletId) async {
+      final client = ref.read(solarNetworkClientProvider);
+      try {
+        showLoadingModal(context);
+        await client.wallet.setDefaultWallet(walletId);
+        ref.invalidate(walletListProvider);
+        ref.invalidate(walletCurrentProvider);
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showSnackBar('walletSetDefaultSuccess'.tr());
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> togglePublicId(String walletId, bool enable) async {
+      final client = ref.read(solarNetworkClientProvider);
+      try {
+        showLoadingModal(context);
+        if (enable) {
+          await client.wallet.enablePublicId(walletId);
+        } else {
+          await client.wallet.disablePublicId(walletId);
+        }
+        ref.invalidate(walletListProvider);
+        ref.invalidate(walletCurrentProvider);
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showSnackBar(
+            enable
+                ? 'walletPublicIdEnabled'.tr()
+                : 'walletPublicIdDisabled'.tr(),
+          );
+        }
       } catch (err) {
         showErrorAlert(err);
       }
@@ -1323,7 +1624,8 @@ class WalletScreen extends HookConsumerWidget {
         context: context,
         useRootNavigator: true,
         isScrollControlled: true,
-        builder: (context) => const CreateFundSheet(),
+        builder: (context) =>
+            CreateFundSheet(payerWalletId: selectedWalletId.value),
       );
 
       if (result != null && context.mounted) {
@@ -1336,7 +1638,8 @@ class WalletScreen extends HookConsumerWidget {
         context: context,
         useRootNavigator: true,
         isScrollControlled: true,
-        builder: (context) => const CreateTransferSheet(),
+        builder: (context) =>
+            CreateTransferSheet(payerWalletId: selectedWalletId.value),
       );
 
       if (result != null && context.mounted) {
@@ -1370,10 +1673,17 @@ class WalletScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: Text('wallet').tr(),
         leading: const AutoLeadingButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.add),
+            onPressed: createWallet,
+            tooltip: 'walletCreateNew'.tr(),
+          ),
+        ],
       ),
-      body: wallet.when(
-        data: (data) {
-          if (data == null) {
+      body: wallets.when(
+        data: (walletList) {
+          if (walletList.isEmpty) {
             return ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 280),
               child: Column(
@@ -1390,14 +1700,26 @@ class WalletScreen extends HookConsumerWidget {
             ).center();
           }
 
-          final allPockets = getAllCurrencies(data.pockets);
+          if (selectedWallet == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final allPockets = getAllCurrencies(selectedWallet.pockets);
 
           return NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              // Balance Card with Currency Dropdown
               SliverToBoxAdapter(
                 child: Column(
                   children: [
+                    _buildWalletSwitcher(
+                      context,
+                      ref,
+                      walletList,
+                      selectedWalletId,
+                      selectedCurrency.value,
+                      setDefaultWallet,
+                      togglePublicId,
+                    ).padding(horizontal: 16, top: 16),
                     _buildBalanceCard(
                       context,
                       allPockets,
@@ -1406,14 +1728,13 @@ class WalletScreen extends HookConsumerWidget {
                       isFullAmountVisible,
                       balanceAnimationController,
                       animatedBalance,
-                      data.id,
-                    ).padding(horizontal: 16, top: 16),
+                      selectedWallet,
+                    ).padding(horizontal: 16, top: 8),
                     _buildBalanceStats(context, ref, selectedCurrency),
                   ],
                 ),
               ),
 
-              // Quick Action Buttons
               SliverToBoxAdapter(
                 child: _buildQuickActionsGrid(
                   context,
@@ -1436,10 +1757,12 @@ class WalletScreen extends HookConsumerWidget {
             body: TabBarView(
               controller: tabController,
               children: [
-                // Transactions Tab with Filter
-                _buildTransactionsList(context, ref, wallet, transactionFilter),
-
-                // My Funds Tab
+                _buildTransactionsList(
+                  context,
+                  ref,
+                  selectedWallet,
+                  transactionFilter,
+                ),
                 _buildFundsList(context, ref),
               ],
             ),
@@ -1447,7 +1770,7 @@ class WalletScreen extends HookConsumerWidget {
         },
         error: (error, stackTrace) => ResponseErrorWidget(
           error: error,
-          onRetry: () => ref.invalidate(walletCurrentProvider),
+          onRetry: () => ref.invalidate(walletListProvider),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
@@ -1627,7 +1950,7 @@ class WalletScreen extends HookConsumerWidget {
     ValueNotifier<bool> isFullAmountVisible,
     AnimationController balanceAnimationController,
     ValueNotifier<double> animatedBalance,
-    String? walletId,
+    SnWallet wallet,
   ) {
     final theme = Theme.of(context);
     final isWide = isWideScreen(context);
@@ -1665,14 +1988,36 @@ class WalletScreen extends HookConsumerWidget {
                       size: 20,
                     ),
                     const Gap(8),
-                    Text(
-                      'balance'.tr(),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Text(
+                        wallet.name.isNotEmpty ? wallet.name : 'balance'.tr(),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
+                    if (wallet.isPrimary) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.onPrimaryContainer
+                              .withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'walletIsDefault'.tr(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                      const Gap(8),
+                    ],
                     PopupMenuButton<String>(
                       icon: Icon(
                         Symbols.more_horiz,
@@ -1693,6 +2038,15 @@ class WalletScreen extends HookConsumerWidget {
                         } else if (value == 'full_amount') {
                           isFullAmountVisible.value =
                               !isFullAmountVisible.value;
+                        } else if (value == 'copy_wallet_id') {
+                          Clipboard.setData(ClipboardData(text: wallet.id));
+                          showSnackBar('walletIdCopied'.tr());
+                        } else if (value == 'copy_public_id' &&
+                            wallet.publicId != null) {
+                          Clipboard.setData(
+                            ClipboardData(text: wallet.publicId!),
+                          );
+                          showSnackBar('walletPublicIdCopied'.tr());
                         }
                       },
                       itemBuilder: (context) => [
@@ -1735,10 +2089,74 @@ class WalletScreen extends HookConsumerWidget {
                               ],
                             ),
                           ),
+                        if (isBalanceVisible.value)
+                          PopupMenuItem(
+                            value: 'full_amount',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isFullAmountVisible.value
+                                      ? Symbols.unfold_less
+                                      : Symbols.unfold_more,
+                                  size: 18,
+                                ),
+                                const Gap(8),
+                                Text(
+                                  isFullAmountVisible.value
+                                      ? 'showCompact'.tr()
+                                      : 'showFullAmount'.tr(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        PopupMenuItem(
+                          value: 'copy_wallet_id',
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.key, size: 18),
+                              const Gap(8),
+                              Text('walletCopyId'.tr()),
+                            ],
+                          ),
+                        ),
+                        if (wallet.publicId != null)
+                          PopupMenuItem(
+                            value: 'copy_public_id',
+                            child: Row(
+                              children: [
+                                const Icon(Symbols.content_copy, size: 18),
+                                const Gap(8),
+                                Text('walletCopyPublicId'.tr()),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ],
                 ),
+                if (wallet.publicId != null) ...[
+                  const Gap(8),
+                  Row(
+                    children: [
+                      Icon(
+                        Symbols.tag,
+                        size: 14,
+                        color: theme.colorScheme.onPrimaryContainer.withOpacity(
+                          0.7,
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        wallet.publicId!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer
+                              .withOpacity(0.7),
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const Gap(12),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1832,45 +2250,45 @@ class WalletScreen extends HookConsumerWidget {
   Widget _buildTransactionsList(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<SnWallet?> wallet,
+    SnWallet? wallet,
     ValueNotifier<int> filter,
   ) {
+    final direction = switch (filter.value) {
+      1 => 'income',
+      2 => 'outcome',
+      _ => null,
+    };
+    
+    final provider = transactionListProvider((walletId: wallet?.id, direction: direction, type: null));
+    
     return Column(
       children: [
-        // Filter Tabs
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              _buildFilterTab(context, 'all'.tr(), 0, filter),
+              _buildFilterTab(context, 'all'.tr(), 0, filter, ref, provider),
               const Gap(16),
-              _buildFilterTab(context, 'income'.tr(), 1, filter),
+              _buildFilterTab(context, 'income'.tr(), 1, filter, ref, provider),
               const Gap(16),
-              _buildFilterTab(context, 'expense'.tr(), 2, filter),
+              _buildFilterTab(context, 'expense'.tr(), 2, filter, ref, provider),
               const Spacer(),
               TextButton(
                 onPressed: () {
-                  // Show all transactions
+                  // Show all
                 },
                 child: Text('seeAll'.tr()),
               ),
             ],
           ),
         ),
-        // Transactions List
         Expanded(
           child: PaginationList(
             padding: EdgeInsets.zero,
-            provider: transactionListProvider,
-            notifier: transactionListProvider.notifier,
+            provider: provider,
+            notifier: provider.notifier,
             itemBuilder: (context, index, transaction) {
-              final isIncome = wallet.value?.id == transaction.payeeWalletId;
-
-              // Apply filter
-              if (filter.value == 1 && !isIncome) {
-                return const SizedBox.shrink();
-              }
-              if (filter.value == 2 && isIncome) return const SizedBox.shrink();
+              final isIncome = wallet?.id == transaction.payeeWalletId;
 
               return InkWell(
                 onTap: () {
@@ -1880,7 +2298,7 @@ class WalletScreen extends HookConsumerWidget {
                     isScrollControlled: true,
                     builder: (context) => TransactionDetailSheet(
                       transaction: transaction,
-                      currentWalletId: wallet.value?.id,
+                      currentWalletId: wallet?.id,
                     ),
                   );
                 },
@@ -1898,10 +2316,15 @@ class WalletScreen extends HookConsumerWidget {
     String label,
     int value,
     ValueNotifier<int> filter,
+    WidgetRef ref,
+    dynamic provider,
   ) {
     final isSelected = filter.value == value;
     return GestureDetector(
-      onTap: () => filter.value = value,
+      onTap: () {
+        filter.value = value;
+        ref.invalidate(provider);
+      },
       child: Text(
         label,
         style: TextStyle(
@@ -2228,6 +2651,310 @@ class WalletScreen extends HookConsumerWidget {
         return Theme.of(context).colorScheme.primary;
     }
   }
+
+  Widget _buildWalletSwitcher(
+    BuildContext context,
+    WidgetRef ref,
+    List<SnWallet> wallets,
+    ValueNotifier<String?> selectedWalletId,
+    String selectedCurrency,
+    Future<void> Function(String) setDefaultWallet,
+    Future<void> Function(String, bool) togglePublicId,
+  ) {
+    final theme = Theme.of(context);
+    final selectedWallet = wallets.firstWhere(
+      (w) => w.id == selectedWalletId.value,
+      orElse: () => wallets.first,
+    );
+    final pocket = selectedWallet.pockets.firstWhere(
+      (p) => p.currency == selectedCurrency,
+      orElse: () => SnWalletPocket(
+        id: '',
+        currency: selectedCurrency,
+        amount: 0.0,
+        walletId: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        deletedAt: null,
+      ),
+    );
+    final hasMultipleWallets = wallets.length > 1;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<String>(
+          valueListenable: selectedWalletId,
+          onChanged: (value) {
+            if (value != null) {
+              selectedWalletId.value = value;
+            }
+          },
+          customButton: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: selectedWallet.realmId != null
+                        ? theme.colorScheme.secondaryContainer
+                        : theme.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    selectedWallet.realmId != null
+                        ? Symbols.workspaces
+                        : (selectedWallet.isPrimary
+                              ? Symbols.star
+                              : Symbols.wallet),
+                    color: selectedWallet.realmId != null
+                        ? theme.colorScheme.onSecondaryContainer
+                        : theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              selectedWallet.name.isNotEmpty
+                                  ? selectedWallet.name
+                                  : 'Default Wallet',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (selectedWallet.isPrimary) ...[
+                            const Gap(8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.tertiaryContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                selectedWallet.realmId != null
+                                    ? 'realmWallet'.tr()
+                                    : 'walletIsDefault'.tr(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onTertiaryContainer,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const Gap(2),
+                      Text(
+                        '${formatAmountWithSuffix(pocket.amount)} ${pocket.currency}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (hasMultipleWallets)
+                  Icon(
+                    Symbols.unfold_more,
+                    size: 20,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ),
+          dropdownStyleData: DropdownStyleData(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            offset: const Offset(0, -4),
+            width: 300,
+          ),
+          menuItemStyleData: const MenuItemStyleData(padding: EdgeInsets.zero),
+          items: [
+            ...wallets.map((wallet) {
+              final wPocket = wallet.pockets.firstWhere(
+                (p) => p.currency == selectedCurrency,
+                orElse: () => SnWalletPocket(
+                  id: '',
+                  currency: selectedCurrency,
+                  amount: 0.0,
+                  walletId: '',
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                  deletedAt: null,
+                ),
+              );
+              return DropdownItem<String>(
+                value: wallet.id,
+                height: 54,
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: wallet.realmId != null
+                                  ? theme.colorScheme.secondaryContainer
+                                  : theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              wallet.realmId != null
+                                  ? Symbols.workspaces
+                                  : (wallet.isPrimary
+                                        ? Symbols.star
+                                        : Symbols.wallet),
+                              color: wallet.realmId != null
+                                  ? theme.colorScheme.onSecondaryContainer
+                                  : theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                          const Gap(12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        wallet.name.isNotEmpty
+                                            ? wallet.name
+                                            : 'Default Wallet',
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (wallet.isPrimary) ...[
+                                      const Gap(8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 1,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: theme
+                                              .colorScheme
+                                              .tertiaryContainer,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          wallet.realmId != null
+                                              ? 'realmWallet'.tr()
+                                              : 'walletIsDefault'.tr(),
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                                color: theme
+                                                    .colorScheme
+                                                    .onTertiaryContainer,
+                                                fontSize: 10,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const Gap(2),
+                                Text(
+                                  '${formatAmountWithSuffix(wPocket.amount)} ${wPocket.currency}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Symbols.more_vert,
+                              size: 20,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            onSelected: (value) {
+                              if (value == 'set_default' && !wallet.isPrimary) {
+                                setDefaultWallet(wallet.id);
+                              } else if (value == 'enable_public_id') {
+                                togglePublicId(wallet.id, true);
+                              } else if (value == 'disable_public_id') {
+                                togglePublicId(wallet.id, false);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              if (!wallet.isPrimary && wallet.realmId == null)
+                                PopupMenuItem(
+                                  value: 'set_default',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Symbols.star, size: 18),
+                                      const Gap(8),
+                                      Text('walletSetDefault'.tr()),
+                                    ],
+                                  ),
+                                ),
+                              if (wallet.publicId == null)
+                                PopupMenuItem(
+                                  value: 'enable_public_id',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Symbols.tag, size: 18),
+                                      const Gap(8),
+                                      Text('walletEnablePublicId'.tr()),
+                                    ],
+                                  ),
+                                ),
+                              if (wallet.publicId != null)
+                                PopupMenuItem(
+                                  value: 'disable_public_id',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Symbols.tag, size: 18),
+                                      const Gap(8),
+                                      Text('walletDisablePublicId'.tr()),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 const Map<String, IconData> kCurrencyIconData = {
@@ -2235,8 +2962,6 @@ const Map<String, IconData> kCurrencyIconData = {
   'golds': Symbols.account_balance,
 };
 
-/// Formats a number with k (thousand) or m (million) suffix if >= 1000
-/// e.g., 1500 -> "1.50k", 1500000 -> "1.50m"
 String formatAmountWithSuffix(double amount) {
   if (amount >= 1000000) {
     return '${(amount / 1000000).toStringAsFixed(2)}m';

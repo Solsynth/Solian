@@ -240,6 +240,7 @@ class DeveloperSelector extends HookConsumerWidget {
       data: (data) => data
           .map(
             (item) => DropdownItem<SnDeveloper>(
+              height: 54,
               value: item,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
