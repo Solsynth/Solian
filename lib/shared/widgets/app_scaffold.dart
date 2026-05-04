@@ -14,7 +14,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/core/widgets/embeds/livestream_overlay.dart';
+import 'package:island/livestreams/livestream_overlay.dart';
 import 'package:island/notifications/notification_overlay.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/task_overlay.dart';
