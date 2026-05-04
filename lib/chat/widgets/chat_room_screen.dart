@@ -24,6 +24,7 @@ import 'package:island/chat/messages_notifier.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/drive/drive_service.dart';
@@ -339,26 +340,19 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     // Track new messages while scrolled up
     final newMessagesCount = useState<int>(0);
-    final lastMessageCount = useRef<int>(0);
     final isBackToBottomVisible = useState<bool>(false);
     final hideBackToBottomTimer = useRef<Timer?>(null);
 
-    // Watch loading state from messages notifier
-    final isLoadingMore = messagesNotifier.isLoadingMore;
-
-    // Update new message count when messages change (but not during loadMore)
+    // Count only actual incoming/synced new-message events. Older pagination
+    // loads and list regrouping can change message count without being new.
     useEffect(() {
-      final currentCount = messages.value?.length ?? 0;
-      if (!isAtLatestMessages.value &&
-          currentCount > lastMessageCount.value &&
-          lastMessageCount.value > 0 &&
-          !isLoadingMore) {
-        // Only count as "new" if not from loadMore
-        newMessagesCount.value += (currentCount - lastMessageCount.value);
-      }
-      lastMessageCount.value = currentCount;
-      return null;
-    }, [messages.value?.length, isAtLatestMessages.value, isLoadingMore]);
+      final sub = eventBus.on<ChatMessageNewEvent>().listen((event) {
+        if (event.message.chatRoomId != id) return;
+        if (isAtLatestMessages.value) return;
+        newMessagesCount.value += 1;
+      });
+      return sub.cancel;
+    }, [id]);
 
     // Auto-hide back-to-bottom button after idle period.
     useEffect(() {
