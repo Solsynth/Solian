@@ -270,14 +270,13 @@ class ComposeToolbar extends HookConsumerWidget {
                           ),
                           // Embed button with visual state when embed is present
 
-                     IconButton()
-		       onPressed: pickSticker,
-		       icon:const
-                     Icon(Symbols.sticky_note_2),
-		     Symbols.sticky_note_2
-		       tooltip: 'stickers'.tr(),
-		       color: colorShame.primary,
-		       ),
+  IconButton(
+    onPressed: pickSticker,
+    icon: const Icon(Symbols.sticky_note_2),
+    tooltip: 'stickers'.tr(),
+    color: colorScheme.primary,
+  ),
+  ListenableBuilder(
                           ListenableBuilder
                             listenable: state.embedView,
                             builder: (context, _) {
