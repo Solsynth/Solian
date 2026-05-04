@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -9,6 +10,8 @@ import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/core/widgets/embeds/link.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -152,9 +155,8 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
             'livestream' =>
               embedData['id'] == null
                   ? const Text('Livestream was unavailable...')
-                  : LivestreamEmbedWidget(
+                  : _LivestreamPreviewCard(
                       livestreamId: embedData['id'],
-                      isInteractive: widget.isInteractive,
                       margin: EdgeInsets.symmetric(
                         horizontal: widget.renderingPadding.horizontal,
                         vertical: 8,
@@ -658,6 +660,161 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
       return '${hours}h ${minutes}m';
     }
     return '${minutes}m';
+  }
+}
+
+class _LivestreamPreviewCard extends ConsumerWidget {
+  final String livestreamId;
+  final EdgeInsets margin;
+
+  const _LivestreamPreviewCard({
+    required this.livestreamId,
+    required this.margin,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detailAsync = ref.watch(livestreamDetailProvider(livestreamId));
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: margin,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => context.router.push(LivestreamWatchRoute(livestreamId: livestreamId)),
+        child: detailAsync.when(
+          data: (stream) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (stream.thumbnail?.id != null)
+                        CloudImageWidget(
+                          fileId: stream.thumbnail!.id,
+                          fit: BoxFit.cover,
+                        )
+                      else
+                        Container(
+                          color: theme.colorScheme.surfaceContainerHigh,
+                          child: Center(
+                            child: Icon(
+                              Symbols.live_tv,
+                              size: 48,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.6),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        right: 8,
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: stream.status == SnLiveStreamStatus.active
+                                    ? Colors.red
+                                    : theme.colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (stream.status == SnLiveStreamStatus.active) ...[
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const Gap(4),
+                                  ],
+                                  Text(
+                                    stream.status == SnLiveStreamStatus.active
+                                        ? 'live'.tr()
+                                        : 'ended'.tr(),
+                                    style: TextStyle(
+                                      color: stream.status == SnLiveStreamStatus.active
+                                          ? Colors.white
+                                          : theme.colorScheme.onSurfaceVariant,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      stream.title ?? 'untitledLivestream'.tr(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (stream.description?.isNotEmpty ?? false) ...[
+                      const Gap(4),
+                      Text(
+                        stream.description!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          loading: () => Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (_, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('livestreamUnavailable'.tr()),
+          ),
+        ),
+      ),
+    );
   }
 }
 
