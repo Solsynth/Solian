@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/posts/compose.dart';
@@ -9,6 +10,7 @@ import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/posts/widgets/compose/compose_card.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/posts/widgets/compose/compose_state_utils.dart';
@@ -51,6 +53,7 @@ class PostComposeDialog extends HookConsumerWidget {
     ref.watch(composeStorageProvider);
     final restoredInitialState = useState<PostComposeInitialState?>(null);
     final prompted = useState(false);
+    final showPreview = useState(false);
 
     // Fetch full post data if we're editing a post
     final fullPostData = originalPost != null
@@ -78,7 +81,12 @@ class PostComposeDialog extends HookConsumerWidget {
         cloudDraftId: initialState?.cloudDraftId,
         postType: 0,
       ),
-      [effectiveOriginalPost, forwardedPost, repliedPost, initialState?.cloudDraftId],
+      [
+        effectiveOriginalPost,
+        forwardedPost,
+        repliedPost,
+        initialState?.cloudDraftId,
+      ],
     );
 
     // Add a listener to the entire state to trigger rebuilds
@@ -101,43 +109,48 @@ class PostComposeDialog extends HookConsumerWidget {
     ComposeStateUtils.usePublisherInitialization(ref, state);
     ComposeStateUtils.useInitialStateLoader(state, initialState);
 
-    useEffect(() {
-      if (!prompted.value &&
-          originalPost == null &&
-          initialState?.replyingTo == null &&
-          initialState?.forwardingTo == null) {
-        final latestDraft = ref
-            .read(composeStorageProvider.notifier)
-            .getLatestDraftByType(0);
-        if (latestDraft == null) return null;
-        prompted.value = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showRestoreDialog(ref, restoredInitialState, latestDraft);
-        });
-      }
-      return null;
-    }, [prompted.value, originalPost, initialState?.replyingTo, initialState?.forwardingTo]);
-
-    // Auto-save drafts for new posts and save one final time on close.
     useEffect(
       () {
-        final isNewPost =
-            effectiveOriginalPost == null &&
-            repliedPost == null &&
-            forwardedPost == null;
-        if (isNewPost) {
-          state.startAutoSave(ref);
+        if (!prompted.value &&
+            originalPost == null &&
+            initialState?.replyingTo == null &&
+            initialState?.forwardingTo == null) {
+          final latestDraft = ref
+              .read(composeStorageProvider.notifier)
+              .getLatestDraftByType(0);
+          if (latestDraft == null) return null;
+          prompted.value = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showRestoreDialog(ref, restoredInitialState, latestDraft);
+          });
         }
-        return () {
-          state.stopAutoSave();
-          if (isNewPost) {
-            ComposeLogic.saveDraftWithoutUpload(ref, state);
-          }
-          ComposeLogic.dispose(state);
-        };
+        return null;
       },
-      [state, effectiveOriginalPost, repliedPost, forwardedPost],
+      [
+        prompted.value,
+        originalPost,
+        initialState?.replyingTo,
+        initialState?.forwardingTo,
+      ],
     );
+
+    // Auto-save drafts for new posts and save one final time on close.
+    useEffect(() {
+      final isNewPost =
+          effectiveOriginalPost == null &&
+          repliedPost == null &&
+          forwardedPost == null;
+      if (isNewPost) {
+        state.startAutoSave(ref);
+      }
+      return () {
+        state.stopAutoSave();
+        if (isNewPost) {
+          ComposeLogic.saveDraftWithoutUpload(ref, state);
+        }
+        ComposeLogic.dispose(state);
+      };
+    }, [state, effectiveOriginalPost, repliedPost, forwardedPost]);
 
     // Helper methods for actions
     void showSettingsSheet() {
@@ -159,6 +172,11 @@ class PostComposeDialog extends HookConsumerWidget {
     }
 
     final actions = [
+      IconButton(
+        icon: Icon(showPreview.value ? Symbols.preview_off : Symbols.preview),
+        onPressed: () => showPreview.value = !showPreview.value,
+        tooltip: 'togglePreview'.tr(),
+      ),
       IconButton(
         icon: const Icon(Symbols.settings),
         onPressed: showSettingsSheet,
@@ -226,16 +244,25 @@ class PostComposeDialog extends HookConsumerWidget {
                   heightFactor: 1.0,
                   titleText: 'postCompose'.tr(),
                   actions: actions,
-                  child: PostComposeCard(
-                    originalPost: effectiveOriginalPost,
-                    initialState: restoredInitialState.value ?? initialState,
-                    onCancel: () => Navigator.of(context).pop(),
-                    onSubmit: () {
-                      Navigator.of(context).pop(true);
-                    },
-                    isContained: true,
-                    showHeader: false,
-                    providedState: state,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: SizedBox.expand(
+                      key: ValueKey(showPreview.value),
+                      child: showPreview.value
+                          ? _DialogPreviewPane(state: state)
+                          : PostComposeCard(
+                              originalPost: effectiveOriginalPost,
+                              initialState:
+                                  restoredInitialState.value ?? initialState,
+                              onCancel: () => Navigator.of(context).pop(),
+                              onSubmit: () {
+                                Navigator.of(context).pop(true);
+                              },
+                              isContained: true,
+                              showHeader: false,
+                              providedState: state,
+                            ),
+                    ),
                   ),
                 )
               : ClipRRect(
@@ -244,16 +271,25 @@ class PostComposeDialog extends HookConsumerWidget {
                     heightFactor: 1.0,
                     titleText: 'postCompose'.tr(),
                     actions: actions,
-                    child: PostComposeCard(
-                      originalPost: effectiveOriginalPost,
-                      initialState: restoredInitialState.value ?? initialState,
-                      onCancel: () => Navigator.of(context).pop(),
-                      onSubmit: () {
-                        Navigator.of(context).pop(true);
-                      },
-                      isContained: true,
-                      showHeader: false,
-                      providedState: state,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: SizedBox.expand(
+                        key: ValueKey(showPreview.value),
+                        child: showPreview.value
+                            ? _DialogPreviewPane(state: state)
+                            : PostComposeCard(
+                                originalPost: effectiveOriginalPost,
+                                initialState:
+                                    restoredInitialState.value ?? initialState,
+                                onCancel: () => Navigator.of(context).pop(),
+                                onSubmit: () {
+                                  Navigator.of(context).pop(true);
+                                },
+                                isContained: true,
+                                showHeader: false,
+                                providedState: state,
+                              ),
+                      ),
                     ),
                   ),
                 ),
@@ -382,6 +418,54 @@ class PostComposeDialog extends HookConsumerWidget {
               ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _DialogPreviewPane extends HookWidget {
+  final ComposeState state;
+
+  const _DialogPreviewPane({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final content = useValueListenable(state.contentController);
+    final attachments = useValueListenable(state.attachments);
+
+    if (content.text.isEmpty && attachments.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Symbols.edit_note,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const Gap(12),
+            Text(
+              'previewEmpty'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: MarkdownTextContent(
+        content: content.text,
+        textStyle: theme.textTheme.bodyMedium,
+        attachments: attachments
+            .where((e) => e.isOnCloud)
+            .map((e) => e.data)
+            .cast<SnCloudFile>()
+            .toList(),
       ),
     );
   }

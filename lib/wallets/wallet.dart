@@ -994,7 +994,8 @@ final transactionListProvider = AsyncNotifierProvider.autoDispose.family(
   TransactionListNotifier.new,
 );
 
-class TransactionListNotifier extends AsyncNotifier<PaginationState<SnTransaction>>
+class TransactionListNotifier
+    extends AsyncNotifier<PaginationState<SnTransaction>>
     with AsyncPaginationController<SnTransaction> {
   static const int pageSize = 20;
 
@@ -1566,6 +1567,7 @@ class WalletScreen extends HookConsumerWidget {
 
       final client = ref.read(solarNetworkClientProvider);
       try {
+        if (!context.mounted) return;
         showLoadingModal(context);
         await client.wallet.createWallet(
           name: result['name'],
@@ -2258,9 +2260,13 @@ class WalletScreen extends HookConsumerWidget {
       2 => 'outcome',
       _ => null,
     };
-    
-    final provider = transactionListProvider((walletId: wallet?.id, direction: direction, type: null));
-    
+
+    final provider = transactionListProvider((
+      walletId: wallet?.id,
+      direction: direction,
+      type: null,
+    ));
+
     return Column(
       children: [
         Padding(
@@ -2271,7 +2277,14 @@ class WalletScreen extends HookConsumerWidget {
               const Gap(16),
               _buildFilterTab(context, 'income'.tr(), 1, filter, ref, provider),
               const Gap(16),
-              _buildFilterTab(context, 'expense'.tr(), 2, filter, ref, provider),
+              _buildFilterTab(
+                context,
+                'expense'.tr(),
+                2,
+                filter,
+                ref,
+                provider,
+              ),
               const Spacer(),
               TextButton(
                 onPressed: () {

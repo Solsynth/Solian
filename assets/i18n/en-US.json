@@ -2105,7 +2105,6 @@
   "thisStreamMayHaveEnded": "This stream may have ended or been removed.",
   "watchStream": "Watch Stream",
   "liveChatSidePanelInfo": "Connect to the stream to view and send messages in real-time.",
-  "connectedWaitingForVideo": "Connected. Waiting for video...",
   "ended": "Ended",
   "updateThumbnail": "Update Thumbnail",
   "removeThumbnail": "Remove Thumbnail",
@@ -2950,5 +2949,6 @@
   "goToDirectory": "Go to Directory",
   "uploadFile": "Upload File",
   "errorPickingFile": "Error picking file: {}",
-  "reasoning": "Reasoning"
+  "reasoning": "Reasoning",
+  "previewEmpty": "Preview Empty"
 }
