@@ -9,11 +9,13 @@ class ThoughtContent extends StatelessWidget {
     required this.isStreaming,
     required this.streamingText,
     this.thought,
+    this.subdueParentheticalText = false,
   });
 
   final bool isStreaming;
   final String streamingText;
   final SnThinkingThought? thought;
+  final bool subdueParentheticalText;
 
   bool get _isErrorMessage {
     if (thought == null) return false;
@@ -40,6 +42,14 @@ class ThoughtContent extends StatelessWidget {
     if (content.isEmpty) return const SizedBox.shrink();
 
     final isError = content.startsWith('Error:') || _isErrorMessage;
+    final trimmedContent = content.trim();
+    final isParenthetical =
+        subdueParentheticalText &&
+        ((trimmedContent.startsWith('(') && trimmedContent.endsWith(')')) ||
+            (trimmedContent.startsWith('（') && trimmedContent.endsWith('）')));
+    final baseStyle = Theme.of(context).textTheme.bodyMedium!;
+    final baseColor =
+        baseStyle.color ?? Theme.of(context).colorScheme.onSurface;
 
     return Container(
       padding: isError ? const EdgeInsets.all(8) : EdgeInsets.zero,
@@ -57,8 +67,13 @@ class ThoughtContent extends StatelessWidget {
         isSelectable: true,
         content: content,
         extraBlockSyntaxList: [ProposalBlockSyntax()],
-        textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: isError ? Theme.of(context).colorScheme.error : null,
+        textStyle: baseStyle.copyWith(
+          color: isError
+              ? Theme.of(context).colorScheme.error
+              : isParenthetical
+              ? baseColor.withOpacity(0.58)
+              : null,
+          fontStyle: isParenthetical ? FontStyle.italic : null,
         ),
         extraGenerators: [
           ProposalGenerator(

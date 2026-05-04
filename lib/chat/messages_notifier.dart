@@ -866,7 +866,24 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
 
-    _emitMessages([result.message!, ..._currentMessages]);
+    final sentMessage = result.message!;
+    if (editingTo != null) {
+      var replaced = false;
+      final updated = _currentMessages.map((message) {
+        if (message.id != sentMessage.id) return message;
+        replaced = true;
+        return sentMessage;
+      }).toList();
+
+      if (!replaced) {
+        updated.add(sentMessage);
+      }
+
+      _emitMessages(updated);
+      return;
+    }
+
+    _emitMessages([sentMessage, ..._currentMessages]);
   }
 
   Future<void> sendVoiceMessage(
