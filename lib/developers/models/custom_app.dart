@@ -19,6 +19,7 @@ sealed class CustomApp with _$CustomApp {
     CustomAppLinks? links,
     @Default([]) List<CustomAppSecret> secrets,
     @Default('') String publisherId,
+    String? paymentWalletId,
   }) = _CustomApp;
 
   factory CustomApp.fromJson(Map<String, dynamic> json) =>

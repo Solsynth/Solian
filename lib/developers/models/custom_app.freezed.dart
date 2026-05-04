@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CustomApp {
 
- String get id; String get slug; String get name; String? get description; int get status; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; CustomAppOauthConfig? get oauthConfig; CustomAppLinks? get links; List<CustomAppSecret> get secrets; String get publisherId;
+ String get id; String get slug; String get name; String? get description; int get status; SnCloudFile? get picture; SnCloudFile? get background; SnVerificationMark? get verification; CustomAppOauthConfig? get oauthConfig; CustomAppLinks? get links; List<CustomAppSecret> get secrets; String get publisherId; String? get paymentWalletId;
 /// Create a copy of CustomApp
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $CustomAppCopyWith<CustomApp> get copyWith => _$CustomAppCopyWithImpl<CustomApp>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomApp&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.status, status) || other.status == status)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.oauthConfig, oauthConfig) || other.oauthConfig == oauthConfig)&&(identical(other.links, links) || other.links == links)&&const DeepCollectionEquality().equals(other.secrets, secrets)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CustomApp&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.status, status) || other.status == status)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.oauthConfig, oauthConfig) || other.oauthConfig == oauthConfig)&&(identical(other.links, links) || other.links == links)&&const DeepCollectionEquality().equals(other.secrets, secrets)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.paymentWalletId, paymentWalletId) || other.paymentWalletId == paymentWalletId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,status,picture,background,verification,oauthConfig,links,const DeepCollectionEquality().hash(secrets),publisherId);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,status,picture,background,verification,oauthConfig,links,const DeepCollectionEquality().hash(secrets),publisherId,paymentWalletId);
 
 @override
 String toString() {
-  return 'CustomApp(id: $id, slug: $slug, name: $name, description: $description, status: $status, picture: $picture, background: $background, verification: $verification, oauthConfig: $oauthConfig, links: $links, secrets: $secrets, publisherId: $publisherId)';
+  return 'CustomApp(id: $id, slug: $slug, name: $name, description: $description, status: $status, picture: $picture, background: $background, verification: $verification, oauthConfig: $oauthConfig, links: $links, secrets: $secrets, publisherId: $publisherId, paymentWalletId: $paymentWalletId)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $CustomAppCopyWith<$Res>  {
   factory $CustomAppCopyWith(CustomApp value, $Res Function(CustomApp) _then) = _$CustomAppCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String name, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId
+ String id, String slug, String name, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId, String? paymentWalletId
 });
 
 
@@ -65,7 +65,7 @@ class _$CustomAppCopyWithImpl<$Res>
 
 /// Create a copy of CustomApp
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? status = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? oauthConfig = freezed,Object? links = freezed,Object? secrets = null,Object? publisherId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? status = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? oauthConfig = freezed,Object? links = freezed,Object? secrets = null,Object? publisherId = null,Object? paymentWalletId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,8 @@ as SnVerificationMark?,oauthConfig: freezed == oauthConfig ? _self.oauthConfig :
 as CustomAppOauthConfig?,links: freezed == links ? _self.links : links // ignore: cast_nullable_to_non_nullable
 as CustomAppLinks?,secrets: null == secrets ? _self.secrets : secrets // ignore: cast_nullable_to_non_nullable
 as List<CustomAppSecret>,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,paymentWalletId: freezed == paymentWalletId ? _self.paymentWalletId : paymentWalletId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of CustomApp
@@ -221,10 +222,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CustomApp() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId,_that.paymentWalletId);case _:
   return orElse();
 
 }
@@ -242,10 +243,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)  $default,) {final _that = this;
 switch (_that) {
 case _CustomApp():
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId);}
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId,_that.paymentWalletId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -259,10 +260,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String? description,  int status,  SnCloudFile? picture,  SnCloudFile? background,  SnVerificationMark? verification,  CustomAppOauthConfig? oauthConfig,  CustomAppLinks? links,  List<CustomAppSecret> secrets,  String publisherId,  String? paymentWalletId)?  $default,) {final _that = this;
 switch (_that) {
 case _CustomApp() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_that.picture,_that.background,_that.verification,_that.oauthConfig,_that.links,_that.secrets,_that.publisherId,_that.paymentWalletId);case _:
   return null;
 
 }
@@ -274,7 +275,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.status,_t
 @JsonSerializable()
 
 class _CustomApp implements CustomApp {
-  const _CustomApp({this.id = '', this.slug = '', this.name = '', this.description, this.status = 0, this.picture, this.background, this.verification, this.oauthConfig, this.links, final  List<CustomAppSecret> secrets = const [], this.publisherId = ''}): _secrets = secrets;
+  const _CustomApp({this.id = '', this.slug = '', this.name = '', this.description, this.status = 0, this.picture, this.background, this.verification, this.oauthConfig, this.links, final  List<CustomAppSecret> secrets = const [], this.publisherId = '', this.paymentWalletId}): _secrets = secrets;
   factory _CustomApp.fromJson(Map<String, dynamic> json) => _$CustomAppFromJson(json);
 
 @override@JsonKey() final  String id;
@@ -295,6 +296,7 @@ class _CustomApp implements CustomApp {
 }
 
 @override@JsonKey() final  String publisherId;
+@override final  String? paymentWalletId;
 
 /// Create a copy of CustomApp
 /// with the given fields replaced by the non-null parameter values.
@@ -309,16 +311,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomApp&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.status, status) || other.status == status)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.oauthConfig, oauthConfig) || other.oauthConfig == oauthConfig)&&(identical(other.links, links) || other.links == links)&&const DeepCollectionEquality().equals(other._secrets, _secrets)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CustomApp&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.status, status) || other.status == status)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.background, background) || other.background == background)&&(identical(other.verification, verification) || other.verification == verification)&&(identical(other.oauthConfig, oauthConfig) || other.oauthConfig == oauthConfig)&&(identical(other.links, links) || other.links == links)&&const DeepCollectionEquality().equals(other._secrets, _secrets)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.paymentWalletId, paymentWalletId) || other.paymentWalletId == paymentWalletId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,status,picture,background,verification,oauthConfig,links,const DeepCollectionEquality().hash(_secrets),publisherId);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,status,picture,background,verification,oauthConfig,links,const DeepCollectionEquality().hash(_secrets),publisherId,paymentWalletId);
 
 @override
 String toString() {
-  return 'CustomApp(id: $id, slug: $slug, name: $name, description: $description, status: $status, picture: $picture, background: $background, verification: $verification, oauthConfig: $oauthConfig, links: $links, secrets: $secrets, publisherId: $publisherId)';
+  return 'CustomApp(id: $id, slug: $slug, name: $name, description: $description, status: $status, picture: $picture, background: $background, verification: $verification, oauthConfig: $oauthConfig, links: $links, secrets: $secrets, publisherId: $publisherId, paymentWalletId: $paymentWalletId)';
 }
 
 
@@ -329,7 +331,7 @@ abstract mixin class _$CustomAppCopyWith<$Res> implements $CustomAppCopyWith<$Re
   factory _$CustomAppCopyWith(_CustomApp value, $Res Function(_CustomApp) _then) = __$CustomAppCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String name, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId
+ String id, String slug, String name, String? description, int status, SnCloudFile? picture, SnCloudFile? background, SnVerificationMark? verification, CustomAppOauthConfig? oauthConfig, CustomAppLinks? links, List<CustomAppSecret> secrets, String publisherId, String? paymentWalletId
 });
 
 
@@ -346,7 +348,7 @@ class __$CustomAppCopyWithImpl<$Res>
 
 /// Create a copy of CustomApp
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? status = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? oauthConfig = freezed,Object? links = freezed,Object? secrets = null,Object? publisherId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? description = freezed,Object? status = null,Object? picture = freezed,Object? background = freezed,Object? verification = freezed,Object? oauthConfig = freezed,Object? links = freezed,Object? secrets = null,Object? publisherId = null,Object? paymentWalletId = freezed,}) {
   return _then(_CustomApp(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
@@ -360,7 +362,8 @@ as SnVerificationMark?,oauthConfig: freezed == oauthConfig ? _self.oauthConfig :
 as CustomAppOauthConfig?,links: freezed == links ? _self.links : links // ignore: cast_nullable_to_non_nullable
 as CustomAppLinks?,secrets: null == secrets ? _self._secrets : secrets // ignore: cast_nullable_to_non_nullable
 as List<CustomAppSecret>,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,paymentWalletId: freezed == paymentWalletId ? _self.paymentWalletId : paymentWalletId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

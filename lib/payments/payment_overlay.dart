@@ -15,6 +15,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class PaymentOverlay extends HookConsumerWidget {
   final SnWalletOrder order;
+  final String? payerWalletId;
   final Function(SnWalletOrder completedOrder)? onPaymentSuccess;
   final Function(String error)? onPaymentError;
   final VoidCallback? onCancel;
@@ -23,6 +24,7 @@ class PaymentOverlay extends HookConsumerWidget {
   const PaymentOverlay({
     super.key,
     required this.order,
+    this.payerWalletId,
     this.onPaymentSuccess,
     this.onPaymentError,
     this.onCancel,
@@ -44,6 +46,7 @@ class PaymentOverlay extends HookConsumerWidget {
           heightFactor: 0.7,
           child: _PaymentContent(
             order: order,
+            payerWalletId: payerWalletId,
             onPaymentSuccess: onPaymentSuccess,
             onPaymentError: onPaymentError,
             onCancel: onCancel,
@@ -57,6 +60,7 @@ class PaymentOverlay extends HookConsumerWidget {
   static Future<SnWalletOrder?> show({
     required BuildContext context,
     required SnWalletOrder order,
+    String? payerWalletId,
     bool enableBiometric = true,
   }) {
     return showModalBottomSheet<SnWalletOrder>(
@@ -66,6 +70,7 @@ class PaymentOverlay extends HookConsumerWidget {
       useSafeArea: true,
       builder: (context) => PaymentOverlay(
         order: order,
+        payerWalletId: payerWalletId,
         enableBiometric: enableBiometric,
         onPaymentSuccess: (completedOrder) {
           Navigator.of(context).pop(completedOrder);
@@ -84,6 +89,7 @@ class PaymentOverlay extends HookConsumerWidget {
 
 class _PaymentContent extends ConsumerStatefulWidget {
   final SnWalletOrder order;
+  final String? payerWalletId;
   final Function(SnWalletOrder)? onPaymentSuccess;
   final Function(String)? onPaymentError;
   final VoidCallback? onCancel;
@@ -91,6 +97,7 @@ class _PaymentContent extends ConsumerStatefulWidget {
 
   const _PaymentContent({
     required this.order,
+    this.payerWalletId,
     this.onPaymentSuccess,
     this.onPaymentError,
     this.onCancel,
@@ -239,7 +246,10 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       final client = ref.read(solarNetworkClientProvider);
       final response = await client.dio.post(
         '/wallet/orders/${widget.order.id}/pay',
-        data: {'pin_code': pin},
+        data: {
+          'pin_code': pin,
+          if (widget.payerWalletId != null) 'payer_wallet_id': widget.payerWalletId,
+        },
       );
 
       final completedOrder = SnWalletOrder.fromJson(response.data);

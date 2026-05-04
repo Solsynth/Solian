@@ -9,7 +9,11 @@ sealed class SnWallet with _$SnWallet {
   const factory SnWallet({
     required String id,
     required List<SnWalletPocket> pockets,
-    required String accountId,
+    String? accountId,
+    String? realmId,
+    required String name,
+    @Default(false) bool isPrimary,
+    String? publicId,
     required SnAccount? account,
     required DateTime createdAt,
     required DateTime updatedAt,

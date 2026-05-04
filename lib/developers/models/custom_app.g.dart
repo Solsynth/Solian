@@ -37,6 +37,7 @@ _CustomApp _$CustomAppFromJson(Map<String, dynamic> json) => _CustomApp(
           .toList() ??
       const [],
   publisherId: json['publisher_id'] as String? ?? '',
+  paymentWalletId: json['payment_wallet_id'] as String?,
 );
 
 Map<String, dynamic> _$CustomAppToJson(_CustomApp instance) =>
@@ -53,6 +54,7 @@ Map<String, dynamic> _$CustomAppToJson(_CustomApp instance) =>
       'links': instance.links?.toJson(),
       'secrets': instance.secrets.map((e) => e.toJson()).toList(),
       'publisher_id': instance.publisherId,
+      'payment_wallet_id': instance.paymentWalletId,
     };
 
 _CustomAppLinks _$CustomAppLinksFromJson(Map<String, dynamic> json) =>
