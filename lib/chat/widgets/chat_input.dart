@@ -27,7 +27,7 @@ import "package:island/core/services/responsive.dart";
 import "package:island/core/widgets/content/attachment_preview.dart";
 import "package:island/drive/drive_service.dart";
 import "package:island/drive/widgets/cloud_files.dart";
-import "package:island/drive/widgets/upload_menu.dart";
+import "package:island/posts/widgets/compose/compose_link_attachments.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:pasteboard/pasteboard.dart";
 import "package:path_provider/path_provider.dart";
@@ -101,7 +101,7 @@ Map<String, dynamic> _convertKeysToSnakeCase(Map map) {
   return result;
 }
 
-const kInputDrawerExpandedHeight = 180.0;
+const kInputDrawerExpandedHeight = 300.0;
 
 const kExpandedSectionTabHeight = 32.0;
 
@@ -215,6 +215,17 @@ class _ChatTimeoutBanner extends StatelessWidget {
 
 class _ExpandedSection extends StatelessWidget {
   final TextEditingController messageController;
+  final VoidCallback onPickPhoto;
+  final VoidCallback onPickVideo;
+  final VoidCallback onPickAudio;
+  final VoidCallback onPickGeneralFile;
+  final List<UniversalFile> attachments;
+  final Function(int, {String? encryptKey}) onUploadAttachment;
+  final Function(int) onDeleteAttachment;
+  final Function(int, int) onMoveAttachment;
+  final Function(List<UniversalFile>) onAttachmentsChanged;
+  final Map<String, Map<int, double?>> attachmentProgress;
+  final String? roomEncryptKey;
   final SnPoll? selectedPoll;
   final Function(SnPoll?) onPollSelected;
   final SnWalletFund? selectedFund;
@@ -223,6 +234,17 @@ class _ExpandedSection extends StatelessWidget {
 
   const _ExpandedSection({
     required this.messageController,
+    required this.onPickPhoto,
+    required this.onPickVideo,
+    required this.onPickAudio,
+    required this.onPickGeneralFile,
+    required this.attachments,
+    required this.onUploadAttachment,
+    required this.onDeleteAttachment,
+    required this.onMoveAttachment,
+    required this.onAttachmentsChanged,
+    required this.attachmentProgress,
+    required this.roomEncryptKey,
     this.selectedPoll,
     required this.onPollSelected,
     this.selectedFund,
@@ -242,7 +264,7 @@ class _ExpandedSection extends StatelessWidget {
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(32)),
         child: DefaultTabController(
-          length: 2,
+          length: 3,
           child: Column(
             children: [
               PreferredSize(
@@ -257,6 +279,38 @@ class _ExpandedSection extends StatelessWidget {
                       height: kExpandedSectionTabHeight,
                     ),
                     Tab(
+                      height: kExpandedSectionTabHeight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('attachments'.tr()),
+                          if (attachments.isNotEmpty) ...[
+                            const Gap(6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                attachments.length.toString(),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    Tab(
                       text: 'stickers'.tr(),
                       height: kExpandedSectionTabHeight,
                     ),
@@ -268,9 +322,7 @@ class _ExpandedSection extends StatelessWidget {
                 child: TabBarView(
                   children: [
                     SizedBox(
-                      height:
-                          kInputDrawerExpandedHeight -
-                          48, // subtract tab bar height approx
+                      height: kInputDrawerExpandedHeight,
                       child: GridView(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -382,6 +434,19 @@ class _ExpandedSection extends StatelessWidget {
                         ],
                       ),
                     ),
+                    _AttachmentsExpandedTab(
+                      onPickPhoto: onPickPhoto,
+                      onPickVideo: onPickVideo,
+                      onPickAudio: onPickAudio,
+                      onPickGeneralFile: onPickGeneralFile,
+                      attachments: attachments,
+                      onUploadAttachment: onUploadAttachment,
+                      onDeleteAttachment: onDeleteAttachment,
+                      onMoveAttachment: onMoveAttachment,
+                      onAttachmentsChanged: onAttachmentsChanged,
+                      attachmentProgress: attachmentProgress,
+                      roomEncryptKey: roomEncryptKey,
+                    ),
                     StickerPickerEmbedded(
                       height: kInputDrawerExpandedHeight,
                       onPick: (placeholder) =>
@@ -394,6 +459,229 @@ class _ExpandedSection extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AttachmentAction {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _AttachmentAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+}
+
+class _AttachmentsExpandedTab extends StatelessWidget {
+  final VoidCallback onPickPhoto;
+  final VoidCallback onPickVideo;
+  final VoidCallback onPickAudio;
+  final VoidCallback onPickGeneralFile;
+  final List<UniversalFile> attachments;
+  final Function(int, {String? encryptKey}) onUploadAttachment;
+  final Function(int) onDeleteAttachment;
+  final Function(int, int) onMoveAttachment;
+  final Function(List<UniversalFile>) onAttachmentsChanged;
+  final Map<String, Map<int, double?>> attachmentProgress;
+  final String? roomEncryptKey;
+
+  const _AttachmentsExpandedTab({
+    required this.onPickPhoto,
+    required this.onPickVideo,
+    required this.onPickAudio,
+    required this.onPickGeneralFile,
+    required this.attachments,
+    required this.onUploadAttachment,
+    required this.onDeleteAttachment,
+    required this.onMoveAttachment,
+    required this.onAttachmentsChanged,
+    required this.attachmentProgress,
+    required this.roomEncryptKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = [
+      _AttachmentAction(
+        icon: Symbols.add_a_photo,
+        label: 'addPhoto'.tr(),
+        onTap: onPickPhoto,
+      ),
+      _AttachmentAction(
+        icon: Symbols.videocam,
+        label: 'addVideo'.tr(),
+        onTap: onPickVideo,
+      ),
+      _AttachmentAction(
+        icon: Symbols.mic,
+        label: 'addAudio'.tr(),
+        onTap: onPickAudio,
+      ),
+      _AttachmentAction(
+        icon: Symbols.file_upload,
+        label: 'uploadFile'.tr(),
+        onTap: onPickGeneralFile,
+      ),
+    ];
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 64,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const minCardWidth = 112.0;
+              const gap = 8.0;
+              const horizontalPadding = 24.0;
+              final availableWidth = constraints.maxWidth - horizontalPadding;
+              final sharedWidth =
+                  (availableWidth - gap * (actions.length - 1)) /
+                  actions.length;
+              final shouldShareWidth = sharedWidth >= minCardWidth;
+
+              Widget buildAction(_AttachmentAction action) => SizedBox(
+                width: shouldShareWidth ? sharedWidth : minCardWidth,
+                child: InkWell(
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  onTap: action.onTap,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(action.icon, size: 20),
+                          const Gap(6),
+                          Flexible(
+                            child: Text(
+                              action.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+
+              if (shouldShareWidth) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < actions.length; i++) ...[
+                        buildAction(actions[i]),
+                        if (i != actions.length - 1) const Gap(gap),
+                      ],
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.separated(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                scrollDirection: Axis.horizontal,
+                itemCount: actions.length,
+                separatorBuilder: (_, _) => const Gap(gap),
+                itemBuilder: (context, index) => buildAction(actions[index]),
+              );
+            },
+          ),
+        ),
+        Expanded(
+          child: CloudFileLinkPicker(
+            padding: const EdgeInsets.all(8),
+            recentUploadsSliverHeaders: [
+              if (attachments.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 150,
+                    child: _AttachmentPreviewStrip(
+                      attachments: attachments,
+                      onUploadAttachment: onUploadAttachment,
+                      onDeleteAttachment: onDeleteAttachment,
+                      onMoveAttachment: onMoveAttachment,
+                      onAttachmentsChanged: onAttachmentsChanged,
+                      attachmentProgress: attachmentProgress,
+                      roomEncryptKey: roomEncryptKey,
+                    ),
+                  ).padding(vertical: 10),
+                ),
+              if (attachments.isNotEmpty)
+                const SliverToBoxAdapter(child: Divider(height: 1)),
+            ],
+            onSelected: (file) {
+              final linkAttachment = UniversalFile.fromAttachment(
+                file,
+              ).copyWith(isLink: true);
+              final alreadyLinked = attachments.any(
+                (item) => item.isOnCloud && item.data.id == file.id,
+              );
+              if (alreadyLinked) return;
+              onAttachmentsChanged([...attachments, linkAttachment]);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AttachmentPreviewStrip extends StatelessWidget {
+  final List<UniversalFile> attachments;
+  final Function(int, {String? encryptKey}) onUploadAttachment;
+  final Function(int) onDeleteAttachment;
+  final Function(int, int) onMoveAttachment;
+  final Function(List<UniversalFile>) onAttachmentsChanged;
+  final Map<String, Map<int, double?>> attachmentProgress;
+  final String? roomEncryptKey;
+
+  const _AttachmentPreviewStrip({
+    required this.attachments,
+    required this.onUploadAttachment,
+    required this.onDeleteAttachment,
+    required this.onMoveAttachment,
+    required this.onAttachmentsChanged,
+    required this.attachmentProgress,
+    required this.roomEncryptKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      scrollDirection: Axis.horizontal,
+      itemCount: attachments.length,
+      itemBuilder: (context, idx) {
+        return SizedBox(
+          width: 180,
+          child: AttachmentPreview(
+            isCompact: true,
+            item: attachments[idx],
+            progress: attachmentProgress['chat-upload']?[idx],
+            isUploading:
+                attachmentProgress['chat-upload']?.containsKey(idx) ?? false,
+            onRequestUpload: () =>
+                onUploadAttachment(idx, encryptKey: roomEncryptKey),
+            onDelete: () => onDeleteAttachment(idx),
+            onUpdate: (value) {
+              final clone = List<UniversalFile>.of(attachments);
+              clone[idx] = value;
+              onAttachmentsChanged(clone);
+            },
+            onMove: (delta) => onMoveAttachment(idx, delta),
+          ),
+        );
+      },
+      separatorBuilder: (_, _) => const Gap(8),
     );
   }
 }
@@ -892,43 +1180,20 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child: attachments.isNotEmpty
+                      child: attachments.isNotEmpty && !isExpanded.value
                           ? SizedBox(
                               key: ValueKey(
                                 'attachments-${attachments.length}',
                               ),
                               height: 180,
-                              child: ListView.separated(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                scrollDirection: Axis.horizontal,
-                                itemCount: attachments.length,
-                                itemBuilder: (context, idx) {
-                                  return SizedBox(
-                                    width: 180,
-                                    child: AttachmentPreview(
-                                      isCompact: true,
-                                      item: attachments[idx],
-                                      progress:
-                                          attachmentProgress['chat-upload']?[idx],
-                                      isUploading:
-                                          attachmentProgress['chat-upload']
-                                              ?.containsKey(idx) ??
-                                          false,
-                                      onRequestUpload: () => onUploadAttachment(
-                                        idx,
-                                        encryptKey: roomEncryptKey,
-                                      ),
-                                      onDelete: () => onDeleteAttachment(idx),
-                                      onUpdate: (value) {
-                                        attachments[idx] = value;
-                                        onAttachmentsChanged(attachments);
-                                      },
-                                      onMove: (delta) =>
-                                          onMoveAttachment(idx, delta),
-                                    ),
-                                  );
-                                },
-                                separatorBuilder: (_, _) => const Gap(8),
+                              child: _AttachmentPreviewStrip(
+                                attachments: attachments,
+                                onUploadAttachment: onUploadAttachment,
+                                onDeleteAttachment: onDeleteAttachment,
+                                onMoveAttachment: onMoveAttachment,
+                                onAttachmentsChanged: onAttachmentsChanged,
+                                attachmentProgress: attachmentProgress,
+                                roomEncryptKey: roomEncryptKey,
                               ),
                             ).padding(vertical: 12)
                           : const SizedBox.shrink(
@@ -1342,46 +1607,6 @@ class ChatInput extends HookConsumerWidget {
                                     }
                                   : null,
                             ),
-                            if (!isVoiceMode.value)
-                              IgnorePointer(
-                                ignoring: !canCompose,
-                                child: Opacity(
-                                  opacity: canCompose ? 1 : 0.45,
-                                  child: UploadMenu(
-                                    items: [
-                                      UploadMenuItemData(
-                                        Symbols.add_a_photo,
-                                        'addPhoto',
-                                        () => onPickFile(true),
-                                      ),
-                                      UploadMenuItemData(
-                                        Symbols.videocam,
-                                        'addVideo',
-                                        () => onPickFile(false),
-                                      ),
-                                      UploadMenuItemData(
-                                        Symbols.mic,
-                                        'addAudio',
-                                        onPickAudio,
-                                      ),
-                                      UploadMenuItemData(
-                                        Symbols.file_upload,
-                                        'uploadFile',
-                                        onPickGeneralFile,
-                                      ),
-                                      if (onLinkAttachment != null)
-                                        UploadMenuItemData(
-                                          Symbols.attach_file,
-                                          'linkAttachment',
-                                          onLinkAttachment!,
-                                        ),
-                                    ],
-                                    iconColor: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                         Expanded(
@@ -1721,6 +1946,17 @@ class ChatInput extends HookConsumerWidget {
                       child: isExpanded.value
                           ? _ExpandedSection(
                               messageController: messageController,
+                              onPickPhoto: () => onPickFile(true),
+                              onPickVideo: () => onPickFile(false),
+                              onPickAudio: onPickAudio,
+                              onPickGeneralFile: onPickGeneralFile,
+                              attachments: attachments,
+                              onUploadAttachment: onUploadAttachment,
+                              onDeleteAttachment: onDeleteAttachment,
+                              onMoveAttachment: onMoveAttachment,
+                              onAttachmentsChanged: onAttachmentsChanged,
+                              attachmentProgress: attachmentProgress,
+                              roomEncryptKey: roomEncryptKey,
                               selectedPoll: selectedPoll,
                               onPollSelected: onPollSelected,
                               selectedFund: selectedFund,
