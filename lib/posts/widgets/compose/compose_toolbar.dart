@@ -275,8 +275,7 @@ class ComposeToolbar extends HookConsumerWidget {
     tooltip: 'stickers'.tr(),
     color: colorScheme.primary,
   ),
-  ListenableBuilder(
-                          ListenableBuilder
+
   ListenableBuilder(
     listenable: state.embedView,
     builder: (context, _) {
