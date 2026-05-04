@@ -331,9 +331,7 @@ class SphereApi extends BaseApi {
   ///
   /// [name] - The publisher name.
   Future<double> getPublisherRating(String name) async {
-    final response = await get<double>(
-      '$_basePath/publishers/$name/rating',
-    );
+    final response = await get<double>('$_basePath/publishers/$name/rating');
     return response.data!;
   }
 
@@ -359,7 +357,9 @@ class SphereApi extends BaseApi {
   /// Gets a publisher's rating overview with percentile and grade.
   ///
   /// [name] - The publisher name.
-  Future<SnPublisherRatingOverview> getPublisherRatingOverview(String name) async {
+  Future<SnPublisherRatingOverview> getPublisherRatingOverview(
+    String name,
+  ) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/publishers/$name/rating/overview',
     );
@@ -517,12 +517,8 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/posts/tags',
-      queryParameters: {if (publisherName != null) 'pub': publisherName},
-      data: {
-        'slug': slug,
-        if (name != null) 'name': name,
-        if (description != null) 'description': description,
-      },
+      queryParameters: {'pub': ?publisherName},
+      data: {'slug': slug, 'name': ?name, 'description': ?description},
     );
     return SnPostTag.fromJson(response.data!);
   }
@@ -541,11 +537,8 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await patch<Map<String, dynamic>>(
       '$_basePath/posts/tags/$slug',
-      queryParameters: {if (publisherName != null) 'pub': publisherName},
-      data: {
-        if (name != null) 'name': name,
-        if (description != null) 'description': description,
-      },
+      queryParameters: {'pub': ?publisherName},
+      data: {'name': ?name, 'description': ?description},
     );
     return SnPostTag.fromJson(response.data!);
   }
@@ -560,7 +553,7 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/posts/tags/$slug/claim',
-      queryParameters: {if (publisherName != null) 'pub': publisherName},
+      queryParameters: {'pub': ?publisherName},
     );
     return SnPostTag.fromJson(response.data!);
   }
@@ -575,7 +568,7 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/posts/tags/$slug/quota',
-      queryParameters: {if (publisherName != null) 'pub': publisherName},
+      queryParameters: {'pub': ?publisherName},
     );
     return SnTagQuota.fromJson(response.data!);
   }
@@ -646,10 +639,7 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await patch<Map<String, dynamic>>(
       '$_basePath/admin/posts/tags/$slug',
-      data: {
-        if (name != null) 'name': name,
-        if (description != null) 'description': description,
-      },
+      data: {'name': ?name, 'description': ?description},
     );
     return SnPostTag.fromJson(response.data!);
   }
