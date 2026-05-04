@@ -41,6 +41,7 @@ sealed class SnCheckInResult with _$SnCheckInResult {
     required String id,
     required int level,
     required List<SnFortuneTip> tips,
+    SnCheckInFortuneReport? fortuneReport,
     required String accountId,
     required SnAccount? account,
     required DateTime createdAt,
@@ -50,6 +51,24 @@ sealed class SnCheckInResult with _$SnCheckInResult {
 
   factory SnCheckInResult.fromJson(Map<String, dynamic> json) =>
       _$SnCheckInResultFromJson(json);
+}
+
+@freezed
+sealed class SnCheckInFortuneReport with _$SnCheckInFortuneReport {
+  const factory SnCheckInFortuneReport({
+    required int version,
+    required String poem,
+    required String summary,
+    required String wish,
+    required String love,
+    required String study,
+    required String career,
+    required String health,
+    required String lostItem,
+  }) = _SnCheckInFortuneReport;
+
+  factory SnCheckInFortuneReport.fromJson(Map<String, dynamic> json) =>
+      _$SnCheckInFortuneReportFromJson(json);
 }
 
 @freezed

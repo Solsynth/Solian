@@ -32,8 +32,8 @@ class EventCalendarWidget extends HookConsumerWidget {
   /// Callback when the focused month changes
   final void Function(int year, int month)? onMonthChanged;
 
-  /// Callback when the user wants to add a new event
-  final void Function(DateTime)? onAddEvent;
+  /// Callback when the user wants to add or edit an event
+  final void Function(DateTime, {SnUserCalendarEvent? event})? onAddEvent;
 
   /// Whether to show the add event button (only shown when onAddEvent is provided)
   final bool canAddEvents;
