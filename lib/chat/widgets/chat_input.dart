@@ -551,7 +551,10 @@ class _AttachmentsExpandedTab extends StatelessWidget {
                     margin: EdgeInsets.zero,
                     color: Theme.of(context).colorScheme.surfaceContainer,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -587,7 +590,7 @@ class _AttachmentsExpandedTab extends StatelessWidget {
               }
 
               return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                padding: const EdgeInsets.fromLTRB(12, 2, 12, 0),
                 scrollDirection: Axis.horizontal,
                 itemCount: actions.length,
                 separatorBuilder: (_, _) => const Gap(gap),
@@ -1593,7 +1596,7 @@ class ChatInput extends HookConsumerWidget {
                                         key: ValueKey('close'),
                                       )
                                     : const Icon(
-                                        Symbols.add,
+                                        Symbols.add_circle,
                                         key: ValueKey('add'),
                                       ),
                               ),
