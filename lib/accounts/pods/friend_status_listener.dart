@@ -173,10 +173,15 @@ class FriendStatusListener {
     final friendsList = friendsAsync.value;
     if (friendsList == null) return;
 
-    final friendAccount = friendsList.firstWhere(
-      (f) => f.account.id == accountId,
-      orElse: () => throw StateError('Friend not found'),
+    final friendAccount = friendsList.cast<SnFriendOverviewItem?>().firstWhere(
+      (f) => f?.account.id == accountId,
+      orElse: () => null,
     );
+
+    if (friendAccount == null) {
+      _log.fine('Received status update for non-friend account: $accountId');
+      return;
+    }
 
     final changeType = _determineStatusChangeType(previousStatus, newStatus);
 
@@ -224,10 +229,15 @@ class FriendStatusListener {
     final friendsList = friendsAsync.value;
     if (friendsList == null) return;
 
-    final friendAccount = friendsList.firstWhere(
-      (f) => f.account.id == accountId,
-      orElse: () => throw StateError('Friend not found'),
+    final friendAccount = friendsList.cast<SnFriendOverviewItem?>().firstWhere(
+      (f) => f?.account.id == accountId,
+      orElse: () => null,
     );
+
+    if (friendAccount == null) {
+      _log.fine('Received status update for non-friend account: $accountId');
+      return;
+    }
 
     final changeType = _determineActivityChangeType(
       previousActivities,
