@@ -11,7 +11,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
-import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:flutter/services.dart';
 
 class ComposeToolbar extends HookConsumerWidget {
@@ -278,12 +277,24 @@ class ComposeToolbar extends HookConsumerWidget {
   ),
   ListenableBuilder(
                           ListenableBuilder
-                            listenable: state.embedView,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: showEmbedSheet,
-                                icon: const Icon(Symbols.iframe),
-                                tooltip: 'embedView'.tr(),
+  ListenableBuilder(
+    listenable: state.embedView,
+    builder: (context, _) {
+      return IconButton(
+        onPressed: showEmbedSheet,
+        icon: const Icon(Symbols.iframe),
+        tooltip: 'embedView'.tr(),
+        color: colorScheme.primary,
+        style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(
+            state.embedView.value != null
+                ? colorScheme.primary.withOpacity(0.15)
+                : null,
+          ),
+        ),
+      );
+    },
+  ),
                                 color: colorScheme.primary,
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
