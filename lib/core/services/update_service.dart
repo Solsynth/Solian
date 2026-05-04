@@ -257,17 +257,17 @@ class UpdateService {
 
     // Prioritize arm64, then armeabi, then x86_64
     if (arm64 != null) {
-      return 'https://fs.solsynth.dev/d/official/solian/${arm64.name}';
+      return 'https://fs.solsynth.dev/d/public/r2/solian/${arm64.name}';
     } else if (armeabi != null) {
-      return 'https://fs.solsynth.dev/d/official/solian/${armeabi.name}';
+      return 'https://fs.solsynth.dev/d/public/r2/solian/${armeabi.name}';
     } else if (x86_64 != null) {
-      return 'https://fs.solsynth.dev/d/official/solian/${x86_64.name}';
+      return 'https://fs.solsynth.dev/d/public/r2/solian/${x86_64.name}';
     }
     return null;
   }
 
   String _getWindowsUpdateUrl() {
-    return 'https://fs.solsynth.dev/d/official/solian/build-output-windows-installer.zip';
+    return 'https://fs.solsynth.dev/d/public/r2/solian/build-output-windows-installer.zip';
   }
 
   /// Performs automatic Windows update: download, extract, and install
