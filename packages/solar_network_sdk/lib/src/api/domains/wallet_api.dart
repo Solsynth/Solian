@@ -37,9 +37,7 @@ class WalletApi extends BaseApi {
 
   /// Gets a specific wallet by ID.
   Future<SnWallet> getWalletById(String id) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/wallets/$id',
-    );
+    final response = await get<Map<String, dynamic>>('$_basePath/wallets/$id');
     return SnWallet.fromJson(response.data!);
   }
 
@@ -47,10 +45,7 @@ class WalletApi extends BaseApi {
   Future<SnWallet> createWallet({String? name, String? realmId}) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/wallets',
-      data: {
-        if (name != null) 'name': name,
-        if (realmId != null) 'realm_id': realmId,
-      },
+      data: {'name': ?name, 'realm_id': ?realmId},
     );
     return SnWallet.fromJson(response.data!);
   }
@@ -184,11 +179,11 @@ class WalletApi extends BaseApi {
         'amount': amount,
         'currency': currency,
         'pin_code': pinCode,
-        if (payerWalletId != null) 'payer_wallet_id': payerWalletId,
-        if (payeeWalletId != null) 'payee_wallet_id': payeeWalletId,
-        if (payeeAccountId != null) 'payee_account_id': payeeAccountId,
-        if (payeePublicId != null) 'payee_public_id': payeePublicId,
-        if (remark != null) 'remark': remark,
+        'payer_wallet_id': ?payerWalletId,
+        'payee_wallet_id': ?payeeWalletId,
+        'payee_account_id': ?payeeAccountId,
+        'payee_public_id': ?payeePublicId,
+        'remark': ?remark,
       },
     );
   }
@@ -216,9 +211,9 @@ class WalletApi extends BaseApi {
       queryParameters: {
         'offset': offset,
         'take': take,
-        if (wallet != null) 'wallet': wallet,
-        if (direction != null) 'direction': direction,
-        if (type != null) 'type': type,
+        'wallet': ?wallet,
+        'direction': ?direction,
+        'type': ?type,
       },
     );
     final totalCount = getTotalCount(response.headers);
@@ -321,10 +316,10 @@ class WalletApi extends BaseApi {
       queryParameters: {
         'offset': offset,
         'take': take,
-        if (wallet != null) 'wallet': wallet,
-        if (status != null) 'status': status,
-        if (direction != null) 'direction': direction,
-        if (type != null) 'type': type,
+        'wallet': ?wallet,
+        'status': ?status,
+        'direction': ?direction,
+        'type': ?type,
       },
     );
     final totalCount = getTotalCount(response.headers);

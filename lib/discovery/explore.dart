@@ -6,7 +6,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/pods/post_list.dart';
+import 'package:island/posts/compose_state_global.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
+import 'package:island/posts/widgets/compose/compose_sidebar.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/network.dart';
 import 'package:island/livestreams/livestream.dart';
@@ -78,6 +80,7 @@ class ExploreScreen extends HookConsumerWidget {
     final filterTabController = useTabController(initialLength: 3);
     final selectedPostId = useState<String?>(null);
     final isDetailExpanded = useState(false);
+    final composeRequest = ref.watch(composeRequestProvider);
 
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
@@ -144,7 +147,7 @@ class ExploreScreen extends HookConsumerWidget {
                           title: Text('postCompose').tr(),
                           onTap: () async {
                             Navigator.of(sheetContext).pop();
-                            await PostComposeDialog.show(parentContext);
+                            await showCompose(parentContext, ref);
                           },
                         ),
                         ListTile(
@@ -183,6 +186,7 @@ class ExploreScreen extends HookConsumerWidget {
           ref.read(appSettingsProvider.notifier),
           selectedPostId,
           isDetailExpanded,
+          composeRequest,
         ),
       );
     }
@@ -437,107 +441,108 @@ class ExploreScreen extends HookConsumerWidget {
     return SliverAppBar(
       automaticallyImplyLeading: false,
       automaticallyImplyActions: false,
-      flexibleSpace: Row(
-        children: [
-          PopupMenuButton<_ExploreAction>(
-            icon: Icon(
-              Symbols.widgets,
-              color: Theme.of(context).appBarTheme.foregroundColor,
-            ),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _ExploreAction.articles,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.auto_stories,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('webArticlesStand').tr(),
-                  ],
+      flexibleSpace:
+          Row(
+            children: [
+              PopupMenuButton<_ExploreAction>(
+                icon: Icon(
+                  Symbols.widgets,
+                  color: Theme.of(context).appBarTheme.foregroundColor,
                 ),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: _ExploreAction.articles,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.auto_stories,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('webArticlesStand').tr(),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: _ExploreAction.livestreams,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.live_tv,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('livestreams').tr(),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: _ExploreAction.categories,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.category,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('categoriesAndTags').tr(),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: _ExploreAction.shuffle,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.shuffle,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('postShuffle').tr(),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) {
+                  switch (value) {
+                    case _ExploreAction.articles:
+                      context.router.push(const ArticleStandRoute());
+                      break;
+                    case _ExploreAction.livestreams:
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ActiveLivestreamsScreen(),
+                        ),
+                      );
+                      break;
+                    case _ExploreAction.categories:
+                      context.router.push(PostCategoriesListRoute());
+                      break;
+                    case _ExploreAction.shuffle:
+                      context.router.push(const PostShuffleRoute());
+                      break;
+                    default:
+                      break;
+                  }
+                },
               ),
-              PopupMenuItem(
-                value: _ExploreAction.livestreams,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.live_tv,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('livestreams').tr(),
-                  ],
+              const Spacer(),
+              IconButton(
+                onPressed: () {
+                  context.router.push(UniversalSearchRoute());
+                },
+                icon: Icon(
+                  Symbols.search,
+                  color: Theme.of(context).appBarTheme.foregroundColor,
                 ),
-              ),
-              PopupMenuItem(
-                value: _ExploreAction.categories,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.category,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('categoriesAndTags').tr(),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: _ExploreAction.shuffle,
-                child: Row(
-                  children: [
-                    Icon(
-                      Symbols.shuffle,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const Gap(12),
-                    Text('postShuffle').tr(),
-                  ],
-                ),
+                tooltip: 'search'.tr(),
               ),
             ],
-            onSelected: (value) {
-              switch (value) {
-                case _ExploreAction.articles:
-                  context.router.push(const ArticleStandRoute());
-                  break;
-                case _ExploreAction.livestreams:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ActiveLivestreamsScreen(),
-                    ),
-                  );
-                  break;
-                case _ExploreAction.categories:
-                  context.router.push(PostCategoriesListRoute());
-                  break;
-                case _ExploreAction.shuffle:
-                  context.router.push(const PostShuffleRoute());
-                  break;
-                default:
-                  break;
-              }
-            },
+          ).padding(
+            horizontal: 12,
+            bottom: 8,
+            top: MediaQuery.paddingOf(context).top + 8,
           ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {
-              context.router.push(UniversalSearchRoute());
-            },
-            icon: Icon(
-              Symbols.search,
-              color: Theme.of(context).appBarTheme.foregroundColor,
-            ),
-            tooltip: 'search'.tr(),
-          ),
-        ],
-      ).padding(
-        horizontal: 12,
-        bottom: 8,
-        top: MediaQuery.paddingOf(context).top + 8,
-      ),
       title: SvgPicture.asset(
         'assets/icons/icon-outline.svg',
         color: Theme.of(context).appBarTheme.foregroundColor,
@@ -576,7 +581,9 @@ class ExploreScreen extends HookConsumerWidget {
                             Symbols.explore,
                             size: 18,
                             fill: filterTabController.index == 0 ? 1 : 0,
-                            color: Theme.of(context).appBarTheme.foregroundColor,
+                            color: Theme.of(
+                              context,
+                            ).appBarTheme.foregroundColor,
                           ),
                           Flexible(
                             child: Text(
@@ -584,7 +591,9 @@ class ExploreScreen extends HookConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Theme.of(context).appBarTheme.foregroundColor,
+                                color: Theme.of(
+                                  context,
+                                ).appBarTheme.foregroundColor,
                               ),
                             ),
                           ),
@@ -600,7 +609,9 @@ class ExploreScreen extends HookConsumerWidget {
                             Symbols.subscriptions,
                             size: 18,
                             fill: filterTabController.index == 1 ? 1 : 0,
-                            color: Theme.of(context).appBarTheme.foregroundColor,
+                            color: Theme.of(
+                              context,
+                            ).appBarTheme.foregroundColor,
                           ),
                           Flexible(
                             child: Text(
@@ -608,7 +619,9 @@ class ExploreScreen extends HookConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Theme.of(context).appBarTheme.foregroundColor,
+                                color: Theme.of(
+                                  context,
+                                ).appBarTheme.foregroundColor,
                               ),
                             ),
                           ),
@@ -624,7 +637,9 @@ class ExploreScreen extends HookConsumerWidget {
                             Symbols.people,
                             size: 18,
                             fill: filterTabController.index == 2 ? 1 : 0,
-                            color: Theme.of(context).appBarTheme.foregroundColor,
+                            color: Theme.of(
+                              context,
+                            ).appBarTheme.foregroundColor,
                           ),
                           Flexible(
                             child: Text(
@@ -632,7 +647,9 @@ class ExploreScreen extends HookConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Theme.of(context).appBarTheme.foregroundColor,
+                                color: Theme.of(
+                                  context,
+                                ).appBarTheme.foregroundColor,
                               ),
                             ),
                           ),
@@ -675,6 +692,7 @@ class ExploreScreen extends HookConsumerWidget {
       snap: true,
     );
   }
+
   Widget _buildActivityList(
     BuildContext context,
     WidgetRef ref, {
@@ -691,8 +709,12 @@ class ExploreScreen extends HookConsumerWidget {
         height: 64,
         child: Center(child: ConfuseSpinner(size: 40, speed: 6)),
       ),
-      contentBuilder: (data, footer) =>
-          _ActivityListView(data: data, isWide: isWide, footer: footer, onPostTap: onPostTap),
+      contentBuilder: (data, footer) => _ActivityListView(
+        data: data,
+        isWide: isWide,
+        footer: footer,
+        onPostTap: onPostTap,
+      ),
     );
   }
 
@@ -716,6 +738,7 @@ class ExploreScreen extends HookConsumerWidget {
       onPostTap: onPostTap,
     );
   }
+
   Widget _buildLiveStreamsOnTop(
     BuildContext context,
     WidgetRef ref,
@@ -747,7 +770,6 @@ class ExploreScreen extends HookConsumerWidget {
       error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
     );
   }
-
 
   Widget _buildNarrowBodySliver(
     BuildContext context,
@@ -827,6 +849,7 @@ class ExploreScreen extends HookConsumerWidget {
       ),
     );
   }
+
   Widget _buildWideBody(
     BuildContext context,
     WidgetRef ref,
@@ -845,6 +868,7 @@ class ExploreScreen extends HookConsumerWidget {
     AppSettingsNotifier appSettingsNotifier,
     ValueNotifier<String?> selectedPostId,
     ValueNotifier<bool> isDetailExpanded,
+    ComposeRequest? composeRequest,
   ) {
     final usePostList =
         selectedPublishers.value.isNotEmpty ||
@@ -860,9 +884,13 @@ class ExploreScreen extends HookConsumerWidget {
         (activityState.isLoading || activityState.value?.isLoading == true) &&
         (activityState.value?.items.isEmpty ?? true);
 
-    const timelineContentMaxWidth = 800.0;
+    const timelineContentMaxWidth = 720.0;
 
     void handlePostTap(String postId) {
+      if (composeRequest != null) {
+        ref.read(composeRequestProvider.notifier).setRequest(null);
+      }
+      
       if (selectedPostId.value == postId) {
         context.router.push(PostDetailRoute(id: postId));
       } else {
@@ -908,11 +936,7 @@ class ExploreScreen extends HookConsumerWidget {
               isWide: true,
             ),
             if (usePostList) ...[
-              _buildLiveStreamsOnTop(
-                context,
-                ref,
-                selectedPublishers.value,
-              ),
+              _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
               _buildPostList(
                 context,
                 ref,
@@ -943,37 +967,45 @@ class ExploreScreen extends HookConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return ValueListenableBuilder<String?>(
-          valueListenable: selectedPostId,
-          builder: (context, currentSelectedPostId, _) {
-            final hasSelection = currentSelectedPostId != null;
-            final totalWidth = constraints.maxWidth;
-            final listWidth = hasSelection 
-                ? (totalWidth - 28) / 2 
-                : (timelineContentMaxWidth < totalWidth ? timelineContentMaxWidth : totalWidth);
-            final detailWidth = hasSelection ? (totalWidth - 28) / 2 : 0.0;
-            
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  width: listWidth,
-                  child: postListWidget,
-                ),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  width: hasSelection ? 16 : 0,
-                  child: const SizedBox.shrink(),
-                ),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  width: detailWidth,
-                  child: hasSelection
+        final hasCompose = composeRequest != null;
+        final hasSelection = selectedPostId.value != null && !hasCompose;
+        final totalWidth = constraints.maxWidth;
+        final listWidth = (hasCompose || hasSelection)
+            ? (totalWidth - 28) / 2
+            : (timelineContentMaxWidth < totalWidth ? timelineContentMaxWidth : totalWidth);
+        final detailWidth = (hasCompose || hasSelection) ? (totalWidth - 28) / 2 : 0.0;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              width: listWidth,
+              child: postListWidget,
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              width: (hasCompose || hasSelection) ? 16 : 0,
+              child: const SizedBox.shrink(),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              width: detailWidth,
+              child: hasCompose
+                  ? Container(
+                      margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+                      child: ComposeSidebar(
+                        request: composeRequest,
+                        onClose: () {
+                          ref.read(composeRequestProvider.notifier).setRequest(null);
+                        },
+                      ),
+                    )
+                  : hasSelection
                       ? Container(
                           margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
                           decoration: BoxDecoration(
@@ -982,10 +1014,12 @@ class ExploreScreen extends HookConsumerWidget {
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: _TimelineDetailPane(
-                            postId: currentSelectedPostId,
+                            postId: selectedPostId.value!,
                             isExpanded: false,
                             onExpandToggle: () {
-                              context.router.push(PostDetailRoute(id: currentSelectedPostId));
+                              context.router.push(
+                                PostDetailRoute(id: selectedPostId.value!),
+                              );
                             },
                             onClose: () {
                               selectedPostId.value = null;
@@ -994,10 +1028,8 @@ class ExploreScreen extends HookConsumerWidget {
                           ),
                         )
                       : null,
-                ),
-              ],
-            );
-          },
+            ),
+          ],
         );
       },
     );
@@ -1927,7 +1959,6 @@ class AccountDiscoveryCard extends ConsumerWidget {
   }
 }
 
-
 class _TimelineDetailPane extends HookConsumerWidget {
   final String postId;
   final bool isExpanded;
@@ -1963,10 +1994,14 @@ class _TimelineDetailPane extends HookConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
               border: Border(
                 bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.12),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withOpacity(0.12),
                   width: 1,
                 ),
               ),
@@ -1974,17 +2009,19 @@ class _TimelineDetailPane extends HookConsumerWidget {
             child: Row(
               children: [
                 Tooltip(
-                  message: isExpanded ? 'Restore split view' : 'Expand post details',
+                  message: isExpanded
+                      ? 'Restore split view'
+                      : 'Expand post details',
                   child: IconButton(
                     onPressed: onExpandToggle,
                     icon: Icon(
-                      isExpanded 
-                          ? Symbols.fullscreen_exit 
-                          : Symbols.fullscreen,
+                      isExpanded ? Symbols.fullscreen_exit : Symbols.fullscreen,
                       size: 20,
                     ),
                     style: IconButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                      foregroundColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -1993,12 +2030,11 @@ class _TimelineDetailPane extends HookConsumerWidget {
                   message: 'Close post details',
                   child: IconButton(
                     onPressed: onClose,
-                    icon: Icon(
-                      Symbols.close,
-                      size: 20,
-                    ),
+                    icon: Icon(Symbols.close, size: 20),
                     style: IconButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                      foregroundColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -2036,111 +2072,128 @@ class _TimelineDetailPane extends HookConsumerWidget {
                   return Stack(
                     key: ValueKey(postId),
                     children: [
-                    ExtendedRefreshIndicator(
-                      onRefresh: () async {
-                        ref.invalidate(postProvider(postId));
-                        ref.read(postRepliesProvider(postId).notifier).refresh();
-                      },
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: PostItem(
-                              item: post,
-                              isFullPost: true,
-                              isEmbedReply: false,
-                              textScale: post.type == 1 ? 1.1 : 1.0,
-                              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                              onUpdate: (newPost) {
-                                ref
-                                    .read(postStateProvider(postId).notifier)
-                                    .updatePost(newPost);
-                              },
-                              onPostTap: onPostTap,
-                            ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: PostActionButtons(
-                              post: post,
-                              renderingPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              onRefresh: () {
-                                ref.invalidate(postProvider(postId));
-                                ref.read(postRepliesProvider(postId).notifier).refresh();
-                              },
-                              onUpdate: (newPost) {
-                                ref
-                                    .read(postStateProvider(postId).notifier)
-                                    .updatePost(newPost);
-                              },
-                            ).padding(horizontal: 12, vertical: 8),
-                          ),
-                          SliverFillRemaining(
-                            hasScrollBody: true,
-                            child: DefaultTabController(
-                              length: 4,
-                              child: PostInteractionsTabs(
-                                postId: postId,
-                                maxWidth: 800,
+                      ExtendedRefreshIndicator(
+                        onRefresh: () async {
+                          ref.invalidate(postProvider(postId));
+                          ref
+                              .read(postRepliesProvider(postId).notifier)
+                              .refresh();
+                        },
+                        child: CustomScrollView(
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: PostItem(
+                                item: post,
+                                isFullPost: true,
+                                isEmbedReply: false,
+                                textScale: post.type == 1 ? 1.1 : 1.0,
+                                padding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  12,
+                                  12,
+                                  0,
+                                ),
+                                onUpdate: (newPost) {
+                                  ref
+                                      .read(postStateProvider(postId).notifier)
+                                      .updatePost(newPost);
+                                },
+                                onPostTap: onPostTap,
                               ),
                             ),
-                          ),
-                          SliverGap(MediaQuery.of(context).padding.bottom + 80),
-                        ],
-                      ),
-                    ),
-                    if (user.value != null)
-                      Positioned(
-                        bottom: 16 + MediaQuery.of(context).padding.bottom,
-                        left: 16,
-                        right: 16,
-                        child: PostQuickReply(
-                          parent: post,
-                          onPosted: () {
-                            ref.read(postRepliesProvider(postId).notifier).refresh();
-                          },
+                            SliverToBoxAdapter(
+                              child: PostActionButtons(
+                                post: post,
+                                renderingPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                onRefresh: () {
+                                  ref.invalidate(postProvider(postId));
+                                  ref
+                                      .read(
+                                        postRepliesProvider(postId).notifier,
+                                      )
+                                      .refresh();
+                                },
+                                onUpdate: (newPost) {
+                                  ref
+                                      .read(postStateProvider(postId).notifier)
+                                      .updatePost(newPost);
+                                },
+                              ).padding(horizontal: 12, vertical: 8),
+                            ),
+                            SliverFillRemaining(
+                              hasScrollBody: true,
+                              child: DefaultTabController(
+                                length: 4,
+                                child: PostInteractionsTabs(
+                                  postId: postId,
+                                  maxWidth: 720,
+                                ),
+                              ),
+                            ),
+                            SliverGap(
+                              MediaQuery.of(context).padding.bottom + 80,
+                            ),
+                          ],
                         ),
                       ),
-                  ],
-                );
-              },
-              loading: () => Center(
-                key: const ValueKey('loading'),
-                child: ConfuseSpinner(
-                  speed: 7,
-                  size: 48,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                      if (user.value != null)
+                        Positioned(
+                          bottom: 16 + MediaQuery.of(context).padding.bottom,
+                          left: 16,
+                          right: 16,
+                          child: PostQuickReply(
+                            parent: post,
+                            onPosted: () {
+                              ref
+                                  .read(postRepliesProvider(postId).notifier)
+                                  .refresh();
+                            },
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => Center(
+                  key: const ValueKey('loading'),
+                  child: ConfuseSpinner(
+                    speed: 7,
+                    size: 48,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                  ),
                 ),
-              ),
-              error: (error, _) => Center(
-                key: const ValueKey('error_load'),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Symbols.error_outline,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const Gap(12),
-                    Text(
-                      'Failed to load post',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const Gap(8),
-                    TextButton(
-                      onPressed: () => ref.invalidate(postProvider(postId)),
-                      child: const Text('Retry'),
-                    ),
-                  ],
+                error: (error, _) => Center(
+                  key: const ValueKey('error_load'),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.error_outline,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const Gap(12),
+                      Text(
+                        'Failed to load post',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Gap(8),
+                      TextButton(
+                        onPressed: () => ref.invalidate(postProvider(postId)),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
   }
 }
 
