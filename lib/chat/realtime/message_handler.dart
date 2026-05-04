@@ -240,8 +240,8 @@ class RealtimeMessageHandler {
     if (type == 'messages.update' ||
         type == 'messages.update.links' ||
         type == 'messages.delete') {
-      if (_isSystemEvent(type)) {
-        await _handleNewMessage(event.message);
+      if (type == 'messages.delete') {
+        await _handleDeleteMessageEvent(event.message);
       } else {
         await _handleUpdateMessage(event.message);
       }
@@ -442,11 +442,20 @@ class RealtimeMessageHandler {
     }
 
     // Regular update
+    final mergedMeta = Map<String, dynamic>.of(existing.toRemoteMessage().meta);
+    mergedMeta.addAll(updateRemote.meta);
+    mergedMeta.remove('message_id');
+
     return LocalChatMessage.fromRemoteMessage(
-      updateRemote.copyWith(
+      existing.toRemoteMessage().copyWith(
+        content: updateRemote.content,
+        attachments: updateRemote.attachments,
+        membersMentioned: updateRemote.membersMentioned,
+        repliedMessageId: updateRemote.repliedMessageId,
+        forwardedMessageId: updateRemote.forwardedMessageId,
         id: existing.id,
         createdAt: existing.createdAt,
-        meta: Map.of(updateRemote.meta)..remove('message_id'),
+        meta: mergedMeta,
         type: existing.type,
         editedAt: updateEvent.createdAt,
       ),
@@ -489,18 +498,6 @@ class RealtimeMessageHandler {
     SnChatMessage remote,
   ) {
     return existing.attachments.isEmpty && remote.attachments.isNotEmpty;
-  }
-
-  bool _isSystemEvent(String type) {
-    if (type.startsWith('system.')) return true;
-    return switch (type) {
-      'messages.update' ||
-      'messages.update.links' ||
-      'messages.delete' ||
-      'messages.reaction.added' ||
-      'messages.reaction.removed' => true,
-      _ => false,
-    };
   }
 
   Map<String, int>? _extractReactionsCount(SnChatMessage message) {
