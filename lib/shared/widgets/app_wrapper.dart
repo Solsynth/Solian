@@ -12,6 +12,8 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
 import 'package:island/accounts/progression_ws.dart';
+import 'package:island/accounts/pods/friend_status_listener.dart';
+import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/core/services/deeplink_service.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/notifications/notification.dart';
@@ -68,6 +70,12 @@ class AppWrapper extends HookConsumerWidget {
     // Initialize progression WebSocket listener
     useEffect(() {
       ref.read(progressionWebSocketProvider);
+      return null;
+    }, []);
+
+    // Initialize friend status listener for toast notifications
+    useEffect(() {
+      ref.read(friendStatusListenerProvider);
       return null;
     }, []);
 
@@ -396,6 +404,7 @@ class AppWrapper extends HookConsumerWidget {
                             ),
                           ),
                         ),
+                      const FriendStatusToastOverlay(),
                     ],
                   ),
                 ),

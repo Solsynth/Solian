@@ -71,6 +71,8 @@ const kRealmDisplayModeList = 'list';
 const kRealmDisplayModeCard = 'card';
 const kAppExploreSettings = 'app_explore_settings';
 const kAppMediaProxyEnabled = 'app_media_proxy_enabled';
+const kAppFriendStatusDesktopNotification =
+    'app_friend_status_desktop_notification';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -163,6 +165,7 @@ sealed class AppSettings with _$AppSettings {
     required DashboardConfig? dashboardConfig,
     required ExploreSettings exploreSettings,
     required bool mediaProxyEnabled,
+    required bool friendStatusDesktopNotification,
   }) = _AppSettings;
 }
 
@@ -217,6 +220,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       dashboardConfig: _getDashboardConfigFromPrefs(prefs),
       exploreSettings: _getExploreSettingsFromPrefs(prefs),
       mediaProxyEnabled: prefs.getBool(kAppMediaProxyEnabled) ?? true,
+      friendStatusDesktopNotification:
+          prefs.getBool(kAppFriendStatusDesktopNotification) ?? true,
     );
   }
 
@@ -544,6 +549,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppMediaProxyEnabled, value);
     state = state.copyWith(mediaProxyEnabled: value);
+  }
+
+  void setFriendStatusDesktopNotification(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppFriendStatusDesktopNotification, value);
+    state = state.copyWith(friendStatusDesktopNotification: value);
   }
 }
 
