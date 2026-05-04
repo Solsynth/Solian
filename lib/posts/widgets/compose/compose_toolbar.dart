@@ -11,7 +11,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
-import 'package:flutter_popup_card/flutter_popup_cars.dart';
+import 'package:flutter_popup_card/flutter_popup_cads.dart';
+import 'package:flutter/services.dart';
 
 class ComposeToolbar extends HookConsumerWidget {
   final ComposeState state;
@@ -151,7 +152,7 @@ class ComposeToolbar extends HookConsumerWidget {
               state.visibility.value = draft.visibility;
               state.attachments.value = draft.attachments
                   .map((e) => UniversalFile.fromAttachment(e))
-                i.toList();
+                .toList();
             }
           },
         ),
