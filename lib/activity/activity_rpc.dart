@@ -5,6 +5,7 @@ import 'package:dio/dio.dart' hide Response;
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/websocket.dart';
 import 'package:logging/logging.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -525,14 +526,25 @@ Future<List<SnPresenceActivity>> presenceActivities(
   String uname,
 ) async {
   ref.keepAlive();
-  final timer = Timer.periodic(
-    const Duration(minutes: 1),
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(() => timer.cancel());
 
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get('/passport/activities/$uname');
   final data = response.data as List<dynamic>;
-  return data.map((json) => SnPresenceActivity.fromJson(json)).toList();
+  final activities = data
+      .map((json) => SnPresenceActivity.fromJson(json))
+      .toList();
+
+  if (activities.isNotEmpty) {
+    final accountId = activities.first.accountId;
+    final websocket = ref.watch(websocketProvider);
+    final subscription = websocket.dataStream.listen((packet) {
+      if (packet.type == 'account.presence.activities.updated' &&
+          packet.data?['account_id'] == accountId) {
+        ref.invalidateSelf();
+      }
+    });
+    ref.onDispose(subscription.cancel);
+  }
+
+  return activities;
 }
