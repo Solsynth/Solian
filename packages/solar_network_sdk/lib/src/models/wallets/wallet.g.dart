@@ -11,7 +11,11 @@ _SnWallet _$SnWalletFromJson(Map<String, dynamic> json) => _SnWallet(
   pockets: (json['pockets'] as List<dynamic>)
       .map((e) => SnWalletPocket.fromJson(e as Map<String, dynamic>))
       .toList(),
-  accountId: json['account_id'] as String,
+  accountId: json['account_id'] as String?,
+  realmId: json['realm_id'] as String?,
+  name: json['name'] as String,
+  isPrimary: json['is_primary'] as bool? ?? false,
+  publicId: json['public_id'] as String?,
   account: json['account'] == null
       ? null
       : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
@@ -26,6 +30,10 @@ Map<String, dynamic> _$SnWalletToJson(_SnWallet instance) => <String, dynamic>{
   'id': instance.id,
   'pockets': instance.pockets.map((e) => e.toJson()).toList(),
   'account_id': instance.accountId,
+  'realm_id': instance.realmId,
+  'name': instance.name,
+  'is_primary': instance.isPrimary,
+  'public_id': instance.publicId,
   'account': instance.account?.toJson(),
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),

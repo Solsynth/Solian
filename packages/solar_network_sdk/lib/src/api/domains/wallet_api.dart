@@ -16,7 +16,7 @@ class WalletApi extends BaseApi {
   // Wallet endpoints
   // ==========================================
 
-  /// Gets the current user's wallet.
+  /// Gets the current user default wallet.
   Future<SnWallet?> getWallet() async {
     try {
       final response = await get<Map<String, dynamic>>('$_basePath/wallets');
@@ -29,9 +29,50 @@ class WalletApi extends BaseApi {
     }
   }
 
+  /// Gets all personal wallets for the current user.
+  Future<List<SnWallet>> getWallets() async {
+    final response = await get<List<dynamic>>('$_basePath/wallets/all');
+    return parseList(response, SnWallet.fromJson);
+  }
+
+  /// Gets a specific wallet by ID.
+  Future<SnWallet> getWalletById(String id) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/wallets/$id',
+    );
+    return SnWallet.fromJson(response.data!);
+  }
+
   /// Creates a new wallet.
-  Future<SnWallet> createWallet() async {
-    final response = await post<Map<String, dynamic>>('$_basePath/wallets');
+  Future<SnWallet> createWallet({String? name, String? realmId}) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/wallets',
+      data: {
+        if (name != null) 'name': name,
+        if (realmId != null) 'realm_id': realmId,
+      },
+    );
+    return SnWallet.fromJson(response.data!);
+  }
+
+  /// Sets a wallet as the default for the current user.
+  Future<void> setDefaultWallet(String id) async {
+    await post('$_basePath/wallets/$id/default');
+  }
+
+  /// Enables the public ID for a wallet.
+  Future<SnWallet> enablePublicId(String id) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/wallets/$id/public-id/enable',
+    );
+    return SnWallet.fromJson(response.data!);
+  }
+
+  /// Disables the public ID for a wallet.
+  Future<SnWallet> disablePublicId(String id) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/wallets/$id/public-id/disable',
+    );
     return SnWallet.fromJson(response.data!);
   }
 
@@ -119,17 +160,36 @@ class WalletApi extends BaseApi {
 
   /// Transfers funds from one wallet to another.
   ///
-  /// [toWalletId] - The recipient wallet ID.
   /// [amount] - The amount to transfer.
-  /// [message] - Optional message.
+  /// [currency] - The currency.
+  /// [pinCode] - The PIN code for verification.
+  /// [payerWalletId] - Optional source wallet ID.
+  /// [payeeWalletId] - Optional target wallet ID.
+  /// [payeeAccountId] - Optional target account ID (resolves to default wallet).
+  /// [payeePublicId] - Optional target public wallet ID.
+  /// [remark] - Optional message.
   Future<void> transfer({
-    required String toWalletId,
     required double amount,
-    String? message,
+    required String currency,
+    required String pinCode,
+    String? payerWalletId,
+    String? payeeWalletId,
+    String? payeeAccountId,
+    String? payeePublicId,
+    String? remark,
   }) async {
     await post(
       '$_basePath/wallets/transfer',
-      data: {'to_wallet_id': toWalletId, 'amount': amount, 'message': ?message},
+      data: {
+        'amount': amount,
+        'currency': currency,
+        'pin_code': pinCode,
+        if (payerWalletId != null) 'payer_wallet_id': payerWalletId,
+        if (payeeWalletId != null) 'payee_wallet_id': payeeWalletId,
+        if (payeeAccountId != null) 'payee_account_id': payeeAccountId,
+        if (payeePublicId != null) 'payee_public_id': payeePublicId,
+        if (remark != null) 'remark': remark,
+      },
     );
   }
 
@@ -141,13 +201,25 @@ class WalletApi extends BaseApi {
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
+  /// [wallet] - Filter by wallet ID.
+  /// [direction] - Filter by direction (income/outcome).
+  /// [type] - Filter by transaction type.
   Future<PaginatedResult<SnTransaction>> getTransactions({
     int offset = 0,
     int take = 20,
+    String? wallet,
+    String? direction,
+    String? type,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/wallets/transactions',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (wallet != null) 'wallet': wallet,
+        if (direction != null) 'direction': direction,
+        if (type != null) 'type': type,
+      },
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnTransaction.fromJson);
@@ -232,13 +304,28 @@ class WalletApi extends BaseApi {
   ///
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
+  /// [wallet] - Filter by wallet ID.
+  /// [status] - Filter by order status.
+  /// [direction] - Filter by direction (income/outcome).
+  /// [type] - Filter by order type.
   Future<PaginatedResult<SnWalletOrder>> getOrders({
     int offset = 0,
     int take = 20,
+    String? wallet,
+    String? status,
+    String? direction,
+    String? type,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/wallets/orders',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (wallet != null) 'wallet': wallet,
+        if (status != null) 'status': status,
+        if (direction != null) 'direction': direction,
+        if (type != null) 'type': type,
+      },
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnWalletOrder.fromJson);

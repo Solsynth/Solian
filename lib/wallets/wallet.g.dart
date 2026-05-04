@@ -47,6 +47,115 @@ final class WalletCurrentProvider
 
 String _$walletCurrentHash() => r'6a341edcd278520b3dca52de000c948762088779';
 
+@ProviderFor(walletList)
+final walletListProvider = WalletListProvider._();
+
+final class WalletListProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnWallet>>,
+          List<SnWallet>,
+          FutureOr<List<SnWallet>>
+        >
+    with $FutureModifier<List<SnWallet>>, $FutureProvider<List<SnWallet>> {
+  WalletListProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'walletListProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletListHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnWallet>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnWallet>> create(Ref ref) {
+    return walletList(ref);
+  }
+}
+
+String _$walletListHash() => r'775b768cda8ea94c885ba9ab128ca4153b65ed29';
+
+@ProviderFor(walletById)
+final walletByIdProvider = WalletByIdFamily._();
+
+final class WalletByIdProvider
+    extends
+        $FunctionalProvider<AsyncValue<SnWallet>, SnWallet, FutureOr<SnWallet>>
+    with $FutureModifier<SnWallet>, $FutureProvider<SnWallet> {
+  WalletByIdProvider._({
+    required WalletByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'walletByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$walletByIdHash();
+
+  @override
+  String toString() {
+    return r'walletByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<SnWallet> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<SnWallet> create(Ref ref) {
+    final argument = this.argument as String;
+    return walletById(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is WalletByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$walletByIdHash() => r'd3ee68ddf61710461d3c9eab5b2343b76ae21118';
+
+final class WalletByIdFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<SnWallet>, String> {
+  WalletByIdFamily._()
+    : super(
+        retry: null,
+        name: r'walletByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  WalletByIdProvider call(String id) =>
+      WalletByIdProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'walletByIdProvider';
+}
+
 @ProviderFor(walletStats)
 final walletStatsProvider = WalletStatsProvider._();
 

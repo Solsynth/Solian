@@ -3,6 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/developers/screens/apps.dart';
 import 'package:island/developers/models/custom_app.dart';
@@ -16,6 +17,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/wallets/wallet.dart';
 
 part 'edit_app.g.dart';
 
@@ -65,11 +67,12 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
     final picture = useState<SnCloudFile?>(null);
     final background = useState<SnCloudFile?>(null);
 
-    final enableLinks = useState(false); // Only for UI purposes
+    final enableLinks = useState(false);
     final homePageController = useTextEditingController();
     final privacyPolicyController = useTextEditingController();
     final termsController = useTextEditingController();
     final oauthEnabled = useState(false);
+    final paymentEnabled = useState(false);
     final redirectUris = useState<List<String>>([]);
     final postLogoutUris = useState<List<String>>([]);
     final allowedScopes = useState<List<String>>([
@@ -84,6 +87,9 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
     final requirePkce = useState(true);
     final allowOfflineAccess = useState(false);
     final isPublicClient = useState(false);
+    final paymentWalletId = useState<String?>(null);
+
+    final wallets = ref.watch(walletListProvider);
 
     useEffect(() {
       if (app?.value != null) {
@@ -95,6 +101,7 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
         homePageController.text = app.value!.links?.homePage ?? '';
         privacyPolicyController.text = app.value!.links?.privacyPolicy ?? '';
         termsController.text = app.value!.links?.termsOfService ?? '';
+        paymentWalletId.value = app.value!.paymentWalletId;
         if (app.value!.oauthConfig != null) {
           oauthEnabled.value = true;
           redirectUris.value = app.value!.oauthConfig!.redirectUris;
@@ -286,6 +293,7 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
           'is_public_client': isPublicClient.value,
         }
             : null,
+        'payment_wallet_id': paymentWalletId.value,
       };
       try {
         showLoadingModal(context);
@@ -416,6 +424,9 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
                         break;
                       case 1:
                         oauthEnabled.value = isExpanded;
+                        break;
+                      case 2:
+                        paymentEnabled.value = isExpanded;
                         break;
                     }
                   },
@@ -570,6 +581,56 @@ class DeveloperAppEditScreen extends HookConsumerWidget {
                         ],
                       ).padding(horizontal: 16, bottom: 24),
                       isExpanded: oauthEnabled.value,
+                    ),
+                    ExpansionPanel(
+                      headerBuilder: (context, isExpanded) =>
+                          ListTile(title: Text('paymentConfig'.tr())),
+                      body: wallets.when(
+                        data: (walletList) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('paymentWalletDescription'.tr()),
+                              const Gap(16),
+                              DropdownButtonFormField<String>(
+                                value: paymentWalletId.value,
+                                decoration: InputDecoration(
+                                  labelText: 'paymentWallet'.tr(),
+                                ),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: null,
+                                    child: Text('none'.tr()),
+                                  ),
+                                  ...walletList.map((wallet) {
+                                    final balance = wallet.pockets.isNotEmpty
+                                        ? wallet.pockets.first.amount
+                                        : 0.0;
+                                    return DropdownMenuItem(
+                                      value: wallet.id,
+                                      child: Text(
+                                        '${wallet.name.isNotEmpty ? wallet.name : 'Default Wallet'} (${balance.toStringAsFixed(2)})',
+                                      ),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (value) {
+                                  paymentWalletId.value = value;
+                                },
+                              ),
+                            ],
+                          ).padding(horizontal: 16, bottom: 24);
+                        },
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (error, stack) => Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text('error: $error'),
+                        ),
+                      ),
+                      isExpanded: paymentEnabled.value,
                     ),
                   ],
                 ),
