@@ -35,6 +35,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
     AutoRoute(page: AboutRoute.page, path: '/about'),
     AutoRoute(page: FileDetailRoute.page, path: '/files/:id'),
+    AutoRoute(page: CheckInRoute.page, path: '/check-in'),
     AutoRoute(page: PostShuffleRoute.page, path: '/posts/shuffle'),
     AutoRoute(page: PostCategoriesListRoute.page, path: '/posts/categories'),
     AutoRoute(page: PostCategoryDetailRoute.page, path: '/posts/categories/:slug'),

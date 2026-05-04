@@ -1,17 +1,12 @@
-import 'dart:async';
-
-import 'package:dio/dio.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/event_calendar_content.dart';
 import 'package:island/core/network.dart';
-import 'package:island/accounts/account_pod.dart';
-import 'package:island/auth/captcha.dart';
-import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -68,7 +63,7 @@ Future<SnFortuneSaying> randomFortuneSaying(Ref ref) async {
   return await client.accounts.getRandomFortuneSaying();
 }
 
-class CheckInWidget extends HookConsumerWidget {
+class CheckInWidget extends ConsumerWidget {
   final EdgeInsets? margin;
   final VoidCallback? onChecked;
   const CheckInWidget({super.key, this.margin, this.onChecked});
@@ -76,35 +71,6 @@ class CheckInWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todayResult = ref.watch(checkInResultTodayProvider);
-
-    // Update time every second for live progress
-    final currentTime = useState(DateTime.now());
-    useEffect(() {
-      final timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        currentTime.value = DateTime.now();
-      });
-      return timer.cancel;
-    }, []);
-
-    Future<void> checkIn({String? captchatTk}) async {
-      final client = ref.read(solarNetworkClientProvider);
-      try {
-        await client.accounts.checkIn(captchaToken: captchatTk);
-        ref.invalidate(checkInResultTodayProvider);
-        final userNotifier = ref.read(userInfoProvider.notifier);
-        userNotifier.fetchUser();
-        onChecked?.call();
-      } catch (err) {
-        if (err is DioException) {
-          if (err.response?.statusCode == 423 && context.mounted) {
-            final captchaTk = await CaptchaScreen.show(context);
-            if (captchaTk == null) return;
-            return await checkIn(captchatTk: captchaTk);
-          }
-        }
-        showErrorAlert(err);
-      }
-    }
 
     return Card(
       margin:
@@ -138,36 +104,12 @@ class CheckInWidget extends HookConsumerWidget {
                       if (result == null) {
                         return Text('checkInNoneHint').tr().fontSize(11);
                       }
-                      return Wrap(
-                        alignment: WrapAlignment.start,
-                        runAlignment: WrapAlignment.start,
-                        children:
-                            result.tips
-                                .map((e) {
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        e.isPositive
-                                            ? Symbols.thumb_up
-                                            : Symbols.thumb_down,
-                                        size: 12,
-                                      ),
-                                      const Gap(4),
-                                      Text(e.title).fontSize(11),
-                                    ],
-                                  );
-                                })
-                                .toList()
-                                .expand(
-                                  (widget) => [
-                                    widget,
-                                    Text('  ·  ').fontSize(11),
-                                  ],
-                                )
-                                .toList()
-                              ..removeLast(),
-                      );
+                      final report = result.fortuneReport;
+                      return Text(
+                        report?.summary ?? report?.poem ?? 'checkInViewTemple'.tr(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ).fontSize(11);
                     },
                     loading: () => Text('checkInNoneHint').tr().fontSize(11),
                     error: (err, stack) => Column(
@@ -182,10 +124,8 @@ class CheckInWidget extends HookConsumerWidget {
               ],
             ),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            spacing: 4,
+          Row(
+            spacing: 8,
             children: [
               IconButton.outlined(
                 iconSize: 16,
@@ -194,18 +134,7 @@ class CheckInWidget extends HookConsumerWidget {
                   vertical: -2,
                 ),
                 onPressed: () {
-                  if (todayResult.value == null) {
-                    checkIn();
-                  } else {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) => SheetScaffold(
-                        titleText: 'eventCalendar'.tr(),
-                        child: EventCalendarContent(name: 'me', isSheet: true),
-                      ),
-                    );
-                  }
+                  context.router.push(const CheckInRoute());
                 },
                 icon: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -213,13 +142,31 @@ class CheckInWidget extends HookConsumerWidget {
                     data: (result) => Icon(
                       result == null
                           ? Symbols.local_fire_department
-                          : Symbols.event,
+                          : Symbols.temple_buddhist,
                       key: ValueKey(result != null),
                     ),
                     loading: () => const Icon(Symbols.refresh),
                     error: (_, _) => const Icon(Symbols.error),
                   ),
                 ),
+              ),
+              IconButton.outlined(
+                iconSize: 16,
+                visualDensity: const VisualDensity(
+                  horizontal: -3,
+                  vertical: -2,
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => SheetScaffold(
+                      titleText: 'eventCalendar'.tr(),
+                      child: EventCalendarContent(name: 'me', isSheet: true),
+                    ),
+                  );
+                },
+                icon: const Icon(Symbols.event),
               ),
             ],
           ),
