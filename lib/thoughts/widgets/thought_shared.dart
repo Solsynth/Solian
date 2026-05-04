@@ -980,6 +980,9 @@ class ThoughtItem extends StatelessWidget {
     final bubbleBorderColor = isUser
         ? colorScheme.primary.withOpacity(0.18)
         : colorScheme.outline.withOpacity(0.18);
+    final bubbleGroups = isUser
+        ? [buildWidgetsList(context)]
+        : _buildMichanSplitMessageWidgets(context).map((widget) => [widget]);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -1005,22 +1008,25 @@ class ThoughtItem extends StatelessWidget {
                     ),
                   ),
                   const Gap(4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                  for (final group in bubbleGroups) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bubbleColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: bubbleBorderColor, width: 1),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 8,
+                        children: group,
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: bubbleColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: bubbleBorderColor, width: 1),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: buildWidgetsList(context),
-                    ),
-                  ),
+                    const Gap(4),
+                  ],
                 ],
               ),
             ),
@@ -1028,6 +1034,50 @@ class ThoughtItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildMichanSplitMessageWidgets(BuildContext context) {
+    final widgets = buildWidgetsList(context);
+    final splitWidgets = <Widget>[];
+
+    for (final widget in widgets) {
+      if (widget is! Row || widget.children.length != 1) {
+        splitWidgets.add(widget);
+        continue;
+      }
+
+      final child = widget.children.single;
+      if (child is! Flexible || child.child is! ThoughtContent) {
+        splitWidgets.add(widget);
+        continue;
+      }
+
+      final content = child.child as ThoughtContent;
+      final text = content.streamingText.isNotEmpty
+          ? content.streamingText
+          : content.thought != null
+          ? content.thought!.parts
+                .where((p) => p.type == ThinkingMessagePartType.text)
+                .map((p) => p.text ?? '')
+                .join('')
+          : '';
+      final lines = text
+          .split(RegExp(r'\r?\n'))
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
+
+      if (lines.length <= 1) {
+        splitWidgets.add(buildTextRow(text, subdueParentheticalText: true));
+        continue;
+      }
+
+      splitWidgets.addAll(
+        lines.map((line) => buildTextRow(line, subdueParentheticalText: true)),
+      );
+    }
+
+    return splitWidgets;
   }
 
   List<Widget> buildWidgetsList(BuildContext context) {
@@ -1106,8 +1156,8 @@ class ThoughtItem extends StatelessWidget {
               p.type == ThinkingMessagePartType.text
                   ? p.text ?? ''
                   : p.type == ThinkingMessagePartType.reasoning
-                      ? p.reasoning ?? ''
-                      : p.functionCall ?? p.functionResult,
+                  ? p.reasoning ?? ''
+                  : p.functionCall ?? p.functionResult,
             );
           }).toList();
 
@@ -1128,10 +1178,10 @@ class ThoughtItem extends StatelessWidget {
     // Extract and add reasoning items first (fixed at top)
     final reasoningItems = items.where((i) => i.type == 'reasoning').toList();
     if (reasoningItems.isNotEmpty) {
-      final mergedReasoning = reasoningItems.map((i) => i.data as String).join();
-      widgets.add(
-        ReasoningSection(reasoningChunks: [mergedReasoning]),
-      );
+      final mergedReasoning = reasoningItems
+          .map((i) => i.data as String)
+          .join();
+      widgets.add(ReasoningSection(reasoningChunks: [mergedReasoning]));
     }
 
     String currentText = '';
@@ -1232,7 +1282,7 @@ class ThoughtItem extends StatelessWidget {
     return widgets;
   }
 
-  Widget buildTextRow(String text) {
+  Widget buildTextRow(String text, {bool subdueParentheticalText = false}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -1242,6 +1292,7 @@ class ThoughtItem extends StatelessWidget {
             isStreaming: isStreaming,
             streamingText: text,
             thought: thought,
+            subdueParentheticalText: subdueParentheticalText,
           ),
         ),
       ],
