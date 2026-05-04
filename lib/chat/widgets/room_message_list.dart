@@ -434,6 +434,8 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
       0.0,
       double.infinity,
     );
+    if (maxOffset <= widget.avatarTop) return widget.avatarTop;
+
     return (widget.avatarTop + stickyDelta).clamp(widget.avatarTop, maxOffset);
   }
 
@@ -477,7 +479,7 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
 }
 
 class _BotGroupExpandBar extends StatelessWidget {
-  static const double _bubbleContentOffset = 64;
+  static const double _bubbleContentOffset = 56;
 
   final int hiddenCount;
   final VoidCallback onToggle;

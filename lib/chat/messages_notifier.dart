@@ -879,6 +879,13 @@ class MessagesNotifier extends _$MessagesNotifier {
         updated.add(sentMessage);
       }
 
+      final eventMessage = result.eventMessage;
+      if (eventMessage != null &&
+          _shouldIncludeInActiveList(eventMessage) &&
+          !updated.any((message) => message.id == eventMessage.id)) {
+        updated.add(eventMessage);
+      }
+
       _emitMessages(updated);
       return;
     }
@@ -942,6 +949,10 @@ class MessagesNotifier extends _$MessagesNotifier {
     await _realtime.processMessageDeletion(messageId);
   }
 
+  Future<void> receiveMessageDeleteEvent(SnChatMessage remoteMessage) async {
+    await _realtime.processMessageDeleteEvent(remoteMessage);
+  }
+
   Future<void> deleteMessage(String messageId) async {
     Logger.root.info('Deleting message $messageId');
 
@@ -977,7 +988,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         context: 'delete response',
       );
       if (deleteEvent != null) {
-        await receiveMessage(deleteEvent);
+        await receiveMessageDeleteEvent(deleteEvent);
       } else {
         await receiveMessageDeletion(messageId);
       }

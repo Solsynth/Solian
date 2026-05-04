@@ -20,12 +20,20 @@ import 'package:uuid/uuid.dart';
 class SendResult {
   final bool success;
   final LocalChatMessage? message;
+  final LocalChatMessage? eventMessage;
   final String? error;
 
-  const SendResult._(this.success, {this.message, this.error});
+  const SendResult._(
+    this.success, {
+    this.message,
+    this.eventMessage,
+    this.error,
+  });
 
-  factory SendResult.success(LocalChatMessage message) =>
-      SendResult._(true, message: message);
+  factory SendResult.success(
+    LocalChatMessage message, {
+    LocalChatMessage? eventMessage,
+  }) => SendResult._(true, message: message, eventMessage: eventMessage);
 
   factory SendResult.failure(String error) => SendResult._(false, error: error);
 }
@@ -48,8 +56,8 @@ class MessageSender {
     this._pendingCache, {
     E2eeMessageService? e2eeService,
     String? fileEncryptKey,
-  })  : _e2eeService = e2eeService,
-        _fileEncryptKey = fileEncryptKey;
+  }) : _e2eeService = e2eeService,
+       _fileEncryptKey = fileEncryptKey;
 
   /// Sends a text message with optional attachments.
   Future<SendResult> sendTextMessage({
@@ -81,7 +89,9 @@ class MessageSender {
       _pendingCache.add(pending);
       onProgress?.call(pending.id, {});
 
-      _logger.info('[send:$clientMessageId] Uploading ${attachments.length} attachments');
+      _logger.info(
+        '[send:$clientMessageId] Uploading ${attachments.length} attachments',
+      );
 
       // Upload attachments
       final cloudAttachments = await _uploadAttachments(
@@ -112,7 +122,9 @@ class MessageSender {
         editingTo: editingTo,
       );
 
-      _logger.info('[send:$clientMessageId] Message sent successfully: ${remoteMessage.id}');
+      _logger.info(
+        '[send:$clientMessageId] Message sent successfully: ${remoteMessage.id}',
+      );
 
       // Preserve plaintext for E2EE
       final withPlaintext = _e2eeService?.isE2eeRoom == true
@@ -122,17 +134,25 @@ class MessageSender {
             )
           : remoteMessage;
 
-      // Create sent message
       final sent = LocalChatMessage.fromRemoteMessage(
-        withPlaintext,
+        editingTo ?? withPlaintext,
         MessageStatus.sent,
       );
+      final eventMessage = editingTo == null
+          ? null
+          : LocalChatMessage.fromRemoteMessage(
+              withPlaintext,
+              MessageStatus.sent,
+            );
 
       // Remove pending and save sent message
       _pendingCache.remove(pending.id);
       await _repository.saveMessage(sent);
+      if (eventMessage != null) {
+        await _repository.saveMessage(eventMessage);
+      }
 
-      return SendResult.success(sent);
+      return SendResult.success(sent, eventMessage: eventMessage);
     } catch (e, stackTrace) {
       _logger.severe('[send:$clientMessageId] Send failed', e, stackTrace);
 
@@ -214,7 +234,11 @@ class MessageSender {
       _logger.info('[voice:$clientMessageId] Voice message sent: ${sent.id}');
       return SendResult.success(sent);
     } catch (e, stackTrace) {
-      _logger.severe('[voice:$clientMessageId] Voice send failed', e, stackTrace);
+      _logger.severe(
+        '[voice:$clientMessageId] Voice send failed',
+        e,
+        stackTrace,
+      );
 
       final pendingId = 'pending_$clientMessageId';
       _pendingCache.markFailed(pendingId);
@@ -254,12 +278,14 @@ class MessageSender {
       );
 
       // Build and send payload
-      final remoteMessage = await _sendToServer(payload: {
-        'content': pending.content,
-        'attachments_id': cloudAttachments.map((a) => a.id).toList(),
-        'client_message_id': pending.clientMessageId,
-        'meta': pending.meta,
-      });
+      final remoteMessage = await _sendToServer(
+        payload: {
+          'content': pending.content,
+          'attachments_id': cloudAttachments.map((a) => a.id).toList(),
+          'client_message_id': pending.clientMessageId,
+          'meta': pending.meta,
+        },
+      );
 
       final sent = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
@@ -283,10 +309,7 @@ class MessageSender {
   }
 
   /// Deletes a message.
-  Future<bool> deleteMessage(
-    String messageId, {
-    Options? options,
-  }) async {
+  Future<bool> deleteMessage(String messageId, {Options? options}) async {
     // Check if it's a pending/failed message
     final pending = _pendingCache.get(messageId);
     if (pending != null) {
@@ -329,10 +352,8 @@ class MessageSender {
       forwardedMessageId: forwardingTo?.id,
     );
 
-    return LocalChatMessage.fromRemoteMessage(
-      mock,
-      MessageStatus.pending,
-    )..localAttachments = attachments;
+    return LocalChatMessage.fromRemoteMessage(mock, MessageStatus.pending)
+      ..localAttachments = attachments;
   }
 
   LocalChatMessage _createVoicePendingMessage({
@@ -361,10 +382,7 @@ class MessageSender {
       },
     );
 
-    return LocalChatMessage.fromRemoteMessage(
-      mock,
-      MessageStatus.pending,
-    );
+    return LocalChatMessage.fromRemoteMessage(mock, MessageStatus.pending);
   }
 
   Future<List<SnCloudFile>> _uploadAttachments({
@@ -408,8 +426,10 @@ class MessageSender {
     return cloudFiles;
   }
 
-  Future<({Map<String, dynamic> payload, Map<String, dynamic>? plaintextEnvelope})>
-      _buildPayload({
+  Future<
+    ({Map<String, dynamic> payload, Map<String, dynamic>? plaintextEnvelope})
+  >
+  _buildPayload({
     required String clientMessageId,
     required String content,
     required List<String> attachmentIds,
@@ -455,15 +475,16 @@ class MessageSender {
     required Map<String, dynamic> payload,
     SnChatMessage? editingTo,
   }) async {
+    if (editingTo != null) {
+      return _repository.editMessage(
+        editingTo.id,
+        payload,
+        options: _e2eeService?.isE2eeRoom == true ? _mlsOptions : null,
+      );
+    }
+
     // MLS (E2EE) messages must go through HTTP
     if (_e2eeService?.isE2eeRoom == true) {
-      if (editingTo != null) {
-        return _repository.editMessage(
-          editingTo.id,
-          payload,
-          options: _mlsOptions,
-        );
-      }
       return _repository.sendMessage(payload, options: _mlsOptions);
     }
 
@@ -477,9 +498,6 @@ class MessageSender {
     }
 
     // HTTP fallback
-    if (editingTo != null) {
-      return _repository.editMessage(editingTo.id, payload);
-    }
     return _repository.sendMessage(payload);
   }
 
@@ -490,10 +508,7 @@ class MessageSender {
     final packet = WebSocketPacket(
       type: 'messages.send',
       endpoint: 'messager',
-      data: {
-        'chat_room_id': _roomId,
-        ...payload,
-      },
+      data: {'chat_room_id': _roomId, ...payload},
     );
 
     final completer = Completer<SnChatMessage>();
@@ -507,7 +522,8 @@ class MessageSender {
         .where((data) {
           final roomId = data['chat_room_id']?.toString();
           final clientId =
-              data['client_message_id']?.toString() ?? data['nonce']?.toString();
+              data['client_message_id']?.toString() ??
+              data['nonce']?.toString();
           return roomId == _roomId && clientId == payload['client_message_id'];
         })
         .listen((data) {

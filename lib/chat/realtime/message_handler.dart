@@ -88,6 +88,9 @@ class RealtimeMessageHandler {
   Future<void> processMessageDeletion(String messageId) =>
       _handleDeleteMessage(messageId);
 
+  Future<void> processMessageDeleteEvent(SnChatMessage message) =>
+      _handleDeleteMessageEvent(message);
+
   /// Processes reaction added event manually.
   Future<void> processReactionAdded(SnChatMessage message) =>
       _handleReactionEvent(message);
@@ -143,7 +146,7 @@ class RealtimeMessageHandler {
       case 'messages.delete':
         final message = _parseMessage(packet.data);
         if (message != null && message.chatRoomId == _roomId) {
-          _handleDeleteMessage(message.meta['message_id'] ?? message.id);
+          _handleDeleteMessageEvent(message);
         }
         break;
 
@@ -214,6 +217,9 @@ class RealtimeMessageHandler {
       MessageStatus.sent,
     );
 
+    await _repository.saveMessage(updateEvent);
+    onNewMessage?.call(updateEvent);
+
     final updated = _buildUpdatedMessage(existing, updateEvent);
 
     await _repository.saveMessage(updated);
@@ -224,7 +230,8 @@ class RealtimeMessageHandler {
     final type = event.message.type;
 
     // Handle reaction events
-    if (type == 'messages.reaction.added' || type == 'messages.reaction.removed') {
+    if (type == 'messages.reaction.added' ||
+        type == 'messages.reaction.removed') {
       await _handleReactionEvent(event.message);
       return;
     }
@@ -250,8 +257,10 @@ class RealtimeMessageHandler {
 
     final countSnapshot = _extractReactionsCount(remoteMessage);
     final madeSnapshot = _extractReactionsMade(remoteMessage);
-    final reactionsCount = countSnapshot ?? _extractExistingReactionsCount(existing);
-    final reactionsMade = madeSnapshot ?? _extractExistingReactionsMade(existing);
+    final reactionsCount =
+        countSnapshot ?? _extractExistingReactionsCount(existing);
+    final reactionsMade =
+        madeSnapshot ?? _extractExistingReactionsMade(existing);
 
     if (countSnapshot == null) {
       final symbol = _extractReactionSymbol(remoteMessage);
@@ -277,6 +286,24 @@ class RealtimeMessageHandler {
 
   Future<void> _handleDeleteEvent(ChatMessageDeleteEvent event) async {
     await _handleDeleteMessage(event.messageId);
+  }
+
+  Future<void> _handleDeleteMessageEvent(SnChatMessage remoteMessage) async {
+    if (_isJumping) {
+      _hasPendingRefresh = true;
+      return;
+    }
+
+    final deleteEvent = LocalChatMessage.fromRemoteMessage(
+      remoteMessage,
+      MessageStatus.sent,
+    );
+    await _repository.saveMessage(deleteEvent);
+    onNewMessage?.call(deleteEvent);
+
+    final targetId =
+        remoteMessage.meta['message_id']?.toString() ?? remoteMessage.id;
+    await _handleDeleteMessage(targetId);
   }
 
   Future<void> _handleDeleteMessage(String messageId) async {
@@ -457,7 +484,10 @@ class RealtimeMessageHandler {
     );
   }
 
-  bool _needsAttachmentRefresh(LocalChatMessage existing, SnChatMessage remote) {
+  bool _needsAttachmentRefresh(
+    LocalChatMessage existing,
+    SnChatMessage remote,
+  ) {
     return existing.attachments.isEmpty && remote.attachments.isNotEmpty;
   }
 
@@ -468,8 +498,7 @@ class RealtimeMessageHandler {
       'messages.update.links' ||
       'messages.delete' ||
       'messages.reaction.added' ||
-      'messages.reaction.removed' =>
-        true,
+      'messages.reaction.removed' => true,
       _ => false,
     };
   }
@@ -519,26 +548,26 @@ class RealtimeMessageHandler {
   }
 
   Map<String, dynamic> _buildSystemSender(DateTime now) => {
-        'id': 'system',
-        'chat_room_id': _roomId,
-        'account_id': 'system',
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
-        'deleted_at': null,
-        'nick': null,
-        'notify': 0,
-        'joined_at': now.toIso8601String(),
-        'break_until': null,
-        'timeout_until': null,
-        'last_read_at': null,
-        'status': null,
-        'realm_nick': null,
-        'realm_bio': null,
-        'realm_experience': null,
-        'realm_level': null,
-        'realm_leveling_progress': null,
-        'realm_label': null,
-      };
+    'id': 'system',
+    'chat_room_id': _roomId,
+    'account_id': 'system',
+    'created_at': now.toIso8601String(),
+    'updated_at': now.toIso8601String(),
+    'deleted_at': null,
+    'nick': null,
+    'notify': 0,
+    'joined_at': now.toIso8601String(),
+    'break_until': null,
+    'timeout_until': null,
+    'last_read_at': null,
+    'status': null,
+    'realm_nick': null,
+    'realm_bio': null,
+    'realm_experience': null,
+    'realm_level': null,
+    'realm_leveling_progress': null,
+    'realm_label': null,
+  };
 }
 
 class TimeoutException implements Exception {
