@@ -28,6 +28,7 @@ class SliverPostList extends HookConsumerWidget {
   final Function(SnPost)? onUpdate;
   final double? maxWidth;
   final String? queryKey;
+  final void Function(String)? onPostTap;
 
   const SliverPostList({
     super.key,
@@ -41,6 +42,7 @@ class SliverPostList extends HookConsumerWidget {
     this.onUpdate,
     this.maxWidth,
     this.queryKey,
+    this.onPostTap,
   });
 
   @override
@@ -97,9 +99,16 @@ class SliverPostList extends HookConsumerWidget {
           isOpenable: isOpenable,
           onRefresh: onRefresh,
           onUpdate: onUpdate,
+          onTap: onPostTap != null ? () => onPostTap!(post.id) : null,
+          onPostTap: onPostTap,
         );
       case PostItemType.regular:
-        return PostActionableItem(item: post, borderRadius: 8);
+        return PostActionableItem(
+          item: post,
+          borderRadius: 8,
+          onTap: onPostTap != null ? () => onPostTap!(post.id) : null,
+          onPostTap: onPostTap,
+        );
     }
   }
 }

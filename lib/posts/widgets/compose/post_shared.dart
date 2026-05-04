@@ -191,6 +191,7 @@ class PostReplyPreview extends HookConsumerWidget {
   final bool isAutoload;
   final double? itemMaxWidth;
   final VoidCallback? onOpen;
+  final void Function(String)? onPostTap;
   const PostReplyPreview({
     super.key,
     required this.parent,
@@ -199,6 +200,7 @@ class PostReplyPreview extends HookConsumerWidget {
     this.isAutoload = true,
     this.itemMaxWidth,
     this.onOpen,
+    this.onPostTap,
   });
 
   Widget _buildProfilePicture(
@@ -580,7 +582,11 @@ class PostReplyPreview extends HookConsumerWidget {
             ),
             onTap: () {
               onOpen?.call();
-              context.router.push(PostDetailRoute(id: post.id));
+              if (onPostTap != null) {
+                onPostTap!(post.id);
+              } else {
+                context.router.push(PostDetailRoute(id: post.id));
+              }
             },
           ),
           for (final child in children)
@@ -823,6 +829,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
   final bool isInteractive;
   final EdgeInsets renderingPadding;
   final bool isCollapsible;
+  final void Function(String)? onPostTap;
 
   const ReferencedPostWidget({
     super.key,
@@ -830,6 +837,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
     this.isInteractive = true,
     this.renderingPadding = EdgeInsets.zero,
     this.isCollapsible = true,
+    this.onPostTap,
   });
 
   @override
@@ -1033,7 +1041,13 @@ class ReferencedPostWidget extends HookConsumerWidget {
     }
 
     return GestureDetector(
-      onTap: () => context.router.push(PostDetailRoute(id: referencePost.id)),
+      onTap: () {
+        if (onPostTap != null) {
+          onPostTap!(referencePost.id);
+        } else {
+          context.router.push(PostDetailRoute(id: referencePost.id));
+        }
+      },
       child: content,
     );
   }

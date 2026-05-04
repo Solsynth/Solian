@@ -44,6 +44,7 @@ class PostActionableItem extends HookConsumerWidget {
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
   final VoidCallback? onTap;
+  final void Function(String)? onPostTap;
   const PostActionableItem({
     super.key,
     required this.item,
@@ -59,6 +60,7 @@ class PostActionableItem extends HookConsumerWidget {
     this.onUpdate,
     this.onOpen,
     this.onTap,
+    this.onPostTap,
   });
 
   @override
@@ -419,6 +421,7 @@ class PostActionableItem extends HookConsumerWidget {
         onUpdate: onUpdate,
         onOpen: onOpen,
         trailing: trailing,
+        onPostTap: onPostTap,
       ),
       onTap: () {
         if (onTap != null) {
@@ -450,6 +453,7 @@ class PostItem extends HookConsumerWidget {
   final Function(SnPost)? onUpdate;
   final VoidCallback? onOpen;
   final Widget? trailing;
+  final void Function(String)? onPostTap;
   const PostItem({
     super.key,
     required this.item,
@@ -467,6 +471,7 @@ class PostItem extends HookConsumerWidget {
     this.onUpdate,
     this.onOpen,
     this.trailing,
+    this.onPostTap,
   });
 
   @override
@@ -579,7 +584,11 @@ class PostItem extends HookConsumerWidget {
                 item.repliedPost != null))
           Gap(renderingPadding.vertical),
         if (isShowReference)
-          ReferencedPostWidget(item: item, renderingPadding: renderingPadding),
+          ReferencedPostWidget(
+            item: item, 
+            renderingPadding: renderingPadding,
+            onPostTap: onPostTap,
+          ),
         PostHeader(
           item: item,
           isFullPost: isFullPost,
@@ -632,6 +641,7 @@ class PostItem extends HookConsumerWidget {
             parent: item,
             isOpenable: isEmbedOpenable,
             onOpen: onOpen,
+            onPostTap: onPostTap,
           ).padding(horizontal: renderingPadding.horizontal, top: 8),
         Gap(renderingPadding.vertical),
       ],

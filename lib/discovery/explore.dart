@@ -5,20 +5,21 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/notifications/notification.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/network.dart';
 import 'package:island/livestreams/livestream.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
+import 'package:island/posts/screens/post_detail.dart';
+import 'package:island/posts/widgets/compose/post_interactions.dart';
+import 'package:island/posts/widgets/compose/post_quick_reply.dart';
+import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
 import 'package:island/discovery/models/webfeed.dart';
-import 'package:island/accounts/event_calendar.dart';
 import 'package:island/discovery/screens/livestreams.dart';
 import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/auth/login_modal.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_card.dart';
@@ -75,6 +76,8 @@ class ExploreScreen extends HookConsumerWidget {
     );
     final notifier = ref.watch(activityListProvider.notifier);
     final filterTabController = useTabController(initialLength: 3);
+    final selectedPostId = useState<String?>(null);
+    final isDetailExpanded = useState(false);
 
     void handleFilterChange(String? filter) {
       currentFilter.value = filter;
@@ -105,39 +108,12 @@ class ExploreScreen extends HookConsumerWidget {
           );
     }
 
-    final now = DateTime.now();
-
-    final query = useState(
-      EventCalendarQuery(uname: 'me', year: now.year, month: now.month),
-    );
-
-    final events = ref.watch(eventCalendarProvider(query.value));
-
-    final selectedDay = useState(now);
-
-    final user = ref.watch(userInfoProvider);
-
-    final notificationCount = ref.watch(notificationUnreadCountProvider);
-
     final isWide = isWideScreen(context);
 
     final hasSubscriptionFiltersApplied =
         selectedPublisherNames.value.isNotEmpty ||
         selectedCategoryIds.value.isNotEmpty ||
         selectedTagIds.value.isNotEmpty;
-
-    final filterBar = Container(
-      margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      color: Colors.transparent,
-      child: _ExploreFilterToolbar(
-        currentFilter: currentFilter.value,
-        currentMode: currentMode.value,
-        onFilterChange: handleFilterChange,
-        onModeChange: handleModeChange,
-        onOpenSubscriptionFilters: null,
-        disableFilterSwitching: hasSubscriptionFiltersApplied,
-      ).padding(horizontal: 12, vertical: 12),
-    );
 
     final userInfo = ref.watch(userInfoProvider);
 
@@ -192,14 +168,9 @@ class ExploreScreen extends HookConsumerWidget {
         body: _buildWideBody(
           context,
           ref,
-          filterBar,
-          user,
-          notificationCount,
-          query,
-          events,
-          selectedDay,
-          currentFilter.value,
-          currentMode.value,
+          filterTabController,
+          currentFilter,
+          currentMode,
           selectedPublisherNames,
           selectedCategoryIds,
           selectedTagIds,
@@ -210,6 +181,8 @@ class ExploreScreen extends HookConsumerWidget {
           hasSubscriptionFiltersApplied,
           exploreSettings,
           ref.read(appSettingsProvider.notifier),
+          selectedPostId,
+          isDetailExpanded,
         ),
       );
     }
@@ -443,13 +416,275 @@ class ExploreScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildActivityList(BuildContext context, WidgetRef ref) {
+  SliverAppBar _buildExploreSliverAppBar({
+    required BuildContext context,
+    required WidgetRef ref,
+    required TabController filterTabController,
+    required bool hasSubscriptionFiltersApplied,
+    required void Function(String?) handleFilterChange,
+    required ValueNotifier<List<String>> selectedPublishers,
+    required ValueNotifier<List<String>> selectedCategories,
+    required ValueNotifier<List<String>> selectedTags,
+    required ValueNotifier<bool> currentAggressive,
+    required ValueNotifier<String?> currentFilter,
+    required void Function(bool) handleAggressiveChange,
+    required ValueNotifier<String> currentMode,
+    required void Function(String?) handleModeChange,
+    required ExploreSettings exploreSettings,
+    required AppSettingsNotifier appSettingsNotifier,
+    required bool isWide,
+  }) {
+    return SliverAppBar(
+      automaticallyImplyLeading: false,
+      automaticallyImplyActions: false,
+      flexibleSpace: Row(
+        children: [
+          PopupMenuButton<_ExploreAction>(
+            icon: Icon(
+              Symbols.widgets,
+              color: Theme.of(context).appBarTheme.foregroundColor,
+            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _ExploreAction.articles,
+                child: Row(
+                  children: [
+                    Icon(
+                      Symbols.auto_stories,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const Gap(12),
+                    Text('webArticlesStand').tr(),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: _ExploreAction.livestreams,
+                child: Row(
+                  children: [
+                    Icon(
+                      Symbols.live_tv,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const Gap(12),
+                    Text('livestreams').tr(),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: _ExploreAction.categories,
+                child: Row(
+                  children: [
+                    Icon(
+                      Symbols.category,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const Gap(12),
+                    Text('categoriesAndTags').tr(),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: _ExploreAction.shuffle,
+                child: Row(
+                  children: [
+                    Icon(
+                      Symbols.shuffle,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const Gap(12),
+                    Text('postShuffle').tr(),
+                  ],
+                ),
+              ),
+            ],
+            onSelected: (value) {
+              switch (value) {
+                case _ExploreAction.articles:
+                  context.router.push(const ArticleStandRoute());
+                  break;
+                case _ExploreAction.livestreams:
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ActiveLivestreamsScreen(),
+                    ),
+                  );
+                  break;
+                case _ExploreAction.categories:
+                  context.router.push(PostCategoriesListRoute());
+                  break;
+                case _ExploreAction.shuffle:
+                  context.router.push(const PostShuffleRoute());
+                  break;
+                default:
+                  break;
+              }
+            },
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: () {
+              context.router.push(UniversalSearchRoute());
+            },
+            icon: Icon(
+              Symbols.search,
+              color: Theme.of(context).appBarTheme.foregroundColor,
+            ),
+            tooltip: 'search'.tr(),
+          ),
+        ],
+      ).padding(
+        horizontal: 12,
+        bottom: 8,
+        top: MediaQuery.paddingOf(context).top + 8,
+      ),
+      title: SvgPicture.asset(
+        'assets/icons/icon-outline.svg',
+        color: Theme.of(context).appBarTheme.foregroundColor,
+        width: 32,
+        height: 32,
+      ),
+      centerTitle: true,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Row(
+          children: [
+            Expanded(
+              child: IgnorePointer(
+                ignoring: hasSubscriptionFiltersApplied,
+                child: TabBar(
+                  indicatorColor: Theme.of(context).appBarTheme.foregroundColor,
+                  controller: filterTabController,
+                  dividerHeight: 0,
+                  onTap: hasSubscriptionFiltersApplied
+                      ? null
+                      : (index) {
+                          final filter = switch (index) {
+                            1 => 'subscriptions',
+                            2 => 'friends',
+                            _ => null,
+                          };
+                          handleFilterChange(filter);
+                        },
+                  tabs: [
+                    Tab(
+                      child: Row(
+                        spacing: 8,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Symbols.explore,
+                            size: 18,
+                            fill: filterTabController.index == 0 ? 1 : 0,
+                            color: Theme.of(context).appBarTheme.foregroundColor,
+                          ),
+                          Flexible(
+                            child: Text(
+                              'explore'.tr(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).appBarTheme.foregroundColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        spacing: 8,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Symbols.subscriptions,
+                            size: 18,
+                            fill: filterTabController.index == 1 ? 1 : 0,
+                            color: Theme.of(context).appBarTheme.foregroundColor,
+                          ),
+                          Flexible(
+                            child: Text(
+                              'exploreFilterSubscriptions'.tr(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).appBarTheme.foregroundColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        spacing: 8,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Symbols.people,
+                            size: 18,
+                            fill: filterTabController.index == 2 ? 1 : 0,
+                            color: Theme.of(context).appBarTheme.foregroundColor,
+                          ),
+                          Flexible(
+                            child: Text(
+                              'exploreFilterFriends'.tr(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).appBarTheme.foregroundColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: IconButton(
+                onPressed: () => _showAlgorithmConfigSheet(
+                  context,
+                  selectedPublishers,
+                  selectedCategories,
+                  selectedTags,
+                  currentAggressive,
+                  currentFilter,
+                  handleFilterChange,
+                  handleAggressiveChange,
+                  currentMode,
+                  handleModeChange,
+                  exploreSettings,
+                  appSettingsNotifier,
+                  isWide: isWide,
+                ),
+                icon: Icon(
+                  Symbols.tune,
+                  color: Theme.of(context).appBarTheme.foregroundColor,
+                ),
+                tooltip: 'settings'.tr(),
+              ),
+            ),
+          ],
+        ),
+      ),
+      floating: true,
+      snap: true,
+    );
+  }
+  Widget _buildActivityList(
+    BuildContext context,
+    WidgetRef ref, {
+    void Function(String)? onPostTap,
+  }) {
     final isWide = isWideScreen(context);
 
     return PaginationWidget(
       provider: activityListProvider,
       notifier: activityListProvider.notifier,
-      // Sliver list cannot provide refresh handled by the pagination list
       isRefreshable: false,
       isSliver: true,
       footerSkeletonChild: const SizedBox(
@@ -457,7 +692,7 @@ class ExploreScreen extends HookConsumerWidget {
         child: Center(child: ConfuseSpinner(size: 40, speed: 6)),
       ),
       contentBuilder: (data, footer) =>
-          _ActivityListView(data: data, isWide: isWide, footer: footer),
+          _ActivityListView(data: data, isWide: isWide, footer: footer, onPostTap: onPostTap),
     );
   }
 
@@ -466,8 +701,9 @@ class ExploreScreen extends HookConsumerWidget {
     WidgetRef ref,
     List<String> selectedPublishers,
     List<String> selectedCategories,
-    List<String> selectedTags,
-  ) {
+    List<String> selectedTags, {
+    void Function(String)? onPostTap,
+  }) {
     return SliverPostList(
       queryKey: 'explore_filtered',
       query: PostListQuery(
@@ -477,9 +713,9 @@ class ExploreScreen extends HookConsumerWidget {
       ),
       padding: EdgeInsets.zero,
       itemPadding: const EdgeInsets.only(bottom: 8),
+      onPostTap: onPostTap,
     );
   }
-
   Widget _buildLiveStreamsOnTop(
     BuildContext context,
     WidgetRef ref,
@@ -512,243 +748,6 @@ class ExploreScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildWideBody(
-    BuildContext context,
-    WidgetRef ref,
-    Widget filterBar,
-    AsyncValue<SnAccount?> user,
-    AsyncValue<int?> notificationCount,
-    ValueNotifier<EventCalendarQuery> query,
-    AsyncValue<List<dynamic>> events,
-    ValueNotifier<DateTime> selectedDay,
-    String? currentFilter,
-    String currentMode,
-    ValueNotifier<List<String>> selectedPublishers,
-    ValueNotifier<List<String>> selectedCategories,
-    ValueNotifier<List<String>> selectedTags,
-    ValueNotifier<bool> currentAggressive,
-    void Function(String?) handleFilterChange,
-    void Function(String?) handleModeChange,
-    void Function(bool) handleAggressiveChange,
-    bool hasSubscriptionFiltersApplied,
-    ExploreSettings exploreSettings,
-    AppSettingsNotifier appSettingsNotifier,
-  ) {
-    // Use post list when subscription filter is active and publishers are selected
-    final usePostList =
-        selectedPublishers.value.isNotEmpty ||
-        selectedCategories.value.isNotEmpty ||
-        selectedTags.value.isNotEmpty;
-    final bodyView = usePostList ? null : _buildActivityList(context, ref);
-
-    final notifier = usePostList
-        ? null // Post list handles its own refreshing
-        : ref.watch(activityListProvider.notifier);
-
-    final activityState = ref.watch(activityListProvider);
-    final isListInitialLoading =
-        (activityState.isLoading || activityState.value?.isLoading == true) &&
-        (activityState.value?.items.isEmpty ?? true);
-
-    return Row(
-      spacing: 12,
-      children: [
-        Flexible(
-          flex: 3,
-          child: Card(
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
-            ),
-            margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
-            child: ExtendedRefreshIndicator(
-              onRefresh: () async {
-                await notifier?.refresh();
-              },
-              child: CustomScrollView(
-                slivers: [
-                  if (usePostList) ...[
-                    _buildLiveStreamsOnTop(
-                      context,
-                      ref,
-                      selectedPublishers.value,
-                    ),
-                    _buildPostList(
-                      context,
-                      ref,
-                      selectedPublishers.value,
-                      selectedCategories.value,
-                      selectedTags.value,
-                    ),
-                  ] else if (isListInitialLoading)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: ConfuseSpinner(
-                          speed: 7,
-                          size: 72,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withOpacity(0.65),
-                        ),
-                      ),
-                    )
-                  else
-                    bodyView!,
-                ],
-              ),
-            ),
-          ),
-        ),
-        if (user.value != null)
-          Flexible(
-            flex: 2,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: SingleChildScrollView(
-                child: Card(
-                  margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 8,
-                    children: [
-                      Gap(4 + MediaQuery.paddingOf(context).top),
-                      _ExploreFilterToolbar(
-                        currentFilter: currentFilter,
-                        currentMode: currentMode,
-                        onFilterChange: handleFilterChange,
-                        onModeChange: handleModeChange,
-                        onOpenSubscriptionFilters: null,
-                        disableFilterSwitching: hasSubscriptionFiltersApplied,
-                        hideSubscriptionsTab: true,
-                      ).padding(horizontal: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: BoxBorder.all(
-                            color: Theme.of(context).colorScheme.outline,
-                            width: 1 / MediaQuery.devicePixelRatioOf(context),
-                          ),
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(12),
-                          ),
-                        ),
-                        margin: const EdgeInsets.symmetric(horizontal: 12),
-                        child: ValueListenableBuilder(
-                          valueListenable: currentAggressive,
-                          builder: (context, value, child) {
-                            return CheckboxListTile(
-                              title: Text('Aggressive Mode'),
-                              subtitle: Text(
-                                'Hide low rank post from your timeline.',
-                              ),
-                              value: value,
-                              onChanged: (value) {
-                                handleAggressiveChange.call(value ?? true);
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      if (currentMode == 'personalized')
-                        Container(
-                          decoration: BoxDecoration(
-                            border: BoxBorder.all(
-                              color: Theme.of(context).colorScheme.outline,
-                              width: 1 / MediaQuery.devicePixelRatioOf(context),
-                            ),
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(12),
-                            ),
-                          ),
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                          child: ListTile(
-                            title: const Text('Discovery Profile'),
-                            subtitle: const Text(
-                              'View your personalized recommendation profile',
-                            ),
-                            trailing: const Icon(Symbols.chevron_right),
-                            onTap: () => showDiscoveryProfileSheet(context),
-                            contentPadding: const EdgeInsets.only(
-                              left: 16,
-                              right: 28,
-                            ),
-                          ),
-                        ),
-                      PostSubscriptionFilterWidget(
-                        initialSelectedPublishers: selectedPublishers.value,
-                        initialSelectedCategories: selectedCategories.value,
-                        initialSelectedTags: selectedTags.value,
-                        onSelectedPublishersChanged: (names) {
-                          selectedPublishers.value = names;
-                          appSettingsNotifier.setExploreSettings(
-                            exploreSettings.copyWith(
-                              selectedPublisherNames: names,
-                            ),
-                          );
-                        },
-                        onSelectedCategoriesChanged: (ids) {
-                          selectedCategories.value = ids;
-                          appSettingsNotifier.setExploreSettings(
-                            exploreSettings.copyWith(selectedCategoryIds: ids),
-                          );
-                        },
-                        onSelectedTagsChanged: (ids) {
-                          selectedTags.value = ids;
-                          appSettingsNotifier.setExploreSettings(
-                            exploreSettings.copyWith(selectedTagIds: ids),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          )
-        else
-          Flexible(
-            flex: 2,
-            child: Card(
-              margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(Symbols.emoji_people_rounded, size: 40),
-                  const Gap(8),
-                  Text(
-                    'Welcome to\nthe Solar Network',
-                    style: Theme.of(context).textTheme.titleLarge,
-                    textAlign: TextAlign.center,
-                  ).bold(),
-                  const Gap(2),
-                  Text(
-                    'Login to explore more!',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    textAlign: TextAlign.center,
-                  ),
-                  const Gap(4),
-                  TextButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        useRootNavigator: true,
-                        isScrollControlled: true,
-                        builder: (context) => LoginModal(),
-                      );
-                    },
-                    icon: const Icon(Symbols.login),
-                    label: Text('login').tr(),
-                  ),
-                ],
-              ).padding(horizontal: 36, vertical: 16).center(),
-            ),
-          ),
-      ],
-    );
-  }
 
   Widget _buildNarrowBodySliver(
     BuildContext context,
@@ -782,260 +781,23 @@ class ExploreScreen extends HookConsumerWidget {
       onRefresh: usePostList ? () async {} : notifier.refresh,
       child: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            automaticallyImplyActions: false,
-            flexibleSpace:
-                Row(
-                  children: [
-                    PopupMenuButton<_ExploreAction>(
-                      icon: Icon(
-                        Symbols.widgets,
-                        color: Theme.of(context).appBarTheme.foregroundColor,
-                      ),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: _ExploreAction.articles,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.auto_stories,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                              const Gap(12),
-                              Text('webArticlesStand').tr(),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: _ExploreAction.livestreams,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.live_tv,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                              const Gap(12),
-                              Text('livestreams').tr(),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: _ExploreAction.categories,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.category,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                              const Gap(12),
-                              Text('categoriesAndTags').tr(),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: _ExploreAction.shuffle,
-                          child: Row(
-                            children: [
-                              Icon(
-                                Symbols.shuffle,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                              const Gap(12),
-                              Text('postShuffle').tr(),
-                            ],
-                          ),
-                        ),
-                      ],
-                      onSelected: (value) {
-                        switch (value) {
-                          case _ExploreAction.articles:
-                            context.router.push(const ArticleStandRoute());
-                            break;
-                          case _ExploreAction.livestreams:
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const ActiveLivestreamsScreen(),
-                              ),
-                            );
-                            break;
-                          case _ExploreAction.categories:
-                            context.router.push(PostCategoriesListRoute());
-                            break;
-                          case _ExploreAction.shuffle:
-                            context.router.push(const PostShuffleRoute());
-                            break;
-                          default:
-                            break;
-                        }
-                      },
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () {
-                        context.router.push(UniversalSearchRoute());
-                      },
-                      icon: Icon(
-                        Symbols.search,
-                        color: Theme.of(context).appBarTheme.foregroundColor,
-                      ),
-                      tooltip: 'search'.tr(),
-                    ),
-                  ],
-                ).padding(
-                  horizontal: 12,
-                  bottom: 8,
-                  top: MediaQuery.paddingOf(context).top + 8,
-                ),
-            title: SvgPicture.asset(
-              'assets/icons/icon-outline.svg',
-              color: Theme.of(context).appBarTheme.foregroundColor,
-              width: 32,
-              height: 32,
-            ),
-            centerTitle: true,
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(48),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: IgnorePointer(
-                      ignoring: hasSubscriptionFiltersApplied,
-                      child: TabBar(
-                        indicatorColor: Theme.of(
-                          context,
-                        ).appBarTheme.foregroundColor,
-                        controller: filterTabController,
-                        dividerHeight: 0,
-                        onTap: hasSubscriptionFiltersApplied
-                            ? null
-                            : (index) {
-                                final filter = switch (index) {
-                                  1 => 'subscriptions',
-                                  2 => 'friends',
-                                  _ => null,
-                                };
-                                handleFilterChange(filter);
-                              },
-                        tabs: [
-                          Tab(
-                            child: Row(
-                              spacing: 8,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Symbols.explore,
-                                  size: 18,
-                                  fill: filterTabController.index == 0 ? 1 : 0,
-                                  color: Theme.of(
-                                    context,
-                                  ).appBarTheme.foregroundColor,
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    'explore'.tr(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).appBarTheme.foregroundColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Tab(
-                            child: Row(
-                              spacing: 8,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Symbols.subscriptions,
-                                  size: 18,
-                                  fill: filterTabController.index == 1 ? 1 : 0,
-                                  color: Theme.of(
-                                    context,
-                                  ).appBarTheme.foregroundColor,
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    'exploreFilterSubscriptions'.tr(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).appBarTheme.foregroundColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Tab(
-                            child: Row(
-                              spacing: 8,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Symbols.people,
-                                  size: 18,
-                                  fill: filterTabController.index == 2 ? 1 : 0,
-                                  color: Theme.of(
-                                    context,
-                                  ).appBarTheme.foregroundColor,
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    'exploreFilterFriends'.tr(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).appBarTheme.foregroundColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: IconButton(
-                      onPressed: () => _showAlgorithmConfigSheet(
-                        context,
-                        selectedPublishers,
-                        selectedCategoryIds,
-                        selectedTagIds,
-                        currentAggressive,
-                        currentFilter,
-                        handleFilterChange,
-                        handleAggressiveChange,
-                        currentMode,
-                        handleModeChange,
-                        exploreSettings,
-                        appSettingsNotifier,
-                        isWide: false,
-                      ),
-                      icon: Icon(
-                        Symbols.tune,
-                        color: Theme.of(context).appBarTheme.foregroundColor,
-                      ),
-                      tooltip: 'settings'.tr(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            floating: true,
-            snap: true,
+          _buildExploreSliverAppBar(
+            context: context,
+            ref: ref,
+            filterTabController: filterTabController,
+            hasSubscriptionFiltersApplied: hasSubscriptionFiltersApplied,
+            handleFilterChange: handleFilterChange,
+            selectedPublishers: selectedPublishers,
+            selectedCategories: selectedCategoryIds,
+            selectedTags: selectedTagIds,
+            currentAggressive: currentAggressive,
+            currentFilter: currentFilter,
+            handleAggressiveChange: handleAggressiveChange,
+            currentMode: currentMode,
+            handleModeChange: handleModeChange,
+            exploreSettings: exploreSettings,
+            appSettingsNotifier: appSettingsNotifier,
+            isWide: false,
           ),
           if (usePostList) ...[
             _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
@@ -1063,6 +825,181 @@ class ExploreScreen extends HookConsumerWidget {
             _buildActivityList(context, ref),
         ],
       ),
+    );
+  }
+  Widget _buildWideBody(
+    BuildContext context,
+    WidgetRef ref,
+    TabController filterTabController,
+    ValueNotifier<String?> currentFilter,
+    ValueNotifier<String> currentMode,
+    ValueNotifier<List<String>> selectedPublishers,
+    ValueNotifier<List<String>> selectedCategories,
+    ValueNotifier<List<String>> selectedTags,
+    ValueNotifier<bool> currentAggressive,
+    void Function(String?) handleFilterChange,
+    void Function(String?) handleModeChange,
+    void Function(bool) handleAggressiveChange,
+    bool hasSubscriptionFiltersApplied,
+    ExploreSettings exploreSettings,
+    AppSettingsNotifier appSettingsNotifier,
+    ValueNotifier<String?> selectedPostId,
+    ValueNotifier<bool> isDetailExpanded,
+  ) {
+    final usePostList =
+        selectedPublishers.value.isNotEmpty ||
+        selectedCategories.value.isNotEmpty ||
+        selectedTags.value.isNotEmpty;
+
+    final notifier = usePostList
+        ? null
+        : ref.watch(activityListProvider.notifier);
+
+    final activityState = ref.watch(activityListProvider);
+    final isListInitialLoading =
+        (activityState.isLoading || activityState.value?.isLoading == true) &&
+        (activityState.value?.items.isEmpty ?? true);
+
+    const timelineContentMaxWidth = 800.0;
+
+    void handlePostTap(String postId) {
+      if (selectedPostId.value == postId) {
+        context.router.push(PostDetailRoute(id: postId));
+      } else {
+        selectedPostId.value = postId;
+        isDetailExpanded.value = false;
+      }
+    }
+
+    final postListWidget = Card(
+      elevation: 2,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
+      child: ExtendedRefreshIndicator(
+        onRefresh: () async {
+          if (notifier != null) {
+            await notifier.refresh();
+          }
+        },
+        child: CustomScrollView(
+          slivers: [
+            _buildExploreSliverAppBar(
+              context: context,
+              ref: ref,
+              filterTabController: filterTabController,
+              hasSubscriptionFiltersApplied: hasSubscriptionFiltersApplied,
+              handleFilterChange: handleFilterChange,
+              selectedPublishers: selectedPublishers,
+              selectedCategories: selectedCategories,
+              selectedTags: selectedTags,
+              currentAggressive: currentAggressive,
+              currentFilter: currentFilter,
+              handleAggressiveChange: handleAggressiveChange,
+              currentMode: currentMode,
+              handleModeChange: handleModeChange,
+              exploreSettings: exploreSettings,
+              appSettingsNotifier: appSettingsNotifier,
+              isWide: true,
+            ),
+            if (usePostList) ...[
+              _buildLiveStreamsOnTop(
+                context,
+                ref,
+                selectedPublishers.value,
+              ),
+              _buildPostList(
+                context,
+                ref,
+                selectedPublishers.value,
+                selectedCategories.value,
+                selectedTags.value,
+                onPostTap: handlePostTap,
+              ),
+            ] else if (isListInitialLoading)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: ConfuseSpinner(
+                    speed: 7,
+                    size: 72,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                  ),
+                ),
+              )
+            else
+              _buildActivityList(context, ref, onPostTap: handlePostTap),
+          ],
+        ),
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ValueListenableBuilder<String?>(
+          valueListenable: selectedPostId,
+          builder: (context, currentSelectedPostId, _) {
+            final hasSelection = currentSelectedPostId != null;
+            final totalWidth = constraints.maxWidth;
+            final listWidth = hasSelection 
+                ? (totalWidth - 28) / 2 
+                : (timelineContentMaxWidth < totalWidth ? timelineContentMaxWidth : totalWidth);
+            final detailWidth = hasSelection ? (totalWidth - 28) / 2 : 0.0;
+            
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  width: listWidth,
+                  child: postListWidget,
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  width: hasSelection ? 16 : 0,
+                  child: const SizedBox.shrink(),
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  width: detailWidth,
+                  child: hasSelection
+                      ? Container(
+                          margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: _TimelineDetailPane(
+                            postId: currentSelectedPostId,
+                            isExpanded: false,
+                            onExpandToggle: () {
+                              context.router.push(PostDetailRoute(id: currentSelectedPostId));
+                            },
+                            onClose: () {
+                              selectedPostId.value = null;
+                            },
+                            onPostTap: handlePostTap,
+                          ),
+                        )
+                      : null,
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -1990,15 +1927,234 @@ class AccountDiscoveryCard extends ConsumerWidget {
   }
 }
 
+
+class _TimelineDetailPane extends HookConsumerWidget {
+  final String postId;
+  final bool isExpanded;
+  final VoidCallback onExpandToggle;
+  final VoidCallback onClose;
+  final void Function(String)? onPostTap;
+
+  const _TimelineDetailPane({
+    required this.postId,
+    required this.isExpanded,
+    required this.onExpandToggle,
+    required this.onClose,
+    this.onPostTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final postState = ref.watch(postStateProvider(postId));
+    final user = ref.watch(userInfoProvider);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.18),
+          width: 1,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.12),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Tooltip(
+                  message: isExpanded ? 'Restore split view' : 'Expand post details',
+                  child: IconButton(
+                    onPressed: onExpandToggle,
+                    icon: Icon(
+                      isExpanded 
+                          ? Symbols.fullscreen_exit 
+                          : Symbols.fullscreen,
+                      size: 20,
+                    ),
+                    style: IconButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Tooltip(
+                  message: 'Close post details',
+                  child: IconButton(
+                    onPressed: onClose,
+                    icon: Icon(
+                      Symbols.close,
+                      size: 20,
+                    ),
+                    style: IconButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: postState.when(
+                data: (post) {
+                  if (post == null) {
+                    return Center(
+                      key: const ValueKey('error'),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Symbols.error_outline,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const Gap(12),
+                          Text(
+                            'Post not found',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Stack(
+                    key: ValueKey(postId),
+                    children: [
+                    ExtendedRefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(postProvider(postId));
+                        ref.read(postRepliesProvider(postId).notifier).refresh();
+                      },
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: PostItem(
+                              item: post,
+                              isFullPost: true,
+                              isEmbedReply: false,
+                              textScale: post.type == 1 ? 1.1 : 1.0,
+                              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                              onUpdate: (newPost) {
+                                ref
+                                    .read(postStateProvider(postId).notifier)
+                                    .updatePost(newPost);
+                              },
+                              onPostTap: onPostTap,
+                            ),
+                          ),
+                          SliverToBoxAdapter(
+                            child: PostActionButtons(
+                              post: post,
+                              renderingPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              onRefresh: () {
+                                ref.invalidate(postProvider(postId));
+                                ref.read(postRepliesProvider(postId).notifier).refresh();
+                              },
+                              onUpdate: (newPost) {
+                                ref
+                                    .read(postStateProvider(postId).notifier)
+                                    .updatePost(newPost);
+                              },
+                            ).padding(horizontal: 12, vertical: 8),
+                          ),
+                          SliverFillRemaining(
+                            hasScrollBody: true,
+                            child: DefaultTabController(
+                              length: 4,
+                              child: PostInteractionsTabs(
+                                postId: postId,
+                                maxWidth: 800,
+                              ),
+                            ),
+                          ),
+                          SliverGap(MediaQuery.of(context).padding.bottom + 80),
+                        ],
+                      ),
+                    ),
+                    if (user.value != null)
+                      Positioned(
+                        bottom: 16 + MediaQuery.of(context).padding.bottom,
+                        left: 16,
+                        right: 16,
+                        child: PostQuickReply(
+                          parent: post,
+                          onPosted: () {
+                            ref.read(postRepliesProvider(postId).notifier).refresh();
+                          },
+                        ),
+                      ),
+                  ],
+                );
+              },
+              loading: () => Center(
+                key: const ValueKey('loading'),
+                child: ConfuseSpinner(
+                  speed: 7,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.65),
+                ),
+              ),
+              error: (error, _) => Center(
+                key: const ValueKey('error_load'),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.error_outline,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const Gap(12),
+                    Text(
+                      'Failed to load post',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const Gap(8),
+                    TextButton(
+                      onPressed: () => ref.invalidate(postProvider(postId)),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+  }
+}
+
 class _ActivityListView extends HookConsumerWidget {
   final List<SnTimelineEvent> data;
   final bool isWide;
   final Widget footer;
+  final void Function(String)? onPostTap;
 
   const _ActivityListView({
     required this.data,
     required this.isWide,
     required this.footer,
+    this.onPostTap,
   });
 
   @override
@@ -2040,8 +2196,9 @@ class _ActivityListView extends HookConsumerWidget {
                   item.copyWith(data: updatedPost.toJson()),
                 );
               },
+              onTap: onPostTap != null ? () => onPostTap!(post.id) : null,
+              onPostTap: onPostTap,
             );
-            itemWidget = itemWidget;
             break;
           case 'discovery':
           case 'discovery.v2':
