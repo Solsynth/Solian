@@ -275,6 +275,35 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     state = state.copyWith(attachmentProgress: newProgress);
   }
 
+  void updateAttachmentUploadProgress(int index, double? progress) {
+    if (index < 0 || index >= state.attachments.length) return;
+    final newProgress = Map<String, Map<int, double?>>.from(
+      state.attachmentProgress,
+    );
+    final uploadProgress = Map<int, double?>.from(
+      newProgress['chat-upload'] ?? const {},
+    );
+    uploadProgress[index] = progress;
+    newProgress['chat-upload'] = uploadProgress;
+    state = state.copyWith(attachmentProgress: newProgress);
+  }
+
+  void clearAttachmentUploadProgress(int index) {
+    final newProgress = Map<String, Map<int, double?>>.from(
+      state.attachmentProgress,
+    );
+    final uploadProgress = Map<int, double?>.from(
+      newProgress['chat-upload'] ?? const {},
+    );
+    uploadProgress.remove(index);
+    if (uploadProgress.isEmpty) {
+      newProgress.remove('chat-upload');
+    } else {
+      newProgress['chat-upload'] = uploadProgress;
+    }
+    state = state.copyWith(attachmentProgress: newProgress);
+  }
+
   void setEditingTo(SnChatMessage? message) {
     if (message != null) {
       messageController.text = message.content ?? '';

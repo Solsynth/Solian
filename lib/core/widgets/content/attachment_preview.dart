@@ -421,7 +421,7 @@ class AttachmentPreview extends HookConsumerWidget {
             return Placeholder();
           },
         ),
-        if (isUploading && progress != null && (progress ?? 0) > 0)
+        if (isUploading && progress != null)
           Positioned.fill(
             child: Container(
               color: Colors.black.withOpacity(0.3),
@@ -431,13 +431,16 @@ class AttachmentPreview extends HookConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    '${(progress! * 100).toStringAsFixed(2)}%',
+                    '${(progress!.clamp(0.0, 1.0) * 100).toStringAsFixed(0)}%',
                     style: TextStyle(color: Colors.white),
                   ),
                   Gap(6),
                   Center(
                     child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: progress),
+                      tween: Tween<double>(
+                        begin: 0.0,
+                        end: progress!.clamp(0.0, 1.0),
+                      ),
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                       builder: (context, value, child) =>

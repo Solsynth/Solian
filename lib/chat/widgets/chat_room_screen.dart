@@ -440,8 +440,9 @@ class ChatRoomScreen extends HookConsumerWidget {
       );
       if (config == null) return;
 
+      var trackedIndex = index;
       try {
-        chatStateNotifier.updateAttachmentProgress('chat-upload', 0);
+        chatStateNotifier.updateAttachmentUploadProgress(trackedIndex, 0);
 
         final cloudFile = await ref
             .read(driveFileUploaderProvider)
@@ -453,8 +454,17 @@ class ChatRoomScreen extends HookConsumerWidget {
                   ? FileUploadMode.generic
                   : FileUploadMode.mediaSafe,
               onProgress: (progress, _) {
-                chatStateNotifier.updateAttachmentProgress(
-                  'chat-upload',
+                final latestAttachments = ref
+                    .read(chatRoomStateProvider(id))
+                    .attachments;
+                final currentIndex = latestAttachments.indexOf(attachment);
+                if (currentIndex == -1) return;
+                if (currentIndex != trackedIndex) {
+                  chatStateNotifier.clearAttachmentUploadProgress(trackedIndex);
+                  trackedIndex = currentIndex;
+                }
+                chatStateNotifier.updateAttachmentUploadProgress(
+                  currentIndex,
                   progress ?? 0.0,
                 );
               },
@@ -465,16 +475,22 @@ class ChatRoomScreen extends HookConsumerWidget {
           throw ArgumentError('Failed to upload file...');
         }
 
-        final clone = List.of(chatState.attachments);
-        clone[index] = UniversalFile(data: cloudFile, type: attachment.type);
+        final latestAttachments = ref
+            .read(chatRoomStateProvider(id))
+            .attachments;
+        final currentIndex = latestAttachments.indexOf(attachment);
+        if (currentIndex == -1) return;
+
+        final clone = List<UniversalFile>.of(latestAttachments);
+        clone[currentIndex] = UniversalFile(
+          data: cloudFile,
+          type: attachment.type,
+        );
         chatStateNotifier.updateAttachments(clone);
       } catch (err) {
         showErrorAlert(err.toString());
       } finally {
-        final newProgress = Map<String, Map<int, double?>>.from(
-          chatState.attachmentProgress,
-        );
-        newProgress.remove('chat-upload');
+        chatStateNotifier.clearAttachmentUploadProgress(trackedIndex);
       }
     }, [chatState.attachments, chatStateNotifier, ref, context]);
 
