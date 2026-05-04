@@ -1170,7 +1170,23 @@ class SettingsScreen extends HookConsumerWidget {
                   ),
                 ),
               ),
+            ),            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsFriendStatusDesktopNotification').tr(),
+              subtitle: Text('settingsFriendStatusDesktopNotificationHelper'.tr())
+                  .fontSize(12),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.notifications_active),
+              trailing: Switch(
+                value: settings.friendStatusDesktopNotification,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setFriendStatusDesktopNotification(value);
+                },
+              ),
             ),
+
           ];
 
     // Storage settings

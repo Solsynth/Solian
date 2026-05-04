@@ -535,7 +535,6 @@ class _WebSocketIndicator extends HookConsumerWidget {
       indicatorColor = Colors.green;
       indicatorText = 'connectionConnected';
       indicatorIcon = Icon(
-        key: ValueKey('ws_connected'),
         Symbols.power,
         color: Colors.white,
         size: 16,
@@ -546,7 +545,6 @@ class _WebSocketIndicator extends HookConsumerWidget {
       indicatorColor = Colors.teal;
       indicatorText = 'connectionReconnecting';
       indicatorIcon = SizedBox(
-        key: ValueKey('ws_connecting'),
         width: 16,
         height: 16,
         child: CircularProgressIndicator(
@@ -562,7 +560,6 @@ class _WebSocketIndicator extends HookConsumerWidget {
       indicatorText = 'connectionServerDown';
       isInteractive = true;
       indicatorIcon = Icon(
-        key: ValueKey('ws_server_down'),
         Symbols.power_off,
         color: Colors.white,
         size: 16,
@@ -572,7 +569,6 @@ class _WebSocketIndicator extends HookConsumerWidget {
       indicatorColor = Colors.red;
       indicatorText = 'connectionDisconnected';
       indicatorIcon = Icon(
-        key: ValueKey('ws_disconnected'),
         Symbols.power_off,
         color: Colors.white,
         size: 16,

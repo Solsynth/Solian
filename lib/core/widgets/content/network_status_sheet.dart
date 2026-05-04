@@ -210,15 +210,43 @@ class NetworkStatusSheet extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               spacing: 8,
               children: [
-                FilledButton.icon(
-                  icon: const Icon(Symbols.wifi),
-                  label: const Text('Reconnect'),
-                  onPressed: hasConnectivity
-                      ? () {
-                          wsNotifier.manualReconnect();
-                        }
-                      : null,
-                ),
+                if (wsState == WebSocketState.connected())
+                  OutlinedButton.icon(
+                    icon: const Icon(Symbols.link_off),
+                    label: const Text('Disconnect'),
+                    onPressed: () {
+                      wsNotifier.close();
+                    },
+                  ),
+                if (wsState != WebSocketState.connected())
+                  FilledButton.icon(
+                    icon: const Icon(Symbols.wifi),
+                    label: const Text('Connect'),
+                    onPressed: hasConnectivity
+                        ? () {
+                            wsNotifier.connect();
+                          }
+                        : null,
+                  ),
+                if (wsState == WebSocketState.connected() ||
+                    wsState == WebSocketState.disconnected() ||
+                    wsState.when(
+                      connected: () => false,
+                      connecting: () => false,
+                      disconnected: () => false,
+                      serverDown: () => false,
+                      duplicateDevice: () => false,
+                      error: (_) => true,
+                    ))
+                  FilledButton.icon(
+                    icon: const Icon(Symbols.sync),
+                    label: const Text('Reconnect'),
+                    onPressed: hasConnectivity
+                        ? () {
+                            wsNotifier.manualReconnect();
+                          }
+                        : null,
+                  ),
               ],
             ),
           ],
