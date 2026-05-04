@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/websocket.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -19,6 +19,15 @@ part 'friends_overview.g.dart';
 @riverpod
 Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
+  final websocket = ref.watch(websocketProvider);
+  final subscription = websocket.dataStream.listen((packet) {
+    if (packet.type == 'account.status.updated' ||
+        packet.type == 'account.presence.activities.updated') {
+      ref.invalidateSelf();
+    }
+  });
+  ref.onDispose(subscription.cancel);
+
   final friends = await client.accounts.getFriendsOverview();
   return friends;
 }
@@ -35,15 +44,6 @@ class FriendsOverviewWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Set up periodic refresh every minute
-    useEffect(() {
-      final timer = Timer.periodic(const Duration(minutes: 1), (_) {
-        ref.invalidate(friendsOverviewProvider);
-      });
-
-      return () => timer.cancel(); // Cleanup when widget is disposed
-    }, const []);
-
     final friendsOverviewAsync = ref.watch(friendsOverviewProvider);
 
     return friendsOverviewAsync.when(
