@@ -23,6 +23,8 @@ class PostItemCreator extends HookConsumerWidget {
   final bool isOpenable;
   final Function? onRefresh;
   final Function(SnPost)? onUpdate;
+  final VoidCallback? onTap;
+  final void Function(String)? onPostTap;
 
   const PostItemCreator({
     super.key,
@@ -32,6 +34,8 @@ class PostItemCreator extends HookConsumerWidget {
     this.isOpenable = true,
     this.onRefresh,
     this.onUpdate,
+    this.onTap,
+    this.onPostTap,
   });
 
   @override
@@ -108,6 +112,10 @@ class PostItemCreator extends HookConsumerWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
+            if (onTap != null) {
+              onTap!();
+              return;
+            }
             if (isOpenable) {
               context.router.push(PostDetailRoute(id: item.id));
             }
@@ -118,6 +126,7 @@ class PostItemCreator extends HookConsumerWidget {
               ReferencedPostWidget(
                 item: item,
                 renderingPadding: renderingPadding,
+                onPostTap: onPostTap,
               ),
               PostHeader(item: item, renderingPadding: renderingPadding),
               PostBody(item: item, renderingPadding: renderingPadding),
