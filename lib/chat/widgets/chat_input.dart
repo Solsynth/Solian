@@ -213,8 +213,10 @@ class _ChatTimeoutBanner extends StatelessWidget {
   }
 }
 
-class _ExpandedSection extends StatelessWidget {
+class _ExpandedSection extends StatefulWidget {
   final TextEditingController messageController;
+  final int selectedTabIndex;
+  final ValueChanged<int> onTabChanged;
   final VoidCallback onPickPhoto;
   final VoidCallback onPickVideo;
   final VoidCallback onPickAudio;
@@ -234,6 +236,8 @@ class _ExpandedSection extends StatelessWidget {
 
   const _ExpandedSection({
     required this.messageController,
+    required this.selectedTabIndex,
+    required this.onTabChanged,
     required this.onPickPhoto,
     required this.onPickVideo,
     required this.onPickAudio,
@@ -253,6 +257,40 @@ class _ExpandedSection extends StatelessWidget {
   });
 
   @override
+  State<_ExpandedSection> createState() => _ExpandedSectionState();
+}
+
+class _ExpandedSectionState extends State<_ExpandedSection>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  late int _lastReportedTabIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 3,
+      initialIndex: widget.selectedTabIndex.clamp(0, 2),
+      vsync: this,
+    );
+    _lastReportedTabIndex = _tabController.index;
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_tabController.index == _lastReportedTabIndex) return;
+    _lastReportedTabIndex = _tabController.index;
+    widget.onTabChanged(_tabController.index);
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       key: const ValueKey('expanded'),
@@ -263,200 +301,187 @@ class _ExpandedSection extends StatelessWidget {
       margin: const EdgeInsets.only(top: 8, bottom: 3),
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(32)),
-        child: DefaultTabController(
-          length: 3,
-          child: Column(
-            children: [
-              PreferredSize(
-                preferredSize: const Size.fromHeight(kExpandedSectionTabHeight),
-                child: TabBar(
-                  splashBorderRadius: const BorderRadius.all(
-                    Radius.circular(40),
+        child: Column(
+          children: [
+            PreferredSize(
+              preferredSize: const Size.fromHeight(kExpandedSectionTabHeight),
+              child: TabBar(
+                controller: _tabController,
+                splashBorderRadius: const BorderRadius.all(Radius.circular(40)),
+                tabs: [
+                  Tab(text: 'features'.tr(), height: kExpandedSectionTabHeight),
+                  Tab(
+                    height: kExpandedSectionTabHeight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('attachments'.tr()),
+                        if (widget.attachments.isNotEmpty) ...[
+                          const Gap(6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              widget.attachments.length.toString(),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                  tabs: [
-                    Tab(
-                      text: 'features'.tr(),
-                      height: kExpandedSectionTabHeight,
-                    ),
-                    Tab(
-                      height: kExpandedSectionTabHeight,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('attachments'.tr()),
-                          if (attachments.isNotEmpty) ...[
-                            const Gap(6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                attachments.length.toString(),
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    Tab(
-                      text: 'stickers'.tr(),
-                      height: kExpandedSectionTabHeight,
-                    ),
-                  ],
-                ),
+                  Tab(text: 'stickers'.tr(), height: kExpandedSectionTabHeight),
+                ],
               ),
-              SizedBox(
-                height: kInputDrawerExpandedHeight,
-                child: TabBarView(
-                  children: [
-                    SizedBox(
-                      height: kInputDrawerExpandedHeight,
-                      child: GridView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
+            ),
+            SizedBox(
+              height: kInputDrawerExpandedHeight,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  SizedBox(
+                    height: kInputDrawerExpandedHeight,
+                    child: GridView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 120,
+                            childAspectRatio: 1, // 1:1 aspect ratio
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                          ),
+                      children: [
+                        InkWell(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          onTap: () async {
+                            final poll = await showModalBottomSheet<SnPoll>(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) => const ComposePollSheet(),
+                            );
+                            if (poll != null) {
+                              widget.onPollSelected(poll);
+                            }
+                          },
+                          child: Card(
+                            margin: EdgeInsets.zero,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Symbols.poll),
+                                const Gap(4),
+                                Text(
+                                  'Poll',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        gridDelegate:
-                            const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 120,
-                              childAspectRatio: 1, // 1:1 aspect ratio
-                              mainAxisSpacing: 8,
-                              crossAxisSpacing: 8,
-                            ),
-                        children: [
-                          InkWell(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                            onTap: () async {
-                              final poll = await showModalBottomSheet<SnPoll>(
-                                context: context,
-                                isScrollControlled: true,
-                                builder: (context) => const ComposePollSheet(),
-                              );
-                              if (poll != null) {
-                                onPollSelected(poll);
-                              }
-                            },
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Symbols.poll),
-                                  const Gap(4),
-                                  Text(
-                                    'Poll',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
+                        InkWell(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          onTap: widget.onEnableVoiceMode,
+                          child: Card(
+                            margin: EdgeInsets.zero,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Symbols.mic),
+                                const Gap(4),
+                                Text(
+                                  'Voice',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
                             ),
                           ),
-                          InkWell(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                            onTap: onEnableVoiceMode,
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Symbols.mic),
-                                  const Gap(4),
-                                  Text(
-                                    'Voice',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
+                        ),
+                        InkWell(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          onTap: () async {
+                            final fund =
+                                await showModalBottomSheet<SnWalletFund>(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (context) =>
+                                      const ComposeFundSheet(),
+                                );
+                            if (fund != null) {
+                              widget.onFundSelected(fund);
+                            }
+                          },
+                          child: Card(
+                            margin: EdgeInsets.zero,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Symbols.currency_exchange),
+                                const Gap(4),
+                                Text(
+                                  'fund'.tr(),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
                             ),
                           ),
-                          InkWell(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(8),
-                            ),
-                            onTap: () async {
-                              final fund =
-                                  await showModalBottomSheet<SnWalletFund>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (context) =>
-                                        const ComposeFundSheet(),
-                                  );
-                              if (fund != null) {
-                                onFundSelected(fund);
-                              }
-                            },
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Symbols.currency_exchange),
-                                  const Gap(4),
-                                  Text(
-                                    'fund'.tr(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    _AttachmentsExpandedTab(
-                      onPickPhoto: onPickPhoto,
-                      onPickVideo: onPickVideo,
-                      onPickAudio: onPickAudio,
-                      onPickGeneralFile: onPickGeneralFile,
-                      attachments: attachments,
-                      onUploadAttachment: onUploadAttachment,
-                      onDeleteAttachment: onDeleteAttachment,
-                      onMoveAttachment: onMoveAttachment,
-                      onAttachmentsChanged: onAttachmentsChanged,
-                      attachmentProgress: attachmentProgress,
-                      roomEncryptKey: roomEncryptKey,
+                  ),
+                  _AttachmentsExpandedTab(
+                    onPickPhoto: widget.onPickPhoto,
+                    onPickVideo: widget.onPickVideo,
+                    onPickAudio: widget.onPickAudio,
+                    onPickGeneralFile: widget.onPickGeneralFile,
+                    attachments: widget.attachments,
+                    onUploadAttachment: widget.onUploadAttachment,
+                    onDeleteAttachment: widget.onDeleteAttachment,
+                    onMoveAttachment: widget.onMoveAttachment,
+                    onAttachmentsChanged: widget.onAttachmentsChanged,
+                    attachmentProgress: widget.attachmentProgress,
+                    roomEncryptKey: widget.roomEncryptKey,
+                  ),
+                  StickerPickerEmbedded(
+                    height: kInputDrawerExpandedHeight,
+                    onPick: (placeholder) => _insertPlaceholder(
+                      widget.messageController,
+                      placeholder,
                     ),
-                    StickerPickerEmbedded(
-                      height: kInputDrawerExpandedHeight,
-                      onPick: (placeholder) =>
-                          _insertPlaceholder(messageController, placeholder),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -745,6 +770,7 @@ class ChatInput extends HookConsumerWidget {
     final roomIdentity = ref.watch(chatRoomIdentityProvider(chatRoom.id));
     final chatSubscribe = ref.watch(chatSubscribeProvider(chatRoom.id));
     final isExpanded = useState(false);
+    final expandedTabIndex = useState(0);
     final isDraggingOver = useState(false);
     final isVoiceMode = useState(false);
     final isRecordingVoice = useState(false);
@@ -1949,6 +1975,10 @@ class ChatInput extends HookConsumerWidget {
                       child: isExpanded.value
                           ? _ExpandedSection(
                               messageController: messageController,
+                              selectedTabIndex: expandedTabIndex.value,
+                              onTabChanged: (index) {
+                                expandedTabIndex.value = index;
+                              },
                               onPickPhoto: () => onPickFile(true),
                               onPickVideo: () => onPickFile(false),
                               onPickAudio: onPickAudio,
