@@ -274,6 +274,8 @@ class AccountsApi extends BaseApi {
     try {
       final response = await get<Map<String, dynamic>>(
         '$_basePath/accounts/me/check-in',
+        queryParameters: {'version': 2},
+        options: Options(receiveTimeout: const Duration(seconds: 20)),
       );
       return SnCheckInResult.fromJson(response.data!);
     } on DioException catch (e) {
@@ -290,7 +292,9 @@ class AccountsApi extends BaseApi {
   Future<void> checkIn({String? captchaToken}) async {
     await post(
       '$_basePath/accounts/me/check-in',
+      queryParameters: {'version': 2},
       data: captchaToken != null ? jsonEncode(captchaToken) : null,
+      options: Options(receiveTimeout: const Duration(seconds: 20)),
     );
   }
 

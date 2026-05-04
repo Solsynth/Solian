@@ -69,13 +69,13 @@ class EventCalendarContent extends HookConsumerWidget {
               onDaySelected: onDaySelected,
               canAddEvents: name == 'me',
               onAddEvent: name == 'me'
-                  ? (date) async {
+                  ? (date, {event}) async {
                       final result = await showCalendarEventSheet(
                         context,
+                        initialEvent: event,
                         initialDate: date,
                       );
                       if (result == true) {
-                        // Refresh the calendar
                         ref.invalidate(eventCalendarProvider(query.value));
                       }
                     }
@@ -117,13 +117,13 @@ class EventCalendarContent extends HookConsumerWidget {
                             onDaySelected: onDaySelected,
                             canAddEvents: name == 'me',
                             onAddEvent: name == 'me'
-                                ? (date) async {
+                                ? (date, {event}) async {
                                     final result = await showCalendarEventSheet(
                                       context,
+                                      initialEvent: event,
                                       initialDate: date,
                                     );
                                     if (result == true) {
-                                      // Refresh the calendar
                                       ref.invalidate(
                                         eventCalendarProvider(query.value),
                                       );
@@ -159,13 +159,13 @@ class EventCalendarContent extends HookConsumerWidget {
                     onDaySelected: onDaySelected,
                     canAddEvents: name == 'me',
                     onAddEvent: name == 'me'
-                        ? (date) async {
+                        ? (date, {event}) async {
                             final result = await showCalendarEventSheet(
                               context,
+                              initialEvent: event,
                               initialDate: date,
                             );
                             if (result == true) {
-                              // Refresh the calendar
                               ref.invalidate(
                                 eventCalendarProvider(query.value),
                               );

@@ -10,7 +10,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class EventDetailsWidget extends StatelessWidget {
   final DateTime selectedDay;
   final SnEventCalendarEntry? event;
-  final void Function(DateTime)? onEditEvent;
+  final void Function(DateTime, {SnUserCalendarEvent? event})? onEditEvent;
 
   const EventDetailsWidget({
     super.key,
@@ -323,7 +323,9 @@ class EventDetailsWidget extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: onEditEvent != null ? () => onEditEvent!(selectedDay) : null,
+        onTap: onEditEvent != null
+            ? () => onEditEvent!(selectedDay, event: userEvent)
+            : null,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),

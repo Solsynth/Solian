@@ -568,7 +568,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnCheckInResult {
 
- String get id; int get level; List<SnFortuneTip> get tips; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; int get level; List<SnFortuneTip> get tips; SnCheckInFortuneReport? get fortuneReport; String get accountId; SnAccount? get account; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnCheckInResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -581,16 +581,16 @@ $SnCheckInResultCopyWith<SnCheckInResult> get copyWith => _$SnCheckInResultCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCheckInResult&&(identical(other.id, id) || other.id == id)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other.tips, tips)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCheckInResult&&(identical(other.id, id) || other.id == id)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other.tips, tips)&&(identical(other.fortuneReport, fortuneReport) || other.fortuneReport == fortuneReport)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,level,const DeepCollectionEquality().hash(tips),accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,level,const DeepCollectionEquality().hash(tips),fortuneReport,accountId,account,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnCheckInResult(id: $id, level: $level, tips: $tips, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnCheckInResult(id: $id, level: $level, tips: $tips, fortuneReport: $fortuneReport, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -601,11 +601,11 @@ abstract mixin class $SnCheckInResultCopyWith<$Res>  {
   factory $SnCheckInResultCopyWith(SnCheckInResult value, $Res Function(SnCheckInResult) _then) = _$SnCheckInResultCopyWithImpl;
 @useResult
 $Res call({
- String id, int level, List<SnFortuneTip> tips, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int level, List<SnFortuneTip> tips, SnCheckInFortuneReport? fortuneReport, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnAccountCopyWith<$Res>? get account;
+$SnCheckInFortuneReportCopyWith<$Res>? get fortuneReport;$SnAccountCopyWith<$Res>? get account;
 
 }
 /// @nodoc
@@ -618,12 +618,13 @@ class _$SnCheckInResultCopyWithImpl<$Res>
 
 /// Create a copy of SnCheckInResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? level = null,Object? tips = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? level = null,Object? tips = null,Object? fortuneReport = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
 as int,tips: null == tips ? _self.tips : tips // ignore: cast_nullable_to_non_nullable
-as List<SnFortuneTip>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as List<SnFortuneTip>,fortuneReport: freezed == fortuneReport ? _self.fortuneReport : fortuneReport // ignore: cast_nullable_to_non_nullable
+as SnCheckInFortuneReport?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -632,6 +633,18 @@ as DateTime?,
   ));
 }
 /// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCheckInFortuneReportCopyWith<$Res>? get fortuneReport {
+    if (_self.fortuneReport == null) {
+    return null;
+  }
+
+  return $SnCheckInFortuneReportCopyWith<$Res>(_self.fortuneReport!, (value) {
+    return _then(_self.copyWith(fortuneReport: value));
+  });
+}/// Create a copy of SnCheckInResult
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -722,10 +735,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int level,  List<SnFortuneTip> tips,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int level,  List<SnFortuneTip> tips,  SnCheckInFortuneReport? fortuneReport,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnCheckInResult() when $default != null:
-return $default(_that.id,_that.level,_that.tips,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.level,_that.tips,_that.fortuneReport,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -743,10 +756,10 @@ return $default(_that.id,_that.level,_that.tips,_that.accountId,_that.account,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int level,  List<SnFortuneTip> tips,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int level,  List<SnFortuneTip> tips,  SnCheckInFortuneReport? fortuneReport,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnCheckInResult():
-return $default(_that.id,_that.level,_that.tips,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.level,_that.tips,_that.fortuneReport,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -760,10 +773,10 @@ return $default(_that.id,_that.level,_that.tips,_that.accountId,_that.account,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int level,  List<SnFortuneTip> tips,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int level,  List<SnFortuneTip> tips,  SnCheckInFortuneReport? fortuneReport,  String accountId,  SnAccount? account,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnCheckInResult() when $default != null:
-return $default(_that.id,_that.level,_that.tips,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.level,_that.tips,_that.fortuneReport,_that.accountId,_that.account,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -775,7 +788,7 @@ return $default(_that.id,_that.level,_that.tips,_that.accountId,_that.account,_t
 @JsonSerializable()
 
 class _SnCheckInResult implements SnCheckInResult {
-  const _SnCheckInResult({required this.id, required this.level, required final  List<SnFortuneTip> tips, required this.accountId, required this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _tips = tips;
+  const _SnCheckInResult({required this.id, required this.level, required final  List<SnFortuneTip> tips, this.fortuneReport, required this.accountId, required this.account, required this.createdAt, required this.updatedAt, required this.deletedAt}): _tips = tips;
   factory _SnCheckInResult.fromJson(Map<String, dynamic> json) => _$SnCheckInResultFromJson(json);
 
 @override final  String id;
@@ -787,6 +800,7 @@ class _SnCheckInResult implements SnCheckInResult {
   return EqualUnmodifiableListView(_tips);
 }
 
+@override final  SnCheckInFortuneReport? fortuneReport;
 @override final  String accountId;
 @override final  SnAccount? account;
 @override final  DateTime createdAt;
@@ -806,16 +820,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCheckInResult&&(identical(other.id, id) || other.id == id)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other._tips, _tips)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCheckInResult&&(identical(other.id, id) || other.id == id)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other._tips, _tips)&&(identical(other.fortuneReport, fortuneReport) || other.fortuneReport == fortuneReport)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,level,const DeepCollectionEquality().hash(_tips),accountId,account,createdAt,updatedAt,deletedAt);
+int get hashCode => Object.hash(runtimeType,id,level,const DeepCollectionEquality().hash(_tips),fortuneReport,accountId,account,createdAt,updatedAt,deletedAt);
 
 @override
 String toString() {
-  return 'SnCheckInResult(id: $id, level: $level, tips: $tips, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnCheckInResult(id: $id, level: $level, tips: $tips, fortuneReport: $fortuneReport, accountId: $accountId, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -826,11 +840,11 @@ abstract mixin class _$SnCheckInResultCopyWith<$Res> implements $SnCheckInResult
   factory _$SnCheckInResultCopyWith(_SnCheckInResult value, $Res Function(_SnCheckInResult) _then) = __$SnCheckInResultCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int level, List<SnFortuneTip> tips, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, int level, List<SnFortuneTip> tips, SnCheckInFortuneReport? fortuneReport, String accountId, SnAccount? account, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnAccountCopyWith<$Res>? get account;
+@override $SnCheckInFortuneReportCopyWith<$Res>? get fortuneReport;@override $SnAccountCopyWith<$Res>? get account;
 
 }
 /// @nodoc
@@ -843,12 +857,13 @@ class __$SnCheckInResultCopyWithImpl<$Res>
 
 /// Create a copy of SnCheckInResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? level = null,Object? tips = null,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? level = null,Object? tips = null,Object? fortuneReport = freezed,Object? accountId = null,Object? account = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnCheckInResult(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
 as int,tips: null == tips ? _self._tips : tips // ignore: cast_nullable_to_non_nullable
-as List<SnFortuneTip>,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as List<SnFortuneTip>,fortuneReport: freezed == fortuneReport ? _self.fortuneReport : fortuneReport // ignore: cast_nullable_to_non_nullable
+as SnCheckInFortuneReport?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -861,6 +876,18 @@ as DateTime?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
+$SnCheckInFortuneReportCopyWith<$Res>? get fortuneReport {
+    if (_self.fortuneReport == null) {
+    return null;
+  }
+
+  return $SnCheckInFortuneReportCopyWith<$Res>(_self.fortuneReport!, (value) {
+    return _then(_self.copyWith(fortuneReport: value));
+  });
+}/// Create a copy of SnCheckInResult
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
 $SnAccountCopyWith<$Res>? get account {
     if (_self.account == null) {
     return null;
@@ -870,6 +897,287 @@ $SnAccountCopyWith<$Res>? get account {
     return _then(_self.copyWith(account: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$SnCheckInFortuneReport {
+
+ int get version; String get poem; String get summary; String get wish; String get love; String get study; String get career; String get health; String get lostItem;
+/// Create a copy of SnCheckInFortuneReport
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnCheckInFortuneReportCopyWith<SnCheckInFortuneReport> get copyWith => _$SnCheckInFortuneReportCopyWithImpl<SnCheckInFortuneReport>(this as SnCheckInFortuneReport, _$identity);
+
+  /// Serializes this SnCheckInFortuneReport to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCheckInFortuneReport&&(identical(other.version, version) || other.version == version)&&(identical(other.poem, poem) || other.poem == poem)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.wish, wish) || other.wish == wish)&&(identical(other.love, love) || other.love == love)&&(identical(other.study, study) || other.study == study)&&(identical(other.career, career) || other.career == career)&&(identical(other.health, health) || other.health == health)&&(identical(other.lostItem, lostItem) || other.lostItem == lostItem));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,version,poem,summary,wish,love,study,career,health,lostItem);
+
+@override
+String toString() {
+  return 'SnCheckInFortuneReport(version: $version, poem: $poem, summary: $summary, wish: $wish, love: $love, study: $study, career: $career, health: $health, lostItem: $lostItem)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnCheckInFortuneReportCopyWith<$Res>  {
+  factory $SnCheckInFortuneReportCopyWith(SnCheckInFortuneReport value, $Res Function(SnCheckInFortuneReport) _then) = _$SnCheckInFortuneReportCopyWithImpl;
+@useResult
+$Res call({
+ int version, String poem, String summary, String wish, String love, String study, String career, String health, String lostItem
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnCheckInFortuneReportCopyWithImpl<$Res>
+    implements $SnCheckInFortuneReportCopyWith<$Res> {
+  _$SnCheckInFortuneReportCopyWithImpl(this._self, this._then);
+
+  final SnCheckInFortuneReport _self;
+  final $Res Function(SnCheckInFortuneReport) _then;
+
+/// Create a copy of SnCheckInFortuneReport
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,}) {
+  return _then(_self.copyWith(
+version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,poem: null == poem ? _self.poem : poem // ignore: cast_nullable_to_non_nullable
+as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as String,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
+as String,love: null == love ? _self.love : love // ignore: cast_nullable_to_non_nullable
+as String,study: null == study ? _self.study : study // ignore: cast_nullable_to_non_nullable
+as String,career: null == career ? _self.career : career // ignore: cast_nullable_to_non_nullable
+as String,health: null == health ? _self.health : health // ignore: cast_nullable_to_non_nullable
+as String,lostItem: null == lostItem ? _self.lostItem : lostItem // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnCheckInFortuneReport].
+extension SnCheckInFortuneReportPatterns on SnCheckInFortuneReport {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnCheckInFortuneReport value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnCheckInFortuneReport() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnCheckInFortuneReport value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnCheckInFortuneReport():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnCheckInFortuneReport value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnCheckInFortuneReport() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String wish,  String love,  String study,  String career,  String health,  String lostItem)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnCheckInFortuneReport() when $default != null:
+return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String wish,  String love,  String study,  String career,  String health,  String lostItem)  $default,) {final _that = this;
+switch (_that) {
+case _SnCheckInFortuneReport():
+return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int version,  String poem,  String summary,  String wish,  String love,  String study,  String career,  String health,  String lostItem)?  $default,) {final _that = this;
+switch (_that) {
+case _SnCheckInFortuneReport() when $default != null:
+return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnCheckInFortuneReport implements SnCheckInFortuneReport {
+  const _SnCheckInFortuneReport({required this.version, required this.poem, required this.summary, required this.wish, required this.love, required this.study, required this.career, required this.health, required this.lostItem});
+  factory _SnCheckInFortuneReport.fromJson(Map<String, dynamic> json) => _$SnCheckInFortuneReportFromJson(json);
+
+@override final  int version;
+@override final  String poem;
+@override final  String summary;
+@override final  String wish;
+@override final  String love;
+@override final  String study;
+@override final  String career;
+@override final  String health;
+@override final  String lostItem;
+
+/// Create a copy of SnCheckInFortuneReport
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnCheckInFortuneReportCopyWith<_SnCheckInFortuneReport> get copyWith => __$SnCheckInFortuneReportCopyWithImpl<_SnCheckInFortuneReport>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnCheckInFortuneReportToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCheckInFortuneReport&&(identical(other.version, version) || other.version == version)&&(identical(other.poem, poem) || other.poem == poem)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.wish, wish) || other.wish == wish)&&(identical(other.love, love) || other.love == love)&&(identical(other.study, study) || other.study == study)&&(identical(other.career, career) || other.career == career)&&(identical(other.health, health) || other.health == health)&&(identical(other.lostItem, lostItem) || other.lostItem == lostItem));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,version,poem,summary,wish,love,study,career,health,lostItem);
+
+@override
+String toString() {
+  return 'SnCheckInFortuneReport(version: $version, poem: $poem, summary: $summary, wish: $wish, love: $love, study: $study, career: $career, health: $health, lostItem: $lostItem)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnCheckInFortuneReportCopyWith<$Res> implements $SnCheckInFortuneReportCopyWith<$Res> {
+  factory _$SnCheckInFortuneReportCopyWith(_SnCheckInFortuneReport value, $Res Function(_SnCheckInFortuneReport) _then) = __$SnCheckInFortuneReportCopyWithImpl;
+@override @useResult
+$Res call({
+ int version, String poem, String summary, String wish, String love, String study, String career, String health, String lostItem
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnCheckInFortuneReportCopyWithImpl<$Res>
+    implements _$SnCheckInFortuneReportCopyWith<$Res> {
+  __$SnCheckInFortuneReportCopyWithImpl(this._self, this._then);
+
+  final _SnCheckInFortuneReport _self;
+  final $Res Function(_SnCheckInFortuneReport) _then;
+
+/// Create a copy of SnCheckInFortuneReport
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,}) {
+  return _then(_SnCheckInFortuneReport(
+version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as int,poem: null == poem ? _self.poem : poem // ignore: cast_nullable_to_non_nullable
+as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as String,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
+as String,love: null == love ? _self.love : love // ignore: cast_nullable_to_non_nullable
+as String,study: null == study ? _self.study : study // ignore: cast_nullable_to_non_nullable
+as String,career: null == career ? _self.career : career // ignore: cast_nullable_to_non_nullable
+as String,health: null == health ? _self.health : health // ignore: cast_nullable_to_non_nullable
+as String,lostItem: null == lostItem ? _self.lostItem : lostItem // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
 }
 
 
