@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +11,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 enum DomainTrustAction { openLink, loadImage }
 
-enum DomainTrustDecision { open, cancelled }
+enum DomainTrustDecision { proceed, cancelled }
 
 Future<DomainTrustDecision> showDomainTrustSheet(
   BuildContext context, {
@@ -41,11 +43,12 @@ class DomainTrustSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isBlocked = !result.isAllowed;
+    final isBlocked = result.trustLevel == DomainTrustLevel.blocked;
+    final scheme = Theme.of(context).colorScheme;
 
     return SheetScaffold(
       showHeader: false,
-      heightFactor: 0.5,
+      heightFactor: 0.56,
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -56,51 +59,39 @@ class DomainTrustSheet extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    isBlocked ? Symbols.warning : Symbols.shield,
-                    color: isBlocked
-                        ? Theme.of(context).colorScheme.error
-                        : Theme.of(context).colorScheme.primary,
+                    isBlocked ? Symbols.warning : Symbols.verified_user,
+                    color: isBlocked ? scheme.error : scheme.primary,
                     size: 28,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      "羊国反诈中心提醒您",
+                      'domainTrustTitle'.tr(),
                       style: GoogleFonts.notoSerifSc(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  const SizedBox(width: 36),
-                  Expanded(
-                    child: Text(
-                      'domainUntrustOpenLinkDescription'.tr(),
-                      // action == DomainTrustAction.openLink
-                      //     ? 'domainTrustOpenLinkDescription'.tr()
-                      //     : 'domainTrustLoadImageDescription'.tr(),
-                      style: GoogleFonts.notoSerifSc(fontSize: 14),
-                    ),
-                  ),
-                  const SizedBox(width: 280),
-                ],
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.only(right: 104),
+                child: Text(
+                  _descriptionKey.tr(),
+                  style: GoogleFonts.notoSerifSc(fontSize: 14),
+                ),
               ),
               const SizedBox(height: 24),
               Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 60),
+                    margin: const EdgeInsets.only(top: 60, right: 88),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
+                      color: scheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: SizedBox(
@@ -116,60 +107,34 @@ class DomainTrustSheet extends StatelessWidget {
                   Positioned(
                     right: 0,
                     bottom: 8,
-                    child: Image.asset(
-                      'assets/images/michan/link-hint.png',
-                      height: 280,
-                      fit: BoxFit.contain,
+                    child: IgnorePointer(
+                      child: Image.asset(
+                        'assets/images/michan/link-hint.png',
+                        height: 220,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ],
               ),
-              if (isBlocked) ...[
+              if (result.blockReason != null) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
+                    color: isBlocked
+                        ? scheme.errorContainer
+                        : scheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Symbols.privacy_tip,
-                            color: Theme.of(context).colorScheme.error,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'domainTrustPrivacyLeakWarning'.tr(),
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onErrorContainer,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (result.blockReason != null) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          '${'domainTrustReason'.tr()}: ${result.blockReason}',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onErrorContainer,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ],
+                  child: Text(
+                    '${'domainTrustReason'.tr()}: ${result.blockReason}',
+                    style: TextStyle(
+                      color: isBlocked
+                          ? scheme.onErrorContainer
+                          : scheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
@@ -188,28 +153,132 @@ class DomainTrustSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context, DomainTrustDecision.open);
-                      },
-                      icon: const Icon(Symbols.open_in_new),
-                      label: Text('domainTrustOpenAnyway'.tr()),
-                      style: isBlocked
-                          ? FilledButton.styleFrom(
-                              backgroundColor: Theme.of(
+                    child: isBlocked
+                        ? _LongPressProceedButton(
+                            label: _ctaKey.tr(),
+                            onCompleted: () => Navigator.pop(
+                              context,
+                              DomainTrustDecision.proceed,
+                            ),
+                          )
+                        : FilledButton.icon(
+                            onPressed: () {
+                              Navigator.pop(
                                 context,
-                              ).colorScheme.error,
-                              foregroundColor: Theme.of(
-                                context,
-                              ).colorScheme.onError,
-                            )
-                          : null,
-                    ),
+                                DomainTrustDecision.proceed,
+                              );
+                            },
+                            icon: Icon(
+                              action == DomainTrustAction.openLink
+                                  ? Symbols.open_in_new
+                                  : Symbols.image,
+                            ),
+                            label: Text(_ctaKey.tr()),
+                          ),
                   ),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  String get _descriptionKey {
+    if (result.trustLevel == DomainTrustLevel.blocked) {
+      return action == DomainTrustAction.openLink
+          ? 'domainUntrustOpenLinkDescription'
+          : 'domainUntrustLoadImageDescription';
+    }
+    return action == DomainTrustAction.openLink
+        ? 'domainTrustOpenLinkDescription'
+        : 'domainTrustLoadImageDescription';
+  }
+
+  String get _ctaKey {
+    if (result.trustLevel == DomainTrustLevel.blocked) {
+      return action == DomainTrustAction.openLink
+          ? 'domainTrustLongPressOpen'
+          : 'domainTrustLongPressLoadImage';
+    }
+    return action == DomainTrustAction.openLink
+        ? 'domainTrustOpenAnyway'
+        : 'domainTrustLoadImage';
+  }
+}
+
+class _LongPressProceedButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onCompleted;
+
+  const _LongPressProceedButton({
+    required this.label,
+    required this.onCompleted,
+  });
+
+  @override
+  State<_LongPressProceedButton> createState() => _LongPressProceedButtonState();
+}
+
+class _LongPressProceedButtonState extends State<_LongPressProceedButton> {
+  static const _holdDuration = Duration(milliseconds: 900);
+
+  Timer? _timer;
+  bool _holding = false;
+
+  void _startHold() {
+    setState(() => _holding = true);
+    _timer = Timer(_holdDuration, widget.onCompleted);
+  }
+
+  void _cancelHold() {
+    _timer?.cancel();
+    _timer = null;
+    if (_holding && mounted) {
+      setState(() => _holding = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _cancelHold();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onLongPressStart: (_) => _startHold(),
+      onLongPressEnd: (_) => _cancelHold(),
+      onLongPressCancel: _cancelHold,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 40,
+        decoration: BoxDecoration(
+          color: _holding ? scheme.error : scheme.errorContainer,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: scheme.error.withOpacity(0.35)),
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.touch_app,
+              size: 18,
+              color: _holding ? scheme.onError : scheme.error,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              widget.label,
+              style: TextStyle(
+                color: _holding ? scheme.onError : scheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );
