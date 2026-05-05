@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:animations/animations.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -249,12 +247,26 @@ class _LoginCheckScreen extends HookConsumerWidget {
         final challenge = this.challenge;
         if (challenge == null) return;
 
-        final serverUrl = ref.read(serverUrlProvider);
-        final rpId = Uri.parse(serverUrl).host;
+        final client = ref.watch(solarNetworkClientProvider);
+        final options = await client.auth.startPasskeyAuthentication(
+          challengeId: challenge.id,
+        );
 
         final request = AuthenticateRequestType(
-          challenge: base64Url.encode(challenge.id.codeUnits),
-          relyingPartyId: rpId,
+          challenge: options['challenge'] as String,
+          relyingPartyId: options['rp_id'] as String,
+          allowCredentials:
+              (options['allow_credentials'] as List<dynamic>? ?? [])
+                  .map(
+                    (e) => CredentialType(
+                      type: e['type'] as String,
+                      id: e['id'] as String,
+                      transports: List<String>.from(
+                        e['transports'] as List<dynamic>? ?? const <String>[],
+                      ),
+                    ),
+                  )
+                  .toList(),
           userVerification: 'preferred',
           mediation: MediationType.Optional,
           preferImmediatelyAvailableCredentials: false,
@@ -262,19 +274,17 @@ class _LoginCheckScreen extends HookConsumerWidget {
 
         final credential = await passkeyAuthenticator.authenticate(request);
 
-        final client = ref.watch(solarNetworkClientProvider);
-        final resp = await client.dio.patch(
-          '/padlock/auth/challenge/${challenge.id}',
-          data: {
-            'factor_id': factor!.id,
-            'credential_id': credential.id,
-            'client_data_json': credential.clientDataJSON,
-            'authenticator_data': credential.authenticatorData,
-            'signature': credential.signature,
-            'user_handle': credential.userHandle,
-          },
+        final result = await client.auth.completePasskeyAuthentication(
+          challengeId: challenge.id,
+          factorId: factor!.id,
+          credentialId: credential.id,
+          clientDataJson: credential.clientDataJSON,
+          authenticatorData: credential.authenticatorData,
+          signature: credential.signature,
+          userHandle: credential.userHandle.isEmpty
+              ? null
+              : credential.userHandle,
         );
-        final result = SnAuthChallenge.fromJson(resp.data);
         onChallenge(result);
         if (result.stepRemain > 0) {
           onNext();

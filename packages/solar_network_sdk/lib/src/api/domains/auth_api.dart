@@ -215,6 +215,40 @@ class AuthApi extends BaseApi {
     return SnAuthFactor.fromJson(response.data!);
   }
 
+  /// Starts a passkey authentication challenge for a login attempt.
+  Future<Map<String, dynamic>> startPasskeyAuthentication({
+    required String challengeId,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/auth/challenge/$challengeId/passkey/start',
+    );
+    return response.data!;
+  }
+
+  /// Completes a passkey authentication challenge.
+  Future<SnAuthChallenge> completePasskeyAuthentication({
+    required String challengeId,
+    required String factorId,
+    required String credentialId,
+    required String clientDataJson,
+    required String authenticatorData,
+    required String signature,
+    String? userHandle,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/auth/challenge/$challengeId/passkey/complete',
+      data: {
+        'factor_id': factorId,
+        'credential_id': credentialId,
+        'client_data_json': clientDataJson,
+        'authenticator_data': authenticatorData,
+        'signature': signature,
+        'user_handle': userHandle,
+      },
+    );
+    return SnAuthChallenge.fromJson(response.data!);
+  }
+
   // ==========================================
   // Contact endpoints
   // ==========================================
