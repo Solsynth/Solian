@@ -582,7 +582,7 @@ class ChatRoomScreen extends HookConsumerWidget {
             title: chatRoom.when(
               data: (room) => RoomAppBar(
                 room: room!,
-                onlineCount: onlineCount.value?.onlineCount ?? 0,
+                onlineStatus: onlineCount.value,
               ),
               loading: () => const Text('Loading...'),
               error: (err, _) => ResponseErrorWidget(

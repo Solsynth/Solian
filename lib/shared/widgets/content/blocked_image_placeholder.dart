@@ -27,7 +27,7 @@ class BlockedImagePlaceholder extends StatelessWidget {
         color: isBlocked
             ? scheme.errorContainer.withOpacity(0.35)
             : scheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isBlocked
               ? scheme.error.withOpacity(0.35)
@@ -73,7 +73,7 @@ class BlockedImagePlaceholder extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '${'domainTrustReason'.tr()}: ${result.blockReason}',
@@ -88,24 +88,25 @@ class BlockedImagePlaceholder extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  margin: const EdgeInsets.only(top: 50, right: 80),
+                  margin: const EdgeInsets.only(top: 50),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 16,
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
                     color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           uri.host,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontFamily: 'monospace',
-                            color: scheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontFamily: 'monospace',
+                                color: scheme.onSurfaceVariant,
+                              ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -128,12 +129,12 @@ class BlockedImagePlaceholder extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  right: 0,
-                  bottom: 0,
+                  right: -60,
+                  bottom: 32,
                   child: IgnorePointer(
                     child: Image.asset(
                       'assets/images/michan/link-hint.png',
-                      height: 132,
+                      height: 240,
                       fit: BoxFit.contain,
                     ),
                   ),
