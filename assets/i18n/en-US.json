@@ -644,6 +644,7 @@
   "paymentFailed": "Payment failed. Please try again.",
   "invalidPin": "Invalid PIN. Please try again.",
   "biometricAuthFailed": "Biometric authentication failed. Please try again.",
+  "paymentNoPinRequired": "No PIN confirmation is required for this payment.",
   "paymentSuccess": "Payment completed successfully!",
   "membershipPurchaseSuccess": "Membership purchased successfully!",
   "membershipRestoreSuccess": "Membership restored successfully!",
