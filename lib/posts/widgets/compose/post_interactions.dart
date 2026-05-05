@@ -26,6 +26,7 @@ const kAvailableStickers = {
   'sorry',
   'cry',
   'thumb_down',
+  'heart',
 };
 
 bool _getReactionImageAvailable(String symbol) {
