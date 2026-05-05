@@ -59,7 +59,7 @@ sealed class SnCheckInFortuneReport with _$SnCheckInFortuneReport {
     required int version,
     required String poem,
     required String summary,
-    required String summaryDetail,
+    required String? summaryDetail,
     required String wish,
     required String love,
     required String study,

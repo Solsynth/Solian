@@ -201,44 +201,45 @@ class _CheckInContent extends ConsumerWidget {
                     const Gap(24),
                     if (result == null)
                       _CheckInPrompt(onCheckIn: onCheckIn)
-                    else ...(() {
-                      final checkInResult = result!;
-                      return [
-                        _FortuneCard(
-                          level: checkInResult.level,
-                          createdAt: checkInResult.createdAt,
-                          poem: report?.poem,
-                          summary: report?.summary,
-                        ),
-                        if (report != null) ...[
-                          const Gap(16),
-                          _FortuneGuidanceCard(report: report),
-                          const Gap(16),
-                          _FortuneLuckyGrid(report: report),
-                          const Gap(16),
-                          _FortuneDetails(report: report),
-                          const Gap(16),
-                          _FortuneRitualCard(report: report),
-                          const Gap(16),
-                          Card(
-                            margin: EdgeInsets.zero,
-                            child: FortuneGraphWidget(
-                              events: ref.watch(
-                                eventCalendarProvider(
-                                  EventCalendarQuery(
-                                    uname: 'me',
-                                    year: now.year,
-                                    month: now.month,
+                    else
+                      ...(() {
+                        final checkInResult = result!;
+                        return [
+                          _FortuneCard(
+                            level: checkInResult.level,
+                            createdAt: checkInResult.createdAt,
+                            poem: report?.poem,
+                            summary: report?.summary,
+                          ),
+                          if (report != null) ...[
+                            const Gap(16),
+                            _FortuneGuidanceCard(report: report),
+                            const Gap(16),
+                            _FortuneLuckyGrid(report: report),
+                            const Gap(16),
+                            _FortuneDetails(report: report),
+                            const Gap(16),
+                            _FortuneRitualCard(report: report),
+                            const Gap(16),
+                            Card(
+                              margin: EdgeInsets.zero,
+                              child: FortuneGraphWidget(
+                                events: ref.watch(
+                                  eventCalendarProvider(
+                                    EventCalendarQuery(
+                                      uname: 'me',
+                                      year: now.year,
+                                      month: now.month,
+                                    ),
                                   ),
                                 ),
+                                eventCalandarUser: 'me',
                               ),
-                              eventCalandarUser: 'me',
                             ),
-                          ),
-                        ] else
-                          _FallbackMessage(),
-                      ];
-                    })(),
+                          ] else
+                            _FallbackMessage(),
+                        ];
+                      })(),
                   ],
                 ),
               ),
@@ -707,15 +708,16 @@ class _FortuneGuidanceCard extends StatelessWidget {
               ],
             ),
             const Gap(12),
-            Text(
-              report.summaryDetail,
-              style: _checkInSerif(
-                context,
-                base: theme.textTheme.bodyMedium,
-                height: 1.75,
-                color: theme.colorScheme.onSurface,
+            if (report.summaryDetail != null)
+              Text(
+                report.summaryDetail!,
+                style: _checkInSerif(
+                  context,
+                  base: theme.textTheme.bodyMedium,
+                  height: 1.75,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -731,26 +733,14 @@ class _FortuneLuckyGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      (
-        Symbols.palette,
-        'checkInFortuneLuckyColor'.tr(),
-        report.luckyColor,
-      ),
+      (Symbols.palette, 'checkInFortuneLuckyColor'.tr(), report.luckyColor),
       (
         Symbols.explore,
         'checkInFortuneLuckyDirection'.tr(),
         report.luckyDirection,
       ),
-      (
-        Symbols.schedule,
-        'checkInFortuneLuckyTime'.tr(),
-        report.luckyTime,
-      ),
-      (
-        Symbols.key,
-        'checkInFortuneLuckyItem'.tr(),
-        report.luckyItem,
-      ),
+      (Symbols.schedule, 'checkInFortuneLuckyTime'.tr(), report.luckyTime),
+      (Symbols.key, 'checkInFortuneLuckyItem'.tr(), report.luckyItem),
     ];
 
     return LayoutBuilder(
@@ -777,7 +767,11 @@ class _FortuneLuckyGrid extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(item.$1, size: 20, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      item.$1,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const Gap(12),
                     Expanded(
                       child: Column(
@@ -790,7 +784,9 @@ class _FortuneLuckyGrid extends StatelessWidget {
                               context,
                               base: Theme.of(context).textTheme.bodySmall,
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                           const Gap(4),

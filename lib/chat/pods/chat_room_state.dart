@@ -271,7 +271,11 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     final newProgress = Map<String, Map<int, double?>>.from(
       state.attachmentProgress,
     );
-    newProgress[messageId] = {0: progress};
+    if (progress == null) {
+      newProgress.remove(messageId);
+    } else {
+      newProgress[messageId] = {0: progress};
+    }
     state = state.copyWith(attachmentProgress: newProgress);
   }
 
