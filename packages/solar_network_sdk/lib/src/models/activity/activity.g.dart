@@ -94,7 +94,7 @@ _SnCheckInFortuneReport _$SnCheckInFortuneReportFromJson(
   version: (json['version'] as num).toInt(),
   poem: json['poem'] as String,
   summary: json['summary'] as String,
-  summaryDetail: json['summary_detail'] as String,
+  summaryDetail: json['summary_detail'] as String?,
   wish: json['wish'] as String,
   love: json['love'] as String,
   study: json['study'] as String,

@@ -89,7 +89,6 @@ class MessageSender {
       // Add to pending cache
       _pendingCache.add(pending);
       onPending?.call(pending);
-      onProgress?.call(pending.id, {});
 
       _logger.info(
         '[send:$clientMessageId] Uploading ${attachments.length} attachments',

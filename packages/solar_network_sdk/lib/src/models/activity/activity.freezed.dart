@@ -903,7 +903,7 @@ $SnAccountCopyWith<$Res>? get account {
 /// @nodoc
 mixin _$SnCheckInFortuneReport {
 
- int get version; String get poem; String get summary; String get summaryDetail; String get wish; String get love; String get study; String get career; String get health; String get lostItem; String get luckyColor; String get luckyDirection; String get luckyTime; String get luckyItem; String get luckyAction; String get avoidAction; String get ritual;
+ int get version; String get poem; String get summary; String? get summaryDetail; String get wish; String get love; String get study; String get career; String get health; String get lostItem; String get luckyColor; String get luckyDirection; String get luckyTime; String get luckyItem; String get luckyAction; String get avoidAction; String get ritual;
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -936,7 +936,7 @@ abstract mixin class $SnCheckInFortuneReportCopyWith<$Res>  {
   factory $SnCheckInFortuneReportCopyWith(SnCheckInFortuneReport value, $Res Function(SnCheckInFortuneReport) _then) = _$SnCheckInFortuneReportCopyWithImpl;
 @useResult
 $Res call({
- int version, String poem, String summary, String summaryDetail, String wish, String love, String study, String career, String health, String lostItem, String luckyColor, String luckyDirection, String luckyTime, String luckyItem, String luckyAction, String avoidAction, String ritual
+ int version, String poem, String summary, String? summaryDetail, String wish, String love, String study, String career, String health, String lostItem, String luckyColor, String luckyDirection, String luckyTime, String luckyItem, String luckyAction, String avoidAction, String ritual
 });
 
 
@@ -953,13 +953,13 @@ class _$SnCheckInFortuneReportCopyWithImpl<$Res>
 
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? summaryDetail = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,Object? luckyColor = null,Object? luckyDirection = null,Object? luckyTime = null,Object? luckyItem = null,Object? luckyAction = null,Object? avoidAction = null,Object? ritual = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? summaryDetail = freezed,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,Object? luckyColor = null,Object? luckyDirection = null,Object? luckyTime = null,Object? luckyItem = null,Object? luckyAction = null,Object? avoidAction = null,Object? ritual = null,}) {
   return _then(_self.copyWith(
 version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,poem: null == poem ? _self.poem : poem // ignore: cast_nullable_to_non_nullable
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
-as String,summaryDetail: null == summaryDetail ? _self.summaryDetail : summaryDetail // ignore: cast_nullable_to_non_nullable
-as String,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
+as String,summaryDetail: freezed == summaryDetail ? _self.summaryDetail : summaryDetail // ignore: cast_nullable_to_non_nullable
+as String?,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
 as String,love: null == love ? _self.love : love // ignore: cast_nullable_to_non_nullable
 as String,study: null == study ? _self.study : study // ignore: cast_nullable_to_non_nullable
 as String,career: null == career ? _self.career : career // ignore: cast_nullable_to_non_nullable
@@ -1054,7 +1054,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String? summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnCheckInFortuneReport() when $default != null:
 return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem,_that.luckyColor,_that.luckyDirection,_that.luckyTime,_that.luckyItem,_that.luckyAction,_that.avoidAction,_that.ritual);case _:
@@ -1075,7 +1075,7 @@ return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String? summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)  $default,) {final _that = this;
 switch (_that) {
 case _SnCheckInFortuneReport():
 return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem,_that.luckyColor,_that.luckyDirection,_that.luckyTime,_that.luckyItem,_that.luckyAction,_that.avoidAction,_that.ritual);}
@@ -1092,7 +1092,7 @@ return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int version,  String poem,  String summary,  String summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int version,  String poem,  String summary,  String? summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)?  $default,) {final _that = this;
 switch (_that) {
 case _SnCheckInFortuneReport() when $default != null:
 return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem,_that.luckyColor,_that.luckyDirection,_that.luckyTime,_that.luckyItem,_that.luckyAction,_that.avoidAction,_that.ritual);case _:
@@ -1113,7 +1113,7 @@ class _SnCheckInFortuneReport implements SnCheckInFortuneReport {
 @override final  int version;
 @override final  String poem;
 @override final  String summary;
-@override final  String summaryDetail;
+@override final  String? summaryDetail;
 @override final  String wish;
 @override final  String love;
 @override final  String study;
@@ -1161,7 +1161,7 @@ abstract mixin class _$SnCheckInFortuneReportCopyWith<$Res> implements $SnCheckI
   factory _$SnCheckInFortuneReportCopyWith(_SnCheckInFortuneReport value, $Res Function(_SnCheckInFortuneReport) _then) = __$SnCheckInFortuneReportCopyWithImpl;
 @override @useResult
 $Res call({
- int version, String poem, String summary, String summaryDetail, String wish, String love, String study, String career, String health, String lostItem, String luckyColor, String luckyDirection, String luckyTime, String luckyItem, String luckyAction, String avoidAction, String ritual
+ int version, String poem, String summary, String? summaryDetail, String wish, String love, String study, String career, String health, String lostItem, String luckyColor, String luckyDirection, String luckyTime, String luckyItem, String luckyAction, String avoidAction, String ritual
 });
 
 
@@ -1178,13 +1178,13 @@ class __$SnCheckInFortuneReportCopyWithImpl<$Res>
 
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? summaryDetail = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,Object? luckyColor = null,Object? luckyDirection = null,Object? luckyTime = null,Object? luckyItem = null,Object? luckyAction = null,Object? avoidAction = null,Object? ritual = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? summaryDetail = freezed,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,Object? luckyColor = null,Object? luckyDirection = null,Object? luckyTime = null,Object? luckyItem = null,Object? luckyAction = null,Object? avoidAction = null,Object? ritual = null,}) {
   return _then(_SnCheckInFortuneReport(
 version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,poem: null == poem ? _self.poem : poem // ignore: cast_nullable_to_non_nullable
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
-as String,summaryDetail: null == summaryDetail ? _self.summaryDetail : summaryDetail // ignore: cast_nullable_to_non_nullable
-as String,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
+as String,summaryDetail: freezed == summaryDetail ? _self.summaryDetail : summaryDetail // ignore: cast_nullable_to_non_nullable
+as String?,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
 as String,love: null == love ? _self.love : love // ignore: cast_nullable_to_non_nullable
 as String,study: null == study ? _self.study : study // ignore: cast_nullable_to_non_nullable
 as String,career: null == career ? _self.career : career // ignore: cast_nullable_to_non_nullable
