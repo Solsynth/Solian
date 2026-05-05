@@ -8,7 +8,6 @@ import 'package:island/wallets/wallet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
-import 'package:island/payments/payment_overlay.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -244,61 +243,12 @@ class ComposeFundSheet extends HookConsumerWidget {
                                         resp.data,
                                       );
 
-                                      if (fund.status == 0) {
-                                        // Return the fund that was just created (but not yet paid)
-                                        if (context.mounted) {
-                                          hideLoadingModal(context);
-                                          Navigator.of(context).pop(fund);
-                                        }
-                                        return;
-                                      }
-
-                                      // Use typed API for order creation
-                                      final order = await client.wallet.dio
-                                          .post(
-                                            '/wallet/wallets/funds/${fund.id}/order',
-                                          )
-                                          .then(
-                                            (resp) => SnWalletOrder.fromJson(
-                                              resp.data,
-                                            ),
-                                          );
+                                      ref.invalidate(walletFundsProvider);
+                                      ref.invalidate(walletCurrentProvider);
 
                                       if (context.mounted) {
                                         hideLoadingModal(context);
-                                      }
-
-                                      // Show payment overlay to complete the payment
-                                      if (!context.mounted) return;
-                                      final paidOrder =
-                                          await PaymentOverlay.show(
-                                            context: context,
-                                            order: order,
-                                            enableBiometric: true,
-                                          );
-
-                                      if (paidOrder != null &&
-                                          context.mounted) {
-                                        showLoadingModal(context);
-
-                                        // Wait for server to handle order
-                                        await Future.delayed(
-                                          const Duration(seconds: 1),
-                                        );
-                                        ref.invalidate(walletFundsProvider);
-
-                                        // Return the created fund using typed API
-                                        final updatedFund = await client.wallet
-                                            .getFund(fund.id);
-
-                                        if (context.mounted) {
-                                          hideLoadingModal(context);
-                                          Navigator.of(
-                                            context,
-                                          ).pop(updatedFund);
-                                        }
-                                      } else {
-                                        isPushing.value = false;
+                                        Navigator.of(context).pop(fund);
                                       }
                                     } catch (err) {
                                       if (context.mounted) {
