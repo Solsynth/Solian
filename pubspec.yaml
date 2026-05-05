@@ -92,6 +92,7 @@ dependencies:
   pro_image_editor: ^12.4.4
   table_calendar: ^3.2.0
   relative_time: ^5.0.0
+  lunar: ^1.7.8
   dropdown_button2: ^3.1.0
   crypto: ^3.0.7
   avatar_stack: ^3.0.0
