@@ -59,12 +59,20 @@ sealed class SnCheckInFortuneReport with _$SnCheckInFortuneReport {
     required int version,
     required String poem,
     required String summary,
+    required String summaryDetail,
     required String wish,
     required String love,
     required String study,
     required String career,
     required String health,
     required String lostItem,
+    required String luckyColor,
+    required String luckyDirection,
+    required String luckyTime,
+    required String luckyItem,
+    required String luckyAction,
+    required String avoidAction,
+    required String ritual,
   }) = _SnCheckInFortuneReport;
 
   factory SnCheckInFortuneReport.fromJson(Map<String, dynamic> json) =>

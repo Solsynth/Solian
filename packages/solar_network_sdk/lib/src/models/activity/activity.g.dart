@@ -94,12 +94,20 @@ _SnCheckInFortuneReport _$SnCheckInFortuneReportFromJson(
   version: (json['version'] as num).toInt(),
   poem: json['poem'] as String,
   summary: json['summary'] as String,
+  summaryDetail: json['summary_detail'] as String,
   wish: json['wish'] as String,
   love: json['love'] as String,
   study: json['study'] as String,
   career: json['career'] as String,
   health: json['health'] as String,
   lostItem: json['lost_item'] as String,
+  luckyColor: json['lucky_color'] as String,
+  luckyDirection: json['lucky_direction'] as String,
+  luckyTime: json['lucky_time'] as String,
+  luckyItem: json['lucky_item'] as String,
+  luckyAction: json['lucky_action'] as String,
+  avoidAction: json['avoid_action'] as String,
+  ritual: json['ritual'] as String,
 );
 
 Map<String, dynamic> _$SnCheckInFortuneReportToJson(
@@ -108,12 +116,20 @@ Map<String, dynamic> _$SnCheckInFortuneReportToJson(
   'version': instance.version,
   'poem': instance.poem,
   'summary': instance.summary,
+  'summary_detail': instance.summaryDetail,
   'wish': instance.wish,
   'love': instance.love,
   'study': instance.study,
   'career': instance.career,
   'health': instance.health,
   'lost_item': instance.lostItem,
+  'lucky_color': instance.luckyColor,
+  'lucky_direction': instance.luckyDirection,
+  'lucky_time': instance.luckyTime,
+  'lucky_item': instance.luckyItem,
+  'lucky_action': instance.luckyAction,
+  'avoid_action': instance.avoidAction,
+  'ritual': instance.ritual,
 };
 
 _SnFortuneTip _$SnFortuneTipFromJson(Map<String, dynamic> json) =>

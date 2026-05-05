@@ -903,7 +903,7 @@ $SnAccountCopyWith<$Res>? get account {
 /// @nodoc
 mixin _$SnCheckInFortuneReport {
 
- int get version; String get poem; String get summary; String get wish; String get love; String get study; String get career; String get health; String get lostItem;
+ int get version; String get poem; String get summary; String get summaryDetail; String get wish; String get love; String get study; String get career; String get health; String get lostItem; String get luckyColor; String get luckyDirection; String get luckyTime; String get luckyItem; String get luckyAction; String get avoidAction; String get ritual;
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -916,16 +916,16 @@ $SnCheckInFortuneReportCopyWith<SnCheckInFortuneReport> get copyWith => _$SnChec
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCheckInFortuneReport&&(identical(other.version, version) || other.version == version)&&(identical(other.poem, poem) || other.poem == poem)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.wish, wish) || other.wish == wish)&&(identical(other.love, love) || other.love == love)&&(identical(other.study, study) || other.study == study)&&(identical(other.career, career) || other.career == career)&&(identical(other.health, health) || other.health == health)&&(identical(other.lostItem, lostItem) || other.lostItem == lostItem));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCheckInFortuneReport&&(identical(other.version, version) || other.version == version)&&(identical(other.poem, poem) || other.poem == poem)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.summaryDetail, summaryDetail) || other.summaryDetail == summaryDetail)&&(identical(other.wish, wish) || other.wish == wish)&&(identical(other.love, love) || other.love == love)&&(identical(other.study, study) || other.study == study)&&(identical(other.career, career) || other.career == career)&&(identical(other.health, health) || other.health == health)&&(identical(other.lostItem, lostItem) || other.lostItem == lostItem)&&(identical(other.luckyColor, luckyColor) || other.luckyColor == luckyColor)&&(identical(other.luckyDirection, luckyDirection) || other.luckyDirection == luckyDirection)&&(identical(other.luckyTime, luckyTime) || other.luckyTime == luckyTime)&&(identical(other.luckyItem, luckyItem) || other.luckyItem == luckyItem)&&(identical(other.luckyAction, luckyAction) || other.luckyAction == luckyAction)&&(identical(other.avoidAction, avoidAction) || other.avoidAction == avoidAction)&&(identical(other.ritual, ritual) || other.ritual == ritual));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,version,poem,summary,wish,love,study,career,health,lostItem);
+int get hashCode => Object.hash(runtimeType,version,poem,summary,summaryDetail,wish,love,study,career,health,lostItem,luckyColor,luckyDirection,luckyTime,luckyItem,luckyAction,avoidAction,ritual);
 
 @override
 String toString() {
-  return 'SnCheckInFortuneReport(version: $version, poem: $poem, summary: $summary, wish: $wish, love: $love, study: $study, career: $career, health: $health, lostItem: $lostItem)';
+  return 'SnCheckInFortuneReport(version: $version, poem: $poem, summary: $summary, summaryDetail: $summaryDetail, wish: $wish, love: $love, study: $study, career: $career, health: $health, lostItem: $lostItem, luckyColor: $luckyColor, luckyDirection: $luckyDirection, luckyTime: $luckyTime, luckyItem: $luckyItem, luckyAction: $luckyAction, avoidAction: $avoidAction, ritual: $ritual)';
 }
 
 
@@ -936,7 +936,7 @@ abstract mixin class $SnCheckInFortuneReportCopyWith<$Res>  {
   factory $SnCheckInFortuneReportCopyWith(SnCheckInFortuneReport value, $Res Function(SnCheckInFortuneReport) _then) = _$SnCheckInFortuneReportCopyWithImpl;
 @useResult
 $Res call({
- int version, String poem, String summary, String wish, String love, String study, String career, String health, String lostItem
+ int version, String poem, String summary, String summaryDetail, String wish, String love, String study, String career, String health, String lostItem, String luckyColor, String luckyDirection, String luckyTime, String luckyItem, String luckyAction, String avoidAction, String ritual
 });
 
 
@@ -953,17 +953,25 @@ class _$SnCheckInFortuneReportCopyWithImpl<$Res>
 
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? summaryDetail = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,Object? luckyColor = null,Object? luckyDirection = null,Object? luckyTime = null,Object? luckyItem = null,Object? luckyAction = null,Object? avoidAction = null,Object? ritual = null,}) {
   return _then(_self.copyWith(
 version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,poem: null == poem ? _self.poem : poem // ignore: cast_nullable_to_non_nullable
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as String,summaryDetail: null == summaryDetail ? _self.summaryDetail : summaryDetail // ignore: cast_nullable_to_non_nullable
 as String,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
 as String,love: null == love ? _self.love : love // ignore: cast_nullable_to_non_nullable
 as String,study: null == study ? _self.study : study // ignore: cast_nullable_to_non_nullable
 as String,career: null == career ? _self.career : career // ignore: cast_nullable_to_non_nullable
 as String,health: null == health ? _self.health : health // ignore: cast_nullable_to_non_nullable
 as String,lostItem: null == lostItem ? _self.lostItem : lostItem // ignore: cast_nullable_to_non_nullable
+as String,luckyColor: null == luckyColor ? _self.luckyColor : luckyColor // ignore: cast_nullable_to_non_nullable
+as String,luckyDirection: null == luckyDirection ? _self.luckyDirection : luckyDirection // ignore: cast_nullable_to_non_nullable
+as String,luckyTime: null == luckyTime ? _self.luckyTime : luckyTime // ignore: cast_nullable_to_non_nullable
+as String,luckyItem: null == luckyItem ? _self.luckyItem : luckyItem // ignore: cast_nullable_to_non_nullable
+as String,luckyAction: null == luckyAction ? _self.luckyAction : luckyAction // ignore: cast_nullable_to_non_nullable
+as String,avoidAction: null == avoidAction ? _self.avoidAction : avoidAction // ignore: cast_nullable_to_non_nullable
+as String,ritual: null == ritual ? _self.ritual : ritual // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -1046,10 +1054,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String wish,  String love,  String study,  String career,  String health,  String lostItem)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnCheckInFortuneReport() when $default != null:
-return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem);case _:
+return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem,_that.luckyColor,_that.luckyDirection,_that.luckyTime,_that.luckyItem,_that.luckyAction,_that.avoidAction,_that.ritual);case _:
   return orElse();
 
 }
@@ -1067,10 +1075,10 @@ return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String wish,  String love,  String study,  String career,  String health,  String lostItem)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int version,  String poem,  String summary,  String summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)  $default,) {final _that = this;
 switch (_that) {
 case _SnCheckInFortuneReport():
-return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem);}
+return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem,_that.luckyColor,_that.luckyDirection,_that.luckyTime,_that.luckyItem,_that.luckyAction,_that.avoidAction,_that.ritual);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1084,10 +1092,10 @@ return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int version,  String poem,  String summary,  String wish,  String love,  String study,  String career,  String health,  String lostItem)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int version,  String poem,  String summary,  String summaryDetail,  String wish,  String love,  String study,  String career,  String health,  String lostItem,  String luckyColor,  String luckyDirection,  String luckyTime,  String luckyItem,  String luckyAction,  String avoidAction,  String ritual)?  $default,) {final _that = this;
 switch (_that) {
 case _SnCheckInFortuneReport() when $default != null:
-return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem);case _:
+return $default(_that.version,_that.poem,_that.summary,_that.summaryDetail,_that.wish,_that.love,_that.study,_that.career,_that.health,_that.lostItem,_that.luckyColor,_that.luckyDirection,_that.luckyTime,_that.luckyItem,_that.luckyAction,_that.avoidAction,_that.ritual);case _:
   return null;
 
 }
@@ -1099,18 +1107,26 @@ return $default(_that.version,_that.poem,_that.summary,_that.wish,_that.love,_th
 @JsonSerializable()
 
 class _SnCheckInFortuneReport implements SnCheckInFortuneReport {
-  const _SnCheckInFortuneReport({required this.version, required this.poem, required this.summary, required this.wish, required this.love, required this.study, required this.career, required this.health, required this.lostItem});
+  const _SnCheckInFortuneReport({required this.version, required this.poem, required this.summary, required this.summaryDetail, required this.wish, required this.love, required this.study, required this.career, required this.health, required this.lostItem, required this.luckyColor, required this.luckyDirection, required this.luckyTime, required this.luckyItem, required this.luckyAction, required this.avoidAction, required this.ritual});
   factory _SnCheckInFortuneReport.fromJson(Map<String, dynamic> json) => _$SnCheckInFortuneReportFromJson(json);
 
 @override final  int version;
 @override final  String poem;
 @override final  String summary;
+@override final  String summaryDetail;
 @override final  String wish;
 @override final  String love;
 @override final  String study;
 @override final  String career;
 @override final  String health;
 @override final  String lostItem;
+@override final  String luckyColor;
+@override final  String luckyDirection;
+@override final  String luckyTime;
+@override final  String luckyItem;
+@override final  String luckyAction;
+@override final  String avoidAction;
+@override final  String ritual;
 
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
@@ -1125,16 +1141,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCheckInFortuneReport&&(identical(other.version, version) || other.version == version)&&(identical(other.poem, poem) || other.poem == poem)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.wish, wish) || other.wish == wish)&&(identical(other.love, love) || other.love == love)&&(identical(other.study, study) || other.study == study)&&(identical(other.career, career) || other.career == career)&&(identical(other.health, health) || other.health == health)&&(identical(other.lostItem, lostItem) || other.lostItem == lostItem));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCheckInFortuneReport&&(identical(other.version, version) || other.version == version)&&(identical(other.poem, poem) || other.poem == poem)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.summaryDetail, summaryDetail) || other.summaryDetail == summaryDetail)&&(identical(other.wish, wish) || other.wish == wish)&&(identical(other.love, love) || other.love == love)&&(identical(other.study, study) || other.study == study)&&(identical(other.career, career) || other.career == career)&&(identical(other.health, health) || other.health == health)&&(identical(other.lostItem, lostItem) || other.lostItem == lostItem)&&(identical(other.luckyColor, luckyColor) || other.luckyColor == luckyColor)&&(identical(other.luckyDirection, luckyDirection) || other.luckyDirection == luckyDirection)&&(identical(other.luckyTime, luckyTime) || other.luckyTime == luckyTime)&&(identical(other.luckyItem, luckyItem) || other.luckyItem == luckyItem)&&(identical(other.luckyAction, luckyAction) || other.luckyAction == luckyAction)&&(identical(other.avoidAction, avoidAction) || other.avoidAction == avoidAction)&&(identical(other.ritual, ritual) || other.ritual == ritual));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,version,poem,summary,wish,love,study,career,health,lostItem);
+int get hashCode => Object.hash(runtimeType,version,poem,summary,summaryDetail,wish,love,study,career,health,lostItem,luckyColor,luckyDirection,luckyTime,luckyItem,luckyAction,avoidAction,ritual);
 
 @override
 String toString() {
-  return 'SnCheckInFortuneReport(version: $version, poem: $poem, summary: $summary, wish: $wish, love: $love, study: $study, career: $career, health: $health, lostItem: $lostItem)';
+  return 'SnCheckInFortuneReport(version: $version, poem: $poem, summary: $summary, summaryDetail: $summaryDetail, wish: $wish, love: $love, study: $study, career: $career, health: $health, lostItem: $lostItem, luckyColor: $luckyColor, luckyDirection: $luckyDirection, luckyTime: $luckyTime, luckyItem: $luckyItem, luckyAction: $luckyAction, avoidAction: $avoidAction, ritual: $ritual)';
 }
 
 
@@ -1145,7 +1161,7 @@ abstract mixin class _$SnCheckInFortuneReportCopyWith<$Res> implements $SnCheckI
   factory _$SnCheckInFortuneReportCopyWith(_SnCheckInFortuneReport value, $Res Function(_SnCheckInFortuneReport) _then) = __$SnCheckInFortuneReportCopyWithImpl;
 @override @useResult
 $Res call({
- int version, String poem, String summary, String wish, String love, String study, String career, String health, String lostItem
+ int version, String poem, String summary, String summaryDetail, String wish, String love, String study, String career, String health, String lostItem, String luckyColor, String luckyDirection, String luckyTime, String luckyItem, String luckyAction, String avoidAction, String ritual
 });
 
 
@@ -1162,17 +1178,25 @@ class __$SnCheckInFortuneReportCopyWithImpl<$Res>
 
 /// Create a copy of SnCheckInFortuneReport
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? poem = null,Object? summary = null,Object? summaryDetail = null,Object? wish = null,Object? love = null,Object? study = null,Object? career = null,Object? health = null,Object? lostItem = null,Object? luckyColor = null,Object? luckyDirection = null,Object? luckyTime = null,Object? luckyItem = null,Object? luckyAction = null,Object? avoidAction = null,Object? ritual = null,}) {
   return _then(_SnCheckInFortuneReport(
 version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,poem: null == poem ? _self.poem : poem // ignore: cast_nullable_to_non_nullable
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
+as String,summaryDetail: null == summaryDetail ? _self.summaryDetail : summaryDetail // ignore: cast_nullable_to_non_nullable
 as String,wish: null == wish ? _self.wish : wish // ignore: cast_nullable_to_non_nullable
 as String,love: null == love ? _self.love : love // ignore: cast_nullable_to_non_nullable
 as String,study: null == study ? _self.study : study // ignore: cast_nullable_to_non_nullable
 as String,career: null == career ? _self.career : career // ignore: cast_nullable_to_non_nullable
 as String,health: null == health ? _self.health : health // ignore: cast_nullable_to_non_nullable
 as String,lostItem: null == lostItem ? _self.lostItem : lostItem // ignore: cast_nullable_to_non_nullable
+as String,luckyColor: null == luckyColor ? _self.luckyColor : luckyColor // ignore: cast_nullable_to_non_nullable
+as String,luckyDirection: null == luckyDirection ? _self.luckyDirection : luckyDirection // ignore: cast_nullable_to_non_nullable
+as String,luckyTime: null == luckyTime ? _self.luckyTime : luckyTime // ignore: cast_nullable_to_non_nullable
+as String,luckyItem: null == luckyItem ? _self.luckyItem : luckyItem // ignore: cast_nullable_to_non_nullable
+as String,luckyAction: null == luckyAction ? _self.luckyAction : luckyAction // ignore: cast_nullable_to_non_nullable
+as String,avoidAction: null == avoidAction ? _self.avoidAction : avoidAction // ignore: cast_nullable_to_non_nullable
+as String,ritual: null == ritual ? _self.ritual : ritual // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
