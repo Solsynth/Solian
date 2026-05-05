@@ -12,6 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/content/image.dart';
+import 'package:island/shared/widgets/content/markdown_remote_image.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -209,17 +210,7 @@ class MarkdownTextContent extends HookConsumerWidget {
                     );
                 }
               }
-              final content = ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: 360),
-                  child: UniversalImage(
-                    uri: uri.toString(),
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              );
-              return content;
+              return MarkdownRemoteImage(uri: uri);
             },
           ),
         ],
