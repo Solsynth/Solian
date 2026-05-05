@@ -61,17 +61,6 @@ class MessageItemWrapper extends HookConsumerWidget {
     final isCurrentUser = identity?.id == message.senderId;
 
     return GestureDetector(
-      onLongPress: () {
-        if (!isSelectionMode) {
-          toggleSelectionMode();
-          toggleMessageSelection(message.id);
-        }
-      },
-      onTap: () {
-        if (isSelectionMode) {
-          toggleMessageSelection(message.id);
-        }
-      },
       child: Container(
         color: isSelected
             ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
