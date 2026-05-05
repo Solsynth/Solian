@@ -378,9 +378,9 @@ class PostReplyPreview extends HookConsumerWidget {
 
     if (visibleReactions.isEmpty) return const SizedBox.shrink();
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Wrap(
       spacing: 4,
+      runSpacing: 4,
       children: [
         for (final entry in visibleReactions)
           _buildCompactReactionChip(context, ref, entry.key, entry.value),
@@ -397,6 +397,7 @@ class PostReplyPreview extends HookConsumerWidget {
     String symbol,
     int count,
   ) {
+    final theme = Theme.of(context);
     final reactionInfo = kReactionTemplates[symbol];
     final hasSticker = _getReactionImageAvailable(symbol);
     final isCustom = symbol.contains('+');
@@ -409,48 +410,47 @@ class PostReplyPreview extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(2),
         child: Image.network(
           '$serverUrl/sphere/stickers/lookup/$symbol/open',
-          width: 14,
-          height: 14,
+          width: 16,
+          height: 16,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) =>
-              const Text('🏷️', style: TextStyle(fontSize: 10)),
+              const Text('🏷️', style: TextStyle(fontSize: 11)),
         ),
       );
     } else if (hasSticker) {
       icon = Image.asset(
         'assets/images/stickers/$symbol.png',
-        width: 14,
-        height: 14,
+        width: 16,
+        height: 16,
         fit: BoxFit.contain,
       );
     } else {
       // Fall back to emoji icon
       icon = Text(
         reactionInfo?.icon ?? '❓',
-        style: const TextStyle(fontSize: 10),
+        style: const TextStyle(fontSize: 12, height: 1),
       );
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.3),
-        ),
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        spacing: 3,
+        spacing: 4,
         children: [
           icon,
           Text(
             count.toString(),
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1,
             ),
           ),
         ],
@@ -460,21 +460,22 @@ class PostReplyPreview extends HookConsumerWidget {
 
   /// Builds a badge showing remaining reaction count
   Widget _buildRemainingReactionsBadge(BuildContext context, int count) {
+    final theme = Theme.of(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.3),
-        ),
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.25)),
       ),
       child: Text(
         '+$count',
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurfaceVariant,
+          height: 1,
         ),
       ),
     );
