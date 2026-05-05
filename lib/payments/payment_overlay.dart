@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/wallets/pin_status.dart';
 
 class PaymentOverlay extends HookConsumerWidget {
   final SnWalletOrder order;
@@ -118,6 +119,8 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   String _pin = '';
   bool _isPinMode = true;
+  bool _isInitializingAuth = true;
+  bool _requiresPinValidation = true;
   bool _hasBiometricSupport = false;
   bool _hasStoredPin = false;
 
@@ -134,28 +137,41 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
 
   Future<void> _initializeBiometric() async {
     try {
-      // Check if biometric is available
+      final pinStatus = await fetchWalletPinStatus(ref);
+      _requiresPinValidation = pinStatus.validationRequired;
+
+      if (!_requiresPinValidation) {
+        _hasBiometricSupport = false;
+        _hasStoredPin = false;
+        _isPinMode = false;
+        _isInitializingAuth = false;
+        if (mounted) {
+          setState(() {});
+        }
+        return;
+      }
+
       final isAvailable = await _localAuth.isDeviceSupported();
       final canCheckBiometrics = await _localAuth.canCheckBiometrics;
       _hasBiometricSupport = isAvailable && canCheckBiometrics;
 
-      // Check if PIN is stored
       final storedPin = await _secureStorage.read(key: _pinStorageKey);
       _hasStoredPin = storedPin != null && storedPin.isNotEmpty;
 
-      // Set initial mode based on stored PIN and biometric support
       if (_hasStoredPin && _hasBiometricSupport && widget.enableBiometric) {
         _isPinMode = false;
       } else {
         _isPinMode = true;
       }
 
+      _isInitializingAuth = false;
+
       if (mounted) {
         setState(() {});
       }
     } catch (e) {
-      // Fallback to PIN mode if biometric setup fails
       _isPinMode = true;
+      _isInitializingAuth = false;
       if (mounted) {
         setState(() {});
       }
@@ -173,8 +189,10 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     showLoadingModal(context);
 
     try {
-      // Store PIN securely for future biometric authentication
-      if (_hasBiometricSupport && widget.enableBiometric && !_hasStoredPin) {
+      if (_requiresPinValidation &&
+          _hasBiometricSupport &&
+          widget.enableBiometric &&
+          !_hasStoredPin) {
         await _secureStorage.write(key: _pinStorageKey, value: pin);
         _hasStoredPin = true;
       }
@@ -183,6 +201,20 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     } catch (err) {
       widget.onPaymentError?.call(err.toString());
       _pin = '';
+    } finally {
+      if (mounted) {
+        hideLoadingModal(context);
+      }
+    }
+  }
+
+  Future<void> _processPaymentWithoutPin() async {
+    showLoadingModal(context);
+
+    try {
+      await _makePaymentRequest();
+    } catch (err) {
+      widget.onPaymentError?.call(err.toString());
     } finally {
       if (mounted) {
         hideLoadingModal(context);
@@ -201,20 +233,16 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       );
 
       if (didAuthenticate) {
-        // Retrieve stored PIN and process payment
         final storedPin = await _secureStorage.read(key: _pinStorageKey);
         if (storedPin != null && storedPin.isNotEmpty) {
           await _makePaymentRequest(storedPin);
         } else {
-          // Fallback to PIN mode if no stored PIN
           _fallbackToPinMode('noStoredPin'.tr());
         }
       } else {
-        // Biometric authentication failed, fallback to PIN mode
         _fallbackToPinMode('biometricAuthFailed'.tr());
       }
     } catch (err) {
-      // Handle biometric authentication errors
       String errorMessage = 'biometricAuthFailed'.tr();
       if (err is PlatformException) {
         switch (err.code) {
@@ -240,15 +268,15 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     }
   }
 
-  /// Unified method for making payment requests with PIN
-  Future<void> _makePaymentRequest(String pin) async {
+  Future<void> _makePaymentRequest([String? pin]) async {
     try {
       final client = ref.read(solarNetworkClientProvider);
       final response = await client.dio.post(
         '/wallet/orders/${widget.order.id}/pay',
         data: {
           'pin_code': pin,
-          if (widget.payerWalletId != null) 'payer_wallet_id': widget.payerWalletId,
+          if (widget.payerWalletId != null)
+            'payer_wallet_id': widget.payerWalletId,
         },
       );
 
@@ -259,10 +287,8 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
       if (err is DioException) {
         if (err.response?.statusCode == 403 ||
             err.response?.statusCode == 401) {
-          // PIN is invalid
           errorMessage = 'invalidPin'.tr();
-          // If this was a biometric attempt with stored PIN, remove the stored PIN
-          if (!_isPinMode) {
+          if (_requiresPinValidation && !_isPinMode) {
             await _secureStorage.delete(key: _pinStorageKey);
             _hasStoredPin = false;
             _fallbackToPinMode(errorMessage);
@@ -304,9 +330,7 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           const Gap(32),
 
           // Authentication Content
-          Expanded(
-            child: _isPinMode ? _buildPinInput() : _buildBiometricAuth(),
-          ),
+          Expanded(child: _buildAuthenticationContent()),
 
           // Action Buttons
           const Gap(24),
@@ -383,6 +407,18 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
     );
   }
 
+  Widget _buildAuthenticationContent() {
+    if (_isInitializingAuth) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (!_requiresPinValidation) {
+      return _buildNoPinConfirmation();
+    }
+
+    return _isPinMode ? _buildPinInput() : _buildBiometricAuth();
+  }
+
   Widget _buildPinInput() {
     return Column(
       children: [
@@ -405,6 +441,34 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildNoPinConfirmation() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Symbols.verified_user, size: 48, color: colorScheme.primary),
+          const Gap(16),
+          Text(
+            'paymentSummary'.tr(),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+          ),
+          const Gap(8),
+          Text(
+            'paymentNoPinRequired'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -458,6 +522,15 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
             child: Text('cancel'.tr()),
           ),
         ),
+        if (!_isInitializingAuth && !_requiresPinValidation) ...[
+          const Gap(12),
+          Expanded(
+            child: FilledButton(
+              onPressed: _processPaymentWithoutPin,
+              child: Text('confirm'.tr()),
+            ),
+          ),
+        ],
         if (_isPinMode && _pin.length == 6) ...[
           const Gap(12),
           Expanded(
