@@ -57,6 +57,7 @@ class MessageItemWrapper extends HookConsumerWidget {
   });
 
   Widget _buildContent(BuildContext context, SnChatMember? identity) {
+    final stableMessageKey = message.clientMessageId ?? message.id;
     final isSelected = selectedMessages.contains(message.id);
     final isCurrentUser = identity?.id == message.senderId;
 
@@ -70,7 +71,7 @@ class MessageItemWrapper extends HookConsumerWidget {
             MessageItem(
               // If animation is disabled, we might want to pass a key to maintain state?
               // But here we are inside the wrapper.
-              key: ValueKey('item-${message.id}'),
+              key: ValueKey('item-$stableMessageKey'),
               message: message,
               isCurrentUser: isCurrentUser,
               onAction: isSelectionMode
@@ -127,8 +128,9 @@ class MessageItemWrapper extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Animation logic
     final animatedMessages = ref.watch(animatedMessagesProvider);
+    final stableMessageKey = message.clientMessageId ?? message.id;
     final isNewMessage = message.createdAt.isAfter(roomOpenTime);
-    final hasAnimated = animatedMessages.contains(message.id);
+    final hasAnimated = animatedMessages.contains(stableMessageKey);
 
     // Only animate if:
     // 1. Animation is enabled
@@ -154,7 +156,9 @@ class MessageItemWrapper extends HookConsumerWidget {
         hasStarted.value = true;
         controller.forward().then((_) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(animatedMessagesProvider.notifier).addMessage(message.id);
+            ref
+                .read(animatedMessagesProvider.notifier)
+                .addMessage(stableMessageKey);
           });
         });
       }
