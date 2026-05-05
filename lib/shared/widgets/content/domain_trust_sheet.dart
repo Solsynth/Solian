@@ -45,142 +45,194 @@ class DomainTrustSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final isBlocked = result.trustLevel == DomainTrustLevel.blocked;
     final scheme = Theme.of(context).colorScheme;
+    final characterAsset = isBlocked
+        ? 'assets/images/michan/link-warning.png'
+        : 'assets/images/michan/link-prompt.png';
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 420;
+    final characterHeight = isCompact ? 180.0 : 240.0;
+    final contentRightPadding = isCompact ? 120.0 : 156.0;
 
     return SheetScaffold(
       showHeader: false,
-      heightFactor: 0.56,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    isBlocked ? Symbols.warning : Symbols.verified_user,
-                    color: isBlocked ? scheme.error : scheme.primary,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'domainTrustTitle'.tr(),
-                      style: GoogleFonts.notoSerifSc(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+      height: 320,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            right: isCompact ? -18 : -8,
+            top: -(characterHeight * 0.48),
+            child: IgnorePointer(
+              child: Image.asset(
+                characterAsset,
+                height: characterHeight,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(20, 28, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(right: contentRightPadding),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isBlocked ? Symbols.warning : Symbols.verified_user,
+                        color: isBlocked ? scheme.error : scheme.primary,
+                        size: 28,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.only(right: 104),
-                child: Text(
-                  _descriptionKey.tr(),
-                  style: GoogleFonts.notoSerifSc(fontSize: 14),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 60),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: scheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        uri.toString(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontFamily: 'monospace',
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'domainTrustTitle'.tr(),
+                          style: GoogleFonts.notoSerifSc(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                  Positioned(
-                    right: -40,
-                    bottom: 8,
-                    child: IgnorePointer(
-                      child: Image.asset(
-                        'assets/images/michan/link-hint.png',
-                        height: 220,
-                        fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: EdgeInsets.only(right: contentRightPadding),
+                  child: Text(
+                    _descriptionKey.tr(),
+                    style: GoogleFonts.notoSerifSc(fontSize: 14),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: EdgeInsets.fromLTRB(
+                    12,
+                    12,
+                    isCompact ? 12 : contentRightPadding - 24,
+                    12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    uri.toString(),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (result.blockReason != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isBlocked
+                          ? scheme.errorContainer
+                          : scheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      '${'domainTrustReason'.tr()}: ${result.blockReason}',
+                      style: TextStyle(
+                        color: isBlocked
+                            ? scheme.onErrorContainer
+                            : scheme.onSurfaceVariant,
+                        fontSize: 13,
                       ),
                     ),
                   ),
                 ],
-              ),
-              if (result.blockReason != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isBlocked
-                        ? scheme.errorContainer
-                        : scheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${'domainTrustReason'.tr()}: ${result.blockReason}',
-                    style: TextStyle(
-                      color: isBlocked
-                          ? scheme.onErrorContainer
-                          : scheme.onSurfaceVariant,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: uri.toString()));
-                        showSnackBar('copyToClipboard'.tr());
-                      },
-                      icon: const Icon(Symbols.content_copy),
-                      label: Text('domainTrustCopyLink'.tr()),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: isBlocked
-                        ? _LongPressProceedButton(
-                            label: _ctaKey.tr(),
-                            onCompleted: () => Navigator.pop(
-                              context,
-                              DomainTrustDecision.proceed,
-                            ),
-                          )
-                        : FilledButton.icon(
+                const SizedBox(height: 24),
+                isCompact
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          OutlinedButton.icon(
                             onPressed: () {
-                              Navigator.pop(
-                                context,
-                                DomainTrustDecision.proceed,
+                              Clipboard.setData(
+                                ClipboardData(text: uri.toString()),
                               );
+                              showSnackBar('copyToClipboard'.tr());
                             },
-                            icon: Icon(
-                              action == DomainTrustAction.openLink
-                                  ? Symbols.open_in_new
-                                  : Symbols.image,
-                            ),
-                            label: Text(_ctaKey.tr()),
+                            icon: const Icon(Symbols.content_copy),
+                            label: Text('domainTrustCopyLink'.tr()),
                           ),
-                  ),
-                ],
-              ),
-            ],
+                          const SizedBox(height: 12),
+                          isBlocked
+                              ? _LongPressProceedButton(
+                                  label: _ctaKey.tr(),
+                                  onCompleted: () => Navigator.pop(
+                                    context,
+                                    DomainTrustDecision.proceed,
+                                  ),
+                                )
+                              : FilledButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(
+                                      context,
+                                      DomainTrustDecision.proceed,
+                                    );
+                                  },
+                                  icon: Icon(
+                                    action == DomainTrustAction.openLink
+                                        ? Symbols.open_in_new
+                                        : Symbols.image,
+                                  ),
+                                  label: Text(_ctaKey.tr()),
+                                ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Clipboard.setData(
+                                  ClipboardData(text: uri.toString()),
+                                );
+                                showSnackBar('copyToClipboard'.tr());
+                              },
+                              icon: const Icon(Symbols.content_copy),
+                              label: Text('domainTrustCopyLink'.tr()),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: isBlocked
+                                ? _LongPressProceedButton(
+                                    label: _ctaKey.tr(),
+                                    onCompleted: () => Navigator.pop(
+                                      context,
+                                      DomainTrustDecision.proceed,
+                                    ),
+                                  )
+                                : FilledButton.icon(
+                                    onPressed: () {
+                                      Navigator.pop(
+                                        context,
+                                        DomainTrustDecision.proceed,
+                                      );
+                                    },
+                                    icon: Icon(
+                                      action == DomainTrustAction.openLink
+                                          ? Symbols.open_in_new
+                                          : Symbols.image,
+                                    ),
+                                    label: Text(_ctaKey.tr()),
+                                  ),
+                          ),
+                        ],
+                      ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
