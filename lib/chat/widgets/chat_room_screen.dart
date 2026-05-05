@@ -511,9 +511,6 @@ class ChatRoomScreen extends HookConsumerWidget {
     final jumpAndRevealMessage = useCallback((String messageId) {
       messagesNotifier.jumpToMessage(messageId).then((index) {
         if (index != -1 && context.mounted) {
-          ref
-              .read(flashingMessagesProvider.notifier)
-              .update((set) => set.union({messageId}));
           messages.when(
             data: (messageList) {
               chatStateNotifier.scrollToMessage(
@@ -527,7 +524,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           );
         }
       });
-    }, [messagesNotifier, ref, messages, chatStateNotifier, context]);
+    }, [messagesNotifier, messages, chatStateNotifier, context]);
 
     final filteredMessages = messages;
 
