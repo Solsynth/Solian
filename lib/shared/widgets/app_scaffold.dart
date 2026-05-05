@@ -29,7 +29,6 @@ class AppScrollBehavior extends MaterialScrollBehavior {
   Set<PointerDeviceKind> get dragDevices => {
     PointerDeviceKind.touch, // default
     PointerDeviceKind.trackpad, // default
-    PointerDeviceKind.mouse, // add mouse dragging
   };
 }
 
@@ -444,10 +443,10 @@ final backgroundImageProvider = Provider<File?>((ref) {
 
 final backgroundMemoryImageProvider = FutureProvider<MemoryImage?>((ref) async {
   if (kIsWeb) return null;
-  
+
   final file = ref.watch(backgroundImageProvider);
   if (file == null) return null;
-  
+
   try {
     final bytes = await file.readAsBytes();
     return MemoryImage(bytes);
@@ -470,8 +469,8 @@ class AppBackground extends ConsumerWidget {
     );
 
     if (isRoot || !isWideScreen(context)) {
-      if (backgroundMemoryImage.hasValue && 
-          backgroundMemoryImage.value != null && 
+      if (backgroundMemoryImage.hasValue &&
+          backgroundMemoryImage.value != null &&
           showBackground) {
         return Material(
           color: Theme.of(context).colorScheme.surface,
@@ -534,11 +533,7 @@ class _WebSocketIndicator extends HookConsumerWidget {
     if (websocketState == WebSocketState.connected()) {
       indicatorColor = Colors.green;
       indicatorText = 'connectionConnected';
-      indicatorIcon = Icon(
-        Symbols.power,
-        color: Colors.white,
-        size: 16,
-      );
+      indicatorIcon = Icon(Symbols.power, color: Colors.white, size: 16);
       opacity = 0.0;
       isInteractive = false;
     } else if (websocketState == WebSocketState.connecting()) {
@@ -559,20 +554,12 @@ class _WebSocketIndicator extends HookConsumerWidget {
       indicatorColor = Colors.red;
       indicatorText = 'connectionServerDown';
       isInteractive = true;
-      indicatorIcon = Icon(
-        Symbols.power_off,
-        color: Colors.white,
-        size: 16,
-      );
+      indicatorIcon = Icon(Symbols.power_off, color: Colors.white, size: 16);
       opacity = 1.0;
     } else {
       indicatorColor = Colors.red;
       indicatorText = 'connectionDisconnected';
-      indicatorIcon = Icon(
-        Symbols.power_off,
-        color: Colors.white,
-        size: 16,
-      );
+      indicatorIcon = Icon(Symbols.power_off, color: Colors.white, size: 16);
       opacity = 1.0;
       isInteractive = false;
     }
