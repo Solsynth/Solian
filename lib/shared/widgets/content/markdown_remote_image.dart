@@ -49,16 +49,24 @@ class MarkdownRemoteImage extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    if (!result.isAllowed && !userConfirmed.value) {
+    if (result.trustLevel == DomainTrustLevel.verified) {
+      return _buildImage();
+    }
+
+    if (!userConfirmed.value) {
       return BlockedImagePlaceholder(
         uri: uri,
         result: result,
-        onLoadAnyway: () {
+        onProceed: () {
           userConfirmed.value = true;
         },
       );
     }
 
+    return _buildImage();
+  }
+
+  Widget _buildImage() {
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(8)),
       child: ConstrainedBox(

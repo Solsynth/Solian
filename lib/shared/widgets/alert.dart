@@ -455,6 +455,11 @@ Future<void> openExternalLink(Uri url, WidgetRef ref) async {
   if (!context.mounted) return;
   hideLoadingModal(context);
 
+   if (result.trustLevel == DomainTrustLevel.verified) {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+    return;
+  }
+
   final decision = await showDomainTrustSheet(
     context,
     uri: url,
@@ -462,7 +467,7 @@ Future<void> openExternalLink(Uri url, WidgetRef ref) async {
     action: DomainTrustAction.openLink,
   );
 
-  if (decision == DomainTrustDecision.open) {
+  if (decision == DomainTrustDecision.proceed) {
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 }
