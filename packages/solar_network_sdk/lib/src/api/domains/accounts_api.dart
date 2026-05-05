@@ -275,7 +275,7 @@ class AccountsApi extends BaseApi {
       final response = await get<Map<String, dynamic>>(
         '$_basePath/accounts/me/check-in',
         queryParameters: {'version': 2},
-        options: Options(receiveTimeout: const Duration(seconds: 20)),
+        options: Options(receiveTimeout: const Duration(seconds: 60)),
       );
       return SnCheckInResult.fromJson(response.data!);
     } on DioException catch (e) {
@@ -294,7 +294,7 @@ class AccountsApi extends BaseApi {
       '$_basePath/accounts/me/check-in',
       queryParameters: {'version': 2},
       data: captchaToken != null ? jsonEncode(captchaToken) : null,
-      options: Options(receiveTimeout: const Duration(seconds: 20)),
+      options: Options(receiveTimeout: const Duration(seconds: 60)),
     );
   }
 

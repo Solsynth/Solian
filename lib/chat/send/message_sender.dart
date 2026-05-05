@@ -136,7 +136,9 @@ class MessageSender {
           : remoteMessage;
 
       final sent = LocalChatMessage.fromRemoteMessage(
-        editingTo ?? withPlaintext,
+        editingTo != null
+            ? _buildEditedTargetMessage(editingTo, withPlaintext)
+            : withPlaintext,
         MessageStatus.sent,
       );
       final eventMessage = editingTo == null
@@ -547,6 +549,25 @@ class MessageSender {
 
     wsState.sendMessage(jsonEncode(packet));
     return completer.future;
+  }
+
+  SnChatMessage _buildEditedTargetMessage(
+    SnChatMessage original,
+    SnChatMessage updateEvent,
+  ) {
+    final mergedMeta = Map<String, dynamic>.of(original.meta)
+      ..addAll(updateEvent.meta)
+      ..remove('message_id');
+
+    return original.copyWith(
+      content: updateEvent.content,
+      attachments: updateEvent.attachments,
+      membersMentioned: updateEvent.membersMentioned,
+      repliedMessageId: updateEvent.repliedMessageId,
+      forwardedMessageId: updateEvent.forwardedMessageId,
+      meta: mergedMeta,
+      editedAt: updateEvent.createdAt,
+    );
   }
 
   SnChatMessage? _parseMessage(Map<String, dynamic> data) {
