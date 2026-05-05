@@ -748,6 +748,7 @@ class _FortuneLuckyGrid extends StatelessWidget {
         final columns = constraints.maxWidth >= 520 ? 2 : 1;
         return GridView.builder(
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,

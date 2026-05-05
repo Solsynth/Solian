@@ -80,6 +80,7 @@ Widget? _buildSubtitle(
         : null;
     if (label == null && !isBot) return null;
     final statusColor = getStatusIndicatorColor(status);
+    final isOnline = showsOnlinePresence(status);
 
     return Row(
       children: [
@@ -89,8 +90,12 @@ Widget? _buildSubtitle(
             height: 6,
             margin: const EdgeInsets.only(right: 6),
             decoration: BoxDecoration(
-              color: statusColor,
+              color: isOnline ? statusColor : Colors.transparent,
               shape: BoxShape.circle,
+              border: Border.all(
+                color: statusColor,
+                width: isOnline ? 0 : 1.5,
+              ),
             ),
           ),
           Flexible(
