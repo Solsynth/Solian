@@ -82,7 +82,7 @@ dependencies:
   firebase_core: ^4.7.0
   web_socket_channel: ^3.0.3
   # https://github.com/timmaffett/material_symbols_icons/issues/46
-  material_symbols_icons: 4.2928.0
+  material_symbols_icons: 4.2906.0
   objectbox: ^5.3.1
   objectbox_flutter_libs: ^5.3.1
   path: ^1.9.1
