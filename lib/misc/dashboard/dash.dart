@@ -827,7 +827,11 @@ class TodayOracleCard extends ConsumerWidget {
         ).padding(vertical: 16),
         error: (error, _) => Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(error.toString(), maxLines: 2, overflow: TextOverflow.ellipsis),
+          child: Text(
+            error.toString(),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         data: (result) {
           final report = result?.fortuneReport;
@@ -862,24 +866,132 @@ class TodayOracleCard extends ConsumerWidget {
                 ).padding(horizontal: 16, bottom: 16)
               else ...[
                 Text(
-                  report?.poem ?? report?.summary ?? 'checkInResultLevel${result.level}'.tr(),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-                ).padding(horizontal: 16),
-                const SizedBox(height: 10),
-                Text(
                   'checkInResultLevel${result.level}'.tr(),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w700,
                   ),
-                ).padding(horizontal: 16, bottom: 16),
+                ).padding(horizontal: 16),
+                const SizedBox(height: 8),
+                Text(
+                  report?.poem ??
+                      report?.summary ??
+                      'checkInResultLevel${result.level}'.tr(),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    height: 1.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ).padding(horizontal: 16),
+                if ((report?.summary.isNotEmpty ?? false))
+                  Text(
+                    report!.summary,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      height: 1.45,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ).padding(horizontal: 16),
+                if (report != null) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _OracleMetaChip(
+                        icon: Symbols.palette,
+                        text: report.luckyColor,
+                      ),
+                      _OracleMetaChip(
+                        icon: Symbols.schedule,
+                        text: report.luckyTime,
+                      ),
+                      _OracleMetaChip(
+                        icon: Symbols.explore,
+                        text: report.luckyDirection,
+                      ),
+                    ],
+                  ).padding(horizontal: 12),
+                  const SizedBox(height: 12),
+                  _OracleActionRow(
+                    icon: Symbols.task_alt,
+                    text: report.luckyAction,
+                    color: theme.colorScheme.primary,
+                  ).padding(horizontal: 16),
+                  const SizedBox(height: 8),
+                  _OracleActionRow(
+                    icon: Symbols.block,
+                    text: report.avoidAction,
+                    color: theme.colorScheme.error,
+                  ).padding(horizontal: 16),
+                ],
+                const SizedBox(height: 16),
               ],
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _OracleMetaChip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _OracleMetaChip({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: theme.colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(text, style: theme.textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+class _OracleActionRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  const _OracleActionRow({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(height: 1.4),
+          ),
+        ),
+      ],
     );
   }
 }
