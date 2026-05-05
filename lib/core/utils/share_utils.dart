@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/check_in/check_in_result_screenshot.dart';
 import 'package:island/core/config.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/posts/widgets/compose/post_item_screenshot.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
@@ -67,5 +69,67 @@ Future<void> sharePostAsScreenshot(
       .whenComplete(() {
         final postTypeStr = post.type == 0 ? 'regular' : 'article';
         AnalyticsService().logPostShared(post.id, 'screenshot', postTypeStr);
+      });
+}
+
+Future<void> shareCheckInAsScreenshot(
+  BuildContext context,
+  WidgetRef ref,
+  SnCheckInResult result,
+) async {
+  if (kIsWeb) return;
+
+  final user = result.account ?? ref.read(userInfoProvider).value;
+  if (user == null) return;
+
+  final screenshotController = ScreenshotController();
+
+  showLoadingModal(context);
+  await screenshotController
+      .captureFromWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(
+              ref.watch(sharedPreferencesProvider),
+            ),
+          ],
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              width: 420,
+              child: CheckInResultScreenshot(
+                user: user,
+                result: result,
+              ),
+            ),
+          ),
+        ),
+        context: context,
+        pixelRatio: MediaQuery.of(context).devicePixelRatio,
+        delay: const Duration(milliseconds: 400),
+      )
+      .then((Uint8List? image) async {
+        if (image == null) return;
+        final directory = await getTemporaryDirectory();
+        final imagePath = await File('${directory.path}/check-in-image.png')
+            .create();
+        await imagePath.writeAsBytes(image);
+
+        if (!context.mounted) return;
+        hideLoadingModal(context);
+        final box = context.findRenderObject() as RenderBox?;
+        await Share.shareXFiles([
+          XFile(imagePath.path),
+        ], sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+      })
+      .catchError((err) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(err);
+      })
+      .whenComplete(() {
+        AnalyticsService().logEvent('checkin_shared', {
+          'share_method': 'screenshot',
+          'level': result.level,
+        });
       });
 }

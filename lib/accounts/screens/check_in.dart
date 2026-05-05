@@ -12,6 +12,7 @@ import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/widgets/account/fortune_graph.dart';
 import 'package:island/auth/captcha.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:lunar/lunar.dart';
@@ -19,14 +20,17 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-TextStyle _checkInSerif(
+TextStyle checkInSerif(
   BuildContext context, {
   TextStyle? base,
   FontWeight? fontWeight,
   double? height,
   Color? color,
 }) {
-  final languageCode = context.locale.languageCode.toLowerCase();
+  final languageCode =
+      Localizations.maybeLocaleOf(context)?.languageCode.toLowerCase() ??
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode
+          .toLowerCase();
   if (languageCode.startsWith('zh')) {
     return GoogleFonts.notoSerifSc(
       textStyle: base,
@@ -44,12 +48,12 @@ TextStyle _checkInSerif(
   );
 }
 
-String? _checkInResultAsset(int level) {
+String? checkInResultAsset(int level) {
   if (level < 0 || level > 4) return null;
   return 'assets/images/michan/check-in-result$level.jpg';
 }
 
-Color _checkInResultBackdrop(int level) {
+Color checkInResultBackdrop(int level) {
   switch (level) {
     case 0:
       return const Color(0xFF7A587D);
@@ -104,7 +108,26 @@ class CheckInScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(title: Text('checkInTemple').tr(), centerTitle: true),
+      appBar: AppBar(
+        title: Text('checkInTemple').tr(),
+        centerTitle: true,
+        actions: [
+          todayResult.when(
+            data: (result) => result == null
+                ? const SizedBox.shrink()
+                : IconButton(
+                    tooltip: 'share'.tr(),
+                    onPressed: () {
+                      shareCheckInAsScreenshot(context, ref, result);
+                    },
+                    icon: Icon(Symbols.share_reviews),
+                  ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+          ),
+          const Gap(8),
+        ],
+      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -197,7 +220,7 @@ class _CheckInContent extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _TempleHeader(date: DateTime.now()),
+                    TempleHeader(date: DateTime.now()),
                     const Gap(24),
                     if (result == null)
                       _CheckInPrompt(onCheckIn: onCheckIn)
@@ -205,7 +228,7 @@ class _CheckInContent extends ConsumerWidget {
                       ...(() {
                         final checkInResult = result!;
                         return [
-                          _FortuneCard(
+                          FortuneCard(
                             level: checkInResult.level,
                             createdAt: checkInResult.createdAt,
                             poem: report?.poem,
@@ -213,13 +236,13 @@ class _CheckInContent extends ConsumerWidget {
                           ),
                           if (report != null) ...[
                             const Gap(16),
-                            _FortuneGuidanceCard(report: report),
+                            FortuneGuidanceCard(report: report),
                             const Gap(16),
-                            _FortuneLuckyGrid(report: report),
+                            FortuneLuckyGrid(report: report),
                             const Gap(16),
-                            _FortuneDetails(report: report),
+                            FortuneDetails(report: report),
                             const Gap(16),
-                            _FortuneRitualCard(report: report),
+                            FortuneRitualCard(report: report),
                             const Gap(16),
                             Card(
                               margin: EdgeInsets.zero,
@@ -237,7 +260,7 @@ class _CheckInContent extends ConsumerWidget {
                               ),
                             ),
                           ] else
-                            _FallbackMessage(),
+                            FallbackMessage(),
                         ];
                       })(),
                   ],
@@ -251,10 +274,10 @@ class _CheckInContent extends ConsumerWidget {
   }
 }
 
-class _TempleHeader extends StatelessWidget {
+class TempleHeader extends StatelessWidget {
   final DateTime date;
 
-  const _TempleHeader({required this.date});
+  const TempleHeader({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {
@@ -269,7 +292,7 @@ class _TempleHeader extends StatelessWidget {
         const Gap(12),
         Text(
           'checkInTempleTitle'.tr(),
-          style: _checkInSerif(
+          style: checkInSerif(
             context,
             base: theme.textTheme.headlineSmall,
             fontWeight: FontWeight.w700,
@@ -279,7 +302,7 @@ class _TempleHeader extends StatelessWidget {
         const Gap(4),
         Text(
           DateFormat.yMMMMEEEEd().format(date),
-          style: _checkInSerif(
+          style: checkInSerif(
             context,
             base: theme.textTheme.bodyMedium,
             color: theme.colorScheme.onSurfaceVariant,
@@ -337,25 +360,30 @@ class _CheckInPrompt extends StatelessWidget {
   }
 }
 
-class _FortuneCard extends StatelessWidget {
+class FortuneCard extends StatelessWidget {
   final int level;
   final DateTime? createdAt;
   final String? poem;
   final String? summary;
+  final double? artHeight;
+  final bool showSealHeader;
 
-  const _FortuneCard({
+  const FortuneCard({
+    super.key,
     required this.level,
     this.createdAt,
     this.poem,
     this.summary,
+    this.artHeight,
+    this.showSealHeader = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final levelColor = _getLevelColor(context, level);
-    final artAsset = _checkInResultAsset(level);
-    final artBackdrop = _checkInResultBackdrop(level);
+    final artAsset = checkInResultAsset(level);
+    final artBackdrop = checkInResultBackdrop(level);
     final lunarDate = createdAt != null ? Lunar.fromDate(createdAt!) : null;
 
     return Card(
@@ -407,13 +435,22 @@ class _FortuneCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        AspectRatio(
-                          aspectRatio: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Image.asset(artAsset, fit: BoxFit.contain),
+                        if (artHeight != null)
+                          SizedBox(
+                            height: artHeight,
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Image.asset(artAsset, fit: BoxFit.contain),
+                            ),
+                          )
+                        else
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Image.asset(artAsset, fit: BoxFit.contain),
+                            ),
                           ),
-                        ),
                         Positioned.fill(
                           child: DecoratedBox(
                             decoration: BoxDecoration(
@@ -435,16 +472,17 @@ class _FortuneCard extends StatelessWidget {
                 ),
                 const Gap(18),
               ],
-              _FortuneSealHeader(
-                level: level,
-                lunarDate: lunarDate,
-                levelColor: levelColor,
-              ),
+              if (showSealHeader)
+                FortuneSealHeader(
+                  level: level,
+                  lunarDate: lunarDate,
+                  levelColor: levelColor,
+                ),
               if (poem?.isNotEmpty ?? false) ...[
-                const Gap(20),
+                const Gap(8),
                 Text(
                   poem!,
-                  style: _checkInSerif(
+                  style: checkInSerif(
                     context,
                     base: theme.textTheme.titleMedium,
                     fontWeight: FontWeight.w600,
@@ -457,7 +495,7 @@ class _FortuneCard extends StatelessWidget {
                 const Gap(16),
                 Text(
                   summary!,
-                  style: _checkInSerif(
+                  style: checkInSerif(
                     context,
                     base: theme.textTheme.bodyMedium,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -493,10 +531,10 @@ class _FortuneCard extends StatelessWidget {
   }
 }
 
-class _FortuneDetails extends StatelessWidget {
+class FortuneDetails extends StatelessWidget {
   final SnCheckInFortuneReport report;
 
-  const _FortuneDetails({required this.report});
+  const FortuneDetails({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
@@ -515,7 +553,7 @@ class _FortuneDetails extends StatelessWidget {
             ),
             Text(
               'fortuneDetails'.tr(),
-              style: _checkInSerif(
+              style: checkInSerif(
                 context,
                 base: theme.textTheme.titleMedium,
                 fontWeight: FontWeight.w700,
@@ -583,12 +621,13 @@ class _FortuneDetails extends StatelessWidget {
   }
 }
 
-class _FortuneSealHeader extends StatelessWidget {
+class FortuneSealHeader extends StatelessWidget {
   final int level;
   final Lunar? lunarDate;
   final Color levelColor;
 
-  const _FortuneSealHeader({
+  const FortuneSealHeader({
+    super.key,
     required this.level,
     required this.lunarDate,
     required this.levelColor,
@@ -609,7 +648,7 @@ class _FortuneSealHeader extends StatelessWidget {
             children: [
               Text(
                 '农\n历',
-                style: _checkInSerif(
+                style: checkInSerif(
                   context,
                   base: theme.textTheme.bodyMedium,
                   fontWeight: FontWeight.w700,
@@ -620,7 +659,7 @@ class _FortuneSealHeader extends StatelessWidget {
               const Gap(10),
               Text(
                 lunarMonth,
-                style: _checkInSerif(
+                style: checkInSerif(
                   context,
                   base: theme.textTheme.headlineMedium,
                   fontWeight: FontWeight.w900,
@@ -632,7 +671,7 @@ class _FortuneSealHeader extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
                   '月',
-                  style: _checkInSerif(
+                  style: checkInSerif(
                     context,
                     base: theme.textTheme.titleMedium,
                     fontWeight: FontWeight.w700,
@@ -649,7 +688,7 @@ class _FortuneSealHeader extends StatelessWidget {
           children: [
             Text(
               'checkInResultLevel$level'.tr(),
-              style: _checkInSerif(
+              style: checkInSerif(
                 context,
                 base: theme.textTheme.headlineMedium,
                 fontWeight: FontWeight.w900,
@@ -659,7 +698,7 @@ class _FortuneSealHeader extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               lunarDay,
-              style: _checkInSerif(
+              style: checkInSerif(
                 context,
                 base: theme.textTheme.titleMedium,
                 fontWeight: FontWeight.w700,
@@ -673,10 +712,10 @@ class _FortuneSealHeader extends StatelessWidget {
   }
 }
 
-class _FortuneGuidanceCard extends StatelessWidget {
+class FortuneGuidanceCard extends StatelessWidget {
   final SnCheckInFortuneReport report;
 
-  const _FortuneGuidanceCard({required this.report});
+  const FortuneGuidanceCard({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
@@ -699,7 +738,7 @@ class _FortuneGuidanceCard extends StatelessWidget {
                 ),
                 Text(
                   'checkInFortuneGuidance'.tr(),
-                  style: _checkInSerif(
+                  style: checkInSerif(
                     context,
                     base: theme.textTheme.titleMedium,
                     fontWeight: FontWeight.w700,
@@ -711,7 +750,7 @@ class _FortuneGuidanceCard extends StatelessWidget {
             if (report.summaryDetail != null)
               Text(
                 report.summaryDetail!,
-                style: _checkInSerif(
+                style: checkInSerif(
                   context,
                   base: theme.textTheme.bodyMedium,
                   height: 1.75,
@@ -725,10 +764,10 @@ class _FortuneGuidanceCard extends StatelessWidget {
   }
 }
 
-class _FortuneLuckyGrid extends StatelessWidget {
+class FortuneLuckyGrid extends StatelessWidget {
   final SnCheckInFortuneReport report;
 
-  const _FortuneLuckyGrid({required this.report});
+  const FortuneLuckyGrid({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
@@ -781,7 +820,7 @@ class _FortuneLuckyGrid extends StatelessWidget {
                         children: [
                           Text(
                             item.$2,
-                            style: _checkInSerif(
+                            style: checkInSerif(
                               context,
                               base: Theme.of(context).textTheme.bodySmall,
                               fontWeight: FontWeight.w600,
@@ -793,7 +832,7 @@ class _FortuneLuckyGrid extends StatelessWidget {
                           const Gap(4),
                           Text(
                             item.$3,
-                            style: _checkInSerif(
+                            style: checkInSerif(
                               context,
                               base: Theme.of(context).textTheme.bodyMedium,
                               fontWeight: FontWeight.w600,
@@ -813,10 +852,10 @@ class _FortuneLuckyGrid extends StatelessWidget {
   }
 }
 
-class _FortuneRitualCard extends StatelessWidget {
+class FortuneRitualCard extends StatelessWidget {
   final SnCheckInFortuneReport report;
 
-  const _FortuneRitualCard({required this.report});
+  const FortuneRitualCard({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
@@ -840,7 +879,7 @@ class _FortuneRitualCard extends StatelessWidget {
                 ),
                 Text(
                   'checkInFortuneRitual'.tr(),
-                  style: _checkInSerif(
+                  style: checkInSerif(
                     context,
                     base: theme.textTheme.titleMedium,
                     fontWeight: FontWeight.w700,
@@ -851,7 +890,7 @@ class _FortuneRitualCard extends StatelessWidget {
             const Gap(12),
             Text(
               report.ritual,
-              style: _checkInSerif(
+              style: checkInSerif(
                 context,
                 base: theme.textTheme.bodyMedium,
                 height: 1.65,
@@ -891,7 +930,7 @@ class _FortuneItem extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: _checkInSerif(
+                  style: checkInSerif(
                     context,
                     base: theme.textTheme.bodySmall,
                     fontWeight: FontWeight.w600,
@@ -901,7 +940,7 @@ class _FortuneItem extends StatelessWidget {
                 const Gap(4),
                 Text(
                   value,
-                  style: _checkInSerif(
+                  style: checkInSerif(
                     context,
                     base: theme.textTheme.bodyMedium,
                     height: 1.5,
@@ -916,7 +955,9 @@ class _FortuneItem extends StatelessWidget {
   }
 }
 
-class _FallbackMessage extends StatelessWidget {
+class FallbackMessage extends StatelessWidget {
+  const FallbackMessage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -985,7 +1026,7 @@ class _CheckInLoadingOverlay extends StatelessWidget {
                   const Gap(18),
                   Text(
                     'checkInTempleLoading'.tr(),
-                    style: _checkInSerif(
+                    style: checkInSerif(
                       context,
                       base: theme.textTheme.titleLarge,
                       fontWeight: FontWeight.w700,
@@ -995,7 +1036,7 @@ class _CheckInLoadingOverlay extends StatelessWidget {
                   const Gap(8),
                   Text(
                     'checkInTempleLoadingHint'.tr(),
-                    style: _checkInSerif(
+                    style: checkInSerif(
                       context,
                       base: theme.textTheme.bodyMedium,
                       color: theme.colorScheme.onSurfaceVariant,

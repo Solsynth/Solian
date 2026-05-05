@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -213,20 +214,24 @@ class DashboardGrid extends HookConsumerWidget {
                 if (userInfo.value != null)
                   Expanded(
                     child:
-                        SingleChildScrollView(
-                          padding: isWide
-                              ? const EdgeInsets.symmetric(horizontal: 24)
-                              : const EdgeInsets.symmetric(horizontal: 16),
-                          scrollDirection: isWide
-                              ? Axis.horizontal
-                              : Axis.vertical,
-                          child: isWide
-                              ? _DashboardGridWide()
-                              : _DashboardGridNarrow(),
-                        ).clipRRect(
-                          topLeft: isWide ? 0 : 12,
-                          topRight: isWide ? 0 : 12,
-                        ),
+                        (isWide
+                                ? _HoverHorizontalScrollArea(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
+                                    child: _DashboardGridWide(),
+                                  )
+                                : SingleChildScrollView(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    scrollDirection: Axis.vertical,
+                                    child: _DashboardGridNarrow(),
+                                  ))
+                            .clipRRect(
+                              topLeft: isWide ? 0 : 12,
+                              topRight: isWide ? 0 : 12,
+                            ),
                   )
                 else
                   Center(
@@ -337,6 +342,151 @@ class _DashboardGridWide extends HookConsumerWidget {
     }
 
     return Row(spacing: 16, children: children);
+  }
+}
+
+class _HoverHorizontalScrollArea extends HookWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+
+  const _HoverHorizontalScrollArea({required this.child, this.padding});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useScrollController();
+    final isHovered = useState(false);
+    final canScrollLeft = useState(false);
+    final canScrollRight = useState(false);
+
+    void updateScrollState() {
+      if (!controller.hasClients) {
+        canScrollLeft.value = false;
+        canScrollRight.value = false;
+        return;
+      }
+
+      final position = controller.position;
+      canScrollLeft.value = position.pixels > 0;
+      canScrollRight.value = position.pixels < position.maxScrollExtent;
+    }
+
+    useEffect(() {
+      void listener() => updateScrollState();
+
+      controller.addListener(listener);
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateScrollState());
+
+      return () => controller.removeListener(listener);
+    }, [controller, child, padding]);
+
+    Future<void> scrollBy(double direction) async {
+      if (!controller.hasClients) return;
+      final position = controller.position;
+      final delta = math.max(position.viewportDimension * 0.8, 280.0);
+      final target = (position.pixels + delta * direction).clamp(
+        0.0,
+        position.maxScrollExtent,
+      );
+      await controller.animateTo(
+        target,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    }
+
+    final scrollBehavior = ScrollConfiguration.of(context).copyWith(
+      dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.trackpad},
+    );
+
+    return MouseRegion(
+      onEnter: (_) => isHovered.value = true,
+      onExit: (_) => isHovered.value = false,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ScrollConfiguration(
+              behavior: scrollBehavior,
+              child: SingleChildScrollView(
+                controller: controller,
+                padding: padding,
+                scrollDirection: Axis.horizontal,
+                child: child,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _AnimatedDashboardScrollArrow(
+                icon: Symbols.chevron_left,
+                isVisible: isHovered.value && canScrollLeft.value,
+                hiddenOffset: const Offset(-0.4, 0),
+                onTap: () => scrollBy(-1),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _AnimatedDashboardScrollArrow(
+                icon: Symbols.chevron_right,
+                isVisible: isHovered.value && canScrollRight.value,
+                hiddenOffset: const Offset(0.4, 0),
+                onTap: () => scrollBy(1),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnimatedDashboardScrollArrow extends StatelessWidget {
+  final IconData icon;
+  final bool isVisible;
+  final Offset hiddenOffset;
+  final VoidCallback onTap;
+
+  const _AnimatedDashboardScrollArrow({
+    required this.icon,
+    required this.isVisible,
+    required this.hiddenOffset,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !isVisible,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        offset: isVisible ? Offset.zero : hiddenOffset,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          opacity: isVisible ? 1 : 0,
+          child: Material(
+            color: Colors.black45,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(icon, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
