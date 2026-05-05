@@ -388,22 +388,32 @@ class CloudFileList extends HookConsumerWidget {
                   640.0,
                 );
 
-                return CarouselView(
-                  itemSnapping: true,
+                return _HoverScrollableGallery(
+                  padding: padding,
                   itemExtent: itemExtent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
-                  ),
                   children: [
                     for (var i = 0; i < files.length; i++)
                       Stack(
                         children: [
-                          _CloudFileListEntry(
-                            file: files[i],
-                            heroTag: _heroTag(files[i].id),
-                            isImage:
-                                files[i].mimeType?.startsWith('image') ?? false,
-                            disableZoomIn: disableZoomIn,
+                          ClipRRect(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(16),
+                            ),
+                            child: _CloudFileListEntry(
+                              file: files[i],
+                              heroTag: _heroTag(files[i].id),
+                              isImage:
+                                  files[i].mimeType?.startsWith('image') ??
+                                  false,
+                              disableZoomIn: disableZoomIn,
+                              onTap: () {
+                                if (!(files[i].mimeType?.startsWith('image') ??
+                                    false)) {
+                                  return;
+                                }
+                                openLightbox(i);
+                              },
+                            ),
                           ),
                           Positioned(
                             bottom: 12,
@@ -419,12 +429,6 @@ class CloudFileList extends HookConsumerWidget {
                         ],
                       ),
                   ],
-                  onTap: (i) {
-                    if (!(files[i].mimeType?.startsWith('image') ?? false)) {
-                      return;
-                    }
-                    openLightbox(i);
-                  },
                 );
               },
             ),
@@ -437,50 +441,202 @@ class CloudFileList extends HookConsumerWidget {
       constraints: BoxConstraints(maxHeight: maxHeight, minWidth: maxWidth),
       child: AspectRatio(
         aspectRatio: calculateAspectRatio(),
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: files.length,
+        child: _HoverScrollableGallery(
           padding: padding,
-          itemBuilder: (context, index) {
-            return AspectRatio(
-              aspectRatio: files[index].fileMeta?['ratio'] is num
-                  ? files[index].fileMeta!['ratio'].toDouble()
-                  : 1.0,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
-                    child: _CloudFileListEntry(
-                      file: files[index],
-                      heroTag: _heroTag(files[index].id),
-                      isImage:
-                          files[index].mimeType?.startsWith('image') ?? false,
-                      disableZoomIn: disableZoomIn,
-                      onTap: () {
-                        if (!(files[index].mimeType?.startsWith('image') ??
-                            false)) {
-                          return;
-                        }
-                        openLightbox(index);
-                      },
+          children: [
+            for (var index = 0; index < files.length; index++)
+              AspectRatio(
+                aspectRatio: files[index].fileMeta?['ratio'] is num
+                    ? files[index].fileMeta!['ratio'].toDouble()
+                    : 1.0,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(16)),
+                      child: _CloudFileListEntry(
+                        file: files[index],
+                        heroTag: _heroTag(files[index].id),
+                        isImage:
+                            files[index].mimeType?.startsWith('image') ?? false,
+                        disableZoomIn: disableZoomIn,
+                        onTap: () {
+                          if (!(files[index].mimeType?.startsWith('image') ??
+                              false)) {
+                            return;
+                          }
+                          openLightbox(index);
+                        },
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 12,
-                    left: 16,
-                    child: Text('${index + 1}/${files.length}')
-                        .textColor(Colors.white)
-                        .textShadow(
-                          color: Colors.black54,
-                          offset: Offset(1, 1),
-                          blurRadius: 3,
-                        ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: 12,
+                      left: 16,
+                      child: Text('${index + 1}/${files.length}')
+                          .textColor(Colors.white)
+                          .textShadow(
+                            color: Colors.black54,
+                            offset: Offset(1, 1),
+                            blurRadius: 3,
+                          ),
+                    ),
+                  ],
+                ),
               ),
-            );
-          },
-          separatorBuilder: (_, _) => const Gap(8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverScrollableGallery extends HookWidget {
+  final List<Widget> children;
+  final EdgeInsets? padding;
+  final double? itemExtent;
+
+  const _HoverScrollableGallery({
+    required this.children,
+    this.padding,
+    this.itemExtent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useScrollController();
+    final isHovered = useState(false);
+    final canScrollLeft = useState(false);
+    final canScrollRight = useState(false);
+
+    void updateScrollState() {
+      if (!controller.hasClients) {
+        canScrollLeft.value = false;
+        canScrollRight.value = false;
+        return;
+      }
+
+      final position = controller.position;
+      canScrollLeft.value = position.pixels > 0;
+      canScrollRight.value = position.pixels < position.maxScrollExtent;
+    }
+
+    useEffect(() {
+      void listener() => updateScrollState();
+
+      controller.addListener(listener);
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateScrollState());
+
+      return () => controller.removeListener(listener);
+    }, [controller, children.length, itemExtent, padding]);
+
+    Future<void> scrollBy(double direction) async {
+      if (!controller.hasClients) return;
+      final position = controller.position;
+      final delta = math.max(position.viewportDimension * 0.8, 240.0);
+      final target = (position.pixels + delta * direction).clamp(
+        0.0,
+        position.maxScrollExtent,
+      );
+      await controller.animateTo(
+        target,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    }
+
+    final scrollBehavior = ScrollConfiguration.of(context).copyWith(
+      dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.trackpad},
+    );
+
+    return MouseRegion(
+      onEnter: (_) => isHovered.value = true,
+      onExit: (_) => isHovered.value = false,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ScrollConfiguration(
+              behavior: scrollBehavior,
+              child: ListView.separated(
+                controller: controller,
+                scrollDirection: Axis.horizontal,
+                padding: padding,
+                itemCount: children.length,
+                itemBuilder: (context, index) => itemExtent == null
+                    ? children[index]
+                    : SizedBox(width: itemExtent, child: children[index]),
+                separatorBuilder: (_, _) => const Gap(8),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _AnimatedScrollArrowButton(
+                icon: Symbols.chevron_left,
+                isVisible: isHovered.value && canScrollLeft.value,
+                hiddenOffset: const Offset(-0.4, 0),
+                onTap: () => scrollBy(-1),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _AnimatedScrollArrowButton(
+                icon: Symbols.chevron_right,
+                isVisible: isHovered.value && canScrollRight.value,
+                hiddenOffset: const Offset(0.4, 0),
+                onTap: () => scrollBy(1),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnimatedScrollArrowButton extends StatelessWidget {
+  final IconData icon;
+  final bool isVisible;
+  final Offset hiddenOffset;
+  final VoidCallback onTap;
+
+  const _AnimatedScrollArrowButton({
+    required this.icon,
+    required this.isVisible,
+    required this.hiddenOffset,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !isVisible,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        offset: isVisible ? Offset.zero : hiddenOffset,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          opacity: isVisible ? 1 : 0,
+          child: Material(
+            color: Colors.black45,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(icon, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
         ),
       ),
     );
