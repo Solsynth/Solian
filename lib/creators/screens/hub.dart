@@ -48,11 +48,16 @@ Future<SnHeatmap?> publisherHeatmap(Ref ref, String? uname) async {
 }
 
 @riverpod
-Future<SnPublisherRatingOverview?> publisherRatingOverview(Ref ref, String? uname) async {
+Future<SnPublisherRatingOverview?> publisherRatingOverview(
+  Ref ref,
+  String? uname,
+) async {
   if (uname == null) return null;
   final apiClient = ref.watch(apiClientProvider);
   try {
-    final resp = await apiClient.get('/sphere/publishers/$uname/rating/overview');
+    final resp = await apiClient.get(
+      '/sphere/publishers/$uname/rating/overview',
+    );
     return SnPublisherRatingOverview.fromJson(resp.data);
   } catch (err) {
     if (err is DioException && err.response?.statusCode == 404) {
@@ -412,6 +417,7 @@ class PublisherSelector extends StatelessWidget {
             .map(
               (item) => DropdownItem<SnPublisher>(
                 value: item.value,
+                height: 54,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -1141,7 +1147,10 @@ class _PublisherStatsWidget extends StatelessWidget {
   }
 }
 
-Widget _buildRatingCardStatic(BuildContext context, SnPublisherRatingOverview overview) {
+Widget _buildRatingCardStatic(
+  BuildContext context,
+  SnPublisherRatingOverview overview,
+) {
   final theme = Theme.of(context);
   final textColor = switch (overview.grade) {
     'S++' => theme.colorScheme.tertiary,
@@ -1227,7 +1236,9 @@ Widget _buildRatingCardStatic(BuildContext context, SnPublisherRatingOverview ov
                     ),
                     const Gap(8),
                     Text(
-                      'ratingTooltip'.tr(args: [overview.rating.toStringAsFixed(1)]),
+                      'ratingTooltip'.tr(
+                        args: [overview.rating.toStringAsFixed(1)],
+                      ),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: textColor.withOpacity(0.8),
                       ),
@@ -1254,7 +1265,9 @@ Widget _buildRatingCardStatic(BuildContext context, SnPublisherRatingOverview ov
                     ),
                   ),
                   Text(
-                    'ratingPercentile'.tr(args: [overview.percentile.toStringAsFixed(1)]),
+                    'ratingPercentile'.tr(
+                      args: [overview.percentile.toStringAsFixed(1)],
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: textColor.withOpacity(0.8),
                     ),
