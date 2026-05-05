@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class EmbedLinkWidget extends StatefulWidget {
+class EmbedLinkWidget extends ConsumerStatefulWidget {
   final SnScrappedLink link;
   final double? maxWidth;
   final EdgeInsetsGeometry? margin;
@@ -23,10 +24,10 @@ class EmbedLinkWidget extends StatefulWidget {
   });
 
   @override
-  State<EmbedLinkWidget> createState() => _EmbedLinkWidgetState();
+  ConsumerState<EmbedLinkWidget> createState() => _EmbedLinkWidgetState();
 }
 
-class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
+class _EmbedLinkWidgetState extends ConsumerState<EmbedLinkWidget> {
   bool? _isSquare;
   ImageStream? _imageStream;
   ImageStreamListener? _listener;
@@ -88,9 +89,9 @@ class _EmbedLinkWidgetState extends State<EmbedLinkWidget> {
 
   Future<void> _launchUrl() async {
     final uri = Uri.parse(widget.link.url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    final container = ProviderScope.containerOf(context, listen: false);
+    final widgetRef = container as WidgetRef;
+    await openExternalLink(uri, widgetRef);
   }
 
   String _getBaseUrl(String url) {

@@ -20,6 +20,9 @@ class BlockedImagePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final isBlocked = result.trustLevel == DomainTrustLevel.blocked;
     final scheme = Theme.of(context).colorScheme;
+    final characterAsset = isBlocked
+        ? 'assets/images/michan/link-warning.png'
+        : 'assets/images/michan/link-prompt.png';
 
     return Container(
       constraints: const BoxConstraints(minHeight: 180),
@@ -133,7 +136,7 @@ class BlockedImagePlaceholder extends StatelessWidget {
                   bottom: 32,
                   child: IgnorePointer(
                     child: Image.asset(
-                      'assets/images/michan/link-hint.png',
+                      characterAsset,
                       height: 240,
                       fit: BoxFit.contain,
                     ),
@@ -161,30 +164,94 @@ class _InlineLongPressButton extends StatefulWidget {
   State<_InlineLongPressButton> createState() => _InlineLongPressButtonState();
 }
 
-class _InlineLongPressButtonState extends State<_InlineLongPressButton> {
-  bool _holding = false;
+class _InlineLongPressButtonState extends State<_InlineLongPressButton>
+    with SingleTickerProviderStateMixin {
+  static const _holdDuration = Duration(milliseconds: 900);
+
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: _holdDuration)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          widget.onCompleted();
+          _controller.reset();
+        }
+      });
+  }
+
+  void _startHold() {
+    if (_controller.isAnimating) return;
+    _controller.forward(from: 0);
+  }
+
+  void _cancelHold() {
+    if (_controller.isCompleted) return;
+    _controller.stop();
+    _controller.reset();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
-      onLongPressStart: (_) => setState(() => _holding = true),
-      onLongPressEnd: (_) {
-        setState(() => _holding = false);
-        widget.onCompleted();
-      },
-      onLongPressCancel: () => setState(() => _holding = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: _holding ? scheme.error : scheme.errorContainer,
-          borderRadius: BorderRadius.circular(999),
-        ),
+      onTapDown: (_) => _startHold(),
+      onTapUp: (_) => _cancelHold(),
+      onTapCancel: _cancelHold,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final isHolding = _controller.value > 0;
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: scheme.errorContainer,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: child,
+                ),
+                Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: _controller.value,
+                      child: Container(color: scheme.error),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    alignment: Alignment.center,
+                    child: Text(
+                      widget.label,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: isHolding ? scheme.onError : scheme.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
         child: Text(
           widget.label,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: _holding ? scheme.onError : scheme.error,
+            color: scheme.error,
             fontWeight: FontWeight.w600,
           ),
         ),

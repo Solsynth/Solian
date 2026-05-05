@@ -311,13 +311,6 @@ class MessageItem extends HookConsumerWidget {
           child: InkWell(
             mouseCursor: MouseCursor.defer,
             focusColor: Colors.transparent,
-            onLongPress: () {
-              if (isSelectionMode && onToggleSelection != null) {
-                onToggleSelection!(message.id);
-              } else {
-                showActionMenu();
-              }
-            },
             onSecondaryTap: showActionMenu,
             onTap: () {
               if (isSelectionMode && onToggleSelection != null) {
@@ -1249,7 +1242,8 @@ class _OnlineAvatarBadge extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final onlineStatus = ref.watch(chatOnlineCountProvider(roomId));
-    final isOnlineInRoom = onlineStatus.value?.onlineAccounts.any(
+    final isOnlineInRoom =
+        onlineStatus.value?.onlineAccounts.any(
           (account) => account.id == accountId,
         ) ??
         false;
