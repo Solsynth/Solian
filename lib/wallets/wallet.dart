@@ -23,6 +23,7 @@ import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/wallets/pin_status.dart';
 
 part 'wallet.g.dart';
 
@@ -63,16 +64,16 @@ Future<SnWalletStats> walletStats(Ref ref) async {
   return await client.wallet.getWalletStats();
 }
 
-class CreateFundSheet extends StatefulWidget {
+class CreateFundSheet extends ConsumerStatefulWidget {
   final String? payerWalletId;
 
   const CreateFundSheet({super.key, this.payerWalletId});
 
   @override
-  State<CreateFundSheet> createState() => _CreateFundSheetState();
+  ConsumerState<CreateFundSheet> createState() => _CreateFundSheetState();
 }
 
-class _CreateFundSheetState extends State<CreateFundSheet> {
+class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
   final amountController = TextEditingController();
   final splitsController = TextEditingController(text: '1');
   final messageController = TextEditingController();
@@ -507,53 +508,60 @@ class _CreateFundSheetState extends State<CreateFundSheet> {
   }
 
   Future<void> _createFund() async {
-    final amount = double.tryParse(amountController.text);
-    final splits = int.tryParse(splitsController.text);
+    try {
+      final amount = double.tryParse(amountController.text);
+      final splits = int.tryParse(splitsController.text);
 
-    if (amount == null || amount <= 0) {
-      showErrorAlert('invalidAmount'.tr());
-      return;
+      if (amount == null || amount <= 0) {
+        showErrorAlert('invalidAmount'.tr());
+        return;
+      }
+
+      if (splits == null || splits <= 0) {
+        showErrorAlert('invalidNumberOfSplits'.tr());
+        return;
+      }
+
+      final data = {
+        'currency': selectedCurrency,
+        'total_amount': amount,
+        'split_type': selectedSplitType,
+        'amount_of_splits': splits,
+        'recipient_account_ids': selectedRecipients.map((r) => r.id).toList(),
+        'message': messageController.text.trim().isEmpty
+            ? null
+            : messageController.text.trim(),
+        'pin_code': null,
+        if (widget.payerWalletId != null)
+          'payer_wallet_id': widget.payerWalletId,
+      };
+
+      final pinStatus = await fetchWalletPinStatus(ref);
+      if (pinStatus.validationRequired) {
+        if (!mounted) return;
+        final enteredPin = await _showPinVerificationDialog(context);
+        if (enteredPin == null || enteredPin.isEmpty) return;
+        data['pin_code'] = enteredPin;
+      }
+
+      if (mounted) Navigator.of(context).pop(data);
+    } catch (err) {
+      showErrorAlert(err);
     }
-
-    if (splits == null || splits <= 0) {
-      showErrorAlert('invalidNumberOfSplits'.tr());
-      return;
-    }
-
-    final data = {
-      'currency': selectedCurrency,
-      'total_amount': amount,
-      'split_type': selectedSplitType,
-      'amount_of_splits': splits,
-      'recipient_account_ids': selectedRecipients.map((r) => r.id).toList(),
-      'message': messageController.text.trim().isEmpty
-          ? null
-          : messageController.text.trim(),
-      'pin_code': '',
-      if (widget.payerWalletId != null) 'payer_wallet_id': widget.payerWalletId,
-    };
-
-    // Ask for PIN confirmation before creating fund
-    final enteredPin = await _showPinVerificationDialog(context);
-    if (enteredPin == null || enteredPin.isEmpty) return;
-
-    // Add PIN to the fund data
-    data['pin_code'] = enteredPin;
-
-    if (mounted) Navigator.of(context).pop(data);
   }
 }
 
-class CreateTransferSheet extends StatefulWidget {
+class CreateTransferSheet extends ConsumerStatefulWidget {
   final String? payerWalletId;
 
   const CreateTransferSheet({super.key, this.payerWalletId});
 
   @override
-  State<CreateTransferSheet> createState() => _CreateTransferSheetState();
+  ConsumerState<CreateTransferSheet> createState() =>
+      _CreateTransferSheetState();
 }
 
-class _CreateTransferSheetState extends State<CreateTransferSheet> {
+class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
   final amountController = TextEditingController();
   final remarkController = TextEditingController();
   final publicIdController = TextEditingController();
@@ -946,47 +954,55 @@ class _CreateTransferSheetState extends State<CreateTransferSheet> {
   }
 
   Future<void> _createTransfer() async {
-    final amount = double.tryParse(amountController.text);
+    try {
+      final amount = double.tryParse(amountController.text);
 
-    if (amount == null || amount <= 0) {
-      showErrorAlert('invalidAmount'.tr());
-      return;
+      if (amount == null || amount <= 0) {
+        showErrorAlert('invalidAmount'.tr());
+        return;
+      }
+
+      if (payeeType == 0 && selectedPayee == null) {
+        showErrorAlert('noPayeeSelected'.tr());
+        return;
+      }
+
+      if (payeeType == 1 && publicIdController.text.trim().isEmpty) {
+        showErrorAlert('enterPublicId'.tr());
+        return;
+      }
+
+      final data = <String, dynamic>{
+        'amount': amount,
+        'currency': selectedCurrency,
+        'pin_code': null,
+        'remark': remarkController.text.trim().isEmpty
+            ? null
+            : remarkController.text.trim(),
+      };
+
+      if (widget.payerWalletId != null) {
+        data['payer_wallet_id'] = widget.payerWalletId;
+      }
+
+      if (payeeType == 0) {
+        data['payee_account_id'] = selectedPayee!.id;
+      } else {
+        data['payee_public_id'] = publicIdController.text.trim().toUpperCase();
+      }
+
+      final pinStatus = await fetchWalletPinStatus(ref);
+      if (pinStatus.validationRequired) {
+        if (!mounted) return;
+        final enteredPin = await _showPinVerificationDialog(context);
+        if (enteredPin == null || enteredPin.isEmpty) return;
+        data['pin_code'] = enteredPin;
+      }
+
+      if (mounted) Navigator.of(context).pop(data);
+    } catch (err) {
+      showErrorAlert(err);
     }
-
-    if (payeeType == 0 && selectedPayee == null) {
-      showErrorAlert('noPayeeSelected'.tr());
-      return;
-    }
-
-    if (payeeType == 1 && publicIdController.text.trim().isEmpty) {
-      showErrorAlert('enterPublicId'.tr());
-      return;
-    }
-
-    final data = <String, dynamic>{
-      'amount': amount,
-      'currency': selectedCurrency,
-      'remark': remarkController.text.trim().isEmpty
-          ? null
-          : remarkController.text.trim(),
-    };
-
-    if (widget.payerWalletId != null) {
-      data['payer_wallet_id'] = widget.payerWalletId;
-    }
-
-    if (payeeType == 0) {
-      data['payee_account_id'] = selectedPayee!.id;
-    } else {
-      data['payee_public_id'] = publicIdController.text.trim().toUpperCase();
-    }
-
-    final enteredPin = await _showPinVerificationDialog(context);
-    if (enteredPin == null || enteredPin.isEmpty) return;
-
-    data['pin_code'] = enteredPin;
-
-    if (mounted) Navigator.of(context).pop(data);
   }
 }
 
