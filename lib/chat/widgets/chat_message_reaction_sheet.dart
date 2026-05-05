@@ -20,6 +20,10 @@ const kAvailableReactionStickers = {
   'pray',
   'thumb_up',
   'party',
+  'sorry',
+  'laugh',
+  'cry',
+  'thumb_down',
 };
 
 bool getReactionImageAvailable(String symbol) {

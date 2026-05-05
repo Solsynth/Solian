@@ -11,6 +11,7 @@ import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
@@ -62,15 +63,6 @@ class ReactionListNotifier
     return data.map((json) => SnPostReaction.fromJson(json)).toList();
   }
 }
-
-const kAvailableStickers = {
-  'angry',
-  'clap',
-  'confuse',
-  'pray',
-  'thumb_up',
-  'party',
-};
 
 bool _getReactionImageAvailable(String symbol) {
   return kAvailableStickers.contains(symbol);
