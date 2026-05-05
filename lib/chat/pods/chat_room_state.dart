@@ -453,11 +453,6 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
 
     state = state.copyWith(isScrollingToMessage: true);
 
-    // Add flashing effect
-    ref
-        .read(flashingMessagesProvider.notifier)
-        .update((set) => set.union({messageId}));
-
     final messageIndex = messageList.indexWhere((m) => m.id == messageId);
 
     if (messageIndex == -1) {
@@ -479,6 +474,8 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
+        ref.read(flashingMessagesProvider.notifier).trigger(messageId);
+
         listController.animateToItem(
           index: index,
           scrollController: scrollController,
