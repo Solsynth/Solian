@@ -524,6 +524,17 @@ class MessagesNotifier extends _$MessagesNotifier {
     state = AsyncValue.data(_filterActiveMessages(_sortMessages(messages)));
   }
 
+  void _replaceMessage(String messageId, LocalChatMessage replacement) {
+    var replaced = false;
+    final updated = _currentMessages.map((message) {
+      if (message.id != messageId) return message;
+      replaced = true;
+      return replacement;
+    }).toList();
+
+    _emitMessages(replaced ? updated : [replacement, ...updated]);
+  }
+
   Future<List<LocalChatMessage>> _getCachedMessages({
     int offset = 0,
     int take = 20,
@@ -849,6 +860,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   }) async {
     if (content.trim().isEmpty && attachments.isEmpty) return;
 
+    String? pendingMessageId;
     final result = await _sender.sendTextMessage(
       content: content,
       attachments: attachments,
@@ -858,15 +870,33 @@ class MessagesNotifier extends _$MessagesNotifier {
       forwardingTo: forwardingTo,
       poll: poll,
       fund: fund,
+      onPending: editingTo == null
+          ? (pending) {
+              pendingMessageId = pending.id;
+              _pendingMessages[pending.id] = pending;
+              _emitMessages([pending, ..._currentMessages]);
+            }
+          : null,
       onProgress: onProgress,
     );
 
     if (!result.success || result.message == null) {
+      if (pendingMessageId != null) {
+        final pending = _pendingMessages[pendingMessageId!];
+        if (pending != null) {
+          pending.status = MessageStatus.failed;
+          _replaceMessage(pending.id, pending);
+        }
+      }
       showErrorAlert(result.error ?? 'Failed to send message');
       return;
     }
 
     final sentMessage = result.message!;
+    if (pendingMessageId != null) {
+      _pendingMessages.remove(pendingMessageId);
+    }
+
     if (editingTo != null) {
       var replaced = false;
       final updated = _currentMessages.map((message) {
@@ -890,7 +920,11 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
 
-    _emitMessages([sentMessage, ..._currentMessages]);
+    if (pendingMessageId != null) {
+      _replaceMessage(pendingMessageId!, sentMessage);
+    } else {
+      _emitMessages([sentMessage, ..._currentMessages]);
+    }
   }
 
   Future<void> sendVoiceMessage(

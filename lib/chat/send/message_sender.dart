@@ -69,6 +69,7 @@ class MessageSender {
     SnChatMessage? forwardingTo,
     SnPoll? poll,
     SnWalletFund? fund,
+    Function(LocalChatMessage message)? onPending,
     Function(String messageId, Map<int, double?>)? onProgress,
   }) async {
     final clientMessageId = const Uuid().v4();
@@ -87,6 +88,7 @@ class MessageSender {
 
       // Add to pending cache
       _pendingCache.add(pending);
+      onPending?.call(pending);
       onProgress?.call(pending.id, {});
 
       _logger.info(
