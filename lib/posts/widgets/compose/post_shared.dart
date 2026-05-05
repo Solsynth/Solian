@@ -14,6 +14,7 @@ import 'package:island/accounts/widgets/activitypub/actor_profile.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
+import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/compose/post_replies_sheet.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -484,14 +485,7 @@ class PostReplyPreview extends HookConsumerWidget {
   /// Checks if reaction has a sticker image asset
   /// Based on kAvailableStickers in post_reaction_sheet.dart
   bool _getReactionImageAvailable(String symbol) {
-    return {
-      'angry',
-      'clap',
-      'confuse',
-      'pray',
-      'thumb_up',
-      'party',
-    }.contains(symbol);
+    return kAvailableStickers.contains(symbol);
   }
 
   @override
