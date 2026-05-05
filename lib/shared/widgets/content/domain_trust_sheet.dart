@@ -88,7 +88,7 @@ class DomainTrustSheet extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 60, right: 88),
+                    margin: const EdgeInsets.only(top: 60),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: scheme.surfaceContainerHighest,
@@ -105,7 +105,7 @@ class DomainTrustSheet extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    right: 0,
+                    right: -40,
                     bottom: 8,
                     child: IgnorePointer(
                       child: Image.asset(
@@ -218,7 +218,8 @@ class _LongPressProceedButton extends StatefulWidget {
   });
 
   @override
-  State<_LongPressProceedButton> createState() => _LongPressProceedButtonState();
+  State<_LongPressProceedButton> createState() =>
+      _LongPressProceedButtonState();
 }
 
 class _LongPressProceedButtonState extends State<_LongPressProceedButton> {
