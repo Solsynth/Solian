@@ -10,7 +10,6 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
-import 'package:island/accounts/widgets/account/fortune_graph.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
@@ -58,20 +57,7 @@ class DashboardRenderer {
       case 'checkIn':
         return CheckInWidget(margin: EdgeInsets.zero);
       case 'fortuneGraph':
-        return Card(
-          margin: EdgeInsets.zero,
-          child: FortuneGraphWidget(
-            events: ref.watch(
-              eventCalendarProvider(
-                EventCalendarQuery(
-                  uname: 'me',
-                  year: DateTime.now().year,
-                  month: DateTime.now().month,
-                ),
-              ),
-            ),
-          ),
-        );
+        return const TodayOracleCard();
       case 'fortuneCard':
         return FortuneCard(unlimited: true);
       case 'postFeatured':
@@ -100,20 +86,7 @@ class DashboardRenderer {
             spacing: 16,
             children: [
               CheckInWidget(margin: EdgeInsets.zero),
-              Card(
-                margin: EdgeInsets.zero,
-                child: FortuneGraphWidget(
-                  events: ref.watch(
-                    eventCalendarProvider(
-                      EventCalendarQuery(
-                        uname: 'me',
-                        year: DateTime.now().year,
-                        month: DateTime.now().month,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              const TodayOracleCard(),
               Expanded(child: FortuneCard()),
             ],
           ),
@@ -831,6 +804,83 @@ class FortuneCard extends HookConsumerWidget {
 
     if (unlimited) return child;
     return child.height(48);
+  }
+}
+
+class TodayOracleCard extends ConsumerWidget {
+  const TodayOracleCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todayResult = ref.watch(checkInResultTodayProvider);
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: todayResult.when(
+        loading: () => Center(
+          child: ConfuseSpinner(
+            size: 36,
+            speed: 6,
+            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.65),
+          ),
+        ).padding(vertical: 16),
+        error: (error, _) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(error.toString(), maxLines: 2, overflow: TextOverflow.ellipsis),
+        ),
+        data: (result) {
+          final report = result?.fortuneReport;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Symbols.temple_buddhist,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'checkInTodayOracle'.tr(),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ).padding(horizontal: 16, vertical: 12),
+              if (result == null)
+                Text(
+                  'checkInViewTemple'.tr(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ).padding(horizontal: 16, bottom: 16)
+              else ...[
+                Text(
+                  report?.poem ?? report?.summary ?? 'checkInResultLevel${result.level}'.tr(),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                ).padding(horizontal: 16),
+                const SizedBox(height: 10),
+                Text(
+                  'checkInResultLevel${result.level}'.tr(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ).padding(horizontal: 16, bottom: 16),
+              ],
+            ],
+          );
+        },
+      ),
+    );
   }
 }
 
