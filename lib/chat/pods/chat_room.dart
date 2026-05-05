@@ -53,6 +53,16 @@ class FlashingMessagesNotifier extends Notifier<Set<String>> {
     state = cb(state);
   }
 
+  void trigger(String messageId) {
+    // Force a fresh state transition so the target item can retrigger
+    // its flash effect even when the same message is jumped to repeatedly.
+    state = state.difference({messageId});
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      state = {...state, messageId};
+    });
+  }
+
   void clear() => state = {};
 }
 
