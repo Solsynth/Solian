@@ -420,6 +420,19 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
   }
 
   Widget _buildPinInput() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final defaultPinTheme = PinTheme(
+      width: 48,
+      height: 56,
+      textStyle: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline),
+      ),
+    );
+
     return Column(
       children: [
         Text(
@@ -434,6 +447,16 @@ class _PaymentContentState extends ConsumerState<_PaymentContent> {
           length: 6,
           obscureText: true,
           keyboardType: TextInputType.number,
+          defaultPinTheme: defaultPinTheme,
+          focusedPinTheme: defaultPinTheme.copyDecorationWith(
+            border: Border.all(color: colorScheme.primary, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          submittedPinTheme: defaultPinTheme.copyDecorationWith(
+            color: colorScheme.surfaceContainerHighest,
+            border: Border.all(color: colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(12),
+          ),
           onSubmitted: _onPinSubmit,
           onChanged: (String code) {
             _pin = code;
