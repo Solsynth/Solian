@@ -2154,25 +2154,41 @@ class WalletScreen extends HookConsumerWidget {
                 ),
                 if (wallet.publicId != null) ...[
                   const Gap(8),
-                  Row(
-                    children: [
-                      Icon(
-                        Symbols.tag,
-                        size: 14,
-                        color: theme.colorScheme.onPrimaryContainer.withOpacity(
-                          0.7,
+                  InkWell(
+                    onTap: () {
+                      Clipboard.setData(
+                        ClipboardData(text: wallet.publicId!),
+                      );
+                      showSnackBar('walletPublicIdCopied'.tr());
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.tag,
+                          size: 14,
+                          color: theme.colorScheme.onPrimaryContainer.withOpacity(
+                            0.7,
+                          ),
                         ),
-                      ),
-                      const Gap(4),
-                      Text(
-                        wallet.publicId!,
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        const Gap(4),
+                        Text(
+                          wallet.publicId!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer
+                                .withOpacity(0.7),
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                        const Gap(4),
+                        Icon(
+                          Symbols.content_copy,
+                          size: 12,
                           color: theme.colorScheme.onPrimaryContainer
-                              .withOpacity(0.7),
-                          fontFamily: 'monospace',
+                              .withOpacity(0.5),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
                 const Gap(12),
