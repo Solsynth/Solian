@@ -219,8 +219,13 @@ class _PackSwitcherState extends State<_PackSwitcher> {
 class _StickersGrid extends StatelessWidget {
   final SnStickerPack pack;
   final void Function(SnSticker sticker) onPick;
+  final double maxCrossAxisExtent;
 
-  const _StickersGrid({required this.pack, required this.onPick});
+  const _StickersGrid({
+    required this.pack,
+    required this.onPick,
+    this.maxCrossAxisExtent = 56,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -233,8 +238,8 @@ class _StickersGrid extends StatelessWidget {
     return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 56,
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: maxCrossAxisExtent,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
       ),
@@ -428,6 +433,7 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
             child: _StickersGrid(
               pack: selectedPack,
               onPick: (sticker) => widget.onPick(selectedPack, sticker),
+              maxCrossAxisExtent: 96,
             ).padding(horizontal: 2),
           ),
         ),

@@ -446,10 +446,17 @@ void showNotification({
 }
 
 Future<void> openExternalLink(Uri url, WidgetRef ref) async {
-  final context = ref.read(routerProvider).navigatorKey.currentState!.context;
+  await openExternalLinkWithContainer(url, ProviderScope.containerOf(globalOverlay.currentState!.context));
+}
+
+Future<void> openExternalLinkWithContainer(
+  Uri url,
+  ProviderContainer container,
+) async {
+  final context = container.read(routerProvider).navigatorKey.currentState!.context;
 
   showLoadingModal(context);
-  final domainTrustService = ref.read(domainTrustServiceProvider);
+  final domainTrustService = container.read(domainTrustServiceProvider);
   final result = await domainTrustService.validateUrl(url);
 
   if (!context.mounted) return;
