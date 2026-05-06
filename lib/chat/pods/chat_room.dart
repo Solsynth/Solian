@@ -41,26 +41,22 @@ class ChatSyncHintNotifier extends Notifier<String?> {
 }
 
 final flashingMessagesProvider =
-    NotifierProvider<FlashingMessagesNotifier, Set<String>>(
+    NotifierProvider<FlashingMessagesNotifier, Map<String, int>>(
       FlashingMessagesNotifier.new,
     );
 
-class FlashingMessagesNotifier extends Notifier<Set<String>> {
+class FlashingMessagesNotifier extends Notifier<Map<String, int>> {
   @override
-  Set<String> build() => {};
-
-  void update(Set<String> Function(Set<String>) cb) {
-    state = cb(state);
-  }
+  Map<String, int> build() => {};
 
   void trigger(String messageId) {
-    // Force a fresh state transition so the target item can retrigger
-    // its flash effect even when the same message is jumped to repeatedly.
-    state = state.difference({messageId});
-    Future.microtask(() {
-      if (!ref.mounted) return;
-      state = {...state, messageId};
-    });
+    state = {...state, messageId: (state[messageId] ?? 0) + 1};
+  }
+
+  void clearMessage(String messageId) {
+    final next = Map<String, int>.from(state);
+    next.remove(messageId);
+    state = next;
   }
 
   void clear() => state = {};
