@@ -202,57 +202,62 @@ class _InlineLongPressButtonState extends State<_InlineLongPressButton>
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTapDown: (_) => _startHold(),
-      onTapUp: (_) => _cancelHold(),
-      onTapCancel: _cancelHold,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          final isHolding = _controller.value > 0;
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: scheme.errorContainer,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: child,
-                ),
-                Positioned.fill(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: _controller.value,
-                      child: Container(color: scheme.error),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
+    return Listener(
+      onPointerDown: (_) => _startHold(),
+      onPointerUp: (_) => _cancelHold(),
+      onPointerCancel: (_) => _cancelHold(),
+      behavior: HitTestBehavior.opaque,
+      child: GestureDetector(
+        onLongPress: () {},
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final isHolding = _controller.value > 0;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: Stack(
+                children: [
+                  Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    alignment: Alignment.center,
-                    child: Text(
-                      widget.label,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: isHolding ? scheme.onError : scheme.error,
-                        fontWeight: FontWeight.w600,
+                    decoration: BoxDecoration(
+                      color: scheme.errorContainer,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: child,
+                  ),
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: _controller.value,
+                        child: Container(color: scheme.error),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  Positioned.fill(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      alignment: Alignment.center,
+                      child: Text(
+                        widget.label,
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: isHolding ? scheme.onError : scheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          child: Text(
+            widget.label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: scheme.error,
+              fontWeight: FontWeight.w600,
             ),
-          );
-        },
-        child: Text(
-          widget.label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: scheme.error,
-            fontWeight: FontWeight.w600,
           ),
         ),
       ),

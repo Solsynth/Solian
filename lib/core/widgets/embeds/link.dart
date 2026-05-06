@@ -89,9 +89,8 @@ class _EmbedLinkWidgetState extends ConsumerState<EmbedLinkWidget> {
 
   Future<void> _launchUrl() async {
     final uri = Uri.parse(widget.link.url);
-    final container = ProviderScope.containerOf(context, listen: false);
-    final widgetRef = container as WidgetRef;
-    await openExternalLink(uri, widgetRef);
+    final container = ProviderScope.containerOf(context);
+    await openExternalLinkWithContainer(uri, container);
   }
 
   String _getBaseUrl(String url) {
