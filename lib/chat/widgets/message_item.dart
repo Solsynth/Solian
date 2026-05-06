@@ -132,15 +132,15 @@ class MessageItem extends HookConsumerWidget {
       }
     }
 
-    final flashing = ref.watch(
-      flashingMessagesProvider.select((set) => set.contains(message.id)),
+    final flashToken = ref.watch(
+      flashingMessagesProvider.select((map) => map[message.id]),
     );
 
     final isFlashing = useState(false);
     final flashTimer = useState<Timer?>(null);
 
     useEffect(() {
-      if (flashing) {
+      if (flashToken != null) {
         flashTimer.value?.cancel();
         isFlashing.value = true;
         flashTimer.value = Timer.periodic(
@@ -152,9 +152,7 @@ class MessageItem extends HookConsumerWidget {
               timer.cancel();
               flashTimer.value = null;
               isFlashing.value = false;
-              ref
-                  .read(flashingMessagesProvider.notifier)
-                  .update((set) => set.difference({message.id}));
+              ref.read(flashingMessagesProvider.notifier).clearMessage(message.id);
             }
           },
         );
@@ -166,7 +164,7 @@ class MessageItem extends HookConsumerWidget {
       return () {
         flashTimer.value?.cancel();
       };
-    }, [flashing]);
+    }, [flashToken]);
 
     final flashColor = isFlashing.value
         ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8)
