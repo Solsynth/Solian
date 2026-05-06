@@ -22,7 +22,7 @@ class TrayService {
     await trayManager.setIcon(
       Platform.isWindows
           ? 'assets/icons/icon.ico'
-          : 'assets/icons/icon-tray.png',
+          : 'assets/icons/icon-tray.webp',
       isTemplate: Platform.isMacOS,
     );
 

@@ -420,7 +420,7 @@ class PostReplyPreview extends HookConsumerWidget {
       );
     } else if (hasSticker) {
       icon = Image.asset(
-        'assets/images/stickers/$symbol.png',
+        'assets/images/stickers/$symbol.webp',
         width: 16,
         height: 16,
         fit: BoxFit.contain,

@@ -258,7 +258,7 @@ class StartupSplashScreen extends HookConsumerWidget {
                 child: ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(16)),
                   child: Image.asset(
-                    'assets/icons/icon.png',
+                    'assets/icons/icon.webp',
                     width: 80,
                     height: 80,
                   ),

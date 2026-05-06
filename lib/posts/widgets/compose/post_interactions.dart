@@ -36,7 +36,7 @@ bool _getReactionImageAvailable(String symbol) {
 Widget buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
   if (_getReactionImageAvailable(symbol)) {
     return Image.asset(
-      'assets/images/stickers/$symbol.png',
+      'assets/images/stickers/$symbol.webp',
       width: size,
       height: size,
       fit: BoxFit.contain,

@@ -153,8 +153,8 @@ class WindowScaffold extends HookConsumerWidget {
                                   Image.asset(
                                     Theme.of(context).brightness ==
                                             Brightness.dark
-                                        ? 'assets/icons/icon-dark.png'
-                                        : 'assets/icons/icon.png',
+                                        ? 'assets/icons/icon-dark.webp'
+                                        : 'assets/icons/icon.webp',
                                     width: 20,
                                     height: 20,
                                   ),

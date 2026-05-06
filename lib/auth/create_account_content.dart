@@ -49,7 +49,7 @@ Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
       );
     case 'spotify':
       return Image.asset(
-        'assets/images/oidc/spotify.png',
+        'assets/images/oidc/spotify.webp',
         width: size,
         height: size,
         color: color,
