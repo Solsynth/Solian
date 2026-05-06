@@ -48,7 +48,7 @@ Future<String?> discordAssetsUrl(
   final assets = await ref.watch(discordAssetsProvider(activity).future);
   if (assets != null && assets.containsKey(key)) {
     final assetId = assets[key]!;
-    return 'https://cdn.discordapp.com/app-assets/${activity.manualId}/$assetId.png';
+    return 'https://cdn.discordapp.com/app-assets/${activity.manualId}/$assetId.webp';
   }
   return null;
 }
@@ -684,7 +684,7 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                             child: Tooltip(
                               message: 'Listening on Spotify',
                               child: Image.asset(
-                                'assets/images/oidc/spotify.png',
+                                'assets/images/oidc/spotify.webp',
                                 width: 24,
                                 height: 24,
                                 color: colorScheme.onSurface,
