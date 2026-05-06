@@ -1191,7 +1191,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     // Clear flashing messages when starting a new jump
     if (!!ref.mounted) {
-      ref.read(flashingMessagesProvider.notifier).state = {};
+      ref.read(flashingMessagesProvider.notifier).clear();
     }
 
     try {
