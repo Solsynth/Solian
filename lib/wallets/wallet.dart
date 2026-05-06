@@ -27,6 +27,21 @@ import 'package:island/wallets/pin_status.dart';
 
 part 'wallet.g.dart';
 
+PinTheme buildOutlinedPinTheme(BuildContext context) {
+  final colorScheme = Theme.of(context).colorScheme;
+  return PinTheme(
+    width: 48,
+    height: 56,
+    textStyle: Theme.of(
+      context,
+    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: colorScheme.outline),
+    ),
+  );
+}
+
 @riverpod
 Future<SnWallet?> walletCurrent(Ref ref) async {
   try {
@@ -427,84 +442,109 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
   Future<String?> _showPinVerificationDialog(BuildContext context) async {
     String enteredPin = '';
 
-    await showModalBottomSheet(
+    return await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SheetScaffold(
-            titleText: 'enterPin'.tr(),
-            heightFactor: 0.5,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'enterPinToConfirmPayment'.tr(),
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w500),
-                          textAlign: TextAlign.center,
-                        ),
-                        const Gap(24),
-                        Pinput(
-                          length: 6,
-                          obscureText: true,
-                          keyboardType: TextInputType.number,
-                          onSubmitted: (pin) {
-                            enteredPin = pin;
-                            Navigator.of(context).pop(pin);
-                          },
-                          onChanged: (String code) {
-                            enteredPin = code;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('cancel'.tr()),
-                        ),
-                      ),
-                      if (enteredPin.length == 6) ...[
-                        const Gap(12),
-                        Expanded(
-                          child: FilledButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(enteredPin);
-                            },
-                            child: Text('confirm'.tr()),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final colorScheme = Theme.of(context).colorScheme;
+          final defaultPinTheme = buildOutlinedPinTheme(context);
+
+          return Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
               ),
             ),
-          ),
-        ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SheetScaffold(
+                titleText: 'enterPin'.tr(),
+                heightFactor: 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'enterPinToConfirmPayment'.tr(),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                            ),
+                            const Gap(24),
+                            Pinput(
+                              length: 6,
+                              obscureText: true,
+                              keyboardType: TextInputType.number,
+                              defaultPinTheme: defaultPinTheme,
+                              focusedPinTheme: defaultPinTheme
+                                  .copyDecorationWith(
+                                    border: Border.all(
+                                      color: colorScheme.primary,
+                                      width: 2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                              submittedPinTheme: defaultPinTheme
+                                  .copyDecorationWith(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    border: Border.all(
+                                      color: colorScheme.outlineVariant,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                              onSubmitted: (pin) {
+                                Navigator.of(context).pop(pin);
+                              },
+                              onChanged: (String code) {
+                                setModalState(() {
+                                  enteredPin = code;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Gap(24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('cancel'.tr()),
+                            ),
+                          ),
+                          if (enteredPin.length == 6) ...[
+                            const Gap(12),
+                            Expanded(
+                              child: FilledButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(enteredPin);
+                                },
+                                child: Text('confirm'.tr()),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
-
-    return enteredPin.isNotEmpty ? enteredPin : null;
   }
 
   Future<void> _createFund() async {
@@ -873,84 +913,109 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
   Future<String?> _showPinVerificationDialog(BuildContext context) async {
     String enteredPin = '';
 
-    await showModalBottomSheet(
+    return await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SheetScaffold(
-            titleText: 'enterPin'.tr(),
-            heightFactor: 0.5,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'enterPinToConfirmTransfer'.tr(),
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w500),
-                          textAlign: TextAlign.center,
-                        ),
-                        const Gap(24),
-                        Pinput(
-                          length: 6,
-                          obscureText: true,
-                          keyboardType: TextInputType.number,
-                          onSubmitted: (pin) {
-                            enteredPin = pin;
-                            Navigator.of(context).pop(pin);
-                          },
-                          onChanged: (String code) {
-                            enteredPin = code;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('cancel'.tr()),
-                        ),
-                      ),
-                      if (enteredPin.length == 6) ...[
-                        const Gap(12),
-                        Expanded(
-                          child: FilledButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(enteredPin);
-                            },
-                            child: Text('confirm'.tr()),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final colorScheme = Theme.of(context).colorScheme;
+          final defaultPinTheme = buildOutlinedPinTheme(context);
+
+          return Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
               ),
             ),
-          ),
-        ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SheetScaffold(
+                titleText: 'enterPin'.tr(),
+                heightFactor: 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'enterPinToConfirmTransfer'.tr(),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                            ),
+                            const Gap(24),
+                            Pinput(
+                              length: 6,
+                              obscureText: true,
+                              keyboardType: TextInputType.number,
+                              defaultPinTheme: defaultPinTheme,
+                              focusedPinTheme: defaultPinTheme
+                                  .copyDecorationWith(
+                                    border: Border.all(
+                                      color: colorScheme.primary,
+                                      width: 2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                              submittedPinTheme: defaultPinTheme
+                                  .copyDecorationWith(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    border: Border.all(
+                                      color: colorScheme.outlineVariant,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                              onSubmitted: (pin) {
+                                Navigator.of(context).pop(pin);
+                              },
+                              onChanged: (String code) {
+                                setModalState(() {
+                                  enteredPin = code;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Gap(24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('cancel'.tr()),
+                            ),
+                          ),
+                          if (enteredPin.length == 6) ...[
+                            const Gap(12),
+                            Expanded(
+                              child: FilledButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(enteredPin);
+                                },
+                                child: Text('confirm'.tr()),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
-
-    return enteredPin.isNotEmpty ? enteredPin : null;
   }
 
   Future<void> _createTransfer() async {
@@ -2156,9 +2221,7 @@ class WalletScreen extends HookConsumerWidget {
                   const Gap(8),
                   InkWell(
                     onTap: () {
-                      Clipboard.setData(
-                        ClipboardData(text: wallet.publicId!),
-                      );
+                      Clipboard.setData(ClipboardData(text: wallet.publicId!));
                       showSnackBar('walletPublicIdCopied'.tr());
                     },
                     borderRadius: BorderRadius.circular(4),
@@ -2167,9 +2230,8 @@ class WalletScreen extends HookConsumerWidget {
                         Icon(
                           Symbols.tag,
                           size: 14,
-                          color: theme.colorScheme.onPrimaryContainer.withOpacity(
-                            0.7,
-                          ),
+                          color: theme.colorScheme.onPrimaryContainer
+                              .withOpacity(0.7),
                         ),
                         const Gap(4),
                         Text(
