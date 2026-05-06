@@ -117,7 +117,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                           0.1,
                         ),
                         child: Image.asset(
-                          'assets/icons/icon.png',
+                          'assets/icons/icon.webp',
                           width: 56,
                           height: 56,
                         ),

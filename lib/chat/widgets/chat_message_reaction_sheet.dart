@@ -36,7 +36,7 @@ Widget buildReactionIcon(String symbol, double size, {double iconSize = 24}) {
   }
   if (getReactionImageAvailable(symbol)) {
     return Image.asset(
-      'assets/images/stickers/$symbol.png',
+      'assets/images/stickers/$symbol.webp',
       width: size,
       height: size,
       fit: BoxFit.contain,
@@ -296,7 +296,7 @@ class ChatMessageReactionSheet extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                   image: DecorationImage(
                                     image: AssetImage(
-                                      'assets/images/stickers/$symbol.png',
+                                      'assets/images/stickers/$symbol.webp',
                                     ),
                                     fit: BoxFit.cover,
                                     colorFilter:

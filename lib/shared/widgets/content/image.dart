@@ -228,7 +228,7 @@ class CachedImageErrorWidget extends StatelessWidget {
               BlurHash(hash: blurHash!)
             else
               Image.asset(
-                'assets/images/media-offline.jpg',
+                'assets/images/media-offline.webp',
                 fit: BoxFit.cover,
                 key: Key('-$uri'),
               ),

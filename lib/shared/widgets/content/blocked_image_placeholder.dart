@@ -21,8 +21,8 @@ class BlockedImagePlaceholder extends StatelessWidget {
     final isBlocked = result.trustLevel == DomainTrustLevel.blocked;
     final scheme = Theme.of(context).colorScheme;
     final characterAsset = isBlocked
-        ? 'assets/images/michan/link-warning.png'
-        : 'assets/images/michan/link-prompt.png';
+        ? 'assets/images/michan/link-warning.webp'
+        : 'assets/images/michan/link-prompt.webp';
 
     return Container(
       constraints: const BoxConstraints(minHeight: 180),

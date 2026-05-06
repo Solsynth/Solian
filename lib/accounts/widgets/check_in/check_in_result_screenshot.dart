@@ -28,8 +28,8 @@ class CheckInResultScreenshot extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final report = result.fortuneReport;
     final backgroundAsset = isDark
-        ? 'assets/images/michan/check-in-bg-dark.jpg'
-        : 'assets/images/michan/check-in-bg-light.jpg';
+        ? 'assets/images/michan/check-in-bg-dark.webp'
+        : 'assets/images/michan/check-in-bg-light.webp';
 
     return Material(
       color: theme.colorScheme.surface,

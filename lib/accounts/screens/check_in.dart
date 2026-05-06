@@ -50,7 +50,7 @@ TextStyle checkInSerif(
 
 String? checkInResultAsset(int level) {
   if (level < 0 || level > 4) return null;
-  return 'assets/images/michan/check-in-result$level.jpg';
+  return 'assets/images/michan/check-in-result$level.webp';
 }
 
 Color checkInResultBackdrop(int level) {
@@ -82,8 +82,8 @@ class CheckInScreen extends HookConsumerWidget {
     final isCheckingIn = useState(false);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundAsset = isDark
-        ? 'assets/images/michan/check-in-bg-dark.jpg'
-        : 'assets/images/michan/check-in-bg-light.jpg';
+        ? 'assets/images/michan/check-in-bg-dark.webp'
+        : 'assets/images/michan/check-in-bg-light.webp';
 
     Future<void> checkIn({String? captchaTk}) async {
       final client = ref.read(solarNetworkClientProvider);
@@ -1008,7 +1008,7 @@ class _CheckInLoadingOverlay extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'assets/images/michan/checking-in.png',
+                    'assets/images/michan/checking-in.webp',
                     height: 168,
                     fit: BoxFit.contain,
                   ),
