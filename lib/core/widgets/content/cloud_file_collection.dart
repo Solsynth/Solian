@@ -388,32 +388,19 @@ class CloudFileList extends HookConsumerWidget {
                   640.0,
                 );
 
-                return _HoverScrollableGallery(
-                  padding: padding,
+                return _HoverCarouselGallery(
                   itemExtent: itemExtent,
+                  itemCount: files.length,
                   children: [
                     for (var i = 0; i < files.length; i++)
                       Stack(
                         children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(16),
-                            ),
-                            child: _CloudFileListEntry(
-                              file: files[i],
-                              heroTag: _heroTag(files[i].id),
-                              isImage:
-                                  files[i].mimeType?.startsWith('image') ??
-                                  false,
-                              disableZoomIn: disableZoomIn,
-                              onTap: () {
-                                if (!(files[i].mimeType?.startsWith('image') ??
-                                    false)) {
-                                  return;
-                                }
-                                openLightbox(i);
-                              },
-                            ),
+                          _CloudFileListEntry(
+                            file: files[i],
+                            heroTag: _heroTag(files[i].id),
+                            isImage:
+                                files[i].mimeType?.startsWith('image') ?? false,
+                            disableZoomIn: disableZoomIn,
                           ),
                           Positioned(
                             bottom: 12,
@@ -429,6 +416,13 @@ class CloudFileList extends HookConsumerWidget {
                         ],
                       ),
                   ],
+                  onTap: (index) {
+                    if (!(files[index].mimeType?.startsWith('image') ??
+                        false)) {
+                      return;
+                    }
+                    openLightbox(index);
+                  },
                 );
               },
             ),
@@ -492,13 +486,8 @@ class CloudFileList extends HookConsumerWidget {
 class _HoverScrollableGallery extends HookWidget {
   final List<Widget> children;
   final EdgeInsets? padding;
-  final double? itemExtent;
 
-  const _HoverScrollableGallery({
-    required this.children,
-    this.padding,
-    this.itemExtent,
-  });
+  const _HoverScrollableGallery({required this.children, this.padding});
 
   @override
   Widget build(BuildContext context) {
@@ -526,7 +515,7 @@ class _HoverScrollableGallery extends HookWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) => updateScrollState());
 
       return () => controller.removeListener(listener);
-    }, [controller, children.length, itemExtent, padding]);
+    }, [controller, children.length, padding]);
 
     Future<void> scrollBy(double direction) async {
       if (!controller.hasClients) return;
@@ -560,9 +549,7 @@ class _HoverScrollableGallery extends HookWidget {
                 scrollDirection: Axis.horizontal,
                 padding: padding,
                 itemCount: children.length,
-                itemBuilder: (context, index) => itemExtent == null
-                    ? children[index]
-                    : SizedBox(width: itemExtent, child: children[index]),
+                itemBuilder: (context, index) => children[index],
                 separatorBuilder: (_, _) => const Gap(8),
               ),
             ),
@@ -588,6 +575,117 @@ class _HoverScrollableGallery extends HookWidget {
               child: _AnimatedScrollArrowButton(
                 icon: Symbols.chevron_right,
                 isVisible: isHovered.value && canScrollRight.value,
+                hiddenOffset: const Offset(0.4, 0),
+                onTap: () => scrollBy(1),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HoverCarouselGallery extends HookWidget {
+  final List<Widget> children;
+  final double itemExtent;
+  final int itemCount;
+  final ValueChanged<int>? onTap;
+
+  const _HoverCarouselGallery({
+    required this.children,
+    required this.itemExtent,
+    required this.itemCount,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useCarouselController();
+    final isHovered = useState(false);
+    final currentIndex = useState(0);
+
+    void updateCurrentIndex() {
+      if (!controller.hasClients) {
+        currentIndex.value = 0;
+        return;
+      }
+
+      final nextIndex = (controller.offset / itemExtent).round().clamp(
+        0,
+        itemCount - 1,
+      );
+      if (currentIndex.value != nextIndex) {
+        currentIndex.value = nextIndex;
+      }
+    }
+
+    useEffect(() {
+      void listener() => updateCurrentIndex();
+
+      controller.addListener(listener);
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateCurrentIndex());
+
+      return () => controller.removeListener(listener);
+    }, [controller, itemExtent, itemCount]);
+
+    Future<void> scrollBy(int delta) async {
+      final targetIndex = (currentIndex.value + delta).clamp(0, itemCount - 1);
+      if (targetIndex == currentIndex.value) return;
+      await controller.animateToItem(
+        targetIndex,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+      currentIndex.value = targetIndex;
+    }
+
+    final scrollBehavior = ScrollConfiguration.of(context).copyWith(
+      dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.trackpad},
+    );
+
+    return MouseRegion(
+      onEnter: (_) => isHovered.value = true,
+      onExit: (_) => isHovered.value = false,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ScrollConfiguration(
+              behavior: scrollBehavior,
+              child: CarouselView(
+                controller: controller,
+                itemSnapping: true,
+                itemExtent: itemExtent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                ),
+                onTap: onTap,
+                children: children,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _AnimatedScrollArrowButton(
+                icon: Symbols.chevron_left,
+                isVisible: isHovered.value && currentIndex.value > 0,
+                hiddenOffset: const Offset(-0.4, 0),
+                onTap: () => scrollBy(-1),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _AnimatedScrollArrowButton(
+                icon: Symbols.chevron_right,
+                isVisible:
+                    isHovered.value && currentIndex.value < itemCount - 1,
                 hiddenOffset: const Offset(0.4, 0),
                 onTap: () => scrollBy(1),
               ),
