@@ -20,6 +20,6 @@ class WalletPinStatus {
 
 Future<WalletPinStatus> fetchWalletPinStatus(WidgetRef ref) async {
   final client = ref.read(solarNetworkClientProvider);
-  final response = await client.dio.get('/accounts/me/pin-status');
+  final response = await client.dio.get('/padlock/accounts/me/pin-status');
   return WalletPinStatus.fromJson(Map<String, dynamic>.from(response.data));
 }
