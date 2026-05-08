@@ -1400,6 +1400,17 @@
   "chatForwarding": "Forwarding message",
   "chatEditing": "Editing message",
   "chatMentionedYou": "Mentioned you",
+  "chatRedirectedHistoryFrom": "Redirected history from {}",
+  "chatRedirectedFromRoom": "Redirected from {}",
+  "chatRedirectMessagesCount": {
+    "one": "{} message",
+    "other": "{} messages"
+  },
+  "chatRedirectBy": "by {}",
+  "chatRedirectTo": "to {}",
+  "chatRedirectMore": "+{} more",
+  "chatRedirectHistoryTitle": "Redirect history from {}",
+  "chatRedirectSameRoomOnly": "Selected messages must come from the same chat room.",
   "chatDirectMessageStatusHint": "The other is {}.",
   "chatNoContent": "No content",
   "sensitiveCategories": {

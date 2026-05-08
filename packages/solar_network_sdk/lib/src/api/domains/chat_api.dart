@@ -173,15 +173,15 @@ class ChatApi extends BaseApi {
   ///
   /// [roomId] - The destination room ID.
   /// [messageIds] - Source message IDs to redirect.
-  Future<List<SnChatMessage>> redirectMessages({
+  Future<SnChatMessage> redirectMessages({
     required String roomId,
     required List<String> messageIds,
   }) async {
-    final response = await post<List<dynamic>>(
-      '$_basePath/api/chat/$roomId/messages/redirect',
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/chat/$roomId/messages/redirect',
       data: {'message_ids': messageIds},
     );
-    return parseList(response, SnChatMessage.fromJson);
+    return SnChatMessage.fromJson(response.data!);
   }
 
   // ==========================================
