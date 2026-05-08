@@ -80,10 +80,6 @@ class CheckInScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final todayResult = ref.watch(checkInResultTodayProvider);
     final isCheckingIn = useState(false);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundAsset = isDark
-        ? 'assets/images/michan/check-in-bg-dark.webp'
-        : 'assets/images/michan/check-in-bg-light.webp';
 
     Future<void> checkIn({String? captchaTk}) async {
       final client = ref.read(solarNetworkClientProvider);
@@ -128,71 +124,42 @@ class CheckInScreen extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned.fill(
-            child: Image.asset(backgroundAsset, fit: BoxFit.cover),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Theme.of(context).colorScheme.surface.withValues(
-                      alpha: isDark ? 0.72 : 0.6,
-                    ),
-                    Theme.of(context).colorScheme.surface.withValues(
-                      alpha: isDark ? 0.88 : 0.78,
-                    ),
-                    Theme.of(context).colorScheme.surface.withValues(
-                      alpha: isDark ? 0.96 : 0.9,
-                    ),
-                  ],
-                ),
+      body: todayResult.when(
+        data: (result) => Stack(
+          children: [
+            _CheckInContent(result: result, onCheckIn: () => checkIn()),
+            if (isCheckingIn.value)
+              ColoredBox(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surface.withValues(alpha: 0.9),
+                child: _CheckInLoadingOverlay(),
               ),
-            ),
-          ),
-          todayResult.when(
-            data: (result) => Stack(
+          ],
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 16,
               children: [
-                _CheckInContent(result: result, onCheckIn: () => checkIn()),
-                if (isCheckingIn.value)
-                  ColoredBox(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surface.withValues(alpha: 0.9),
-                    child: _CheckInLoadingOverlay(),
-                  ),
+                Icon(
+                  Symbols.error,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                Text('error').tr().fontSize(16).bold(),
+                Text(
+                  err.toString(),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 16,
-                  children: [
-                    Icon(
-                      Symbols.error,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    Text('error').tr().fontSize(16).bold(),
-                    Text(
-                      err.toString(),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -237,10 +204,16 @@ class _CheckInContent extends ConsumerWidget {
                           if (report != null) ...[
                             const Gap(16),
                             FortuneGuidanceCard(report: report),
+                            if (checkInResult.tips.isNotEmpty) ...[
+                              const Gap(16),
+                              FortuneTipsCard(tips: checkInResult.tips),
+                            ],
                             const Gap(16),
                             FortuneLuckyGrid(report: report),
                             const Gap(16),
                             FortuneDetails(report: report),
+                            const Gap(16),
+                            FortuneActionCard(report: report),
                             const Gap(16),
                             FortuneRitualCard(report: report),
                             const Gap(16),
@@ -601,19 +574,202 @@ class FortuneDetails extends StatelessWidget {
                 label: 'checkInFortuneLostItem'.tr(),
                 value: report.lostItem,
               ),
-              const Divider(height: 1),
-              _FortuneItem(
-                icon: Symbols.task_alt,
-                label: 'checkInFortuneLuckyAction'.tr(),
-                value: report.luckyAction,
-              ),
-              const Divider(height: 1),
-              _FortuneItem(
-                icon: Symbols.block,
-                label: 'checkInFortuneAvoidAction'.tr(),
-                value: report.avoidAction,
-              ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class FortuneTipsCard extends StatelessWidget {
+  final List<SnFortuneTip> tips;
+
+  const FortuneTipsCard({super.key, required this.tips});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              spacing: 8,
+              children: [
+                Icon(
+                  Symbols.tips_and_updates,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
+                Text(
+                  'checkInFortuneTips'.tr(),
+                  style: checkInSerif(
+                    context,
+                    base: theme.textTheme.titleMedium,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(12),
+            for (final tip in tips)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      tip.isPositive ? Symbols.thumb_up : Symbols.thumb_down,
+                      size: 16,
+                      color: tip.isPositive
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.error,
+                    ),
+                    const Gap(8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tip.title,
+                            style: checkInSerif(
+                              context,
+                              base: theme.textTheme.bodyMedium,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            tip.content,
+                            style: checkInSerif(
+                              context,
+                              base: theme.textTheme.bodySmall,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FortuneActionCard extends StatelessWidget {
+  final SnCheckInFortuneReport report;
+
+  const FortuneActionCard({super.key, required this.report});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              spacing: 8,
+              children: [
+                Icon(
+                  Symbols.directions_run,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
+                Text(
+                  'checkInFortuneActions'.tr(),
+                  style: checkInSerif(
+                    context,
+                    base: theme.textTheme.titleMedium,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _ActionItem(
+                    icon: Symbols.task_alt,
+                    label: 'checkInFortuneLuckyAction'.tr(),
+                    value: report.luckyAction,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const Gap(16),
+                Expanded(
+                  child: _ActionItem(
+                    icon: Symbols.block,
+                    label: 'checkInFortuneAvoidAction'.tr(),
+                    value: report.avoidAction,
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _ActionItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          spacing: 6,
+          children: [
+            Icon(icon, size: 16, color: color),
+            Text(
+              label,
+              style: checkInSerif(
+                context,
+                base: theme.textTheme.bodySmall,
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const Gap(4),
+        Text(
+          value,
+          style: checkInSerif(
+            context,
+            base: theme.textTheme.bodyMedium,
+            height: 1.5,
           ),
         ),
       ],

@@ -1022,28 +1022,6 @@ class TodayOracleCard extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ).padding(horizontal: 16),
-                const SizedBox(height: 8),
-                Text(
-                  report?.poem ??
-                      report?.summary ??
-                      'checkInResultLevel${result.level}'.tr(),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).padding(horizontal: 16),
-                if ((report?.summary.isNotEmpty ?? false))
-                  Text(
-                    report!.summary,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      height: 1.45,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ).padding(horizontal: 16),
                 if (report != null) ...[
                   const SizedBox(height: 12),
                   Wrap(
@@ -1064,6 +1042,63 @@ class TodayOracleCard extends ConsumerWidget {
                       ),
                     ],
                   ).padding(horizontal: 12),
+                  if (result.tips.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          if (result.tips.any((t) => t.isPositive)) ...[
+                            Icon(
+                              Symbols.thumb_up,
+                              size: 14,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                result.tips
+                                    .where((t) => t.isPositive)
+                                    .map((t) => t.title)
+                                    .join(' · '),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (result.tips.any((t) => !t.isPositive))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Symbols.thumb_down,
+                              size: 14,
+                              color: theme.colorScheme.error,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                result.tips
+                                    .where((t) => !t.isPositive)
+                                    .map((t) => t.title)
+                                    .join(' · '),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                   const SizedBox(height: 12),
                   _OracleActionRow(
                     icon: Symbols.task_alt,

@@ -188,6 +188,8 @@
   "checkInFortuneLuckyAction": "今日するとよいこと",
   "checkInFortuneAvoidAction": "今日避けたいこと",
   "checkInFortuneRitual": "小さな儀式",
+  "checkInFortuneTips": "ヒント",
+  "checkInFortuneActions": "今日の行動",
   "checkInTodayOracle": "今日の札",
   "fortuneDetails": "運勢の詳細",
   "fortuneGraph": "運勢の推移",

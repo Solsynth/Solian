@@ -188,6 +188,8 @@
   "checkInFortuneLuckyAction": "Do This",
   "checkInFortuneAvoidAction": "Avoid This",
   "checkInFortuneRitual": "Small Ritual",
+  "checkInFortuneTips": "Consejos",
+  "checkInFortuneActions": "Acciones de Hoy",
   "checkInTodayOracle": "Today's Oracle",
   "fortuneDetails": "Fortune Details",
   "fortuneGraph": "Fortune Trend",
