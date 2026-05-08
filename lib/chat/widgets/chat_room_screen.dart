@@ -15,6 +15,7 @@ import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/chat/widgets/call_button.dart';
 import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_input.dart';
+import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/chat/widgets/public_room_preview.dart';
 import 'package:island/chat/widgets/room_app_bar.dart';
@@ -34,6 +35,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/attachment_uploader.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/sync_indicator.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
@@ -431,6 +433,15 @@ class ChatRoomScreen extends HookConsumerWidget {
           .toList()
         ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
+      // Safety: ensure selected ids are from current source room only.
+      final crossRoomSelected = selectedMessages
+          .where((msg) => msg.roomId != id)
+          .toList();
+      if (crossRoomSelected.isNotEmpty) {
+        showErrorAlert('chatRedirectSameRoomOnly'.tr());
+        return;
+      }
+
       if (selectedMessages.isEmpty) return;
       if (selectedMessages.length > 100) {
         showErrorAlert('You can redirect up to 100 messages at once.');
@@ -441,67 +452,42 @@ class ChatRoomScreen extends HookConsumerWidget {
         return;
       }
 
-      final roomsAsync = await ref.read(chatRoomJoinedProvider.future);
-      final availableRooms = roomsAsync
-          .where((room) => room.encryptionMode == 0)
-          .toList()
-        ..sort((a, b) {
-          final aName = (a.name ?? '').toLowerCase();
-          final bName = (b.name ?? '').toLowerCase();
-          return aName.compareTo(bName);
-        });
-
       if (!context.mounted) return;
 
       final destinationRoomId = await showModalBottomSheet<String>(
         context: context,
         showDragHandle: true,
         isScrollControlled: true,
-        builder: (ctx) {
-          return SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  title: const Text('Redirect to...'),
-                  subtitle: Text('${selectedMessages.length} message(s)'),
-                ),
-                const Divider(height: 1),
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: availableRooms.length,
-                    itemBuilder: (ctx, i) {
-                      final room = availableRooms[i];
-                      return ListTile(
-                        leading: const Icon(Icons.chat_bubble_outline),
-                        title: Text(room.name?.trim().isNotEmpty == true
-                            ? room.name!
-                            : 'Untitled room'),
-                        subtitle: Text(room.id == id ? 'Current room' : room.id),
-                        onTap: () => Navigator.of(ctx).pop(room.id),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+        builder: (_) => _RedirectRoomSelectorSheet(currentRoomId: id),
       );
 
       if (destinationRoomId == null || !context.mounted) return;
 
+      final rooms = ref.read(chatRoomJoinedProvider).maybeWhen(
+        data: (items) => items,
+        orElse: () => <SnChatRoom>[],
+      );
       SnChatRoom? destinationRoom;
-      for (final room in availableRooms) {
+      for (final room in rooms) {
         if (room.id == destinationRoomId) {
           destinationRoom = room;
           break;
         }
       }
+      if (destinationRoom == null) {
+        final loadedRooms = await ref.read(chatRoomJoinedProvider.future);
+        for (final room in loadedRooms) {
+          if (room.id == destinationRoomId) {
+            destinationRoom = room;
+            break;
+          }
+        }
+      }
       final destinationName = destinationRoom?.name?.trim().isNotEmpty == true
           ? destinationRoom!.name!
           : 'this room';
+
+      if (!context.mounted) return;
 
       final shouldProceed =
           await showDialog<bool>(
@@ -1042,6 +1028,128 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
         ),
         const ChatSyncIndicator(height: 56),
+      ],
+    );
+  }
+}
+
+class _RedirectRoomSelectorSheet extends HookConsumerWidget {
+  final String currentRoomId;
+
+  const _RedirectRoomSelectorSheet({required this.currentRoomId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomsAsync = ref.watch(chatRoomJoinedProvider);
+
+    return SheetScaffold(
+      titleText: 'Redirect to...',
+      child: roomsAsync.when(
+        data: (rooms) {
+          final communityRooms = <SnChatRoom>[];
+          final directRooms = <SnChatRoom>[];
+
+          for (final room in rooms) {
+            if (room.encryptionMode != 0) continue;
+            if (room.type == 1) {
+              directRooms.add(room);
+            } else {
+              communityRooms.add(room);
+            }
+          }
+
+          int byName(SnChatRoom a, SnChatRoom b) {
+            final aName = (a.name ?? '').toLowerCase();
+            final bName = (b.name ?? '').toLowerCase();
+            return aName.compareTo(bName);
+          }
+
+          communityRooms.sort(byName);
+          directRooms.sort(byName);
+
+          final hasAny = communityRooms.isNotEmpty || directRooms.isNotEmpty;
+          if (!hasAny) {
+            return Center(
+              child: Text(
+                'noChatRoomsAvailable'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            );
+          }
+
+          return ListView(
+            children: [
+              if (communityRooms.isNotEmpty)
+                _RedirectRoomGroup(
+                  title: 'chatTabGroup'.tr(),
+                  rooms: communityRooms,
+                  currentRoomId: currentRoomId,
+                ),
+              if (directRooms.isNotEmpty)
+                _RedirectRoomGroup(
+                  title: 'chatTabDirect'.tr(),
+                  rooms: directRooms,
+                  currentRoomId: currentRoomId,
+                ),
+            ],
+          );
+        },
+        loading: () => Center(
+          child: ConfuseSpinner(
+            size: 34,
+            speed: 6,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.65),
+          ),
+        ),
+        error: (error, _) => ResponseErrorWidget(
+          error: error,
+          onRetry: () => ref.invalidate(chatRoomJoinedProvider),
+        ),
+      ),
+    );
+  }
+}
+
+class _RedirectRoomGroup extends StatelessWidget {
+  final String title;
+  final List<SnChatRoom> rooms;
+  final String currentRoomId;
+
+  const _RedirectRoomGroup({
+    required this.title,
+    required this.rooms,
+    required this.currentRoomId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        for (final room in rooms)
+          ChatRoomListTile(
+            room: room,
+            isDirect: room.type == 1,
+            selected: room.id == currentRoomId,
+            subtitle: room.id == currentRoomId
+                ? Text(
+                    'Current room',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+                  )
+                : null,
+            onTap: () => Navigator.of(context).pop(room.id),
+          ),
       ],
     );
   }

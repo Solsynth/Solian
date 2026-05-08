@@ -18,6 +18,7 @@ import 'package:island/chat/widgets/message_sender_info.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
+import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/data/message.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/core/translate.dart';
@@ -156,7 +157,9 @@ class MessageItem extends HookConsumerWidget {
               timer.cancel();
               flashTimer.value = null;
               isFlashing.value = false;
-              ref.read(flashingMessagesProvider.notifier).clearMessage(message.id);
+              ref
+                  .read(flashingMessagesProvider.notifier)
+                  .clearMessage(message.id);
             }
           },
         );
@@ -1125,9 +1128,13 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
 
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
+    final isRedirectHistorySegment =
+        remoteMessage.meta['redirect'] is Map &&
+        (remoteMessage.meta['redirect'] as Map)['kind'] == 'history_segment';
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final isMentioningCurrentUser =
-        currentUserId != null && remoteMessage.membersMentioned.contains(currentUserId);
+        currentUserId != null &&
+        remoteMessage.membersMentioned.contains(currentUserId);
 
     final avatar = ChatRoomMemberRegion(
       roomId: message.roomId,
@@ -1171,7 +1178,8 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
               message: remoteMessage,
               textColor: textColor,
             ).padding(vertical: 4),
-          if (remoteMessage.forwardedMessageId != null)
+          if (remoteMessage.forwardedMessageId != null &&
+              !isRedirectHistorySegment)
             MessageQuoteWidget(
               message: message,
               textColor: textColor,
@@ -1414,9 +1422,13 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
+    final isRedirectHistorySegment =
+        remoteMessage.meta['redirect'] is Map &&
+        (remoteMessage.meta['redirect'] as Map)['kind'] == 'history_segment';
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final isMentioningCurrentUser =
-        currentUserId != null && remoteMessage.membersMentioned.contains(currentUserId);
+        currentUserId != null &&
+        remoteMessage.membersMentioned.contains(currentUserId);
 
     final isMultiline =
         message.type == 'text' ||
@@ -1470,51 +1482,55 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      if (remoteMessage.repliedMessageId != null)
-                        MessageQuoteWidget(
-                          message: message,
-                          textColor: textColor,
-                          isReply: true,
-                        ).padding(vertical: 4),
-                      if (remoteMessage.meta['redirect'] is Map)
-                        RedirectMessageCard(
-                          message: remoteMessage,
-                          textColor: textColor,
-                        ).padding(vertical: 4),
-                      if (remoteMessage.forwardedMessageId != null)
-                        MessageQuoteWidget(
-                          message: message,
-                          textColor: textColor,
-                          isReply: false,
-                        ).padding(vertical: 4),
-                      if (MessageContent.hasContent(remoteMessage))
-                        MessageContent(
-                          item: remoteMessage,
-                          translatedText: translatedText,
-                        ),
-                      if (remoteMessage.attachments.isNotEmpty)
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            return CloudFileList(
-                              files: remoteMessage.attachments,
-                              maxWidth: constraints.maxWidth,
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                            );
-                          },
-                        ),
-                      if (remoteMessage.meta['embeds'] != null &&
-                          kMessageEnableEmbedTypes.contains(message.type))
-                        EmbedListWidget(
-                          embeds: remoteMessage.meta['embeds'] as List<dynamic>,
-                          isInteractive: true,
-                          isFullPost: false,
-                          renderingPadding: EdgeInsets.zero,
-                          maxWidth: 480,
-                        ),
+                          if (remoteMessage.repliedMessageId != null)
+                            MessageQuoteWidget(
+                              message: message,
+                              textColor: textColor,
+                              isReply: true,
+                            ).padding(vertical: 4),
+                          if (remoteMessage.meta['redirect'] is Map)
+                            RedirectMessageCard(
+                              message: remoteMessage,
+                              textColor: textColor,
+                            ).padding(vertical: 4),
+                          if (remoteMessage.forwardedMessageId != null &&
+                              !isRedirectHistorySegment)
+                            MessageQuoteWidget(
+                              message: message,
+                              textColor: textColor,
+                              isReply: false,
+                            ).padding(vertical: 4),
+                          if (MessageContent.hasContent(remoteMessage))
+                            MessageContent(
+                              item: remoteMessage,
+                              translatedText: translatedText,
+                            ),
+                          if (remoteMessage.attachments.isNotEmpty)
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                return CloudFileList(
+                                  files: remoteMessage.attachments,
+                                  maxWidth: constraints.maxWidth,
+                                  padding: EdgeInsets.symmetric(vertical: 4),
+                                );
+                              },
+                            ),
+                          if (remoteMessage.meta['embeds'] != null &&
+                              kMessageEnableEmbedTypes.contains(message.type))
+                            EmbedListWidget(
+                              embeds:
+                                  remoteMessage.meta['embeds'] as List<dynamic>,
+                              isInteractive: true,
+                              isFullPost: false,
+                              renderingPadding: EdgeInsets.zero,
+                              maxWidth: 480,
+                            ),
                           FileUploadProgressWidget(
                             progress: progress,
                             textColor: textColor,
-                            hasContent: MessageContent.hasContent(remoteMessage),
+                            hasContent: MessageContent.hasContent(
+                              remoteMessage,
+                            ),
                           ),
                         ],
                       ),
@@ -1568,9 +1584,13 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
+    final isRedirectHistorySegment =
+        remoteMessage.meta['redirect'] is Map &&
+        (remoteMessage.meta['redirect'] as Map)['kind'] == 'history_segment';
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final isMentioningCurrentUser =
-        currentUserId != null && remoteMessage.membersMentioned.contains(currentUserId);
+        currentUserId != null &&
+        remoteMessage.membersMentioned.contains(currentUserId);
 
     const kAvatarRadius = 12.0;
 
@@ -1627,7 +1647,8 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               message: remoteMessage,
                               textColor: textColor,
                             ).padding(vertical: 4),
-                          if (remoteMessage.forwardedMessageId != null)
+                          if (remoteMessage.forwardedMessageId != null &&
+                              !isRedirectHistorySegment)
                             MessageQuoteWidget(
                               message: message,
                               textColor: textColor,
@@ -1678,7 +1699,10 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                 ).padding(left: kAvatarRadius * 2 + 8),
                 if (isMentioningCurrentUser)
                   Padding(
-                    padding: EdgeInsets.only(left: kAvatarRadius * 2 + 8, top: 4),
+                    padding: EdgeInsets.only(
+                      left: kAvatarRadius * 2 + 8,
+                      top: 4,
+                    ),
                     child: _MentionHint(textColor: textColor),
                   ),
               ],
@@ -1696,52 +1720,56 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        if (remoteMessage.repliedMessageId != null)
-                          MessageQuoteWidget(
-                            message: message,
-                            textColor: textColor,
-                            isReply: true,
-                          ).padding(vertical: 4),
-                        if (remoteMessage.meta['redirect'] is Map)
-                          RedirectMessageCard(
-                            message: remoteMessage,
-                            textColor: textColor,
-                          ).padding(vertical: 4),
-                        if (remoteMessage.forwardedMessageId != null)
-                          MessageQuoteWidget(
-                            message: message,
-                            textColor: textColor,
-                            isReply: false,
-                          ).padding(vertical: 4),
-                        if (MessageContent.hasContent(remoteMessage))
-                          MessageContent(
-                            item: remoteMessage,
-                            translatedText: translatedText,
-                          ),
-                        if (remoteMessage.attachments.isNotEmpty)
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              return CloudFileList(
-                                files: remoteMessage.attachments,
-                                maxWidth: constraints.maxWidth,
-                                padding: EdgeInsets.symmetric(vertical: 4),
-                              );
-                            },
-                          ),
-                        if (remoteMessage.meta['embeds'] != null &&
-                            kMessageEnableEmbedTypes.contains(message.type))
-                          EmbedListWidget(
-                            embeds:
-                                remoteMessage.meta['embeds'] as List<dynamic>,
-                            isInteractive: true,
-                            isFullPost: false,
-                            renderingPadding: EdgeInsets.zero,
-                            maxWidth: 480,
-                          ),
+                            if (remoteMessage.repliedMessageId != null)
+                              MessageQuoteWidget(
+                                message: message,
+                                textColor: textColor,
+                                isReply: true,
+                              ).padding(vertical: 4),
+                            if (remoteMessage.meta['redirect'] is Map)
+                              RedirectMessageCard(
+                                message: remoteMessage,
+                                textColor: textColor,
+                              ).padding(vertical: 4),
+                            if (remoteMessage.forwardedMessageId != null &&
+                                !isRedirectHistorySegment)
+                              MessageQuoteWidget(
+                                message: message,
+                                textColor: textColor,
+                                isReply: false,
+                              ).padding(vertical: 4),
+                            if (MessageContent.hasContent(remoteMessage))
+                              MessageContent(
+                                item: remoteMessage,
+                                translatedText: translatedText,
+                              ),
+                            if (remoteMessage.attachments.isNotEmpty)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return CloudFileList(
+                                    files: remoteMessage.attachments,
+                                    maxWidth: constraints.maxWidth,
+                                    padding: EdgeInsets.symmetric(vertical: 4),
+                                  );
+                                },
+                              ),
+                            if (remoteMessage.meta['embeds'] != null &&
+                                kMessageEnableEmbedTypes.contains(message.type))
+                              EmbedListWidget(
+                                embeds:
+                                    remoteMessage.meta['embeds']
+                                        as List<dynamic>,
+                                isInteractive: true,
+                                isFullPost: false,
+                                renderingPadding: EdgeInsets.zero,
+                                maxWidth: 480,
+                              ),
                             FileUploadProgressWidget(
                               progress: progress,
                               textColor: textColor,
-                              hasContent: MessageContent.hasContent(remoteMessage),
+                              hasContent: MessageContent.hasContent(
+                                remoteMessage,
+                              ),
                             ),
                           ],
                         ),
@@ -1778,7 +1806,11 @@ class _MentionHint extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Symbols.alternate_email, size: 14, color: textColor.withOpacity(0.8)),
+          Icon(
+            Symbols.alternate_email,
+            size: 14,
+            color: textColor.withOpacity(0.8),
+          ),
           const Gap(4),
           Text(
             'chatMentionedYou'.tr(),
@@ -1911,122 +1943,255 @@ class RedirectMessageCard extends StatelessWidget {
     if (raw is! Map) return const SizedBox.shrink();
 
     final redirect = Map<String, dynamic>.from(raw);
-    final sourceMessageRaw = redirect['source_message'];
-    final sourceMessage = sourceMessageRaw is Map
-        ? Map<String, dynamic>.from(sourceMessageRaw)
+    final sourceRoomRaw = redirect['source_room'];
+    final sourceRoom = sourceRoomRaw is Map
+        ? Map<String, dynamic>.from(sourceRoomRaw)
         : const <String, dynamic>{};
+    String resolveSourceRoomName() {
+      final explicitName = sourceRoom['name']?.toString();
+      if (explicitName != null && explicitName.trim().isNotEmpty) {
+        return explicitName;
+      }
 
-    final sourceSenderRaw = sourceMessage['sender'];
-    final sourceSender = sourceSenderRaw is Map
-        ? Map<String, dynamic>.from(sourceSenderRaw)
-        : const <String, dynamic>{};
+      final roomType = sourceRoom['type']?.toString();
+      if (roomType == 'DirectMessage') {
+        return 'directMessage'.tr();
+      }
 
-    final redirectedByRaw = redirect['redirected_by'];
-    final redirectedBy = redirectedByRaw is Map
-        ? Map<String, dynamic>.from(redirectedByRaw)
-        : const <String, dynamic>{};
+      final fallbackName = redirect['source_room_name']?.toString();
+      if (fallbackName != null && fallbackName.trim().isNotEmpty) {
+        return fallbackName;
+      }
 
-    final redirectedRoomRaw = redirect['redirected_to_room'];
-    final redirectedRoom = redirectedRoomRaw is Map
-        ? Map<String, dynamic>.from(redirectedRoomRaw)
-        : const <String, dynamic>{};
+      return 'chat'.tr();
+    }
 
-    final sourceSenderName =
-        sourceSender['nick']?.toString() ??
-        redirect['source_sender_name']?.toString() ??
-        'Unknown sender';
-    final redirectedByName = redirectedBy['nick']?.toString();
-    final redirectedRoomName = redirectedRoom['name']?.toString();
-    final sourceContent =
-        sourceMessage['content']?.toString() ??
-        redirect['source_content']?.toString() ??
-        '';
+    final sourceRoomName = resolveSourceRoomName();
 
-    final sourceAttachmentsRaw = sourceMessage['attachments'];
-    final sourceAttachments = sourceAttachmentsRaw is List
-        ? sourceAttachmentsRaw
+    final kind = redirect['kind']?.toString();
+    final messagesRaw = redirect['messages'];
+    final transcriptMessages = messagesRaw is List
+        ? messagesRaw
               .whereType<Map>()
               .map((e) => Map<String, dynamic>.from(e))
               .toList()
         : const <Map<String, dynamic>>[];
+    final rangeRaw = redirect['range'];
+    final range = rangeRaw is Map
+        ? Map<String, dynamic>.from(rangeRaw)
+        : const <String, dynamic>{};
+    final historyCount = switch (range['message_count']) {
+      int v => v,
+      String v => int.tryParse(v) ?? transcriptMessages.length,
+      _ => transcriptMessages.length,
+    };
 
-    final sourceAttachmentFiles = sourceAttachments
-        .map((e) {
-          try {
-            return SnCloudFile.fromJson(e);
-          } catch (_) {
-            return null;
-          }
-        })
-        .whereType<SnCloudFile>()
-        .toList();
+    // Backward compatibility fallback for older redirect schema
+    final sourceMessageRaw = redirect['source_message'];
+    final sourceMessage = sourceMessageRaw is Map
+        ? Map<String, dynamic>.from(sourceMessageRaw)
+        : const <String, dynamic>{};
+    final sourceContentFallback =
+        sourceMessage['content']?.toString() ??
+        redirect['source_content']?.toString() ??
+        '';
 
-    final subtitleParts = <String>['Redirected from $sourceSenderName'];
-    if (redirectedByName != null && redirectedByName.isNotEmpty) {
-      subtitleParts.add('by $redirectedByName');
-    }
-    if (redirectedRoomName != null && redirectedRoomName.isNotEmpty) {
-      subtitleParts.add('to $redirectedRoomName');
-    }
+    final cardLabel = kind == 'history_segment'
+        ? 'chatRedirectedHistoryFrom'.tr(args: [sourceRoomName])
+        : 'chatRedirectedFromRoom'.tr(args: [sourceRoomName]);
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-        color: Theme.of(context).colorScheme.primaryFixedDim.withOpacity(0.35),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            showDragHandle: true,
+            isScrollControlled: true,
+            builder: (ctx) => _RedirectHistorySheet(
+              sourceRoomName: sourceRoomName,
+              transcriptMessages: transcriptMessages,
+              sourceContentFallback: sourceContentFallback,
+              historyCount: historyCount,
+            ),
+          );
+        },
+        child: Ink(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.primaryFixedDim.withOpacity(0.35),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          child: Row(
+            children: [
+              Icon(Symbols.history, size: 16, color: textColor),
+              const Gap(6),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      cardLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (historyCount > 0)
+                      Text(
+                        'chatRedirectMessagesCount'.plural(
+                          historyCount,
+                          args: [historyCount.toString()],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: textColor.withOpacity(0.82),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Gap(6),
+              Icon(
+                Symbols.chevron_right,
+                size: 16,
+                color: textColor.withOpacity(0.85),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RedirectHistorySheet extends StatelessWidget {
+  final String sourceRoomName;
+  final List<Map<String, dynamic>> transcriptMessages;
+  final String sourceContentFallback;
+  final int historyCount;
+
+  const _RedirectHistorySheet({
+    required this.sourceRoomName,
+    required this.transcriptMessages,
+    required this.sourceContentFallback,
+    required this.historyCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SheetScaffold(
+      titleText: 'chatRedirectHistoryTitle'.tr(args: [sourceRoomName]),
+      child: transcriptMessages.isNotEmpty
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Symbols.send, size: 16, color: textColor),
-                const Gap(4),
-                Flexible(
-                  child: Text(
-                    subtitleParts.join(' '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
+                if (historyCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Text(
+                      'chatRedirectMessagesCount'.plural(
+                        historyCount,
+                        args: [historyCount.toString()],
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: transcriptMessages.length,
+                    separatorBuilder: (_, _) => Divider(
+                      height: 1,
+                      thickness: 1 / MediaQuery.devicePixelRatioOf(context),
+                    ),
+                    itemBuilder: (context, index) {
+                      final row = transcriptMessages[index];
+                      final senderRaw = row['sender'];
+                      final sender = senderRaw is Map
+                          ? Map<String, dynamic>.from(senderRaw)
+                          : const <String, dynamic>{};
+                      final accountRaw = sender['account'];
+                      final account = accountRaw is Map
+                          ? Map<String, dynamic>.from(accountRaw)
+                          : const <String, dynamic>{};
+                      final profileRaw = account['profile'];
+                      final profile = profileRaw is Map
+                          ? Map<String, dynamic>.from(profileRaw)
+                          : const <String, dynamic>{};
+                      final pictureRaw = profile['picture'];
+                      String? pictureId;
+                      if (pictureRaw is Map) {
+                        pictureId = pictureRaw['id']?.toString();
+                      }
+                      final senderName =
+                          sender['nick']?.toString() ??
+                          sender['realm_nick']?.toString() ??
+                          sender['account']?['nick']?.toString() ??
+                          'unknown'.tr();
+                      final senderUname = account['name']?.toString();
+
+                      final content = row['content']?.toString() ?? '';
+                      final attachmentsRaw = row['attachments'];
+                      final attachments = attachmentsRaw is List
+                          ? attachmentsRaw.length
+                          : 0;
+
+                      final messageText = StringBuffer();
+                      if (content.trim().isNotEmpty) {
+                        messageText.write(content.trim());
+                      }
+                      if (attachments > 0) {
+                        if (messageText.isNotEmpty) messageText.write('\n');
+                        messageText.write(
+                          'hasAttachments'.plural(
+                            attachments,
+                            args: [attachments.toString()],
+                          ),
+                        );
+                      }
+
+                      return ListTile(
+                        leading: AccountPfcRegion(
+                          uname: senderUname,
+                          child: ProfilePictureWidget(
+                            fileId: pictureId,
+                            radius: 12,
+                          ),
+                        ),
+                        title: Text(senderName),
+                        subtitle: messageText.isEmpty
+                            ? Text('chatNoContent'.tr())
+                            : Text(messageText.toString()),
+                        dense: true,
+                      );
+                    },
                   ),
                 ),
               ],
+            )
+          : Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  sourceContentFallback.trim().isNotEmpty
+                      ? sourceContentFallback
+                      : 'chatNoContent'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ),
-            if (sourceContent.trim().isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: MessageContent(
-                  item: SnChatMessage(
-                    createdAt: message.createdAt,
-                    updatedAt: message.updatedAt,
-                    deletedAt: null,
-                    id: sourceMessage['id']?.toString() ?? message.id,
-                    type: sourceMessage['type']?.toString() ?? 'text',
-                    content: sourceContent,
-                    senderId: message.senderId,
-                    sender: message.sender,
-                    chatRoomId: message.chatRoomId,
-                  ),
-                ),
-              ),
-            if (sourceAttachmentFiles.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 180),
-                  child: CloudFileList(
-                    files: sourceAttachmentFiles,
-                    maxWidth: 180,
-                    maxHeight: 96,
-                    minWidth: 120,
-                    initiallyCollapsed: false,
-                    heroTagPrefix: 'cloud-file-redirect-${message.id}',
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }
