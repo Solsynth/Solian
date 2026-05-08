@@ -205,6 +205,8 @@
   "checkInFortuneLuckyAction": "Do This",
   "checkInFortuneAvoidAction": "Avoid This",
   "checkInFortuneRitual": "Small Ritual",
+  "checkInFortuneTips": "Tips",
+  "checkInFortuneActions": "Today's Actions",
   "checkInTodayOracle": "Today's Oracle",
   "fortuneDetails": "Fortune Details",
   "fortuneGraph": "Fortune Trend",

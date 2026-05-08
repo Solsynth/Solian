@@ -53,7 +53,7 @@ class PostItemScreenshot extends HookConsumerWidget {
             final itemHeight = visibleAttachments.length == 1
                 ? maxHeight
                 : (maxHeight - ((visibleAttachments.length - 1) * 8)) /
-                    visibleAttachments.length;
+                      visibleAttachments.length;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -266,9 +266,9 @@ class PostItemScreenshot extends HookConsumerWidget {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHighest,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Row(
@@ -484,7 +484,8 @@ class PostItemScreenshot extends HookConsumerWidget {
                         ).padding(horizontal: 5),
                       if (topLevelPosts.isNotEmpty)
                         ...topLevelPosts.map(
-                          (node) => _buildReplyNode(context, repliesState, node),
+                          (node) =>
+                              _buildReplyNode(context, repliesState, node),
                         ),
                       if (topLevelPosts.isEmpty && !repliesState.loading)
                         Text(
@@ -513,7 +514,7 @@ class PostItemScreenshot extends HookConsumerWidget {
                   width: 44,
                   height: 44,
                   child: Image.asset(
-                    'assets/icons/icon${isDark ? '-dark' : ''}.png',
+                    'assets/icons/icon${isDark ? '-dark' : ''}.webp',
                     width: 40,
                     height: 40,
                   ),

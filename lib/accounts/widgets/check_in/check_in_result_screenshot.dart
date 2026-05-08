@@ -166,18 +166,58 @@ class _CheckInScreenshotOracleCard extends StatelessWidget {
                 ),
               ],
             ).padding(horizontal: 12),
-            const SizedBox(height: 12),
-            _OracleActionRow(
-              icon: Symbols.task_alt,
-              text: report.luckyAction,
-              color: theme.colorScheme.primary,
-            ).padding(horizontal: 16),
-            const SizedBox(height: 8),
-            _OracleActionRow(
-              icon: Symbols.block,
-              text: report.avoidAction,
-              color: theme.colorScheme.error,
-            ).padding(horizontal: 16),
+            if (result.tips.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              if (result.tips.any((t) => t.isPositive))
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Symbols.thumb_up,
+                        size: 14,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          result.tips
+                              .where((t) => t.isPositive)
+                              .map((t) => t.title)
+                              .join(' · '),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (result.tips.any((t) => !t.isPositive)) ...[
+                if (result.tips.any((t) => t.isPositive))
+                  const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Symbols.thumb_down,
+                        size: 14,
+                        color: theme.colorScheme.error,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          result.tips
+                              .where((t) => !t.isPositive)
+                              .map((t) => t.title)
+                              .join(' · '),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
             const SizedBox(height: 16),
           ] else ...[
             const SizedBox(height: 16),
@@ -211,38 +251,6 @@ class _OracleMetaChip extends StatelessWidget {
           Text(text, style: theme.textTheme.bodySmall),
         ],
       ),
-    );
-  }
-}
-
-class _OracleActionRow extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final Color color;
-
-  const _OracleActionRow({
-    required this.icon,
-    required this.text,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(height: 1.4),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -309,7 +317,7 @@ class _CheckInScreenshotUserHeader extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
-                        vertical: 2,
+                        vertical: 4,
                       ),
                     ),
                     _buildMetaPill(
@@ -377,7 +385,7 @@ class _CheckInScreenshotFooter extends StatelessWidget {
             width: 44,
             height: 44,
             child: Image.asset(
-              'assets/icons/icon${isDark ? '-dark' : ''}.png',
+              'assets/icons/icon${isDark ? '-dark' : ''}.webp',
               width: 40,
               height: 40,
             ),
