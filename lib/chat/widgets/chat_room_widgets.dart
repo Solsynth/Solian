@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/content/image.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -83,7 +85,7 @@ class ChatRoomAvatar extends StatelessWidget {
   }
 }
 
-class ChatRoomSubtitle extends StatelessWidget {
+class ChatRoomSubtitle extends HookConsumerWidget {
   final SnChatRoom room;
   final bool isDirect;
   final List<SnChatMember> validMembers;
@@ -100,7 +102,9 @@ class ChatRoomSubtitle extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final baseUrl = ref.watch(serverUrlProvider);
+
     if (subtitle != null) return subtitle!;
 
     return AnimatedSwitcher(
@@ -151,8 +155,9 @@ class ChatRoomSubtitle extends StatelessWidget {
                                     resolveE2eeDisplayContentForMessage(
                                       lastMessage,
                                     );
-                                final baseStyle =
-                                    Theme.of(context).textTheme.bodySmall;
+                                final baseStyle = Theme.of(
+                                  context,
+                                ).textTheme.bodySmall;
                                 final hintStyle = baseStyle?.copyWith(
                                   fontStyle: FontStyle.italic,
                                   color: baseStyle.color?.withOpacity(0.8),
@@ -165,14 +170,93 @@ class ChatRoomSubtitle extends StatelessWidget {
                                   style: hintStyle,
                                 );
 
-                                final textContent = resolved.content?.trim() ?? '';
+                                final textContent =
+                                    resolved.content?.trim() ?? '';
                                 final hasText = textContent.isNotEmpty;
                                 final attachmentCount =
                                     lastMessage.attachments.length;
                                 final hasAttachments = attachmentCount > 0;
+                                final stickerMatch = RegExp(
+                                  r'^:([-\w]*\+[-\w]*):$',
+                                ).firstMatch(textContent);
+                                final stickerPlaceholder = stickerMatch?.group(
+                                  1,
+                                );
+                                final isStickerOnly =
+                                    stickerPlaceholder != null &&
+                                    stickerPlaceholder.isNotEmpty;
                                 final attachmentLabel = attachmentCount == 1
-                                    ? '[Attachment]'
-                                    : '[$attachmentCount attachments]';
+                                    ? 'Attachment'
+                                    : '$attachmentCount attachments';
+
+                                String? _reactionPreview() {
+                                  if (lastMessage.type !=
+                                          'messages.reaction.added' &&
+                                      lastMessage.type !=
+                                          'messages.reaction.removed') {
+                                    return null;
+                                  }
+                                  final symbol =
+                                      lastMessage.meta['symbol']?.toString() ??
+                                      (lastMessage.meta['reaction'] is Map
+                                          ? (lastMessage.meta['reaction']
+                                                    as Map)['symbol']
+                                                ?.toString()
+                                          : null);
+                                  final isAdded =
+                                      lastMessage.type ==
+                                      'messages.reaction.added';
+                                  if (symbol == null || symbol.isEmpty) {
+                                    return isAdded
+                                        ? 'Added a reaction'
+                                        : 'Removed a reaction';
+                                  }
+                                  return isAdded
+                                      ? 'Reacted with $symbol'
+                                      : 'Removed reaction $symbol';
+                                }
+
+                                if (isStickerOnly && hasAttachments) {
+                                  final stickerUri =
+                                      '$baseUrl/sphere/stickers/lookup/$stickerPlaceholder/open';
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      UniversalImage(
+                                        uri: stickerUri,
+                                        width: 18,
+                                        height: 18,
+                                        fit: BoxFit.contain,
+                                        noCacheOptimization: true,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          attachmentLabel,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: hintStyle,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                if (isStickerOnly) {
+                                  final stickerUri =
+                                      '$baseUrl/sphere/stickers/lookup/$stickerPlaceholder/open';
+                                  return Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: UniversalImage(
+                                      uri: stickerUri,
+                                      width: 18,
+                                      height: 18,
+                                      fit: BoxFit.contain,
+                                      noCacheOptimization: true,
+                                    ),
+                                  );
+                                }
 
                                 if (hasText && hasAttachments) {
                                   return Text.rich(
@@ -198,10 +282,11 @@ class ChatRoomSubtitle extends StatelessWidget {
                                 final preview = hasText
                                     ? textContent
                                     : resolved.decryptFailed
-                                    ? '[Unable to decrypt message]'
+                                    ? 'Unable to decrypt message'
                                     : resolved.emptyAfterDecrypt
-                                    ? '[Encrypted message]'
-                                    : '[No message preview]';
+                                    ? 'Encrypted message'
+                                    : _reactionPreview() ??
+                                          'No message preview';
 
                                 if (!hasText) {
                                   return buildHint(preview);
