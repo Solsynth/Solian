@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/image.dart';
@@ -104,6 +105,7 @@ class ChatRoomSubtitle extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final baseUrl = ref.watch(serverUrlProvider);
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
 
     if (subtitle != null) return subtitle!;
 
@@ -188,8 +190,7 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                                 final attachmentLabel = attachmentCount == 1
                                     ? 'Attachment'
                                     : '$attachmentCount attachments';
-
-                                String? _reactionPreview() {
+                                String? reactionPreview() {
                                   if (lastMessage.type !=
                                           'messages.reaction.added' &&
                                       lastMessage.type !=
@@ -285,7 +286,7 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                                     ? 'Unable to decrypt message'
                                     : resolved.emptyAfterDecrypt
                                     ? 'Encrypted message'
-                                    : _reactionPreview() ??
+                                    : reactionPreview() ??
                                           'No message preview';
 
                                 if (!hasText) {
@@ -301,6 +302,21 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                               },
                             ),
                           ),
+                          if (currentUserId != null &&
+                              data.lastMessage!.membersMentioned.contains(
+                                currentUserId,
+                              ))
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Icons.alternate_email,
+                                size: 14,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.9),
+                              ),
+                            ),
                           Align(
                             alignment: Alignment.centerRight,
                             child: Text(

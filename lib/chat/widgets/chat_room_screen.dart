@@ -27,6 +27,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/data/message.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
 
@@ -420,6 +421,131 @@ class ChatRoomScreen extends HookConsumerWidget {
 
       chatStateNotifier.exitSelectionMode();
     }, [chatState.selectedMessageIds, messages, chatStateNotifier]);
+
+    final openRedirectSheet = useCallback(() async {
+      if (chatState.selectedMessageIds.isEmpty) return;
+
+      final allMessages = messages.value ?? const <LocalChatMessage>[];
+      final selectedMessages = allMessages
+          .where((msg) => chatState.selectedMessageIds.contains(msg.id))
+          .toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+      if (selectedMessages.isEmpty) return;
+      if (selectedMessages.length > 100) {
+        showErrorAlert('You can redirect up to 100 messages at once.');
+        return;
+      }
+      if (selectedMessages.any((msg) => msg.type != 'text')) {
+        showErrorAlert('Only regular text messages can be redirected right now.');
+        return;
+      }
+
+      final roomsAsync = await ref.read(chatRoomJoinedProvider.future);
+      final availableRooms = roomsAsync
+          .where((room) => room.encryptionMode == 0)
+          .toList()
+        ..sort((a, b) {
+          final aName = (a.name ?? '').toLowerCase();
+          final bName = (b.name ?? '').toLowerCase();
+          return aName.compareTo(bName);
+        });
+
+      if (!context.mounted) return;
+
+      final destinationRoomId = await showModalBottomSheet<String>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: const Text('Redirect to...'),
+                  subtitle: Text('${selectedMessages.length} message(s)'),
+                ),
+                const Divider(height: 1),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: availableRooms.length,
+                    itemBuilder: (ctx, i) {
+                      final room = availableRooms[i];
+                      return ListTile(
+                        leading: const Icon(Icons.chat_bubble_outline),
+                        title: Text(room.name?.trim().isNotEmpty == true
+                            ? room.name!
+                            : 'Untitled room'),
+                        subtitle: Text(room.id == id ? 'Current room' : room.id),
+                        onTap: () => Navigator.of(ctx).pop(room.id),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (destinationRoomId == null || !context.mounted) return;
+
+      SnChatRoom? destinationRoom;
+      for (final room in availableRooms) {
+        if (room.id == destinationRoomId) {
+          destinationRoom = room;
+          break;
+        }
+      }
+      final destinationName = destinationRoom?.name?.trim().isNotEmpty == true
+          ? destinationRoom!.name!
+          : 'this room';
+
+      final shouldProceed =
+          await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Confirm redirect'),
+              content: Text(
+                'Redirect ${selectedMessages.length} message(s) to $destinationName?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Redirect'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+
+      if (!shouldProceed || !context.mounted) return;
+
+      try {
+        showLoadingModal(context);
+        final client = ref.read(solarNetworkClientProvider);
+        await client.chat.redirectMessages(
+          roomId: destinationRoomId,
+          messageIds: selectedMessages.map((m) => m.id).toList(),
+        );
+
+        if (!context.mounted) return;
+        chatStateNotifier.exitSelectionMode();
+        showSnackBar('Redirected ${selectedMessages.length} message(s).');
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) {
+          hideLoadingModal(context);
+        }
+      }
+    }, [chatState.selectedMessageIds, messages, ref, context, id, chatStateNotifier]);
 
     final uploadAttachment = useCallback((
       int index, {
@@ -910,6 +1036,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                   selectedCount: chatState.selectedMessageIds.length,
                   onClose: chatStateNotifier.exitSelectionMode,
                   onAIThink: openThinkingSheet,
+                  onRedirect: openRedirectSheet,
                 ),
             ],
           ),
