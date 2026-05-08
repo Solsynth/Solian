@@ -7,6 +7,7 @@ class RoomSelectionMode extends StatelessWidget {
   final int selectedCount;
   final VoidCallback onClose;
   final VoidCallback onAIThink;
+  final VoidCallback onRedirect;
 
   const RoomSelectionMode({
     super.key,
@@ -14,6 +15,7 @@ class RoomSelectionMode extends StatelessWidget {
     required this.selectedCount,
     required this.onClose,
     required this.onAIThink,
+    required this.onRedirect,
   });
 
   @override
@@ -41,12 +43,19 @@ class RoomSelectionMode extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const Spacer(),
-          if (selectedCount > 0)
+          if (selectedCount > 0) ...[
+            FilledButton.tonalIcon(
+              onPressed: onRedirect,
+              icon: const Icon(Symbols.send),
+              label: const Text('Redirect'),
+            ),
+            const SizedBox(width: 8),
             FilledButton.icon(
               onPressed: onAIThink,
               icon: const Icon(Symbols.smart_toy),
-              label: const Text('AI Think'),
+              label: const Text('Ask AI'),
             ),
+          ],
         ],
       ),
     );

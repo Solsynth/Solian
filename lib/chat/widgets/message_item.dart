@@ -16,6 +16,7 @@ import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
 import 'package:island/chat/widgets/message_sender_info.dart';
 import 'package:island/chat/messages_notifier.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/data/message.dart';
 import 'package:island/chat/pods/chat_room.dart';
@@ -586,7 +587,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
             // AI Selection action
             _ActionListTile(
               leading: Icon(Symbols.smart_toy),
-              title: Text('Select for AI'),
+              title: Text('Select messages'),
               onTap: () {
                 if (widget.onEnterSelectionMode != null) {
                   widget.onEnterSelectionMode!();
@@ -1124,6 +1125,9 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
 
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
+    final isMentioningCurrentUser =
+        currentUserId != null && remoteMessage.membersMentioned.contains(currentUserId);
 
     final avatar = ChatRoomMemberRegion(
       roomId: message.roomId,
@@ -1161,6 +1165,11 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
               message: message,
               textColor: textColor,
               isReply: true,
+            ).padding(vertical: 4),
+          if (remoteMessage.meta['redirect'] is Map)
+            RedirectMessageCard(
+              message: remoteMessage,
+              textColor: textColor,
             ).padding(vertical: 4),
           if (remoteMessage.forwardedMessageId != null)
             MessageQuoteWidget(
@@ -1237,6 +1246,11 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                 ],
               ),
             ),
+            if (isMentioningCurrentUser)
+              Padding(
+                padding: const EdgeInsets.only(left: _contentOffset, top: 4),
+                child: _MentionHint(textColor: textColor),
+              ),
           ],
         ),
       ),
@@ -1400,6 +1414,9 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
+    final isMentioningCurrentUser =
+        currentUserId != null && remoteMessage.membersMentioned.contains(currentUserId);
 
     final isMultiline =
         message.type == 'text' ||
@@ -1442,19 +1459,27 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
           ),
           const Gap(8),
           Expanded(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       if (remoteMessage.repliedMessageId != null)
                         MessageQuoteWidget(
                           message: message,
                           textColor: textColor,
                           isReply: true,
+                        ).padding(vertical: 4),
+                      if (remoteMessage.meta['redirect'] is Map)
+                        RedirectMessageCard(
+                          message: remoteMessage,
+                          textColor: textColor,
                         ).padding(vertical: 4),
                       if (remoteMessage.forwardedMessageId != null)
                         MessageQuoteWidget(
@@ -1486,20 +1511,27 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                           renderingPadding: EdgeInsets.zero,
                           maxWidth: 480,
                         ),
-                      FileUploadProgressWidget(
-                        progress: progress,
-                        textColor: textColor,
-                        hasContent: MessageContent.hasContent(remoteMessage),
+                          FileUploadProgressWidget(
+                            progress: progress,
+                            textColor: textColor,
+                            hasContent: MessageContent.hasContent(remoteMessage),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                    MessageIndicators(
+                      editedAt: remoteMessage.editedAt,
+                      status: message.status,
+                      isCurrentUser: isCurrentUser,
+                      textColor: textColor,
+                    ),
+                  ],
+                ),
+                if (isMentioningCurrentUser)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: _MentionHint(textColor: textColor),
                   ),
-                ),
-                MessageIndicators(
-                  editedAt: remoteMessage.editedAt,
-                  status: message.status,
-                  isCurrentUser: isCurrentUser,
-                  textColor: textColor,
-                ),
               ],
             ),
           ),
@@ -1536,6 +1568,9 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
+    final currentUserId = ref.watch(userInfoProvider).value?.id;
+    final isMentioningCurrentUser =
+        currentUserId != null && remoteMessage.membersMentioned.contains(currentUserId);
 
     const kAvatarRadius = 12.0;
 
@@ -1587,6 +1622,11 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               textColor: textColor,
                               isReply: true,
                             ).padding(vertical: 4),
+                          if (remoteMessage.meta['redirect'] is Map)
+                            RedirectMessageCard(
+                              message: remoteMessage,
+                              textColor: textColor,
+                            ).padding(vertical: 4),
                           if (remoteMessage.forwardedMessageId != null)
                             MessageQuoteWidget(
                               message: message,
@@ -1636,23 +1676,36 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                     ),
                   ],
                 ).padding(left: kAvatarRadius * 2 + 8),
+                if (isMentioningCurrentUser)
+                  Padding(
+                    padding: EdgeInsets.only(left: kAvatarRadius * 2 + 8, top: 4),
+                    child: _MentionHint(textColor: textColor),
+                  ),
               ],
             )
           : Padding(
               padding: EdgeInsets.only(left: kAvatarRadius * 2 + 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                         if (remoteMessage.repliedMessageId != null)
                           MessageQuoteWidget(
                             message: message,
                             textColor: textColor,
                             isReply: true,
+                          ).padding(vertical: 4),
+                        if (remoteMessage.meta['redirect'] is Map)
+                          RedirectMessageCard(
+                            message: remoteMessage,
+                            textColor: textColor,
                           ).padding(vertical: 4),
                         if (remoteMessage.forwardedMessageId != null)
                           MessageQuoteWidget(
@@ -1685,23 +1738,57 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                             renderingPadding: EdgeInsets.zero,
                             maxWidth: 480,
                           ),
-                        FileUploadProgressWidget(
-                          progress: progress,
-                          textColor: textColor,
-                          hasContent: MessageContent.hasContent(remoteMessage),
+                            FileUploadProgressWidget(
+                              progress: progress,
+                              textColor: textColor,
+                              hasContent: MessageContent.hasContent(remoteMessage),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      MessageIndicators(
+                        editedAt: remoteMessage.editedAt,
+                        status: message.status,
+                        isCurrentUser: isCurrentUser,
+                        textColor: textColor,
+                      ),
+                    ],
+                  ),
+                  if (isMentioningCurrentUser)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: _MentionHint(textColor: textColor),
                     ),
-                  ),
-                  MessageIndicators(
-                    editedAt: remoteMessage.editedAt,
-                    status: message.status,
-                    isCurrentUser: isCurrentUser,
-                    textColor: textColor,
-                  ),
                 ],
               ),
             ),
+    );
+  }
+}
+
+class _MentionHint extends StatelessWidget {
+  final Color textColor;
+
+  const _MentionHint({required this.textColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Symbols.alternate_email, size: 14, color: textColor.withOpacity(0.8)),
+          const Gap(4),
+          Text(
+            'chatMentionedYou'.tr(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: textColor.withOpacity(0.85),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1804,6 +1891,142 @@ class MessageQuoteWidget extends HookConsumerWidget {
           return SizedBox.shrink();
         }
       },
+    );
+  }
+}
+
+class RedirectMessageCard extends StatelessWidget {
+  final SnChatMessage message;
+  final Color textColor;
+
+  const RedirectMessageCard({
+    super.key,
+    required this.message,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final raw = message.meta['redirect'];
+    if (raw is! Map) return const SizedBox.shrink();
+
+    final redirect = Map<String, dynamic>.from(raw);
+    final sourceMessageRaw = redirect['source_message'];
+    final sourceMessage = sourceMessageRaw is Map
+        ? Map<String, dynamic>.from(sourceMessageRaw)
+        : const <String, dynamic>{};
+
+    final sourceSenderRaw = sourceMessage['sender'];
+    final sourceSender = sourceSenderRaw is Map
+        ? Map<String, dynamic>.from(sourceSenderRaw)
+        : const <String, dynamic>{};
+
+    final redirectedByRaw = redirect['redirected_by'];
+    final redirectedBy = redirectedByRaw is Map
+        ? Map<String, dynamic>.from(redirectedByRaw)
+        : const <String, dynamic>{};
+
+    final redirectedRoomRaw = redirect['redirected_to_room'];
+    final redirectedRoom = redirectedRoomRaw is Map
+        ? Map<String, dynamic>.from(redirectedRoomRaw)
+        : const <String, dynamic>{};
+
+    final sourceSenderName =
+        sourceSender['nick']?.toString() ??
+        redirect['source_sender_name']?.toString() ??
+        'Unknown sender';
+    final redirectedByName = redirectedBy['nick']?.toString();
+    final redirectedRoomName = redirectedRoom['name']?.toString();
+    final sourceContent =
+        sourceMessage['content']?.toString() ??
+        redirect['source_content']?.toString() ??
+        '';
+
+    final sourceAttachmentsRaw = sourceMessage['attachments'];
+    final sourceAttachments = sourceAttachmentsRaw is List
+        ? sourceAttachmentsRaw
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList()
+        : const <Map<String, dynamic>>[];
+
+    final sourceAttachmentFiles = sourceAttachments
+        .map((e) {
+          try {
+            return SnCloudFile.fromJson(e);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<SnCloudFile>()
+        .toList();
+
+    final subtitleParts = <String>['Redirected from $sourceSenderName'];
+    if (redirectedByName != null && redirectedByName.isNotEmpty) {
+      subtitleParts.add('by $redirectedByName');
+    }
+    if (redirectedRoomName != null && redirectedRoomName.isNotEmpty) {
+      subtitleParts.add('to $redirectedRoomName');
+    }
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+        color: Theme.of(context).colorScheme.primaryFixedDim.withOpacity(0.35),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Symbols.send, size: 16, color: textColor),
+                const Gap(4),
+                Flexible(
+                  child: Text(
+                    subtitleParts.join(' '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            if (sourceContent.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: MessageContent(
+                  item: SnChatMessage(
+                    createdAt: message.createdAt,
+                    updatedAt: message.updatedAt,
+                    deletedAt: null,
+                    id: sourceMessage['id']?.toString() ?? message.id,
+                    type: sourceMessage['type']?.toString() ?? 'text',
+                    content: sourceContent,
+                    senderId: message.senderId,
+                    sender: message.sender,
+                    chatRoomId: message.chatRoomId,
+                  ),
+                ),
+              ),
+            if (sourceAttachmentFiles.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 180),
+                  child: CloudFileList(
+                    files: sourceAttachmentFiles,
+                    maxWidth: 180,
+                    maxHeight: 96,
+                    minWidth: 120,
+                    initiallyCollapsed: false,
+                    heroTagPrefix: 'cloud-file-redirect-${message.id}',
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
