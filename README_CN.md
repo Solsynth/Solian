@@ -1,7 +1,7 @@
 # Solian (Solar Network)
 
 <p align="center">
-  <img src="assets/icons/icon.png" width="120" alt="Solian Logo">
+  <img src="assets/icons/icon.webp" width="120" alt="Solian Logo">
 </p>
 
 <p align="center">

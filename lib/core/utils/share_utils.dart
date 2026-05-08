@@ -96,23 +96,22 @@ Future<void> shareCheckInAsScreenshot(
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SizedBox(
-              width: 420,
-              child: CheckInResultScreenshot(
-                user: user,
-                result: result,
-              ),
+              width: 400,
+              child: CheckInResultScreenshot(user: user, result: result),
             ),
           ),
         ),
         context: context,
         pixelRatio: MediaQuery.of(context).devicePixelRatio,
-        delay: const Duration(milliseconds: 400),
+        delay: const Duration(milliseconds: 1000),
+        targetSize: const Size(400, 860),
       )
       .then((Uint8List? image) async {
         if (image == null) return;
         final directory = await getTemporaryDirectory();
-        final imagePath = await File('${directory.path}/check-in-image.png')
-            .create();
+        final imagePath = await File(
+          '${directory.path}/check-in-image.png',
+        ).create();
         await imagePath.writeAsBytes(image);
 
         if (!context.mounted) return;
