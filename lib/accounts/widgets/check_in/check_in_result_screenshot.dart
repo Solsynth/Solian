@@ -83,7 +83,7 @@ class CheckInResultScreenshot extends StatelessWidget {
                   ],
                 ),
               ),
-              _CheckInScreenshotFooter(user: user),
+              _CheckInScreenshotFooter(user: user, result: result),
             ],
           ),
         ),
@@ -367,14 +367,17 @@ class _CheckInScreenshotUserHeader extends StatelessWidget {
 }
 
 class _CheckInScreenshotFooter extends StatelessWidget {
+  final SnCheckInResult result;
   final SnAccount user;
 
-  const _CheckInScreenshotFooter({required this.user});
+  const _CheckInScreenshotFooter({required this.user, required this.result});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    var dateString = DateFormat('yyyyMMdd').format(result.createdAt.toUtc());
 
     return Container(
       color: theme.colorScheme.surfaceContainerLow,
@@ -406,7 +409,8 @@ class _CheckInScreenshotFooter extends StatelessWidget {
             ),
           ),
           QrImageView(
-            data: 'https://solian.app/accounts/${user.name}',
+            data:
+                'https://solian.app/accounts/${user.name}/fortune/$dateString',
             version: QrVersions.auto,
             size: 60,
             errorCorrectionLevel: QrErrorCorrectLevel.M,
