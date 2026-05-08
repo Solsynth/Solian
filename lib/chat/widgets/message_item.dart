@@ -16,6 +16,7 @@ import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
 import 'package:island/chat/widgets/message_sender_info.dart';
 import 'package:island/chat/messages_notifier.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/data/message.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/core/translate.dart';
@@ -23,6 +24,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/embeds/embed_list.dart';
@@ -98,6 +100,7 @@ class MessageItem extends HookConsumerWidget {
     );
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+    final swipeEnabled = isMobile && onAction != null && !isSelectionMode;
 
     final currentLanguage = context.locale.toString();
     final translatableLanguage = resolvedDisplay.content?.isNotEmpty ?? false;
@@ -262,9 +265,9 @@ class MessageItem extends HookConsumerWidget {
           key: ValueKey(
             'message-swipe-${message.clientMessageId ?? message.id}',
           ),
-          direction: onAction == null || isSelectionMode
-              ? DismissDirection.none
-              : DismissDirection.horizontal,
+          direction: swipeEnabled
+              ? DismissDirection.horizontal
+              : DismissDirection.none,
           dismissThresholds: const {
             DismissDirection.startToEnd: 0.22,
             DismissDirection.endToStart: 0.22,
@@ -279,9 +282,8 @@ class MessageItem extends HookConsumerWidget {
             isStartToEnd: false,
             icon: isCurrentUser ? Symbols.forward : Symbols.reply,
           ),
-          onUpdate: onAction == null || isSelectionMode
-              ? null
-              : (details) {
+          onUpdate: swipeEnabled
+              ? (details) {
                   final direction = details.direction;
                   if (direction == DismissDirection.startToEnd) {
                     swipeProgress.value = details.progress.clamp(0.0, 1.0);
@@ -290,10 +292,10 @@ class MessageItem extends HookConsumerWidget {
                   } else {
                     swipeProgress.value = 0.0;
                   }
-                },
-          confirmDismiss: onAction == null || isSelectionMode
-              ? null
-              : (direction) async {
+                }
+              : null,
+          confirmDismiss: swipeEnabled
+              ? (direction) async {
                   swipeProgress.value = 0.0;
                   if (direction == DismissDirection.startToEnd) {
                     showActionMenu();
@@ -305,7 +307,8 @@ class MessageItem extends HookConsumerWidget {
                     }
                   }
                   return false;
-                },
+                }
+              : null,
           child: InkWell(
             mouseCursor: MouseCursor.defer,
             focusColor: Colors.transparent,
@@ -446,8 +449,6 @@ class MessageActionSheet extends StatefulWidget {
 }
 
 class _MessageActionSheetState extends State<MessageActionSheet> {
-  bool _isExpanded = false;
-  static const int _maxPreviewLines = 3;
   E2eeDisplayContent get _resolved => resolveE2eeDisplayContent(
     roomId: widget.message.roomId,
     content:
@@ -467,10 +468,45 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
     return '';
   }
 
-  bool get _shouldShowExpandButton {
-    // Simple check: show expand button if content is not empty
-    // The actual line limiting is handled by maxLines in SelectableText
-    return _displayContent.isNotEmpty;
+  bool get _hasSelectableText {
+    final content = _resolved.content?.trim() ?? '';
+    return content.isNotEmpty;
+  }
+
+  Future<void> _openTextSelectionView() async {
+    await Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 260),
+        reverseTransitionDuration: const Duration(milliseconds: 220),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            _MessageTextSelectionView(
+              text: _displayContent,
+              sender: widget.remoteMessage.sender,
+              roomId: widget.message.roomId,
+              sentAt: widget.message.createdAt.formatSystem(),
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+
+          return FadeTransition(
+            opacity: curved,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.06),
+                end: Offset.zero,
+              ).animate(curved),
+              child: child,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -482,371 +518,6 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Message content preview section
-            if (_displayContent.isNotEmpty || _isEncryptedMessage) ...[
-              Container(
-                margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withOpacity(0.5),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header
-                    SizedBox(
-                      height: 24,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Symbols.article,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const Gap(6),
-                          Text(
-                            'messageContent'.tr(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const Spacer(),
-                          if (_shouldShowExpandButton)
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              icon: Icon(
-                                _isExpanded
-                                    ? Symbols.expand_less
-                                    : Symbols.expand_more,
-                                size: 16,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isExpanded = !_isExpanded;
-                                });
-                              },
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 24,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const Gap(8),
-                    // Selectable content
-                    SelectableText(
-                      _displayContent,
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.4,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      minLines: 1,
-                      maxLines: _isExpanded ? null : _maxPreviewLines,
-                      textAlign: TextAlign.start,
-                    ),
-                    const Gap(8),
-                    Row(
-                      spacing: 6,
-                      children: [
-                        Icon(
-                          Symbols.send,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        Text(
-                          'messageSentAt'.tr(
-                            args: [widget.message.createdAt.formatSystem()],
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      spacing: 6,
-                      children: [
-                        Icon(
-                          _isEncryptedMessage
-                              ? Symbols.lock
-                              : Symbols.lock_open,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        Text(
-                          'encrypted'.tr(
-                            args: [
-                              _isEncryptedMessage ? 'yes'.tr() : 'no'.tr(),
-                            ],
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_isExpanded) ...[
-                      if (widget.message.meta['e2ee_scheme'] != null)
-                        Row(
-                          spacing: 6,
-                          children: [
-                            Icon(
-                              Symbols.security,
-                              size: 16,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            Text(
-                              'scheme'.tr(
-                                args: [
-                                  widget.message.meta['e2ee_scheme'].toString(),
-                                ],
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      if (widget.message.meta['e2ee_epoch'] != null)
-                        Row(
-                          spacing: 6,
-                          children: [
-                            Icon(
-                              Symbols.history,
-                              size: 16,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            Text(
-                              'epoch'.tr(
-                                args: [
-                                  widget.message.meta['e2ee_epoch'].toString(),
-                                ],
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      if (widget.message.meta['e2ee_message_type'] != null)
-                        Row(
-                          spacing: 6,
-                          children: [
-                            Icon(
-                              Symbols.message,
-                              size: 16,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            Text(
-                              'messageType'.tr(
-                                args: [
-                                  widget.message.meta['e2ee_message_type']
-                                      .toString(),
-                                ],
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      if (widget.message.meta['e2ee_client_message_id'] != null)
-                        Row(
-                          spacing: 6,
-                          children: [
-                            Icon(
-                              Symbols.tag,
-                              size: 16,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            Text(
-                              'clientMessageId'.tr(
-                                args: [
-                                  widget.message.meta['e2ee_client_message_id']
-                                      .toString(),
-                                ],
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      const Gap(8),
-                      const Divider(height: 1),
-                      const Gap(8),
-                      // Debug info section
-                      Row(
-                        children: [
-                          Icon(
-                            Symbols.bug_report,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const Gap(6),
-                          Text(
-                            'Debug Info',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Gap(4),
-                      // Message ID (tap to copy)
-                      InkWell(
-                        onTap: () {
-                          Clipboard.setData(
-                            ClipboardData(text: widget.message.id),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Message ID copied'),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          spacing: 6,
-                          children: [
-                            Icon(
-                              Symbols.fingerprint,
-                              size: 14,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            Expanded(
-                              child: Text(
-                                'ID: ${widget.message.id}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontFamily: 'monospace',
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Icon(
-                              Icons.copy,
-                              size: 12,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Encryption header
-                      if (widget.message.meta['e2ee_header'] != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Gap(4),
-                            Row(
-                              spacing: 6,
-                              children: [
-                                Icon(
-                                  Symbols.key,
-                                  size: 14,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Header: ${widget.message.meta['e2ee_header']}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontFamily: 'monospace',
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      // Ciphertext length
-                      if (widget.message.meta['e2ee_ciphertext'] != null)
-                        Row(
-                          spacing: 6,
-                          children: [
-                            Icon(
-                              Symbols.terminal,
-                              size: 14,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            Text(
-                              'Ciphertext: ${widget.message.meta['e2ee_ciphertext'].toString().length} bytes',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ],
-                ),
-              ),
-              const Gap(4),
-            ],
-
             // Action buttons
             if (widget.isCurrentUser)
               _ActionListTile(
@@ -902,6 +573,15 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                 widget.onReact();
               },
             ),
+            if (_hasSelectableText)
+              _ActionListTile(
+                leading: const Icon(Symbols.text_select_start),
+                title: const Text('Select text'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _openTextSelectionView();
+                },
+              ),
 
             // AI Selection action
             _ActionListTile(
@@ -982,6 +662,140 @@ class _ActionListTile extends StatelessWidget {
               color: Theme.of(context).colorScheme.outline,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageTextSelectionView extends HookConsumerWidget {
+  final String text;
+  final SnChatMember sender;
+  final String roomId;
+  final String sentAt;
+
+  const _MessageTextSelectionView({
+    required this.text,
+    required this.sender,
+    required this.roomId,
+    required this.sentAt,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final roomAsync = ref.watch(chatRoomProvider(roomId));
+    final roomName = roomAsync.value?.name;
+    final roomLabel = (roomName != null && roomName.trim().isNotEmpty)
+        ? roomName
+        : 'room';
+
+    return Material(
+      color: colorScheme.surface,
+      child: SafeArea(
+        child: GestureDetector(
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity != null &&
+                details.primaryVelocity! > 300) {
+              Navigator.of(context).pop();
+            }
+          },
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 72, 20, 72),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 860),
+                              child: MarkdownTextContent(
+                                content: text,
+                                isSelectable: true,
+                                textStyle: TextStyle(
+                                  fontSize: 20,
+                                  height: 1.6,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 12,
+                child: Row(
+                  children: [
+                    ChatRoomMemberRegion(
+                      roomId: roomId,
+                      member: sender,
+                      child: ProfilePictureWidget(
+                        file: sender.account.profile.picture,
+                        radius: 14,
+                      ),
+                    ),
+                    const Gap(8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AccountName(
+                            textOverride: (sender.nick?.isNotEmpty == true)
+                                ? sender.nick
+                                : (sender.realmNick?.isNotEmpty == true)
+                                ? sender.realmNick
+                                : sender.account.nick,
+                            account: sender.account,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                          Text(
+                            sentAt,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colorScheme.onSurface.withOpacity(0.8),
+                            ),
+                          ),
+                          Text(
+                            'in $roomLabel',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                              color: colorScheme.onSurface.withOpacity(0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: Icon(Symbols.close, color: colorScheme.onSurface),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
