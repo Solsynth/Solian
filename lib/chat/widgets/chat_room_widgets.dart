@@ -146,23 +146,72 @@ class ChatRoomSubtitle extends StatelessWidget {
                           Expanded(
                             child: Builder(
                               builder: (context) {
+                                final lastMessage = data.lastMessage!;
                                 final resolved =
                                     resolveE2eeDisplayContentForMessage(
-                                      data.lastMessage!,
+                                      lastMessage,
                                     );
-                                final preview =
-                                    resolved.content?.isNotEmpty == true
-                                    ? resolved.content!
+                                final baseStyle =
+                                    Theme.of(context).textTheme.bodySmall;
+                                final hintStyle = baseStyle?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: baseStyle.color?.withOpacity(0.8),
+                                );
+
+                                Text buildHint(String text) => Text(
+                                  text,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: hintStyle,
+                                );
+
+                                final textContent = resolved.content?.trim() ?? '';
+                                final hasText = textContent.isNotEmpty;
+                                final attachmentCount =
+                                    lastMessage.attachments.length;
+                                final hasAttachments = attachmentCount > 0;
+                                final attachmentLabel = attachmentCount == 1
+                                    ? '[Attachment]'
+                                    : '[$attachmentCount attachments]';
+
+                                if (hasText && hasAttachments) {
+                                  return Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(text: textContent),
+                                        TextSpan(
+                                          text: '  $attachmentLabel',
+                                          style: hintStyle,
+                                        ),
+                                      ],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: baseStyle,
+                                  );
+                                }
+
+                                if (hasAttachments) {
+                                  return buildHint(attachmentLabel);
+                                }
+
+                                final preview = hasText
+                                    ? textContent
                                     : resolved.decryptFailed
-                                    ? '[Unable to decrypt]'
+                                    ? '[Unable to decrypt message]'
                                     : resolved.emptyAfterDecrypt
-                                    ? '[Encrypted: no text content]'
-                                    : 'messageNone'.tr();
+                                    ? '[Encrypted message]'
+                                    : '[No message preview]';
+
+                                if (!hasText) {
+                                  return buildHint(preview);
+                                }
+
                                 return Text(
                                   preview,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: baseStyle,
                                 );
                               },
                             ),
