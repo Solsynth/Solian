@@ -88,13 +88,13 @@ class NotificationService: UNNotificationServiceExtension {
             if let updatedContent = try? request.content.updating(from: intent) {
                 if let mutableContent = updatedContent.mutableCopy() as? UNMutableNotificationContent {
                     mutableContent.categoryIdentifier = "CHAT_MESSAGE"
-                    self.contentHandler?(mutableContent)
+                    self.attachNotificationMediaIfNeeded(to: mutableContent, meta: meta)
                 } else {
                     self.contentHandler?(updatedContent)
                 }
             } else {
                 content.categoryIdentifier = "CHAT_MESSAGE"
-                self.contentHandler?(content)
+                self.attachNotificationMediaIfNeeded(to: content, meta: meta)
             }
         }
 
@@ -123,21 +123,25 @@ class NotificationService: UNNotificationServiceExtension {
         guard let meta = content.userInfo["meta"] as? [AnyHashable: Any] else {
             throw ParseNotificationPayloadError.missingMetadata("The notification has no meta.")
         }
-        
-        if let imageIdentifier = meta["image"] as? String {
-            attachMedia(to: content, withIdentifier: [imageIdentifier], fileType: UTType.webP, doScaleDown: true)
+
+        attachNotificationMediaIfNeeded(to: content, meta: meta)
+    }
+
+    private func attachNotificationMediaIfNeeded(to content: UNMutableNotificationContent, meta: [AnyHashable: Any]) {
+        if let imagesIdentifier = meta["images"] as? [String], !imagesIdentifier.isEmpty {
+            attachMedia(to: content, identifiers: imagesIdentifier, fileType: UTType.webP, doScaleDown: true)
+        } else if let imageIdentifier = meta["image"] as? String {
+            attachMedia(to: content, identifiers: [imageIdentifier], fileType: UTType.webP, doScaleDown: true)
         } else if let pfpIdentifier = meta["pfp"] as? String {
-            attachMedia(to: content, withIdentifier: [pfpIdentifier], fileType: UTType.webP, doScaleDown: true)
-        } else if let imagesIdentifier = meta["images"] as? Array<String> {
-            attachMedia(to: content, withIdentifier: imagesIdentifier, fileType: UTType.webP, doScaleDown: true)
+            attachMedia(to: content, identifiers: [pfpIdentifier], fileType: UTType.webP, doScaleDown: true)
         } else {
             contentHandler?(content)
         }
     }
-    
-    private func attachMedia(to content: UNMutableNotificationContent, withIdentifier identifier: Array<String>, fileType type: UTType?, doScaleDown scaleDown: Bool = false) {
-        let attachmentUrls = identifier.compactMap { element in
-            return getAttachmentUrl(for: element)
+
+    private func attachMedia(to content: UNMutableNotificationContent, identifiers: [String], fileType type: UTType?, doScaleDown scaleDown: Bool = false) {
+        let attachmentUrls = identifiers.compactMap { identifier in
+            getAttachmentUrl(for: identifier)
         }
 
         guard !attachmentUrls.isEmpty else {
