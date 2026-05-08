@@ -171,7 +171,7 @@ class RealmsApi extends BaseApi {
   }) async {
     final response = await patch<Map<String, dynamic>>(
       '$_basePath/$slug/members/$accountId/role',
-      data: {'role': role},
+      data: role,
     );
     return SnRealmMember.fromJson(response.data!);
   }
