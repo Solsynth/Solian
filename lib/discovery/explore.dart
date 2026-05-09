@@ -119,12 +119,13 @@ class ExploreScreen extends HookConsumerWidget {
         selectedTagIds.value.isNotEmpty;
 
     final userInfo = ref.watch(userInfoProvider);
+    final isSidePanelOpen = isWide && (composeRequest != null || selectedPostId.value != null);
 
     if (isWide) {
       return AppScaffold(
         isNoBackground: false,
         appBar: null,
-        floatingActionButton: userInfo.value != null
+        floatingActionButton: userInfo.value != null && !isSidePanelOpen
             ? FloatingActionButton(
                 heroTag: 'explore-fab',
                 child: const Icon(Symbols.create),
