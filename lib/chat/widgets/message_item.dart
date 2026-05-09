@@ -9,6 +9,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/e2ee_message_display.dart';
+import 'package:island/chat/models/redirect_data.dart';
 import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
@@ -580,7 +581,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
             if (_hasSelectableText)
               _ActionListTile(
                 leading: const Icon(Symbols.text_select_start),
-                title: const Text('Select text'),
+                title: Text('chatSelectText'.tr()),
                 onTap: () {
                   Navigator.pop(context);
                   _openTextSelectionView();
@@ -590,7 +591,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
             // AI Selection action
             _ActionListTile(
               leading: Icon(Symbols.smart_toy),
-              title: Text('Select messages'),
+              title: Text('chatSelectMessages'.tr()),
               onTap: () {
                 if (widget.onEnterSelectionMode != null) {
                   widget.onEnterSelectionMode!();
@@ -1128,9 +1129,7 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
 
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
-    final isRedirectHistorySegment =
-        remoteMessage.meta['redirect'] is Map &&
-        (remoteMessage.meta['redirect'] as Map)['kind'] == 'history_segment';
+    final isRedirect = remoteMessage.meta['redirect'] is Map;
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final isMentioningCurrentUser =
         currentUserId != null &&
@@ -1174,20 +1173,32 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
               isReply: true,
             ).padding(vertical: 4),
           if (remoteMessage.meta['redirect'] is Map)
-            RedirectMessageCard(
-              message: remoteMessage,
-              textColor: textColor,
-            ).padding(vertical: 4),
-          if (remoteMessage.forwardedMessageId != null &&
-              !isRedirectHistorySegment)
+            (() {
+              final data = SnRedirectData.fromJson(
+                Map<String, dynamic>.from(
+                  remoteMessage.meta['redirect'] as Map,
+                ),
+              );
+              return data.map(
+                historySegment: (_) => RedirectMessageCard(
+                  redirect: data,
+                  textColor: textColor,
+                ).padding(vertical: 4),
+                singleMessage: (_) => RedirectInlineContent(
+                  redirect: data,
+                  textColor: textColor,
+                ).padding(vertical: 4),
+              );
+            })(),
+          if (remoteMessage.forwardedMessageId != null && !isRedirect)
             MessageQuoteWidget(
               message: message,
               textColor: textColor,
               isReply: false,
             ).padding(vertical: 4),
-          if (MessageContent.hasContent(remoteMessage))
+          if (!isRedirect && MessageContent.hasContent(remoteMessage))
             MessageContent(item: remoteMessage, translatedText: translatedText),
-          if (remoteMessage.attachments.isNotEmpty)
+          if (!isRedirect && remoteMessage.attachments.isNotEmpty)
             LayoutBuilder(
               builder: (context, constraints) {
                 return CloudFileList(
@@ -1422,9 +1433,7 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
-    final isRedirectHistorySegment =
-        remoteMessage.meta['redirect'] is Map &&
-        (remoteMessage.meta['redirect'] as Map)['kind'] == 'history_segment';
+    final isRedirect = remoteMessage.meta['redirect'] is Map;
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final isMentioningCurrentUser =
         currentUserId != null &&
@@ -1489,23 +1498,38 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
                               isReply: true,
                             ).padding(vertical: 4),
                           if (remoteMessage.meta['redirect'] is Map)
-                            RedirectMessageCard(
-                              message: remoteMessage,
-                              textColor: textColor,
-                            ).padding(vertical: 4),
+                            (() {
+                              final data = SnRedirectData.fromJson(
+                                Map<String, dynamic>.from(
+                                  remoteMessage.meta['redirect'] as Map,
+                                ),
+                              );
+                              return data.map(
+                                historySegment: (_) => RedirectMessageCard(
+                                  redirect: data,
+                                  textColor: textColor,
+                                ).padding(vertical: 4),
+                                singleMessage: (_) => RedirectInlineContent(
+                                  redirect: data,
+                                  textColor: textColor,
+                                ).padding(vertical: 4),
+                              );
+                            })(),
                           if (remoteMessage.forwardedMessageId != null &&
-                              !isRedirectHistorySegment)
+                              !isRedirect)
                             MessageQuoteWidget(
                               message: message,
                               textColor: textColor,
                               isReply: false,
                             ).padding(vertical: 4),
-                          if (MessageContent.hasContent(remoteMessage))
+                          if (!isRedirect &&
+                              MessageContent.hasContent(remoteMessage))
                             MessageContent(
                               item: remoteMessage,
                               translatedText: translatedText,
                             ),
-                          if (remoteMessage.attachments.isNotEmpty)
+                          if (!isRedirect &&
+                              remoteMessage.attachments.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
                                 return CloudFileList(
@@ -1584,9 +1608,7 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
     final remoteMessage = message.toRemoteMessage();
     final sender = remoteMessage.sender;
-    final isRedirectHistorySegment =
-        remoteMessage.meta['redirect'] is Map &&
-        (remoteMessage.meta['redirect'] as Map)['kind'] == 'history_segment';
+    final isRedirect = remoteMessage.meta['redirect'] is Map;
     final currentUserId = ref.watch(userInfoProvider).value?.id;
     final isMentioningCurrentUser =
         currentUserId != null &&
@@ -1643,23 +1665,38 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                               isReply: true,
                             ).padding(vertical: 4),
                           if (remoteMessage.meta['redirect'] is Map)
-                            RedirectMessageCard(
-                              message: remoteMessage,
-                              textColor: textColor,
-                            ).padding(vertical: 4),
+                            (() {
+                              final data = SnRedirectData.fromJson(
+                                Map<String, dynamic>.from(
+                                  remoteMessage.meta['redirect'] as Map,
+                                ),
+                              );
+                              return data.map(
+                                historySegment: (_) => RedirectMessageCard(
+                                  redirect: data,
+                                  textColor: textColor,
+                                ).padding(vertical: 4),
+                                singleMessage: (_) => RedirectInlineContent(
+                                  redirect: data,
+                                  textColor: textColor,
+                                ).padding(vertical: 4),
+                              );
+                            })(),
                           if (remoteMessage.forwardedMessageId != null &&
-                              !isRedirectHistorySegment)
+                              !isRedirect)
                             MessageQuoteWidget(
                               message: message,
                               textColor: textColor,
                               isReply: false,
                             ).padding(vertical: 4),
-                          if (MessageContent.hasContent(remoteMessage))
+                          if (!isRedirect &&
+                              MessageContent.hasContent(remoteMessage))
                             MessageContent(
                               item: remoteMessage,
                               translatedText: translatedText,
                             ),
-                          if (remoteMessage.attachments.isNotEmpty)
+                          if (!isRedirect &&
+                              remoteMessage.attachments.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
                                 return CloudFileList(
@@ -1727,23 +1764,38 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                                 isReply: true,
                               ).padding(vertical: 4),
                             if (remoteMessage.meta['redirect'] is Map)
-                              RedirectMessageCard(
-                                message: remoteMessage,
-                                textColor: textColor,
-                              ).padding(vertical: 4),
+                              (() {
+                                final data = SnRedirectData.fromJson(
+                                  Map<String, dynamic>.from(
+                                    remoteMessage.meta['redirect'] as Map,
+                                  ),
+                                );
+                                return data.map(
+                                  historySegment: (_) => RedirectMessageCard(
+                                    redirect: data,
+                                    textColor: textColor,
+                                  ).padding(vertical: 4),
+                                  singleMessage: (_) => RedirectInlineContent(
+                                    redirect: data,
+                                    textColor: textColor,
+                                  ).padding(vertical: 4),
+                                );
+                              })(),
                             if (remoteMessage.forwardedMessageId != null &&
-                                !isRedirectHistorySegment)
+                                !isRedirect)
                               MessageQuoteWidget(
                                 message: message,
                                 textColor: textColor,
                                 isReply: false,
                               ).padding(vertical: 4),
-                            if (MessageContent.hasContent(remoteMessage))
+                            if (!isRedirect &&
+                                MessageContent.hasContent(remoteMessage))
                               MessageContent(
                                 item: remoteMessage,
                                 translatedText: translatedText,
                               ),
-                            if (remoteMessage.attachments.isNotEmpty)
+                            if (!isRedirect &&
+                                remoteMessage.attachments.isNotEmpty)
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   return CloudFileList(
@@ -1928,77 +1980,21 @@ class MessageQuoteWidget extends HookConsumerWidget {
 }
 
 class RedirectMessageCard extends StatelessWidget {
-  final SnChatMessage message;
+  final SnRedirectData redirect;
   final Color textColor;
 
   const RedirectMessageCard({
     super.key,
-    required this.message,
+    required this.redirect,
     required this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final raw = message.meta['redirect'];
-    if (raw is! Map) return const SizedBox.shrink();
+    final sourceRoomName = redirect.sourceRoomName;
+    final historyCount = redirect.messageCount;
 
-    final redirect = Map<String, dynamic>.from(raw);
-    final sourceRoomRaw = redirect['source_room'];
-    final sourceRoom = sourceRoomRaw is Map
-        ? Map<String, dynamic>.from(sourceRoomRaw)
-        : const <String, dynamic>{};
-    String resolveSourceRoomName() {
-      final explicitName = sourceRoom['name']?.toString();
-      if (explicitName != null && explicitName.trim().isNotEmpty) {
-        return explicitName;
-      }
-
-      final roomType = sourceRoom['type']?.toString();
-      if (roomType == 'DirectMessage') {
-        return 'directMessage'.tr();
-      }
-
-      final fallbackName = redirect['source_room_name']?.toString();
-      if (fallbackName != null && fallbackName.trim().isNotEmpty) {
-        return fallbackName;
-      }
-
-      return 'chat'.tr();
-    }
-
-    final sourceRoomName = resolveSourceRoomName();
-
-    final kind = redirect['kind']?.toString();
-    final messagesRaw = redirect['messages'];
-    final transcriptMessages = messagesRaw is List
-        ? messagesRaw
-              .whereType<Map>()
-              .map((e) => Map<String, dynamic>.from(e))
-              .toList()
-        : const <Map<String, dynamic>>[];
-    final rangeRaw = redirect['range'];
-    final range = rangeRaw is Map
-        ? Map<String, dynamic>.from(rangeRaw)
-        : const <String, dynamic>{};
-    final historyCount = switch (range['message_count']) {
-      int v => v,
-      String v => int.tryParse(v) ?? transcriptMessages.length,
-      _ => transcriptMessages.length,
-    };
-
-    // Backward compatibility fallback for older redirect schema
-    final sourceMessageRaw = redirect['source_message'];
-    final sourceMessage = sourceMessageRaw is Map
-        ? Map<String, dynamic>.from(sourceMessageRaw)
-        : const <String, dynamic>{};
-    final sourceContentFallback =
-        sourceMessage['content']?.toString() ??
-        redirect['source_content']?.toString() ??
-        '';
-
-    final cardLabel = kind == 'history_segment'
-        ? 'chatRedirectedHistoryFrom'.tr(args: [sourceRoomName])
-        : 'chatRedirectedFromRoom'.tr(args: [sourceRoomName]);
+    final cardLabel = 'chatRedirectedHistoryFrom'.tr(args: [sourceRoomName]);
 
     return Material(
       color: Colors.transparent,
@@ -2007,14 +2003,8 @@ class RedirectMessageCard extends StatelessWidget {
         onTap: () {
           showModalBottomSheet(
             context: context,
-            showDragHandle: true,
             isScrollControlled: true,
-            builder: (ctx) => _RedirectHistorySheet(
-              sourceRoomName: sourceRoomName,
-              transcriptMessages: transcriptMessages,
-              sourceContentFallback: sourceContentFallback,
-              historyCount: historyCount,
-            ),
+            builder: (ctx) => _RedirectHistorySheet(redirect: redirect),
           );
         },
         child: Ink(
@@ -2073,34 +2063,138 @@ class RedirectMessageCard extends StatelessWidget {
   }
 }
 
-class _RedirectHistorySheet extends StatelessWidget {
-  final String sourceRoomName;
-  final List<Map<String, dynamic>> transcriptMessages;
-  final String sourceContentFallback;
-  final int historyCount;
+class RedirectInlineContent extends StatelessWidget {
+  final SnRedirectData redirect;
+  final Color textColor;
 
-  const _RedirectHistorySheet({
-    required this.sourceRoomName,
-    required this.transcriptMessages,
-    required this.sourceContentFallback,
-    required this.historyCount,
+  const RedirectInlineContent({
+    super.key,
+    required this.redirect,
+    required this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final sourceRoomName = redirect.sourceRoomName;
+    final content = redirect.resolvedSourceContent ?? '';
+    final parsedAttachments = redirect.resolvedSourceAttachments;
+    final sourceSenderName = redirect.resolvedSourceSenderName;
+    final sourceSenderProfilePicture = redirect.sourceSenderProfilePicture;
+    final sourceSenderPictureId = redirect.sourceSenderPictureId;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Symbols.subdirectory_arrow_right,
+              size: 14,
+              color: textColor.withOpacity(0.6),
+            ),
+            const Gap(4),
+            ProfilePictureWidget(
+              file: sourceSenderProfilePicture,
+              fileId: sourceSenderPictureId,
+              radius: 8,
+            ),
+            if (sourceSenderProfilePicture != null ||
+                sourceSenderPictureId != null)
+              const Gap(4),
+            Flexible(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    if (sourceSenderName != null &&
+                        sourceSenderName.trim().isNotEmpty) ...[
+                      TextSpan(
+                        text: sourceSenderName,
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.8),
+                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
+                          fontSize: 12,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' · ',
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.5),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                    TextSpan(
+                      text: 'chatRedirectedFromRoom'.tr(args: [sourceRoomName]),
+                      style: TextStyle(
+                        color: textColor.withOpacity(0.7),
+                        fontStyle: FontStyle.italic,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        if (content.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: MarkdownTextContent(
+              content: content,
+              isSelectable: true,
+              linesMargin: EdgeInsets.zero,
+            ),
+          ),
+        if (parsedAttachments.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: CloudFileList(
+              files: parsedAttachments,
+              maxWidth: 240,
+              maxHeight: 120,
+              minWidth: 120,
+              initiallyCollapsed: false,
+              heroTagPrefix: 'redirect-att',
+              padding: EdgeInsets.zero,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RedirectHistorySheet extends StatelessWidget {
+  final SnRedirectData redirect;
+
+  const _RedirectHistorySheet({required this.redirect});
+
+  @override
+  Widget build(BuildContext context) {
+    final transcriptMessages = redirect.map(
+      singleMessage: (d) => [],
+      historySegment: (d) => d.messages,
+    );
+
     return SheetScaffold(
-      titleText: 'chatRedirectHistoryTitle'.tr(args: [sourceRoomName]),
+      titleText: 'chatRedirectHistoryTitle'.tr(args: [redirect.sourceRoomName]),
       child: transcriptMessages.isNotEmpty
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (historyCount > 0)
+                if (redirect.messageCount > 0)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                     child: Text(
                       'chatRedirectMessagesCount'.plural(
-                        historyCount,
-                        args: [historyCount.toString()],
+                        redirect.messageCount,
+                        args: [redirect.messageCount.toString()],
                       ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -2116,36 +2210,19 @@ class _RedirectHistorySheet extends StatelessWidget {
                       thickness: 1 / MediaQuery.devicePixelRatioOf(context),
                     ),
                     itemBuilder: (context, index) {
-                      final row = transcriptMessages[index];
-                      final senderRaw = row['sender'];
-                      final sender = senderRaw is Map
-                          ? Map<String, dynamic>.from(senderRaw)
-                          : const <String, dynamic>{};
-                      final accountRaw = sender['account'];
-                      final account = accountRaw is Map
-                          ? Map<String, dynamic>.from(accountRaw)
-                          : const <String, dynamic>{};
-                      final profileRaw = account['profile'];
-                      final profile = profileRaw is Map
-                          ? Map<String, dynamic>.from(profileRaw)
-                          : const <String, dynamic>{};
-                      final pictureRaw = profile['picture'];
-                      String? pictureId;
-                      if (pictureRaw is Map) {
-                        pictureId = pictureRaw['id']?.toString();
-                      }
                       final senderName =
-                          sender['nick']?.toString() ??
-                          sender['realm_nick']?.toString() ??
-                          sender['account']?['nick']?.toString() ??
+                          redirect.historyMessageSenderName(index) ??
                           'unknown'.tr();
-                      final senderUname = account['name']?.toString();
+                      final senderUname = redirect
+                          .historyMessageSenderAccountName(index);
+                      final pictureId = redirect.historyMessageSenderPictureId(
+                        index,
+                      );
 
-                      final content = row['content']?.toString() ?? '';
-                      final attachmentsRaw = row['attachments'];
-                      final attachments = attachmentsRaw is List
-                          ? attachmentsRaw.length
-                          : 0;
+                      final content =
+                          redirect.historyMessageContent(index) ?? '';
+                      final attachments = redirect
+                          .historyMessageAttachmentCount(index);
 
                       final messageText = StringBuffer();
                       if (content.trim().isNotEmpty) {
@@ -2184,8 +2261,8 @@ class _RedirectHistorySheet extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  sourceContentFallback.trim().isNotEmpty
-                      ? sourceContentFallback
+                  redirect.resolvedSourceContent?.trim().isNotEmpty == true
+                      ? redirect.resolvedSourceContent!
                       : 'chatNoContent'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
