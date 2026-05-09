@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:gap/gap.dart';
@@ -14,7 +15,9 @@ import 'package:island/accounts/meet_service.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:map_launcher/map_launcher.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -1913,6 +1916,29 @@ class _LocationDetailSheet extends StatelessWidget {
                     title: 'longitude'.tr(),
                     subtitle: point.longitude.toStringAsFixed(6),
                   ),
+                  if (!kIsWeb) ...[
+                    const Divider(height: 1),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            final p = point;
+                            if (p != null) {
+                              _openLocationInMaps(
+                                context,
+                                point: p,
+                                title: name,
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.map, size: 18),
+                          label: Text('openInMaps'.tr()),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1944,6 +1970,121 @@ class _LocationDetailSheet extends StatelessWidget {
         style: theme.textTheme.bodyLarge?.copyWith(
           color: colorScheme.onSurface,
           fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _openLocationInMaps(
+  BuildContext context, {
+  required LatLng point,
+  String? title,
+}) async {
+  if (kIsWeb) {
+    showSnackBar('openInMapsUnavailableOnWeb'.tr());
+    return;
+  }
+  final availableMaps = await MapLauncher.installedMaps;
+  if (availableMaps.isEmpty) return;
+
+  if (availableMaps.length == 1) {
+    await availableMaps.first.showDirections(
+      destination: Coords(point.latitude, point.longitude),
+      destinationTitle: title ?? 'location'.tr(),
+    );
+    return;
+  }
+
+  if (!context.mounted) return;
+  final selected = await showModalBottomSheet<AvailableMap>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'openInMaps'.tr(),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ...availableMaps.map((map) => ListTile(
+            leading: Icon(
+              Symbols.map,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            title: Text(map.mapName),
+            onTap: () => Navigator.pop(context, map),
+          )),
+        ],
+      ),
+    ),
+  );
+
+  if (selected != null) {
+    await selected.showDirections(
+      destination: Coords(point.latitude, point.longitude),
+      destinationTitle: title ?? 'location'.tr(),
+    );
+  }
+}
+
+class _LocationMapPreview extends StatelessWidget {
+  final String wkt;
+
+  const _LocationMapPreview({required this.wkt});
+
+  @override
+  Widget build(BuildContext context) {
+    LatLng? point;
+    final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)')
+        .firstMatch(wkt);
+    if (match != null) {
+      final lon = double.tryParse(match.group(1)!);
+      final lat = double.tryParse(match.group(2)!);
+      if (lat != null && lon != null) {
+        point = LatLng(lat, lon);
+      }
+    }
+    if (point == null) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 160,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(12),
+        ),
+        child: FlutterMap(
+          options: MapOptions(
+            initialCenter: point,
+            initialZoom: 15,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.none,
+            ),
+          ),
+          children: [
+            TileLayer(
+              urlTemplate:
+                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.island.app',
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: point,
+                  child: const Icon(
+                    Icons.location_on,
+                    color: Colors.red,
+                    size: 40,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -2098,81 +2239,149 @@ class _MeetEmbedCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () => _showMeetDetailSheet(context, ref, meetId),
         child: meetAsync.when(
-          data: (meet) => Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+          data: (meet) {
+            LatLng? point;
+            if (meet.locationWkt != null) {
+              final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)')
+                  .firstMatch(meet.locationWkt!);
+              if (match != null) {
+                final lon = double.tryParse(match.group(1)!);
+                final lat = double.tryParse(match.group(2)!);
+                if (lat != null && lon != null) {
+                  point = LatLng(lat, lon);
+                }
+              }
+            }
+
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: colorScheme.primaryContainer,
-                  child: Icon(
-                    Symbols.groups,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              meet.notes ?? 'untitledMeet'.tr(),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _MeetStatusChip(status: meet.status),
-                        ],
+                if (point != null)
+                  SizedBox(
+                    height: 120,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
                       ),
-                      if (meet.host != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'hostedBy'.tr(args: [meet.host!.nick]),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                      child: FlutterMap(
+                        options: MapOptions(
+                          initialCenter: point,
+                          initialZoom: 14,
+                          interactionOptions: const InteractionOptions(
+                            flags: InteractiveFlag.none,
                           ),
                         ),
-                      ],
-                      if (meet.locationName != null) ...[
-                        const SizedBox(height: 4),
-                        Row(
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.island.app',
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: point,
+                                child: const Icon(
+                                  Icons.location_on,
+                                  color: Colors.red,
+                                  size: 36,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: Icon(
+                          Symbols.groups,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Symbols.location_on,
-                              size: 14,
-                              color: colorScheme.onSurfaceVariant,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    meet.notes ?? 'untitledMeet'.tr(),
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _MeetStatusChip(status: meet.status),
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                meet.locationName!,
+                            if (meet.host != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'hostedBy'.tr(args: [meet.host!.nick]),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                            if (meet.locationName != null) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Symbols.location_on,
+                                    size: 14,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      meet.locationName!,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                            if (meet.locationAddress != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                meet.locationAddress!,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                            ),
+                            ],
                           ],
                         ),
-                      ],
+                      ),
+                      Icon(
+                        Symbols.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ],
                   ),
                 ),
-                Icon(
-                  Symbols.chevron_right,
-                  color: colorScheme.onSurfaceVariant,
-                ),
               ],
-            ),
-          ),
+            );
+          },
           loading: () => const Padding(
             padding: EdgeInsets.all(24),
             child: Center(child: CircularProgressIndicator()),
@@ -2266,7 +2475,8 @@ class _MeetDetailSheet extends ConsumerWidget {
               const SizedBox(height: 16),
               // Location info
               if (meet.locationName != null ||
-                  meet.locationAddress != null) ...[
+                  meet.locationAddress != null ||
+                  meet.locationWkt != null) ...[
                 Text(
                   'location'.tr(),
                   style: theme.textTheme.titleSmall?.copyWith(
@@ -2277,6 +2487,7 @@ class _MeetDetailSheet extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Card(
                   elevation: 0,
+                  clipBehavior: Clip.antiAlias,
                   shape: RoundedRectangleBorder(
                     side: BorderSide(color: colorScheme.outlineVariant),
                     borderRadius: BorderRadius.circular(12),
@@ -2284,6 +2495,8 @@ class _MeetDetailSheet extends ConsumerWidget {
                   color: colorScheme.surface,
                   child: Column(
                     children: [
+                      if (meet.locationWkt != null)
+                        _LocationMapPreview(wkt: meet.locationWkt!),
                       if (meet.locationName != null)
                         _buildDetailTile(
                           context,
@@ -2306,6 +2519,35 @@ class _MeetDetailSheet extends ConsumerWidget {
                           title: 'locationAddress'.tr(),
                           subtitle: meet.locationAddress!,
                         ),
+                      if (meet.locationWkt != null && !kIsWeb) ...[
+                        const Divider(height: 1),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                final match = RegExp(
+                                  r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)',
+                                ).firstMatch(meet.locationWkt!);
+                                if (match != null) {
+                                  final lon = double.tryParse(match.group(1)!);
+                                  final lat = double.tryParse(match.group(2)!);
+                                  if (lat != null && lon != null) {
+                                    _openLocationInMaps(
+                                      context,
+                                      point: LatLng(lat, lon),
+                                      title: meet.locationName,
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.map, size: 18),
+                              label: Text('openInMaps'.tr()),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
