@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:gap/gap.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -18,10 +19,14 @@ class ComposeLocationSheet extends StatefulWidget {
 class _ComposeLocationSheetState extends State<ComposeLocationSheet> {
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
+  final _searchController = TextEditingController();
   LatLng? _selectedPoint;
   LatLng? _currentLocation;
   bool _isLocating = false;
+  bool _isSearching = false;
   MapController? _mapController;
+  List<LocationSearchResult> _searchResults = [];
+  bool _showSearchResults = false;
 
   @override
   void initState() {
@@ -34,6 +39,7 @@ class _ComposeLocationSheetState extends State<ComposeLocationSheet> {
   void dispose() {
     _nameController.dispose();
     _addressController.dispose();
+    _searchController.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -52,6 +58,47 @@ class _ComposeLocationSheetState extends State<ComposeLocationSheet> {
       _mapController?.move(point, 15);
     } catch (_) {}
     setState(() => _isLocating = false);
+  }
+
+  Future<void> _searchLocation(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _showSearchResults = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+    try {
+      final results = await LocationSearchService.instance.search(query);
+      setState(() {
+        _searchResults = results;
+        _showSearchResults = results.isNotEmpty;
+      });
+    } catch (_) {
+      setState(() {
+        _searchResults = [];
+        _showSearchResults = false;
+      });
+    }
+    setState(() => _isSearching = false);
+  }
+
+  void _selectSearchResult(LocationSearchResult result) {
+    setState(() {
+      _selectedPoint = result.location;
+      _showSearchResults = false;
+      _searchController.clear();
+
+      if (result.name != null && _nameController.text.isEmpty) {
+        _nameController.text = result.name!;
+      }
+      if (result.address != null && _addressController.text.isEmpty) {
+        _addressController.text = result.address!;
+      }
+    });
+    _mapController?.move(result.location, 16);
   }
 
   String _pointToWkt(LatLng point) {
@@ -85,6 +132,94 @@ class _ComposeLocationSheetState extends State<ComposeLocationSheet> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'searchLocation'.tr(),
+                    prefixIcon: const Icon(Symbols.search),
+                    suffixIcon: _isSearching
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    if (value.length >= 3) {
+                      _searchLocation(value);
+                    } else {
+                      setState(() {
+                        _searchResults = [];
+                        _showSearchResults = false;
+                      });
+                    }
+                  },
+                ),
+                if (_showSearchResults) ...[
+                  const Gap(4),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant,
+                      ),
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final result = _searchResults[index];
+                        return ListTile(
+                          dense: true,
+                          leading: Icon(
+                            Symbols.location_on,
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
+                          title: Text(
+                            result.name ?? 'Unknown',
+                            style: theme.textTheme.bodyMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: result.address != null
+                              ? Text(
+                                  result.address!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : null,
+                          onTap: () => _selectSearchResult(result),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const Gap(8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: TextField(
               controller: _nameController,
               decoration: InputDecoration(
