@@ -366,6 +366,7 @@ class PublisherSelector extends StatelessWidget {
       return ProfilePictureWidget(
         radius: 16,
         file: currentPublisher?.picture,
+        borderRadius: currentPublisher?.type == 0 ? null : 12,
       ).center().padding(right: 8);
     }
 
@@ -393,6 +394,7 @@ class PublisherSelector extends StatelessWidget {
               ProfilePictureWidget(
                 radius: 10,
                 file: isValueValid ? currentValue.picture : null,
+                borderRadius: isValueValid && currentValue.type != 0 ? 12 : null,
               ),
               Flexible(
                 child: Text(
@@ -567,7 +569,7 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
                             Radius.circular(8),
                           ),
                         ),
-                        leading: ProfilePictureWidget(file: publisher.picture),
+                        leading: ProfilePictureWidget(file: publisher.picture, borderRadius: publisher.type == 0 ? null : 12),
                         title: Text(publisher.nick),
                         subtitle: Text('@${publisher.name}'),
                         onTap: () => onPublisherSelected(publisher),
@@ -669,7 +671,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
               value: item,
               child: ListTile(
                 minTileHeight: 48,
-                leading: ProfilePictureWidget(radius: 16, file: item.picture),
+                leading: ProfilePictureWidget(radius: 16, file: item.picture, borderRadius: item.type == 0 ? null : 12),
                 title: Text(item.nick),
                 subtitle: Text('@${item.name}'),
                 trailing: currentPublisher.value?.id == item.id
@@ -1650,6 +1652,7 @@ class _PublisherInviteSheet extends HookConsumerWidget {
                   return ListTile(
                     leading: ProfilePictureWidget(
                       file: invite.publisher!.picture,
+                      borderRadius: invite.publisher!.type == 0 ? null : 12,
                       fallbackIcon: Symbols.group,
                     ),
                     title: Text(invite.publisher!.nick),
