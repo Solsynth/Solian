@@ -297,12 +297,12 @@ class PostComposeCard extends HookConsumerWidget {
                         // Publisher profile picture
                         GestureDetector(
                           child: ProfilePictureWidget(
-                            fileId: composeState
-                                .currentPublisher
-                                .value
-                                ?.picture
-                                ?.id,
+                            file: composeState.currentPublisher.value?.picture,
                             radius: 20,
+                            borderRadius:
+                                composeState.currentPublisher.value?.type == 0
+                                    ? null
+                                    : 12,
                             fallbackIcon:
                                 composeState.currentPublisher.value == null
                                 ? Symbols.question_mark

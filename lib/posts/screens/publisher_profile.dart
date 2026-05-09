@@ -195,7 +195,8 @@ class _PublisherBasisWidget extends HookWidget {
                 left: 16,
                 child: Container(
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    shape: data.type == 0 ? BoxShape.circle : BoxShape.rectangle,
+                    borderRadius: data.type == 0 ? null : BorderRadius.all(Radius.circular(12)),
                     border: Border.all(color: theme.colorScheme.surface, width: 3),
                   ),
                   child: ProfilePictureWidget(file: data.picture, radius: 32, borderRadius: data.type == 0 ? null : 12),
