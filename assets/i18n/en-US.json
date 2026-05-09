@@ -3012,5 +3012,22 @@
   "uploadFile": "Upload File",
   "errorPickingFile": "Error picking file: {}",
   "reasoning": "Reasoning",
-  "previewEmpty": "Preview Empty"
+  "previewEmpty": "Preview Empty",
+  "addLocation": "Add Location",
+  "locationNameHint": "Location name",
+  "locationAddressHint": "Address",
+  "pickOnMap": "Tap the map to pick a location",
+  "confirmLocation": "Confirm Location",
+  "selectMeet": "Select a Meet",
+  "noMeets": "No meets yet",
+  "untitledMeet": "Untitled Meet",
+  "meetUnavailable": "Meet unavailable",
+  "hostedBy": "Hosted by {}",
+  "coordinates": "Coordinates",
+  "latitude": "Latitude",
+  "longitude": "Longitude",
+  "locationName": "Location Name",
+  "totalParticipants": "Total Participants",
+  "meetLinked": "Meet linked",
+  "expired": "Expired"
 }
