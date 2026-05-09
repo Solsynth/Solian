@@ -14,6 +14,7 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/log_recorder.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/core/config.dart';
@@ -129,6 +130,17 @@ void main(List<String> args) async {
   } catch (err) {
     Logger.root.severe(
       "[Analytics] Failed to initialize Analytics service...",
+      err,
+    );
+  }
+
+  try {
+    Logger.root.info("[LocationSearch] Initializing LocationSearch service...");
+    await LocationSearchService.instance.initialize();
+    Logger.root.info("[LocationSearch] LocationSearch service is ready!");
+  } catch (err) {
+    Logger.root.severe(
+      "[LocationSearch] Failed to initialize LocationSearch service...",
       err,
     );
   }

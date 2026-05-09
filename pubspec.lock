@@ -497,6 +497,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.9.2"
+  dio_cache_interceptor:
+    dependency: transitive
+    description:
+      name: dio_cache_interceptor
+      sha256: "1346705a2057c265014d7696e3e2318b560bfb00b484dac7f9b01e2ceaebb07d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.1"
   dio_smart_retry:
     dependency: "direct main"
     description:
@@ -2157,6 +2165,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  nominatim_flutter:
+    dependency: "direct main"
+    description:
+      name: nominatim_flutter
+      sha256: "8b01a9e67ac2b7666675ee0a533d16f07c700ad00940042f189d56a45e8b2fb1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.8"
   objectbox:
     dependency: "direct main"
     description:

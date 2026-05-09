@@ -3014,6 +3014,7 @@
   "reasoning": "Reasoning",
   "previewEmpty": "Preview Empty",
   "addLocation": "Add Location",
+  "searchLocation": "Search for a location",
   "locationNameHint": "Location name",
   "locationAddressHint": "Address",
   "pickOnMap": "Tap the map to pick a location",
