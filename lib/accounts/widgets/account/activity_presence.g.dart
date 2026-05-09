@@ -139,7 +139,7 @@ final class DiscordAssetsUrlProvider
   }
 }
 
-String _$discordAssetsUrlHash() => r'a32f9333c3fb4d50ff88a54a6b8b72fbf5ba3ea1';
+String _$discordAssetsUrlHash() => r'be53440275ec974950bdeb7baf5c2603448efd4b';
 
 final class DiscordAssetsUrlFamily extends $Family
     with
