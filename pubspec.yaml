@@ -171,6 +171,7 @@ dependencies:
   flutter_code_editor: ^0.3.5
   skeletonizer: ^2.1.3
   latlong2: ^0.9.1
+  map_launcher: ^3.5.0
   permission_handler: ^12.0.1
   hotkey_manager: ^0.2.3
   shake: ^3.0.0

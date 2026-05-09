@@ -1933,6 +1933,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.7.8"
+  map_launcher:
+    dependency: "direct main"
+    description:
+      name: map_launcher
+      sha256: "7436d6ef9ae57ff15beafcedafe0a8f0604006cbecd2d26024c4cfb0158c2b9a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.0"
   markdown:
     dependency: "direct main"
     description:
