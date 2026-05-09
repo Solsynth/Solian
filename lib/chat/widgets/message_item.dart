@@ -2218,39 +2218,83 @@ class _RedirectHistorySheet extends StatelessWidget {
                       final pictureId = redirect.historyMessageSenderPictureId(
                         index,
                       );
+                      final senderAccount =
+                          redirect.historyMessageSenderAccount(index);
 
                       final content =
                           redirect.historyMessageContent(index) ?? '';
-                      final attachments = redirect
-                          .historyMessageAttachmentCount(index);
+                      final attachments =
+                          redirect.historyMessageResolvedAttachments(index);
 
-                      final messageText = StringBuffer();
-                      if (content.trim().isNotEmpty) {
-                        messageText.write(content.trim());
-                      }
-                      if (attachments > 0) {
-                        if (messageText.isNotEmpty) messageText.write('\n');
-                        messageText.write(
-                          'hasAttachments'.plural(
-                            attachments,
-                            args: [attachments.toString()],
-                          ),
-                        );
-                      }
-
-                      return ListTile(
-                        leading: AccountPfcRegion(
-                          uname: senderUname,
-                          child: ProfilePictureWidget(
-                            fileId: pictureId,
-                            radius: 12,
-                          ),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
-                        title: Text(senderName),
-                        subtitle: messageText.isEmpty
-                            ? Text('chatNoContent'.tr())
-                            : Text(messageText.toString()),
-                        dense: true,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AccountPfcRegion(
+                              uname: senderUname,
+                              child: ProfilePictureWidget(
+                                fileId: pictureId,
+                                radius: 12,
+                              ),
+                            ),
+                            const Gap(10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (senderAccount != null)
+                                    AccountName(
+                                      account: senderAccount,
+                                      textOverride: senderName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    )
+                                  else
+                                    Text(
+                                      senderName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  if (content.trim().isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: MarkdownTextContent(
+                                        content: content.trim(),
+                                        isSelectable: true,
+                                        linesMargin: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                  if (attachments.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: CloudFileList(
+                                        files: attachments,
+                                        maxWidth: double.infinity,
+                                        maxHeight: 200,
+                                        minWidth: 120,
+                                        initiallyCollapsed: false,
+                                        heroTagPrefix: 'hist-att',
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
