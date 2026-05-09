@@ -233,6 +233,21 @@ sealed class SnRedirectData with _$SnRedirectData {
         },
       );
 
+  /// Resolved [SnAccount] for a message sender at [index], for use with [AccountName].
+  /// Returns null if the account data can't be parsed from the snapshot.
+  SnAccount? historyMessageSenderAccount(int index) => map(
+        singleMessage: (_) => null,
+        historySegment: (d) {
+          if (index < 0 || index >= d.messages.length) return null;
+          final msg = d.messages[index];
+          return _resolveSnAccount(
+            senderMap: d.senderMap,
+            senderId: msg['sender_id']?.toString(),
+            message: msg,
+          );
+        },
+      );
+
   /// Content text for a message at [index].
   String? historyMessageContent(int index) => map(
         singleMessage: (_) => null,
@@ -249,6 +264,19 @@ sealed class SnRedirectData with _$SnRedirectData {
           if (index < 0 || index >= d.messages.length) return 0;
           final raw = d.messages[index]['attachments'];
           return raw is List ? raw.length : 0;
+        },
+      );
+
+  /// Resolved attachments for a message at [index] as [SnCloudFile] list.
+  List<SnCloudFile> historyMessageResolvedAttachments(int index) => map(
+        singleMessage: (_) => const [],
+        historySegment: (d) {
+          if (index < 0 || index >= d.messages.length) return const [];
+          final raw = d.messages[index]['attachments'];
+          final list = raw is List
+              ? raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList()
+              : <Map<String, dynamic>>[];
+          return _parseAttachmentThumbnails(list);
         },
       );
 
@@ -457,4 +485,89 @@ List<SnCloudFile> _parseAttachments(List<Map<String, dynamic>> raw) {
       })
       .whereType<SnCloudFile>()
       .toList();
+}
+
+/// Parses redirect attachment snapshots into [SnCloudFile] objects.
+/// Redirect attachments may lack standard fields like `created_at`/`updated_at`.
+List<SnCloudFile> _parseAttachmentThumbnails(List<Map<String, dynamic>> raw) {
+  if (raw.isEmpty) return const [];
+  final now = DateTime.now();
+  return raw
+      .map((e) {
+        try {
+          return SnCloudFile(
+            id: e['id'] as String? ?? '',
+            name: e['name'] as String? ?? '',
+            description: null,
+            fileMeta: null,
+            userMeta: null,
+            sensitiveMarks: const [],
+            mimeType: e['mime_type'] as String?,
+            hash: null,
+            size: (e['size'] as num?)?.toInt() ?? 0,
+            uploadedAt: null,
+            createdAt: now,
+            updatedAt: now,
+            deletedAt: null,
+            url: e['url'] as String?,
+          );
+        } catch (_) {
+          return null;
+        }
+      })
+      .whereType<SnCloudFile>()
+      .toList();
+}
+
+/// Resolves sender member map from [senderMap] or inline [message], then extracts and
+/// safely constructs [SnAccount] from the nested account JSON.
+SnAccount? _resolveSnAccount({
+  required Map<String, dynamic> senderMap,
+  String? senderId,
+  required Map<String, dynamic> message,
+}) {
+  Map<String, dynamic>? sender;
+  if (senderId != null && senderMap.isNotEmpty) {
+    sender = senderMap[senderId] is Map
+        ? Map<String, dynamic>.from(senderMap[senderId])
+        : null;
+  }
+  sender ??= message['sender'] is Map
+      ? Map<String, dynamic>.from(message['sender'])
+      : null;
+  if (sender == null) return null;
+
+  final accountRaw = sender['account'];
+  if (accountRaw is! Map) return null;
+  final accountJson = Map<String, dynamic>.from(accountRaw);
+
+  // Null out picture/background that may be incomplete in redirect snapshots
+  // to avoid SnCloudFile.fromJson failures.
+  final profileRaw = accountJson['profile'];
+  if (profileRaw is Map<String, dynamic>) {
+    final profile = Map<String, dynamic>.from(profileRaw);
+    if (profile['picture'] is Map) {
+      final pic = Map<String, dynamic>.from(profile['picture'] as Map);
+      if (!_isValidSnCloudFile(pic)) {
+        profile['picture'] = null;
+      }
+    }
+    if (profile['background'] is Map) {
+      final bg = Map<String, dynamic>.from(profile['background'] as Map);
+      if (!_isValidSnCloudFile(bg)) {
+        profile['background'] = null;
+      }
+    }
+    accountJson['profile'] = profile;
+  }
+
+  try {
+    return SnAccount.fromJson(accountJson);
+  } catch (_) {
+    return null;
+  }
+}
+
+bool _isValidSnCloudFile(Map<String, dynamic> json) {
+  return json['created_at'] != null && json['updated_at'] != null;
 }

@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/e2ee_message_display.dart';
+import 'package:island/chat/models/redirect_data.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:relative_time/relative_time.dart';
@@ -178,6 +179,28 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                                 final attachmentCount =
                                     lastMessage.attachments.length;
                                 final hasAttachments = attachmentCount > 0;
+
+                                // Redirect message preview
+                                if (lastMessage.meta['redirect'] is Map) {
+                                  try {
+                                    final redirectData = SnRedirectData.fromJson(
+                                      Map<String, dynamic>.from(
+                                        lastMessage.meta['redirect'] as Map,
+                                      ),
+                                    );
+                                    return Text(
+                                      'chatRedirectedHistoryFrom'.tr(
+                                        args: [redirectData.sourceRoomName],
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: hintStyle,
+                                    );
+                                  } catch (_) {
+                                    return buildHint('Forwarded a message');
+                                  }
+                                }
+
                                 final stickerMatch = RegExp(
                                   r'^:([-\w]*\+[-\w]*):$',
                                 ).firstMatch(textContent);
