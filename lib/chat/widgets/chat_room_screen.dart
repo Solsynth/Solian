@@ -975,6 +975,8 @@ class ChatRoomScreen extends HookConsumerWidget {
                               chatStateNotifier.setForwardingTo(null);
                               chatStateNotifier.setPoll(null);
                               chatStateNotifier.setFund(null);
+                              chatStateNotifier.setLocation();
+                              chatStateNotifier.setMeet(null);
                             },
                             messageEditingTo: chatState.messageEditingTo,
                             messageReplyingTo: chatState.messageReplyingTo,
@@ -985,6 +987,25 @@ class ChatRoomScreen extends HookConsumerWidget {
                             selectedFund: chatState.selectedFund,
                             onFundSelected: (fund) =>
                                 chatStateNotifier.setFund(fund),
+                            selectedLocationName:
+                                chatState.selectedLocationName,
+                            selectedLocationAddress:
+                                chatState.selectedLocationAddress,
+                            selectedLocationWkt:
+                                chatState.selectedLocationWkt,
+                            selectedMeetId: chatState.selectedMeetId,
+                            onLocationSelected: ({
+                              String? name,
+                              String? address,
+                              String? wkt,
+                            }) =>
+                                chatStateNotifier.setLocation(
+                                  name: name,
+                                  address: address,
+                                  wkt: wkt,
+                                ),
+                            onMeetSelected: (meetId) =>
+                                chatStateNotifier.setMeet(meetId),
                             isMessageListScrolling: !isAtLatestMessages.value,
                             onPickFile: (isPhoto) {
                               if (isPhoto) {

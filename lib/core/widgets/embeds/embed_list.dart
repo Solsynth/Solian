@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
@@ -9,9 +10,11 @@ import 'package:island/livestreams/livestream.dart';
 import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/core/widgets/embeds/link.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';
+import 'package:island/accounts/meet_service.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -170,6 +173,25 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
                 vertical: 8,
               ),
             ),
+            'location' => _LocationEmbedCard(
+              name: embedData['name']?.toString(),
+              address: embedData['address']?.toString(),
+              wkt: embedData['wkt']?.toString(),
+              margin: EdgeInsets.symmetric(
+                horizontal: widget.renderingPadding.horizontal,
+                vertical: 8,
+              ),
+            ),
+            'meet' =>
+              embedData['id'] == null
+                  ? const Text('Meet was unavailable...')
+                  : _MeetEmbedCard(
+                      meetId: embedData['id'],
+                      margin: EdgeInsets.symmetric(
+                        horizontal: widget.renderingPadding.horizontal,
+                        vertical: 8,
+                      ),
+                    ),
             _ => Text('Unable show embed: ${embedData['type']}'),
           },
         ),
@@ -1678,5 +1700,305 @@ class _FitnessDetailSheet extends ConsumerWidget {
       return '${hours}h ${minutes}m';
     }
     return '${minutes}m';
+  }
+}
+
+final meetDetailProvider =
+    FutureProvider.autoDispose.family<SnMeet, String>((ref, meetId) async {
+  final service = ref.watch(meetServiceProvider);
+  return service.getMeet(meetId);
+});
+
+class _LocationEmbedCard extends ConsumerWidget {
+  final String? name;
+  final String? address;
+  final String? wkt;
+  final EdgeInsets margin;
+
+  const _LocationEmbedCard({
+    this.name,
+    this.address,
+    this.wkt,
+    required this.margin,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    LatLng? point;
+    if (wkt != null) {
+      final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)')
+          .firstMatch(wkt!);
+      if (match != null) {
+        final lon = double.tryParse(match.group(1)!);
+        final lat = double.tryParse(match.group(2)!);
+        if (lat != null && lon != null) {
+          point = LatLng(lat, lon);
+        }
+      }
+    }
+
+    return Card(
+      margin: margin,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (point != null)
+            SizedBox(
+              height: 120,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: point,
+                    initialZoom: 14,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.none,
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.island.app',
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: point,
+                          child: const Icon(
+                            Icons.location_on,
+                            color: Colors.red,
+                            size: 36,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  backgroundColor: colorScheme.primaryContainer,
+                  child: Icon(
+                    Symbols.location_on,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (name != null)
+                        Text(
+                          name!,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      if (address != null) ...[
+                        if (name != null) const SizedBox(height: 4),
+                        Text(
+                          address!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      if (point != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MeetEmbedCard extends ConsumerWidget {
+  final String meetId;
+  final EdgeInsets margin;
+
+  const _MeetEmbedCard({
+    required this.meetId,
+    required this.margin,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final meetAsync = ref.watch(meetDetailProvider(meetId));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: margin,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () =>
+            context.router.push(MeetDetailRoute(id: meetId)),
+        child: meetAsync.when(
+          data: (meet) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  backgroundColor: colorScheme.primaryContainer,
+                  child: Icon(
+                    Symbols.groups,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              meet.notes ?? 'untitledMeet'.tr(),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _MeetStatusChip(status: meet.status),
+                        ],
+                      ),
+                      if (meet.host != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'hostedBy'.tr(args: [meet.host!.nick]),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      if (meet.locationName != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Symbols.location_on,
+                              size: 14,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                meet.locationName!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Icon(
+                  Symbols.chevron_right,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('meetUnavailable'.tr()),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MeetStatusChip extends StatelessWidget {
+  final SnMeetStatus status;
+
+  const _MeetStatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final (Color bg, Color fg, String label) = switch (status) {
+      SnMeetStatus.active => (
+        Colors.green.withOpacity(0.15),
+        Colors.green,
+        'active'.tr(),
+      ),
+      SnMeetStatus.completed => (
+        colorScheme.tertiaryContainer,
+        colorScheme.onTertiaryContainer,
+        'completed'.tr(),
+      ),
+      SnMeetStatus.expired => (
+        colorScheme.surfaceContainerHighest,
+        colorScheme.onSurfaceVariant,
+        'expired'.tr(),
+      ),
+      SnMeetStatus.cancelled => (
+        colorScheme.errorContainer,
+        colorScheme.onErrorContainer,
+        'cancelled'.tr(),
+      ),
+      SnMeetStatus.unknown => (
+        colorScheme.surfaceContainerHighest,
+        colorScheme.onSurfaceVariant,
+        'unknown'.tr(),
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w600,
+          fontSize: 10,
+        ),
+      ),
+    );
   }
 }

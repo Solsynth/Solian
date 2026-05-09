@@ -5,6 +5,8 @@ import 'package:island/core/config.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/posts/widgets/compose/compose_livestream.dart';
+import 'package:island/posts/widgets/compose/compose_location_sheet.dart';
+import 'package:island/posts/widgets/compose/compose_meet_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_poll.dart';
 import 'package:island/posts/widgets/compose/compose_recorder.dart';
 import 'package:island/posts/widgets/compose/compose_settings_sheet.dart';
@@ -53,6 +55,12 @@ class ComposeState {
   final ValueNotifier<String?> liveStreamId;
   // Linked fitness reference for this compose session (nullable)
   final ValueNotifier<String?> fitnessReference;
+  // Linked location embed fields (nullable)
+  final ValueNotifier<String?> locationName;
+  final ValueNotifier<String?> locationAddress;
+  final ValueNotifier<String?> locationWkt;
+  // Linked meet id for this compose session (nullable)
+  final ValueNotifier<String?> meetId;
   // Thumbnail id for article type post (nullable)
   final ValueNotifier<String?> thumbnailId;
   Timer? _autoSaveTimer;
@@ -79,11 +87,19 @@ class ComposeState {
     String? fundId,
     String? liveStreamId,
     String? fitnessReference,
+    String? locationName,
+    String? locationAddress,
+    String? locationWkt,
+    String? meetId,
     String? thumbnailId,
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
        liveStreamId = ValueNotifier<String?>(liveStreamId),
        fitnessReference = ValueNotifier<String?>(fitnessReference),
+       locationName = ValueNotifier<String?>(locationName),
+       locationAddress = ValueNotifier<String?>(locationAddress),
+       locationWkt = ValueNotifier<String?>(locationWkt),
+       meetId = ValueNotifier<String?>(meetId),
        thumbnailId = ValueNotifier<String?>(thumbnailId),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
@@ -121,11 +137,15 @@ class ComposeLogic {
     // Initialize categories from original post
     final categories = originalPost?.categories ?? <SnPostCategory>[];
 
-    // Extract poll and fund IDs from embeds
+    // Extract embed IDs from original post embeds
     String? pollId;
     String? fundId;
     String? liveStreamId;
     String? fitnessReference;
+    String? locationName;
+    String? locationAddress;
+    String? locationWkt;
+    String? meetId;
     if (originalPost?.meta?['embeds'] is List) {
       final embeds = (originalPost!.meta!['embeds'] as List)
           .cast<Map<String, dynamic>>();
@@ -151,6 +171,18 @@ class ComposeLogic {
               e['type'] == 'goal',
         );
         fitnessReference = '${fitnessEmbed['type']}:${fitnessEmbed['id']}';
+      } catch (_) {}
+      try {
+        final locationEmbed = embeds.firstWhere(
+          (e) => e['type'] == 'location',
+        );
+        locationName = locationEmbed['name']?.toString();
+        locationAddress = locationEmbed['address']?.toString();
+        locationWkt = locationEmbed['wkt']?.toString();
+      } catch (_) {}
+      try {
+        final meetEmbed = embeds.firstWhere((e) => e['type'] == 'meet');
+        meetId = meetEmbed['id']?.toString();
       } catch (_) {}
     }
 
@@ -198,6 +230,10 @@ class ComposeLogic {
       fundId: fundId,
       liveStreamId: liveStreamId,
       fitnessReference: fitnessReference,
+      locationName: locationName,
+      locationAddress: locationAddress,
+      locationWkt: locationWkt,
+      meetId: meetId,
       thumbnailId: thumbnailId,
     );
   }
@@ -313,6 +349,20 @@ class ComposeLogic {
         {'type': 'livestream', 'id': state.liveStreamId.value},
       if (state.fitnessReference.value != null)
         ..._parseFitnessReference(state.fitnessReference.value!),
+      if (state.locationName.value != null ||
+          state.locationAddress.value != null ||
+          state.locationWkt.value != null)
+        {
+          'type': 'location',
+          if (state.locationName.value != null)
+            'name': state.locationName.value,
+          if (state.locationAddress.value != null)
+            'address': state.locationAddress.value,
+          if (state.locationWkt.value != null)
+            'wkt': state.locationWkt.value,
+        },
+      if (state.meetId.value != null)
+        {'type': 'meet', 'id': state.meetId.value},
     ];
     final meta = <String, dynamic>{
       if (state.postType == 1 && state.thumbnailId.value != null)
@@ -414,6 +464,15 @@ class ComposeLogic {
         'live_stream_id': state.liveStreamId.value,
       if (state.fitnessReference.value != null)
         'fitness_reference': state.fitnessReference.value,
+      if (state.locationName.value != null ||
+          state.locationAddress.value != null ||
+          state.locationWkt.value != null)
+        'location_name': state.locationName.value,
+      if (state.locationAddress.value != null)
+        'location_address': state.locationAddress.value,
+      if (state.locationWkt.value != null)
+        'location_wkt': state.locationWkt.value,
+      if (state.meetId.value != null) 'meet_id': state.meetId.value,
       if (state.postType == 1 && state.thumbnailId.value != null)
         'thumbnail_id': state.thumbnailId.value,
       if (state.embedView.value != null)
@@ -787,6 +846,54 @@ class ComposeLogic {
     state.fitnessReference.value = null;
   }
 
+  static Future<void> pickLocation(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    if (state.locationName.value != null ||
+        state.locationAddress.value != null ||
+        state.locationWkt.value != null) {
+      state.locationName.value = null;
+      state.locationAddress.value = null;
+      state.locationWkt.value = null;
+      return;
+    }
+
+    final location = await showModalBottomSheet<Map<String, String?>>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => const ComposeLocationSheet(),
+    );
+
+    if (location == null) return;
+    state.locationName.value = location['name'];
+    state.locationAddress.value = location['address'];
+    state.locationWkt.value = location['wkt'];
+  }
+
+  static Future<void> pickMeet(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    if (state.meetId.value != null) {
+      state.meetId.value = null;
+      return;
+    }
+
+    final meet = await showModalBottomSheet<String>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => const ComposeMeetSheet(),
+    );
+
+    if (meet == null) return;
+    state.meetId.value = meet;
+  }
+
   /// Unified submit method that returns the created/updated post.
   static Future<SnPost> performSubmit(
     WidgetRef ref,
@@ -863,6 +970,15 @@ class ComposeLogic {
           'live_stream_id': state.liveStreamId.value,
         if (state.fitnessReference.value != null)
           'fitness_reference': state.fitnessReference.value,
+        if (state.locationName.value != null ||
+            state.locationAddress.value != null ||
+            state.locationWkt.value != null)
+          'location_name': state.locationName.value,
+        if (state.locationAddress.value != null)
+          'location_address': state.locationAddress.value,
+        if (state.locationWkt.value != null)
+          'location_wkt': state.locationWkt.value,
+        if (state.meetId.value != null) 'meet_id': state.meetId.value,
         if (state.postType == 1 && state.thumbnailId.value != null)
           'thumbnail_id': state.thumbnailId.value,
         if (state.embedView.value != null)
@@ -1052,6 +1168,10 @@ class ComposeLogic {
     state.fundId.dispose();
     state.liveStreamId.dispose();
     state.fitnessReference.dispose();
+    state.locationName.dispose();
+    state.locationAddress.dispose();
+    state.locationWkt.dispose();
+    state.meetId.dispose();
     state.thumbnailId.dispose();
     state.cloudDraftId.dispose();
   }

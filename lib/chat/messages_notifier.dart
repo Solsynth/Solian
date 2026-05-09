@@ -853,12 +853,25 @@ class MessagesNotifier extends _$MessagesNotifier {
     List<UniversalFile> attachments, {
     SnPoll? poll,
     SnWalletFund? fund,
+    String? locationName,
+    String? locationAddress,
+    String? locationWkt,
+    String? meetId,
     SnChatMessage? editingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
     Function(String, Map<int, double?>)? onProgress,
   }) async {
-    if (content.trim().isEmpty && attachments.isEmpty) return;
+    if (content.trim().isEmpty &&
+        attachments.isEmpty &&
+        poll == null &&
+        fund == null &&
+        locationName == null &&
+        locationAddress == null &&
+        locationWkt == null &&
+        meetId == null) {
+      return;
+    }
 
     String? pendingMessageId;
     final result = await _sender.sendTextMessage(
@@ -870,6 +883,10 @@ class MessagesNotifier extends _$MessagesNotifier {
       forwardingTo: forwardingTo,
       poll: poll,
       fund: fund,
+      locationName: locationName,
+      locationAddress: locationAddress,
+      locationWkt: locationWkt,
+      meetId: meetId,
       onPending: editingTo == null
           ? (pending) {
               pendingMessageId = pending.id;

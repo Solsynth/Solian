@@ -33,6 +33,10 @@ class ChatRoomState {
   final SnChatMessage? messageForwardingTo;
   final SnPoll? selectedPoll;
   final SnWalletFund? selectedFund;
+  final String? selectedLocationName;
+  final String? selectedLocationAddress;
+  final String? selectedLocationWkt;
+  final String? selectedMeetId;
 
   // Scroll state (not persisted - fresh on each navigation)
   final bool isScrollingToMessage;
@@ -52,6 +56,10 @@ class ChatRoomState {
     this.messageForwardingTo,
     this.selectedPoll,
     this.selectedFund,
+    this.selectedLocationName,
+    this.selectedLocationAddress,
+    this.selectedLocationWkt,
+    this.selectedMeetId,
     this.isScrollingToMessage = false,
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
@@ -68,6 +76,10 @@ class ChatRoomState {
     SnChatMessage? messageForwardingTo,
     SnPoll? selectedPoll,
     SnWalletFund? selectedFund,
+    String? selectedLocationName,
+    String? selectedLocationAddress,
+    String? selectedLocationWkt,
+    String? selectedMeetId,
     bool? isScrollingToMessage,
     DateTime? roomOpenTime,
     String? lastReadAnchorMessageId,
@@ -76,6 +88,8 @@ class ChatRoomState {
     bool clearForwardingTo = false,
     bool clearPoll = false,
     bool clearFund = false,
+    bool clearLocation = false,
+    bool clearMeet = false,
     bool clearLastReadAnchor = false,
   }) {
     return ChatRoomState(
@@ -95,6 +109,17 @@ class ChatRoomState {
           : (messageForwardingTo ?? this.messageForwardingTo),
       selectedPoll: clearPoll ? null : (selectedPoll ?? this.selectedPoll),
       selectedFund: clearFund ? null : (selectedFund ?? this.selectedFund),
+      selectedLocationName: clearLocation
+          ? null
+          : (selectedLocationName ?? this.selectedLocationName),
+      selectedLocationAddress: clearLocation
+          ? null
+          : (selectedLocationAddress ?? this.selectedLocationAddress),
+      selectedLocationWkt: clearLocation
+          ? null
+          : (selectedLocationWkt ?? this.selectedLocationWkt),
+      selectedMeetId:
+          clearMeet ? null : (selectedMeetId ?? this.selectedMeetId),
       isScrollingToMessage: isScrollingToMessage ?? this.isScrollingToMessage,
       roomOpenTime: roomOpenTime ?? this.roomOpenTime,
       lastReadAnchorMessageId: clearLastReadAnchor
@@ -344,6 +369,24 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     state = state.copyWith(selectedFund: fund, clearFund: fund == null);
   }
 
+  void setLocation({
+    String? name,
+    String? address,
+    String? wkt,
+  }) {
+    final hasLocation = name != null || address != null || wkt != null;
+    state = state.copyWith(
+      selectedLocationName: name,
+      selectedLocationAddress: address,
+      selectedLocationWkt: wkt,
+      clearLocation: !hasLocation,
+    );
+  }
+
+  void setMeet(String? meetId) {
+    state = state.copyWith(selectedMeetId: meetId, clearMeet: meetId == null);
+  }
+
   void clearInput() {
     messageController.clear();
     state = state.copyWith(
@@ -352,6 +395,8 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       clearForwardingTo: true,
       clearPoll: true,
       clearFund: true,
+      clearLocation: true,
+      clearMeet: true,
       attachments: [],
     );
   }
@@ -420,7 +465,11 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     if (text.isEmpty &&
         state.attachments.isEmpty &&
         state.selectedPoll == null &&
-        state.selectedFund == null) {
+        state.selectedFund == null &&
+        state.selectedLocationName == null &&
+        state.selectedLocationAddress == null &&
+        state.selectedLocationWkt == null &&
+        state.selectedMeetId == null) {
       return;
     }
 
@@ -431,6 +480,10 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       state.attachments,
       poll: state.selectedPoll,
       fund: state.selectedFund,
+      locationName: state.selectedLocationName,
+      locationAddress: state.selectedLocationAddress,
+      locationWkt: state.selectedLocationWkt,
+      meetId: state.selectedMeetId,
       editingTo: state.messageEditingTo,
       forwardingTo: state.messageForwardingTo,
       replyingTo: state.messageReplyingTo,

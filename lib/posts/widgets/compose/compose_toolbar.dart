@@ -105,6 +105,14 @@ class ComposeToolbar extends HookConsumerWidget {
       );
     }
 
+    void pickLocation() {
+      ComposeLogic.pickLocation(ref, state, context);
+    }
+
+    void pickMeet() {
+      ComposeLogic.pickMeet(ref, state, context);
+    }
+
     void showDraftManager() {
       showModalBottomSheet(
         context: context,
@@ -231,6 +239,52 @@ class ComposeToolbar extends HookConsumerWidget {
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
                                     state.fitnessReference.value != null
+                                        ? colorScheme.primary.withOpacity(0.15)
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // Location button with visual state when location is set
+                          ListenableBuilder(
+                            listenable: Listenable.merge([
+                              state.locationName,
+                              state.locationAddress,
+                              state.locationWkt,
+                            ]),
+                            builder: (context, _) {
+                              final hasLocation = state.locationName.value !=
+                                      null ||
+                                  state.locationAddress.value != null ||
+                                  state.locationWkt.value != null;
+                              return IconButton(
+                                onPressed: pickLocation,
+                                icon: const Icon(Symbols.location_on),
+                                tooltip: 'location'.tr(),
+                                color: colorScheme.primary,
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    hasLocation
+                                        ? colorScheme.primary.withOpacity(0.15)
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // Meet button with visual state when a meet is linked
+                          ListenableBuilder(
+                            listenable: state.meetId,
+                            builder: (context, _) {
+                              return IconButton(
+                                onPressed: pickMeet,
+                                icon: const Icon(Symbols.groups),
+                                tooltip: 'meet'.tr(),
+                                color: colorScheme.primary,
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    state.meetId.value != null
                                         ? colorScheme.primary.withOpacity(0.15)
                                         : null,
                                   ),

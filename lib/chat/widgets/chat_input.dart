@@ -16,6 +16,8 @@ import "package:island/e2ee/e2ee.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/chat/pods/chat_online_count.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
+import "package:island/posts/widgets/compose/compose_location_sheet.dart";
+import "package:island/posts/widgets/compose/compose_meet_sheet.dart";
 import "package:island/posts/widgets/compose/compose_poll.dart";
 import "package:island/stickers/widgets/stickers/sticker_picker.dart";
 import "package:island/stickers/models/sticker.dart";
@@ -232,6 +234,13 @@ class _ExpandedSection extends StatefulWidget {
   final Function(SnPoll?) onPollSelected;
   final SnWalletFund? selectedFund;
   final Function(SnWalletFund?) onFundSelected;
+  final String? selectedLocationName;
+  final String? selectedLocationAddress;
+  final String? selectedLocationWkt;
+  final String? selectedMeetId;
+  final Function({String? name, String? address, String? wkt})? onLocationSelected;
+  final Function(String?)? onMeetSelected;
+  final bool isE2eeRoom;
   final VoidCallback onEnableVoiceMode;
 
   const _ExpandedSection({
@@ -253,6 +262,13 @@ class _ExpandedSection extends StatefulWidget {
     required this.onPollSelected,
     this.selectedFund,
     required this.onFundSelected,
+    this.selectedLocationName,
+    this.selectedLocationAddress,
+    this.selectedLocationWkt,
+    this.selectedMeetId,
+    this.onLocationSelected,
+    this.onMeetSelected,
+    this.isE2eeRoom = false,
     required this.onEnableVoiceMode,
   });
 
@@ -455,6 +471,84 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                             ),
                           ),
                         ),
+                        if (!widget.isE2eeRoom)
+                          InkWell(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                            onTap: () async {
+                              final location =
+                                  await showModalBottomSheet<
+                                    Map<String, String?>
+                                  >(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) =>
+                                        const ComposeLocationSheet(),
+                                  );
+                              if (location != null) {
+                                widget.onLocationSelected?.call(
+                                  name: location['name'],
+                                  address: location['address'],
+                                  wkt: location['wkt'],
+                                );
+                              }
+                            },
+                            child: Card(
+                              margin: EdgeInsets.zero,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Symbols.location_on),
+                                  const Gap(4),
+                                  Text(
+                                    'location'.tr(),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if (!widget.isE2eeRoom)
+                          InkWell(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                            onTap: () async {
+                              final meetId =
+                                  await showModalBottomSheet<String>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) =>
+                                        const ComposeMeetSheet(),
+                                  );
+                              if (meetId != null) {
+                                widget.onMeetSelected?.call(meetId);
+                              }
+                            },
+                            child: Card(
+                              margin: EdgeInsets.zero,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Symbols.groups),
+                                  const Gap(4),
+                                  Text(
+                                    'meet'.tr(),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -736,6 +830,12 @@ class ChatInput extends HookConsumerWidget {
   final Function(SnPoll?) onPollSelected;
   final SnWalletFund? selectedFund;
   final Function(SnWalletFund?) onFundSelected;
+  final String? selectedLocationName;
+  final String? selectedLocationAddress;
+  final String? selectedLocationWkt;
+  final String? selectedMeetId;
+  final Function({String? name, String? address, String? wkt})? onLocationSelected;
+  final Function(String?)? onMeetSelected;
   final bool isMessageListScrolling;
 
   const ChatInput({
@@ -761,6 +861,12 @@ class ChatInput extends HookConsumerWidget {
     required this.onPollSelected,
     this.selectedFund,
     required this.onFundSelected,
+    this.selectedLocationName,
+    this.selectedLocationAddress,
+    this.selectedLocationWkt,
+    this.selectedMeetId,
+    this.onLocationSelected,
+    this.onMeetSelected,
     required this.isMessageListScrolling,
   });
 
@@ -1449,6 +1555,200 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
+                      child: selectedLocationName != null ||
+                              selectedLocationAddress != null ||
+                              selectedLocationWkt != null
+                          ? Container(
+                              key: const ValueKey('selected-location'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              margin: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                                top: 8,
+                                bottom: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Symbols.location_on,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const Gap(8),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (selectedLocationName != null)
+                                          Text(
+                                            selectedLocationName!,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall!
+                                                .copyWith(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        if (selectedLocationAddress != null)
+                                          Text(
+                                            selectedLocationAddress!,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall!
+                                                .copyWith(
+                                                  fontSize: 10,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      icon: const Icon(Icons.close, size: 18),
+                                      onPressed: () =>
+                                          onLocationSelected?.call(),
+                                      tooltip: 'clear'.tr(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('no-selected-location'),
+                            ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, -0.2),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  axisAlignment: -1.0,
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
+                      child: selectedMeetId != null
+                          ? Container(
+                              key: const ValueKey('selected-meet'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              margin: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
+                                top: 8,
+                                bottom: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Symbols.groups,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const Gap(8),
+                                  Expanded(
+                                    child: Text(
+                                      'meetLinked'.tr(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall!
+                                          .copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      icon: const Icon(Icons.close, size: 18),
+                                      onPressed: () => onMeetSelected?.call(null),
+                                      tooltip: 'clear'.tr(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('no-selected-meet'),
+                            ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, -0.2),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  axisAlignment: -1.0,
+                                  child: child,
+                                ),
+                              ),
+                            );
+                          },
                       child:
                           (messageReplyingTo != null ||
                               messageForwardingTo != null ||
@@ -1994,6 +2294,13 @@ class ChatInput extends HookConsumerWidget {
                               onPollSelected: onPollSelected,
                               selectedFund: selectedFund,
                               onFundSelected: onFundSelected,
+                              selectedLocationName: selectedLocationName,
+                              selectedLocationAddress: selectedLocationAddress,
+                              selectedLocationWkt: selectedLocationWkt,
+                              selectedMeetId: selectedMeetId,
+                              onLocationSelected: onLocationSelected,
+                              onMeetSelected: onMeetSelected,
+                              isE2eeRoom: roomEncryptKey != null,
                               onEnableVoiceMode: () {
                                 isVoiceMode.value = true;
                                 isExpanded.value = false;
