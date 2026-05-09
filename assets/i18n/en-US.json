@@ -3030,5 +3030,7 @@
   "locationName": "Location Name",
   "totalParticipants": "Total Participants",
   "meetLinked": "Meet linked",
-  "expired": "Expired"
+  "expired": "Expired",
+  "openInMaps": "Open in Maps",
+  "openInMapsUnavailableOnWeb": "Opening maps is not available on web"
 }
