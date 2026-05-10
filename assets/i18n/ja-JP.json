@@ -424,6 +424,7 @@
   "unauthorized": "未認証",
   "unauthorizedHint": "ログインしていないか、セッションが期限切れです。再度ログインしてください。",
   "publisherBelongsTo": "{} に属します",
+  "publisherBelongsToRealm": "{} の一部",
   "postContent": "内容",
   "postSettings": "設定",
   "postPublisherUnselected": "パブリッシャー未指定",

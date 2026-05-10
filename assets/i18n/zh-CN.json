@@ -518,6 +518,7 @@
   "unauthorized": "未授权",
   "unauthorizedHint": "您未登录或会话已过期，请重新登录。",
   "publisherBelongsTo": "属于 {}",
+  "publisherBelongsToRealm": "属于 {}",
   "postContent": "内容",
   "postSettings": "设置",
   "postPublisherUnselected": "未指定发布者",

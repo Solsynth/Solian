@@ -18,6 +18,7 @@ import 'package:island/posts/compose.dart';
 import 'package:island/core/utils/share_utils.dart';
 import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
 import 'package:island/posts/widgets/compose/post_award_sheet.dart';
+import 'package:island/posts/widgets/compose/post_collections_sheet.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_reaction_sheet.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
@@ -293,6 +294,18 @@ class PostActionableItem extends HookConsumerWidget {
               resourceIdentifier: 'post:${item.id}',
             );
           };
+        case 'collections':
+          return () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (_) => PostCollectionsSheet(
+                post: item,
+                onChanged: onRefresh,
+              ),
+            );
+          };
         default:
           return () {};
       }
@@ -346,6 +359,14 @@ class PostActionableItem extends HookConsumerWidget {
         value: 'share',
         child: buildMenuItem(label: 'share'.tr(), icon: Symbols.share),
       ),
+      if (isAuthor)
+        PopupMenuItem<String>(
+          value: 'collections',
+          child: buildMenuItem(
+            label: 'collections'.tr(),
+            icon: Symbols.collections,
+          ),
+        ),
       if (!kIsWeb)
         PopupMenuItem<String>(
           value: 'sharePhoto',

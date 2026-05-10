@@ -51,7 +51,15 @@ sealed class SnPost with _$SnPost {
     @Default([]) List<dynamic> reactions,
     @Default([]) List<SnPostTag> tags,
     @Default([]) List<SnPostCategory> categories,
+    // Legacy/unspecified collections field.
+    // Prefer using [publisherCollections] for post-collection integration.
     @Default([]) List<dynamic> collections,
+
+    // Collections owned by the same publisher as the post.
+    // Wire format: `publisher_collections`.
+    @JsonKey(name: 'publisher_collections')
+    @Default([])
+    List<SnPostCollection> publisherCollections,
     @Default([]) List<SnPostFeaturedRecord> featuredRecords,
     @Default(null) DateTime? createdAt,
     @Default(null) DateTime? updatedAt,

@@ -353,7 +353,7 @@ class _PublisherBasisWidget extends HookWidget {
                     padding: const EdgeInsets.only(top: 4, bottom: 4),
                     child: HandleChip(handle: data.name, allowCopy: true, maxLines: 1),
                   ),
-                if (data.type == 0 && data.account != null) ...[
+                if (data.account != null && data.type == 0) ...[
                   Row(
                     children: [
                       InkWell(
@@ -384,8 +384,39 @@ class _PublisherBasisWidget extends HookWidget {
                     ],
                   ),
                 ],
+                if (data.realm != null) ...[
+                  Row(
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.tertiaryContainer.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 8,
+                            children: [
+                              Icon(Symbols.public, size: 18, color: theme.colorScheme.onTertiaryContainer, fill: 1),
+                              Text(
+                                'publisherBelongsToRealm'.tr(args: [data.realm!.name]),
+                                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                        ),
+                        onTap: () {
+                          context.router.push(RealmDetailRoute(slug: data.realm!.slug));
+                        },
+                      ).padding(top: 8, bottom: 4),
+                    ],
+                  ),
+                ],
                 const Gap(4),
-                if (data.type == 0 && data.account != null)
+                if (data.account != null && data.type == 0)
                   AccountStatusWidget(uname: data.account!.name, padding: EdgeInsets.zero),
                 subStatus
                     .when(
