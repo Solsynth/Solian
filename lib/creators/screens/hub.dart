@@ -737,6 +737,22 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           minTileHeight: 48,
+          title: Text('collections').tr(),
+          trailing: Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.collections),
+          onTap: () {
+            context.router.push(
+              CreatorPostCollectionsRoute(
+                pubName: currentPublisher.value!.name,
+              ),
+            );
+          },
+        ),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          ),
+          minTileHeight: 48,
           title: const Text('Livestreams'),
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.live_tv),
