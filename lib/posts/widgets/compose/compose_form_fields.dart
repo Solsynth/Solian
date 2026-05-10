@@ -226,7 +226,9 @@ class ComposeFormFields extends HookConsumerWidget {
                         break;
                       case 'sticker':
                         final sticker = SnSticker.fromJson(suggestion.data);
-                        title = sticker.slug;
+                        title = sticker.name?.trim().isNotEmpty == true
+                            ? sticker.name!
+                            : sticker.slug;
                         leading = ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: SizedBox(

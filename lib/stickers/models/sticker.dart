@@ -4,12 +4,42 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'sticker.freezed.dart';
 part 'sticker.g.dart';
 
+int _stickerEnumFromJson(dynamic value, int fallback) {
+  if (value is int) return value;
+  if (value is String) {
+    final parsed = int.tryParse(value);
+    if (parsed != null) return parsed;
+    switch (value) {
+      case 'auto':
+      case 'sticker':
+        return 0;
+      case 'small':
+        return 1;
+      case 'medium':
+        return 2;
+      case 'large':
+      case 'emote':
+        return 3;
+    }
+  }
+  return fallback;
+}
+
+int _stickerSizeFromJson(dynamic value) => _stickerEnumFromJson(value, 0);
+int _stickerModeFromJson(dynamic value) {
+  final parsed = _stickerEnumFromJson(value, 0);
+  return parsed > 1 ? 0 : parsed;
+}
+
 @freezed
 sealed class SnSticker with _$SnSticker {
   const factory SnSticker({
     required String id,
     required String slug,
+    String? name,
     required SnCloudFile image,
+    @JsonKey(fromJson: _stickerSizeFromJson) @Default(0) int size,
+    @JsonKey(fromJson: _stickerModeFromJson) @Default(0) int mode,
     required String packId,
     required SnStickerPack? pack,
     required DateTime createdAt,

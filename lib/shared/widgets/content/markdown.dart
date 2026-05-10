@@ -10,8 +10,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
-import 'package:island/core/config.dart';
-import 'package:island/shared/widgets/content/image.dart';
+import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/content/markdown_remote_image.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -24,6 +23,66 @@ import 'package:markdown_widget/markdown_widget.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/stickers/models/sticker.dart';
+
+final _stickerLookupCache = <String, SnSticker>{};
+
+final stickerLookupProvider = FutureProvider.family<SnSticker?, String>((
+  ref,
+  identifier,
+) async {
+  final key = identifier.trim();
+  if (key.isEmpty) return null;
+
+  final cached = _stickerLookupCache[key];
+  if (cached != null) return cached;
+
+  try {
+    final client = ref.watch(apiClientProvider);
+    final response = await client.get(
+      '/sphere/stickers/lookup/${Uri.encodeComponent(key)}',
+    );
+    final sticker = SnSticker.fromJson(
+      Map<String, dynamic>.from(response.data as Map),
+    );
+    _stickerLookupCache[key] = sticker;
+    _stickerLookupCache[sticker.id] = sticker;
+    return sticker;
+  } catch (_) {
+    return null;
+  }
+});
+
+final _stickerParagraphCache = <String, bool>{};
+
+bool _isStandaloneStickerInContent(String content, String placeholder) {
+  final cached = _stickerParagraphCache['$content::$placeholder'];
+  if (cached != null) return cached;
+
+  final paragraphMatches = RegExp(
+    r'(?:^|\n\s*\n)(.*?)(?=\n\s*\n|$)',
+    dotAll: true,
+  ).allMatches(content);
+  for (final match in paragraphMatches) {
+    final paragraph = match.group(1)?.trim() ?? '';
+    if (paragraph.isEmpty) continue;
+
+    final stickers = RegExp(
+      MarkdownTextContent.stickerRegex,
+    ).allMatches(paragraph).map((m) => m.group(1)!).toList();
+    if (stickers.contains(placeholder)) {
+      final nonSticker = paragraph
+          .replaceAll(RegExp(MarkdownTextContent.stickerRegex), '')
+          .trim();
+      final standalone = stickers.length == 1 && nonSticker.isEmpty;
+      _stickerParagraphCache['$content::$placeholder'] = standalone;
+      return standalone;
+    }
+  }
+
+  _stickerParagraphCache['$content::$placeholder'] = false;
+  return false;
+}
 
 class MarkdownTextContent extends HookConsumerWidget {
   static const String stickerRegex = r':([-\w]*\+[-\w]*):';
@@ -57,18 +116,6 @@ class MarkdownTextContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final doesEnlargeSticker = useMemoized(() {
-      // Check if content only contains one sticker by matching the sticker pattern
-      final stickerPattern = RegExp(stickerRegex);
-      final matches = stickerPattern.allMatches(content);
-
-      // Content should only contain one sticker and nothing else (except whitespace)
-      final contentWithoutStickers = content
-          .replaceAll(stickerPattern, '')
-          .trim();
-      return matches.length == 1 && contentWithoutStickers.isEmpty;
-    }, [content]);
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final config = isDark
         ? MarkdownConfig.darkConfig
@@ -99,12 +146,10 @@ class MarkdownTextContent extends HookConsumerWidget {
       onToggle: () => spoilerRevealed.value = !spoilerRevealed.value,
     );
 
-    final baseUrl = ref.watch(serverUrlProvider);
     final stickerGenerator = StickerGenerator(
       backgroundColor: Theme.of(context).colorScheme.primary,
       foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      isEnlarged: doesEnlargeSticker,
-      baseUrl: baseUrl,
+      content: content,
     );
 
     return MarkdownBlock(
@@ -665,8 +710,7 @@ class StickerGenerator extends SpanNodeGeneratorWithTag {
   StickerGenerator({
     required Color backgroundColor,
     required Color foregroundColor,
-    required bool isEnlarged,
-    required String baseUrl,
+    required String content,
   }) : super(
          tag: 'sticker',
          generator:
@@ -679,62 +723,181 @@ class StickerGenerator extends SpanNodeGeneratorWithTag {
                  placeholder: element.textContent,
                  backgroundColor: backgroundColor,
                  foregroundColor: foregroundColor,
-                 isEnlarged: isEnlarged,
-                 baseUrl: baseUrl,
+                 isStandalone: _isStandaloneStickerInContent(
+                   content,
+                   element.textContent,
+                 ),
                );
              },
        );
+}
+
+enum _StickerRenderSize { small, medium, large }
+
+double _stickerRenderDimension(_StickerRenderSize size) => switch (size) {
+  _StickerRenderSize.small => 24,
+  _StickerRenderSize.medium => 48,
+  _StickerRenderSize.large => 96,
+};
+
+_StickerRenderSize _resolveStickerRenderSize(
+  SnSticker sticker,
+  bool isStandalone,
+) {
+  if (sticker.size != 0) {
+    return switch (sticker.size) {
+      1 => _StickerRenderSize.small,
+      2 => _StickerRenderSize.medium,
+      3 => _StickerRenderSize.large,
+      _ => _StickerRenderSize.medium,
+    };
+  }
+
+  if (sticker.mode == 1) {
+    return isStandalone ? _StickerRenderSize.medium : _StickerRenderSize.small;
+  }
+
+  return isStandalone ? _StickerRenderSize.large : _StickerRenderSize.medium;
 }
 
 class StickerSpanNode extends SpanNode {
   final String placeholder;
   final Color backgroundColor;
   final Color foregroundColor;
-  final bool isEnlarged;
-  final String baseUrl;
+  final bool isStandalone;
 
   StickerSpanNode({
     required this.placeholder,
     required this.backgroundColor,
     required this.foregroundColor,
-    required this.isEnlarged,
-    required this.baseUrl,
+    required this.isStandalone,
   });
 
   @override
   InlineSpan build() {
-    final size = isEnlarged ? 96.0 : 24.0;
-    final stickerUri = '$baseUrl/sphere/stickers/lookup/$placeholder/open';
-    // Parse placeholder to get pack prefix and sticker slug
-    final parts = placeholder.split('+');
-    final packPrefix = parts.isNotEmpty ? parts[0] : '';
-    final stickerCode = ':$placeholder:';
-
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
       child: Builder(
         builder: (context) {
-          return InkWell(
-            onTap: () => showStickerPackSheet(context, packPrefix, stickerCode),
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            child: ClipRRect(
+          return _StickerInlineContent(
+            placeholder: placeholder,
+            backgroundColor: backgroundColor,
+            foregroundColor: foregroundColor,
+            isStandalone: isStandalone,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _StickerInlineContent extends ConsumerWidget {
+  final String placeholder;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final bool isStandalone;
+
+  const _StickerInlineContent({
+    required this.placeholder,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.isStandalone,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stickerAsync = ref.watch(stickerLookupProvider(placeholder));
+
+    return stickerAsync.when(
+      data: (sticker) {
+        final parts = placeholder.split('+');
+        final packPrefix =
+            sticker?.pack?.prefix ?? (parts.isNotEmpty ? parts[0] : '');
+        final stickerCode = ':$placeholder:';
+        final renderSticker = sticker;
+        final renderSize = renderSticker == null
+            ? _StickerRenderSize.medium
+            : _resolveStickerRenderSize(renderSticker, isStandalone);
+        final dimension = _stickerRenderDimension(renderSize);
+        final label = renderSticker?.name?.trim().isNotEmpty == true
+            ? renderSticker!.name!
+            : renderSticker?.slug ?? placeholder;
+
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
+          child: Tooltip(
+            message: label,
+            child: InkWell(
+              onTap: () =>
+                  showStickerPackSheet(context, packPrefix, stickerCode),
               borderRadius: const BorderRadius.all(Radius.circular(8)),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: backgroundColor.withOpacity(0.1),
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                ),
-                child: UniversalImage(
-                  uri: stickerUri,
-                  width: size,
-                  height: size,
-                  fit: BoxFit.contain,
-                  noCacheOptimization: true,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                child: Container(
+                  width: dimension,
+                  height: dimension,
+                  decoration: BoxDecoration(
+                    color: backgroundColor.withOpacity(0.1),
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  ),
+                  child: renderSticker == null
+                      ? Icon(
+                          Symbols.emoji_symbols,
+                          size: dimension * 0.45,
+                          color: foregroundColor,
+                        )
+                      : CloudImageWidget(
+                          file: renderSticker.image,
+                          fit: BoxFit.contain,
+                          noBlurhash: true,
+                        ),
                 ),
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
+      loading: () => _StickerLoadingPlaceholder(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        dimension: _stickerRenderDimension(_StickerRenderSize.medium),
+      ),
+      error: (_, _) => _StickerLoadingPlaceholder(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        dimension: _stickerRenderDimension(_StickerRenderSize.medium),
+      ),
+    );
+  }
+}
+
+class _StickerLoadingPlaceholder extends StatelessWidget {
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final double dimension;
+
+  const _StickerLoadingPlaceholder({
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.dimension,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      child: Container(
+        width: dimension,
+        height: dimension,
+        decoration: BoxDecoration(
+          color: backgroundColor.withOpacity(0.1),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+        ),
+        child: Icon(
+          Symbols.emoji_symbols,
+          size: dimension * 0.45,
+          color: foregroundColor,
+        ),
       ),
     );
   }
