@@ -1800,6 +1800,7 @@ class WalletScreen extends HookConsumerWidget {
                       walletList,
                       selectedWalletId,
                       selectedCurrency.value,
+                      isBalanceVisible,
                       setDefaultWallet,
                       togglePublicId,
                     ).padding(horizontal: 16, top: 16),
@@ -2166,28 +2167,8 @@ class WalletScreen extends HookConsumerWidget {
                                 const Gap(8),
                                 Text(
                                   isFullAmountVisible.value
-                                      ? 'showCompact'.tr()
-                                      : 'showFullAmount'.tr(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        if (isBalanceVisible.value)
-                          PopupMenuItem(
-                            value: 'full_amount',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  isFullAmountVisible.value
-                                      ? Symbols.unfold_less
-                                      : Symbols.unfold_more,
-                                  size: 18,
-                                ),
-                                const Gap(8),
-                                Text(
-                                  isFullAmountVisible.value
-                                      ? 'showCompact'.tr()
-                                      : 'showFullAmount'.tr(),
+                                      ? 'collapseAmount'.tr()
+                                      : 'expandAmount'.tr(),
                                 ),
                               ],
                             ),
@@ -2765,6 +2746,7 @@ class WalletScreen extends HookConsumerWidget {
     List<SnWallet> wallets,
     ValueNotifier<String?> selectedWalletId,
     String selectedCurrency,
+    ValueNotifier<bool> isBalanceVisible,
     Future<void> Function(String) setDefaultWallet,
     Future<void> Function(String, bool) togglePublicId,
   ) {
@@ -2867,7 +2849,9 @@ class WalletScreen extends HookConsumerWidget {
                       ),
                       const Gap(2),
                       Text(
-                        '${formatAmountWithSuffix(pocket.amount)} ${pocket.currency}',
+                        isBalanceVisible.value
+                            ? '${formatAmountWithSuffix(pocket.amount)} ${pocket.currency}'
+                            : '••••••',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -2991,7 +2975,9 @@ class WalletScreen extends HookConsumerWidget {
                                 ),
                                 const Gap(2),
                                 Text(
-                                  '${formatAmountWithSuffix(wPocket.amount)} ${wPocket.currency}',
+                                  isBalanceVisible.value
+                                      ? '${formatAmountWithSuffix(wPocket.amount)} ${wPocket.currency}'
+                                      : '••••••',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
