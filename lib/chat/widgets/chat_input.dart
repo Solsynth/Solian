@@ -103,7 +103,7 @@ Map<String, dynamic> _convertKeysToSnakeCase(Map map) {
   return result;
 }
 
-const kInputDrawerExpandedHeight = 300.0;
+const kInputDrawerExpandedHeight = 280.0;
 
 const kExpandedSectionTabHeight = 32.0;
 

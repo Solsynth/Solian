@@ -827,10 +827,13 @@ class _StickerInlineContent extends ConsumerWidget {
           padding: EdgeInsets.symmetric(horizontal: isStandalone ? 0 : 3),
           child: Tooltip(
             message: label,
-            child: InkWell(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () =>
                   showStickerPackSheet(context, packPrefix, stickerCode),
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              onSecondaryTap: () {
+                Clipboard.setData(ClipboardData(text: stickerCode));
+              },
               child: ClipRRect(
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
                 child: Container(
