@@ -235,32 +235,6 @@ class CloudFileLightbox extends HookConsumerWidget {
             fit: StackFit.expand,
             children: [
               buildContent(),
-              if (items.length > 1) ...[
-                if (currentIndex.value > 0)
-                  Positioned(
-                    left: 16,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: _ArrowButton(
-                        direction: AxisDirection.left,
-                        onPressed: goToPrevious,
-                      ),
-                    ),
-                  ),
-                if (currentIndex.value < items.length - 1)
-                  Positioned(
-                    right: 16,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: _ArrowButton(
-                        direction: AxisDirection.right,
-                        onPressed: goToNext,
-                      ),
-                    ),
-                  ),
-              ],
               GestureDetector(
                 onTap: () {
                   final currentItem = items[currentIndex.value];
@@ -345,6 +319,32 @@ class CloudFileLightbox extends HookConsumerWidget {
                   ),
                 ),
               ),
+              if (items.length > 1) ...[
+                if (currentIndex.value > 0)
+                  Positioned(
+                    left: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _ArrowButton(
+                        direction: AxisDirection.left,
+                        onPressed: goToPrevious,
+                      ),
+                    ),
+                  ),
+                if (currentIndex.value < items.length - 1)
+                  Positioned(
+                    right: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _ArrowButton(
+                        direction: AxisDirection.right,
+                        onPressed: goToNext,
+                      ),
+                    ),
+                  ),
+              ],
             ],
           ),
         ),

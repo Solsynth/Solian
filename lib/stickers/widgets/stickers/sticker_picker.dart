@@ -148,6 +148,29 @@ class _PackSwitcher extends StatefulWidget {
 class _PackSwitcherState extends State<_PackSwitcher> {
   int _index = 0;
 
+  String _packLabel(String name) =>
+      name.length <= 8 ? name : '${name.substring(0, 8)}…';
+
+  Widget _packAvatar(SnStickerPack pack) {
+    final image =
+        pack.icon ??
+        (pack.stickers.isNotEmpty ? pack.stickers.first.image : null);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: SizedBox(
+        width: 18,
+        height: 18,
+        child: image != null
+            ? CloudImageWidget(file: image, fit: BoxFit.cover, noBlurhash: true)
+            : Icon(
+                Symbols.sticky_note_2,
+                size: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final packs = widget.packs;
@@ -191,8 +214,10 @@ class _PackSwitcherState extends State<_PackSwitcher> {
               return Tooltip(
                 message: packs[i].name,
                 child: FilterChip(
-                  label: Text(packs[i].name, overflow: TextOverflow.ellipsis),
+                  avatar: _packAvatar(packs[i]),
+                  label: Text(_packLabel(packs[i].name)),
                   selected: selected,
+                  showCheckmark: false,
                   onSelected: (_) {
                     setState(() => _index = i);
                     HapticFeedback.selectionClick();
@@ -255,6 +280,7 @@ class _StickersGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final sticker = stickers[index];
         final placeholder = ':${pack.prefix}+${sticker.slug}:';
+        final isEmote = sticker.mode == 1;
         return Tooltip(
           message: sticker.name?.trim().isNotEmpty == true
               ? '${sticker.name} ($placeholder)'
@@ -274,10 +300,36 @@ class _StickersGrid extends StatelessWidget {
                 ),
                 child: AspectRatio(
                   aspectRatio: 1,
-                  child: CloudImageWidget(
-                    file: sticker.image,
-                    fit: BoxFit.contain,
-                    noBlurhash: true,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CloudImageWidget(
+                          file: sticker.image,
+                          fit: BoxFit.contain,
+                          noBlurhash: true,
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color:
+                                (isEmote
+                                        ? Theme.of(context).colorScheme.tertiary
+                                        : Theme.of(context).colorScheme.primary)
+                                    .withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Icon(
+                            isEmote ? Symbols.mood : Symbols.sticky_note_2,
+                            size: 8,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -376,6 +428,29 @@ class _EmbeddedPackSwitcher extends StatefulWidget {
 class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
   int _index = 0;
 
+  String _packLabel(String name) =>
+      name.length <= 8 ? name : '${name.substring(0, 8)}…';
+
+  Widget _packAvatar(SnStickerPack pack) {
+    final image =
+        pack.icon ??
+        (pack.stickers.isNotEmpty ? pack.stickers.first.image : null);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: SizedBox(
+        width: 18,
+        height: 18,
+        child: image != null
+            ? CloudImageWidget(file: image, fit: BoxFit.cover, noBlurhash: true)
+            : Icon(
+                Symbols.sticky_note_2,
+                size: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final packs = widget.packs;
@@ -386,66 +461,32 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Gap(12),
-        // Vertical, scrollable packs rail like common emoji pickers
-        Card(
-          margin: EdgeInsets.zero,
-          child: SizedBox(
-            height: 36,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              scrollDirection: Axis.horizontal,
-              itemCount: packs.length,
-              separatorBuilder: (_, _) => const Gap(4),
-              itemBuilder: (context, i) {
-                final selected = _index == i;
-                return Tooltip(
-                  message: packs[i].name,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeInOut,
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      border: selected
-                          ? Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 4,
-                            )
-                          : null,
-                    ),
-                    margin: const EdgeInsets.only(right: 8),
-                    child: InkWell(
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      onTap: () {
-                        setState(() => _index = i);
-                        HapticFeedback.selectionClick();
-                      },
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween<double>(end: selected ? 4 : 8),
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        builder: (context, value, _) {
-                          return packs[i].icon != null
-                              ? CloudImageWidget(
-                                  file: packs[i].icon!,
-                                  noBlurhash: true,
-                                ).clipRRect(all: value)
-                              : CloudImageWidget(
-                                  file: packs[i].stickers.firstOrNull?.image,
-                                  noBlurhash: true,
-                                ).clipRRect(all: value);
-                        },
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ).padding(vertical: 4),
-        ).padding(horizontal: 12),
+        const Gap(8),
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            scrollDirection: Axis.horizontal,
+            itemCount: packs.length,
+            separatorBuilder: (_, _) => const Gap(4),
+            itemBuilder: (context, i) {
+              final selected = _index == i;
+              return Tooltip(
+                message: packs[i].name,
+                child: FilterChip(
+                  avatar: _packAvatar(packs[i]),
+                  label: Text(_packLabel(packs[i].name)),
+                  selected: selected,
+                  showCheckmark: false,
+                  onSelected: (_) {
+                    setState(() => _index = i);
+                    HapticFeedback.selectionClick();
+                  },
+                ),
+              );
+            },
+          ),
+        ),
 
         // Content
         Expanded(
@@ -458,7 +499,7 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
                   ? null
                   : (sticker) => widget.onLongPress!(selectedPack, sticker),
               maxCrossAxisExtent: 96,
-            ).padding(horizontal: 2),
+            ).padding(horizontal: 2, top: 4),
           ),
         ),
       ],
