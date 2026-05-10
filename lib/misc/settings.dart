@@ -69,1073 +69,1146 @@ class SettingsScreen extends HookConsumerWidget {
       return null;
     }, []);
 
-    // Group settings into categories for better organization
-    final appearanceSettings = [
-      // Language settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsDisplayLanguage').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.translate),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton2<Locale?>(
-            isExpanded: true,
-            items: [
-              ...EasyLocalization.of(context)!.supportedLocales.mapIndexed((
-                idx,
-                ele,
-              ) {
-                return DropdownItem<Locale?>(
-                  value: ele,
-                  child: Text(_getLanguageDisplayName(ele)).fontSize(14),
-                );
-              }),
-              DropdownItem<Locale?>(
-                value: null,
-                child: Text('languageFollowSystem').tr().fontSize(14),
-              ),
-            ],
-            valueListenable: ValueNotifier<Locale?>(
-              EasyLocalization.of(context)!.currentLocale,
-            ),
-            onChanged: (Locale? value) {
-              if (value != null) {
-                EasyLocalization.of(context)!.setLocale(value);
-              } else {
-                EasyLocalization.of(context)!.resetLocale();
-              }
-            },
-            buttonStyleData: const ButtonStyleData(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              height: 40,
-              width: 160,
-            ),
-          ),
-        ),
-      ),
+    final selectedCategoryIdx = useState(0);
 
-      // Theme mode settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsThemeMode').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.dark_mode),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton2<String>(
-            isExpanded: true,
-            items: [
-              DropdownItem<String>(
-                value: 'system',
-                child: Text('settingsThemeModeSystem').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'light',
-                child: Text('settingsThemeModeLight').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'dark',
-                child: Text('settingsThemeModeDark').tr().fontSize(14),
-              ),
-            ],
-            valueListenable: ValueNotifier(settings.themeMode),
-            onChanged: (String? value) {
-              if (value != null) {
-                ref.read(appSettingsProvider.notifier).setThemeMode(value);
-                showSnackBar('settingsApplied'.tr());
-              }
-            },
-            buttonStyleData: const ButtonStyleData(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              height: 40,
-              width: 140,
-            ),
-          ),
-        ),
-      ),
+    final categories = <_SettingCategory>[];
 
-      // Custom fonts settings
-      ListTile(
-        isThreeLine: true,
-        minLeadingWidth: 48,
-        title: Text('settingsCustomFonts').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.font_download),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: TextField(
-            controller: TextEditingController(text: settings.customFonts),
-            decoration: InputDecoration(
-              hintText: 'Nunito, Arial, sans-serif',
-              helperText: 'settingsCustomFontsHelper'.tr(),
-              suffixIcon: IconButton(
-                icon: const Icon(Symbols.restart_alt),
-                onPressed: () {
-                  ref.read(appSettingsProvider.notifier).setCustomFonts(null);
-                  showSnackBar('settingsApplied'.tr());
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.translate,
+        title: 'Language',
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsDisplayLanguage').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.translate),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<Locale?>(
+                isExpanded: true,
+                items: [
+                  ...EasyLocalization.of(context)!.supportedLocales.mapIndexed((
+                    idx,
+                    ele,
+                  ) {
+                    return DropdownItem<Locale?>(
+                      value: ele,
+                      child: Text(_getLanguageDisplayName(ele)).fontSize(14),
+                    );
+                  }),
+                  DropdownItem<Locale?>(
+                    value: null,
+                    child: Text('languageFollowSystem').tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier<Locale?>(
+                  EasyLocalization.of(context)!.currentLocale,
+                ),
+                onChanged: (Locale? value) {
+                  if (value != null) {
+                    EasyLocalization.of(context)!.setLocale(value);
+                  } else {
+                    EasyLocalization.of(context)!.resetLocale();
+                  }
                 },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 160,
+                ),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              isDense: true,
-            ),
-            onSubmitted: (value) {
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomFonts(value.isEmpty ? null : value);
-              showSnackBar('settingsApplied'.tr());
-            },
-          ),
-        ),
-      ),
-
-      // Message display style settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsMessageDisplayStyle').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.chat),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton2<String>(
-            isExpanded: true,
-            items: [
-              DropdownItem<String>(
-                value: 'bubble',
-                child: Text('settingsMessageDisplayStyleBubble').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'column',
-                child: Text('settingsMessageDisplayStyleColumn').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'compact',
-                child: Text('settingsMessageDisplayStyleCompact').tr().fontSize(14),
-              ),
-            ],
-            valueListenable: ValueNotifier<String>(
-              settings.messageDisplayStyle,
-            ),
-            onChanged: (String? value) {
-              if (value != null) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setMessageDisplayStyle(value);
-                showSnackBar('settingsApplied'.tr());
-              }
-            },
-            buttonStyleData: const ButtonStyleData(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              height: 40,
-              width: 140,
             ),
           ),
-        ),
+        ],
       ),
+    );
 
-      // Attachments list style settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsAttachmentsListStyle').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.attachment),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton2<String>(
-            isExpanded: true,
-            items: [
-              DropdownItem<String>(
-                value: 'row',
-                child: Text('settingsAttachmentsListStyleRow').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'column',
-                child: Text('settingsAttachmentsListStyleColumn').tr().fontSize(14),
-              ),
-            ],
-            valueListenable: ValueNotifier<String>(
-              settings.attachmentsListStyle,
-            ),
-            onChanged: (String? value) {
-              if (value != null) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setAttachmentsListStyle(value);
-                showSnackBar('settingsApplied'.tr());
-              }
-            },
-            buttonStyleData: const ButtonStyleData(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              height: 40,
-              width: 140,
-            ),
-          ),
-        ),
-      ),
-
-      // Link collapse mode settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsLinkCollapseMode').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.unfold_more),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton2<String>(
-            isExpanded: true,
-            items: [
-              DropdownItem<String>(
-                value: 'expand',
-                child: Text('settingsLinkCollapseModeExpand').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'collapse',
-                child: Text(
-                  'settingsLinkCollapseModeCollapse',
-                ).tr().fontSize(14),
-              ),
-            ],
-            valueListenable: ValueNotifier<String>(settings.linkCollapseMode),
-            onChanged: (String? value) {
-              if (value != null) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setLinkCollapseMode(value);
-                showSnackBar('settingsApplied'.tr());
-              }
-            },
-            buttonStyleData: const ButtonStyleData(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              height: 40,
-              width: 140,
-            ),
-          ),
-        ),
-      ),
-
-      // Color scheme settings
-      Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(listTileTheme: ListTileThemeData(minLeadingWidth: 48)),
-        child: ExpansionTile(
-          title: Text('settingsColorScheme').tr(),
-          tilePadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.palette),
-          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Seed color picker
-            ListTile(
-              title: Text('Seed Color').tr(),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-              trailing: GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      Color selectedColor = settings.appColorScheme != null
-                          ? Color(settings.appColorScheme!)
-                          : Colors.indigo;
-
-                      return AlertDialog(
-                        title: Text('Seed Color').tr(),
-                        content: SingleChildScrollView(
-                          child: ColorPicker(
-                            paletteType: PaletteType.hsv,
-                            enableAlpha: true,
-                            showLabel: true,
-                            hexInputBar: true,
-                            pickerColor: selectedColor,
-                            onColorChanged: (color) {
-                              selectedColor = color;
-                            },
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text('cancel').tr(),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              ref
-                                  .read(appSettingsProvider.notifier)
-                                  .setAppColorScheme(selectedColor.value);
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('confirm').tr(),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.palette,
+        title: 'Appearance',
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsThemeMode').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.dark_mode),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: 'system',
+                    child: Text('settingsThemeModeSystem').tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'light',
+                    child: Text('settingsThemeModeLight').tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'dark',
+                    child: Text('settingsThemeModeDark').tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier(settings.themeMode),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    ref.read(appSettingsProvider.notifier).setThemeMode(value);
+                    showSnackBar('settingsApplied'.tr());
+                  }
                 },
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  margin: EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: settings.appColorScheme != null
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+            child: Text(
+              'settingsColorScheme'.tr(),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ListTile(
+            title: Text('Seed Color').tr(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            trailing: GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    Color selectedColor = settings.appColorScheme != null
                         ? Color(settings.appColorScheme!)
-                        : Colors.indigo,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withOpacity(0.5),
-                      width: 2,
-                    ),
+                        : Colors.indigo;
+
+                    return AlertDialog(
+                      title: Text('Seed Color').tr(),
+                      content: SingleChildScrollView(
+                        child: ColorPicker(
+                          paletteType: PaletteType.hsv,
+                          enableAlpha: true,
+                          showLabel: true,
+                          hexInputBar: true,
+                          pickerColor: selectedColor,
+                          onColorChanged: (color) {
+                            selectedColor = color;
+                          },
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('cancel').tr(),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ref
+                                .read(appSettingsProvider.notifier)
+                                .setAppColorScheme(selectedColor.value);
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('confirm').tr(),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: Container(
+                width: 24,
+                height: 24,
+                margin: EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                decoration: BoxDecoration(
+                  color: settings.appColorScheme != null
+                      ? Color(settings.appColorScheme!)
+                      : Colors.indigo,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.5),
+                    width: 2,
                   ),
                 ),
               ),
             ),
-            // Custom colors section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Text(
-                'Custom Colors',
-                style: Theme.of(context).textTheme.titleMedium,
-              ).bold(),
-            ),
-            // Primary color
-            _ColorPickerTile(
-              title: 'Primary',
-              color: settings.customColors?.primary != null
-                  ? Color(settings.customColors!.primary!)
-                  : null,
-              onColorChanged: (color) {
-                final current = settings.customColors ?? ThemeColors();
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setCustomColors(current.copyWith(primary: color?.value));
-              },
-            ),
-            // Secondary
-            _ColorPickerTile(
-              title: 'Secondary',
-              color: settings.customColors?.secondary != null
-                  ? Color(settings.customColors!.secondary!)
-                  : null,
-              onColorChanged: (color) {
-                final current = settings.customColors ?? ThemeColors();
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setCustomColors(current.copyWith(secondary: color?.value));
-              },
-            ),
-            // Tertiary
-            _ColorPickerTile(
-              title: 'Tertiary',
-              color: settings.customColors?.tertiary != null
-                  ? Color(settings.customColors!.tertiary!)
-                  : null,
-              onColorChanged: (color) {
-                final current = settings.customColors ?? ThemeColors();
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setCustomColors(current.copyWith(tertiary: color?.value));
-              },
-            ),
-            // Surface
-            _ColorPickerTile(
-              title: 'Surface',
-              color: settings.customColors?.surface != null
-                  ? Color(settings.customColors!.surface!)
-                  : null,
-              onColorChanged: (color) {
-                final current = settings.customColors ?? ThemeColors();
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setCustomColors(current.copyWith(surface: color?.value));
-              },
-            ),
-            // Background
-            _ColorPickerTile(
-              title: 'Background',
-              color: settings.customColors?.background != null
-                  ? Color(settings.customColors!.background!)
-                  : null,
-              onColorChanged: (color) {
-                final current = settings.customColors ?? ThemeColors();
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setCustomColors(
-                      current.copyWith(background: color?.value),
-                    );
-              },
-            ),
-            // Error
-            _ColorPickerTile(
-              title: 'Error',
-              color: settings.customColors?.error != null
-                  ? Color(settings.customColors!.error!)
-                  : null,
-              onColorChanged: (color) {
-                final current = settings.customColors ?? ThemeColors();
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setCustomColors(current.copyWith(error: color?.value));
-              },
-            ),
-            // Reset custom colors
-            ListTile(
-              title: Text('Reset Custom Colors').tr(),
-              trailing: const Icon(Symbols.restart_alt).padding(right: 2),
-              contentPadding: EdgeInsets.symmetric(horizontal: 20),
-              onTap: () {
-                ref.read(appSettingsProvider.notifier).setCustomColors(null);
-                showSnackBar('settingsApplied'.tr());
-              },
-            ),
-          ],
-        ),
-      ),
-
-      // Card background opacity settings
-      ListTile(
-        isThreeLine: true,
-        minLeadingWidth: 48,
-        title: Text('settingsCardBackgroundOpacity').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.opacity),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 2,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
-              trackShape: RoundedRectSliderTrackShape(),
-            ),
-            child: Slider(
-              value: settings.cardTransparency,
-              min: 0.0,
-              max: 1.0,
-              year2023: true,
-              padding: EdgeInsets.only(right: 24),
-              label: '${(settings.cardTransparency * 100).round()}%',
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setAppTransparentBackground(value);
-              },
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+            child: Text(
+              'Custom Colors',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
-      ),
-
-      // Background image settings (only for non-web platforms)
-      if (!kIsWeb && docBasepath.value != null)
-        ListTile(
-          minLeadingWidth: 48,
-          title: Text('settingsBackgroundImage').tr(),
-          contentPadding: const EdgeInsets.only(left: 24, right: 17),
-          leading: const Icon(Symbols.image),
-          trailing: const Icon(Symbols.chevron_right),
-          onTap: () async {
-            final imagePicker = ref.read(imagePickerProvider);
-            final image = await imagePicker.pickImage(
-              source: ImageSource.gallery,
-            );
-            if (image == null) return;
-
-            await File(
-              image.path,
-            ).copy('${docBasepath.value}/$kAppBackgroundImagePath');
-            prefs.setBool(kAppBackgroundStoreKey, true);
-            ref.invalidate(backgroundImageFileProvider);
-            if (context.mounted) {
+          _ColorPickerTile(
+            title: 'Primary',
+            color: settings.customColors?.primary != null
+                ? Color(settings.customColors!.primary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(primary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            title: 'Secondary',
+            color: settings.customColors?.secondary != null
+                ? Color(settings.customColors!.secondary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(secondary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            title: 'Tertiary',
+            color: settings.customColors?.tertiary != null
+                ? Color(settings.customColors!.tertiary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(tertiary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            title: 'Surface',
+            color: settings.customColors?.surface != null
+                ? Color(settings.customColors!.surface!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(surface: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            title: 'Background',
+            color: settings.customColors?.background != null
+                ? Color(settings.customColors!.background!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(background: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            title: 'Error',
+            color: settings.customColors?.error != null
+                ? Color(settings.customColors!.error!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(error: color?.value));
+            },
+          ),
+          ListTile(
+            title: Text('Reset Custom Colors').tr(),
+            trailing: const Icon(Symbols.restart_alt).padding(right: 2),
+            contentPadding: EdgeInsets.symmetric(horizontal: 20),
+            onTap: () {
+              ref.read(appSettingsProvider.notifier).setCustomColors(null);
               showSnackBar('settingsApplied'.tr());
-            }
-          },
-        ),
+            },
+          ),
+          ListTile(
+            isThreeLine: true,
+            minLeadingWidth: 48,
+            title: Text('settingsCardBackgroundOpacity').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.opacity),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: SliderTheme(
+                data: SliderThemeData(
+                  trackHeight: 2,
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 8,
+                  ),
+                  overlayShape: const RoundSliderOverlayShape(
+                    overlayRadius: 24,
+                  ),
+                  trackShape: RoundedRectSliderTrackShape(),
+                ),
+                child: Slider(
+                  value: settings.cardTransparency,
+                  min: 0.0,
+                  max: 1.0,
+                  year2023: true,
+                  padding: EdgeInsets.only(right: 24),
+                  label: '${(settings.cardTransparency * 100).round()}%',
+                  onChanged: (value) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setAppTransparentBackground(value);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
 
-      // Background image enabled
-      if (!kIsWeb && docBasepath.value != null)
-        FutureBuilder<bool>(
-          future: File(
-            '${docBasepath.value}/$kAppBackgroundImagePath',
-          ).exists(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || !snapshot.data!) {
-              return const SizedBox.shrink();
-            }
-
-            return ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsBackgroundImageEnable').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.hide_image),
-              trailing: Switch(
-                value: settings.showBackgroundImage,
-                onChanged: (value) {
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.font_download,
+        title: 'Fonts',
+        children: [
+          ListTile(
+            isThreeLine: true,
+            minLeadingWidth: 48,
+            title: Text('settingsCustomFonts').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.font_download),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: TextField(
+                controller: TextEditingController(text: settings.customFonts),
+                decoration: InputDecoration(
+                  hintText: 'Nunito, Arial, sans-serif',
+                  helperText: 'settingsCustomFontsHelper'.tr(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Symbols.restart_alt),
+                    onPressed: () {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .setCustomFonts(null);
+                      showSnackBar('settingsApplied'.tr());
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  isDense: true,
+                ),
+                onSubmitted: (value) {
                   ref
                       .read(appSettingsProvider.notifier)
-                      .setShowBackgroundImage(value);
+                      .setCustomFonts(value.isEmpty ? null : value);
+                  showSnackBar('settingsApplied'.tr());
                 },
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
+      ),
+    );
 
-      // Clear background image option
-      if (!kIsWeb && docBasepath.value != null)
-        FutureBuilder<bool>(
-          future: File(
-            '${docBasepath.value}/$kAppBackgroundImagePath',
-          ).exists(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || !snapshot.data!) {
-              return const SizedBox.shrink();
-            }
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.chat,
+        title: 'Messages',
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsMessageDisplayStyle').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.chat),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: 'bubble',
+                    child: Text(
+                      'settingsMessageDisplayStyleBubble',
+                    ).tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'column',
+                    child: Text(
+                      'settingsMessageDisplayStyleColumn',
+                    ).tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'compact',
+                    child: Text(
+                      'settingsMessageDisplayStyleCompact',
+                    ).tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.messageDisplayStyle,
+                ),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setMessageDisplayStyle(value);
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsAttachmentsListStyle').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.attachment),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: 'row',
+                    child: Text(
+                      'settingsAttachmentsListStyleRow',
+                    ).tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'column',
+                    child: Text(
+                      'settingsAttachmentsListStyleColumn',
+                    ).tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.attachmentsListStyle,
+                ),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setAttachmentsListStyle(value);
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsLinkCollapseMode').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.unfold_more),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: 'expand',
+                    child: Text(
+                      'settingsLinkCollapseModeExpand',
+                    ).tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'collapse',
+                    child: Text(
+                      'settingsLinkCollapseModeCollapse',
+                    ).tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.linkCollapseMode,
+                ),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setLinkCollapseMode(value);
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
 
-            return ListTile(
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.image,
+        title: 'Background',
+        children: [
+          if (!kIsWeb && docBasepath.value != null) ...[
+            ListTile(
               minLeadingWidth: 48,
-              title: Text('settingsBackgroundImageClear').tr(),
+              title: Text('settingsBackgroundImage').tr(),
               contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.texture),
+              leading: const Icon(Symbols.image),
               trailing: const Icon(Symbols.chevron_right),
-              onTap: () {
-                File(
-                  '${docBasepath.value}/$kAppBackgroundImagePath',
-                ).deleteSync();
-                prefs.remove(kAppBackgroundStoreKey);
+              onTap: () async {
+                final imagePicker = ref.read(imagePickerProvider);
+                final image = await imagePicker.pickImage(
+                  source: ImageSource.gallery,
+                );
+                if (image == null) return;
+
+                await File(
+                  image.path,
+                ).copy('${docBasepath.value}/$kAppBackgroundImagePath');
+                prefs.setBool(kAppBackgroundStoreKey, true);
                 ref.invalidate(backgroundImageFileProvider);
                 if (context.mounted) {
                   showSnackBar('settingsApplied'.tr());
                 }
               },
-            );
-          },
-        ),
+            ),
+            FutureBuilder<bool>(
+              future: File(
+                '${docBasepath.value}/$kAppBackgroundImagePath',
+              ).exists(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || !snapshot.data!) {
+                  return const SizedBox.shrink();
+                }
 
-      if (!kIsWeb && docBasepath.value != null)
-        FutureBuilder(
-          future: File(
-            '${docBasepath.value}/$kAppBackgroundImagePath',
-          ).exists(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || !snapshot.data!) {
-              return const SizedBox.shrink();
-            }
-
-            return ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsBackgroundGenerateColor').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.format_color_fill),
-              trailing: const Icon(Symbols.chevron_right),
-              onTap: () async {
-                showLoadingModal(context);
-                final colors = await ColorExtractionService.getColorsFromImage(
-                  FileImage(
-                    File('${docBasepath.value}/$kAppBackgroundImagePath'),
+                return ListTile(
+                  minLeadingWidth: 48,
+                  title: Text('settingsBackgroundImageEnable').tr(),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  leading: const Icon(Symbols.hide_image),
+                  trailing: Switch(
+                    value: settings.showBackgroundImage,
+                    onChanged: (value) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .setShowBackgroundImage(value);
+                    },
                   ),
                 );
-                if (colors.isEmpty) {
-                  if (context.mounted) hideLoadingModal(context);
-                  showErrorAlert(
-                    'Unable to calculate the dominant color of the background image.',
-                  );
-                  return;
-                }
-                if (!context.mounted) return;
-                final colorScheme = ColorScheme.fromSeed(
-                  seedColor: colors.first,
-                );
-                final color =
-                    MediaQuery.of(context).platformBrightness == Brightness.dark
-                    ? colorScheme.primary
-                    : colorScheme.primary;
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setAppColorScheme(color.value);
-                if (context.mounted) {
-                  hideLoadingModal(context);
-                  showSnackBar('settingsApplied'.tr());
-                }
               },
-            );
-          },
-        ),
-    ];
-
-    final serverSettings = [
-      // Server URL settings
-      ListTile(
-        isThreeLine: true,
-        minLeadingWidth: 48,
-        title: Text('settingsServerUrl').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.link),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: kNetworkServerDefault,
-              suffixIcon: IconButton(
-                icon: const Icon(Symbols.restart_alt),
-                onPressed: () {
-                  controller.text = kNetworkServerDefault;
-                  prefs.setString(
-                    kNetworkServerStoreKey,
-                    kNetworkServerDefault,
-                  );
-                  ref.invalidate(serverUrlProvider);
-                  showSnackBar('settingsApplied'.tr());
-                },
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              isDense: true,
             ),
-            onSubmitted: (value) {
-              if (value.isNotEmpty) {
-                prefs.setString(kNetworkServerStoreKey, value);
-                ref.invalidate(serverUrlProvider);
-                showSnackBar('settingsApplied'.tr());
-              }
-            },
-          ),
-        ),
-      ),
+            FutureBuilder<bool>(
+              future: File(
+                '${docBasepath.value}/$kAppBackgroundImagePath',
+              ).exists(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || !snapshot.data!) {
+                  return const SizedBox.shrink();
+                }
 
-      // Media Proxy settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsMediaProxy').tr(),
-        subtitle: Text('settingsMediaProxyHelper'.tr()),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.speed),
-        trailing: Switch(
-          value: settings.mediaProxyEnabled,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setMediaProxyEnabled(value);
-          },
-        ),
-      ),
+                return ListTile(
+                  minLeadingWidth: 48,
+                  title: Text('settingsBackgroundImageClear').tr(),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  leading: const Icon(Symbols.texture),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () {
+                    File(
+                      '${docBasepath.value}/$kAppBackgroundImagePath',
+                    ).deleteSync();
+                    prefs.remove(kAppBackgroundStoreKey);
+                    ref.invalidate(backgroundImageFileProvider);
+                    if (context.mounted) {
+                      showSnackBar('settingsApplied'.tr());
+                    }
+                  },
+                );
+              },
+            ),
+            FutureBuilder(
+              future: File(
+                '${docBasepath.value}/$kAppBackgroundImagePath',
+              ).exists(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || !snapshot.data!) {
+                  return const SizedBox.shrink();
+                }
 
-      if (user.value != null)
-        pools.when(
-          data: (data) {
-            final validPools = data;
-            final currentPoolId = resolveDefaultPoolId(
-              ref.read(appSettingsProvider),
-              data,
-            );
-
-            return ListTile(
-              isThreeLine: true,
-              minLeadingWidth: 48,
-              title: Text('settingsDefaultPool').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.cloud),
-              subtitle: Text(
-                'settingsDefaultPoolHelper'.tr(),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              trailing: DropdownButtonHideUnderline(
-                child: DropdownButton2<String>(
-                  isExpanded: true,
-                  items: validPools.map((p) {
-                    return DropdownItem<String>(
-                      value: p.id,
-                      child: Tooltip(
-                        message: p.name,
-                        child: Text(
-                          p.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ).fontSize(14),
-                      ),
+                return ListTile(
+                  minLeadingWidth: 48,
+                  title: Text('settingsBackgroundGenerateColor').tr(),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  leading: const Icon(Symbols.format_color_fill),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () async {
+                    showLoadingModal(context);
+                    final colors =
+                        await ColorExtractionService.getColorsFromImage(
+                          FileImage(
+                            File(
+                              '${docBasepath.value}/$kAppBackgroundImagePath',
+                            ),
+                          ),
+                        );
+                    if (colors.isEmpty) {
+                      if (context.mounted) hideLoadingModal(context);
+                      showErrorAlert(
+                        'Unable to calculate the dominant color of the background image.',
+                      );
+                      return;
+                    }
+                    if (!context.mounted) return;
+                    final colorScheme = ColorScheme.fromSeed(
+                      seedColor: colors.first,
                     );
-                  }).toList(),
-                  valueListenable: ValueNotifier<String?>(currentPoolId),
-                  onChanged: (value) {
+                    final color =
+                        MediaQuery.of(context).platformBrightness ==
+                            Brightness.dark
+                        ? colorScheme.primary
+                        : colorScheme.primary;
                     ref
                         .read(appSettingsProvider.notifier)
-                        .setDefaultPoolId(value);
-                    showSnackBar('settingsApplied'.tr());
+                        .setAppColorScheme(color.value);
+                    if (context.mounted) {
+                      hideLoadingModal(context);
+                      showSnackBar('settingsApplied'.tr());
+                    }
                   },
-                  buttonStyleData: const ButtonStyleData(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                    height: 40,
-                    width: 120,
-                  ),
-                ),
-              ),
-            );
-          },
-          loading: () => const ListTile(
-            minLeadingWidth: 48,
-            title: Text('Loading pools...'),
-            leading: CircularProgressIndicator(),
-          ),
-          error: (err, st) => ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsDefaultPool').tr(),
-            subtitle: Text('Error: $err'),
-            leading: const Icon(Icons.error, color: Colors.red),
-          ),
-        ),
-    ];
-
-    final behaviorSettings = [
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsSoundEffects').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.volume_up),
-        trailing: Switch(
-          value: settings.soundEffects,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setSoundEffects(value);
-          },
-        ),
-      ),
-
-      // April Fool features settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsFestivalFeatures').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.celebration),
-        trailing: Switch(
-          value: settings.festivalFeatures,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setFeativalFeatures(value);
-          },
-        ),
-      ),
-
-      // Enter to send settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsEnterToSend').tr(),
-        subtitle: isDesktop
-            ? Text('settingsEnterToSendDesktopHint').tr().fontSize(12)
-            : null,
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.send),
-        trailing: Switch(
-          value: settings.enterToSend,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setEnterToSend(value);
-          },
-        ),
-      ),
-
-      // Transparent app bar settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsTransparentAppBar').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.blur_on),
-        trailing: Switch(
-          value: settings.appBarTransparent,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setAppBarTransparent(value);
-          },
-        ),
-      ),
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsDataSavingMode').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.data_saver_on_rounded),
-        trailing: Switch(
-          value: settings.dataSavingMode,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setDataSavingMode(value);
-          },
-        ),
-      ),
-
-      // Disable animation settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsDisableAnimation').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.animation),
-        trailing: Switch(
-          value: settings.disableAnimation,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setDisableAnimation(value);
-          },
-        ),
-      ),
-
-      // Grouped chat list settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsGroupedChatList').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.chat),
-        trailing: Switch(
-          value: settings.groupedChatList,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setGroupedChatList(value);
-          },
-        ),
-      ),
-
-      // Show chat event/system messages settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: const Text('settingsShowChatEventMessages').tr(),
-        subtitle: const Text(
-          'ShowChatEventsMessagesHelper',
-        ).tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.info),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton2<String>(
-            isExpanded: true,
-            items: [
-              DropdownItem<String>(
-                value: kChatEventMessageModeVerbose,
-                child: Text('settingsChatEventMessageModeVerbose').tr(),
-              ),
-              DropdownItem<String>(
-                value: kChatEventMessageModeImportant,
-                child: Text('settingsChatEventMessageModeImportant').tr(),
-              ),
-              DropdownItem<String>(
-                value: kChatEventMessageModeNone,
-                child: Text('settingsChatEventMessageModeNone').tr(),
-              ),
-            ],
-            valueListenable: ValueNotifier<String>(
-              settings.chatEventMessageMode,
-            ),
-            onChanged: (value) {
-              if (value == null) return;
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setChatEventMessageMode(value);
-            },
-            buttonStyleData: const ButtonStyleData(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              height: 40,
-              width: 140,
-            ),
-          ),
-        ),
-      ),
-
-      // Haptic feedback settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsNotifyWithHaptic').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.vibration),
-        trailing: Switch(
-          value: settings.notifyWithHaptic,
-          onChanged: (value) {
-            ref.read(appSettingsProvider.notifier).setNotifyWithHaptic(value);
-          },
-        ),
-      ),
-
-      // TTS settings
-      Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(listTileTheme: const ListTileThemeData(minLeadingWidth: 48)),
-        child: ExpansionTile(
-          title: Text('settingsTts').tr(),
-          tilePadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Symbols.record_voice_over),
-          children: [
-            ListTile(
-              title: Text('settingsEnableTts').tr(),
-              trailing: Switch(
-                value: settings.enableTts,
-                onChanged: (value) {
-                  ref.read(appSettingsProvider.notifier).setEnableTts(value);
-                },
-              ),
-            ),
-            _TtsVoiceSelector(settings: settings, ref: ref),
-            _TtsLanguageSelector(settings: settings, ref: ref),
-            ListTile(
-              title: Text('settingsTtsSpeechRate').tr(),
-              subtitle: SliderTheme(
-                data: SliderThemeData(year2023: true),
-                child: Slider(
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                  value: settings.ttsSpeechRate,
-                  min: 0.0,
-                  max: 1.0,
-                  divisions: 10,
-                  label: settings.ttsSpeechRate.toStringAsFixed(1),
-                  onChanged: (value) {
-                    ref
-                        .read(appSettingsProvider.notifier)
-                        .setTtsSpeechRate(value);
-                  },
-                ),
-              ),
-            ),
-            ListTile(
-              title: Text('settingsTtsPitch').tr(),
-              subtitle: SliderTheme(
-                data: SliderThemeData(year2023: true),
-                child: Slider(
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                  value: settings.ttsPitch,
-                  min: 0.5,
-                  max: 2.0,
-                  divisions: 15,
-                  label: settings.ttsPitch.toStringAsFixed(1),
-                  onChanged: (value) {
-                    ref.read(appSettingsProvider.notifier).setTtsPitch(value);
-                  },
-                ),
-              ),
-            ),
-            ListTile(
-              title: Text('settingsTtsVolume').tr(),
-              subtitle: SliderTheme(
-                data: SliderThemeData(year2023: true),
-                child: Slider(
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                  value: settings.ttsVolume,
-                  min: 0.0,
-                  max: 1.0,
-                  divisions: 10,
-                  label: '${(settings.ttsVolume * 100).round()}%',
-                  onChanged: (value) {
-                    ref.read(appSettingsProvider.notifier).setTtsVolume(value);
-                  },
-                ),
-              ),
-            ),
-            ListTile(
-              title: Text('settingsTtsTest').tr(),
-              trailing: const Icon(Icons.play_arrow),
-              onTap: () async {
-                final tts = FlutterTts();
-                await tts.setVolume(settings.ttsVolume);
-                await tts.setSpeechRate(settings.ttsSpeechRate);
-                await tts.setPitch(settings.ttsPitch);
-                if (settings.ttsLanguage.isNotEmpty) {
-                  await tts.setLanguage(settings.ttsLanguage);
-                }
-                if (settings.ttsVoice != null &&
-                    settings.ttsVoice!.isNotEmpty) {
-                  await tts.setVoice({
-                    'name': settings.ttsVoice!,
-                    'locale': settings.ttsLanguage,
-                  });
-                }
-                if (!kIsWeb) {
-                  await tts.setIosAudioCategory(
-                    IosTextToSpeechAudioCategory.ambient,
-                    [
-                      IosTextToSpeechAudioCategoryOptions.allowBluetooth,
-                      IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
-                      IosTextToSpeechAudioCategoryOptions.mixWithOthers,
-                    ],
-                    IosTextToSpeechAudioMode.voicePrompt,
-                  );
-                }
-                await tts.speak(
-                  'This is a test notification. Title: New message received. Subtitle: From John. Content: Hello, this is a test message.',
                 );
               },
             ),
           ],
-        ),
+        ],
       ),
+    );
 
-      // Default screen settings
-      ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsDefaultScreen').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.home),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton2<String>(
-            isExpanded: true,
-            items: [
-              DropdownItem<String>(
-                value: 'dashboard',
-                child: Text('dashboard').tr().fontSize(14),
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.link,
+        title: 'Connection',
+        children: [
+          ListTile(
+            isThreeLine: true,
+            minLeadingWidth: 48,
+            title: Text('settingsServerUrl').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.link),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  hintText: kNetworkServerDefault,
+                  suffixIcon: IconButton(
+                    icon: const Icon(Symbols.restart_alt),
+                    onPressed: () {
+                      controller.text = kNetworkServerDefault;
+                      prefs.setString(
+                        kNetworkServerStoreKey,
+                        kNetworkServerDefault,
+                      );
+                      ref.invalidate(serverUrlProvider);
+                      showSnackBar('settingsApplied'.tr());
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  isDense: true,
+                ),
+                onSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    prefs.setString(kNetworkServerStoreKey, value);
+                    ref.invalidate(serverUrlProvider);
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
               ),
-              DropdownItem<String>(
-                value: 'explore',
-                child: Text('explore').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'chat',
-                child: Text('chat').tr().fontSize(14),
-              ),
-              DropdownItem<String>(
-                value: 'account',
-                child: Text('account').tr().fontSize(14),
-              ),
-            ],
-            valueListenable: ValueNotifier<String>(
-              settings.defaultScreen ?? 'dashboard',
-            ),
-            onChanged: (String? value) {
-              if (value != null) {
-                ref.read(appSettingsProvider.notifier).setDefaultScreen(value);
-                showSnackBar('settingsApplied'.tr());
-              }
-            },
-            buttonStyleData: const ButtonStyleData(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              height: 40,
-              width: 140,
             ),
           ),
-        ),
-      ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsMediaProxy').tr(),
+            subtitle: Text('settingsMediaProxyHelper'.tr()),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.speed),
+            trailing: Switch(
+              value: settings.mediaProxyEnabled,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setMediaProxyEnabled(value);
+              },
+            ),
+          ),
+          if (user.value != null)
+            pools.when(
+              data: (data) {
+                final validPools = data;
+                final currentPoolId = resolveDefaultPoolId(
+                  ref.read(appSettingsProvider),
+                  data,
+                );
 
-      // Dash search engine settings
-      ListTile(
-        isThreeLine: true,
-        minLeadingWidth: 48,
-        title: Text('settingsDashSearchEngine').tr(),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.search),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: TextField(
-            controller: TextEditingController(text: settings.dashSearchEngine),
-            decoration: InputDecoration(
-              hintText: 'https://google.com/?q=%s',
-              helperText: 'settingsDashSearchEngineHelper'.tr(),
-              suffixIcon: IconButton(
-                icon: const Icon(Symbols.restart_alt),
-                onPressed: () {
+                return ListTile(
+                  isThreeLine: true,
+                  minLeadingWidth: 48,
+                  title: Text('settingsDefaultPool').tr(),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  leading: const Icon(Symbols.cloud),
+                  subtitle: Text(
+                    'settingsDefaultPoolHelper'.tr(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  trailing: DropdownButtonHideUnderline(
+                    child: DropdownButton2<String>(
+                      isExpanded: true,
+                      items: validPools.map((p) {
+                        return DropdownItem<String>(
+                          value: p.id,
+                          child: Tooltip(
+                            message: p.name,
+                            child: Text(
+                              p.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ).fontSize(14),
+                          ),
+                        );
+                      }).toList(),
+                      valueListenable: ValueNotifier<String?>(currentPoolId),
+                      onChanged: (value) {
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .setDefaultPoolId(value);
+                        showSnackBar('settingsApplied'.tr());
+                      },
+                      buttonStyleData: const ButtonStyleData(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 5,
+                        ),
+                        height: 40,
+                        width: 120,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              loading: () => const ListTile(
+                minLeadingWidth: 48,
+                title: Text('Loading pools...'),
+                leading: CircularProgressIndicator(),
+              ),
+              error: (err, st) => ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsDefaultPool').tr(),
+                subtitle: Text('Error: $err'),
+                leading: const Icon(Icons.error, color: Colors.red),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.volume_up,
+        title: 'Notifications',
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsSoundEffects').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.volume_up),
+            trailing: Switch(
+              value: settings.soundEffects,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setSoundEffects(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsFestivalFeatures').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.celebration),
+            trailing: Switch(
+              value: settings.festivalFeatures,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setFeativalFeatures(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsNotifyWithHaptic').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.vibration),
+            trailing: Switch(
+              value: settings.notifyWithHaptic,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setNotifyWithHaptic(value);
+              },
+            ),
+          ),
+          if (isDesktop)
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsFriendStatusDesktopNotification').tr(),
+              subtitle: Text(
+                'settingsFriendStatusDesktopNotificationHelper'.tr(),
+              ).fontSize(12),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.notifications_active),
+              trailing: Switch(
+                value: settings.friendStatusDesktopNotification,
+                onChanged: (value) {
                   ref
                       .read(appSettingsProvider.notifier)
-                      .setDashSearchEngine(null);
+                      .setFriendStatusDesktopNotification(value);
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.send,
+        title: 'Chat',
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsEnterToSend').tr(),
+            subtitle: isDesktop
+                ? Text('settingsEnterToSendDesktopHint').tr().fontSize(12)
+                : null,
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.send),
+            trailing: Switch(
+              value: settings.enterToSend,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setEnterToSend(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsGroupedChatList').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.chat),
+            trailing: Switch(
+              value: settings.groupedChatList,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setGroupedChatList(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: const Text('settingsShowChatEventMessages').tr(),
+            subtitle: const Text('ShowChatEventsMessagesHelper').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.info),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: kChatEventMessageModeVerbose,
+                    child: Text('settingsChatEventMessageModeVerbose').tr(),
+                  ),
+                  DropdownItem<String>(
+                    value: kChatEventMessageModeImportant,
+                    child: Text('settingsChatEventMessageModeImportant').tr(),
+                  ),
+                  DropdownItem<String>(
+                    value: kChatEventMessageModeNone,
+                    child: Text('settingsChatEventMessageModeNone').tr(),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.chatEventMessageMode,
+                ),
+                onChanged: (value) {
+                  if (value == null) return;
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setChatEventMessageMode(value);
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.record_voice_over,
+        title: 'Speech',
+        children: [
+          ListTile(
+            title: Text('settingsEnableTts').tr(),
+            trailing: Switch(
+              value: settings.enableTts,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setEnableTts(value);
+              },
+            ),
+          ),
+          _TtsVoiceSelector(settings: settings, ref: ref),
+          _TtsLanguageSelector(settings: settings, ref: ref),
+          ListTile(
+            title: Text('settingsTtsSpeechRate').tr(),
+            subtitle: SliderTheme(
+              data: SliderThemeData(year2023: true),
+              child: Slider(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                value: settings.ttsSpeechRate,
+                min: 0.0,
+                max: 1.0,
+                divisions: 10,
+                label: settings.ttsSpeechRate.toStringAsFixed(1),
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setTtsSpeechRate(value);
+                },
+              ),
+            ),
+          ),
+          ListTile(
+            title: Text('settingsTtsPitch').tr(),
+            subtitle: SliderTheme(
+              data: SliderThemeData(year2023: true),
+              child: Slider(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                value: settings.ttsPitch,
+                min: 0.5,
+                max: 2.0,
+                divisions: 15,
+                label: settings.ttsPitch.toStringAsFixed(1),
+                onChanged: (value) {
+                  ref.read(appSettingsProvider.notifier).setTtsPitch(value);
+                },
+              ),
+            ),
+          ),
+          ListTile(
+            title: Text('settingsTtsVolume').tr(),
+            subtitle: SliderTheme(
+              data: SliderThemeData(year2023: true),
+              child: Slider(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                value: settings.ttsVolume,
+                min: 0.0,
+                max: 1.0,
+                divisions: 10,
+                label: '${(settings.ttsVolume * 100).round()}%',
+                onChanged: (value) {
+                  ref.read(appSettingsProvider.notifier).setTtsVolume(value);
+                },
+              ),
+            ),
+          ),
+          ListTile(
+            title: Text('settingsTtsTest').tr(),
+            trailing: const Icon(Icons.play_arrow),
+            onTap: () async {
+              final tts = FlutterTts();
+              await tts.setVolume(settings.ttsVolume);
+              await tts.setSpeechRate(settings.ttsSpeechRate);
+              await tts.setPitch(settings.ttsPitch);
+              if (settings.ttsLanguage.isNotEmpty) {
+                await tts.setLanguage(settings.ttsLanguage);
+              }
+              if (settings.ttsVoice != null && settings.ttsVoice!.isNotEmpty) {
+                await tts.setVoice({
+                  'name': settings.ttsVoice!,
+                  'locale': settings.ttsLanguage,
+                });
+              }
+              if (!kIsWeb) {
+                await tts.setIosAudioCategory(
+                  IosTextToSpeechAudioCategory.ambient,
+                  [
+                    IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+                    IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+                    IosTextToSpeechAudioCategoryOptions.mixWithOthers,
+                  ],
+                  IosTextToSpeechAudioMode.voicePrompt,
+                );
+              }
+              await tts.speak(
+                'This is a test notification. Title: New message received. Subtitle: From John. Content: Hello, this is a test message.',
+              );
+            },
+          ),
+        ],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.tune,
+        title: 'General',
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsTransparentAppBar').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.blur_on),
+            trailing: Switch(
+              value: settings.appBarTransparent,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setAppBarTransparent(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsDataSavingMode').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.data_saver_on_rounded),
+            trailing: Switch(
+              value: settings.dataSavingMode,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setDataSavingMode(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsDisableAnimation').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.animation),
+            trailing: Switch(
+              value: settings.disableAnimation,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setDisableAnimation(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsDefaultScreen').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.home),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: 'dashboard',
+                    child: Text('dashboard').tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'explore',
+                    child: Text('explore').tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'chat',
+                    child: Text('chat').tr().fontSize(14),
+                  ),
+                  DropdownItem<String>(
+                    value: 'account',
+                    child: Text('account').tr().fontSize(14),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.defaultScreen ?? 'dashboard',
+                ),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setDefaultScreen(value);
+                    showSnackBar('settingsApplied'.tr());
+                  }
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+          ListTile(
+            isThreeLine: true,
+            minLeadingWidth: 48,
+            title: Text('settingsDashSearchEngine').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.search),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: TextField(
+                controller: TextEditingController(
+                  text: settings.dashSearchEngine,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'https://google.com/?q=%s',
+                  helperText: 'settingsDashSearchEngineHelper'.tr(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Symbols.restart_alt),
+                    onPressed: () {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .setDashSearchEngine(null);
+                      showSnackBar('settingsApplied'.tr());
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  isDense: true,
+                ),
+                onSubmitted: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setDashSearchEngine(value.isEmpty ? null : value);
                   showSnackBar('settingsApplied'.tr());
                 },
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              isDense: true,
             ),
-            onSubmitted: (value) {
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setDashSearchEngine(value.isEmpty ? null : value);
-              showSnackBar('settingsApplied'.tr());
-            },
           ),
-        ),
+        ],
       ),
-    ];
+    );
 
-    // Desktop-specific settings
-    final desktopSettings = !isDesktop
-        ? <Widget>[]
-        : [
+    if (isDesktop) {
+      categories.add(
+        _SettingCategory(
+          icon: Symbols.desktop_windows,
+          title: 'Desktop',
+          children: [
             ListTile(
               minLeadingWidth: 48,
               title: Text('settingsWindowOpacity').tr(),
@@ -1170,108 +1243,78 @@ class SettingsScreen extends HookConsumerWidget {
                   ),
                 ),
               ),
-            ),            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsFriendStatusDesktopNotification').tr(),
-              subtitle: Text('settingsFriendStatusDesktopNotificationHelper'.tr())
-                  .fontSize(12),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.notifications_active),
-              trailing: Switch(
-                value: settings.friendStatusDesktopNotification,
-                onChanged: (value) {
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .setFriendStatusDesktopNotification(value);
-                },
-              ),
             ),
+          ],
+        ),
+      );
+    }
 
-          ];
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.storage,
+        title: 'Storage',
+        children: [_StorageSettingsSection()],
+      ),
+    );
 
-    // Storage settings
-    final storageSettings = [_StorageSettingsSection()];
+    Widget buildSettingsList(BoxConstraints constraints) {
+      final selectedIdx = selectedCategoryIdx.value.clamp(
+        0,
+        categories.length - 1,
+      );
+      final selectedCategory = categories[selectedIdx];
 
-    // Create a responsive layout based on screen width
-    Widget buildSettingsList() {
       if (isWide) {
-        // Two-column layout for wide screens
-        return ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 920),
+        return SizedBox(
+          height: constraints.maxHeight,
           child: Row(
-            spacing: 16,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Column(
-                  spacing: 16,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SettingsSection(
-                      title: 'settingsAppearance'.tr(),
-                      children: appearanceSettings,
-                    ),
-                    _SettingsSection(
-                      title: 'settingsServer'.tr(),
-                      children: serverSettings,
-                    ),
-                  ],
+              Flexible(
+                flex: 1,
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: categories.length,
+                  itemBuilder: (context, i) {
+                    final category = categories[i];
+                    return ListTile(
+                      selected: selectedIdx == i,
+                      selectedTileColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withOpacity(0.3),
+                      leading: Icon(category.icon),
+                      title: Text(category.title),
+                      onTap: () => selectedCategoryIdx.value = i,
+                    );
+                  },
                 ),
               ),
-              Expanded(
-                child: Column(
-                  spacing: 16,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SettingsSection(
-                      title: 'settingsBehavior'.tr(),
-                      children: behaviorSettings,
-                    ),
-                    if (desktopSettings.isNotEmpty)
-                      _SettingsSection(
-                        title: 'settingsDesktop'.tr(),
-                        children: desktopSettings,
-                      ),
-                    _SettingsSection(
-                      title: 'settingsStorage'.tr(),
-                      children: storageSettings,
-                    ),
-                  ],
+              const VerticalDivider(width: 1),
+              Flexible(
+                flex: 2,
+                child: SingleChildScrollView(
+                  child: _SettingsSection(
+                    title: selectedCategory.title,
+                    children: selectedCategory.children,
+                  ),
                 ),
               ),
             ],
-          ).padding(horizontal: 16),
-        ).center();
-      } else {
-        // Single column layout for narrow screens
-        return Column(
-          spacing: 16,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SettingsSection(
-              title: 'settingsAppearance'.tr(),
-              children: appearanceSettings,
-            ),
-            _SettingsSection(
-              title: 'settingsServer'.tr(),
-              children: serverSettings,
-            ),
-            _SettingsSection(
-              title: 'settingsBehavior'.tr(),
-              children: behaviorSettings,
-            ),
-            if (desktopSettings.isNotEmpty)
-              _SettingsSection(
-                title: 'settingsDesktop'.tr(),
-                children: desktopSettings,
-              ),
-            _SettingsSection(
-              title: 'settingsStorage'.tr(),
-              children: storageSettings,
-            ),
-          ],
-        ).padding(horizontal: 16);
+          ),
+        );
       }
+
+      return Column(
+        spacing: 16,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final category in categories)
+            _SettingsSection(
+              title: category.title,
+              children: category.children,
+            ),
+        ],
+      );
     }
 
     return AppScaffold(
@@ -1280,12 +1323,28 @@ class SettingsScreen extends HookConsumerWidget {
         title: Text('settings').tr(),
         leading: const AutoLeadingButton(),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: buildSettingsList(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.zero,
+            child: buildSettingsList(constraints),
+          );
+        },
       ),
     );
   }
+}
+
+class _SettingCategory {
+  final IconData icon;
+  final String title;
+  final List<Widget> children;
+
+  _SettingCategory({
+    required this.icon,
+    required this.title,
+    required this.children,
+  });
 }
 
 // Helper widget for displaying settings sections with titles
@@ -1297,25 +1356,22 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          ...children,
-          const SizedBox(height: 16),
-        ],
-      ),
+        ),
+        ...children,
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
