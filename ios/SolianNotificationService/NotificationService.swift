@@ -88,13 +88,13 @@ class NotificationService: UNNotificationServiceExtension {
             if let updatedContent = try? request.content.updating(from: intent) {
                 if let mutableContent = updatedContent.mutableCopy() as? UNMutableNotificationContent {
                     mutableContent.categoryIdentifier = "CHAT_MESSAGE"
-                    self.attachNotificationMediaIfNeeded(to: mutableContent, meta: meta)
+                    self.attachNotificationMediaIfNeeded(to: mutableContent, meta: meta, includeProfilePicture: false)
                 } else {
                     self.contentHandler?(updatedContent)
                 }
             } else {
                 content.categoryIdentifier = "CHAT_MESSAGE"
-                self.attachNotificationMediaIfNeeded(to: content, meta: meta)
+                self.attachNotificationMediaIfNeeded(to: content, meta: meta, includeProfilePicture: false)
             }
         }
 
@@ -127,12 +127,12 @@ class NotificationService: UNNotificationServiceExtension {
         attachNotificationMediaIfNeeded(to: content, meta: meta)
     }
 
-    private func attachNotificationMediaIfNeeded(to content: UNMutableNotificationContent, meta: [AnyHashable: Any]) {
+    private func attachNotificationMediaIfNeeded(to content: UNMutableNotificationContent, meta: [AnyHashable: Any], includeProfilePicture: Bool = true) {
         if let imagesIdentifier = meta["images"] as? [String], !imagesIdentifier.isEmpty {
             attachMedia(to: content, identifiers: imagesIdentifier, fileType: UTType.webP, doScaleDown: true)
         } else if let imageIdentifier = meta["image"] as? String {
             attachMedia(to: content, identifiers: [imageIdentifier], fileType: UTType.webP, doScaleDown: true)
-        } else if let pfpIdentifier = meta["pfp"] as? String {
+        } else if includeProfilePicture, let pfpIdentifier = meta["pfp"] as? String {
             attachMedia(to: content, identifiers: [pfpIdentifier], fileType: UTType.webP, doScaleDown: true)
         } else {
             contentHandler?(content)
