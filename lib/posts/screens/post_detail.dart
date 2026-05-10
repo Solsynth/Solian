@@ -3,12 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/services/time.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -45,21 +45,16 @@ Future<SnPost?> post(Ref ref, String id) async {
   return await client.sphere.getPost(id);
 }
 
-final postStateProvider =
-    NotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
-      PostState.new,
-    );
+final postStateProvider = NotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(PostState.new);
 
 class PostState extends Notifier<AsyncValue<SnPost?>> {
   final String arg;
+
   PostState(this.arg);
 
   @override
   AsyncValue<SnPost?> build() {
-    ref.listen<AsyncValue<SnPost?>>(
-      postProvider(arg),
-      (_, next) => state = next,
-    );
+    ref.listen<AsyncValue<SnPost?>>(postProvider(arg), (_, next) => state = next);
     return const AsyncValue.loading();
   }
 
@@ -86,32 +81,41 @@ class CollectionNeighborArgs {
     required this.postId,
     required this.isNext,
   });
+
+  @override
+  bool operator ==(Object other) {
+    return other is CollectionNeighborArgs &&
+        other.publisherName == publisherName &&
+        other.slug == slug &&
+        other.postId == postId &&
+        other.isNext == isNext;
+  }
+
+  @override
+  int get hashCode => Object.hash(publisherName, slug, postId, isNext);
 }
 
-final collectionNeighborProvider =
-    FutureProvider.family<SnPost?, CollectionNeighborArgs>(
-  (ref, args) async {
-    final client = ref.watch(solarNetworkClientProvider);
-    try {
-      return args.isNext
-          ? await client.sphere.getPublisherCollectionNextPost(
-              publisherName: args.publisherName,
-              slug: args.slug,
-              postId: args.postId,
-            )
-          : await client.sphere.getPublisherCollectionPrevPost(
-              publisherName: args.publisherName,
-              slug: args.slug,
-              postId: args.postId,
-            );
-    } catch (err) {
-      if (err is DioException && err.response?.statusCode == 404) {
-        return null;
-      }
-      rethrow;
+final collectionNeighborProvider = FutureProvider.family<SnPost?, CollectionNeighborArgs>((ref, args) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  try {
+    return args.isNext
+        ? await client.sphere.getPublisherCollectionNextPost(
+            publisherName: args.publisherName,
+            slug: args.slug,
+            postId: args.postId,
+          )
+        : await client.sphere.getPublisherCollectionPrevPost(
+            publisherName: args.publisherName,
+            slug: args.slug,
+            postId: args.postId,
+          );
+  } catch (err) {
+    if (err is DioException && err.response?.statusCode == 404) {
+      return null;
     }
-  },
-);
+    rethrow;
+  }
+});
 
 const _postDetailMaxWidth = 640.0;
 
@@ -181,20 +185,15 @@ class PostActionButtons extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
-    final isAuthor =
-        user.value != null && user.value?.id == post.publisher?.accountId;
+    final isAuthor = user.value != null && user.value?.id == post.publisher?.accountId;
 
     String formatScore(int score) {
       if (score >= 1000000) {
         double value = score / 1000000;
-        return value % 1 == 0
-            ? '${value.toInt()}m'
-            : '${value.toStringAsFixed(1)}m';
+        return value % 1 == 0 ? '${value.toInt()}m' : '${value.toStringAsFixed(1)}m';
       } else if (score >= 1000) {
         double value = score / 1000;
-        return value % 1 == 0
-            ? '${value.toInt()}k'
-            : '${value.toStringAsFixed(1)}k';
+        return value % 1 == 0 ? '${value.toInt()}k' : '${value.toStringAsFixed(1)}k';
       } else {
         return score.toString();
       }
@@ -209,17 +208,13 @@ class PostActionButtons extends HookConsumerWidget {
           child: IconButton(
             onPressed: () {
               if (post.type == 1) {
-                context.router.push(ArticleEditRoute(id: post.id)).then((
-                  value,
-                ) {
+                context.router.push(ArticleEditRoute(id: post.id)).then((value) {
                   if (value != null) {
                     onRefresh?.call();
                   }
                 });
               } else {
-                PostComposeDialog.show(context, originalPost: post).then((
-                  value,
-                ) {
+                PostComposeDialog.show(context, originalPost: post).then((value) {
                   if (value == true) {
                     onRefresh?.call();
                   }
@@ -236,11 +231,7 @@ class PostActionButtons extends HookConsumerWidget {
           message: 'delete'.tr(),
           child: IconButton(
             onPressed: () {
-              showConfirmAlert(
-                'deletePostHint'.tr(),
-                'deletePost'.tr(),
-                isDanger: true,
-              ).then((confirm) {
+              showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr(), isDanger: true).then((confirm) {
                 if (confirm) {
                   final client = ref.watch(solarNetworkClientProvider);
                   client.sphere
@@ -276,9 +267,7 @@ class PostActionButtons extends HookConsumerWidget {
                   }
                 });
               } else {
-                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
-                  confirm,
-                ) async {
+                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((confirm) async {
                   if (confirm) {
                     final client = ref.watch(solarNetworkClientProvider);
                     try {
@@ -294,10 +283,7 @@ class PostActionButtons extends HookConsumerWidget {
                 });
               }
             },
-            icon: Icon(
-              post.pinMode == null ? Symbols.keep : Symbols.keep_off,
-              size: 18,
-            ),
+            icon: Icon(post.pinMode == null ? Symbols.keep : Symbols.keep_off, size: 18),
           ),
         ),
       );
@@ -308,10 +294,7 @@ class PostActionButtons extends HookConsumerWidget {
         message: 'reply'.tr(),
         child: IconButton(
           onPressed: () {
-            PostComposeDialog.show(
-              context,
-              initialState: PostComposeInitialState(replyingTo: post),
-            );
+            PostComposeDialog.show(context, initialState: PostComposeInitialState(replyingTo: post));
           },
           icon: const Icon(Symbols.reply, size: 18),
         ),
@@ -323,10 +306,7 @@ class PostActionButtons extends HookConsumerWidget {
         message: 'forward'.tr(),
         child: IconButton(
           onPressed: () {
-            PostComposeDialog.show(
-              context,
-              initialState: PostComposeInitialState(forwardingTo: post),
-            );
+            PostComposeDialog.show(context, initialState: PostComposeInitialState(forwardingTo: post));
           },
           icon: const Icon(Symbols.forward, size: 18),
         ),
@@ -335,9 +315,7 @@ class PostActionButtons extends HookConsumerWidget {
 
     actions.add(
       Tooltip(
-        message: post.awardedScore > 0
-            ? '${formatScore(post.awardedScore)} pts'
-            : 'award'.tr(),
+        message: post.awardedScore > 0 ? '${formatScore(post.awardedScore)} pts' : 'award'.tr(),
         child: IconButton(
           onPressed: () {
             showModalBottomSheet(
@@ -403,9 +381,7 @@ class PostActionButtons extends HookConsumerWidget {
     return Padding(
       padding: noBottomPadding
           ? renderingPadding
-          : renderingPadding.copyWith(
-              bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
-            ),
+          : renderingPadding.copyWith(bottom: 4 + renderingPadding.vertical + renderingPadding.bottom),
       child: Wrap(
         spacing: 2,
         runSpacing: 2,
@@ -429,95 +405,159 @@ class PostCollectionNavigation extends HookConsumerWidget {
     if (collections.isEmpty || publisherName == null || publisherName.isEmpty) {
       return const SizedBox.shrink();
     }
-
-    final selectedSlug = useState<String>(collections.first.slug);
-    final selectedCollection = collections.firstWhere(
-      (c) => c.slug == selectedSlug.value,
-      orElse: () => collections.first,
-    );
-
-    final prevNeighbor = ref.watch(
-      collectionNeighborProvider(
-        CollectionNeighborArgs(
-          publisherName: publisherName,
-          slug: selectedCollection.slug,
-          postId: post.id,
-          isNext: false,
-        ),
-      ),
-    );
-    final nextNeighbor = ref.watch(
-      collectionNeighborProvider(
-        CollectionNeighborArgs(
-          publisherName: publisherName,
-          slug: selectedCollection.slug,
-          postId: post.id,
-          isNext: true,
-        ),
-      ),
-    );
-
-    Widget buildNavButton({
-      required String label,
-      required AsyncValue<SnPost?> value,
-      required IconData icon,
-    }) {
-      return value.when(
-        data: (neighbor) => FilledButton.tonalIcon(
-          onPressed: neighbor == null
-              ? null
-              : () => context.router.push(PostDetailRoute(id: neighbor.id)),
-          icon: Icon(icon),
-          label: Text(label),
-        ),
-        loading: () => const SizedBox(
-          width: double.infinity,
-          child: LinearProgressIndicator(minHeight: 2),
-        ),
-        error: (_, _) => const SizedBox.shrink(),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('postCollections').tr().fontSize(12).opacity(0.7),
         const Gap(8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final collection in collections)
-              ChoiceChip(
-                label: Text(
-                  collection.name?.isNotEmpty == true ? collection.name! : collection.slug,
-                ),
-                selected: selectedSlug.value == collection.slug,
-                onSelected: (_) => selectedSlug.value = collection.slug,
-              ),
-          ],
+        for (final collection in collections) ...[
+          _PostCollectionNeighborGroup(post: post, collection: collection, publisherName: publisherName),
+          if (collection != collections.last) const Gap(12),
+        ],
+      ],
+    );
+  }
+}
+
+class _PostCollectionNeighborGroup extends ConsumerWidget {
+  final SnPost post;
+  final SnPostCollection collection;
+  final String publisherName;
+
+  const _PostCollectionNeighborGroup({required this.post, required this.collection, required this.publisherName});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final previousPost = ref.watch(
+      collectionNeighborProvider(
+        CollectionNeighborArgs(publisherName: publisherName, slug: collection.slug, postId: post.id, isNext: true),
+      ),
+    );
+    final nextPost = ref.watch(
+      collectionNeighborProvider(
+        CollectionNeighborArgs(publisherName: publisherName, slug: collection.slug, postId: post.id, isNext: false),
+      ),
+    );
+
+    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: theme.textTheme.titleSmall),
+        const Gap(2),
+        Text(
+          'A collection of collections',
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
-        const Gap(12),
-        Row(
-          children: [
-            Expanded(
-              child: buildNavButton(
-                label: 'collectionPrevious'.tr(),
-                value: prevNeighbor,
-                icon: Symbols.chevron_left,
+        const Gap(8),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 8,
+            children: [
+              Expanded(
+                child: _PostNeighborCard(
+                  label: 'Previous post',
+                  post: previousPost.value,
+                  emptyTitle: 'No post',
+                  emptyDescription: 'This is the earliest one',
+                  alignRight: false,
+                ),
+              ),
+              Expanded(
+              child: _PostNeighborCard(
+                label: 'Next post',
+                post: nextPost.value,
+                emptyTitle: 'No post',
+                emptyDescription: 'The author has not published the next post yet.',
+                alignRight: true,
               ),
             ),
-            const Gap(8),
-            Expanded(
-              child: buildNavButton(
-                label: 'collectionNext'.tr(),
-                value: nextNeighbor,
-                icon: Symbols.chevron_right,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _PostNeighborCard extends StatelessWidget {
+  final String label;
+  final SnPost? post;
+  final String emptyTitle;
+  final String emptyDescription;
+  final bool alignRight;
+
+  const _PostNeighborCard({
+    required this.label,
+    required this.post,
+    required this.emptyTitle,
+    required this.emptyDescription,
+    required this.alignRight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final postItem = post;
+    final title = postItem == null ? emptyTitle : (postItem.title?.isNotEmpty == true ? postItem.title! : 'Untitled');
+    final subtitle = postItem?.description?.trim();
+    final publisherName = postItem?.publisher?.nick ?? postItem?.publisher?.name ?? postItem?.publisherId;
+    final publishedAt = postItem?.publishedAt ?? postItem?.createdAt;
+    final crossAxisAlignment = alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final textAlign = alignRight ? TextAlign.right : TextAlign.left;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: postItem == null ? null : () {
+          context.router.replace(PostDetailRoute(id: postItem.id));
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: crossAxisAlignment,
+            children: [
+              Text(
+                label,
+                textAlign: textAlign,
+                style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
+              ),
+              const Gap(4),
+              Text(title, textAlign: textAlign, style: theme.textTheme.titleSmall),
+              if (subtitle != null && subtitle.isNotEmpty) ...[
+                const Gap(4),
+                Text(
+                  subtitle,
+                  textAlign: textAlign,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ] else if (postItem == null) ...[
+                const Gap(4),
+                Text(
+                  emptyDescription,
+                  textAlign: textAlign,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+              const Gap(6),
+              if (publisherName != null || publishedAt != null)
+                Text(
+                  [if (publisherName != null) publisherName, if (publishedAt != null) publishedAt.formatRelative(context)].join(' · '),
+                  textAlign: textAlign,
+                  style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -540,34 +580,21 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
     final user = ref.watch(userInfoProvider);
 
     Widget buildMenuItem({required String label, required IconData icon}) {
-      return Row(
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 12),
-          Text(label),
-        ],
-      );
+      return Row(children: [Icon(icon, size: 18), const SizedBox(width: 12), Text(label)]);
     }
 
     void Function() getMenuAction(String action) {
       switch (action) {
         case 'edit':
           return () async {
-            final result = await PostComposeDialog.show(
-              context,
-              originalPost: post,
-            );
+            final result = await PostComposeDialog.show(context, originalPost: post);
             if (result != null) {
               onRefresh.call();
             }
           };
         case 'delete':
           return () {
-            showConfirmAlert(
-              'deletePostHint'.tr(),
-              'deletePost'.tr(),
-              isDanger: true,
-            ).then((confirm) {
+            showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr(), isDanger: true).then((confirm) {
               if (confirm) {
                 final client = ref.watch(solarNetworkClientProvider);
                 client.sphere
@@ -584,9 +611,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           };
         case 'copyLink':
           return () {
-            Clipboard.setData(
-              ClipboardData(text: 'https://solian.app/posts/${post.id}'),
-            );
+            Clipboard.setData(ClipboardData(text: 'https://solian.app/posts/${post.id}'));
           };
         case 'reply':
           return () async {
@@ -622,9 +647,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           };
         case 'unpin':
           return () {
-            showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
-              confirm,
-            ) async {
+            showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((confirm) async {
               if (confirm) {
                 final client = ref.watch(solarNetworkClientProvider);
                 try {
@@ -680,18 +703,14 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           };
         case 'report':
           return () {
-            showAbuseReportSheet(
-              context,
-              resourceIdentifier: 'post:${post.id}',
-            );
+            showAbuseReportSheet(context, resourceIdentifier: 'post:${post.id}');
           };
         default:
           return () {};
       }
     }
 
-    final isAuthor =
-        user.value != null && user.value?.id == post.publisher?.accountId;
+    final isAuthor = user.value != null && user.value?.id == post.publisher?.accountId;
 
     final postMenuItems = <PopupMenuEntry<String>>[
       if (isAuthor)
@@ -744,18 +763,12 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
       if (!kIsWeb)
         PopupMenuItem<String>(
           value: 'sharePhoto',
-          child: buildMenuItem(
-            label: 'sharePostPhoto'.tr(),
-            icon: Symbols.share_reviews,
-          ),
+          child: buildMenuItem(label: 'sharePostPhoto'.tr(), icon: Symbols.share_reviews),
         ),
       if (post.fediverseUri != null)
         PopupMenuItem<String>(
           value: 'openBrowser',
-          child: buildMenuItem(
-            label: 'openInBrowser'.tr(),
-            icon: Symbols.open_in_new,
-          ),
+          child: buildMenuItem(label: 'openInBrowser'.tr(), icon: Symbols.open_in_new),
         ),
       const PopupMenuDivider(),
       PopupMenuItem<String>(
@@ -782,11 +795,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: CloudFileList(
-                files: post.attachments,
-                disableConstraint: true,
-                padding: EdgeInsets.zero,
-              ),
+              child: CloudFileList(files: post.attachments, disableConstraint: true, padding: EdgeInsets.zero),
             ),
           ),
         ),
@@ -808,19 +817,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
+                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      16,
-                                      16,
-                                      0,
-                                    ),
+                                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         PostHeader(
                                           item: post,
@@ -838,17 +839,13 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           hideAttachments: true,
                                           textScale: post.type == 1 ? 1.2 : 1.1,
                                         ),
-                                        if (post.publisherCollections.isNotEmpty)
-                                          const Gap(8),
-                                        if (post.publisherCollections.isNotEmpty)
-                                          PostCollectionNavigation(post: post),
+                                        if (post.publisherCollections.isNotEmpty) const Gap(8),
+                                        if (post.publisherCollections.isNotEmpty) PostCollectionNavigation(post: post),
                                         if (post.embedView != null)
                                           EmbedViewRenderer(
                                             embedView: post.embedView!,
                                             maxHeight: 400,
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
+                                            borderRadius: BorderRadius.circular(12),
                                           ).padding(vertical: 8),
                                         PostReactionList(
                                           padding: EdgeInsets.only(top: 8),
@@ -856,20 +853,10 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           reactions: post.reactionsCount,
                                           reactionsMade: post.reactionsMade,
                                           onReact: (symbol, attitude, delta) {
-                                            final reactionsCount =
-                                                Map<String, int>.from(
-                                                  post.reactionsCount,
-                                                );
-                                            reactionsCount[symbol] =
-                                                (reactionsCount[symbol] ?? 0) +
-                                                delta;
-                                            final reactionsMade =
-                                                Map<String, bool>.from(
-                                                  post.reactionsMade,
-                                                );
-                                            reactionsMade[symbol] = delta == 1
-                                                ? true
-                                                : false;
+                                            final reactionsCount = Map<String, int>.from(post.reactionsCount);
+                                            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
+                                            final reactionsMade = Map<String, bool>.from(post.reactionsMade);
+                                            reactionsMade[symbol] = delta == 1 ? true : false;
                                             onUpdate.call(
                                               post.copyWith(
                                                 reactionsCount: reactionsCount,
@@ -878,32 +865,25 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                             );
                                           },
                                         ),
-                                         PostActionButtons(
-                                              post: post,
-                                              noBottomPadding: true,
-                                              renderingPadding:
-                                                  const EdgeInsets.only(top: 8),
-                                              onRefresh: onRefresh,
-                                              onUpdate: onUpdate,
-                                            ).alignment(Alignment.centerLeft),
-                                          if (post.realm != null)
-                                            _PostRealmBadge(
-                                              realm: post.realm!,
-                                            ).padding(top: 8),
-                                          ],
-                                        ),
-                                      ),
+                                        PostActionButtons(
+                                          post: post,
+                                          noBottomPadding: true,
+                                          renderingPadding: const EdgeInsets.only(top: 8),
+                                          onRefresh: onRefresh,
+                                          onUpdate: onUpdate,
+                                        ).alignment(Alignment.centerLeft),
+                                        if (post.realm != null) _PostRealmBadge(realm: post.realm!).padding(top: 8),
+                                      ],
                                     ),
                                   ),
                                 ),
+                              ),
+                            ),
                             SliverFillRemaining(
                               hasScrollBody: true,
                               child: DefaultTabController(
                                 length: 4,
-                                child: PostInteractionsTabs(
-                                  postId: postId,
-                                  maxWidth: _postDetailMaxWidth,
-                                ),
+                                child: PostInteractionsTabs(postId: postId, maxWidth: _postDetailMaxWidth),
                               ),
                             ),
                           ],
@@ -923,9 +903,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                     child: PostQuickReply(
                       parent: post,
                       onPosted: () {
-                        ref
-                            .read(postRepliesProvider(postId).notifier)
-                            .refresh();
+                        ref.read(postRepliesProvider(postId).notifier).refresh();
                       },
                     ),
                   ).center(),
@@ -941,6 +919,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
 @RoutePage()
 class PostDetailScreen extends HookConsumerWidget {
   final String id;
+
   const PostDetailScreen({super.key, @PathParam('id') required this.id});
 
   @override
@@ -949,38 +928,22 @@ class PostDetailScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(
-        leading: const AutoLeadingButton(),
-        title: Text('postDetail').tr(),
-      ),
+      appBar: AppBar(leading: const AutoLeadingButton(), title: Text('postDetail').tr()),
       body: postState.when(
         data: (post) {
           final postItem = post!;
           final thumbnail = _getPostThumbnail(postItem);
-          final isMediaPostLayout =
-              isWideScreen(context) && _isMediaPost(postItem);
+          final isMediaPostLayout = isWideScreen(context) && _isMediaPost(postItem);
 
-          Widget buildMenuItem({
-            required String label,
-            required IconData icon,
-          }) {
-            return Row(
-              children: [
-                Icon(icon, size: 18),
-                const SizedBox(width: 12),
-                Text(label),
-              ],
-            );
+          Widget buildMenuItem({required String label, required IconData icon}) {
+            return Row(children: [Icon(icon, size: 18), const SizedBox(width: 12), Text(label)]);
           }
 
           void Function() getMenuAction(String action) {
             switch (action) {
               case 'edit':
                 return () async {
-                  final result = await PostComposeDialog.show(
-                    context,
-                    originalPost: postItem,
-                  );
+                  final result = await PostComposeDialog.show(context, originalPost: postItem);
                   if (result != null) {
                     ref.invalidate(postProvider(id));
                     ref.read(postRepliesProvider(id).notifier).refresh();
@@ -988,11 +951,7 @@ class PostDetailScreen extends HookConsumerWidget {
                 };
               case 'delete':
                 return () {
-                  showConfirmAlert(
-                    'deletePostHint'.tr(),
-                    'deletePost'.tr(),
-                    isDanger: true,
-                  ).then((confirm) {
+                  showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr(), isDanger: true).then((confirm) {
                     if (confirm) {
                       final client = ref.watch(solarNetworkClientProvider);
                       client.sphere
@@ -1003,20 +962,14 @@ class PostDetailScreen extends HookConsumerWidget {
                           })
                           .then((_) {
                             ref.invalidate(postProvider(id));
-                            ref
-                                .read(postRepliesProvider(id).notifier)
-                                .refresh();
+                            ref.read(postRepliesProvider(id).notifier).refresh();
                           });
                     }
                   });
                 };
               case 'copyLink':
                 return () {
-                  Clipboard.setData(
-                    ClipboardData(
-                      text: 'https://solian.app/posts/${postItem.id}',
-                    ),
-                  );
+                  Clipboard.setData(ClipboardData(text: 'https://solian.app/posts/${postItem.id}'));
                 };
               case 'reply':
                 return () async {
@@ -1033,9 +986,7 @@ class PostDetailScreen extends HookConsumerWidget {
                 return () async {
                   final result = await PostComposeDialog.show(
                     context,
-                    initialState: PostComposeInitialState(
-                      forwardingTo: postItem,
-                    ),
+                    initialState: PostComposeInitialState(forwardingTo: postItem),
                   );
                   if (result != null) {
                     ref.invalidate(postProvider(id));
@@ -1050,32 +1001,26 @@ class PostDetailScreen extends HookConsumerWidget {
                     builder: (context) => PostPinSheet(post: postItem),
                   ).then((value) {
                     if (value is int) {
-                      ref
-                          .read(postStateProvider(id).notifier)
-                          .updatePost(postItem.copyWith(pinMode: value));
+                      ref.read(postStateProvider(id).notifier).updatePost(postItem.copyWith(pinMode: value));
                     }
                   });
                 };
               case 'unpin':
                 return () {
-                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then(
-                    (confirm) async {
-                      if (confirm) {
-                        final client = ref.watch(solarNetworkClientProvider);
-                        try {
-                          if (context.mounted) showLoadingModal(context);
-                          await client.sphere.unpinPost(postItem.id);
-                          ref
-                              .read(postStateProvider(id).notifier)
-                              .updatePost(postItem.copyWith(pinMode: null));
-                        } catch (err) {
-                          showErrorAlert(err);
-                        } finally {
-                          if (context.mounted) hideLoadingModal(context);
-                        }
+                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((confirm) async {
+                    if (confirm) {
+                      final client = ref.watch(solarNetworkClientProvider);
+                      try {
+                        if (context.mounted) showLoadingModal(context);
+                        await client.sphere.unpinPost(postItem.id);
+                        ref.read(postStateProvider(id).notifier).updatePost(postItem.copyWith(pinMode: null));
+                      } catch (err) {
+                        showErrorAlert(err);
+                      } finally {
+                        if (context.mounted) hideLoadingModal(context);
                       }
-                    },
-                  );
+                    }
+                  });
                 };
               case 'award':
                 return () {
@@ -1119,10 +1064,7 @@ class PostDetailScreen extends HookConsumerWidget {
                 };
               case 'report':
                 return () {
-                  showAbuseReportSheet(
-                    context,
-                    resourceIdentifier: 'post:${postItem.id}',
-                  );
+                  showAbuseReportSheet(context, resourceIdentifier: 'post:${postItem.id}');
                 };
               default:
                 return () {};
@@ -1130,9 +1072,7 @@ class PostDetailScreen extends HookConsumerWidget {
           }
 
           final user = ref.watch(userInfoProvider);
-          final isAuthor =
-              user.value != null &&
-              user.value?.id == postItem.publisher?.accountId;
+          final isAuthor = user.value != null && user.value?.id == postItem.publisher?.accountId;
 
           final postMenuItems = <PopupMenuEntry<String>>[
             if (isAuthor)
@@ -1143,10 +1083,7 @@ class PostDetailScreen extends HookConsumerWidget {
             if (isAuthor)
               PopupMenuItem<String>(
                 value: 'delete',
-                child: buildMenuItem(
-                  label: 'delete'.tr(),
-                  icon: Symbols.delete,
-                ),
+                child: buildMenuItem(label: 'delete'.tr(), icon: Symbols.delete),
               ),
             if (isAuthor) const PopupMenuDivider(),
             PopupMenuItem<String>(
@@ -1159,10 +1096,7 @@ class PostDetailScreen extends HookConsumerWidget {
             ),
             PopupMenuItem<String>(
               value: 'forward',
-              child: buildMenuItem(
-                label: 'forward'.tr(),
-                icon: Symbols.forward,
-              ),
+              child: buildMenuItem(label: 'forward'.tr(), icon: Symbols.forward),
             ),
             if (isAuthor && postItem.pinMode == null)
               PopupMenuItem<String>(
@@ -1172,10 +1106,7 @@ class PostDetailScreen extends HookConsumerWidget {
             else if (isAuthor && postItem.pinMode != null)
               PopupMenuItem<String>(
                 value: 'unpin',
-                child: buildMenuItem(
-                  label: 'unpinPost'.tr(),
-                  icon: Symbols.keep_off,
-                ),
+                child: buildMenuItem(label: 'unpinPost'.tr(), icon: Symbols.keep_off),
               ),
             PopupMenuItem<String>(
               value: 'award',
@@ -1194,26 +1125,17 @@ class PostDetailScreen extends HookConsumerWidget {
             if (!kIsWeb)
               PopupMenuItem<String>(
                 value: 'sharePhoto',
-                child: buildMenuItem(
-                  label: 'sharePostPhoto'.tr(),
-                  icon: Symbols.share_reviews,
-                ),
+                child: buildMenuItem(label: 'sharePostPhoto'.tr(), icon: Symbols.share_reviews),
               ),
             if (postItem.fediverseUri != null)
               PopupMenuItem<String>(
                 value: 'openBrowser',
-                child: buildMenuItem(
-                  label: 'openInBrowser'.tr(),
-                  icon: Symbols.open_in_new,
-                ),
+                child: buildMenuItem(label: 'openInBrowser'.tr(), icon: Symbols.open_in_new),
               ),
             const PopupMenuDivider(),
             PopupMenuItem<String>(
               value: 'report',
-              child: buildMenuItem(
-                label: 'abuseReport'.tr(),
-                icon: Symbols.flag,
-              ),
+              child: buildMenuItem(label: 'abuseReport'.tr(), icon: Symbols.flag),
             ),
           ];
 
@@ -1241,9 +1163,7 @@ class PostDetailScreen extends HookConsumerWidget {
                         post: postItem,
                         postId: id,
                         onUpdate: (newItem) {
-                          ref
-                              .read(postStateProvider(id).notifier)
-                              .updatePost(newItem);
+                          ref.read(postStateProvider(id).notifier).updatePost(newItem);
                         },
                         onRefresh: () {
                           ref.invalidate(postProvider(id));
@@ -1256,13 +1176,9 @@ class PostDetailScreen extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
+                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
                                   child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(12),
-                                    ),
+                                    borderRadius: const BorderRadius.all(Radius.circular(12)),
                                     child: CloudFileList(
                                       files: [thumbnail],
                                       padding: EdgeInsets.zero,
@@ -1275,24 +1191,15 @@ class PostDetailScreen extends HookConsumerWidget {
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: _postDetailMaxWidth,
-                                ),
+                                constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
                                 child: PostItem(
                                   item: postItem,
                                   isFullPost: true,
                                   isEmbedReply: false,
                                   textScale: postItem.type == 1 ? 1.2 : 1.1,
-                                  padding: const EdgeInsets.fromLTRB(
-                                    8,
-                                    8,
-                                    8,
-                                    0,
-                                  ),
+                                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                                   onUpdate: (newItem) {
-                                    ref
-                                        .read(postStateProvider(id).notifier)
-                                        .updatePost(newItem);
+                                    ref.read(postStateProvider(id).notifier).updatePost(newItem);
                                   },
                                   trailing: trailing,
                                 ),
@@ -1303,19 +1210,10 @@ class PostDetailScreen extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
+                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      8,
-                                      16,
-                                      0,
-                                    ),
-                                    child: PostCollectionNavigation(
-                                      post: postItem,
-                                    ),
+                                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                                    child: PostCollectionNavigation(post: postItem),
                                   ),
                                 ),
                               ),
@@ -1324,36 +1222,24 @@ class PostDetailScreen extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: _PostRealmBadge(
-                                    realm: postItem.realm!,
-                                  ).padding(horizontal: 16, top: 8),
+                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                                  child: _PostRealmBadge(realm: postItem.realm!).padding(horizontal: 16, top: 8),
                                 ),
                               ),
                             ),
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: _postDetailMaxWidth,
-                                ),
+                                constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
                                 child: PostActionButtons(
                                   post: postItem,
-                                  renderingPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
+                                  renderingPadding: const EdgeInsets.symmetric(horizontal: 16),
                                   onRefresh: () {
                                     ref.invalidate(postProvider(id));
-                                    ref
-                                        .read(postRepliesProvider(id).notifier)
-                                        .refresh();
+                                    ref.read(postRepliesProvider(id).notifier).refresh();
                                   },
                                   onUpdate: (newItem) {
-                                    ref
-                                        .read(postStateProvider(id).notifier)
-                                        .updatePost(newItem);
+                                    ref.read(postStateProvider(id).notifier).updatePost(newItem);
                                   },
                                 ).alignment(Alignment.centerLeft),
                               ),
@@ -1363,10 +1249,7 @@ class PostDetailScreen extends HookConsumerWidget {
                             hasScrollBody: true,
                             child: DefaultTabController(
                               length: 4,
-                              child: PostInteractionsTabs(
-                                postId: id,
-                                maxWidth: _postDetailMaxWidth,
-                              ),
+                              child: PostInteractionsTabs(postId: id, maxWidth: _postDetailMaxWidth),
                             ),
                           ),
                           SliverGap(MediaQuery.of(context).padding.bottom + 80),
@@ -1379,9 +1262,7 @@ class PostDetailScreen extends HookConsumerWidget {
                   left: 16,
                   right: 16,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: _postDetailMaxWidth,
-                    ),
+                    constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
                     child: postState.when(
                       data: (post) => PostQuickReply(
                         parent: post!,
@@ -1398,10 +1279,7 @@ class PostDetailScreen extends HookConsumerWidget {
           );
         },
         loading: () => ResponseLoadingWidget(),
-        error: (e, _) => ResponseErrorWidget(
-          error: e,
-          onRetry: () => ref.invalidate(postProvider(id)),
-        ),
+        error: (e, _) => ResponseErrorWidget(error: e, onRetry: () => ref.invalidate(postProvider(id))),
       ),
     );
   }
