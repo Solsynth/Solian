@@ -647,13 +647,8 @@ class CustomReactionForm extends HookConsumerWidget {
                     context,
                     Offset(horizontalOffset, verticalOffset),
                     alignment: Alignment.topLeft,
-                    onPick: (placeholder) {
-                      // Remove the surrounding : from the placeholder and add + prefix for custom reactions
-                      final slug = placeholder.substring(
-                        1,
-                        placeholder.length - 1,
-                      );
-                      symbol.value = '+$slug';
+                    onPick: (pack, sticker) {
+                      symbol.value = '+${sticker.slug}';
                     },
                   );
                 },

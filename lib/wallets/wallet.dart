@@ -79,6 +79,24 @@ Future<SnWalletStats> walletStats(Ref ref) async {
   return await client.wallet.getWalletStats();
 }
 
+final walletStatsFilteredProvider = FutureProvider.autoDispose.family<
+  SnWalletStats,
+  ({List<String> wallets, List<String> currencies, int period})
+>((ref, filter) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  final response = await client.dio.get<Map<String, dynamic>>(
+    '/wallet/wallets/stats',
+    options: Options(listFormat: ListFormat.multi),
+    queryParameters: {
+      'period': filter.period,
+      'wallets': filter.wallets,
+      'currencies': filter.currencies,
+    },
+  );
+
+  return SnWalletStats.fromJson(response.data!);
+});
+
 class CreateFundSheet extends ConsumerStatefulWidget {
   final String? payerWalletId;
 
@@ -1814,7 +1832,12 @@ class WalletScreen extends HookConsumerWidget {
                       animatedBalance,
                       selectedWallet,
                     ).padding(horizontal: 16, top: 8),
-                    _buildBalanceStats(context, ref, selectedCurrency),
+                      _buildBalanceStats(
+                        context,
+                        ref,
+                        selectedWallet,
+                        selectedCurrency,
+                      ),
                   ],
                 ),
               ),
@@ -1864,14 +1887,23 @@ class WalletScreen extends HookConsumerWidget {
   Widget _buildBalanceStats(
     BuildContext context,
     WidgetRef ref,
+    SnWallet selectedWallet,
     ValueNotifier<String> selectedCurrency,
   ) {
-    final stats = ref.watch(walletStatsProvider);
+    final stats = ref.watch(
+      walletStatsFilteredProvider(
+        (
+          period: 30,
+          wallets: [selectedWallet.id],
+          currencies: [selectedCurrency.value],
+        ),
+      ),
+    );
 
-    return stats.when(
-      data: (data) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: stats.when(
+        data: (data) => Row(
           children: [
             Expanded(
               child: _statCard(
@@ -1894,12 +1926,79 @@ class WalletScreen extends HookConsumerWidget {
             ),
           ],
         ),
+        loading: () => Row(
+          children: [
+            Expanded(child: _statCardSkeleton(context)),
+            const Gap(12),
+            Expanded(child: _statCardSkeleton(context)),
+          ],
+        ),
+        error: (error, stack) => _StatsErrorCard(
+          error: error,
+          onRetry: () => ref.invalidate(
+            walletStatsFilteredProvider(
+              (
+                period: 30,
+                wallets: [selectedWallet.id],
+                currencies: [selectedCurrency.value],
+              ),
+            ),
+          ),
+        ),
       ),
-      loading: () => const SizedBox(height: 64),
-      error: (error, stack) => const SizedBox.shrink(),
     );
   }
 
+  Widget _statCardSkeleton(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.outline.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const Gap(8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  height: 10,
+                  width: 56,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outline.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const Gap(8),
+                Container(
+                  height: 12,
+                  width: 88,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outline.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   Widget _currencyChip({
     required ValueNotifier<String> selectedCurrency,
     required List<SnWalletPocket> pockets,
@@ -3045,6 +3144,40 @@ class WalletScreen extends HookConsumerWidget {
             }),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StatsErrorCard extends StatelessWidget {
+  final Object error;
+  final VoidCallback onRetry;
+
+  const _StatsErrorCard({required this.error, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: theme.colorScheme.error),
+          const Gap(12),
+          Expanded(
+            child: Text(
+              'Unable to load wallet stats.',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
       ),
     );
   }
