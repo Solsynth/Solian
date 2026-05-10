@@ -3051,5 +3051,11 @@
   "meetLinked": "Meet linked",
   "expired": "Expired",
   "openInMaps": "Open in Maps",
-  "openInMapsUnavailableOnWeb": "Opening maps is not available on web"
+  "openInMapsUnavailableOnWeb": "Opening maps is not available on web",
+  "stickerSizeAuto": "Auto",
+  "stickerSizeSmall": "Small",
+  "stickerSizeMedium": "Medium",
+  "stickerSizeLarge": "Large",
+  "stickerModeSticker": "Sticker",
+  "stickerModeEmote": "Emote"
 }

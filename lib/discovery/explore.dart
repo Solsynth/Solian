@@ -2123,14 +2123,11 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                 },
                               ).padding(horizontal: 12, vertical: 8),
                             ),
-                            SliverFillRemaining(
-                              hasScrollBody: true,
-                              child: DefaultTabController(
-                                length: 4,
-                                child: PostInteractionsTabs(
-                                  postId: postId,
-                                  maxWidth: 720,
-                                ),
+                            DefaultTabController(
+                              length: 4,
+                              child: PostInteractionsSlivers(
+                                postId: postId,
+                                maxWidth: 720,
                               ),
                             ),
                             SliverGap(
