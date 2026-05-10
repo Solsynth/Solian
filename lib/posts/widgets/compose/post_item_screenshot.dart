@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -13,21 +12,23 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const _kScreenshotMainAttachmentMaxHeight = 220.0;
-const _kScreenshotReplyAttachmentMaxHeight = 140.0;
 const _kScreenshotVisibleMainAttachments = 2;
-const _kScreenshotVisibleReplyAttachments = 1;
 
-class PostItemScreenshot extends HookConsumerWidget {
+class PostItemScreenshot extends ConsumerWidget {
   final SnPost item;
   final EdgeInsets? padding;
   final bool isFullPost;
   final bool isShowReference;
+  final PostThreadData? thread;
+  final bool showThreadScreenshot;
   const PostItemScreenshot({
     super.key,
     required this.item,
     this.padding,
     this.isFullPost = false,
     this.isShowReference = true,
+    this.thread,
+    this.showThreadScreenshot = true,
   });
 
   Widget _buildScreenshotAttachments(
@@ -135,186 +136,96 @@ class PostItemScreenshot extends HookConsumerWidget {
     return const SizedBox.shrink();
   }
 
-  Widget _buildReplyMeta(BuildContext context, SnPost post) {
-    final chips = <Widget>[];
+  Widget _buildThreadScreenshot(BuildContext context, PostThreadData thread) {
+    final theme = Theme.of(context);
+    final childrenByParentId = buildThreadChildrenMap(
+      thread.allNodes,
+      hiddenParentId: item.id,
+      hiddenNodeId: item.id,
+      hiddenNodeParentId: item.repliedPostId ?? item.forwardedPostId,
+    );
+    final rootNodes = childrenByParentId[null] ?? const [];
 
-    if (post.attachments.isNotEmpty) {
-      chips.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Symbols.photo_library, size: 12),
-            const Gap(4),
-            Text('${post.attachments.length}'),
-          ],
-        ),
+    if (rootNodes.isEmpty) return const SizedBox.shrink();
+
+    Color depthColor(int depth) {
+      final tint = theme.colorScheme.primary.withOpacity(
+        (0.04 + (depth % 4) * 0.035).clamp(0.04, 0.18),
       );
+      return Color.alphaBlend(tint, theme.colorScheme.surfaceContainerLow);
     }
 
-    if (post.reactionsCount.isNotEmpty) {
-      final totalReactions = post.reactionsCount.values.fold<int>(
-        0,
-        (sum, count) => sum + count,
-      );
-      chips.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Symbols.favorite, size: 12),
-            const Gap(4),
-            Text('$totalReactions'),
-          ],
-        ),
-      );
-    }
-
-    if (post.threadedRepliesCount > 0) {
-      chips.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Symbols.reply, size: 12),
-            const Gap(4),
-            Text('${post.threadedRepliesCount}'),
-          ],
-        ),
-      );
-    }
-
-    if (chips.isEmpty) return const SizedBox.shrink();
-
-    return Wrap(
-      spacing: 10,
-      runSpacing: 4,
-      children: chips
-          .map(
-            (chip) => DefaultTextStyle(
-              style: TextStyle(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-              child: IconTheme(
-                data: IconThemeData(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                child: chip,
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Text(
+              'fullThread'.tr(),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
             ),
-          )
-          .toList(),
+          ),
+          const Gap(8),
+          for (final node in rootNodes)
+            _buildThreadNode(context, node, childrenByParentId, depthColor),
+        ],
+      ),
     );
   }
 
-  Widget _buildReplyNode(
+  Widget _buildThreadNode(
     BuildContext context,
-    RepliesState repliesState,
     ThreadedReplyNode node,
+    Map<String?, List<ThreadedReplyNode>> childrenByParentId,
+    Color Function(int depth) depthColor,
   ) {
-    final post = node.post;
-    final children = repliesState.getChildrenOf(post.id);
+    final children = childrenByParentId[node.post.id] ?? const [];
+    final isRoot = node.depth == 0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.35),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              PostHeader(
-                item: post,
-                isFullPost: false,
-                isCompact: true,
-                hideOverlay: true,
-                isInteractive: false,
-                renderingPadding: EdgeInsets.zero,
-                showLowerLine: children.isNotEmpty,
+    return Padding(
+      padding: EdgeInsets.only(left: isRoot ? 0 : 12),
+      child: Material(
+        color: depthColor(node.depth),
+        borderRadius: isRoot
+            ? BorderRadius.zero
+            : const BorderRadius.only(
+                topLeft: Radius.circular(10),
+                bottomLeft: Radius.circular(10),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 40, top: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildReplyContent(context, post),
-                    if (post.attachments.isNotEmpty)
-                      _buildScreenshotAttachments(
-                        context,
-                        post.attachments,
-                        maxHeight: _kScreenshotReplyAttachmentMaxHeight,
-                        maxVisible: _kScreenshotVisibleReplyAttachments,
-                        padding: const EdgeInsets.only(top: 8),
-                      ),
-                    if (post.reactionsCount.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            for (final symbol in post.reactionsCount.keys)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    buildReactionIcon(symbol, 16),
-                                    const Gap(4),
-                                    Text(
-                                      'x${post.reactionsCount[symbol]}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: _buildReplyMeta(context, post),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        for (final child in children)
-          Padding(
-            padding: const EdgeInsets.only(left: 20, top: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(
-                    color: Theme.of(context).dividerColor.withOpacity(0.35),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PostHeader(
+                    item: node.post,
+                    isFullPost: false,
+                    isCompact: true,
+                    hideOverlay: true,
+                    isInteractive: false,
+                    renderingPadding: EdgeInsets.zero,
+                    isRelativeTime: false,
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 40, top: 6),
+                    child: _buildReplyContent(context, node.post),
+                  ),
+                ],
               ),
-              padding: const EdgeInsets.only(left: 10),
-              child: _buildReplyNode(context, repliesState, child),
             ),
-          ),
-      ],
+            for (final child in children)
+              _buildThreadNode(context, child, childrenByParentId, depthColor),
+          ],
+        ),
+      ),
     );
   }
 
@@ -324,16 +235,6 @@ class PostItemScreenshot extends HookConsumerWidget {
         padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
 
     final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
-
-    // Preload replies for screenshot
-    useEffect(() {
-      if (item.threadedRepliesCount > 0) {
-        Future.microtask(() {
-          ref.read(repliesProvider(item.id).notifier).fetchMore(4);
-        });
-      }
-      return null;
-    }, [item.id, item.threadedRepliesCount]);
 
     return Material(
       elevation: 0,
@@ -379,6 +280,8 @@ class PostItemScreenshot extends HookConsumerWidget {
               isInteractive: false,
               renderingPadding: renderingPadding,
             ),
+          if (showThreadScreenshot && thread != null)
+            _buildThreadScreenshot(context, thread!),
           if (item.reactionsCount.isNotEmpty)
             Padding(
               padding: EdgeInsets.only(
@@ -420,86 +323,6 @@ class PostItemScreenshot extends HookConsumerWidget {
                     ),
                 ],
               ),
-            ),
-          if (item.threadedRepliesCount > 0)
-            Consumer(
-              builder: (context, ref, child) {
-                final repliesState = ref.watch(repliesProvider(item.id));
-                final topLevelPosts = repliesState.flatNodes
-                    .where((n) => n.depth == 0)
-                    .toList();
-
-                return Container(
-                  margin: EdgeInsets.only(
-                    left: renderingPadding.horizontal,
-                    right: renderingPadding.horizontal,
-                    top: 8,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerLow,
-                    border: Border.all(
-                      color: Theme.of(context).dividerColor.withOpacity(0.5),
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  ),
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 4,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Symbols.forum,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const Gap(8),
-                          Expanded(
-                            child: Text(
-                              'repliesCount',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ).plural(item.threadedRepliesCount),
-                          ),
-                        ],
-                      ).padding(horizontal: 5),
-                      if (topLevelPosts.isEmpty && repliesState.loading)
-                        Row(
-                          children: [
-                            const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            const Gap(8),
-                            const Text('loading').tr(),
-                          ],
-                        ).padding(horizontal: 5),
-                      if (topLevelPosts.isNotEmpty)
-                        ...topLevelPosts.map(
-                          (node) =>
-                              _buildReplyNode(context, repliesState, node),
-                        ),
-                      if (topLevelPosts.isEmpty && !repliesState.loading)
-                        Text(
-                          'viewRepliesHint',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                        ).tr().padding(horizontal: 5),
-                    ],
-                  ),
-                );
-              },
             ),
           Container(
             color: Theme.of(context).colorScheme.surfaceContainerLow,

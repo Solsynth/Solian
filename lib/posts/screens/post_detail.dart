@@ -47,7 +47,10 @@ Future<SnPost?> post(Ref ref, String id) async {
   return await client.sphere.getPost(id);
 }
 
-final postStateProvider = NotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(PostState.new);
+final postStateProvider =
+    NotifierProvider.family<PostState, AsyncValue<SnPost?>, String>(
+      PostState.new,
+    );
 
 class PostState extends Notifier<AsyncValue<SnPost?>> {
   final String arg;
@@ -56,7 +59,10 @@ class PostState extends Notifier<AsyncValue<SnPost?>> {
 
   @override
   AsyncValue<SnPost?> build() {
-    ref.listen<AsyncValue<SnPost?>>(postProvider(arg), (_, next) => state = next);
+    ref.listen<AsyncValue<SnPost?>>(
+      postProvider(arg),
+      (_, next) => state = next,
+    );
     return const AsyncValue.loading();
   }
 
@@ -97,38 +103,37 @@ class CollectionNeighborArgs {
   int get hashCode => Object.hash(publisherName, slug, postId, isNext);
 }
 
-final collectionNeighborProvider = FutureProvider.autoDispose.family<SnPost?, CollectionNeighborArgs>((
-  ref,
-  args,
-) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  try {
-    return args.isNext
-        ? await client.sphere.getPublisherCollectionNextPost(
-            publisherName: args.publisherName,
-            slug: args.slug,
-            postId: args.postId,
-          )
-        : await client.sphere.getPublisherCollectionPrevPost(
-            publisherName: args.publisherName,
-            slug: args.slug,
-            postId: args.postId,
-          );
-  } catch (err) {
-    if (err is DioException && err.response?.statusCode == 404) {
-      return null;
-    }
-    rethrow;
-  }
-});
+final collectionNeighborProvider = FutureProvider.autoDispose
+    .family<SnPost?, CollectionNeighborArgs>((ref, args) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      try {
+        return args.isNext
+            ? await client.sphere.getPublisherCollectionNextPost(
+                publisherName: args.publisherName,
+                slug: args.slug,
+                postId: args.postId,
+              )
+            : await client.sphere.getPublisherCollectionPrevPost(
+                publisherName: args.publisherName,
+                slug: args.slug,
+                postId: args.postId,
+              );
+      } catch (err) {
+        if (err is DioException && err.response?.statusCode == 404) {
+          return null;
+        }
+        rethrow;
+      }
+    });
 
-final postCollectionPostsProvider = FutureProvider.autoDispose.family<PaginatedResult<SnPost>, (String, String)>((
-  ref,
-  args,
-) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  return client.sphere.listPublisherCollectionPosts(publisherName: args.$1, slug: args.$2);
-});
+final postCollectionPostsProvider = FutureProvider.autoDispose
+    .family<PaginatedResult<SnPost>, (String, String)>((ref, args) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      return client.sphere.listPublisherCollectionPosts(
+        publisherName: args.$1,
+        slug: args.$2,
+      );
+    });
 
 const _postDetailMaxWidth = 640.0;
 
@@ -165,13 +170,24 @@ class _PostRealmBadge extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: 8,
           children: [
-            Icon(Symbols.public, size: 18, color: theme.colorScheme.onTertiaryContainer, fill: 1),
+            Icon(
+              Symbols.public,
+              size: 18,
+              color: theme.colorScheme.onTertiaryContainer,
+              fill: 1,
+            ),
             Text(
               'publisherBelongsToRealm'.tr(args: [realm.name]),
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const Spacer(),
-            Icon(Symbols.chevron_right, size: 18, color: theme.colorScheme.onSurfaceVariant),
+            Icon(
+              Symbols.chevron_right,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),
@@ -198,15 +214,20 @@ class PostActionButtons extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
-    final isAuthor = user.value != null && user.value?.id == post.publisher?.accountId;
+    final isAuthor =
+        user.value != null && user.value?.id == post.publisher?.accountId;
 
     String formatScore(int score) {
       if (score >= 1000000) {
         double value = score / 1000000;
-        return value % 1 == 0 ? '${value.toInt()}m' : '${value.toStringAsFixed(1)}m';
+        return value % 1 == 0
+            ? '${value.toInt()}m'
+            : '${value.toStringAsFixed(1)}m';
       } else if (score >= 1000) {
         double value = score / 1000;
-        return value % 1 == 0 ? '${value.toInt()}k' : '${value.toStringAsFixed(1)}k';
+        return value % 1 == 0
+            ? '${value.toInt()}k'
+            : '${value.toStringAsFixed(1)}k';
       } else {
         return score.toString();
       }
@@ -221,13 +242,17 @@ class PostActionButtons extends HookConsumerWidget {
           child: IconButton(
             onPressed: () {
               if (post.type == 1) {
-                context.router.push(ArticleEditRoute(id: post.id)).then((value) {
+                context.router.push(ArticleEditRoute(id: post.id)).then((
+                  value,
+                ) {
                   if (value != null) {
                     onRefresh?.call();
                   }
                 });
               } else {
-                PostComposeDialog.show(context, originalPost: post).then((value) {
+                PostComposeDialog.show(context, originalPost: post).then((
+                  value,
+                ) {
                   if (value == true) {
                     onRefresh?.call();
                   }
@@ -244,7 +269,11 @@ class PostActionButtons extends HookConsumerWidget {
           message: 'delete'.tr(),
           child: IconButton(
             onPressed: () {
-              showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr(), isDanger: true).then((confirm) {
+              showConfirmAlert(
+                'deletePostHint'.tr(),
+                'deletePost'.tr(),
+                isDanger: true,
+              ).then((confirm) {
                 if (confirm) {
                   final client = ref.watch(solarNetworkClientProvider);
                   client.sphere
@@ -280,7 +309,9 @@ class PostActionButtons extends HookConsumerWidget {
                   }
                 });
               } else {
-                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((confirm) async {
+                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+                  confirm,
+                ) async {
                   if (confirm) {
                     final client = ref.watch(solarNetworkClientProvider);
                     try {
@@ -296,7 +327,10 @@ class PostActionButtons extends HookConsumerWidget {
                 });
               }
             },
-            icon: Icon(post.pinMode == null ? Symbols.keep : Symbols.keep_off, size: 18),
+            icon: Icon(
+              post.pinMode == null ? Symbols.keep : Symbols.keep_off,
+              size: 18,
+            ),
           ),
         ),
       );
@@ -307,9 +341,22 @@ class PostActionButtons extends HookConsumerWidget {
         message: 'reply'.tr(),
         child: IconButton(
           onPressed: () {
-            PostComposeDialog.show(context, initialState: PostComposeInitialState(replyingTo: post));
+            PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(replyingTo: post),
+            );
           },
           icon: const Icon(Symbols.reply, size: 18),
+        ),
+      ),
+    );
+
+    actions.add(
+      Tooltip(
+        message: 'fullThread'.tr(),
+        child: IconButton(
+          onPressed: () => _showPostThreadSheet(context, post),
+          icon: const Icon(Symbols.forum, size: 18),
         ),
       ),
     );
@@ -319,7 +366,10 @@ class PostActionButtons extends HookConsumerWidget {
         message: 'forward'.tr(),
         child: IconButton(
           onPressed: () {
-            PostComposeDialog.show(context, initialState: PostComposeInitialState(forwardingTo: post));
+            PostComposeDialog.show(
+              context,
+              initialState: PostComposeInitialState(forwardingTo: post),
+            );
           },
           icon: const Icon(Symbols.forward, size: 18),
         ),
@@ -328,7 +378,9 @@ class PostActionButtons extends HookConsumerWidget {
 
     actions.add(
       Tooltip(
-        message: post.awardedScore > 0 ? '${formatScore(post.awardedScore)} pts' : 'award'.tr(),
+        message: post.awardedScore > 0
+            ? '${formatScore(post.awardedScore)} pts'
+            : 'award'.tr(),
         child: IconButton(
           onPressed: () {
             showModalBottomSheet(
@@ -394,7 +446,9 @@ class PostActionButtons extends HookConsumerWidget {
     return Padding(
       padding: noBottomPadding
           ? renderingPadding
-          : renderingPadding.copyWith(bottom: 4 + renderingPadding.vertical + renderingPadding.bottom),
+          : renderingPadding.copyWith(
+              bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
+            ),
       child: Wrap(
         spacing: 2,
         runSpacing: 2,
@@ -434,7 +488,11 @@ class PostCollectionNavigation extends HookConsumerWidget {
         ),
         const Gap(8),
         for (final collection in collections) ...[
-          _PostCollectionNeighborGroup(post: post, collection: collection, publisherName: publisherName),
+          _PostCollectionNeighborGroup(
+            post: post,
+            collection: collection,
+            publisherName: publisherName,
+          ),
           if (collection != collections.last) const Gap(12),
         ],
       ],
@@ -466,7 +524,8 @@ class _PublicCollectionBrowserSheet extends StatelessWidget {
                 context: context,
                 isScrollControlled: true,
                 useRootNavigator: true,
-                builder: (context) => _PublicCollectionSheet(post: post, collection: collection),
+                builder: (context) =>
+                    _PublicCollectionSheet(post: post, collection: collection),
               );
             },
           );
@@ -481,19 +540,29 @@ class _PublicCollectionBrowserCard extends StatelessWidget {
   final SnPost post;
   final VoidCallback onTap;
 
-  const _PublicCollectionBrowserCard({required this.collection, required this.post, required this.onTap});
+  const _PublicCollectionBrowserCard({
+    required this.collection,
+    required this.post,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+    final title = collection.name?.isNotEmpty == true
+        ? collection.name!
+        : collection.slug;
     final titleStyle = theme.textTheme.titleMedium?.copyWith(
       color: Colors.white,
-      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+      shadows: const [
+        Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
+      ],
     );
     final descStyle = theme.textTheme.bodySmall?.copyWith(
       color: Colors.white70,
-      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+      shadows: const [
+        Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
+      ],
     );
 
     return Card(
@@ -516,7 +585,11 @@ class _PublicCollectionBrowserCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    ProfilePictureWidget(file: collection.icon, radius: 24, fallbackIcon: Symbols.collections),
+                    ProfilePictureWidget(
+                      file: collection.icon,
+                      radius: 24,
+                      fallbackIcon: Symbols.collections,
+                    ),
                     const Gap(12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,13 +600,22 @@ class _PublicCollectionBrowserCard extends StatelessWidget {
                           child: Text(title, style: titleStyle),
                         ),
                         if (collection.description?.isNotEmpty ?? false)
-                          Text(collection.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: descStyle),
+                          Text(
+                            collection.description!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: descStyle,
+                          ),
                       ],
                     ),
                   ],
                 ),
               ),
-              const Positioned(right: 12, top: 12, child: Icon(Symbols.chevron_right, color: Colors.white)),
+              const Positioned(
+                right: 12,
+                top: 12,
+                child: Icon(Symbols.chevron_right, color: Colors.white),
+              ),
             ],
           ),
         ),
@@ -552,15 +634,23 @@ class _PublicCollectionSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final publisherName = post.publisher?.name ?? '';
-    final posts = ref.watch(postCollectionPostsProvider((publisherName, collection.slug)));
-    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+    final posts = ref.watch(
+      postCollectionPostsProvider((publisherName, collection.slug)),
+    );
+    final title = collection.name?.isNotEmpty == true
+        ? collection.name!
+        : collection.slug;
     final titleStyle = theme.textTheme.titleMedium?.copyWith(
       color: Colors.white,
-      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+      shadows: const [
+        Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
+      ],
     );
     final descStyle = theme.textTheme.bodySmall?.copyWith(
       color: Colors.white70,
-      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+      shadows: const [
+        Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
+      ],
     );
 
     return SheetScaffold(
@@ -574,7 +664,10 @@ class _PublicCollectionSheet extends ConsumerWidget {
               fit: StackFit.expand,
               children: [
                 if (collection.background != null)
-                  CloudFileWidget(item: collection.background!, fit: BoxFit.cover)
+                  CloudFileWidget(
+                    item: collection.background!,
+                    fit: BoxFit.cover,
+                  )
                 else
                   Container(color: theme.colorScheme.surfaceContainerHighest),
                 Positioned(
@@ -583,7 +676,11 @@ class _PublicCollectionSheet extends ConsumerWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      ProfilePictureWidget(file: collection.icon, radius: 28, fallbackIcon: Symbols.collections),
+                      ProfilePictureWidget(
+                        file: collection.icon,
+                        radius: 28,
+                        fallbackIcon: Symbols.collections,
+                      ),
                       const Gap(12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -595,7 +692,10 @@ class _PublicCollectionSheet extends ConsumerWidget {
                                 context: context,
                                 isScrollControlled: true,
                                 useRootNavigator: true,
-                                builder: (context) => _PublicCollectionSheet(post: post, collection: collection),
+                                builder: (context) => _PublicCollectionSheet(
+                                  post: post,
+                                  collection: collection,
+                                ),
                               );
                             },
                             child: Text(title, style: titleStyle),
@@ -625,7 +725,9 @@ class _PublicCollectionSheet extends ConsumerWidget {
                     child: Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
                       child: InkWell(
-                        onTap: () => context.router.push(PostDetailRoute(id: entry.value.id)),
+                        onTap: () => context.router.push(
+                          PostDetailRoute(id: entry.value.id),
+                        ),
                         child: PostItem(
                           item: entry.value,
                           isFullPost: false,
@@ -643,7 +745,9 @@ class _PublicCollectionSheet extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => ResponseErrorWidget(
               error: error,
-              onRetry: () => ref.invalidate(postCollectionPostsProvider((publisherName, collection.slug))),
+              onRetry: () => ref.invalidate(
+                postCollectionPostsProvider((publisherName, collection.slug)),
+              ),
             ),
           ),
         ],
@@ -657,23 +761,39 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
   final SnPostCollection collection;
   final String publisherName;
 
-  const _PostCollectionNeighborGroup({required this.post, required this.collection, required this.publisherName});
+  const _PostCollectionNeighborGroup({
+    required this.post,
+    required this.collection,
+    required this.publisherName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final previousPost = ref.watch(
       collectionNeighborProvider(
-        CollectionNeighborArgs(publisherName: publisherName, slug: collection.slug, postId: post.id, isNext: true),
+        CollectionNeighborArgs(
+          publisherName: publisherName,
+          slug: collection.slug,
+          postId: post.id,
+          isNext: true,
+        ),
       ),
     );
     final nextPost = ref.watch(
       collectionNeighborProvider(
-        CollectionNeighborArgs(publisherName: publisherName, slug: collection.slug, postId: post.id, isNext: false),
+        CollectionNeighborArgs(
+          publisherName: publisherName,
+          slug: collection.slug,
+          postId: post.id,
+          isNext: false,
+        ),
       ),
     );
 
-    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+    final title = collection.name?.isNotEmpty == true
+        ? collection.name!
+        : collection.slug;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -681,7 +801,11 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
         InkWell(
           child: Row(
             children: [
-              ProfilePictureWidget(file: collection.icon, radius: 16, fallbackIcon: Symbols.collections),
+              ProfilePictureWidget(
+                file: collection.icon,
+                radius: 16,
+                fallbackIcon: Symbols.collections,
+              ),
               const Gap(12),
               Expanded(
                 child: Column(
@@ -691,7 +815,9 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
                     if (collection.description?.isNotEmpty ?? false)
                       Text(
                         collection.description!,
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -705,7 +831,8 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
               context: context,
               isScrollControlled: true,
               useRootNavigator: true,
-              builder: (context) => _PublicCollectionSheet(post: post, collection: collection),
+              builder: (context) =>
+                  _PublicCollectionSheet(post: post, collection: collection),
             );
           },
         ),
@@ -760,11 +887,18 @@ class _PostNeighborCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final postItem = post;
-    final title = postItem == null ? emptyTitle : (postItem.title?.isNotEmpty == true ? postItem.title! : 'Untitled');
+    final title = postItem == null
+        ? emptyTitle
+        : (postItem.title?.isNotEmpty == true ? postItem.title! : 'Untitled');
     final subtitle = postItem?.description?.trim();
-    final publisherName = postItem?.publisher?.nick ?? postItem?.publisher?.name ?? postItem?.publisherId;
+    final publisherName =
+        postItem?.publisher?.nick ??
+        postItem?.publisher?.name ??
+        postItem?.publisherId;
     final publishedAt = postItem?.publishedAt ?? postItem?.createdAt;
-    final crossAxisAlignment = alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final crossAxisAlignment = alignRight
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
     final textAlign = alignRight ? TextAlign.right : TextAlign.left;
 
     return Card(
@@ -784,10 +918,16 @@ class _PostNeighborCard extends StatelessWidget {
               Text(
                 label,
                 textAlign: textAlign,
-                style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
               ),
               const Gap(4),
-              Text(title, textAlign: textAlign, style: theme.textTheme.titleSmall),
+              Text(
+                title,
+                textAlign: textAlign,
+                style: theme.textTheme.titleSmall,
+              ),
               if (subtitle != null && subtitle.isNotEmpty) ...[
                 const Gap(4),
                 Text(
@@ -795,7 +935,9 @@ class _PostNeighborCard extends StatelessWidget {
                   textAlign: textAlign,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ] else if (postItem == null) ...[
                 const Gap(4),
@@ -804,15 +946,22 @@ class _PostNeighborCard extends StatelessWidget {
                   textAlign: textAlign,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
               const Gap(6),
               if (publisherName != null || publishedAt != null)
                 Text(
-                  [publisherName, publishedAt?.formatRelative(context)].whereType<String>().join(' · '),
+                  [
+                    publisherName,
+                    publishedAt?.formatRelative(context),
+                  ].whereType<String>().join(' · '),
                   textAlign: textAlign,
-                  style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
@@ -822,74 +971,21 @@ class _PostNeighborCard extends StatelessWidget {
   }
 }
 
-class PostThreadResponse {
-  final List<ThreadedReplyNode> ancestors;
-  final ThreadedReplyNode current;
-  final List<ThreadedReplyNode> descendants;
-  final bool hasMore;
-
-  const PostThreadResponse({
-    required this.ancestors,
-    required this.current,
-    required this.descendants,
-    required this.hasMore,
-  });
-
-  factory PostThreadResponse.fromJson(Map<String, dynamic> json) {
-    return PostThreadResponse(
-      ancestors: (json['ancestors'] as List<dynamic>?)
-              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      current: ThreadedReplyNode.fromJson(json['current'] as Map<String, dynamic>),
-      descendants: (json['descendants'] as List<dynamic>?)
-              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      hasMore: json['has_more'] as bool? ?? false,
-    );
-  }
-}
-
-final postThreadProvider = FutureProvider.autoDispose.family<PostThreadResponse?, String>((ref, id) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  try {
-    final response = await client.dio.get(
-      '/sphere/posts/$id/thread',
-      queryParameters: {'ancestors': true, 'take': 20},
-    );
-    return PostThreadResponse.fromJson(response.data);
-  } on DioException catch (e) {
-    if (e.response?.statusCode == 404) return null;
-    rethrow;
-  }
-});
-
-class _PostThreadCard extends ConsumerStatefulWidget {
+class _PostThreadCard extends StatelessWidget {
   final SnPost post;
 
   const _PostThreadCard({required this.post});
 
   @override
-  ConsumerState<_PostThreadCard> createState() => _PostThreadCardState();
-}
-
-class _PostThreadCardState extends ConsumerState<_PostThreadCard> {
-  bool _showThread = false;
-
-  @override
   Widget build(BuildContext context) {
-    if (!_showThread) return _buildBanner();
-    return _buildThreadContent();
-  }
-
-  Widget _buildBanner() {
     final theme = Theme.of(context);
+    final hasThread =
+        post.repliedPostId != null || post.forwardedPostId != null;
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => setState(() => _showThread = true),
+        onTap: hasThread ? () => _showPostThreadSheet(context, post) : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -905,193 +1001,271 @@ class _PostThreadCardState extends ConsumerState<_PostThreadCard> {
                   ),
                 ),
               ),
-              Icon(Symbols.chevron_right, size: 18, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Symbols.chevron_right,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildThreadContent() {
-    final threadAsync = ref.watch(postThreadProvider(widget.post.id));
+void _showPostThreadSheet(BuildContext context, SnPost post) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    builder: (context) => _PostThreadSheet(post: post),
+  );
+}
 
-    return threadAsync.when(
-      data: (thread) {
-        if (thread == null) return const SizedBox.shrink();
-        return _buildThreadTimeline(thread);
-      },
-      loading: () => const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      error: (e, _) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: ResponseErrorWidget(
-          error: e,
-          onRetry: () => ref.invalidate(postThreadProvider(widget.post.id)),
-        ),
-      ),
-    );
+Future<void> _sharePostThreadScreenshot(
+  BuildContext context,
+  WidgetRef ref,
+  SnPost post, {
+  PostThreadData? thread,
+}) {
+  return sharePostAsScreenshot(context, ref, post, thread: thread);
+}
+
+class _PostThreadSheet extends ConsumerStatefulWidget {
+  final SnPost post;
+
+  const _PostThreadSheet({required this.post});
+
+  @override
+  ConsumerState<_PostThreadSheet> createState() => _PostThreadSheetState();
+}
+
+class _PostThreadSheetState extends ConsumerState<_PostThreadSheet> {
+  PostThreadData? _thread;
+  Object? _error;
+  bool _loading = true;
+  bool _loadingMore = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThread();
   }
 
-  Widget _buildThreadTimeline(PostThreadResponse thread) {
-    final theme = Theme.of(context);
-    final allNodes = <ThreadedReplyNode>[
-      ...thread.ancestors,
-      thread.current,
-      ...thread.descendants,
-    ];
-
-    if (allNodes.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            color: theme.colorScheme.primaryContainer.withOpacity(0.3),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Icon(Symbols.forum, size: 18, color: theme.colorScheme.primary),
-                const Gap(8),
-                Text('fullThread'.tr(), style: theme.textTheme.titleSmall),
-                const Spacer(),
-                InkWell(
-                  onTap: () => setState(() => _showThread = false),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(Symbols.close, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          for (int i = 0; i < allNodes.length; i++)
-            _buildTimelineRow(
-              allNodes[i],
-              isFirst: i == 0,
-              isLast: i == allNodes.length - 1,
-              isCurrent: allNodes[i].post.id == widget.post.id,
-            ),
-          InkWell(
-            onTap: () => setState(() => _showThread = false),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Symbols.unfold_less, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                  const Gap(6),
-                  Text('collapseThread'.tr(), style: theme.textTheme.bodySmall),
-                ],
-              ).center(),
-            ),
-          ),
-        ],
-      ),
+  Future<PostThreadData?> _fetchThread({
+    required bool includeAncestors,
+    String? anchorId,
+  }) async {
+    final client = ref.read(solarNetworkClientProvider);
+    final response = await client.dio.get(
+      '/sphere/posts/${anchorId ?? widget.post.id}/thread',
+      queryParameters: {'ancestors': includeAncestors, 'take': 20},
     );
+    return PostThreadData.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Widget _buildTimelineRow(
-    ThreadedReplyNode node, {
-    required bool isFirst,
-    required bool isLast,
+  Future<void> _loadThread() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final thread = await _fetchThread(includeAncestors: true);
+      if (!mounted) return;
+      setState(() {
+        _thread = thread;
+      });
+    } catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _error = err;
+      });
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+    });
+  }
+
+  Future<void> _loadMore() async {
+    final thread = _thread;
+    if (_loadingMore ||
+        thread == null ||
+        !thread.hasMore ||
+        thread.descendants.isEmpty) {
+      return;
+    }
+
+    setState(() => _loadingMore = true);
+    try {
+      final lastChild = thread.descendants.last.post.id;
+      final next = await _fetchThread(
+        includeAncestors: false,
+        anchorId: lastChild,
+      );
+      if (!mounted || next == null) return;
+      setState(() {
+        _thread = PostThreadData(
+          ancestors: thread.ancestors,
+          current: thread.current,
+          descendants: [...thread.descendants, ...next.descendants],
+          hasMore: next.hasMore,
+        );
+      });
+    } catch (err) {
+      if (mounted) {
+        showErrorAlert(err);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loadingMore = false);
+      }
+    }
+  }
+
+  Color _depthColor(ThemeData theme, int depth) {
+    final base = theme.colorScheme.surfaceContainerLow;
+    final tint = theme.colorScheme.primary.withOpacity(
+      (0.04 + (depth % 4) * 0.035).clamp(0.04, 0.18),
+    );
+    return Color.alphaBlend(tint, base);
+  }
+
+  Widget _buildThreadNode({
+    required ThreadedReplyNode node,
+    required Map<String?, List<ThreadedReplyNode>> childrenByParentId,
     required bool isCurrent,
   }) {
     final theme = Theme.of(context);
     final post = node.post;
+    final depth = node.depth;
+    final cardColor = _depthColor(theme, depth);
+    final children = childrenByParentId[post.id] ?? const [];
+    final borderRadius = depth == 0
+        ? BorderRadius.zero
+        : const BorderRadius.only(
+            topLeft: Radius.circular(12),
+            bottomLeft: Radius.circular(12),
+          );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isCurrent ? theme.colorScheme.primaryContainer.withOpacity(0.15) : null,
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Padding(
+      padding: EdgeInsets.only(left: depth == 0 ? 0 : 12),
+      child: Material(
+        color: cardColor,
+        borderRadius: borderRadius,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 32,
+            Padding(
+              padding: const EdgeInsets.all(12),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!isFirst)
-                    Expanded(
-                      child: Container(
-                        width: kPostThreadingLineWidth,
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    )
-                  else
-                    const Spacer(),
-                  Container(
-                    width: isCurrent ? 10 : 6,
-                    height: isCurrent ? 10 : 6,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isCurrent
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
-                      border: isCurrent
-                          ? Border.all(color: theme.colorScheme.onPrimary, width: 2)
-                          : null,
-                    ),
+                  PostItem(
+                    item: post,
+                    isFullPost: false,
+                    isEmbedReply: false,
+                    isCompact: true,
+                    hideAttachments: true,
+                    isTextSelectable: false,
+                    padding: EdgeInsets.zero,
+                    onPostTap: (id) => context.router.push(PostDetailRoute(id: id)),
                   ),
-                  if (!isLast)
-                    Expanded(
-                      child: Container(
-                        width: kPostThreadingLineWidth,
-                        color: Theme.of(context).dividerColor,
+                  if (isCurrent)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'currentPost'.tr(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    )
-                  else
-                    const Spacer(),
+                    ),
                 ],
               ),
             ),
-            const Gap(8),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    PostItem(
-                      item: post,
-                      isFullPost: false,
-                      isEmbedReply: false,
-                      isCompact: true,
-                      hideAttachments: true,
-                      isTextSelectable: false,
-                      padding: EdgeInsets.zero,
-                      onPostTap: (id) {
-                        context.router.push(PostDetailRoute(id: id));
-                      },
-                    ),
-                    if (isCurrent)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          'youAreHere'.tr(),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+            for (final child in children)
+              _buildThreadNode(
+                node: child,
+                childrenByParentId: childrenByParentId,
+                isCurrent: child.post.id == widget.post.id,
               ),
-            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildThreadBody(PostThreadData thread) {
+    final childrenByParentId = buildThreadChildrenMap(thread.allNodes, hiddenParentId: widget.post.id);
+    final rootNodes = childrenByParentId[null] ?? const [];
+
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        for (final node in rootNodes)
+          _buildThreadNode(
+            node: node,
+            childrenByParentId: childrenByParentId,
+            isCurrent: node.post.id == widget.post.id,
+          ),
+        if (thread.hasMore) ...[
+          const Gap(8),
+          FilledButton.tonal(
+            onPressed: _loadingMore ? null : _loadMore,
+            child: _loadingMore
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text('loadMoreThread'.tr()),
+          ),
+        ],
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final thread = _thread;
+
+    return SheetScaffold(
+      titleText: 'fullThread'.tr(),
+      actions: [
+        if (thread != null)
+          IconButton(
+            onPressed: () => _sharePostThreadScreenshot(
+              context,
+              ref,
+              widget.post,
+              thread: thread,
+            ),
+            icon: const Icon(Symbols.share, size: 18),
+          ),
+      ],
+      heightFactor: 0.92,
+      child: Builder(
+        builder: (context) {
+          if (_loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (_error != null) {
+            return ResponseErrorWidget(error: _error!, onRetry: _loadThread);
+          }
+
+          if (thread == null) {
+            return const SizedBox.shrink();
+          }
+
+          return _buildThreadBody(thread);
+        },
       ),
     );
   }
@@ -1115,21 +1289,34 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
     final user = ref.watch(userInfoProvider);
 
     Widget buildMenuItem({required String label, required IconData icon}) {
-      return Row(children: [Icon(icon, size: 18), const SizedBox(width: 12), Text(label)]);
+      return Row(
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 12),
+          Text(label),
+        ],
+      );
     }
 
     void Function() getMenuAction(String action) {
       switch (action) {
         case 'edit':
           return () async {
-            final result = await PostComposeDialog.show(context, originalPost: post);
+            final result = await PostComposeDialog.show(
+              context,
+              originalPost: post,
+            );
             if (result != null) {
               onRefresh.call();
             }
           };
         case 'delete':
           return () {
-            showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr(), isDanger: true).then((confirm) {
+            showConfirmAlert(
+              'deletePostHint'.tr(),
+              'deletePost'.tr(),
+              isDanger: true,
+            ).then((confirm) {
               if (confirm) {
                 final client = ref.watch(solarNetworkClientProvider);
                 client.sphere
@@ -1146,7 +1333,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           };
         case 'copyLink':
           return () {
-            Clipboard.setData(ClipboardData(text: 'https://solian.app/posts/${post.id}'));
+            Clipboard.setData(
+              ClipboardData(text: 'https://solian.app/posts/${post.id}'),
+            );
           };
         case 'reply':
           return () async {
@@ -1182,7 +1371,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           };
         case 'unpin':
           return () {
-            showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((confirm) async {
+            showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+              confirm,
+            ) async {
               if (confirm) {
                 final client = ref.watch(solarNetworkClientProvider);
                 try {
@@ -1238,14 +1429,18 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           };
         case 'report':
           return () {
-            showAbuseReportSheet(context, resourceIdentifier: 'post:${post.id}');
+            showAbuseReportSheet(
+              context,
+              resourceIdentifier: 'post:${post.id}',
+            );
           };
         default:
           return () {};
       }
     }
 
-    final isAuthor = user.value != null && user.value?.id == post.publisher?.accountId;
+    final isAuthor =
+        user.value != null && user.value?.id == post.publisher?.accountId;
 
     final postMenuItems = <PopupMenuEntry<String>>[
       if (isAuthor)
@@ -1298,12 +1493,18 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
       if (!kIsWeb)
         PopupMenuItem<String>(
           value: 'sharePhoto',
-          child: buildMenuItem(label: 'sharePostPhoto'.tr(), icon: Symbols.share_reviews),
+          child: buildMenuItem(
+            label: 'sharePostPhoto'.tr(),
+            icon: Symbols.share_reviews,
+          ),
         ),
       if (post.fediverseUri != null)
         PopupMenuItem<String>(
           value: 'openBrowser',
-          child: buildMenuItem(label: 'openInBrowser'.tr(), icon: Symbols.open_in_new),
+          child: buildMenuItem(
+            label: 'openInBrowser'.tr(),
+            icon: Symbols.open_in_new,
+          ),
         ),
       const PopupMenuDivider(),
       PopupMenuItem<String>(
@@ -1330,7 +1531,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: CloudFileList(files: post.attachments, disableConstraint: true, padding: EdgeInsets.zero),
+              child: CloudFileList(
+                files: post.attachments,
+                disableConstraint: true,
+                padding: EdgeInsets.zero,
+              ),
             ),
           ),
         ),
@@ -1352,11 +1557,19 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      16,
+                                      16,
+                                      0,
+                                    ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         PostHeader(
                                           item: post,
@@ -1374,13 +1587,21 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           hideAttachments: true,
                                           textScale: post.type == 1 ? 1.2 : 1.1,
                                         ),
-                                        if (post.publisherCollections.isNotEmpty) const Gap(8),
-                                        if (post.publisherCollections.isNotEmpty) PostCollectionNavigation(post: post),
+                                        if (post
+                                            .publisherCollections
+                                            .isNotEmpty)
+                                          const Gap(8),
+                                        if (post
+                                            .publisherCollections
+                                            .isNotEmpty)
+                                          PostCollectionNavigation(post: post),
                                         if (post.embedView != null)
                                           EmbedViewRenderer(
                                             embedView: post.embedView!,
                                             maxHeight: 400,
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ).padding(vertical: 8),
                                         PostReactionList(
                                           padding: EdgeInsets.only(top: 8),
@@ -1388,10 +1609,20 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           reactions: post.reactionsCount,
                                           reactionsMade: post.reactionsMade,
                                           onReact: (symbol, attitude, delta) {
-                                            final reactionsCount = Map<String, int>.from(post.reactionsCount);
-                                            reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + delta;
-                                            final reactionsMade = Map<String, bool>.from(post.reactionsMade);
-                                            reactionsMade[symbol] = delta == 1 ? true : false;
+                                            final reactionsCount =
+                                                Map<String, int>.from(
+                                                  post.reactionsCount,
+                                                );
+                                            reactionsCount[symbol] =
+                                                (reactionsCount[symbol] ?? 0) +
+                                                delta;
+                                            final reactionsMade =
+                                                Map<String, bool>.from(
+                                                  post.reactionsMade,
+                                                );
+                                            reactionsMade[symbol] = delta == 1
+                                                ? true
+                                                : false;
                                             onUpdate.call(
                                               post.copyWith(
                                                 reactionsCount: reactionsCount,
@@ -1403,16 +1634,23 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                         PostActionButtons(
                                           post: post,
                                           noBottomPadding: true,
-                                          renderingPadding: const EdgeInsets.only(top: 8),
+                                          renderingPadding:
+                                              const EdgeInsets.only(top: 8),
                                           onRefresh: onRefresh,
                                           onUpdate: onUpdate,
                                         ).alignment(Alignment.centerLeft),
-                                        if (post.repliedPostId != null || post.forwardedPostId != null)
+                                        if (post.repliedPostId != null ||
+                                            post.forwardedPostId != null)
                                           Padding(
-                                            padding: const EdgeInsets.only(top: 8),
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
+                                            ),
                                             child: _PostThreadCard(post: post),
                                           ),
-                                        if (post.realm != null) _PostRealmBadge(realm: post.realm!).padding(top: 8),
+                                        if (post.realm != null)
+                                          _PostRealmBadge(
+                                            realm: post.realm!,
+                                          ).padding(top: 8),
                                       ],
                                     ),
                                   ),
@@ -1421,7 +1659,10 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                             ),
                             DefaultTabController(
                               length: 4,
-                              child: PostInteractionsSlivers(postId: postId, maxWidth: _postDetailMaxWidth),
+                              child: PostInteractionsSlivers(
+                                postId: postId,
+                                maxWidth: _postDetailMaxWidth,
+                              ),
                             ),
                           ],
                         ),
@@ -1440,7 +1681,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                     child: PostQuickReply(
                       parent: post,
                       onPosted: () {
-                        ref.read(postRepliesProvider(postId).notifier).refresh();
+                        ref
+                            .read(postRepliesProvider(postId).notifier)
+                            .refresh();
                       },
                     ),
                   ).center(),
@@ -1465,22 +1708,38 @@ class PostDetailScreen extends HookConsumerWidget {
 
     return AppScaffold(
       isNoBackground: false,
-      appBar: AppBar(leading: const AutoLeadingButton(), title: Text('postDetail').tr()),
+      appBar: AppBar(
+        leading: const AutoLeadingButton(),
+        title: Text('postDetail').tr(),
+      ),
       body: postState.when(
         data: (post) {
           final postItem = post!;
           final thumbnail = _getPostThumbnail(postItem);
-          final isMediaPostLayout = isWideScreen(context) && _isMediaPost(postItem);
+          final isMediaPostLayout =
+              isWideScreen(context) && _isMediaPost(postItem);
 
-          Widget buildMenuItem({required String label, required IconData icon}) {
-            return Row(children: [Icon(icon, size: 18), const SizedBox(width: 12), Text(label)]);
+          Widget buildMenuItem({
+            required String label,
+            required IconData icon,
+          }) {
+            return Row(
+              children: [
+                Icon(icon, size: 18),
+                const SizedBox(width: 12),
+                Text(label),
+              ],
+            );
           }
 
           void Function() getMenuAction(String action) {
             switch (action) {
               case 'edit':
                 return () async {
-                  final result = await PostComposeDialog.show(context, originalPost: postItem);
+                  final result = await PostComposeDialog.show(
+                    context,
+                    originalPost: postItem,
+                  );
                   if (result != null) {
                     ref.invalidate(postProvider(id));
                     ref.read(postRepliesProvider(id).notifier).refresh();
@@ -1488,7 +1747,11 @@ class PostDetailScreen extends HookConsumerWidget {
                 };
               case 'delete':
                 return () {
-                  showConfirmAlert('deletePostHint'.tr(), 'deletePost'.tr(), isDanger: true).then((confirm) {
+                  showConfirmAlert(
+                    'deletePostHint'.tr(),
+                    'deletePost'.tr(),
+                    isDanger: true,
+                  ).then((confirm) {
                     if (confirm) {
                       final client = ref.watch(solarNetworkClientProvider);
                       client.sphere
@@ -1499,14 +1762,20 @@ class PostDetailScreen extends HookConsumerWidget {
                           })
                           .then((_) {
                             ref.invalidate(postProvider(id));
-                            ref.read(postRepliesProvider(id).notifier).refresh();
+                            ref
+                                .read(postRepliesProvider(id).notifier)
+                                .refresh();
                           });
                     }
                   });
                 };
               case 'copyLink':
                 return () {
-                  Clipboard.setData(ClipboardData(text: 'https://solian.app/posts/${postItem.id}'));
+                  Clipboard.setData(
+                    ClipboardData(
+                      text: 'https://solian.app/posts/${postItem.id}',
+                    ),
+                  );
                 };
               case 'reply':
                 return () async {
@@ -1523,7 +1792,9 @@ class PostDetailScreen extends HookConsumerWidget {
                 return () async {
                   final result = await PostComposeDialog.show(
                     context,
-                    initialState: PostComposeInitialState(forwardingTo: postItem),
+                    initialState: PostComposeInitialState(
+                      forwardingTo: postItem,
+                    ),
                   );
                   if (result != null) {
                     ref.invalidate(postProvider(id));
@@ -1538,26 +1809,32 @@ class PostDetailScreen extends HookConsumerWidget {
                     builder: (context) => PostPinSheet(post: postItem),
                   ).then((value) {
                     if (value is int) {
-                      ref.read(postStateProvider(id).notifier).updatePost(postItem.copyWith(pinMode: value));
+                      ref
+                          .read(postStateProvider(id).notifier)
+                          .updatePost(postItem.copyWith(pinMode: value));
                     }
                   });
                 };
               case 'unpin':
                 return () {
-                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((confirm) async {
-                    if (confirm) {
-                      final client = ref.watch(solarNetworkClientProvider);
-                      try {
-                        if (context.mounted) showLoadingModal(context);
-                        await client.sphere.unpinPost(postItem.id);
-                        ref.read(postStateProvider(id).notifier).updatePost(postItem.copyWith(pinMode: null));
-                      } catch (err) {
-                        showErrorAlert(err);
-                      } finally {
-                        if (context.mounted) hideLoadingModal(context);
+                  showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then(
+                    (confirm) async {
+                      if (confirm) {
+                        final client = ref.watch(solarNetworkClientProvider);
+                        try {
+                          if (context.mounted) showLoadingModal(context);
+                          await client.sphere.unpinPost(postItem.id);
+                          ref
+                              .read(postStateProvider(id).notifier)
+                              .updatePost(postItem.copyWith(pinMode: null));
+                        } catch (err) {
+                          showErrorAlert(err);
+                        } finally {
+                          if (context.mounted) hideLoadingModal(context);
+                        }
                       }
-                    }
-                  });
+                    },
+                  );
                 };
               case 'award':
                 return () {
@@ -1601,7 +1878,10 @@ class PostDetailScreen extends HookConsumerWidget {
                 };
               case 'report':
                 return () {
-                  showAbuseReportSheet(context, resourceIdentifier: 'post:${postItem.id}');
+                  showAbuseReportSheet(
+                    context,
+                    resourceIdentifier: 'post:${postItem.id}',
+                  );
                 };
               default:
                 return () {};
@@ -1609,7 +1889,9 @@ class PostDetailScreen extends HookConsumerWidget {
           }
 
           final user = ref.watch(userInfoProvider);
-          final isAuthor = user.value != null && user.value?.id == postItem.publisher?.accountId;
+          final isAuthor =
+              user.value != null &&
+              user.value?.id == postItem.publisher?.accountId;
 
           final postMenuItems = <PopupMenuEntry<String>>[
             if (isAuthor)
@@ -1620,7 +1902,10 @@ class PostDetailScreen extends HookConsumerWidget {
             if (isAuthor)
               PopupMenuItem<String>(
                 value: 'delete',
-                child: buildMenuItem(label: 'delete'.tr(), icon: Symbols.delete),
+                child: buildMenuItem(
+                  label: 'delete'.tr(),
+                  icon: Symbols.delete,
+                ),
               ),
             if (isAuthor) const PopupMenuDivider(),
             PopupMenuItem<String>(
@@ -1633,7 +1918,10 @@ class PostDetailScreen extends HookConsumerWidget {
             ),
             PopupMenuItem<String>(
               value: 'forward',
-              child: buildMenuItem(label: 'forward'.tr(), icon: Symbols.forward),
+              child: buildMenuItem(
+                label: 'forward'.tr(),
+                icon: Symbols.forward,
+              ),
             ),
             if (isAuthor && postItem.pinMode == null)
               PopupMenuItem<String>(
@@ -1643,7 +1931,10 @@ class PostDetailScreen extends HookConsumerWidget {
             else if (isAuthor && postItem.pinMode != null)
               PopupMenuItem<String>(
                 value: 'unpin',
-                child: buildMenuItem(label: 'unpinPost'.tr(), icon: Symbols.keep_off),
+                child: buildMenuItem(
+                  label: 'unpinPost'.tr(),
+                  icon: Symbols.keep_off,
+                ),
               ),
             PopupMenuItem<String>(
               value: 'award',
@@ -1662,17 +1953,26 @@ class PostDetailScreen extends HookConsumerWidget {
             if (!kIsWeb)
               PopupMenuItem<String>(
                 value: 'sharePhoto',
-                child: buildMenuItem(label: 'sharePostPhoto'.tr(), icon: Symbols.share_reviews),
+                child: buildMenuItem(
+                  label: 'sharePostPhoto'.tr(),
+                  icon: Symbols.share_reviews,
+                ),
               ),
             if (postItem.fediverseUri != null)
               PopupMenuItem<String>(
                 value: 'openBrowser',
-                child: buildMenuItem(label: 'openInBrowser'.tr(), icon: Symbols.open_in_new),
+                child: buildMenuItem(
+                  label: 'openInBrowser'.tr(),
+                  icon: Symbols.open_in_new,
+                ),
               ),
             const PopupMenuDivider(),
             PopupMenuItem<String>(
               value: 'report',
-              child: buildMenuItem(label: 'abuseReport'.tr(), icon: Symbols.flag),
+              child: buildMenuItem(
+                label: 'abuseReport'.tr(),
+                icon: Symbols.flag,
+              ),
             ),
           ];
 
@@ -1700,7 +2000,9 @@ class PostDetailScreen extends HookConsumerWidget {
                         post: postItem,
                         postId: id,
                         onUpdate: (newItem) {
-                          ref.read(postStateProvider(id).notifier).updatePost(newItem);
+                          ref
+                              .read(postStateProvider(id).notifier)
+                              .updatePost(newItem);
                         },
                         onRefresh: () {
                           ref.invalidate(postProvider(id));
@@ -1713,9 +2015,13 @@ class PostDetailScreen extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
                                   child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
                                     child: CloudFileList(
                                       files: [thumbnail],
                                       padding: EdgeInsets.zero,
@@ -1728,28 +2034,45 @@ class PostDetailScreen extends HookConsumerWidget {
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
-                                  child: PostItem(
-                                    item: postItem,
-                                    isFullPost: true,
-                                    isEmbedReply: false,
-                                    textScale: postItem.type == 1 ? 1.2 : 1.1,
-                                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                                    onUpdate: (newItem) {
-                                      ref.read(postStateProvider(id).notifier).updatePost(newItem);
-                                    },
-                                    trailing: trailing,
+                                constraints: const BoxConstraints(
+                                  maxWidth: _postDetailMaxWidth,
+                                ),
+                                child: PostItem(
+                                  item: postItem,
+                                  isFullPost: true,
+                                  isEmbedReply: false,
+                                  textScale: postItem.type == 1 ? 1.2 : 1.1,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    8,
+                                    8,
+                                    8,
+                                    0,
                                   ),
+                                  onUpdate: (newItem) {
+                                    ref
+                                        .read(postStateProvider(id).notifier)
+                                        .updatePost(newItem);
+                                  },
+                                  trailing: trailing,
                                 ),
                               ),
                             ),
-                          if (postItem.repliedPostId != null || postItem.forwardedPostId != null)
+                          ),
+                          if (postItem.repliedPostId != null ||
+                              postItem.forwardedPostId != null)
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      8,
+                                      16,
+                                      0,
+                                    ),
                                     child: _PostThreadCard(post: postItem),
                                   ),
                                 ),
@@ -1759,10 +2082,19 @@ class PostDetailScreen extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                                    child: PostCollectionNavigation(post: postItem),
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      8,
+                                      16,
+                                      0,
+                                    ),
+                                    child: PostCollectionNavigation(
+                                      post: postItem,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1771,24 +2103,36 @@ class PostDetailScreen extends HookConsumerWidget {
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
-                                  child: _PostRealmBadge(realm: postItem.realm!).padding(horizontal: 16, top: 8),
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
+                                  child: _PostRealmBadge(
+                                    realm: postItem.realm!,
+                                  ).padding(horizontal: 16, top: 8),
                                 ),
                               ),
                             ),
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                                constraints: const BoxConstraints(
+                                  maxWidth: _postDetailMaxWidth,
+                                ),
                                 child: PostActionButtons(
                                   post: postItem,
-                                  renderingPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                  renderingPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   onRefresh: () {
                                     ref.invalidate(postProvider(id));
-                                    ref.read(postRepliesProvider(id).notifier).refresh();
+                                    ref
+                                        .read(postRepliesProvider(id).notifier)
+                                        .refresh();
                                   },
                                   onUpdate: (newItem) {
-                                    ref.read(postStateProvider(id).notifier).updatePost(newItem);
+                                    ref
+                                        .read(postStateProvider(id).notifier)
+                                        .updatePost(newItem);
                                   },
                                 ).alignment(Alignment.centerLeft),
                               ),
@@ -1796,7 +2140,10 @@ class PostDetailScreen extends HookConsumerWidget {
                           ),
                           DefaultTabController(
                             length: 4,
-                            child: PostInteractionsSlivers(postId: id, maxWidth: _postDetailMaxWidth),
+                            child: PostInteractionsSlivers(
+                              postId: id,
+                              maxWidth: _postDetailMaxWidth,
+                            ),
                           ),
                           SliverGap(MediaQuery.of(context).padding.bottom + 80),
                         ],
@@ -1808,7 +2155,9 @@ class PostDetailScreen extends HookConsumerWidget {
                   left: 16,
                   right: 16,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                    constraints: const BoxConstraints(
+                      maxWidth: _postDetailMaxWidth,
+                    ),
                     child: postState.when(
                       data: (post) => PostQuickReply(
                         parent: post!,
@@ -1825,7 +2174,10 @@ class PostDetailScreen extends HookConsumerWidget {
           );
         },
         loading: () => ResponseLoadingWidget(),
-        error: (e, _) => ResponseErrorWidget(error: e, onRetry: () => ref.invalidate(postProvider(id))),
+        error: (e, _) => ResponseErrorWidget(
+          error: e,
+          onRetry: () => ref.invalidate(postProvider(id)),
+        ),
       ),
     );
   }

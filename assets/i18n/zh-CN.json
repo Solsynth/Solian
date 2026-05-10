@@ -510,7 +510,6 @@
   "collectionIdentifier": "合集标识符",
   "deleteThisCollection": "确定删除此合集？",
   "deleteCollection": "删除合集",
-  "livestreams": "直播",
   "collections": "合集",
   "call": "通话",
   "done": "完成",
@@ -2988,5 +2987,7 @@
   "holidayOptional": "可选假日",
   "holidayObservance": "纪念日",
   "holidayOther": "假日",
-  "reasoning": "思考过程"
+  "reasoning": "思考过程",
+  "shareCheckInSlogan": "在 Solar Network 上探索签到",
+  "fullThread": "完整讨论串"
 }
