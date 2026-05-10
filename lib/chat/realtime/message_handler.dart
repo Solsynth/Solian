@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/data/message_cache.dart';
 import 'package:island/chat/data/message_repository.dart';
 import 'package:island/chat/e2ee_message_service.dart';
@@ -261,16 +262,38 @@ class RealtimeMessageHandler {
         countSnapshot ?? _extractExistingReactionsCount(existing);
     final reactionsMade =
         madeSnapshot ?? _extractExistingReactionsMade(existing);
+    final symbol = _extractReactionSymbol(remoteMessage);
+    final currentUserId = _ref.read(userInfoProvider).value?.id;
+    final isCurrentUserReaction =
+        currentUserId != null && remoteMessage.senderId == currentUserId;
 
     if (countSnapshot == null) {
-      final symbol = _extractReactionSymbol(remoteMessage);
       if (symbol == null || symbol.isEmpty) return;
-      final delta = remoteMessage.type == 'messages.reaction.removed' ? -1 : 1;
-      final nextCount = (reactionsCount[symbol] ?? 0) + delta;
-      if (nextCount > 0) {
-        reactionsCount[symbol] = nextCount;
-      } else {
-        reactionsCount.remove(symbol);
+      final alreadyAppliedLocally =
+          isCurrentUserReaction &&
+          ((remoteMessage.type == 'messages.reaction.added' &&
+                  reactionsMade[symbol] == true) ||
+              (remoteMessage.type == 'messages.reaction.removed' &&
+                  reactionsMade[symbol] != true));
+      if (!alreadyAppliedLocally) {
+        final delta =
+            remoteMessage.type == 'messages.reaction.removed' ? -1 : 1;
+        final nextCount = (reactionsCount[symbol] ?? 0) + delta;
+        if (nextCount > 0) {
+          reactionsCount[symbol] = nextCount;
+        } else {
+          reactionsCount.remove(symbol);
+        }
+      }
+    }
+
+    if (madeSnapshot == null && symbol != null && symbol.isNotEmpty) {
+      if (remoteMessage.type == 'messages.reaction.added' &&
+          isCurrentUserReaction) {
+        reactionsMade[symbol] = true;
+      } else if (remoteMessage.type == 'messages.reaction.removed' &&
+          isCurrentUserReaction) {
+        reactionsMade.remove(symbol);
       }
     }
 

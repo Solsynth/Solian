@@ -1059,9 +1059,7 @@ class MessagesNotifier extends _$MessagesNotifier {
         '/messager/chat/$roomId/messages/$messageId/reactions',
         data: {'symbol': symbol, 'attitude': attitude},
       );
-      // Do not optimistically mutate local reaction counts here.
-      // Reactions are applied via websocket/sync events to avoid double
-      // increments (local apply + incoming reaction event).
+      await _applyLocalReactionToggle(messageId, symbol: symbol);
     } catch (err, stackTrace) {
       Logger.root.info(
         'Failed to react to message $messageId',
@@ -1069,6 +1067,100 @@ class MessagesNotifier extends _$MessagesNotifier {
         stackTrace,
       );
       showErrorAlert(err);
+    }
+  }
+
+  Map<String, int> _extractLocalReactionCounts(LocalChatMessage message) {
+    final raw = message.data['reactions_count'];
+    if (raw is! Map) return {};
+    return raw.map((key, value) {
+      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
+      return MapEntry(key.toString(), count);
+    });
+  }
+
+  Map<String, bool> _extractLocalReactionMade(LocalChatMessage message) {
+    final raw = message.data['reactions_made'];
+    if (raw is! Map) return {};
+    return raw.map((key, value) => MapEntry(key.toString(), value == true));
+  }
+
+  LocalChatMessage _copyWithLocalReactionState(
+    LocalChatMessage message, {
+    required Map<String, int> reactionsCount,
+    required Map<String, bool> reactionsMade,
+  }) {
+    final updatedData = Map<String, dynamic>.from(message.data);
+    updatedData['reactions_count'] = reactionsCount;
+    updatedData['reactions_made'] = reactionsMade;
+
+    return LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: message.sender,
+      data: updatedData,
+      createdAt: message.createdAt,
+      clientMessageId: message.clientMessageId,
+      nonce: message.nonce,
+      status: message.status,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
+    );
+  }
+
+  Future<void> _applyLocalReactionToggle(
+    String messageId, {
+    required String symbol,
+  }) async {
+    final currentInState = _currentMessages.cast<LocalChatMessage?>().firstWhere(
+      (message) => message?.id == messageId,
+      orElse: () => null,
+    );
+    final current = currentInState ?? await _repository.getLocalMessage(messageId);
+    if (current == null) return;
+
+    final reactionsCount = _extractLocalReactionCounts(current);
+    final reactionsMade = _extractLocalReactionMade(current);
+    final hadReaction = reactionsMade[symbol] == true;
+
+    if (hadReaction) {
+      final nextCount = (reactionsCount[symbol] ?? 0) - 1;
+      if (nextCount > 0) {
+        reactionsCount[symbol] = nextCount;
+      } else {
+        reactionsCount.remove(symbol);
+      }
+      reactionsMade.remove(symbol);
+    } else {
+      reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
+      reactionsMade[symbol] = true;
+    }
+
+    final updated = _copyWithLocalReactionState(
+      current,
+      reactionsCount: reactionsCount,
+      reactionsMade: reactionsMade,
+    );
+
+    await _repository.saveMessage(updated);
+
+    final updatedList = [..._currentMessages];
+    final index = updatedList.indexWhere((message) => message.id == messageId);
+    if (index >= 0) {
+      updatedList[index] = updated;
+      _emitMessages(updatedList);
     }
   }
 
