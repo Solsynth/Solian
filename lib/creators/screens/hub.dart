@@ -753,7 +753,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
           ),
           minTileHeight: 48,
-          title: const Text('Livestreams'),
+          title: Text('livestreams').tr(),
           trailing: const Icon(Symbols.chevron_right),
           leading: const Icon(Symbols.live_tv),
           onTap: () {
