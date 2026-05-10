@@ -14,6 +14,7 @@ import 'package:island/shared/widgets/response.dart';
 import 'package:island/posts/widgets/compose/post_card_tile.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:styled_widget/styled_widget.dart';
 
 final publisherCollectionsProvider =
     FutureProvider.autoDispose.family<List<SnPostCollection>, String>((ref, pubName) async {
@@ -62,7 +63,7 @@ class CreatorPostCollectionsScreen extends HookConsumerWidget {
       ),
       body: collections.when(
         data: (items) => items.isEmpty
-            ? Center(child: Text('No collections'))
+            ? Center(child: Text('noCollections'.tr()))
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: items.length,
@@ -290,7 +291,7 @@ class _CollectionEditorSheet extends HookConsumerWidget {
             controller: slugController,
             decoration: InputDecoration(
               labelText: 'slug'.tr(),
-              helperText: 'Collection identifier',
+              helperText: 'collectionIdentifier'.tr(),
             ),
           ),
           const Gap(12),
@@ -329,8 +330,8 @@ class _CollectionDetailSheet extends HookConsumerWidget {
 
     Future<void> deleteCollection() async {
       final confirm = await showConfirmAlert(
-        'Delete this collection?',
-        'Delete collection',
+        'deleteThisCollection'.tr(),
+        'deleteCollection'.tr(),
         isDanger: true,
       );
       if (confirm != true) return;
@@ -370,7 +371,7 @@ class _CollectionDetailSheet extends HookConsumerWidget {
         ),
       ],
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(bottom: 16),
         children: [
           AspectRatio(
             aspectRatio: 16 / 7,
@@ -414,11 +415,10 @@ class _CollectionDetailSheet extends HookConsumerWidget {
           ),
           const Gap(16),
           posts.when(
-            data: (result) => ListView.separated(
+            data: (result) => ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: result.items.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final post = result.items[index];
                 return CreatorPostCardTile(
@@ -463,7 +463,7 @@ class _CollectionDetailSheet extends HookConsumerWidget {
                         ),
                     ],
                   ),
-                );
+                ).padding(horizontal: 16);
               },
             ),
         loading: () => const Center(child: CircularProgressIndicator()),
