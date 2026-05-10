@@ -226,6 +226,8 @@ class MessageItem extends HookConsumerWidget {
           onReact: openReactionSheet,
           onReactionHistory: openReactionHistorySheet,
           onQuickReact: reactMessage,
+          reactionsCount: reactionsCount,
+          reactionsMade: reactionsMade,
           translatableLanguage: translatableLanguage,
           translating: translating.value,
           translatedText: translatedText.value,
@@ -434,6 +436,8 @@ class MessageActionSheet extends StatefulWidget {
   final VoidCallback onReact;
   final VoidCallback onReactionHistory;
   final Future<void> Function(String symbol, int attitude) onQuickReact;
+  final Map<String, int> reactionsCount;
+  final Map<String, bool> reactionsMade;
   final bool translatableLanguage;
   final bool translating;
   final String? translatedText;
@@ -451,6 +455,8 @@ class MessageActionSheet extends StatefulWidget {
     required this.onReact,
     required this.onReactionHistory,
     required this.onQuickReact,
+    required this.reactionsCount,
+    required this.reactionsMade,
     required this.translatableLanguage,
     required this.translating,
     required this.translatedText,
@@ -667,6 +673,8 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
                     for (final symbol in quickReactions)
                       _QuickReactionChip(
                         symbol: symbol,
+                        count: widget.reactionsCount[symbol] ?? 0,
+                        isMade: widget.reactionsMade[symbol] == true,
                         onTap: () async {
                           await widget.onQuickReact(
                             symbol,
@@ -696,14 +704,10 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
 }
 
 class _ActionSection extends StatelessWidget {
-  final List<Widget>? children;
-  final Widget? child;
-  final EdgeInsetsGeometry padding;
+  final List<Widget> children;
 
   const _ActionSection({
-    this.children,
-    this.child,
-    this.padding = const EdgeInsets.fromLTRB(12, 10, 12, 0),
+    required this.children,
   });
 
   @override
@@ -711,16 +715,12 @@ class _ActionSection extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: padding,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
       child: Material(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(20),
         clipBehavior: Clip.antiAlias,
-        child: child ??
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: children!,
-            ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
       ),
     );
   }
@@ -776,13 +776,29 @@ class _ActionListTile extends StatelessWidget {
 
 class _QuickReactionChip extends StatelessWidget {
   final String symbol;
+  final int count;
+  final bool isMade;
   final VoidCallback onTap;
 
-  const _QuickReactionChip({required this.symbol, required this.onTap});
+  const _QuickReactionChip({
+    required this.symbol,
+    required this.count,
+    required this.isMade,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final backgroundColor = isMade
+        ? theme.colorScheme.primaryContainer
+        : theme.colorScheme.surfaceContainerHigh;
+    final foregroundColor = isMade
+        ? theme.colorScheme.onPrimaryContainer
+        : theme.colorScheme.onSurface;
+    final borderColor = isMade
+        ? theme.colorScheme.primary.withOpacity(0.4)
+        : theme.colorScheme.outlineVariant.withOpacity(0.4);
 
     return InkWell(
       onTap: onTap,
@@ -790,11 +806,9 @@ class _QuickReactionChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHigh,
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.4),
-          ),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -803,8 +817,20 @@ class _QuickReactionChip extends StatelessWidget {
             const Gap(6),
             Text(
               ReactInfo.getTranslationKey(symbol),
-              style: theme.textTheme.labelLarge,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: foregroundColor,
+              ),
             ).tr(),
+            if (count > 0) ...[
+              const Gap(6),
+              Text(
+                count.toString(),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: foregroundColor.withOpacity(0.8),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ],
         ),
       ),
