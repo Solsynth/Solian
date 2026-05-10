@@ -19,6 +19,7 @@ import 'package:island/posts/widgets/compose/compose_state_utils.dart';
 import 'package:island/posts/widgets/compose/compose_toolbar.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/publishers_modal.dart';
+import 'package:island/stickers/widgets/stickers/sticker_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -76,6 +77,43 @@ class PostComposeCard extends HookConsumerWidget {
             initialState?.cloudDraftId,
           ],
         );
+
+    void insertPlaceholder(String placeholder) {
+      final text = composeState.contentController.text;
+      final selection = composeState.contentController.selection;
+      final start = selection.start >= 0 ? selection.start : text.length;
+      final end = selection.end >= 0 ? selection.end : text.length;
+      final newText = text.replaceRange(start, end, placeholder);
+      composeState.contentController.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: start + placeholder.length),
+      );
+    }
+
+    void showStickerPicker() {
+      final buttonContext = context;
+      final box = buttonContext.findRenderObject() as RenderBox?;
+      final rawOffset = box?.localToGlobal(Offset.zero) ?? Offset.zero;
+      final screenHeight = MediaQuery.of(context).size.height;
+      const popoverHeight = 480.0;
+      final offset = Offset(
+        rawOffset.dx,
+        rawOffset.dy + popoverHeight > screenHeight
+            ? (rawOffset.dy - popoverHeight - 16).clamp(16.0, screenHeight)
+            : rawOffset.dy,
+      );
+
+      showStickerPickerPopover(
+        context,
+        offset,
+        onPick: (pack, sticker) {
+          insertPlaceholder(':${pack.prefix}+${sticker.slug}:');
+        },
+        onLongPress: (pack, sticker) {
+          insertPlaceholder(':${pack.prefix}+${sticker.slug}:');
+        },
+      );
+    }
 
     // Add a listener to the entire state to trigger rebuilds
     final stateNotifier = useMemoized(
@@ -196,6 +234,15 @@ class PostComposeCard extends HookConsumerWidget {
                       ),
                     ),
                     IconButton(
+                      icon: const Icon(Symbols.sticky_note_2),
+                      onPressed: showStickerPicker,
+                      tooltip: 'stickers'.tr(),
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -2,
+                      ),
+                    ),
+                    IconButton(
                       onPressed:
                           (composeState.submitting.value ||
                               composeState.currentPublisher.value == null)
@@ -266,8 +313,7 @@ class PostComposeCard extends HookConsumerWidget {
                   final isModifierPressed =
                       HardwareKeyboard.instance.isMetaPressed ||
                       HardwareKeyboard.instance.isControlPressed;
-                  final isSubmit =
-                      event.logicalKey == LogicalKeyboardKey.enter;
+                  final isSubmit = event.logicalKey == LogicalKeyboardKey.enter;
 
                   if (isSubmit &&
                       isModifierPressed &&
@@ -301,8 +347,8 @@ class PostComposeCard extends HookConsumerWidget {
                             radius: 20,
                             borderRadius:
                                 composeState.currentPublisher.value?.type == 0
-                                    ? null
-                                    : 12,
+                                ? null
+                                : 12,
                             fallbackIcon:
                                 composeState.currentPublisher.value == null
                                 ? Symbols.question_mark

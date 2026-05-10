@@ -42,10 +42,8 @@ class ChatReactionListQuery {
   int get hashCode => Object.hash(roomId, messageId, symbol);
 }
 
-final chatReactionListNotifierProvider =
-    AsyncNotifierProvider.autoDispose.family(
-      ChatReactionListNotifier.new,
-    );
+final chatReactionListNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family(ChatReactionListNotifier.new);
 
 class ChatReactionListNotifier
     extends AsyncNotifier<PaginationState<SnChatReaction>>
@@ -517,7 +515,8 @@ class ChatReactionHistoryTab extends HookConsumerWidget {
             ),
             footerSkeletonChild: skeletonItem,
             itemBuilder: (context, index, reaction) {
-              final showHeader = index == 0 ||
+              final showHeader =
+                  index == 0 ||
                   ref
                           .watch(provider)
                           .value
@@ -543,7 +542,10 @@ class ChatReactionHistoryTab extends HookConsumerWidget {
                       ),
                     ),
                   Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 0,
+                      vertical: 4,
+                    ),
                     child: ChatReactionHistoryListItem(
                       roomId: roomId,
                       reaction: reaction,
@@ -572,8 +574,7 @@ class ChatReactionHistoryListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sender = reaction.sender;
-    final displayName =
-        sender.nick?.isNotEmpty == true
+    final displayName = sender.nick?.isNotEmpty == true
         ? sender.nick!
         : sender.realmNick?.isNotEmpty == true
         ? sender.realmNick!
@@ -749,11 +750,8 @@ class _CustomReactionForm extends HookConsumerWidget {
                     context,
                     Offset(horizontalOffset, verticalOffset),
                     alignment: Alignment.topLeft,
-                    onPick: (placeholder) {
-                      symbol.value = placeholder.substring(
-                        1,
-                        placeholder.length - 1,
-                      );
+                    onPick: (pack, sticker) {
+                      symbol.value = ':${pack.prefix}+${sticker.slug}:';
                     },
                   );
                 },

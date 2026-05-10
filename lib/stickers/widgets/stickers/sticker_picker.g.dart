@@ -11,11 +11,55 @@ part of 'sticker_picker.dart';
 /// Fetch user-added sticker packs (with stickers) from API:
 /// GET /sphere/stickers/me
 
-@ProviderFor(myStickerPacks)
-final myStickerPacksProvider = MyStickerPacksProvider._();
+@ProviderFor(myStickerOwnerships)
+final myStickerOwnershipsProvider = MyStickerOwnershipsProvider._();
 
 /// Fetch user-added sticker packs (with stickers) from API:
 /// GET /sphere/stickers/me
+
+final class MyStickerOwnershipsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnStickerOwnership>>,
+          List<SnStickerOwnership>,
+          FutureOr<List<SnStickerOwnership>>
+        >
+    with
+        $FutureModifier<List<SnStickerOwnership>>,
+        $FutureProvider<List<SnStickerOwnership>> {
+  /// Fetch user-added sticker packs (with stickers) from API:
+  /// GET /sphere/stickers/me
+  MyStickerOwnershipsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'myStickerOwnershipsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$myStickerOwnershipsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnStickerOwnership>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnStickerOwnership>> create(Ref ref) {
+    return myStickerOwnerships(ref);
+  }
+}
+
+String _$myStickerOwnershipsHash() =>
+    r'4b7808d416d83a520d4030929a2814d71757474a';
+
+@ProviderFor(myStickerPacks)
+final myStickerPacksProvider = MyStickerPacksProvider._();
 
 final class MyStickerPacksProvider
     extends
@@ -27,8 +71,6 @@ final class MyStickerPacksProvider
     with
         $FutureModifier<List<SnStickerPack>>,
         $FutureProvider<List<SnStickerPack>> {
-  /// Fetch user-added sticker packs (with stickers) from API:
-  /// GET /sphere/stickers/me
   MyStickerPacksProvider._()
     : super(
         from: null,
@@ -55,4 +97,4 @@ final class MyStickerPacksProvider
   }
 }
 
-String _$myStickerPacksHash() => r'f5bfe912a2efd7f03b185cb00f98053ada9cf22b';
+String _$myStickerPacksHash() => r'cf55548809ae4ea89570c94f418a0d6d794767e7';

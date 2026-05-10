@@ -45,6 +45,13 @@ class StickersApi extends BaseApi {
     return get<List<dynamic>>('$_basePath/me');
   }
 
+  /// Reorder owned sticker packs.
+  Future<void> reorderOwnedStickerPacks({
+    required List<Map<String, dynamic>> items,
+  }) async {
+    await patch<void>('$_basePath/me/order', data: {'items': items});
+  }
+
   /// Get a specific sticker pack by ID.
   Future<Response<Map<String, dynamic>>> getStickerPack(String packId) async {
     return get<Map<String, dynamic>>('$_basePath/$packId');
@@ -167,6 +174,17 @@ class StickersApi extends BaseApi {
   /// Delete a sticker from a pack.
   Future<Response<void>> deleteSticker(String packId, String stickerId) async {
     return delete('$_basePath/$packId/content/$stickerId');
+  }
+
+  /// Reorder stickers within a pack.
+  Future<void> reorderPackStickers({
+    required String packId,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    await patch<void>(
+      '$_basePath/$packId/content/order',
+      data: {'items': items},
+    );
   }
 
   // ==========================================

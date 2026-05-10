@@ -48,11 +48,11 @@ abstract mixin class $SnPostCollectionCopyWith<$Res>  {
   factory $SnPostCollectionCopyWith(SnPostCollection value, $Res Function(SnPostCollection) _then) = _$SnPostCollectionCopyWithImpl;
 @useResult
 $Res call({
-  String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, SnCloudFile? background, SnCloudFile? icon, DateTime? createdAt, DateTime? updatedAt
+ String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, SnCloudFile? background, SnCloudFile? icon, DateTime? createdAt, DateTime? updatedAt
 });
 
 
-$SnPublisherCopyWith<$Res>? get publisher;
+$SnPublisherCopyWith<$Res>? get publisher;$SnCloudFileCopyWith<$Res>? get background;$SnCloudFileCopyWith<$Res>? get icon;
 
 }
 /// @nodoc
@@ -72,7 +72,7 @@ as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
- as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -91,6 +91,30 @@ $SnPublisherCopyWith<$Res>? get publisher {
 
   return $SnPublisherCopyWith<$Res>(_self.publisher!, (value) {
     return _then(_self.copyWith(publisher: value));
+  });
+}/// Create a copy of SnPostCollection
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res>? get background {
+    if (_self.background == null) {
+    return null;
+  }
+
+  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+    return _then(_self.copyWith(background: value));
+  });
+}/// Create a copy of SnPostCollection
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
   });
 }
 }
@@ -171,10 +195,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'publisher_id')  String publisherId,  SnPublisher? publisher,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'publisher_id')  String publisherId,  SnPublisher? publisher,  SnCloudFile? background,  SnCloudFile? icon,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPostCollection() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.publisher,_that.background,_that.icon,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -192,10 +216,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisher
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'publisher_id')  String publisherId,  SnPublisher? publisher,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'publisher_id')  String publisherId,  SnPublisher? publisher,  SnCloudFile? background,  SnCloudFile? icon,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnPostCollection():
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt);}
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.publisher,_that.background,_that.icon,_that.createdAt,_that.updatedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -209,10 +233,10 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisher
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'publisher_id')  String publisherId,  SnPublisher? publisher,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  String? description, @JsonKey(name: 'publisher_id')  String publisherId,  SnPublisher? publisher,  SnCloudFile? background,  SnCloudFile? icon,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPostCollection() when $default != null:
-return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.publisher,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisherId,_that.publisher,_that.background,_that.icon,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -271,11 +295,11 @@ abstract mixin class _$SnPostCollectionCopyWith<$Res> implements $SnPostCollecti
   factory _$SnPostCollectionCopyWith(_SnPostCollection value, $Res Function(_SnPostCollection) _then) = __$SnPostCollectionCopyWithImpl;
 @override @useResult
 $Res call({
-  String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, SnCloudFile? background, SnCloudFile? icon, DateTime? createdAt, DateTime? updatedAt
+ String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, SnCloudFile? background, SnCloudFile? icon, DateTime? createdAt, DateTime? updatedAt
 });
 
 
-@override $SnPublisherCopyWith<$Res>? get publisher;
+@override $SnPublisherCopyWith<$Res>? get publisher;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnCloudFileCopyWith<$Res>? get icon;
 
 }
 /// @nodoc
@@ -295,7 +319,7 @@ as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
- as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
 as SnCloudFile?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -315,6 +339,30 @@ $SnPublisherCopyWith<$Res>? get publisher {
 
   return $SnPublisherCopyWith<$Res>(_self.publisher!, (value) {
     return _then(_self.copyWith(publisher: value));
+  });
+}/// Create a copy of SnPostCollection
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res>? get background {
+    if (_self.background == null) {
+    return null;
+  }
+
+  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+    return _then(_self.copyWith(background: value));
+  });
+}/// Create a copy of SnPostCollection
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
   });
 }
 }
