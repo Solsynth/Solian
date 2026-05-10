@@ -70,13 +70,22 @@ class SettingsScreen extends HookConsumerWidget {
     }, []);
 
     final selectedCategoryIdx = useState(0);
+    final searchQuery = useState('');
 
     final categories = <_SettingCategory>[];
+
+    bool matchesQuery(_SettingCategory category, String query) {
+      if (query.isEmpty) return true;
+      final q = query.toLowerCase();
+      return category.title.toLowerCase().contains(q) ||
+          category.searchTerms.any((term) => term.toLowerCase().contains(q));
+    }
 
     categories.add(
       _SettingCategory(
         icon: Symbols.translate,
         title: 'Language',
+        searchTerms: ['display language', 'locale', 'system language'],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -127,6 +136,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.palette,
         title: 'Appearance',
+        searchTerms: ['theme', 'color scheme', 'opacity', 'card background'],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -373,6 +383,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.font_download,
         title: 'Fonts',
+        searchTerms: ['custom fonts', 'typeface', 'font family'],
         children: [
           ListTile(
             isThreeLine: true,
@@ -418,6 +429,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.chat,
         title: 'Messages',
+        searchTerms: ['message style', 'attachments', 'link collapse'],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -556,6 +568,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.image,
         title: 'Background',
+        searchTerms: ['background image', 'wallpaper', 'generate color'],
         children: [
           if (!kIsWeb && docBasepath.value != null) ...[
             ListTile(
@@ -695,6 +708,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.link,
         title: 'Connection',
+        searchTerms: ['server url', 'media proxy', 'default pool'],
         children: [
           ListTile(
             isThreeLine: true,
@@ -824,6 +838,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.volume_up,
         title: 'Notifications',
+        searchTerms: ['sound effects', 'festival features', 'haptic feedback', 'friend status'],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -891,6 +906,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.send,
         title: 'Chat',
+        searchTerms: ['enter to send', 'grouped chat list', 'chat event messages'],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -969,6 +985,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.record_voice_over,
         title: 'Speech',
+        searchTerms: ['tts', 'voice', 'language', 'speech rate', 'pitch', 'volume'],
         children: [
           ListTile(
             title: Text('settingsEnableTts').tr(),
@@ -1075,6 +1092,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.tune,
         title: 'General',
+        searchTerms: ['transparent app bar', 'data saving', 'disable animation', 'default screen', 'search engine'],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -1208,6 +1226,7 @@ class SettingsScreen extends HookConsumerWidget {
         _SettingCategory(
           icon: Symbols.desktop_windows,
           title: 'Desktop',
+          searchTerms: ['window opacity'],
           children: [
             ListTile(
               minLeadingWidth: 48,
@@ -1253,16 +1272,17 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.storage,
         title: 'Storage',
+        searchTerms: ['cache', 'disk space'],
         children: [_StorageSettingsSection()],
       ),
     );
 
-    Widget buildSettingsList(BoxConstraints constraints) {
-      final selectedIdx = selectedCategoryIdx.value.clamp(
-        0,
-        categories.length - 1,
-      );
-      final selectedCategory = categories[selectedIdx];
+    Widget buildSettingsList(
+      BoxConstraints constraints,
+      List<_SettingCategory> visibleCategories,
+      int selectedIdx,
+    ) {
+      final selectedCategory = visibleCategories[selectedIdx];
 
       if (isWide) {
         return SizedBox(
@@ -1274,9 +1294,9 @@ class SettingsScreen extends HookConsumerWidget {
                 flex: 1,
                 child: ListView.builder(
                   padding: EdgeInsets.zero,
-                  itemCount: categories.length,
+                  itemCount: visibleCategories.length,
                   itemBuilder: (context, i) {
-                    final category = categories[i];
+                    final category = visibleCategories[i];
                     return ListTile(
                       selected: selectedIdx == i,
                       selectedTileColor: Theme.of(
@@ -1308,7 +1328,7 @@ class SettingsScreen extends HookConsumerWidget {
         spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final category in categories)
+          for (final category in visibleCategories)
             _SettingsSection(
               title: category.title,
               children: category.children,
@@ -1325,9 +1345,51 @@ class SettingsScreen extends HookConsumerWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
+          final filteredCategories = categories
+              .where((category) => matchesQuery(category, searchQuery.value))
+              .toList();
+
+          if (filteredCategories.isNotEmpty &&
+              selectedCategoryIdx.value >= filteredCategories.length) {
+            selectedCategoryIdx.value = 0;
+          }
+
           return SingleChildScrollView(
             padding: EdgeInsets.zero,
-            child: buildSettingsList(constraints),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: SearchBar(
+                    hintText: 'Search settings',
+                    leading: const Icon(Symbols.search),
+                    trailing: [
+                      if (searchQuery.value.isNotEmpty)
+                        IconButton(
+                          onPressed: () => searchQuery.value = '',
+                          icon: const Icon(Symbols.close),
+                        ),
+                    ],
+                    onChanged: (value) => searchQuery.value = value,
+                  ),
+                ),
+                if (filteredCategories.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: Text('No settings found')),
+                  )
+                else
+                  buildSettingsList(
+                    constraints,
+                    filteredCategories,
+                    selectedCategoryIdx.value.clamp(
+                      0,
+                      filteredCategories.length - 1,
+                    ),
+                  ),
+              ],
+            ),
           );
         },
       ),
@@ -1338,11 +1400,13 @@ class SettingsScreen extends HookConsumerWidget {
 class _SettingCategory {
   final IconData icon;
   final String title;
+  final List<String> searchTerms;
   final List<Widget> children;
 
   _SettingCategory({
     required this.icon,
     required this.title,
+    required this.searchTerms,
     required this.children,
   });
 }

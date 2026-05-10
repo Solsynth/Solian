@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/check_in/check_in_result_screenshot.dart';
 import 'package:island/core/config.dart';
@@ -19,29 +20,27 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 Future<void> sharePostAsScreenshot(
   BuildContext context,
   WidgetRef ref,
-  SnPost post,
-) async {
+  SnPost post, {
+  PostThreadData? thread,
+}) async {
   if (kIsWeb) return;
 
   final screenshotController = ScreenshotController();
 
   showLoadingModal(context);
   await screenshotController
-      .captureFromWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(
-              ref.watch(sharedPreferencesProvider),
-            ),
-            repliesProvider(
-              post.id,
-            ).overrideWithValue(ref.watch(repliesProvider(post.id))),
-          ],
+      .captureFromLongWidget(
+        UncontrolledProviderScope(
+          container: ProviderScope.containerOf(context),
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SizedBox(
               width: 520,
-              child: PostItemScreenshot(item: post, isFullPost: true),
+              child: PostItemScreenshot(
+                item: post,
+                isFullPost: true,
+                thread: thread,
+              ),
             ),
           ),
         ),
@@ -86,7 +85,7 @@ Future<void> shareCheckInAsScreenshot(
 
   showLoadingModal(context);
   await screenshotController
-      .captureFromWidget(
+      .captureFromLongWidget(
         ProviderScope(
           overrides: [
             sharedPreferencesProvider.overrideWithValue(
@@ -104,7 +103,6 @@ Future<void> shareCheckInAsScreenshot(
         context: context,
         pixelRatio: MediaQuery.of(context).devicePixelRatio,
         delay: const Duration(milliseconds: 1000),
-        targetSize: const Size(400, 860),
       )
       .then((Uint8List? image) async {
         if (image == null) return;

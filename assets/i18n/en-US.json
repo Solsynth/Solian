@@ -108,7 +108,6 @@
   "chatTabGroup": "Group Chats",
   "chatMessageHint": "Message in {}",
   "chatDirectMessageHint": "Message to {}",
-  "directMessage": "Direct Message",
   "loading": "Loading...",
   "descriptionNone": "No description yet.",
   "invites": "Invites",
@@ -121,6 +120,10 @@
   "permissionModerator": "Moderator",
   "permissionMember": "Member",
   "reply": "Reply",
+  "fullThread": "Full Thread",
+  "viewFullThread": "View full thread",
+  "loadMoreThread": "Load more thread",
+  "currentPost": "Current post",
   "repliesCount": {
     "zero": "No reply",
     "one": "{} reply",
@@ -553,7 +556,6 @@
   "authFactorSecretHint": "Create an secret for this factor.",
   "authFactorQrCodeScan": "Scan this QR code with your authenticator app to set up TOTP authentication",
   "authFactorNoQrCode": "No QR code available for this authentication factor",
-  "cancel": "Cancel",
   "confirm": "Confirm",
   "authFactorAdditional": "One more step",
   "authFactorHint": "Contact method hint",
@@ -3057,5 +3059,6 @@
   "stickerSizeMedium": "Medium",
   "stickerSizeLarge": "Large",
   "stickerModeSticker": "Sticker",
-  "stickerModeEmote": "Emote"
+  "stickerModeEmote": "Emote",
+  "shareCheckInSlogan": "See your today fortune on the Solar Network."
 }
