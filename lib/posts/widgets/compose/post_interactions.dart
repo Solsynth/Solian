@@ -603,60 +603,6 @@ class PostRepliesListNonSliver extends HookConsumerWidget {
   }
 }
 
-class _TabBarWidget extends StatelessWidget {
-  final double? maxWidth;
-  const _TabBarWidget({this.maxWidth});
-
-  @override
-  Widget build(BuildContext context) {
-    final isWideMode = maxWidth != null && isWideScreen(context);
-
-    final tabBarWidget = Container(
-      margin: isWideMode
-          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
-          : EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
-        borderRadius: isWideMode
-            ? BorderRadius.circular(24)
-            : BorderRadius.zero,
-      ),
-      child: TabBar(
-        dividerColor: Colors.transparent,
-        indicatorSize: TabBarIndicatorSize.tab,
-        splashBorderRadius: BorderRadius.circular(20),
-        indicator: isWideMode
-            ? BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(20),
-              )
-            : BoxDecoration(),
-        labelColor: isWideMode ? Colors.white : null,
-        unselectedLabelColor: isWideMode
-            ? Theme.of(context).colorScheme.onSurfaceVariant
-            : null,
-        tabs: [
-          Tab(text: 'replies'.tr()),
-          Tab(text: 'forwards'.tr()),
-          Tab(text: 'boosts'.tr()),
-          Tab(text: 'reactions'.plural(0)),
-        ],
-      ),
-    );
-
-    if (isWideMode) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth!),
-          child: tabBarWidget,
-        ),
-      );
-    }
-
-    return tabBarWidget;
-  }
-}
-
 /// Sliver-based interactions for unified scrolling.
 class PostInteractionsSlivers extends HookConsumerWidget {
   final String postId;
