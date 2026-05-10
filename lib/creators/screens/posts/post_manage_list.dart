@@ -27,6 +27,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final categoryTabController = useTabController(initialLength: 3);
     final queryState = useState(PostListQuery(pubName: pubName));
+    final isFilterVisible = useState(true);
 
     useEffect(() {
       final index = switch (queryState.value.type) {
@@ -49,23 +50,39 @@ class CreatorPostListScreen extends HookConsumerWidget {
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: Text('posts').tr(),
+        actions: [
+          IconButton(
+            onPressed: () => isFilterVisible.value = !isFilterVisible.value,
+            icon: Icon(
+              isFilterVisible.value ? Symbols.filter_list_off : Symbols.filter_list,
+            ),
+            tooltip: isFilterVisible.value ? 'Hide filters' : 'Show filters',
+          ),
+          const Gap(8)
+        ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
-            child: PostFilterWidget(
-              categoryTabController: categoryTabController,
-              initialQuery: queryState.value,
-              onQueryChanged: (newQuery) => queryState.value = newQuery,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: isFilterVisible.value
+                ? Padding(
+                    key: const ValueKey('filters-visible'),
+                    padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+                    child: PostFilterWidget(
+                      categoryTabController: categoryTabController,
+                      initialQuery: queryState.value,
+                      onQueryChanged: (newQuery) => queryState.value = newQuery,
+                    ),
+                  )
+                : const SizedBox(key: ValueKey('filters-hidden')),
             ),
-          ),
           Expanded(
             child: PaginationList<SnPost>(
               key: ValueKey(queryState.value),
               provider: provider,
               notifier: provider.notifier,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               spacing: 0,
               itemBuilder: (context, index, post) => _PostListCard(
                 index: index,
