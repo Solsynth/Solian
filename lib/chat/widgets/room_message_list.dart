@@ -226,17 +226,15 @@ class RoomMessageList extends HookConsumerWidget {
           return MessageItemWrapper(
             message: item,
             index: itemIndex,
+            roomId: roomId,
             isLastInGroup: showItemAvatar,
             showBubbleAvatar: drawBubbleAvatar,
             showColumnAvatar: drawColumnAvatar,
-            isSelectionMode: chatState.isSelectionMode,
-            selectedMessages: chatState.selectedMessageIds,
             chatIdentity: chatIdentity,
             toggleSelectionMode: chatStateNotifier.toggleSelectionMode,
             toggleMessageSelection: chatStateNotifier.toggleMessageSelection,
             onMessageAction: chatStateNotifier.onMessageAction,
             onJump: onJump,
-            attachmentProgress: chatState.attachmentProgress,
             disableAnimation: settings.disableAnimation,
             roomOpenTime: chatState.roomOpenTime,
           );

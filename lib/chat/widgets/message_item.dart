@@ -196,7 +196,7 @@ class MessageItem extends HookConsumerWidget {
       reacting.value = false;
     }
 
-    void openReactionSheet() {
+    void openReactionSheet({int initialTabIndex = 0}) {
       showModalBottomSheet(
         context: context,
         useRootNavigator: true,
@@ -205,8 +205,15 @@ class MessageItem extends HookConsumerWidget {
           reactionsCount: reactionsCount,
           reactionsMade: reactionsMade,
           onReact: reactMessage,
+          roomId: message.roomId,
+          messageId: message.id,
+          initialTabIndex: initialTabIndex,
         ),
       );
+    }
+
+    void openReactionHistorySheet() {
+      openReactionSheet(initialTabIndex: 1);
     }
 
     void showActionMenu() {
@@ -217,6 +224,8 @@ class MessageItem extends HookConsumerWidget {
           isCurrentUser: isCurrentUser,
           onAction: onAction,
           onReact: openReactionSheet,
+          onReactionHistory: openReactionHistorySheet,
+          onQuickReact: reactMessage,
           translatableLanguage: translatableLanguage,
           translating: translating.value,
           translatedText: translatedText.value,
@@ -423,6 +432,8 @@ class MessageActionSheet extends StatefulWidget {
   final bool isCurrentUser;
   final Function(String action)? onAction;
   final VoidCallback onReact;
+  final VoidCallback onReactionHistory;
+  final Future<void> Function(String symbol, int attitude) onQuickReact;
   final bool translatableLanguage;
   final bool translating;
   final String? translatedText;
@@ -438,6 +449,8 @@ class MessageActionSheet extends StatefulWidget {
     required this.isCurrentUser,
     required this.onAction,
     required this.onReact,
+    required this.onReactionHistory,
+    required this.onQuickReact,
     required this.translatableLanguage,
     required this.translating,
     required this.translatedText,
@@ -516,6 +529,127 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    const quickReactions = [
+      'thumb_up',
+      'heart',
+      'laugh',
+      'clap',
+      'party',
+      'confuse',
+    ];
+    final primaryActions = <Widget>[
+      _ActionListTile(
+        leading: Icon(Symbols.reply),
+        title: Text('reply'.tr()),
+        onTap: () {
+          widget.onAction!.call(MessageItemAction.reply);
+          Navigator.pop(context);
+        },
+      ),
+      _ActionListTile(
+        leading: Icon(Symbols.forward),
+        title: Text('forward'.tr()),
+        onTap: () {
+          widget.onAction!.call(MessageItemAction.forward);
+          Navigator.pop(context);
+        },
+      ),
+      _ActionListTile(
+        leading: const Icon(Symbols.add_reaction),
+        title: Text('react'.tr()),
+        onTap: () {
+          Navigator.pop(context);
+          widget.onReact();
+        },
+      ),
+      _ActionListTile(
+        leading: const Icon(Symbols.history),
+        title: Text('reactionHistory'.tr()),
+        onTap: () {
+          Navigator.pop(context);
+          widget.onReactionHistory();
+        },
+      ),
+      if (_hasSelectableText)
+        _ActionListTile(
+          leading: const Icon(Symbols.text_select_start),
+          title: Text('chatSelectText'.tr()),
+          onTap: () {
+            Navigator.pop(context);
+            _openTextSelectionView();
+          },
+        ),
+      _ActionListTile(
+        leading: Icon(Symbols.select_all),
+        title: Text('chatSelectMessages'.tr()),
+        onTap: () {
+          if (widget.onEnterSelectionMode != null) {
+            widget.onEnterSelectionMode!();
+            if (widget.onToggleSelection != null) {
+              widget.onToggleSelection!(widget.message.id);
+            }
+          }
+          Navigator.pop(context);
+        },
+      ),
+    ];
+    final authorActions = <Widget>[
+      if (widget.isCurrentUser)
+        _ActionListTile(
+          leading: Icon(Symbols.edit),
+          title: Text('edit'.tr()),
+          onTap: () {
+            widget.onAction!.call(MessageItemAction.edit);
+            Navigator.pop(context);
+          },
+        ),
+      if (widget.isCurrentUser && widget.message.status == MessageStatus.failed)
+        _ActionListTile(
+          leading: Icon(Symbols.refresh),
+          title: Text('resend'.tr()),
+          onTap: () {
+            widget.onAction!.call(MessageItemAction.resend);
+            Navigator.pop(context);
+          },
+        ),
+      if (widget.isCurrentUser)
+        _ActionListTile(
+          leading: Icon(Symbols.delete),
+          title: Text('delete'.tr()),
+          onTap: () {
+            widget.onAction!.call(MessageItemAction.delete);
+            Navigator.pop(context);
+          },
+          isDanger: true,
+        ),
+    ];
+    final utilityActions = <Widget>[
+      if (widget.translatableLanguage)
+        _ActionListTile(
+          leading: Icon(Symbols.translate),
+          title: Text(
+            widget.translatedText == null
+                ? 'translate'.tr()
+                : widget.translating
+                ? 'translating'.tr()
+                : 'translated'.tr(),
+          ),
+          onTap: () {
+            widget.translate();
+            Navigator.pop(context);
+          },
+        ),
+      if (widget.isMobile)
+        _ActionListTile(
+          leading: Icon(Symbols.copy_all),
+          title: Text('copyMessage'.tr()),
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: _displayContent));
+            Navigator.pop(context);
+          },
+        ),
+    ];
+
     return SheetScaffold(
       titleText: 'messageActions'.tr(),
       child: SingleChildScrollView(
@@ -523,117 +657,70 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Action buttons
-            if (widget.isCurrentUser)
-              _ActionListTile(
-                leading: Icon(Symbols.edit),
-                title: Text('edit'.tr()),
-                onTap: () {
-                  widget.onAction!.call(MessageItemAction.edit);
-                  Navigator.pop(context);
-                },
-              ),
-            if (widget.isCurrentUser &&
-                widget.message.status == MessageStatus.failed)
-              _ActionListTile(
-                leading: Icon(Symbols.refresh),
-                title: Text('resend'.tr()),
-                onTap: () {
-                  widget.onAction!.call(MessageItemAction.resend);
-                  Navigator.pop(context);
-                },
-              ),
-            if (widget.isCurrentUser)
-              _ActionListTile(
-                leading: Icon(Symbols.delete),
-                title: Text('delete'.tr()),
-                onTap: () {
-                  widget.onAction!.call(MessageItemAction.delete);
-                  Navigator.pop(context);
-                },
-              ),
-            if (widget.isCurrentUser) const Divider(),
-
-            _ActionListTile(
-              leading: Icon(Symbols.reply),
-              title: Text('reply'.tr()),
-              onTap: () {
-                widget.onAction!.call(MessageItemAction.reply);
-                Navigator.pop(context);
-              },
-            ),
-            _ActionListTile(
-              leading: Icon(Symbols.forward),
-              title: Text('forward'.tr()),
-              onTap: () {
-                widget.onAction!.call(MessageItemAction.forward);
-                Navigator.pop(context);
-              },
-            ),
-            _ActionListTile(
-              leading: const Icon(Symbols.add_reaction),
-              title: Text('react'.tr()),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onReact();
-              },
-            ),
-            if (_hasSelectableText)
-              _ActionListTile(
-                leading: const Icon(Symbols.text_select_start),
-                title: Text('chatSelectText'.tr()),
-                onTap: () {
-                  Navigator.pop(context);
-                  _openTextSelectionView();
-                },
-              ),
-
-            // AI Selection action
-            _ActionListTile(
-              leading: Icon(Symbols.smart_toy),
-              title: Text('chatSelectMessages'.tr()),
-              onTap: () {
-                if (widget.onEnterSelectionMode != null) {
-                  widget.onEnterSelectionMode!();
-                  if (widget.onToggleSelection != null) {
-                    widget.onToggleSelection!(widget.message.id);
-                  }
-                }
-                Navigator.pop(context);
-              },
-            ),
-
-            if (widget.translatableLanguage) const Divider(),
-            if (widget.translatableLanguage)
-              _ActionListTile(
-                leading: Icon(Symbols.translate),
-                title: Text(
-                  widget.translatedText == null
-                      ? 'translate'.tr()
-                      : widget.translating
-                      ? 'translating'.tr()
-                      : 'translated'.tr(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    for (final symbol in quickReactions)
+                      _QuickReactionChip(
+                        symbol: symbol,
+                        onTap: () async {
+                          await widget.onQuickReact(
+                            symbol,
+                            kReactionTemplates[symbol]?.attitude ?? 1,
+                          );
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        },
+                      ),
+                  ],
                 ),
-                onTap: () {
-                  widget.translate();
-                  Navigator.pop(context);
-                },
               ),
-
-            if (widget.isMobile) const Divider(),
-            if (widget.isMobile)
-              _ActionListTile(
-                leading: Icon(Symbols.copy_all),
-                title: Text('copyMessage'.tr()),
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: _displayContent));
-                  Navigator.pop(context);
-                },
-              ),
-
+            ),
+            if (primaryActions.isNotEmpty)
+              _ActionSection(children: primaryActions),
+            if (authorActions.isNotEmpty)
+              _ActionSection(children: authorActions),
+            if (utilityActions.isNotEmpty)
+              _ActionSection(children: utilityActions),
             Gap(MediaQuery.of(context).padding.bottom + 32),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActionSection extends StatelessWidget {
+  final List<Widget>? children;
+  final Widget? child;
+  final EdgeInsetsGeometry padding;
+
+  const _ActionSection({
+    this.children,
+    this.child,
+    this.padding = const EdgeInsets.fromLTRB(12, 10, 12, 0),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: padding,
+      child: Material(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: child ??
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: children!,
+            ),
       ),
     );
   }
@@ -643,29 +730,81 @@ class _ActionListTile extends StatelessWidget {
   final Widget leading;
   final Widget title;
   final VoidCallback onTap;
+  final bool isDanger;
 
   const _ActionListTile({
     required this.leading,
     required this.title,
     required this.onTap,
+    this.isDanger = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground = isDanger
+        ? theme.colorScheme.error
+        : theme.colorScheme.onSurface;
+
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            SizedBox(width: 24, height: 24, child: leading),
-            const Gap(12),
-            Expanded(child: title),
-            Icon(
-              Symbols.chevron_right,
-              size: 16,
-              color: Theme.of(context).colorScheme.outline,
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: foreground),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground),
+            child: Row(
+              children: [
+                SizedBox(width: 24, height: 24, child: leading),
+                const Gap(12),
+                Expanded(child: title),
+                Icon(
+                  Symbols.chevron_right,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickReactionChip extends StatelessWidget {
+  final String symbol;
+  final VoidCallback onTap;
+
+  const _QuickReactionChip({required this.symbol, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            buildReactionIcon(symbol, 22, iconSize: 16),
+            const Gap(6),
+            Text(
+              ReactInfo.getTranslationKey(symbol),
+              style: theme.textTheme.labelLarge,
+            ).tr(),
           ],
         ),
       ),
