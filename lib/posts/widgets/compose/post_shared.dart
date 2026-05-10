@@ -94,6 +94,60 @@ class ThreadedReplyNode {
   }
 }
 
+class PostThreadData {
+  final List<ThreadedReplyNode> ancestors;
+  final ThreadedReplyNode current;
+  final List<ThreadedReplyNode> descendants;
+  final bool hasMore;
+
+  const PostThreadData({
+    required this.ancestors,
+    required this.current,
+    required this.descendants,
+    this.hasMore = false,
+  });
+
+  factory PostThreadData.fromJson(Map<String, dynamic> json) {
+    return PostThreadData(
+      ancestors:
+          (json['ancestors'] as List<dynamic>?)
+              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      current: ThreadedReplyNode.fromJson(json['current'] as Map<String, dynamic>),
+      descendants:
+          (json['descendants'] as List<dynamic>?)
+              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      hasMore: json['has_more'] as bool? ?? false,
+    );
+  }
+
+  List<ThreadedReplyNode> get allNodes => [
+    ...ancestors,
+    current,
+    ...descendants,
+  ];
+}
+
+Map<String?, List<ThreadedReplyNode>> buildThreadChildrenMap(
+  Iterable<ThreadedReplyNode> nodes, {
+  String? hiddenParentId,
+  String? hiddenNodeId,
+  String? hiddenNodeParentId,
+}) {
+  final childrenByParentId = <String?, List<ThreadedReplyNode>>{};
+  for (final node in nodes) {
+    if (node.post.id == hiddenNodeId) continue;
+    final parentId = node.parentId == hiddenParentId
+        ? hiddenNodeParentId
+        : (node.parentId == hiddenNodeId ? hiddenNodeParentId : node.parentId);
+    childrenByParentId.putIfAbsent(parentId, () => []).add(node);
+  }
+  return childrenByParentId;
+}
+
 @riverpod
 class RepliesNotifier extends _$RepliesNotifier {
   @override
