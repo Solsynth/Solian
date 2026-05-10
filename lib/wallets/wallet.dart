@@ -81,7 +81,7 @@ Future<SnWalletStats> walletStats(Ref ref) async {
 
 final walletStatsFilteredProvider = FutureProvider.autoDispose.family<
   SnWalletStats,
-  ({List<String> wallets, List<String> currencies, int period})
+  ({String walletId, String currency, int period})
 >((ref, filter) async {
   final client = ref.watch(solarNetworkClientProvider);
   final response = await client.dio.get<Map<String, dynamic>>(
@@ -89,8 +89,8 @@ final walletStatsFilteredProvider = FutureProvider.autoDispose.family<
     options: Options(listFormat: ListFormat.multi),
     queryParameters: {
       'period': filter.period,
-      'wallets': filter.wallets,
-      'currencies': filter.currencies,
+      'wallets': [filter.walletId],
+      'currencies': [filter.currency],
     },
   );
 
@@ -1894,8 +1894,8 @@ class WalletScreen extends HookConsumerWidget {
       walletStatsFilteredProvider(
         (
           period: 30,
-          wallets: [selectedWallet.id],
-          currencies: [selectedCurrency.value],
+          walletId: selectedWallet.id,
+          currency: selectedCurrency.value,
         ),
       ),
     );
@@ -1933,18 +1933,18 @@ class WalletScreen extends HookConsumerWidget {
             Expanded(child: _statCardSkeleton(context)),
           ],
         ),
-        error: (error, stack) => _StatsErrorCard(
-          error: error,
-          onRetry: () => ref.invalidate(
-            walletStatsFilteredProvider(
-              (
-                period: 30,
-                wallets: [selectedWallet.id],
-                currencies: [selectedCurrency.value],
-              ),
-            ),
-          ),
-        ),
+         error: (error, stack) => _StatsErrorCard(
+           error: error,
+           onRetry: () => ref.invalidate(
+             walletStatsFilteredProvider(
+               (
+                 period: 30,
+                 walletId: selectedWallet.id,
+                 currency: selectedCurrency.value,
+               ),
+             ),
+           ),
+         ),
       ),
     );
   }
@@ -2868,23 +2868,23 @@ class WalletScreen extends HookConsumerWidget {
     );
     final hasMultipleWallets = wallets.length > 1;
 
-    return Container(
-      decoration: BoxDecoration(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.none,
+      child: Material(
         color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton2<String>(
-          valueListenable: selectedWalletId,
-          onChanged: (value) {
-            if (value != null) {
-              selectedWalletId.value = value;
-            }
-          },
-          customButton: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton2<String>(
+            valueListenable: selectedWalletId,
+            onChanged: (value) {
+              if (value != null) {
+                selectedWalletId.value = value;
+              }
+            },
+            customButton: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
                 Container(
                   width: 40,
                   height: 40,
@@ -3144,6 +3144,7 @@ class WalletScreen extends HookConsumerWidget {
             }),
           ],
         ),
+      ),
       ),
     );
   }
