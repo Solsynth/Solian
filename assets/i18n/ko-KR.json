@@ -442,6 +442,7 @@
   "unauthorized": "권한 없음",
   "unauthorizedHint": "로그인되어 있지 않거나 세션이 만료되었습니다. 로그인 후 다시 시도하세요.",
   "publisherBelongsTo": "{}에 속함",
+  "publisherBelongsToRealm": "{}의 일부",
   "postContent": "내용",
   "postSettings": "설정",
   "postPublisherUnselected": "퍼블리셔 미지정",

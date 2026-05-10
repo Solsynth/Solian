@@ -7,6 +7,7 @@ import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 import 'package:solar_network_sdk/src/models/posts/post_category.dart';
 import 'package:solar_network_sdk/src/models/posts/embed.dart';
 import 'package:solar_network_sdk/src/models/posts/heatmap.dart';
+import 'package:solar_network_sdk/src/models/posts/post_collection.dart';
 import 'package:solar_network_sdk/src/models/posts/tag_quota.dart';
 import 'package:solar_network_sdk/src/models/posts/publisher_rating_record.dart';
 import 'package:solar_network_sdk/src/models/posts/publisher_leaderboard.dart';
@@ -19,6 +20,11 @@ class SphereApi extends BaseApi {
 
   /// Base path for all sphere endpoints.
   static const String _basePath = '/sphere';
+
+  /// Base path for publisher-scoped endpoints behind gateway.
+  ///
+  /// Collections live under `/sphere/pub/...`.
+  static const String _pubBasePath = '/sphere/pub';
 
   // ==========================================
   // Post endpoints
@@ -34,6 +40,49 @@ class SphereApi extends BaseApi {
     return SnPost.fromJson(response.data!);
   }
 
+  // ==========================================
+  // Post collection endpoints
+  // ==========================================
+
+  /// Lists collections owned by a publisher.
+  Future<List<SnPostCollection>> listPublisherCollections(
+    String publisherName,
+  ) async {
+    final response = await get<List<dynamic>>(
+      '$_pubBasePath/publishers/$publisherName/collections',
+    );
+    return parseList(response, SnPostCollection.fromJson);
+  }
+
+  /// Adds a post to a collection.
+  ///
+  /// If [order] is null, the server appends to the end.
+  Future<void> addPostToCollection({
+    required String publisherName,
+    required String slug,
+    required String postId,
+    int? order,
+  }) async {
+    await post<void>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts',
+      data: {
+        'post_id': postId,
+        'order': order,
+      }..removeWhere((_, v) => v == null),
+    );
+  }
+
+  /// Removes a post from a collection.
+  Future<void> removePostFromCollection({
+    required String publisherName,
+    required String slug,
+    required String postId,
+  }) async {
+    await delete<void>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/$postId',
+    );
+  }
+
   /// Gets a list of posts.
   ///
   /// [offset] - Pagination offset.
@@ -46,7 +95,11 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/posts',
-      queryParameters: {'offset': offset, 'take': take, 'sort': ?sort},
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        'sort': sort,
+      }..removeWhere((_, v) => v == null),
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnPost.fromJson);

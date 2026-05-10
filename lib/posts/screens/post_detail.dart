@@ -84,6 +84,43 @@ SnCloudFile? _getPostThumbnail(SnPost post) {
   }
 }
 
+class _PostRealmBadge extends ConsumerWidget {
+  final SnRealm realm;
+
+  const _PostRealmBadge({required this.realm});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () {
+        context.router.push(RealmDetailRoute(slug: realm.slug));
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.tertiaryContainer.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            Icon(Symbols.public, size: 18, color: theme.colorScheme.onTertiaryContainer, fill: 1),
+            Text(
+              'publisherBelongsToRealm'.tr(args: [realm.name]),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const Spacer(),
+            Icon(Symbols.chevron_right, size: 18, color: theme.colorScheme.onSurfaceVariant),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class PostActionButtons extends HookConsumerWidget {
   final SnPost post;
   final EdgeInsets renderingPadding;
@@ -691,20 +728,24 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                             );
                                           },
                                         ),
-                                        PostActionButtons(
-                                          post: post,
-                                          noBottomPadding: true,
-                                          renderingPadding:
-                                              const EdgeInsets.only(top: 8),
-                                          onRefresh: onRefresh,
-                                          onUpdate: onUpdate,
-                                        ).alignment(Alignment.centerLeft),
-                                      ],
+                                         PostActionButtons(
+                                              post: post,
+                                              noBottomPadding: true,
+                                              renderingPadding:
+                                                  const EdgeInsets.only(top: 8),
+                                              onRefresh: onRefresh,
+                                              onUpdate: onUpdate,
+                                            ).alignment(Alignment.centerLeft),
+                                          if (post.realm != null)
+                                            _PostRealmBadge(
+                                              realm: post.realm!,
+                                            ).padding(top: 8),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
                             SliverFillRemaining(
                               hasScrollBody: true,
                               child: DefaultTabController(
@@ -1108,6 +1149,19 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
+                          if (postItem.realm != null)
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
+                                  child: _PostRealmBadge(
+                                    realm: postItem.realm!,
+                                  ).padding(horizontal: 16, top: 8),
+                                ),
+                              ),
+                            ),
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(

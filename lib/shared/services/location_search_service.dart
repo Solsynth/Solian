@@ -1,7 +1,6 @@
 import 'package:latlong2/latlong.dart';
 import 'package:nominatim_flutter/nominatim_flutter.dart';
 import 'package:nominatim_flutter/model/request/request.dart';
-import 'package:nominatim_flutter/model/response/response.dart';
 
 class LocationSearchResult {
   final String? name;

@@ -517,6 +517,7 @@
   "unauthorized": "Unauthorized",
   "unauthorizedHint": "You're not signed in or session expired, please sign in and try again.",
   "publisherBelongsTo": "Belongs to {}",
+  "publisherBelongsToRealm": "Part of {}",
   "postContent": "Content",
   "postSettings": "Settings",
   "postPublisherUnselected": "Publisher Unspecified",
