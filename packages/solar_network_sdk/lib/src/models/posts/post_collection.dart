@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:solar_network_sdk/src/models/drive/file.dart';
 import 'package:solar_network_sdk/src/models/posts/publisher.dart';
 
 part 'post_collection.freezed.dart';
@@ -13,6 +14,8 @@ sealed class SnPostCollection with _$SnPostCollection {
     String? description,
     @JsonKey(name: 'publisher_id') required String publisherId,
     SnPublisher? publisher,
+    SnCloudFile? background,
+    SnCloudFile? icon,
     @Default(null) DateTime? createdAt,
     @Default(null) DateTime? updatedAt,
   }) = _SnPostCollection;

@@ -497,6 +497,7 @@
   "postTitle": "Title",
   "postDescription": "Description",
   "postCollections": "Collections",
+  "postCollectionsOfHint": "A collection of collections",
   "call": "Call",
   "done": "Done",
   "loginResetPasswordSent": "Password reset link sent, please check your email inbox.",

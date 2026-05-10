@@ -5,6 +5,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/widgets/content/image_picker_editor.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -14,12 +16,12 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 final publisherCollectionsProvider =
-    FutureProvider.family<List<SnPostCollection>, String>((ref, pubName) async {
+    FutureProvider.autoDispose.family<List<SnPostCollection>, String>((ref, pubName) async {
   final client = ref.watch(solarNetworkClientProvider);
   return client.sphere.listPublisherCollections(pubName);
 });
 
-final collectionPostsProvider = FutureProvider.family<PaginatedResult<SnPost>, (String, String)>(
+final collectionPostsProvider = FutureProvider.autoDispose.family<PaginatedResult<SnPost>, (String, String)>(
   (ref, args) async {
     final client = ref.watch(solarNetworkClientProvider);
     return client.sphere.listPublisherCollectionPosts(
@@ -67,15 +69,12 @@ class CreatorPostCollectionsScreen extends HookConsumerWidget {
                 separatorBuilder: (_, _) => const Gap(8),
                 itemBuilder: (context, index) {
                   final collection = items[index];
+                  final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
                   return Card(
                     child: ListTile(
-                      title: Text(
-                        collection.name?.isNotEmpty == true
-                            ? collection.name!
-                            : collection.slug,
-                      ),
+                      title: Text(title),
                       subtitle: Text(collection.slug),
-                      leading: const Icon(Symbols.collections),
+                      leading: _CollectionAvatar(collection: collection),
                       trailing: const Icon(Symbols.chevron_right),
                       onTap: () async {
                         await showModalBottomSheet(
@@ -116,6 +115,42 @@ class CreatorPostCollectionsScreen extends HookConsumerWidget {
   }
 }
 
+class _CollectionAvatar extends StatelessWidget {
+  final SnPostCollection collection;
+
+  const _CollectionAvatar({required this.collection});
+
+  @override
+  Widget build(BuildContext context) {
+    final background = collection.background;
+    final icon = collection.icon;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (background != null)
+              CloudFileWidget(item: background, fit: BoxFit.cover)
+            else
+              ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+            Center(
+              child: ProfilePictureWidget(
+                file: icon,
+                radius: 14,
+                fallbackIcon: Symbols.collections,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _CollectionEditorSheet extends HookConsumerWidget {
   final String pubName;
   final SnPostCollection? existing;
@@ -127,7 +162,27 @@ class _CollectionEditorSheet extends HookConsumerWidget {
     final slugController = useTextEditingController(text: existing?.slug ?? '');
     final nameController = useTextEditingController(text: existing?.name ?? '');
     final descController = useTextEditingController(text: existing?.description ?? '');
+    final background = useState<SnCloudFile?>(existing?.background);
+    final icon = useState<SnCloudFile?>(existing?.icon);
     final saving = useState(false);
+
+    Future<SnCloudFile?> pickBackground() async {
+      final result = await showImagePickerEditor(
+        context,
+        config: ImageEditorConfig.banner,
+        title: 'collectionBackground'.tr(),
+      );
+      return result as SnCloudFile?;
+    }
+
+    Future<SnCloudFile?> pickIcon() async {
+      final result = await showImagePickerEditor(
+        context,
+        config: ImageEditorConfig.avatar,
+        title: 'collectionIcon'.tr(),
+      );
+      return result as SnCloudFile?;
+    }
 
     Future<void> submit() async {
       try {
@@ -145,6 +200,8 @@ class _CollectionEditorSheet extends HookConsumerWidget {
                 description: descController.text.trim().isEmpty
                     ? null
                     : descController.text.trim(),
+                backgroundId: background.value?.id,
+                iconId: icon.value?.id,
               )
             : await client.sphere.updatePublisherCollection(
                 publisherName: pubName,
@@ -155,6 +212,10 @@ class _CollectionEditorSheet extends HookConsumerWidget {
                 description: descController.text.trim().isEmpty
                     ? null
                     : descController.text.trim(),
+                backgroundId: background.value?.id,
+                iconId: icon.value?.id,
+                clearBackground: existing?.background != null && background.value == null,
+                clearIcon: existing?.icon != null && icon.value == null,
               );
         if (context.mounted) Navigator.pop(context, result);
       } catch (err) {
@@ -169,6 +230,62 @@ class _CollectionEditorSheet extends HookConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          AspectRatio(
+            aspectRatio: 16 / 7,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    background.value = await pickBackground();
+                  },
+                  child: background.value != null
+                      ? CloudImageWidget(file: background.value!, fit: BoxFit.cover)
+                      : Container(
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          alignment: Alignment.center,
+                          child: const Icon(Symbols.wallpaper),
+                        ),
+                ),
+                Positioned(
+                  left: 16,
+                  bottom: 16,
+                  child: GestureDetector(
+                    onTap: () async {
+                      icon.value = await pickIcon();
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Theme.of(context).colorScheme.surface, width: 3),
+                      ),
+                      child: icon.value != null
+                          ? ProfilePictureWidget(file: icon.value!, radius: 28)
+                          : ProfilePictureWidget(file: null, radius: 28, fallbackIcon: Symbols.collections),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: background.value == null ? null : () => background.value = null,
+                        icon: const Icon(Symbols.delete),
+                      ),
+                      IconButton(
+                        onPressed: icon.value == null ? null : () => icon.value = null,
+                        icon: const Icon(Symbols.delete),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Gap(16),
           TextField(
             controller: slugController,
             decoration: InputDecoration(
@@ -208,6 +325,7 @@ class _CollectionDetailSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final posts = ref.watch(collectionPostsProvider((pubName, collection.slug)));
+    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
 
     Future<void> deleteCollection() async {
       final confirm = await showConfirmAlert(
@@ -229,7 +347,7 @@ class _CollectionDetailSheet extends HookConsumerWidget {
     }
 
     return SheetScaffold(
-      titleText: collection.name?.isNotEmpty == true ? collection.name! : collection.slug,
+      titleText: title,
       actions: [
         IconButton(
           icon: const Icon(Symbols.edit),
@@ -251,62 +369,110 @@ class _CollectionDetailSheet extends HookConsumerWidget {
           onPressed: deleteCollection,
         ),
       ],
-      child: posts.when(
-        data: (result) => ListView.separated(
-          itemCount: result.items.length,
-          separatorBuilder: (_, _) => const Divider(height: 1),
-          itemBuilder: (context, index) {
-            final post = result.items[index];
-            return CreatorPostCardTile(
-              index: index,
-              post: post,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (index > 0)
-                    IconButton(
-                      icon: const Icon(Symbols.arrow_upward),
-                      onPressed: () async {
-                        final ids = result.items.map((e) => e.id).toList();
-                        final tmp = ids[index - 1];
-                        ids[index - 1] = ids[index];
-                        ids[index] = tmp;
-                        final client = ref.read(solarNetworkClientProvider);
-                        await client.sphere.reorderPublisherCollectionPosts(
-                          publisherName: pubName,
-                          slug: collection.slug,
-                          postIds: ids,
-                        );
-                        ref.invalidate(collectionPostsProvider((pubName, collection.slug)));
-                      },
-                    ),
-                  if (index < result.items.length - 1)
-                    IconButton(
-                      icon: const Icon(Symbols.arrow_downward),
-                      onPressed: () async {
-                        final ids = result.items.map((e) => e.id).toList();
-                        final tmp = ids[index + 1];
-                        ids[index + 1] = ids[index];
-                        ids[index] = tmp;
-                        final client = ref.read(solarNetworkClientProvider);
-                        await client.sphere.reorderPublisherCollectionPosts(
-                          publisherName: pubName,
-                          slug: collection.slug,
-                          postIds: ids,
-                        );
-                        ref.invalidate(collectionPostsProvider((pubName, collection.slug)));
-                      },
-                    ),
-                ],
-              ),
-            );
-          },
-        ),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 7,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (collection.background != null)
+                  CloudFileWidget(item: collection.background!, fit: BoxFit.cover)
+                else
+                  Container(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+                Positioned(
+                  left: 16,
+                  bottom: 16,
+                  child: Row(
+                    children: [
+                      ProfilePictureWidget(
+                        file: collection.icon,
+                        radius: 24,
+                        fallbackIcon: Symbols.collections,
+                      ),
+                      const Gap(12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white)),
+                          if (collection.description?.isNotEmpty ?? false)
+                            Text(
+                              collection.description!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Gap(16),
+          posts.when(
+            data: (result) => ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: result.items.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final post = result.items[index];
+                return CreatorPostCardTile(
+                  index: index,
+                  post: post,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (index > 0)
+                        IconButton(
+                          icon: const Icon(Symbols.arrow_upward),
+                          onPressed: () async {
+                            final ids = result.items.map((e) => e.id).toList();
+                            final tmp = ids[index - 1];
+                            ids[index - 1] = ids[index];
+                            ids[index] = tmp;
+                            final client = ref.read(solarNetworkClientProvider);
+                            await client.sphere.reorderPublisherCollectionPosts(
+                              publisherName: pubName,
+                              slug: collection.slug,
+                              postIds: ids,
+                            );
+                            ref.invalidate(collectionPostsProvider((pubName, collection.slug)));
+                          },
+                        ),
+                      if (index < result.items.length - 1)
+                        IconButton(
+                          icon: const Icon(Symbols.arrow_downward),
+                          onPressed: () async {
+                            final ids = result.items.map((e) => e.id).toList();
+                            final tmp = ids[index + 1];
+                            ids[index + 1] = ids[index];
+                            ids[index] = tmp;
+                            final client = ref.read(solarNetworkClientProvider);
+                            await client.sphere.reorderPublisherCollectionPosts(
+                              publisherName: pubName,
+                              slug: collection.slug,
+                              postIds: ids,
+                            );
+                            ref.invalidate(collectionPostsProvider((pubName, collection.slug)));
+                          },
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => ResponseErrorWidget(
           error: error,
           onRetry: () => ref.invalidate(collectionPostsProvider((pubName, collection.slug))),
         ),
+          ),
+        ],
       ),
     );
   }
