@@ -9,6 +9,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/posts/widgets/compose/post_card_tile.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -256,10 +257,9 @@ class _CollectionDetailSheet extends HookConsumerWidget {
           separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final post = result.items[index];
-            return ListTile(
-              leading: const Icon(Symbols.article),
-              title: Text(post.title ?? post.slug ?? post.id),
-              subtitle: Text(post.id),
+            return CreatorPostCardTile(
+              index: index,
+              post: post,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
