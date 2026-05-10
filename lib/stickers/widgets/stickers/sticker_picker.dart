@@ -19,11 +19,20 @@ part 'sticker_picker.g.dart';
 /// Fetch user-added sticker packs (with stickers) from API:
 /// GET /sphere/stickers/me
 @riverpod
-Future<List<SnStickerPack>> myStickerPacks(Ref ref) async {
+Future<List<SnStickerOwnership>> myStickerOwnerships(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
   final data = await client.stickers.getUserPacks();
   return data
-      .map((e) => SnStickerPack.fromJson(e as Map<String, dynamic>))
+      .map((e) => SnStickerOwnership.fromJson(e as Map<String, dynamic>))
+      .toList();
+}
+
+@riverpod
+Future<List<SnStickerPack>> myStickerPacks(Ref ref) async {
+  final ownerships = await ref.watch(myStickerOwnershipsProvider.future);
+  return ownerships
+      .map((ownership) => ownership.pack)
+      .whereType<SnStickerPack>()
       .toList();
 }
 
@@ -39,62 +48,79 @@ class StickerPicker extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final packsAsync = ref.watch(myStickerPacksProvider);
-
     return PopupCard(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 520),
-        child: packsAsync.when(
-          data: (packs) {
-            if (packs.isEmpty) {
-              return _EmptyState(
-                onRefresh: () async {
-                  ref.invalidate(myStickerPacksProvider);
-                },
-              );
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: _StickerPickerView(
+          onPick: (pack, sticker) {
+            HapticFeedback.selectionClick();
+            onPick(pack, sticker);
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
             }
+          },
+          onLongPress: onLongPress,
+        ),
+      ),
+    );
+  }
+}
 
-            // Maintain selected index locally with a ValueNotifier to avoid hooks dependency
-            return _PackSwitcher(
-              packs: packs,
-              onPick: (pack, sticker) {
-                HapticFeedback.selectionClick();
-                onPick(pack, sticker);
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-              },
-              onLongPress: onLongPress,
+class _StickerPickerView extends HookConsumerWidget {
+  final void Function(SnStickerPack pack, SnSticker sticker) onPick;
+  final void Function(SnStickerPack pack, SnSticker sticker)? onLongPress;
+
+  const _StickerPickerView({required this.onPick, this.onLongPress});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final packsAsync = ref.watch(myStickerPacksProvider);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 520, maxHeight: 520),
+      child: packsAsync.when(
+        data: (packs) {
+          if (packs.isEmpty) {
+            return _EmptyState(
               onRefresh: () async {
                 ref.invalidate(myStickerPacksProvider);
               },
             );
-          },
-          loading: () => const SizedBox(
-            width: 320,
-            height: 320,
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (err, _) => SizedBox(
-            width: 360,
-            height: 200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Symbols.error, size: 28),
-                const Gap(8),
-                Text('Error: $err', textAlign: TextAlign.center),
-                const Gap(12),
-                FilledButton.icon(
-                  onPressed: () => ref.invalidate(myStickerPacksProvider),
-                  icon: const Icon(Symbols.refresh),
-                  label: Text('retry').tr(),
-                ),
-              ],
-            ).padding(all: 16),
-          ),
+          }
+
+          return _PackSwitcher(
+            packs: packs,
+            onPick: onPick,
+            onLongPress: onLongPress,
+            onRefresh: () async {
+              ref.invalidate(myStickerPacksProvider);
+            },
+          );
+        },
+        loading: () => const SizedBox(
+          width: 320,
+          height: 320,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (err, _) => SizedBox(
+          width: 360,
+          height: 200,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Symbols.error, size: 28),
+              const Gap(8),
+              Text('Error: $err', textAlign: TextAlign.center),
+              const Gap(12),
+              FilledButton.icon(
+                onPressed: () => ref.invalidate(myStickerPacksProvider),
+                icon: const Icon(Symbols.refresh),
+                label: Text('retry').tr(),
+              ),
+            ],
+          ).padding(all: 16),
         ),
       ),
     );
@@ -103,6 +129,7 @@ class StickerPicker extends HookConsumerWidget {
 
 class _EmptyState extends StatelessWidget {
   final Future<void> Function() onRefresh;
+
   const _EmptyState({required this.onRefresh});
 
   @override
@@ -514,8 +541,8 @@ Future<void> showStickerPickerPopover(
   BuildContext context,
   Offset offset, {
   Alignment? alignment,
-  required void Function(String placeholder) onPick,
-  void Function(String placeholder)? onLongPress,
+  required void Function(SnStickerPack pack, SnSticker sticker) onPick,
+  void Function(SnStickerPack pack, SnSticker sticker)? onLongPress,
 }) async {
   // Use flutter_popup_card to present the anchored popup near trigger.
   await showPopupCard<void>(
@@ -523,16 +550,14 @@ Future<void> showStickerPickerPopover(
     offset: offset,
     alignment: alignment ?? Alignment.topLeft,
     dimBackground: true,
-    builder: (ctx) => SizedBox(
-      width: math.min(480, MediaQuery.of(context).size.width * 0.9),
-      height: 480,
-      child: ProviderScope(
-        child: StickerPicker(
-          onPick: (pack, sticker) => onPick(':${pack.prefix}+${sticker.slug}:'),
-          onLongPress: onLongPress == null
-              ? null
-              : (pack, sticker) =>
-                    onLongPress(':${pack.prefix}+${sticker.slug}:'),
+    builder: (ctx) => PopupCard(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: SizedBox(
+        width: math.min(480, MediaQuery.of(context).size.width * 0.9),
+        height: 480,
+        child: ProviderScope(
+          child: _StickerPickerView(onPick: onPick, onLongPress: onLongPress),
         ),
       ),
     ),

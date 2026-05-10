@@ -38,6 +38,7 @@ sealed class SnSticker with _$SnSticker {
     required String slug,
     String? name,
     required SnCloudFile image,
+    @Default(0) int order,
     @JsonKey(fromJson: _stickerSizeFromJson) @Default(0) int size,
     @JsonKey(fromJson: _stickerModeFromJson) @Default(0) int mode,
     required String packId,
@@ -61,6 +62,7 @@ sealed class SnStickerPack with _$SnStickerPack {
     required String publisherId,
     required SnCloudFile? icon,
     required SnPublisher? publisher,
+    @Default(0) int order,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,
@@ -69,4 +71,22 @@ sealed class SnStickerPack with _$SnStickerPack {
 
   factory SnStickerPack.fromJson(Map<String, dynamic> json) =>
       _$SnStickerPackFromJson(json);
+}
+
+@freezed
+sealed class SnStickerOwnership with _$SnStickerOwnership {
+  const factory SnStickerOwnership({
+    required String id,
+    @JsonKey(name: 'pack_id') required String packId,
+    required SnStickerPack? pack,
+    @JsonKey(name: 'account_id') required String accountId,
+    required SnAccount? account,
+    @Default(0) int order,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? deletedAt,
+  }) = _SnStickerOwnership;
+
+  factory SnStickerOwnership.fromJson(Map<String, dynamic> json) =>
+      _$SnStickerOwnershipFromJson(json);
 }
