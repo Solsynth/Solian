@@ -717,19 +717,19 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
             children: [
               Expanded(
                 child: _PostNeighborCard(
-                  label: 'Next post',
+                  label: 'nextPost'.tr(),
                   post: nextPost.value,
-                  emptyTitle: 'No post',
-                  emptyDescription: 'The author has not published the next post yet.',
+                  emptyTitle: 'noPost'.tr(),
+                  emptyDescription: 'notPublishedYet'.tr(),
                   alignRight: false,
                 ),
               ),
               Expanded(
                 child: _PostNeighborCard(
-                  label: 'Previous post',
+                  label: 'previousPost'.tr(),
                   post: previousPost.value,
-                  emptyTitle: 'No post',
-                  emptyDescription: 'This is the earliest one',
+                  emptyTitle: 'noPost'.tr(),
+                  emptyDescription: 'earliestOne'.tr(),
                   alignRight: true,
                 ),
               ),
