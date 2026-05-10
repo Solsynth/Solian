@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -71,6 +73,45 @@ class PostState extends Notifier<AsyncValue<SnPost?>> {
 bool _isMediaPost(SnPost? post) {
   return post != null && post.type == 0 && post.attachments.isNotEmpty;
 }
+
+class CollectionNeighborArgs {
+  final String publisherName;
+  final String slug;
+  final String postId;
+  final bool isNext;
+
+  const CollectionNeighborArgs({
+    required this.publisherName,
+    required this.slug,
+    required this.postId,
+    required this.isNext,
+  });
+}
+
+final collectionNeighborProvider =
+    FutureProvider.family<SnPost?, CollectionNeighborArgs>(
+  (ref, args) async {
+    final client = ref.watch(solarNetworkClientProvider);
+    try {
+      return args.isNext
+          ? await client.sphere.getPublisherCollectionNextPost(
+              publisherName: args.publisherName,
+              slug: args.slug,
+              postId: args.postId,
+            )
+          : await client.sphere.getPublisherCollectionPrevPost(
+              publisherName: args.publisherName,
+              slug: args.slug,
+              postId: args.postId,
+            );
+    } catch (err) {
+      if (err is DioException && err.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
+    }
+  },
+);
 
 const _postDetailMaxWidth = 640.0;
 
@@ -372,6 +413,111 @@ class PostActionButtons extends HookConsumerWidget {
         runAlignment: WrapAlignment.start,
         children: actions,
       ),
+    );
+  }
+}
+
+class PostCollectionNavigation extends HookConsumerWidget {
+  final SnPost post;
+
+  const PostCollectionNavigation({super.key, required this.post});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final collections = post.publisherCollections;
+    final publisherName = post.publisher?.name;
+    if (collections.isEmpty || publisherName == null || publisherName.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedSlug = useState<String>(collections.first.slug);
+    final selectedCollection = collections.firstWhere(
+      (c) => c.slug == selectedSlug.value,
+      orElse: () => collections.first,
+    );
+
+    final prevNeighbor = ref.watch(
+      collectionNeighborProvider(
+        CollectionNeighborArgs(
+          publisherName: publisherName,
+          slug: selectedCollection.slug,
+          postId: post.id,
+          isNext: false,
+        ),
+      ),
+    );
+    final nextNeighbor = ref.watch(
+      collectionNeighborProvider(
+        CollectionNeighborArgs(
+          publisherName: publisherName,
+          slug: selectedCollection.slug,
+          postId: post.id,
+          isNext: true,
+        ),
+      ),
+    );
+
+    Widget buildNavButton({
+      required String label,
+      required AsyncValue<SnPost?> value,
+      required IconData icon,
+    }) {
+      return value.when(
+        data: (neighbor) => FilledButton.tonalIcon(
+          onPressed: neighbor == null
+              ? null
+              : () => context.router.push(PostDetailRoute(id: neighbor.id)),
+          icon: Icon(icon),
+          label: Text(label),
+        ),
+        loading: () => const SizedBox(
+          width: double.infinity,
+          child: LinearProgressIndicator(minHeight: 2),
+        ),
+        error: (_, _) => const SizedBox.shrink(),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('postCollections').tr().fontSize(12).opacity(0.7),
+        const Gap(8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final collection in collections)
+              ChoiceChip(
+                label: Text(
+                  collection.name?.isNotEmpty == true ? collection.name! : collection.slug,
+                ),
+                selected: selectedSlug.value == collection.slug,
+                onSelected: (_) => selectedSlug.value = collection.slug,
+              ),
+          ],
+        ),
+        const Gap(12),
+        Row(
+          children: [
+            Expanded(
+              child: buildNavButton(
+                label: 'collectionPrevious'.tr(),
+                value: prevNeighbor,
+                icon: Symbols.chevron_left,
+              ),
+            ),
+            const Gap(8),
+            Expanded(
+              child: buildNavButton(
+                label: 'collectionNext'.tr(),
+                value: nextNeighbor,
+                icon: Symbols.chevron_right,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -692,6 +838,10 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           hideAttachments: true,
                                           textScale: post.type == 1 ? 1.2 : 1.1,
                                         ),
+                                        if (post.publisherCollections.isNotEmpty)
+                                          const Gap(8),
+                                        if (post.publisherCollections.isNotEmpty)
+                                          PostCollectionNavigation(post: post),
                                         if (post.embedView != null)
                                           EmbedViewRenderer(
                                             embedView: post.embedView!,
@@ -1149,6 +1299,27 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
+                          if (postItem.publisherCollections.isNotEmpty)
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      8,
+                                      16,
+                                      0,
+                                    ),
+                                    child: PostCollectionNavigation(
+                                      post: postItem,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           if (postItem.realm != null)
                             SliverToBoxAdapter(
                               child: Center(

@@ -24,7 +24,7 @@ class SphereApi extends BaseApi {
   /// Base path for publisher-scoped endpoints behind gateway.
   ///
   /// Collections live under `/sphere/pub/...`.
-  static const String _pubBasePath = '/sphere/pub';
+  static const String _pubBasePath = '/sphere';
 
   // ==========================================
   // Post endpoints
@@ -52,6 +52,112 @@ class SphereApi extends BaseApi {
       '$_pubBasePath/publishers/$publisherName/collections',
     );
     return parseList(response, SnPostCollection.fromJson);
+  }
+
+  /// Gets a collection by slug.
+  Future<SnPostCollection> getPublisherCollection({
+    required String publisherName,
+    required String slug,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug',
+    );
+    return SnPostCollection.fromJson(response.data!);
+  }
+
+  /// Creates a collection.
+  Future<SnPostCollection> createPublisherCollection({
+    required String publisherName,
+    required String slug,
+    String? name,
+    String? description,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_pubBasePath/publishers/$publisherName/collections',
+      data: {
+        'slug': slug,
+        'name': name,
+        'description': description,
+      }..removeWhere((_, v) => v == null),
+    );
+    return SnPostCollection.fromJson(response.data!);
+  }
+
+  /// Updates a collection.
+  Future<SnPostCollection> updatePublisherCollection({
+    required String publisherName,
+    required String slug,
+    String? name,
+    String? description,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug',
+      data: {
+        'name': name,
+        'description': description,
+      }..removeWhere((_, v) => v == null),
+    );
+    return SnPostCollection.fromJson(response.data!);
+  }
+
+  /// Deletes a collection.
+  Future<void> deletePublisherCollection({
+    required String publisherName,
+    required String slug,
+  }) async {
+    await delete('$_pubBasePath/publishers/$publisherName/collections/$slug');
+  }
+
+  /// Lists posts in a collection.
+  Future<PaginatedResult<SnPost>> listPublisherCollectionPosts({
+    required String publisherName,
+    required String slug,
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts',
+      queryParameters: {'offset': offset, 'take': take},
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnPost.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Reorders collection posts.
+  Future<void> reorderPublisherCollectionPosts({
+    required String publisherName,
+    required String slug,
+    required List<String> postIds,
+  }) async {
+    await put<void>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/reorder',
+      data: {'post_ids': postIds},
+    );
+  }
+
+  /// Gets previous visible post in collection order.
+  Future<SnPost> getPublisherCollectionPrevPost({
+    required String publisherName,
+    required String slug,
+    required String postId,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/$postId/prev',
+    );
+    return SnPost.fromJson(response.data!);
+  }
+
+  /// Gets next visible post in collection order.
+  Future<SnPost> getPublisherCollectionNextPost({
+    required String publisherName,
+    required String slug,
+    required String postId,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/$postId/next',
+    );
+    return SnPost.fromJson(response.data!);
   }
 
   /// Adds a post to a collection.
