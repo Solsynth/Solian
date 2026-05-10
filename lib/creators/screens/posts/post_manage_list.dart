@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
@@ -12,12 +11,14 @@ import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
-class CreatorPostListScreen extends HookConsumerWidget {
+class CreatorPostListScreen extends ConsumerWidget {
   final String pubName;
+
   const CreatorPostListScreen({super.key, required this.pubName});
 
   @override
@@ -28,23 +29,22 @@ class CreatorPostListScreen extends HookConsumerWidget {
         initialFilter: PostListQuery(pubName: pubName),
       ),
     );
-    final postsAsync = ref.watch(provider);
-    final notifier = ref.watch(provider.notifier);
 
     return AppScaffold(
       appBar: AppBar(
         leading: const AutoLeadingButton(),
         title: Text('posts').tr(),
       ),
-      body: postsAsync.when(
-        data: (state) => _buildTable(
-          context,
-          state,
-          notifier,
-          (post) => _showPostDetailSheet(context, post),
+      body: PaginationList<SnPost>(
+        provider: provider,
+        notifier: provider.notifier,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        spacing: 0,
+        itemBuilder: (context, index, post) => _PostListCard(
+          index: index,
+          post: post,
+          onTap: () => _showPostDetailSheet(context, post),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
       ),
     );
   }
@@ -58,274 +58,215 @@ class CreatorPostListScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildTable(
-    BuildContext context,
-    PaginationState<SnPost> state,
-    PostListNotifier notifier,
-    Function(SnPost) onRowTap,
-  ) {
-    final scrollController = useCallback(() {
-      final controller = ScrollController();
-      controller.addListener(() {
-        if (controller.position.pixels >=
-            controller.position.maxScrollExtent - 200) {
-          if (!state.isLoading && state.hasMore) {
-            notifier.fetchFurther();
-          }
-        }
-      });
-      return controller;
-    }, []);
+}
 
-    final posts = state.items;
+class _PostListCard extends StatelessWidget {
+  final int index;
+  final SnPost post;
+  final VoidCallback onTap;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          controller: scrollController(),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: DataTable(
-                headingRowColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.surfaceContainerHigh,
-                ),
-                dataRowMinHeight: 64,
-                dataRowMaxHeight: 80,
-                columnSpacing: 20,
-                horizontalMargin: 16,
-                headingRowHeight: 48,
-                columns: const [
-                  DataColumn(
-                    label: _TableHeaderIcon(
-                      icon: Symbols.article,
-                      label: 'Content',
-                    ),
-                  ),
-                  DataColumn(label: SizedBox.shrink()),
-                  DataColumn(
-                    label: _TableHeaderIcon(
-                      icon: Symbols.schedule,
-                      label: 'Created',
-                    ),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: _TableHeaderIcon(
-                      icon: Symbols.visibility,
-                      label: 'Views',
-                    ),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: _TableHeaderIcon(
-                      icon: Symbols.thumb_up,
-                      label: 'Up',
-                    ),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: _TableHeaderIcon(
-                      icon: Symbols.thumb_down,
-                      label: 'Down',
-                    ),
-                    numeric: true,
-                  ),
-                ],
-                rows: posts.map((post) {
-                  final title = post.title?.isNotEmpty == true
-                      ? post.title!
-                      : _truncateContent(post.content ?? '', 40);
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                        SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: post.attachments.isNotEmpty
-                              ? _buildAttachmentThumbnail(
-                                  post.attachments.first,
-                                )
-                              : Icon(
-                                  Symbols.article,
-                                  size: 24,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.secondary,
-                                ),
-                        ),
-                        onTap: () => onRowTap(post),
-                      ),
-                      DataCell(
-                        SizedBox(
-                          width: 200,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  if (post.pinMode != null)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 4),
-                                      child: Icon(
-                                        Symbols.keep,
-                                        size: 14,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                    ),
-                                  if (post.type == 1)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 4),
-                                      child: Icon(
-                                        Symbols.article,
-                                        size: 14,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.tertiary,
-                                      ),
-                                    ),
-                                  Expanded(
-                                    child: Text(
-                                      title,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (post.attachments.isNotEmpty)
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Symbols.attach_file,
-                                      size: 10,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.secondary,
-                                    ),
-                                    const Gap(2),
-                                    Text(
-                                      '${post.attachments.length}',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.secondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                            ],
+  const _PostListCard({
+    required this.index,
+    required this.post,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasTitle = post.title?.isNotEmpty == true;
+    final surface = index.isEven
+        ? theme.colorScheme.surface
+        : theme.colorScheme.surfaceContainerLow;
+
+    return Material(
+      color: surface,
+      elevation: 0,
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 60,
+                height: 60,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: post.attachments.isNotEmpty
+                      ? _buildAttachmentThumbnail(post.attachments.first)
+                      : Container(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Symbols.article,
+                            size: 24,
+                            color: theme.colorScheme.secondary,
                           ),
                         ),
-                        onTap: () => onRowTap(post),
-                      ),
-                      DataCell(
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              post.createdAt?.formatSystem() ?? '-',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            if (post.editedAt != null)
-                              Text(
-                                'Edited: ${post.editedAt!.formatSystem()}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Theme.of(context).colorScheme.tertiary,
-                                ),
+                ),
+              ),
+              const Gap(10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (hasTitle) ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (post.pinMode != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Symbols.keep,
+                                size: 13,
+                                color: theme.colorScheme.primary,
                               ),
-                          ],
-                        ),
-                        onTap: () => onRowTap(post),
+                            ),
+                          if (post.type == 1)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Symbols.article,
+                                size: 13,
+                                color: theme.colorScheme.tertiary,
+                              ),
+                            ),
+                          Expanded(
+                            child: Text(
+                              post.title!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          ),
+                        ],
                       ),
-                      DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Symbols.visibility,
-                              size: 14,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            const Gap(4),
-                            Text(
-                              _formatNumber(post.viewsUnique),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                        onTap: () => onRowTap(post),
+                      const Gap(2),
+                    ],
+                    Text(
+                      post.content != null && post.content!.isNotEmpty
+                          ? _truncateContent(post.content!, 180)
+                          : 'No content',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.25,
                       ),
-                      DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Symbols.thumb_up,
-                              size: 14,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const Gap(4),
-                            Text(
-                              '${post.upvotes}',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                            ),
-                          ],
+                    ),
+                    const Gap(8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _MetricChip(
+                          icon: Symbols.schedule,
+                          label: post.createdAt?.formatSystem() ?? '-',
                         ),
-                        onTap: () => onRowTap(post),
-                      ),
-                      DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Symbols.thumb_down,
-                              size: 14,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                            const Gap(4),
-                            Text(
-                              '${post.downvotes}',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                            ),
-                          ],
+                        _MetricChip(
+                          icon: Symbols.visibility,
+                          label: _formatNumber(post.viewsUnique),
                         ),
-                        onTap: () => onRowTap(post),
+                        _MetricChip(
+                          icon: Icons.bar_chart,
+                          label: _formatNumber(post.viewsTotal),
+                        ),
+                        _MetricChip(
+                          icon: Symbols.chat_bubble,
+                          label: '${post.repliesCount}',
+                        ),
+                        _MetricChip(
+                          icon: Symbols.thumb_up,
+                          label: '${post.upvotes}',
+                        ),
+                        _MetricChip(
+                          icon: Symbols.thumb_down,
+                          label: '${post.downvotes}',
+                        ),
+                        _MetricChip(
+                          icon: Symbols.emoji_events,
+                          label: '${post.awardedScore}',
+                        ),
+                        if (post.featuredRecords.isNotEmpty)
+                          _MetricChip(
+                            icon: Symbols.highlight,
+                            label: '${post.featuredRecords.length}',
+                          ),
+                        _MetricChip(
+                          icon: PostVisibilityHelpers.getVisibilityIcon(
+                            post.visibility,
+                          ),
+                          label: PostVisibilityHelpers.getVisibilityText(
+                            post.visibility,
+                          ).tr(),
+                        ),
+                        if (post.attachments.isNotEmpty)
+                          _MetricChip(
+                            icon: Symbols.attach_file,
+                            label: '${post.attachments.length}',
+                          ),
+                        if (post.editedAt != null)
+                          _MetricChip(
+                            icon: Symbols.edit,
+                            label: post.editedAt!.formatSystem(),
+                          ),
+                      ],
+                    ),
+                    if (post.tags.isNotEmpty || post.categories.isNotEmpty) ...[
+                      const Gap(8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (post.tags.isNotEmpty)
+                            ...[
+                              const Icon(Symbols.label, size: 16),
+                              for (final tag in post.tags.take(4))
+                                _PillChip(label: tag.name ?? tag.slug),
+                              if (post.tags.length > 4)
+                                _PillChip(label: '+${post.tags.length - 4}'),
+                            ],
+                          if (post.categories.isNotEmpty)
+                            ...[
+                              const Icon(Symbols.category, size: 16),
+                              for (final category in post.categories.take(3))
+                                _PillChip(
+                                  label: category.categoryTranslationKey.tr(),
+                                ),
+                              if (post.categories.length > 3)
+                                _PillChip(label: '+${post.categories.length - 3}'),
+                            ],
+                        ],
                       ),
                     ],
-                  );
-                }).toList(),
+                    if (post.reactionsCount.isNotEmpty) ...[
+                      const Gap(8),
+                      PostReactionList(
+                        item: post,
+                        reactions: post.reactionsCount,
+                        reactionsMade: post.reactionsMade,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildAttachmentThumbnail(SnCloudFile file) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: CloudFileWidget(item: file),
-    );
+    return CloudFileWidget(item: file);
   }
 
   String _truncateContent(String content, int maxLength) {
@@ -343,21 +284,49 @@ class CreatorPostListScreen extends HookConsumerWidget {
   }
 }
 
-class _TableHeaderIcon extends StatelessWidget {
+class _MetricChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _TableHeaderIcon({required this.icon, required this.label});
+  const _MetricChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
-        const Gap(4),
-        Text(label, style: Theme.of(context).textTheme.labelMedium),
-      ],
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: theme.colorScheme.secondary),
+          const Gap(4),
+          Text(label, style: theme.textTheme.labelSmall),
+        ],
+      ),
+    );
+  }
+}
+
+class _PillChip extends StatelessWidget {
+  final String label;
+
+  const _PillChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border.all(color: theme.dividerColor.withOpacity(0.35)),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(label, style: theme.textTheme.labelSmall),
     );
   }
 }
@@ -392,6 +361,12 @@ class _PostDetailSheet extends StatelessWidget {
             ),
             const Gap(16),
             _buildAnalyticsCard(context, post),
+            if (post.reactionsCount.isNotEmpty) ...[
+              const Gap(16),
+              _buildReactionsCard(context, post),
+            ],
+            const Gap(16),
+            _buildMetricsCard(context, post),
             const Gap(16),
             _buildActionsSection(context, post),
           ],
@@ -481,6 +456,170 @@ class _PostDetailSheet extends StatelessWidget {
                   ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReactionsCard(BuildContext context, SnPost post) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Reactions', style: Theme.of(context).textTheme.titleSmall),
+            const Gap(10),
+            PostReactionList(
+              item: post,
+              reactions: post.reactionsCount,
+              reactionsMade: post.reactionsMade,
+              padding: EdgeInsets.zero,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricsCard(BuildContext context, SnPost post) {
+    final theme = Theme.of(context);
+    final details = <({String label, String value, IconData icon})>[
+      (
+        label: 'Published',
+        value: post.publishedAt?.formatSystem() ?? '-',
+        icon: Symbols.schedule,
+      ),
+      (
+        label: 'Created',
+        value: post.createdAt?.formatSystem() ?? '-',
+        icon: Symbols.event,
+      ),
+      (
+        label: 'Edited',
+        value: post.editedAt?.formatSystem() ?? '-',
+        icon: Symbols.edit,
+      ),
+      (
+        label: 'Visibility',
+        value: PostVisibilityHelpers.getVisibilityText(post.visibility).tr(),
+        icon: PostVisibilityHelpers.getVisibilityIcon(post.visibility),
+      ),
+      (
+        label: 'Replies',
+        value: '${post.repliesCount}',
+        icon: Symbols.chat_bubble,
+      ),
+      (
+        label: 'Attachments',
+        value: '${post.attachments.length}',
+        icon: Symbols.attach_file,
+      ),
+      (
+        label: 'Tags',
+        value: '${post.tags.length}',
+        icon: Symbols.label,
+      ),
+      (
+        label: 'Categories',
+        value: '${post.categories.length}',
+        icon: Symbols.category,
+      ),
+      (
+        label: 'Featured',
+        value: '${post.featuredRecords.length}',
+        icon: Symbols.highlight,
+      ),
+      (
+        label: 'Score',
+        value: '${post.awardedScore}',
+        icon: Symbols.emoji_events,
+      ),
+    ];
+
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Details', style: theme.textTheme.titleSmall),
+            const Gap(10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final detail in details)
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 140),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(detail.icon, size: 14, color: theme.colorScheme.secondary),
+                        const Gap(8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                detail.label,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.secondary,
+                                ),
+                              ),
+                              Text(
+                                detail.value,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            if (post.tags.isNotEmpty || post.categories.isNotEmpty) ...[
+              const Gap(12),
+              if (post.tags.isNotEmpty)
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    Text('Tags:', style: theme.textTheme.labelSmall),
+                    for (final tag in post.tags)
+                      Chip(label: Text(tag.name ?? tag.slug)),
+                  ],
+                ),
+              if (post.categories.isNotEmpty) ...[
+                const Gap(8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    Text('Categories:', style: theme.textTheme.labelSmall),
+                    for (final category in post.categories)
+                      Chip(label: Text(category.categoryTranslationKey.tr())),
+                  ],
+                ),
+              ],
+            ],
           ],
         ),
       ),
