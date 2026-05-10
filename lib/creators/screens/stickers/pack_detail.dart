@@ -33,6 +33,30 @@ Future<List<SnSticker>> stickerPackContent(Ref ref, String packId) async {
       .toList();
 }
 
+const List<String> _stickerSizeOptions = ['auto', 'small', 'medium', 'large'];
+const List<String> _stickerModeOptions = ['sticker', 'emote'];
+
+String _stickerSizeLabel(int value) => switch (value) {
+  1 => 'small',
+  2 => 'medium',
+  3 => 'large',
+  _ => 'auto',
+};
+
+String _stickerModeLabel(int value) => switch (value) {
+  1 => 'emote',
+  _ => 'sticker',
+};
+
+int _stickerSizeValue(String value) => switch (value) {
+  'small' => 1,
+  'medium' => 2,
+  'large' => 3,
+  _ => 0,
+};
+
+int _stickerModeValue(String value) => value == 'emote' ? 1 : 0;
+
 class StickerPackDetailContent extends HookConsumerWidget {
   final String id;
   final String pubName;
@@ -70,6 +94,28 @@ class StickerPackDetailContent extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pack = ref.watch(stickerPackProvider(id));
     final packContent = ref.watch(stickerPackContentProvider(id));
+    final selectedStickerIds = useState<Set<String>>({});
+
+    Future<void> openBatchEditSheet() async {
+      if (selectedStickerIds.value.isEmpty) return;
+
+      final result = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => SheetScaffold(
+          titleText: 'Batch edit stickers',
+          child: StickerBatchEditForm(
+            packId: id,
+            stickerIds: selectedStickerIds.value.toList(),
+          ),
+        ),
+      );
+
+      if (result == true) {
+        selectedStickerIds.value = {};
+        ref.invalidate(stickerPackContentProvider(id));
+      }
+    }
 
     return pack.when(
       data: (pack) => Column(
@@ -109,6 +155,25 @@ class StickerPackDetailContent extends HookConsumerWidget {
                   ),
                 ],
               ).opacity(0.85),
+              if (selectedStickerIds.value.isNotEmpty)
+                Row(
+                  spacing: 8,
+                  children: [
+                    Text(
+                      '${selectedStickerIds.value.length} selected',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    TextButton.icon(
+                      onPressed: openBatchEditSheet,
+                      icon: const Icon(Symbols.tune, size: 18),
+                      label: const Text('Batch edit'),
+                    ),
+                    TextButton(
+                      onPressed: () => selectedStickerIds.value = {},
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
             ],
           ).padding(horizontal: 24, vertical: 24),
           const Divider(height: 1),
@@ -117,7 +182,13 @@ class StickerPackDetailContent extends HookConsumerWidget {
               data: (stickers) => RefreshIndicator(
                 onRefresh: () =>
                     ref.refresh(stickerPackContentProvider(id).future),
-                child: _buildStickersTable(context, ref, stickers, pack.prefix),
+                child: _buildStickersTable(
+                  context,
+                  ref,
+                  stickers,
+                  pack.prefix,
+                  selectedStickerIds,
+                ),
               ),
               error: (err, _) =>
                   Text('Error: $err').textAlignment(TextAlign.center).center(),
@@ -137,6 +208,7 @@ class StickerPackDetailContent extends HookConsumerWidget {
     WidgetRef ref,
     List<SnSticker> stickers,
     String prefix,
+    ValueNotifier<Set<String>> selectedStickerIds,
   ) {
     final scrollController = useCallback(() {
       final controller = ScrollController();
@@ -168,15 +240,40 @@ class StickerPackDetailContent extends HookConsumerWidget {
                     ),
                   ),
                   DataColumn(
+                    label: _TableHeaderIcon(icon: Symbols.title, label: 'Name'),
+                  ),
+                  DataColumn(
                     label: _TableHeaderIcon(icon: Symbols.tag, label: 'Slug'),
                   ),
                   DataColumn(
                     label: _TableHeaderIcon(icon: Icons.tag, label: 'Code'),
                   ),
+                  DataColumn(
+                    label: _TableHeaderIcon(
+                      icon: Symbols.zoom_out_map,
+                      label: 'Size',
+                    ),
+                  ),
+                  DataColumn(
+                    label: _TableHeaderIcon(icon: Symbols.mood, label: 'Mode'),
+                  ),
                   DataColumn(label: SizedBox.shrink()),
                 ],
                 rows: stickers.map((sticker) {
+                  final isSelected = selectedStickerIds.value.contains(
+                    sticker.id,
+                  );
                   return DataRow(
+                    selected: isSelected,
+                    onSelectChanged: (value) {
+                      final next = {...selectedStickerIds.value};
+                      if (value ?? false) {
+                        next.add(sticker.id);
+                      } else {
+                        next.remove(sticker.id);
+                      }
+                      selectedStickerIds.value = next;
+                    },
                     cells: [
                       DataCell(
                         SizedBox(
@@ -202,6 +299,18 @@ class StickerPackDetailContent extends HookConsumerWidget {
                       ),
                       DataCell(
                         SizedBox(
+                          width: 140,
+                          child: Text(
+                            sticker.name?.trim().isNotEmpty == true
+                                ? sticker.name!
+                                : '-',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        SizedBox(
                           width: 100,
                           child: Text(
                             sticker.slug,
@@ -214,6 +323,18 @@ class StickerPackDetailContent extends HookConsumerWidget {
                       DataCell(
                         Text(
                           ':$prefix+${sticker.slug}:',
+                          style: GoogleFonts.robotoMono(fontSize: 11),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          _stickerSizeLabel(sticker.size),
+                          style: GoogleFonts.robotoMono(fontSize: 11),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          _stickerModeLabel(sticker.mode),
                           style: GoogleFonts.robotoMono(fontSize: 11),
                         ),
                       ),
@@ -392,14 +513,22 @@ class StickerForm extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>(), []);
 
     final image = useState<String?>(id == null ? '' : sticker.value?.image.id);
+    final nameController = useTextEditingController(
+      text: id == null ? '' : sticker.value?.name,
+    );
     final slugController = useTextEditingController(
       text: id == null ? '' : sticker.value?.slug,
     );
+    final size = useState<int>(0);
+    final mode = useState<int>(0);
 
     useEffect(() {
       if (sticker.value != null) {
         image.value = sticker.value!.image.id;
+        nameController.text = sticker.value!.name ?? '';
         slugController.text = sticker.value!.slug;
+        size.value = sticker.value!.size;
+        mode.value = sticker.value!.mode;
       }
       return null;
     }, [sticker]);
@@ -407,14 +536,33 @@ class StickerForm extends HookConsumerWidget {
     final submitting = useState(false);
 
     Future<void> submit() async {
+      if (!(formKey.currentState?.validate() ?? false)) return;
       final apiClient = ref.watch(apiClientProvider);
       submitting.value = true;
       try {
+        final data = <String, dynamic>{};
+        final normalizedName = nameController.text.trim();
+        if (id == null || slugController.text != sticker.value?.slug) {
+          data['slug'] = slugController.text;
+        }
+        if (id == null || normalizedName != (sticker.value?.name ?? '')) {
+          data['name'] = normalizedName.isEmpty ? null : normalizedName;
+        }
+        if (id == null || image.value != sticker.value?.image.id) {
+          data['image_id'] = image.value;
+        }
+        if (id == null || size.value != sticker.value?.size) {
+          data['size'] = size.value;
+        }
+        if (id == null || mode.value != sticker.value?.mode) {
+          data['mode'] = mode.value;
+        }
+
         final resp = await apiClient.request(
           id == null
               ? '/sphere/stickers/$packId/content'
               : '/sphere/stickers/$packId/content/$id',
-          data: {'slug': slugController.text, 'image_id': image.value},
+          data: data,
           options: Options(method: id == null ? 'POST' : 'PATCH'),
         );
         if (context.mounted) {
@@ -476,13 +624,62 @@ class StickerForm extends HookConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  helperText: 'Optional descriptive name for autocomplete.',
+                ),
+                onTapOutside: (_) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
+              ),
+              TextFormField(
                 controller: slugController,
                 decoration: InputDecoration(
                   labelText: 'stickerSlug'.tr(),
                   helperText: 'stickerSlugHint'.tr(),
                 ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'fieldCannotBeEmpty'.tr();
+                  }
+                  return null;
+                },
                 onTapOutside: (_) =>
                     FocusManager.instance.primaryFocus?.unfocus(),
+              ),
+              DropdownButtonFormField<String>(
+                initialValue: _stickerSizeLabel(size.value),
+                decoration: const InputDecoration(labelText: 'Size'),
+                items: _stickerSizeOptions
+                    .map(
+                      (value) =>
+                          DropdownMenuItem(value: value, child: Text(value)),
+                    )
+                    .toList(),
+                onChanged: submitting.value
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          size.value = _stickerSizeValue(value);
+                        }
+                      },
+              ),
+              DropdownButtonFormField<String>(
+                initialValue: _stickerModeLabel(mode.value),
+                decoration: const InputDecoration(labelText: 'Mode'),
+                items: _stickerModeOptions
+                    .map(
+                      (value) =>
+                          DropdownMenuItem(value: value, child: Text(value)),
+                    )
+                    .toList(),
+                onChanged: submitting.value
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          mode.value = _stickerModeValue(value);
+                        }
+                      },
               ),
             ],
           ),
@@ -494,6 +691,116 @@ class StickerForm extends HookConsumerWidget {
             onPressed: submitting.value ? null : submit,
             icon: const Icon(Symbols.save),
             label: Text(id == null ? 'create' : 'saveChanges').tr(),
+          ),
+        ),
+      ],
+    ).padding(horizontal: 24, vertical: 16);
+  }
+}
+
+class StickerBatchEditForm extends HookConsumerWidget {
+  final String packId;
+  final List<String> stickerIds;
+
+  const StickerBatchEditForm({
+    super.key,
+    required this.packId,
+    required this.stickerIds,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final applySize = useState(false);
+    final applyMode = useState(false);
+    final size = useState<int>(0);
+    final mode = useState<int>(0);
+    final submitting = useState(false);
+
+    Future<void> submit() async {
+      if (!applySize.value && !applyMode.value) {
+        showErrorAlert('Select at least one setting to update.');
+        return;
+      }
+
+      final apiClient = ref.watch(apiClientProvider);
+      submitting.value = true;
+      try {
+        final data = <String, dynamic>{'sticker_ids': stickerIds};
+        if (applySize.value) data['size'] = size.value;
+        if (applyMode.value) data['mode'] = mode.value;
+
+        await apiClient.patch(
+          '/sphere/stickers/$packId/content/batch/rendering-settings',
+          data: data,
+        );
+
+        if (!context.mounted) return;
+        showSnackBar('Batch sticker settings updated.');
+        Navigator.pop(context, true);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        submitting.value = false;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('${stickerIds.length} stickers selected'),
+        const Gap(12),
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          value: applySize.value,
+          onChanged: submitting.value
+              ? null
+              : (value) => applySize.value = value ?? false,
+          title: const Text('Update size'),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: _stickerSizeLabel(size.value),
+          decoration: const InputDecoration(labelText: 'Size'),
+          items: _stickerSizeOptions
+              .map(
+                (value) => DropdownMenuItem(value: value, child: Text(value)),
+              )
+              .toList(),
+          onChanged: !applySize.value || submitting.value
+              ? null
+              : (value) {
+                  if (value != null) size.value = _stickerSizeValue(value);
+                },
+        ),
+        const Gap(12),
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          value: applyMode.value,
+          onChanged: submitting.value
+              ? null
+              : (value) => applyMode.value = value ?? false,
+          title: const Text('Update mode'),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: _stickerModeLabel(mode.value),
+          decoration: const InputDecoration(labelText: 'Mode'),
+          items: _stickerModeOptions
+              .map(
+                (value) => DropdownMenuItem(value: value, child: Text(value)),
+              )
+              .toList(),
+          onChanged: !applyMode.value || submitting.value
+              ? null
+              : (value) {
+                  if (value != null) mode.value = _stickerModeValue(value);
+                },
+        ),
+        const Gap(12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton.icon(
+            onPressed: submitting.value ? null : submit,
+            icon: const Icon(Symbols.save),
+            label: const Text('Apply'),
           ),
         ),
       ],

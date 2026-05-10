@@ -1055,11 +1055,15 @@ class MessagesNotifier extends _$MessagesNotifier {
     required int attitude,
   }) async {
     try {
-      await _apiClient.post(
+      final response = await _apiClient.post(
         '/messager/chat/$roomId/messages/$messageId/reactions',
         data: {'symbol': symbol, 'attitude': attitude},
       );
-      await _applyLocalReactionToggle(messageId, symbol: symbol);
+      await _applyLocalReactionResult(
+        messageId,
+        symbol: symbol,
+        reacted: response.statusCode != 204,
+      );
     } catch (err, stackTrace) {
       Logger.root.info(
         'Failed to react to message $messageId',
@@ -1073,10 +1077,17 @@ class MessagesNotifier extends _$MessagesNotifier {
   Map<String, int> _extractLocalReactionCounts(LocalChatMessage message) {
     final raw = message.data['reactions_count'];
     if (raw is! Map) return {};
-    return raw.map((key, value) {
-      final count = value is int ? value : int.tryParse(value.toString()) ?? 0;
-      return MapEntry(key.toString(), count);
-    });
+    return Map<String, int>.fromEntries(
+      raw.entries
+          .map((entry) {
+            final value = entry.value;
+            final count = value is int
+                ? value
+                : int.tryParse(value.toString()) ?? 0;
+            return MapEntry(entry.key.toString(), count);
+          })
+          .where((entry) => entry.value > 0),
+    );
   }
 
   Map<String, bool> _extractLocalReactionMade(LocalChatMessage message) {
@@ -1120,22 +1131,31 @@ class MessagesNotifier extends _$MessagesNotifier {
     );
   }
 
-  Future<void> _applyLocalReactionToggle(
+  Future<void> _applyLocalReactionResult(
     String messageId, {
     required String symbol,
+    required bool reacted,
   }) async {
-    final currentInState = _currentMessages.cast<LocalChatMessage?>().firstWhere(
-      (message) => message?.id == messageId,
-      orElse: () => null,
-    );
-    final current = currentInState ?? await _repository.getLocalMessage(messageId);
+    final currentInState = _currentMessages
+        .cast<LocalChatMessage?>()
+        .firstWhere((message) => message?.id == messageId, orElse: () => null);
+    final current =
+        currentInState ?? await _repository.getLocalMessage(messageId);
     if (current == null) return;
 
     final reactionsCount = _extractLocalReactionCounts(current);
     final reactionsMade = _extractLocalReactionMade(current);
     final hadReaction = reactionsMade[symbol] == true;
 
-    if (hadReaction) {
+    // The websocket reaction event can arrive before the POST completes. Apply
+    // the server outcome idempotently so that response handling does not undo
+    // an already-applied realtime snapshot.
+    if (reacted == hadReaction) return;
+
+    if (reacted) {
+      reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
+      reactionsMade[symbol] = true;
+    } else {
       final nextCount = (reactionsCount[symbol] ?? 0) - 1;
       if (nextCount > 0) {
         reactionsCount[symbol] = nextCount;
@@ -1143,9 +1163,6 @@ class MessagesNotifier extends _$MessagesNotifier {
         reactionsCount.remove(symbol);
       }
       reactionsMade.remove(symbol);
-    } else {
-      reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
-      reactionsMade[symbol] = true;
     }
 
     final updated = _copyWithLocalReactionState(

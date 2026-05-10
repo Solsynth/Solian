@@ -32,9 +32,10 @@ Future<List<SnStickerPack>> myStickerPacks(Ref ref) async {
 /// - Shows grid of stickers in selected pack
 /// - On tap, returns placeholder string :{prefix}+{slug}: via onPick callback
 class StickerPicker extends HookConsumerWidget {
-  final void Function(String placeholder) onPick;
+  final void Function(SnStickerPack pack, SnSticker sticker) onPick;
+  final void Function(SnStickerPack pack, SnSticker sticker)? onLongPress;
 
-  const StickerPicker({super.key, required this.onPick});
+  const StickerPicker({super.key, required this.onPick, this.onLongPress});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,13 +60,13 @@ class StickerPicker extends HookConsumerWidget {
             return _PackSwitcher(
               packs: packs,
               onPick: (pack, sticker) {
-                final placeholder = ':${pack.prefix}+${sticker.slug}:';
                 HapticFeedback.selectionClick();
-                onPick(placeholder);
+                onPick(pack, sticker);
                 if (Navigator.of(context).canPop()) {
                   Navigator.of(context).pop();
                 }
               },
+              onLongPress: onLongPress,
               onRefresh: () async {
                 ref.invalidate(myStickerPacksProvider);
               },
@@ -130,11 +131,13 @@ class _EmptyState extends StatelessWidget {
 class _PackSwitcher extends StatefulWidget {
   final List<SnStickerPack> packs;
   final void Function(SnStickerPack pack, SnSticker sticker) onPick;
+  final void Function(SnStickerPack pack, SnSticker sticker)? onLongPress;
   final Future<void> Function() onRefresh;
 
   const _PackSwitcher({
     required this.packs,
     required this.onPick,
+    this.onLongPress,
     required this.onRefresh,
   });
 
@@ -208,6 +211,9 @@ class _PackSwitcherState extends State<_PackSwitcher> {
             child: _StickersGrid(
               pack: selectedPack,
               onPick: (sticker) => widget.onPick(selectedPack, sticker),
+              onLongPress: widget.onLongPress == null
+                  ? null
+                  : (sticker) => widget.onLongPress!(selectedPack, sticker),
             ),
           ),
         ),
@@ -219,11 +225,13 @@ class _PackSwitcherState extends State<_PackSwitcher> {
 class _StickersGrid extends StatelessWidget {
   final SnStickerPack pack;
   final void Function(SnSticker sticker) onPick;
+  final void Function(SnSticker sticker)? onLongPress;
   final double maxCrossAxisExtent;
 
   const _StickersGrid({
     required this.pack,
     required this.onPick,
+    this.onLongPress,
     this.maxCrossAxisExtent = 56,
   });
 
@@ -248,10 +256,15 @@ class _StickersGrid extends StatelessWidget {
         final sticker = stickers[index];
         final placeholder = ':${pack.prefix}+${sticker.slug}:';
         return Tooltip(
-          message: placeholder,
-          child: InkWell(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
+          message: sticker.name?.trim().isNotEmpty == true
+              ? '${sticker.name} ($placeholder)'
+              : placeholder,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => onPick(sticker),
+            onLongPress: onLongPress == null
+                ? null
+                : () => onLongPress!(sticker),
             child: ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(8)),
               child: DecoratedBox(
@@ -280,9 +293,15 @@ class _StickersGrid extends StatelessWidget {
 /// No background card, no title header, suitable for embedding in other UI
 class StickerPickerEmbedded extends HookConsumerWidget {
   final double? height;
-  final void Function(String placeholder) onPick;
+  final void Function(SnStickerPack pack, SnSticker sticker) onPick;
+  final void Function(SnStickerPack pack, SnSticker sticker)? onLongPress;
 
-  const StickerPickerEmbedded({super.key, required this.onPick, this.height});
+  const StickerPickerEmbedded({
+    super.key,
+    required this.onPick,
+    this.onLongPress,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -301,10 +320,10 @@ class StickerPickerEmbedded extends HookConsumerWidget {
         return _EmbeddedPackSwitcher(
           packs: packs,
           onPick: (pack, sticker) {
-            final placeholder = ':${pack.prefix}+${sticker.slug}:';
             HapticFeedback.selectionClick();
-            onPick(placeholder);
+            onPick(pack, sticker);
           },
+          onLongPress: onLongPress,
           onRefresh: () async {
             ref.invalidate(myStickerPacksProvider);
           },
@@ -340,11 +359,13 @@ class StickerPickerEmbedded extends HookConsumerWidget {
 class _EmbeddedPackSwitcher extends StatefulWidget {
   final List<SnStickerPack> packs;
   final void Function(SnStickerPack pack, SnSticker sticker) onPick;
+  final void Function(SnStickerPack pack, SnSticker sticker)? onLongPress;
   final Future<void> Function() onRefresh;
 
   const _EmbeddedPackSwitcher({
     required this.packs,
     required this.onPick,
+    this.onLongPress,
     required this.onRefresh,
   });
 
@@ -433,6 +454,9 @@ class _EmbeddedPackSwitcherState extends State<_EmbeddedPackSwitcher> {
             child: _StickersGrid(
               pack: selectedPack,
               onPick: (sticker) => widget.onPick(selectedPack, sticker),
+              onLongPress: widget.onLongPress == null
+                  ? null
+                  : (sticker) => widget.onLongPress!(selectedPack, sticker),
               maxCrossAxisExtent: 96,
             ).padding(horizontal: 2),
           ),
@@ -450,6 +474,7 @@ Future<void> showStickerPickerPopover(
   Offset offset, {
   Alignment? alignment,
   required void Function(String placeholder) onPick,
+  void Function(String placeholder)? onLongPress,
 }) async {
   // Use flutter_popup_card to present the anchored popup near trigger.
   await showPopupCard<void>(
@@ -462,10 +487,11 @@ Future<void> showStickerPickerPopover(
       height: 480,
       child: ProviderScope(
         child: StickerPicker(
-          onPick: (ph) {
-            onPick(ph);
-            Navigator.of(ctx).maybePop();
-          },
+          onPick: (pack, sticker) => onPick(':${pack.prefix}+${sticker.slug}:'),
+          onLongPress: onLongPress == null
+              ? null
+              : (pack, sticker) =>
+                    onLongPress(':${pack.prefix}+${sticker.slug}:'),
         ),
       ),
     ),

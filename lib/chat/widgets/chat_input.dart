@@ -217,6 +217,7 @@ class _ChatTimeoutBanner extends StatelessWidget {
 
 class _ExpandedSection extends StatefulWidget {
   final TextEditingController messageController;
+  final VoidCallback onSendMessage;
   final int selectedTabIndex;
   final ValueChanged<int> onTabChanged;
   final VoidCallback onPickPhoto;
@@ -238,13 +239,15 @@ class _ExpandedSection extends StatefulWidget {
   final String? selectedLocationAddress;
   final String? selectedLocationWkt;
   final String? selectedMeetId;
-  final Function({String? name, String? address, String? wkt})? onLocationSelected;
+  final Function({String? name, String? address, String? wkt})?
+  onLocationSelected;
   final Function(String?)? onMeetSelected;
   final bool isE2eeRoom;
   final VoidCallback onEnableVoiceMode;
 
   const _ExpandedSection({
     required this.messageController,
+    required this.onSendMessage,
     required this.selectedTabIndex,
     required this.onTabChanged,
     required this.onPickPhoto,
@@ -506,8 +509,9 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                   const Gap(4),
                                   Text(
                                     'location'.tr(),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -519,13 +523,11 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                               Radius.circular(8),
                             ),
                             onTap: () async {
-                              final meetId =
-                                  await showModalBottomSheet<String>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (context) =>
-                                        const ComposeMeetSheet(),
-                                  );
+                              final meetId = await showModalBottomSheet<String>(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) => const ComposeMeetSheet(),
+                              );
                               if (meetId != null) {
                                 widget.onMeetSelected?.call(meetId);
                               }
@@ -542,8 +544,9 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                                   const Gap(4),
                                   Text(
                                     'meet'.tr(),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -567,10 +570,25 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                   ),
                   StickerPickerEmbedded(
                     height: kInputDrawerExpandedHeight,
-                    onPick: (placeholder) => _insertPlaceholder(
-                      widget.messageController,
-                      placeholder,
-                    ),
+                    onPick: (pack, sticker) {
+                      final placeholder = ':${pack.prefix}+${sticker.slug}:';
+                      if (sticker.mode == 0) {
+                        widget.messageController.value = TextEditingValue(
+                          text: placeholder,
+                          selection: TextSelection.collapsed(
+                            offset: placeholder.length,
+                          ),
+                        );
+                        widget.onSendMessage();
+                        return;
+                      }
+
+                      _insertPlaceholder(widget.messageController, placeholder);
+                    },
+                    onLongPress: (pack, sticker) {
+                      final placeholder = ':${pack.prefix}+${sticker.slug}:';
+                      _insertPlaceholder(widget.messageController, placeholder);
+                    },
                   ),
                 ],
               ),
@@ -834,7 +852,8 @@ class ChatInput extends HookConsumerWidget {
   final String? selectedLocationAddress;
   final String? selectedLocationWkt;
   final String? selectedMeetId;
-  final Function({String? name, String? address, String? wkt})? onLocationSelected;
+  final Function({String? name, String? address, String? wkt})?
+  onLocationSelected;
   final Function(String?)? onMeetSelected;
   final bool isMessageListScrolling;
 
@@ -1555,7 +1574,8 @@ class ChatInput extends HookConsumerWidget {
                               ),
                             );
                           },
-                      child: selectedLocationName != null ||
+                      child:
+                          selectedLocationName != null ||
                               selectedLocationAddress != null ||
                               selectedLocationWkt != null
                           ? Container(
@@ -1587,7 +1607,9 @@ class ChatInput extends HookConsumerWidget {
                                   Icon(
                                     Symbols.location_on,
                                     size: 18,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                   const Gap(8),
                                   Expanded(
@@ -1695,7 +1717,9 @@ class ChatInput extends HookConsumerWidget {
                                   Icon(
                                     Symbols.groups,
                                     size: 18,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                   const Gap(8),
                                   Expanded(
@@ -1717,7 +1741,8 @@ class ChatInput extends HookConsumerWidget {
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () => onMeetSelected?.call(null),
+                                      onPressed: () =>
+                                          onMeetSelected?.call(null),
                                       tooltip: 'clear'.tr(),
                                     ),
                                   ),
@@ -2190,7 +2215,11 @@ class ChatInput extends HookConsumerWidget {
                                         final sticker = SnSticker.fromJson(
                                           normalizedData,
                                         );
-                                        title = sticker.slug;
+                                        title =
+                                            sticker.name?.trim().isNotEmpty ==
+                                                true
+                                            ? sticker.name!
+                                            : sticker.slug;
                                         leading = ClipRRect(
                                           borderRadius: BorderRadius.circular(
                                             8,
@@ -2274,6 +2303,7 @@ class ChatInput extends HookConsumerWidget {
                           },
                       child: isExpanded.value
                           ? _ExpandedSection(
+                              onSendMessage: send,
                               messageController: messageController,
                               selectedTabIndex: expandedTabIndex.value,
                               onTabChanged: (index) {
