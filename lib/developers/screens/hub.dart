@@ -1020,7 +1020,7 @@ class DeveloperHubScreen extends HookConsumerWidget {
                         initialPublisherName: initialPublisherName,
                         initialProjectId: initialProjectId,
                       ),
-                    ).padding(left: 16, vertical: 16),
+                    ).padding(left: 16, top: 16),
                   ),
                   const Gap(8),
                   Flexible(

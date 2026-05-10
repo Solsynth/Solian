@@ -394,7 +394,9 @@ class PublisherSelector extends StatelessWidget {
               ProfilePictureWidget(
                 radius: 10,
                 file: isValueValid ? currentValue.picture : null,
-                borderRadius: isValueValid && currentValue.type != 0 ? 12 : null,
+                borderRadius: isValueValid && currentValue.type != 0
+                    ? 12
+                    : null,
               ),
               Flexible(
                 child: Text(
@@ -569,7 +571,10 @@ class _PublisherUnselectedWidget extends HookConsumerWidget {
                             Radius.circular(8),
                           ),
                         ),
-                        leading: ProfilePictureWidget(file: publisher.picture, borderRadius: publisher.type == 0 ? null : 12),
+                        leading: ProfilePictureWidget(
+                          file: publisher.picture,
+                          borderRadius: publisher.type == 0 ? null : 12,
+                        ),
                         title: Text(publisher.nick),
                         subtitle: Text('@${publisher.name}'),
                         onTap: () => onPublisherSelected(publisher),
@@ -671,7 +676,11 @@ class CreatorHubContentWidget extends HookConsumerWidget {
               value: item,
               child: ListTile(
                 minTileHeight: 48,
-                leading: ProfilePictureWidget(radius: 16, file: item.picture, borderRadius: item.type == 0 ? null : 12),
+                leading: ProfilePictureWidget(
+                  radius: 16,
+                  file: item.picture,
+                  borderRadius: item.type == 0 ? null : 12,
+                ),
                 title: Text(item.nick),
                 subtitle: Text('@${item.name}'),
                 trailing: currentPublisher.value?.id == item.id
@@ -1034,7 +1043,7 @@ class CreatorHubScreen extends HookConsumerWidget {
                     child: ClipRRect(
                       borderRadius: const BorderRadius.all(Radius.circular(8)),
                       child: const CreatorHubContentWidget(),
-                    ).padding(left: 16, vertical: 16),
+                    ).padding(left: 16, top: 16),
                   ),
                   const Gap(8),
                   Flexible(
