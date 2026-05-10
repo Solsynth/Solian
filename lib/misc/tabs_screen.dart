@@ -410,6 +410,16 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
             }),
             const Divider(),
             ListTile(
+              leading: const Icon(Symbols.games_rounded),
+              title: const Text('Game'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 28),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.router.push(const GameRoute());
+              },
+            ),
+            const Divider(),
+            ListTile(
               leading: const Icon(Symbols.tune_rounded),
               title: Text('Customize Navigation'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 28),

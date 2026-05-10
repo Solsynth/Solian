@@ -74,6 +74,7 @@ import 'package:island/discovery/search.dart' as _i84;
 import 'package:island/drive/files/file_detail.dart' as _i50;
 import 'package:island/drive/files/file_list.dart' as _i51;
 import 'package:island/fediverse/actor_profile.dart' as _i47;
+import 'package:island/game/game_screen.dart' as _i93;
 import 'package:island/fitness/screens/fitness_dashboard_screen.dart' as _i52;
 import 'package:island/fitness/screens/goal_create_screen.dart' as _i53;
 import 'package:island/fitness/screens/goal_detail_screen.dart' as _i54;
@@ -3691,6 +3692,22 @@ class WorkoutsRoute extends _i88.PageRouteInfo<void> {
     name,
     builder: (data) {
       return const _i87.WorkoutsScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [_i93.GameScreen]
+class GameRoute extends _i88.PageRouteInfo<void> {
+  const GameRoute({List<_i88.PageRouteInfo>? children})
+    : super(GameRoute.name, initialChildren: children);
+
+  static const String name = 'GameRoute';
+
+  static _i88.PageInfo page = _i88.PageInfo(
+    name,
+    builder: (data) {
+      return const _i93.GameScreen();
     },
   );
 }
