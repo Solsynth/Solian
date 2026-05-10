@@ -21,11 +21,13 @@ import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/core/utils/share_utils.dart';
@@ -95,7 +97,10 @@ class CollectionNeighborArgs {
   int get hashCode => Object.hash(publisherName, slug, postId, isNext);
 }
 
-final collectionNeighborProvider = FutureProvider.family<SnPost?, CollectionNeighborArgs>((ref, args) async {
+final collectionNeighborProvider = FutureProvider.autoDispose.family<SnPost?, CollectionNeighborArgs>((
+  ref,
+  args,
+) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
     return args.isNext
@@ -115,6 +120,14 @@ final collectionNeighborProvider = FutureProvider.family<SnPost?, CollectionNeig
     }
     rethrow;
   }
+});
+
+final postCollectionPostsProvider = FutureProvider.autoDispose.family<PaginatedResult<SnPost>, (String, String)>((
+  ref,
+  args,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return client.sphere.listPublisherCollectionPosts(publisherName: args.$1, slug: args.$2);
 });
 
 const _postDetailMaxWidth = 640.0;
@@ -408,13 +421,233 @@ class PostCollectionNavigation extends HookConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('postCollections').tr().fontSize(12).opacity(0.7),
+        GestureDetector(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (context) => _PublicCollectionBrowserSheet(post: post),
+            );
+          },
+          child: Text('postCollectionsOfHint').tr().fontSize(12).opacity(0.7),
+        ),
         const Gap(8),
         for (final collection in collections) ...[
           _PostCollectionNeighborGroup(post: post, collection: collection, publisherName: publisherName),
           if (collection != collections.last) const Gap(12),
         ],
       ],
+    );
+  }
+}
+
+class _PublicCollectionBrowserSheet extends StatelessWidget {
+  final SnPost post;
+
+  const _PublicCollectionBrowserSheet({required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    final collections = post.publisherCollections;
+    return SheetScaffold(
+      titleText: 'postCollections'.tr(),
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: collections.length,
+        separatorBuilder: (_, _) => const Gap(16),
+        itemBuilder: (context, index) {
+          final collection = collections[index];
+          return _PublicCollectionBrowserCard(
+            post: post,
+            collection: collection,
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useRootNavigator: true,
+                builder: (context) => _PublicCollectionSheet(post: post, collection: collection),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PublicCollectionBrowserCard extends StatelessWidget {
+  final SnPostCollection collection;
+  final SnPost post;
+  final VoidCallback onTap;
+
+  const _PublicCollectionBrowserCard({required this.collection, required this.post, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+    final titleStyle = theme.textTheme.titleMedium?.copyWith(
+      color: Colors.white,
+      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+    );
+    final descStyle = theme.textTheme.bodySmall?.copyWith(
+      color: Colors.white70,
+      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+    );
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: AspectRatio(
+          aspectRatio: 16 / 7,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (collection.background != null)
+                CloudFileWidget(item: collection.background!, fit: BoxFit.cover)
+              else
+                Container(color: theme.colorScheme.surfaceContainerHighest),
+              Positioned(
+                left: 16,
+                bottom: 16,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ProfilePictureWidget(file: collection.icon, radius: 24, fallbackIcon: Symbols.collections),
+                    const Gap(12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: onTap,
+                          child: Text(title, style: titleStyle),
+                        ),
+                        if (collection.description?.isNotEmpty ?? false)
+                          Text(collection.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: descStyle),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Positioned(right: 12, top: 12, child: Icon(Symbols.chevron_right, color: Colors.white)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PublicCollectionSheet extends ConsumerWidget {
+  final SnPost post;
+  final SnPostCollection collection;
+
+  const _PublicCollectionSheet({required this.post, required this.collection});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final publisherName = post.publisher?.name ?? '';
+    final posts = ref.watch(postCollectionPostsProvider((publisherName, collection.slug)));
+    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+    final titleStyle = theme.textTheme.titleMedium?.copyWith(
+      color: Colors.white,
+      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+    );
+    final descStyle = theme.textTheme.bodySmall?.copyWith(
+      color: Colors.white70,
+      shadows: const [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1))],
+    );
+
+    return SheetScaffold(
+      titleText: title,
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 16),
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 7,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (collection.background != null)
+                  CloudFileWidget(item: collection.background!, fit: BoxFit.cover)
+                else
+                  Container(color: theme.colorScheme.surfaceContainerHighest),
+                Positioned(
+                  left: 16,
+                  bottom: 16,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      ProfilePictureWidget(file: collection.icon, radius: 28, fallbackIcon: Symbols.collections),
+                      const Gap(12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                useRootNavigator: true,
+                                builder: (context) => _PublicCollectionSheet(post: post, collection: collection),
+                              );
+                            },
+                            child: Text(title, style: titleStyle),
+                          ),
+                          if (collection.description?.isNotEmpty ?? false)
+                            Text(
+                              collection.description!,
+                              style: descStyle,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Gap(16),
+          posts.when(
+            data: (result) => Column(
+              children: [
+                for (final entry in result.items.asMap().entries)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      child: InkWell(
+                        onTap: () => context.router.push(PostDetailRoute(id: entry.value.id)),
+                        child: PostItem(
+                          item: entry.value,
+                          isFullPost: false,
+                          isEmbedReply: false,
+                          isCompact: true,
+                          hideAttachments: true,
+                          isTextSelectable: false,
+                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => ResponseErrorWidget(
+              error: error,
+              onRetry: () => ref.invalidate(postCollectionPostsProvider((publisherName, collection.slug))),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -443,13 +676,38 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
     final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(title, style: theme.textTheme.titleSmall),
-        const Gap(2),
-        Text(
-          'A collection of collections',
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        InkWell(
+          child: Row(
+            children: [
+              ProfilePictureWidget(file: collection.icon, radius: 16, fallbackIcon: Symbols.collections),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(title, style: theme.textTheme.titleSmall),
+                    if (collection.description?.isNotEmpty ?? false)
+                      Text(
+                        collection.description!,
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useRootNavigator: true,
+              builder: (context) => _PublicCollectionSheet(post: post, collection: collection),
+            );
+          },
         ),
         const Gap(8),
         IntrinsicHeight(
@@ -467,14 +725,14 @@ class _PostCollectionNeighborGroup extends ConsumerWidget {
                 ),
               ),
               Expanded(
-              child: _PostNeighborCard(
-                label: 'Next post',
-                post: nextPost.value,
-                emptyTitle: 'No post',
-                emptyDescription: 'The author has not published the next post yet.',
-                alignRight: true,
+                child: _PostNeighborCard(
+                  label: 'Next post',
+                  post: nextPost.value,
+                  emptyTitle: 'No post',
+                  emptyDescription: 'The author has not published the next post yet.',
+                  alignRight: true,
+                ),
               ),
-            ),
             ],
           ),
         ),
@@ -513,9 +771,11 @@ class _PostNeighborCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: postItem == null ? null : () {
-          context.router.replace(PostDetailRoute(id: postItem.id));
-        },
+        onTap: postItem == null
+            ? null
+            : () {
+                context.router.replace(PostDetailRoute(id: postItem.id));
+              },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -550,7 +810,7 @@ class _PostNeighborCard extends StatelessWidget {
               const Gap(6),
               if (publisherName != null || publishedAt != null)
                 Text(
-                  [if (publisherName != null) publisherName, if (publishedAt != null) publishedAt.formatRelative(context)].join(' · '),
+                  [publisherName, publishedAt?.formatRelative(context)].whereType<String>().join(' · '),
                   textAlign: textAlign,
                   style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),

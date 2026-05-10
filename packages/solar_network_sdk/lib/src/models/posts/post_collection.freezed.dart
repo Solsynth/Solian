@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPostCollection {
 
- String get id; String get slug; String? get name; String? get description;@JsonKey(name: 'publisher_id') String get publisherId; SnPublisher? get publisher; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get slug; String? get name; String? get description;@JsonKey(name: 'publisher_id') String get publisherId; SnPublisher? get publisher; SnCloudFile? get background; SnCloudFile? get icon; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of SnPostCollection
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnPostCollectionCopyWith<SnPostCollection> get copyWith => _$SnPostCollectionCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostCollection&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnPostCollection&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.background, background) || other.background == background)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,publisherId,publisher,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,publisherId,publisher,background,icon,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'SnPostCollection(id: $id, slug: $slug, name: $name, description: $description, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SnPostCollection(id: $id, slug: $slug, name: $name, description: $description, publisherId: $publisherId, publisher: $publisher, background: $background, icon: $icon, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnPostCollectionCopyWith<$Res>  {
   factory $SnPostCollectionCopyWith(SnPostCollection value, $Res Function(SnPostCollection) _then) = _$SnPostCollectionCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, DateTime? createdAt, DateTime? updatedAt
+  String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, SnCloudFile? background, SnCloudFile? icon, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -65,15 +65,17 @@ class _$SnPostCollectionCopyWithImpl<$Res>
 
 /// Create a copy of SnPostCollection
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? publisherId = null,Object? publisher = freezed,Object? background = freezed,Object? icon = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
-as SnPublisher?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+ as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFile?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFile?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -222,7 +224,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.publisher
 @JsonSerializable()
 
 class _SnPostCollection implements SnPostCollection {
-  const _SnPostCollection({required this.id, required this.slug, this.name, this.description, @JsonKey(name: 'publisher_id') required this.publisherId, this.publisher, this.createdAt = null, this.updatedAt = null});
+  const _SnPostCollection({required this.id, required this.slug, this.name, this.description, @JsonKey(name: 'publisher_id') required this.publisherId, this.publisher, this.background, this.icon, this.createdAt = null, this.updatedAt = null});
   factory _SnPostCollection.fromJson(Map<String, dynamic> json) => _$SnPostCollectionFromJson(json);
 
 @override final  String id;
@@ -231,6 +233,8 @@ class _SnPostCollection implements SnPostCollection {
 @override final  String? description;
 @override@JsonKey(name: 'publisher_id') final  String publisherId;
 @override final  SnPublisher? publisher;
+@override final  SnCloudFile? background;
+@override final  SnCloudFile? icon;
 @override@JsonKey() final  DateTime? createdAt;
 @override@JsonKey() final  DateTime? updatedAt;
 
@@ -247,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostCollection&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnPostCollection&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.publisherId, publisherId) || other.publisherId == publisherId)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.background, background) || other.background == background)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,name,description,publisherId,publisher,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,slug,name,description,publisherId,publisher,background,icon,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'SnPostCollection(id: $id, slug: $slug, name: $name, description: $description, publisherId: $publisherId, publisher: $publisher, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'SnPostCollection(id: $id, slug: $slug, name: $name, description: $description, publisherId: $publisherId, publisher: $publisher, background: $background, icon: $icon, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -267,7 +271,7 @@ abstract mixin class _$SnPostCollectionCopyWith<$Res> implements $SnPostCollecti
   factory _$SnPostCollectionCopyWith(_SnPostCollection value, $Res Function(_SnPostCollection) _then) = __$SnPostCollectionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, DateTime? createdAt, DateTime? updatedAt
+  String id, String slug, String? name, String? description,@JsonKey(name: 'publisher_id') String publisherId, SnPublisher? publisher, SnCloudFile? background, SnCloudFile? icon, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -284,15 +288,17 @@ class __$SnPostCollectionCopyWithImpl<$Res>
 
 /// Create a copy of SnPostCollection
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? publisherId = null,Object? publisher = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = freezed,Object? description = freezed,Object? publisherId = null,Object? publisher = freezed,Object? background = freezed,Object? icon = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_SnPostCollection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
-as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
-as SnPublisher?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+ as String,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnPublisher?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFile?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFile?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
