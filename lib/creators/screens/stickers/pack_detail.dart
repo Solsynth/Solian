@@ -46,6 +46,15 @@ String _stickerModeLabel(int value) => switch (value) {
   _ => 'stickerModeSticker'.tr(),
 };
 
+String _stickerSizeOption(int value) => switch (value) {
+  1 => 'small',
+  2 => 'medium',
+  3 => 'large',
+  _ => 'auto',
+};
+
+String _stickerModeOption(int value) => value == 1 ? 'emote' : 'sticker';
+
 int _stickerSizeValue(String value) => switch (value) {
   'small' => 1,
   'medium' => 2,
@@ -630,7 +639,7 @@ class StickerForm extends HookConsumerWidget {
                 onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
               ),
               DropdownButtonFormField<String>(
-                initialValue: _stickerSizeLabel(size.value),
+                initialValue: _stickerSizeOption(size.value),
                 decoration: const InputDecoration(labelText: 'Size'),
                 items: _stickerSizeOptions.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
                 onChanged: submitting.value
@@ -642,7 +651,7 @@ class StickerForm extends HookConsumerWidget {
                       },
               ),
               DropdownButtonFormField<String>(
-                initialValue: _stickerModeLabel(mode.value),
+                initialValue: _stickerModeOption(mode.value),
                 decoration: const InputDecoration(labelText: 'Mode'),
                 items: _stickerModeOptions.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
                 onChanged: submitting.value
@@ -721,7 +730,7 @@ class StickerBatchEditForm extends HookConsumerWidget {
           title: const Text('Update size'),
         ),
         DropdownButtonFormField<String>(
-          initialValue: _stickerSizeLabel(size.value),
+          initialValue: _stickerSizeOption(size.value),
           decoration: const InputDecoration(labelText: 'Size'),
           items: _stickerSizeOptions.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
           onChanged: !applySize.value || submitting.value
@@ -738,7 +747,7 @@ class StickerBatchEditForm extends HookConsumerWidget {
           title: const Text('Update mode'),
         ),
         DropdownButtonFormField<String>(
-          initialValue: _stickerModeLabel(mode.value),
+          initialValue: _stickerModeOption(mode.value),
           decoration: const InputDecoration(labelText: 'Mode'),
           items: _stickerModeOptions.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
           onChanged: !applyMode.value || submitting.value
