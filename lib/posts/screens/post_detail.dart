@@ -822,6 +822,281 @@ class _PostNeighborCard extends StatelessWidget {
   }
 }
 
+class PostThreadResponse {
+  final List<ThreadedReplyNode> ancestors;
+  final ThreadedReplyNode current;
+  final List<ThreadedReplyNode> descendants;
+  final bool hasMore;
+
+  const PostThreadResponse({
+    required this.ancestors,
+    required this.current,
+    required this.descendants,
+    required this.hasMore,
+  });
+
+  factory PostThreadResponse.fromJson(Map<String, dynamic> json) {
+    return PostThreadResponse(
+      ancestors: (json['ancestors'] as List<dynamic>?)
+              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      current: ThreadedReplyNode.fromJson(json['current'] as Map<String, dynamic>),
+      descendants: (json['descendants'] as List<dynamic>?)
+              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      hasMore: json['has_more'] as bool? ?? false,
+    );
+  }
+}
+
+final postThreadProvider = FutureProvider.autoDispose.family<PostThreadResponse?, String>((ref, id) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  try {
+    final response = await client.dio.get(
+      '/sphere/posts/$id/thread',
+      queryParameters: {'ancestors': true, 'take': 20},
+    );
+    return PostThreadResponse.fromJson(response.data);
+  } on DioException catch (e) {
+    if (e.response?.statusCode == 404) return null;
+    rethrow;
+  }
+});
+
+class _PostThreadCard extends ConsumerStatefulWidget {
+  final SnPost post;
+
+  const _PostThreadCard({required this.post});
+
+  @override
+  ConsumerState<_PostThreadCard> createState() => _PostThreadCardState();
+}
+
+class _PostThreadCardState extends ConsumerState<_PostThreadCard> {
+  bool _showThread = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_showThread) return _buildBanner();
+    return _buildThreadContent();
+  }
+
+  Widget _buildBanner() {
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => setState(() => _showThread = true),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Symbols.forum, size: 18, color: theme.colorScheme.primary),
+              const Gap(12),
+              Expanded(
+                child: Text(
+                  'viewFullThread'.tr(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Icon(Symbols.chevron_right, size: 18, color: theme.colorScheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThreadContent() {
+    final threadAsync = ref.watch(postThreadProvider(widget.post.id));
+
+    return threadAsync.when(
+      data: (thread) {
+        if (thread == null) return const SizedBox.shrink();
+        return _buildThreadTimeline(thread);
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: ResponseErrorWidget(
+          error: e,
+          onRetry: () => ref.invalidate(postThreadProvider(widget.post.id)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThreadTimeline(PostThreadResponse thread) {
+    final theme = Theme.of(context);
+    final allNodes = <ThreadedReplyNode>[
+      ...thread.ancestors,
+      thread.current,
+      ...thread.descendants,
+    ];
+
+    if (allNodes.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                Icon(Symbols.forum, size: 18, color: theme.colorScheme.primary),
+                const Gap(8),
+                Text('fullThread'.tr(), style: theme.textTheme.titleSmall),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _showThread = false),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(Symbols.close, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          for (int i = 0; i < allNodes.length; i++)
+            _buildTimelineRow(
+              allNodes[i],
+              isFirst: i == 0,
+              isLast: i == allNodes.length - 1,
+              isCurrent: allNodes[i].post.id == widget.post.id,
+            ),
+          InkWell(
+            onTap: () => setState(() => _showThread = false),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Symbols.unfold_less, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  const Gap(6),
+                  Text('collapseThread'.tr(), style: theme.textTheme.bodySmall),
+                ],
+              ).center(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineRow(
+    ThreadedReplyNode node, {
+    required bool isFirst,
+    required bool isLast,
+    required bool isCurrent,
+  }) {
+    final theme = Theme.of(context);
+    final post = node.post;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isCurrent ? theme.colorScheme.primaryContainer.withOpacity(0.15) : null,
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 32,
+              child: Column(
+                children: [
+                  if (!isFirst)
+                    Expanded(
+                      child: Container(
+                        width: kPostThreadingLineWidth,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    )
+                  else
+                    const Spacer(),
+                  Container(
+                    width: isCurrent ? 10 : 6,
+                    height: isCurrent ? 10 : 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isCurrent
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                      border: isCurrent
+                          ? Border.all(color: theme.colorScheme.onPrimary, width: 2)
+                          : null,
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: kPostThreadingLineWidth,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    )
+                  else
+                    const Spacer(),
+                ],
+              ),
+            ),
+            const Gap(8),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    PostItem(
+                      item: post,
+                      isFullPost: false,
+                      isEmbedReply: false,
+                      isCompact: true,
+                      hideAttachments: true,
+                      isTextSelectable: false,
+                      padding: EdgeInsets.zero,
+                      onPostTap: (id) {
+                        context.router.push(PostDetailRoute(id: id));
+                      },
+                    ),
+                    if (isCurrent)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          'youAreHere'.tr(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   final SnPost post;
   final String postId;
@@ -1132,6 +1407,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           onRefresh: onRefresh,
                                           onUpdate: onUpdate,
                                         ).alignment(Alignment.centerLeft),
+                                        if (post.repliedPostId != null || post.forwardedPostId != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 8),
+                                            child: _PostThreadCard(post: post),
+                                          ),
                                         if (post.realm != null) _PostRealmBadge(realm: post.realm!).padding(top: 8),
                                       ],
                                     ),
@@ -1139,12 +1419,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                 ),
                               ),
                             ),
-                            SliverFillRemaining(
-                              hasScrollBody: true,
-                              child: DefaultTabController(
-                                length: 4,
-                                child: PostInteractionsTabs(postId: postId, maxWidth: _postDetailMaxWidth),
-                              ),
+                            DefaultTabController(
+                              length: 4,
+                              child: PostInteractionsSlivers(postId: postId, maxWidth: _postDetailMaxWidth),
                             ),
                           ],
                         ),
@@ -1452,20 +1729,32 @@ class PostDetailScreen extends HookConsumerWidget {
                             child: Center(
                               child: ConstrainedBox(
                                 constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
-                                child: PostItem(
-                                  item: postItem,
-                                  isFullPost: true,
-                                  isEmbedReply: false,
-                                  textScale: postItem.type == 1 ? 1.2 : 1.1,
-                                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                                  onUpdate: (newItem) {
-                                    ref.read(postStateProvider(id).notifier).updatePost(newItem);
-                                  },
-                                  trailing: trailing,
+                                  child: PostItem(
+                                    item: postItem,
+                                    isFullPost: true,
+                                    isEmbedReply: false,
+                                    textScale: postItem.type == 1 ? 1.2 : 1.1,
+                                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                                    onUpdate: (newItem) {
+                                      ref.read(postStateProvider(id).notifier).updatePost(newItem);
+                                    },
+                                    trailing: trailing,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                          if (postItem.repliedPostId != null || postItem.forwardedPostId != null)
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: _postDetailMaxWidth),
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                                    child: _PostThreadCard(post: postItem),
+                                  ),
+                                ),
+                              ),
+                            ),
                           if (postItem.publisherCollections.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Center(
@@ -1505,12 +1794,9 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          SliverFillRemaining(
-                            hasScrollBody: true,
-                            child: DefaultTabController(
-                              length: 4,
-                              child: PostInteractionsTabs(postId: id, maxWidth: _postDetailMaxWidth),
-                            ),
+                          DefaultTabController(
+                            length: 4,
+                            child: PostInteractionsSlivers(postId: id, maxWidth: _postDetailMaxWidth),
                           ),
                           SliverGap(MediaQuery.of(context).padding.bottom + 80),
                         ],
