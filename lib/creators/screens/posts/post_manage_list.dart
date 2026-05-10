@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/pods/post_list.dart';
+import 'package:island/posts/widgets/compose/filters/post_filter.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
 import 'package:island/route.gr.dart';
@@ -16,17 +18,30 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
-class CreatorPostListScreen extends ConsumerWidget {
+class CreatorPostListScreen extends HookConsumerWidget {
   final String pubName;
 
   const CreatorPostListScreen({super.key, required this.pubName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final categoryTabController = useTabController(initialLength: 3);
+    final queryState = useState(PostListQuery(pubName: pubName));
+
+    useEffect(() {
+      final index = switch (queryState.value.type) {
+        0 => 1,
+        1 => 2,
+        _ => 0,
+      };
+      categoryTabController.index = index;
+      return null;
+    }, [categoryTabController, queryState.value.type]);
+
     final provider = postListProvider(
       PostListQueryConfig(
         id: 'creator_post_list_$pubName',
-        initialFilter: PostListQuery(pubName: pubName),
+        initialFilter: queryState.value,
       ),
     );
 
@@ -35,16 +50,31 @@ class CreatorPostListScreen extends ConsumerWidget {
         leading: const AutoLeadingButton(),
         title: Text('posts').tr(),
       ),
-      body: PaginationList<SnPost>(
-        provider: provider,
-        notifier: provider.notifier,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        spacing: 0,
-        itemBuilder: (context, index, post) => _PostListCard(
-          index: index,
-          post: post,
-          onTap: () => _showPostDetailSheet(context, post),
-        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+            child: PostFilterWidget(
+              categoryTabController: categoryTabController,
+              initialQuery: queryState.value,
+              onQueryChanged: (newQuery) => queryState.value = newQuery,
+            ),
+          ),
+          Expanded(
+            child: PaginationList<SnPost>(
+              key: ValueKey(queryState.value),
+              provider: provider,
+              notifier: provider.notifier,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              spacing: 0,
+              itemBuilder: (context, index, post) => _PostListCard(
+                index: index,
+                post: post,
+                onTap: () => _showPostDetailSheet(context, post),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
