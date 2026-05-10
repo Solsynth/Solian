@@ -491,6 +491,7 @@
   "unauthorized": "未授權",
   "unauthorizedHint": "您未登入或會話已過期，請重新登入。",
   "publisherBelongsTo": "屬於 {}",
+  "publisherBelongsToRealm": "屬於 {}",
   "postContent": "內容",
   "postSettings": "設定",
   "postPublisherUnselected": "未指定發佈者",

@@ -424,6 +424,7 @@
   "unauthorized": "未授",
   "unauthorizedHint": "未登入或會期盡，請再入",
   "publisherBelongsTo": "屬 {}",
+  "publisherBelongsToRealm": "屬於 {}",
   "postContent": "內文",
   "postSettings": "設置",
   "postPublisherUnselected": "發信者未定",

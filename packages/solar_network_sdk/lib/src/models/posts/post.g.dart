@@ -92,6 +92,11 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
           .toList() ??
       const [],
   collections: json['collections'] as List<dynamic>? ?? const [],
+  publisherCollections:
+      (json['publisher_collections'] as List<dynamic>?)
+          ?.map((e) => SnPostCollection.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   featuredRecords:
       (json['featured_records'] as List<dynamic>?)
           ?.map((e) => SnPostFeaturedRecord.fromJson(e as Map<String, dynamic>))
@@ -163,6 +168,9 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'tags': instance.tags.map((e) => e.toJson()).toList(),
   'categories': instance.categories.map((e) => e.toJson()).toList(),
   'collections': instance.collections,
+  'publisher_collections': instance.publisherCollections
+      .map((e) => e.toJson())
+      .toList(),
   'featured_records': instance.featuredRecords.map((e) => e.toJson()).toList(),
   'created_at': instance.createdAt?.toIso8601String(),
   'updated_at': instance.updatedAt?.toIso8601String(),
