@@ -5,11 +5,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/services/time.dart';
-import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/core/network.dart';
 import 'package:island/posts/pods/post_list.dart';
+import 'package:island/posts/widgets/compose/post_card_tile.dart';
 import 'package:island/posts/widgets/compose/filters/post_filter.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/widgets/compose/post_shared.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -28,6 +30,36 @@ class CreatorPostListScreen extends HookConsumerWidget {
     final categoryTabController = useTabController(initialLength: 3);
     final queryState = useState(PostListQuery(pubName: pubName));
     final isFilterVisible = useState(true);
+    final isSelectionMode = useState(false);
+    final selectedIds = useState<Set<String>>({});
+    final selectionMode = isSelectionMode.value;
+
+    void clearSelection() {
+      selectedIds.value = {};
+    }
+
+    void enterSelectionMode() {
+      isSelectionMode.value = true;
+    }
+
+    void exitSelectionMode() {
+      isSelectionMode.value = false;
+      clearSelection();
+    }
+
+    Future<void> runBatchAction(Future<void> Function(List<String>) action) async {
+      final ids = selectedIds.value.toList();
+      if (ids.isEmpty) return;
+      if (context.mounted) showLoadingModal(context);
+      try {
+        await action(ids);
+        clearSelection();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
 
     useEffect(() {
       final index = switch (queryState.value.type) {
@@ -45,12 +77,105 @@ class CreatorPostListScreen extends HookConsumerWidget {
         initialFilter: queryState.value,
       ),
     );
+    final loadedPosts = ref.watch(provider).value?.items ?? const <SnPost>[];
+
+    void selectAllLoaded() {
+      if (loadedPosts.isEmpty) return;
+      selectedIds.value = loadedPosts.map((post) => post.id).toSet();
+      isSelectionMode.value = true;
+    }
 
     return AppScaffold(
       appBar: AppBar(
-        leading: const AutoLeadingButton(),
-        title: Text('posts').tr(),
+        leading: selectionMode
+            ? IconButton(
+                onPressed: exitSelectionMode,
+                icon: const Icon(Symbols.close),
+                tooltip: 'Cancel selection',
+              )
+            : const AutoLeadingButton(),
+        title: selectionMode
+            ? Text('${selectedIds.value.length} selected')
+            : Text('posts').tr(),
         actions: [
+          if (!selectionMode)
+            IconButton(
+              onPressed: enterSelectionMode,
+              icon: const Icon(Symbols.select_all),
+              tooltip: 'Select posts',
+            ),
+          if (selectionMode)
+            PopupMenuButton<_BatchAction>(
+              icon: const Icon(Symbols.more_vert),
+              tooltip: 'Batch actions',
+              onSelected: (action) async {
+                final ids = selectedIds.value.toList();
+                switch (action) {
+                  case _BatchAction.selectAllLoaded:
+                    selectAllLoaded();
+                  case _BatchAction.delete:
+                    final confirmed = await showConfirmAlert(
+                      'Delete selected posts?',
+                      'deletePost'.tr(),
+                      isDanger: true,
+                    );
+                    if (confirmed == true) {
+                      await runBatchAction((ids) => ref
+                          .read(solarNetworkClientProvider)
+                          .sphere
+                          .batchDeletePosts(ids));
+                    }
+                  case _BatchAction.changeVisibility:
+                    await _showBatchVisibilitySheet(
+                      context,
+                      ref,
+                      ids,
+                      exitSelectionMode,
+                    );
+                  case _BatchAction.addToCollections:
+                    await _showBatchCollectionSheet(
+                      context,
+                      ref,
+                      pubName,
+                      ids,
+                      exitSelectionMode,
+                    );
+                  case _BatchAction.removeFromCollections:
+                    await _showBatchCollectionSheet(
+                      context,
+                      ref,
+                      pubName,
+                      ids,
+                      exitSelectionMode,
+                    );
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: _BatchAction.selectAllLoaded,
+                  enabled: loadedPosts.isNotEmpty,
+                  child: const Text('Select all loaded'),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: _BatchAction.changeVisibility,
+                  child: Text('Change visibility'),
+                ),
+                const PopupMenuItem(
+                  value: _BatchAction.addToCollections,
+                  child: Text('Add to collections'),
+                ),
+                const PopupMenuItem(
+                  value: _BatchAction.removeFromCollections,
+                  child: Text('Remove from collections'),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: _BatchAction.delete,
+                  child: Text('Delete selected'),
+                ),
+              ],
+            ),
           IconButton(
             onPressed: () => isFilterVisible.value = !isFilterVisible.value,
             icon: Icon(
@@ -58,7 +183,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
             ),
             tooltip: isFilterVisible.value ? 'Hide filters' : 'Show filters',
           ),
-          const Gap(8)
+          const Gap(8),
         ],
       ),
       body: Column(
@@ -84,16 +209,83 @@ class CreatorPostListScreen extends HookConsumerWidget {
               notifier: provider.notifier,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               spacing: 0,
-              itemBuilder: (context, index, post) => _PostListCard(
+              itemBuilder: (context, index, post) => CreatorPostCardTile(
                 index: index,
                 post: post,
-                onTap: () => _showPostDetailSheet(context, post),
+                isSelected: selectedIds.value.contains(post.id),
+                showSelectionControl: selectionMode,
+                onTap: selectionMode
+                    ? () {
+                        final next = Set<String>.from(selectedIds.value);
+                        if (!next.add(post.id)) next.remove(post.id);
+                        selectedIds.value = next;
+                      }
+                    : () => _showPostDetailSheet(context, post),
+                onSelectionToggle: () {
+                  final next = Set<String>.from(selectedIds.value);
+                  if (!next.add(post.id)) next.remove(post.id);
+                  selectedIds.value = next;
+                },
+                onLongPress: () {
+                  enterSelectionMode();
+                  final next = Set<String>.from(selectedIds.value)..add(post.id);
+                  selectedIds.value = next;
+                },
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _showBatchVisibilitySheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<String> postIds,
+    VoidCallback clearSelection,
+  ) async {
+    final visibility = await showModalBottomSheet<int?>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _BatchVisibilitySheet(),
+    );
+    if (visibility == null) return;
+    if (context.mounted) showLoadingModal(context);
+    try {
+      await ref.read(solarNetworkClientProvider).sphere.batchUpdatePostVisibility(
+            postIds: postIds,
+            visibility: switch (visibility) {
+              1 => 'friends',
+              2 => 'unlisted',
+              3 => 'private',
+              _ => 'public',
+            },
+          );
+      clearSelection();
+    } catch (err) {
+      showErrorAlert(err);
+    } finally {
+      if (context.mounted) hideLoadingModal(context);
+    }
+  }
+
+  Future<void> _showBatchCollectionSheet(
+    BuildContext context,
+    WidgetRef ref,
+    String pubName,
+    List<String> postIds,
+    VoidCallback clearSelection,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _BatchCollectionSheet(
+        pubName: pubName,
+        postIds: postIds,
+      ),
+    );
+    clearSelection();
   }
 
   void _showPostDetailSheet(BuildContext context, SnPost post) {
@@ -107,275 +299,159 @@ class CreatorPostListScreen extends HookConsumerWidget {
 
 }
 
-class _PostListCard extends StatelessWidget {
-  final int index;
-  final SnPost post;
-  final VoidCallback onTap;
-
-  const _PostListCard({
-    required this.index,
-    required this.post,
-    required this.onTap,
-  });
+class _BatchVisibilitySheet extends StatefulWidget {
+  const _BatchVisibilitySheet();
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasTitle = post.title?.isNotEmpty == true;
-    final surface = index.isEven
-        ? theme.colorScheme.surface
-        : theme.colorScheme.surfaceContainerLow;
-
-    return Material(
-      color: surface,
-      elevation: 0,
-      borderRadius: const BorderRadius.all(Radius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 60,
-                height: 60,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: post.attachments.isNotEmpty
-                      ? _buildAttachmentThumbnail(post.attachments.first)
-                      : Container(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Symbols.article,
-                            size: 24,
-                            color: theme.colorScheme.secondary,
-                          ),
-                        ),
-                ),
-              ),
-              const Gap(10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (hasTitle) ...[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (post.pinMode != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Icon(
-                                Symbols.keep,
-                                size: 13,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          if (post.type == 1)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Icon(
-                                Symbols.article,
-                                size: 13,
-                                color: theme.colorScheme.tertiary,
-                              ),
-                            ),
-                          Expanded(
-                            child: Text(
-                              post.title!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleSmall,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Gap(2),
-                    ],
-                    Text(
-                      post.content != null && post.content!.isNotEmpty
-                          ? _truncateContent(post.content!, 180)
-                          : 'No content',
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        height: 1.25,
-                      ),
-                    ),
-                    const Gap(8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        _MetricChip(
-                          icon: Symbols.schedule,
-                          label: post.createdAt?.formatSystem() ?? '-',
-                        ),
-                        _MetricChip(
-                          icon: Symbols.visibility,
-                          label: _formatNumber(post.viewsUnique),
-                        ),
-                        _MetricChip(
-                          icon: Icons.bar_chart,
-                          label: _formatNumber(post.viewsTotal),
-                        ),
-                        _MetricChip(
-                          icon: Symbols.chat_bubble,
-                          label: '${post.repliesCount}',
-                        ),
-                        _MetricChip(
-                          icon: Symbols.thumb_up,
-                          label: '${post.upvotes}',
-                        ),
-                        _MetricChip(
-                          icon: Symbols.thumb_down,
-                          label: '${post.downvotes}',
-                        ),
-                        _MetricChip(
-                          icon: Symbols.emoji_events,
-                          label: '${post.awardedScore}',
-                        ),
-                        if (post.featuredRecords.isNotEmpty)
-                          _MetricChip(
-                            icon: Symbols.highlight,
-                            label: '${post.featuredRecords.length}',
-                          ),
-                        _MetricChip(
-                          icon: PostVisibilityHelpers.getVisibilityIcon(
-                            post.visibility,
-                          ),
-                          label: PostVisibilityHelpers.getVisibilityText(
-                            post.visibility,
-                          ).tr(),
-                        ),
-                        if (post.attachments.isNotEmpty)
-                          _MetricChip(
-                            icon: Symbols.attach_file,
-                            label: '${post.attachments.length}',
-                          ),
-                        if (post.editedAt != null)
-                          _MetricChip(
-                            icon: Symbols.edit,
-                            label: post.editedAt!.formatSystem(),
-                          ),
-                      ],
-                    ),
-                    if (post.tags.isNotEmpty || post.categories.isNotEmpty) ...[
-                      const Gap(8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (post.tags.isNotEmpty)
-                            ...[
-                              const Icon(Symbols.label, size: 16),
-                              for (final tag in post.tags.take(4))
-                                _PillChip(label: tag.name ?? tag.slug),
-                              if (post.tags.length > 4)
-                                _PillChip(label: '+${post.tags.length - 4}'),
-                            ],
-                          if (post.categories.isNotEmpty)
-                            ...[
-                              const Icon(Symbols.category, size: 16),
-                              for (final category in post.categories.take(3))
-                                _PillChip(
-                                  label: category.categoryTranslationKey.tr(),
-                                ),
-                              if (post.categories.length > 3)
-                                _PillChip(label: '+${post.categories.length - 3}'),
-                            ],
-                        ],
-                      ),
-                    ],
-                    if (post.reactionsCount.isNotEmpty) ...[
-                      const Gap(8),
-                      PostReactionList(
-                        item: post,
-                        reactions: post.reactionsCount,
-                        reactionsMade: post.reactionsMade,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentThumbnail(SnCloudFile file) {
-    return CloudFileWidget(item: file);
-  }
-
-  String _truncateContent(String content, int maxLength) {
-    if (content.isEmpty) return '';
-    final stripped = content.replaceAll(RegExp(r'<[^>]*>'), '');
-    if (stripped.length <= maxLength) return stripped;
-    return '${stripped.substring(0, maxLength)}...';
-  }
-
-  String _formatNumber(int number) {
-    if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}k';
-    }
-    return number.toString();
-  }
+  State<_BatchVisibilitySheet> createState() => _BatchVisibilitySheetState();
 }
 
-class _MetricChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _MetricChip({required this.icon, required this.label});
+class _BatchVisibilitySheetState extends State<_BatchVisibilitySheet> {
+  int _selected = 0;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    return SheetScaffold(
+      titleText: 'Change visibility',
+      child: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          Icon(icon, size: 12, color: theme.colorScheme.secondary),
-          const Gap(4),
-          Text(label, style: theme.textTheme.labelSmall),
+          for (final option in [
+            (0, 'Public'),
+            (1, 'Friends'),
+            (2, 'Unlisted'),
+            (3, 'Private'),
+          ])
+            RadioListTile<int>(
+              value: option.$1,
+              groupValue: _selected,
+              onChanged: (value) => setState(() => _selected = value ?? 0),
+              title: Text(option.$2),
+            ),
+          const Gap(12),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, _selected),
+            child: const Text('Apply'),
+          ),
         ],
       ),
     );
   }
 }
 
-class _PillChip extends StatelessWidget {
-  final String label;
+class _BatchCollectionSheet extends HookConsumerWidget {
+  final String pubName;
+  final List<String> postIds;
 
-  const _PillChip({required this.label});
+  const _BatchCollectionSheet({required this.pubName, required this.postIds});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border.all(color: theme.dividerColor.withOpacity(0.35)),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(label, style: theme.textTheme.labelSmall),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = useState(false);
+    final collections = useState<List<SnPostCollection>>([]);
+
+    Future<void> load() async {
+      if (isLoading.value) return;
+      try {
+        isLoading.value = true;
+        final client = ref.read(solarNetworkClientProvider);
+        collections.value = await client.sphere.listPublisherCollections(pubName);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    useEffect(() {
+      load();
+      return null;
+    }, [pubName]);
+
+    Future<void> addToCollection(SnPostCollection collection) async {
+      if (postIds.isEmpty) return;
+      try {
+        isLoading.value = true;
+        final client = ref.read(solarNetworkClientProvider);
+        await client.sphere.batchAddPostsToCollection(
+          publisherName: pubName,
+          slug: collection.slug,
+          postIds: postIds,
+        );
+        if (context.mounted) Navigator.pop(context, true);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    Future<void> removeFromCollection(SnPostCollection collection) async {
+      if (postIds.isEmpty) return;
+      try {
+        isLoading.value = true;
+        final client = ref.read(solarNetworkClientProvider);
+        await client.sphere.batchRemovePostsFromCollection(
+          publisherName: pubName,
+          slug: collection.slug,
+          postIds: postIds,
+        );
+        if (context.mounted) Navigator.pop(context, true);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'Collections',
+      actions: [
+        IconButton(
+          onPressed: isLoading.value ? null : load,
+          icon: const Icon(Symbols.refresh),
+        ),
+      ],
+      child: collections.value.isEmpty && isLoading.value
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: collections.value.length,
+              separatorBuilder: (_, _) => const Gap(8),
+              itemBuilder: (context, index) {
+                final c = collections.value[index];
+                return Card(
+                  child: ListTile(
+                    leading: const Icon(Symbols.collections),
+                    title: Text(c.name?.isNotEmpty == true ? c.name! : c.slug),
+                    subtitle: Text(c.slug),
+                    trailing: Wrap(
+                      spacing: 8,
+                      children: [
+                        TextButton(
+                          onPressed: isLoading.value ? null : () => addToCollection(c),
+                          child: const Text('Add'),
+                        ),
+                        TextButton(
+                          onPressed: isLoading.value ? null : () => removeFromCollection(c),
+                          child: const Text('Remove'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
+}
+
+enum _BatchAction {
+  selectAllLoaded,
+  changeVisibility,
+  addToCollections,
+  removeFromCollections,
+  delete,
 }
 
 class _PostDetailSheet extends StatelessWidget {

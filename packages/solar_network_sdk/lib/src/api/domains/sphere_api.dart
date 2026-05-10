@@ -189,6 +189,56 @@ class SphereApi extends BaseApi {
     );
   }
 
+  /// Batch adds posts to a collection.
+  Future<void> batchAddPostsToCollection({
+    required String publisherName,
+    required String slug,
+    required List<String> postIds,
+  }) async {
+    await post<void>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/batch',
+      data: {'post_ids': postIds},
+    );
+  }
+
+  /// Batch removes posts from a collection.
+  Future<void> batchRemovePostsFromCollection({
+    required String publisherName,
+    required String slug,
+    required List<String> postIds,
+  }) async {
+    await post<void>(
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/batch-remove',
+      data: {'post_ids': postIds},
+    );
+  }
+
+  /// Batch deletes posts.
+  Future<void> batchDeletePosts(List<String> postIds) async {
+    await post<void>(
+      '$_basePath/posts/batch/delete',
+      data: {'post_ids': postIds},
+    );
+  }
+
+  /// Batch updates post visibility.
+  Future<void> batchUpdatePostVisibility({
+    required List<String> postIds,
+    String? visibility,
+    DateTime? draftedAt,
+    DateTime? publishedAt,
+  }) async {
+    await post<void>(
+      '$_basePath/posts/batch/visibility',
+      data: {
+        'post_ids': postIds,
+        'visibility': visibility,
+        'drafted_at': draftedAt?.toUtc().toIso8601String(),
+        'published_at': publishedAt?.toUtc().toIso8601String(),
+      }..removeWhere((_, value) => value == null),
+    );
+  }
+
   /// Gets a list of posts.
   ///
   /// [offset] - Pagination offset.
