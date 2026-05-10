@@ -16,6 +16,12 @@ _SnPostCollection _$SnPostCollectionFromJson(Map<String, dynamic> json) =>
       publisher: json['publisher'] == null
           ? null
           : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
+      background: json['background'] == null
+          ? null
+          : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+      icon: json['icon'] == null
+          ? null
+          : SnCloudFile.fromJson(json['icon'] as Map<String, dynamic>),
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
@@ -32,6 +38,8 @@ Map<String, dynamic> _$SnPostCollectionToJson(_SnPostCollection instance) =>
       'description': instance.description,
       'publisher_id': instance.publisherId,
       'publisher': instance.publisher?.toJson(),
+      'background': instance.background?.toJson(),
+      'icon': instance.icon?.toJson(),
       'created_at': instance.createdAt?.toIso8601String(),
       'updated_at': instance.updatedAt?.toIso8601String(),
     };

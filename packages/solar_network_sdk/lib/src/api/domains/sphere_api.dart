@@ -71,6 +71,8 @@ class SphereApi extends BaseApi {
     required String slug,
     String? name,
     String? description,
+    String? backgroundId,
+    String? iconId,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_pubBasePath/publishers/$publisherName/collections',
@@ -78,6 +80,8 @@ class SphereApi extends BaseApi {
         'slug': slug,
         'name': name,
         'description': description,
+        'background_id': backgroundId,
+        'icon_id': iconId,
       }..removeWhere((_, v) => v == null),
     );
     return SnPostCollection.fromJson(response.data!);
@@ -89,13 +93,27 @@ class SphereApi extends BaseApi {
     required String slug,
     String? name,
     String? description,
+    String? backgroundId,
+    bool clearBackground = false,
+    String? iconId,
+    bool clearIcon = false,
   }) async {
+    final data = <String, dynamic>{};
+    if (name != null) data['name'] = name;
+    if (description != null) data['description'] = description;
+    if (clearBackground) {
+      data['background_id'] = null;
+    } else if (backgroundId != null) {
+      data['background_id'] = backgroundId;
+    }
+    if (clearIcon) {
+      data['icon_id'] = null;
+    } else if (iconId != null) {
+      data['icon_id'] = iconId;
+    }
     final response = await patch<Map<String, dynamic>>(
       '$_pubBasePath/publishers/$publisherName/collections/$slug',
-      data: {
-        'name': name,
-        'description': description,
-      }..removeWhere((_, v) => v == null),
+      data: data,
     );
     return SnPostCollection.fromJson(response.data!);
   }
