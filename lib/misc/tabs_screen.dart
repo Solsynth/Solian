@@ -35,10 +35,10 @@ class TabsScreen extends StatelessWidget {
         RealmListRoute(),
         AccountRoute(),
         FileListRoute(),
+        WalletRoute(),
         ThoughtRoute(),
         CreatorHubRoute(),
         DeveloperHubRoute(),
-        WalletRoute(),
       ],
       builder: (context, child, _) {
         return _TabsScreenContent(child: child);

@@ -503,6 +503,19 @@ class ExploreScreen extends HookConsumerWidget {
                       ],
                     ),
                   ),
+                  PopupMenuItem(
+                    value: _ExploreAction.footprints,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.footprint,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('browseFootprints').tr(),
+                      ],
+                    ),
+                  ),
                 ],
                 onSelected: (value) {
                   switch (value) {
@@ -521,6 +534,9 @@ class ExploreScreen extends HookConsumerWidget {
                       break;
                     case _ExploreAction.shuffle:
                       context.router.push(const PostShuffleRoute());
+                      break;
+                    case _ExploreAction.footprints:
+                      context.router.push(const BookmarksRoute());
                       break;
                     default:
                       break;
@@ -1208,6 +1224,16 @@ class _ExploreFilterToolbar extends StatelessWidget {
                         ],
                       ),
                     ),
+                    PopupMenuItem(
+                      value: _ExploreAction.footprints,
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.footprint),
+                          const Gap(12),
+                          Text('browseFootprints').tr(),
+                        ],
+                      ),
+                    ),
                   ],
                   onSelected: (value) {
                     switch (value) {
@@ -1229,6 +1255,9 @@ class _ExploreFilterToolbar extends StatelessWidget {
                         break;
                       case _ExploreAction.shuffle:
                         context.router.push(const PostShuffleRoute());
+                        break;
+                      case _ExploreAction.footprints:
+                        context.router.push(const BookmarksRoute());
                         break;
                     }
                   },
@@ -1352,7 +1381,7 @@ class _FilterToggleButton extends StatelessWidget {
   }
 }
 
-enum _ExploreAction { articles, search, livestreams, categories, shuffle }
+enum _ExploreAction { articles, search, livestreams, categories, shuffle, footprints }
 
 class _RankingToolbar extends StatelessWidget {
   final String currentMode;
