@@ -69,8 +69,12 @@ class _PinnedPostsPageView extends HookConsumerWidget {
             initiallyExpanded: true,
             leading: const Icon(Symbols.push_pin),
             title: Text('pinnedPosts'.tr()),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
-            collapsedShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            collapsedShape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
             children: [
               SizedBox(
                 height: 400,
@@ -83,7 +87,12 @@ class _PinnedPostsPageView extends HookConsumerWidget {
                         return Padding(
                           padding: const EdgeInsets.all(8),
                           child: SingleChildScrollView(
-                            child: Card(child: PostActionableItem(item: data.items[index], borderRadius: 8)),
+                            child: Card(
+                              child: PostActionableItem(
+                                item: data.items[index],
+                                borderRadius: 8,
+                              ),
+                            ),
                           ),
                         );
                       },
@@ -105,7 +114,9 @@ class _PinnedPostsPageView extends HookConsumerWidget {
                               shape: BoxShape.circle,
                               color: index == currentPage.value
                                   ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.5),
                             ),
                           ),
                         ),
@@ -119,7 +130,10 @@ class _PinnedPostsPageView extends HookConsumerWidget {
         );
 
         if (!isWideScreen(context)) {
-          return Card(margin: EdgeInsets.only(top: 16, bottom: 8), child: contentWidget);
+          return Card(
+            margin: EdgeInsets.only(top: 16, bottom: 8),
+            child: contentWidget,
+          );
         }
 
         return Card.outlined(
@@ -184,10 +198,15 @@ class _PublisherBasisWidget extends HookWidget {
             clipBehavior: Clip.none,
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
                 child: AspectRatio(
                   aspectRatio: 16 / 7,
-                  child: CloudImageWidget(file: data.background, fit: BoxFit.cover),
+                  child: CloudImageWidget(
+                    file: data.background,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               Positioned(
@@ -195,11 +214,22 @@ class _PublisherBasisWidget extends HookWidget {
                 left: 16,
                 child: Container(
                   decoration: BoxDecoration(
-                    shape: data.type == 0 ? BoxShape.circle : BoxShape.rectangle,
-                    borderRadius: data.type == 0 ? null : BorderRadius.all(Radius.circular(12)),
-                    border: Border.all(color: theme.colorScheme.surface, width: 3),
+                    shape: data.type == 0
+                        ? BoxShape.circle
+                        : BoxShape.rectangle,
+                    borderRadius: data.type == 0
+                        ? null
+                        : BorderRadius.all(Radius.circular(12)),
+                    border: Border.all(
+                      color: theme.colorScheme.surface,
+                      width: 3,
+                    ),
                   ),
-                  child: ProfilePictureWidget(file: data.picture, radius: 32, borderRadius: data.type == 0 ? null : 12),
+                  child: ProfilePictureWidget(
+                    file: data.picture,
+                    radius: 32,
+                    borderRadius: data.type == 0 ? null : 12,
+                  ),
                 ),
               ),
             ],
@@ -220,18 +250,31 @@ class _PublisherBasisWidget extends HookWidget {
                               account: data.account!,
                               textOverride: data.nick,
                               hideVerificationMark: true,
-                              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                               suffixWidgets: [
                                 if (data.isModerateSubscription)
                                   Tooltip(
                                     message: 'publisherGatekeptHintShort'.tr(),
-                                    child: Icon(Symbols.lock, size: 14, fill: 1, color: theme.colorScheme.error),
+                                    child: Icon(
+                                      Symbols.lock,
+                                      size: 14,
+                                      fill: 1,
+                                      color: theme.colorScheme.error,
+                                    ),
                                   ),
                               ],
                             )
-                          : Text(data.nick, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                          : Text(
+                              data.nick,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
-                    if (data.verification != null) VerificationMark(mark: data.verification!),
+                    if (data.verification != null)
+                      VerificationMark(mark: data.verification!),
                     // Rating grade indicator
                     ratingOverview.when(
                       data: (overview) {
@@ -251,9 +294,13 @@ class _PublisherBasisWidget extends HookWidget {
                           _ => theme.colorScheme.onSurfaceVariant,
                         };
                         return Tooltip(
-                          message: '${overview.rating.toStringAsFixed(1)} · ${'ratingPercentile'.tr(args: [overview.percentile.toStringAsFixed(1)])}',
+                          message:
+                              '${overview.rating.toStringAsFixed(1)} · ${'ratingPercentile'.tr(args: [overview.percentile.toStringAsFixed(1)])}',
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: switch (overview.grade) {
                                 'S++' => theme.colorScheme.tertiaryContainer,
@@ -265,7 +312,8 @@ class _PublisherBasisWidget extends HookWidget {
                                 'A-' => theme.colorScheme.primaryContainer,
                                 'B+' => theme.colorScheme.secondaryContainer,
                                 'B' => theme.colorScheme.secondaryContainer,
-                                'C' => theme.colorScheme.surfaceContainerHighest,
+                                'C' =>
+                                  theme.colorScheme.surfaceContainerHighest,
                                 'D' => theme.colorScheme.errorContainer,
                                 _ => theme.colorScheme.surfaceContainerHighest,
                               },
@@ -315,11 +363,19 @@ class _PublisherBasisWidget extends HookWidget {
                               borderRadius: BorderRadius.circular(999),
                               onTap: () {
                                 Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => _PublisherLivestreamWatchScreen(stream: stream)),
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        _PublisherLivestreamWatchScreen(
+                                          stream: stream,
+                                        ),
+                                  ),
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.errorContainer,
                                   borderRadius: BorderRadius.circular(999),
@@ -328,13 +384,19 @@ class _PublisherBasisWidget extends HookWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   spacing: 4,
                                   children: [
-                                    Icon(Symbols.circle, fill: 1, size: 10, color: theme.colorScheme.error),
+                                    Icon(
+                                      Symbols.circle,
+                                      fill: 1,
+                                      size: 10,
+                                      color: theme.colorScheme.error,
+                                    ),
                                     Text(
                                       'LIVE',
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: theme.colorScheme.error,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: theme.colorScheme.error,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -345,13 +407,23 @@ class _PublisherBasisWidget extends HookWidget {
                     ),
                     // Handle chip - responsive layout
                     if (isWideScreen(context))
-                      Flexible(child: HandleChip(handle: data.name, allowCopy: true, maxLines: 1)),
+                      Flexible(
+                        child: HandleChip(
+                          handle: data.name,
+                          allowCopy: true,
+                          maxLines: 1,
+                        ),
+                      ),
                   ],
                 ),
                 if (!isWideScreen(context))
                   Padding(
                     padding: const EdgeInsets.only(top: 4, bottom: 4),
-                    child: HandleChip(handle: data.name, allowCopy: true, maxLines: 1),
+                    child: HandleChip(
+                      handle: data.name,
+                      allowCopy: true,
+                      maxLines: 1,
+                    ),
                   ),
                 if (data.account != null && data.type == 0) ...[
                   Row(
@@ -360,25 +432,40 @@ class _PublisherBasisWidget extends HookWidget {
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer.withOpacity(0.5),
+                            color: theme.colorScheme.secondaryContainer
+                                .withOpacity(0.5),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             spacing: 8,
                             children: [
-                              Icon(Symbols.person, size: 18, color: theme.colorScheme.onSecondaryContainer, fill: 1),
+                              Icon(
+                                Symbols.person,
+                                size: 18,
+                                color: theme.colorScheme.onSecondaryContainer,
+                                fill: 1,
+                              ),
                               Text(
-                                'publisherBelongsTo'.tr(args: ['@${data.account!.name}']),
-                                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                'publisherBelongsTo'.tr(
+                                  args: ['@${data.account!.name}'],
+                                ),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ),
                         ),
                         onTap: () {
-                          context.router.push(AccountProfileRoute(name: data.account!.name));
+                          context.router.push(
+                            AccountProfileRoute(name: data.account!.name),
+                          );
                         },
                       ).padding(top: 8, bottom: 4),
                     ],
@@ -391,25 +478,40 @@ class _PublisherBasisWidget extends HookWidget {
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiaryContainer.withOpacity(0.5),
+                            color: theme.colorScheme.tertiaryContainer
+                                .withOpacity(0.5),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             spacing: 8,
                             children: [
-                              Icon(Symbols.public, size: 18, color: theme.colorScheme.onTertiaryContainer, fill: 1),
+                              Icon(
+                                Symbols.public,
+                                size: 18,
+                                color: theme.colorScheme.onTertiaryContainer,
+                                fill: 1,
+                              ),
                               Text(
-                                'publisherBelongsToRealm'.tr(args: [data.realm!.name]),
-                                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                                'publisherBelongsToRealm'.tr(
+                                  args: [data.realm!.name],
+                                ),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ),
                         ),
                         onTap: () {
-                          context.router.push(RealmDetailRoute(slug: data.realm!.slug));
+                          context.router.push(
+                            RealmDetailRoute(slug: data.realm!.slug),
+                          );
                         },
                       ).padding(top: 8, bottom: 4),
                     ],
@@ -417,7 +519,10 @@ class _PublisherBasisWidget extends HookWidget {
                 ],
                 const Gap(4),
                 if (data.account != null && data.type == 0)
-                  AccountStatusWidget(uname: data.account!.name, padding: EdgeInsets.zero),
+                  AccountStatusWidget(
+                    uname: data.account!.name,
+                    padding: EdgeInsets.zero,
+                  ),
                 subStatus
                     .when(
                       data: (status) {
@@ -429,16 +534,21 @@ class _PublisherBasisWidget extends HookWidget {
                                 onPressed: subscribing.value ? null : subscribe,
                                 icon: const Icon(Symbols.add_circle),
                                 label: Text('subscribe').tr(),
-                                style: ButtonStyle(visualDensity: VisualDensity(vertical: -2)),
+                                style: ButtonStyle(
+                                  visualDensity: VisualDensity(vertical: -2),
+                                ),
                               ),
                               if (data.isGatekept)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
                                     'publisherFollowRequiresApprovalHint'.tr(),
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -450,31 +560,50 @@ class _PublisherBasisWidget extends HookWidget {
                             onPressed: subscribing.value ? null : unsubscribe,
                             icon: const Icon(Symbols.hourglass_top),
                             label: Text('publisherFollowPendingHint'.tr()),
-                            style: ButtonStyle(visualDensity: VisualDensity(vertical: -2)),
+                            style: ButtonStyle(
+                              visualDensity: VisualDensity(vertical: -2),
+                            ),
                           );
                         }
                         final isFollowing =
                             status.status == 'following' ||
                             status.status == 'subscribed' ||
                             status.subscription?.isActive == true;
-                        final currentNotify = status.subscription?.notify ?? true;
+                        final currentNotify =
+                            status.subscription?.notify ?? true;
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           spacing: 8,
                           children: [
                             Expanded(
                               child: FilledButton.icon(
-                                onPressed: subscribing.value ? null : (isFollowing ? unsubscribe : subscribe),
-                                icon: Icon(isFollowing ? Symbols.remove_circle : Symbols.add_circle),
-                                label: Text(isFollowing ? 'unsubscribe' : 'subscribe').tr(),
-                                style: ButtonStyle(visualDensity: VisualDensity(vertical: -2)),
+                                onPressed: subscribing.value
+                                    ? null
+                                    : (isFollowing ? unsubscribe : subscribe),
+                                icon: Icon(
+                                  isFollowing
+                                      ? Symbols.remove_circle
+                                      : Symbols.add_circle,
+                                ),
+                                label: Text(
+                                  isFollowing ? 'unsubscribe' : 'subscribe',
+                                ).tr(),
+                                style: ButtonStyle(
+                                  visualDensity: VisualDensity(vertical: -2),
+                                ),
                               ),
                             ),
                             if (isFollowing)
                               IconButton(
                                 onPressed: () => toggleNotify(currentNotify),
-                                icon: Icon(currentNotify ? Symbols.notifications : Symbols.notifications_off),
-                                tooltip: currentNotify ? 'notificationsEnabled'.tr() : 'notificationsDisabled'.tr(),
+                                icon: Icon(
+                                  currentNotify
+                                      ? Symbols.notifications
+                                      : Symbols.notifications_off,
+                                ),
+                                tooltip: currentNotify
+                                    ? 'notificationsEnabled'.tr()
+                                    : 'notificationsDisabled'.tr(),
                               ),
                           ],
                         );
@@ -483,7 +612,11 @@ class _PublisherBasisWidget extends HookWidget {
                       loading: () => const SizedBox(
                         height: 36,
                         child: Center(
-                          child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         ),
                       ),
                     )
@@ -505,7 +638,10 @@ class _PublisherBasisWidget extends HookWidget {
                                       content: data.bio,
                                       linesMargin: EdgeInsets.zero,
                                     )
-                                  : Text(_getFirstLine(data.bio), key: const ValueKey('collapsed')),
+                                  : Text(
+                                      _getFirstLine(data.bio),
+                                      key: const ValueKey('collapsed'),
+                                    ),
                             ).alignment(Alignment.centerLeft),
                           ),
                           InkWell(
@@ -513,10 +649,16 @@ class _PublisherBasisWidget extends HookWidget {
                               isBioExpanded.value = !isBioExpanded.value;
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
                               child: Text(
-                                isBioExpanded.value ? 'collapse'.tr() : 'expand'.tr(),
-                                style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.primary),
+                                isBioExpanded.value
+                                    ? 'collapse'.tr()
+                                    : 'expand'.tr(),
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
                               ).tr(),
                             ),
                           ),
@@ -584,7 +726,10 @@ class _PublisherLivestreamWatchScreen extends StatelessWidget {
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
-            child: LivestreamEmbedWidget(livestreamId: stream.id, margin: const EdgeInsets.all(12)),
+            child: LivestreamEmbedWidget(
+              livestreamId: stream.id,
+              margin: const EdgeInsets.all(12),
+            ),
           ).center(),
         ],
       ),
@@ -596,13 +741,17 @@ class _PublisherHeatmapWidget extends StatelessWidget {
   final AsyncValue<SnHeatmap?> heatmap;
   final bool forceDense;
 
-  const _PublisherHeatmapWidget({required this.heatmap, this.forceDense = false});
+  const _PublisherHeatmapWidget({
+    required this.heatmap,
+    this.forceDense = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return heatmap.when(
-      data: (data) =>
-          data != null ? ActivityHeatmapWidget(heatmap: data, forceDense: forceDense) : const SizedBox.shrink(),
+      data: (data) => data != null
+          ? ActivityHeatmapWidget(heatmap: data, forceDense: forceDense)
+          : const SizedBox.shrink(),
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
     );
@@ -620,15 +769,24 @@ Future<List<SnAccountBadge>> publisherBadges(Ref ref, String pubName) async {
   final pub = await ref.watch(publisherProvider(pubName).future);
   if (pub.type != 0 || pub.account == null) return [];
   final client = ref.watch(solarNetworkClientProvider);
-  final resp = await client.dio.get("/passport/accounts/${pub.account!.name}/badges");
-  return List<SnAccountBadge>.from(resp.data.map((x) => SnAccountBadge.fromJson(x)));
+  final resp = await client.dio.get(
+    "/passport/accounts/${pub.account!.name}/badges",
+  );
+  return List<SnAccountBadge>.from(
+    resp.data.map((x) => SnAccountBadge.fromJson(x)),
+  );
 }
 
 @riverpod
-Future<SnPublisherSubscriptionStatus?> publisherSubscriptionStatus(Ref ref, String pubName) async {
+Future<SnPublisherSubscriptionStatus?> publisherSubscriptionStatus(
+  Ref ref,
+  String pubName,
+) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
-    final resp = await client.dio.get("/sphere/publishers/$pubName/subscription");
+    final resp = await client.dio.get(
+      "/sphere/publishers/$pubName/subscription",
+    );
     return SnPublisherSubscriptionStatus.fromJson(resp.data);
   } catch (err) {
     if (err is DioException) {
@@ -640,7 +798,10 @@ Future<SnPublisherSubscriptionStatus?> publisherSubscriptionStatus(Ref ref, Stri
 }
 
 @riverpod
-Future<SnPublisherSubscriptionStatus?> publisherFollowRequest(Ref ref, String pubName) async {
+Future<SnPublisherSubscriptionStatus?> publisherFollowRequest(
+  Ref ref,
+  String pubName,
+) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
     return await client.sphere.getPublisherSubscriptionStatus(pubName);
@@ -667,7 +828,10 @@ Future<SnHeatmap?> publisherHeatmap(Ref ref, String uname) async {
 }
 
 @riverpod
-Future<SnPublisherRatingOverview?> publisherRatingOverview(Ref ref, String pubName) async {
+Future<SnPublisherRatingOverview?> publisherRatingOverview(
+  Ref ref,
+  String pubName,
+) async {
   final client = ref.watch(solarNetworkClientProvider);
   try {
     return await client.sphere.getPublisherRatingOverview(pubName);
@@ -679,35 +843,36 @@ Future<SnPublisherRatingOverview?> publisherRatingOverview(Ref ref, String pubNa
   }
 }
 
-final publisherActiveLivestreamProvider = FutureProvider.family.autoDispose<SnLiveStream?, String>((
-  ref,
-  publisherId,
-) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  final resp = await client.dio.get(
-    '/sphere/livestreams/publisher/$publisherId',
-    queryParameters: {'limit': 50, 'offset': 0},
-  );
-  final data = resp.data;
-  final list = switch (data) {
-    List value => value,
-    Map value when value['items'] is List => value['items'] as List,
-    _ => const <dynamic>[],
-  };
-  for (final item in list.whereType<Map>()) {
-    final stream = SnLiveStream.fromJson(Map<String, dynamic>.from(item));
-    if (stream.status == SnLiveStreamStatus.active) {
-      return stream;
-    }
-  }
-  return null;
-});
+final publisherActiveLivestreamProvider = FutureProvider.family
+    .autoDispose<SnLiveStream?, String>((ref, publisherId) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      final resp = await client.dio.get(
+        '/sphere/livestreams/publisher/$publisherId',
+        queryParameters: {'limit': 50, 'offset': 0},
+      );
+      final data = resp.data;
+      final list = switch (data) {
+        List value => value,
+        Map value when value['items'] is List => value['items'] as List,
+        _ => const <dynamic>[],
+      };
+      for (final item in list.whereType<Map>()) {
+        final stream = SnLiveStream.fromJson(Map<String, dynamic>.from(item));
+        if (stream.status == SnLiveStreamStatus.active) {
+          return stream;
+        }
+      }
+      return null;
+    });
 
 @RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
 
-  const PublisherProfileScreen({super.key, required this.name});
+  const PublisherProfileScreen({
+    super.key,
+    @PathParam("name") required this.name,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -772,7 +937,10 @@ class PublisherProfileScreen extends HookConsumerWidget {
     Future<void> toggleNotify(bool currentNotify) async {
       try {
         final client = ref.watch(solarNetworkClientProvider);
-        await client.dio.patch('/sphere/publishers/$name/subscribers/me/notify', data: {'notify': !currentNotify});
+        await client.dio.patch(
+          '/sphere/publishers/$name/subscribers/me/notify',
+          data: {'notify': !currentNotify},
+        );
         ref.invalidate(publisherSubscriptionStatusProvider(name));
       } catch (err) {
         showErrorAlert(err);
@@ -781,7 +949,9 @@ class PublisherProfileScreen extends HookConsumerWidget {
 
     return publisher.when(
       data: (data) {
-        final liveStatus = ref.watch(publisherActiveLivestreamProvider(data.id));
+        final liveStatus = ref.watch(
+          publisherActiveLivestreamProvider(data.id),
+        );
         return AppScaffold(
           isNoBackground: false,
           appBar: AppBar(leading: AutoLeadingButton(), title: Text(data.nick)),
@@ -793,19 +963,28 @@ class PublisherProfileScreen extends HookConsumerWidget {
                       flex: 4,
                       child: Card(
                         shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            topRight: Radius.circular(8),
+                          ),
                         ),
                         margin: const EdgeInsets.fromLTRB(12, 12, 0, 0),
                         child: CustomScrollView(
                           slivers: [
-                            SliverToBoxAdapter(child: _PinnedPostsPageView(pubName: name).padding(horizontal: 12)),
+                            SliverToBoxAdapter(
+                              child: _PinnedPostsPageView(
+                                pubName: name,
+                              ).padding(horizontal: 12),
+                            ),
                             SliverPostList(
                               maxWidth: double.infinity,
                               itemPadding: EdgeInsets.symmetric(vertical: 4),
                               query: queryState.value,
                               queryKey: 'publisher-$name',
                             ),
-                            SliverGap(MediaQuery.of(context).padding.bottom + 16),
+                            SliverGap(
+                              MediaQuery.of(context).padding.bottom + 16,
+                            ),
                           ],
                         ).clipRRect(topRight: 12),
                       ),
@@ -831,13 +1010,21 @@ class PublisherProfileScreen extends HookConsumerWidget {
                                 toggleNotify: toggleNotify,
                               ),
                               if (data.account?.badges.isNotEmpty ?? false)
-                                _PublisherBadgesWidget(data: data, badges: badges),
-                              if (data.verification != null) _PublisherVerificationWidget(data: data),
-                              _PublisherHeatmapWidget(heatmap: heatmap, forceDense: true),
+                                _PublisherBadgesWidget(
+                                  data: data,
+                                  badges: badges,
+                                ),
+                              if (data.verification != null)
+                                _PublisherVerificationWidget(data: data),
+                              _PublisherHeatmapWidget(
+                                heatmap: heatmap,
+                                forceDense: true,
+                              ),
                               PostFilterWidget(
                                 categoryTabController: categoryTabController,
                                 initialQuery: queryState.value,
-                                onQueryChanged: (newQuery) => queryState.value = newQuery,
+                                onQueryChanged: (newQuery) =>
+                                    queryState.value = newQuery,
                               ),
                             ],
                           ),
@@ -865,24 +1052,40 @@ class PublisherProfileScreen extends HookConsumerWidget {
                     if (data.account?.badges.isNotEmpty ?? false)
                       ...([
                         SliverToBoxAdapter(
-                          child: _PublisherBadgesWidget(data: data, badges: badges).padding(horizontal: 12),
+                          child: _PublisherBadgesWidget(
+                            data: data,
+                            badges: badges,
+                          ).padding(horizontal: 12),
                         ),
                         const SliverGap(12),
                       ]),
                     if (data.verification != null)
                       ...([
-                        SliverToBoxAdapter(child: _PublisherVerificationWidget(data: data).padding(horizontal: 12)),
+                        SliverToBoxAdapter(
+                          child: _PublisherVerificationWidget(
+                            data: data,
+                          ).padding(horizontal: 12),
+                        ),
                         const SliverGap(12),
                       ]),
-                    SliverToBoxAdapter(child: _PublisherHeatmapWidget(heatmap: heatmap).padding(horizontal: 12)),
+                    SliverToBoxAdapter(
+                      child: _PublisherHeatmapWidget(
+                        heatmap: heatmap,
+                      ).padding(horizontal: 12),
+                    ),
                     const SliverGap(12),
-                    SliverToBoxAdapter(child: _PinnedPostsPageView(pubName: name).padding(horizontal: 12)),
+                    SliverToBoxAdapter(
+                      child: _PinnedPostsPageView(
+                        pubName: name,
+                      ).padding(horizontal: 12),
+                    ),
                     const SliverGap(12),
                     SliverToBoxAdapter(
                       child: PostFilterWidget(
                         categoryTabController: categoryTabController,
                         initialQuery: queryState.value,
-                        onQueryChanged: (newQuery) => queryState.value = newQuery,
+                        onQueryChanged: (newQuery) =>
+                            queryState.value = newQuery,
                       ).padding(horizontal: 12),
                     ),
                     const SliverGap(12),

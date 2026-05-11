@@ -120,6 +120,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   boostedAt: json['boosted_at'] == null
       ? null
       : DateTime.parse(json['boosted_at'] as String),
+  isBookmarked: json['is_bookmarked'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
@@ -180,6 +181,7 @@ Map<String, dynamic> _$SnPostToJson(_SnPost instance) => <String, dynamic>{
   'is_truncated': instance.isTruncated,
   'boosted_by': instance.boostedBy?.toJson(),
   'boosted_at': instance.boostedAt?.toIso8601String(),
+  'is_bookmarked': instance.isBookmarked,
 };
 
 _SnPublisherStats _$SnPublisherStatsFromJson(Map<String, dynamic> json) =>
@@ -284,6 +286,8 @@ _SnPostReaction _$SnPostReactionFromJson(Map<String, dynamic> json) =>
       account: json['account'] == null
           ? null
           : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
+      isLocal: json['is_local'] as bool?,
+      fediverseUri: json['fediverse_uri'] as String?,
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
@@ -301,8 +305,46 @@ Map<String, dynamic> _$SnPostReactionToJson(_SnPostReaction instance) =>
       'actor': instance.actor?.toJson(),
       'account_id': instance.accountId,
       'account': instance.account?.toJson(),
+      'is_local': instance.isLocal,
+      'fediverse_uri': instance.fediverseUri,
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
+
+_SnPostBookmark _$SnPostBookmarkFromJson(Map<String, dynamic> json) =>
+    _SnPostBookmark(
+      id: json['id'] as String,
+      postId: json['post_id'] as String,
+      accountId: json['account_id'] as String,
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
+    );
+
+Map<String, dynamic> _$SnPostBookmarkToJson(_SnPostBookmark instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'post_id': instance.postId,
+      'account_id': instance.accountId,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+    };
+
+_UserReactionListingItem _$UserReactionListingItemFromJson(
+  Map<String, dynamic> json,
+) => _UserReactionListingItem(
+  reaction: SnPostReaction.fromJson(json['reaction'] as Map<String, dynamic>),
+  post: SnPost.fromJson(json['post'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$UserReactionListingItemToJson(
+  _UserReactionListingItem instance,
+) => <String, dynamic>{
+  'reaction': instance.reaction.toJson(),
+  'post': instance.post.toJson(),
+};
 
 _SnPostFeaturedRecord _$SnPostFeaturedRecordFromJson(
   Map<String, dynamic> json,

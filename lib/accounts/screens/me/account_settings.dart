@@ -552,6 +552,31 @@ class AccountSettingsScreen extends HookConsumerWidget {
       ),
     ];
 
+    final activitySettings = [
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.history),
+        title: Text('actionLogs').tr(),
+        subtitle: Text('actionLogsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          context.router.push(const ActionLogsRoute());
+        },
+      ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.gavel),
+        title: Text('punishments').tr(),
+        subtitle: Text('punishmentsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          context.router.push(const PunishmentsRoute());
+        },
+      ),
+    ];
+
     final dangerZoneSettings = [
       ListTile(
         minLeadingWidth: 48,
@@ -581,6 +606,10 @@ class AccountSettingsScreen extends HookConsumerWidget {
           _SettingsSection(
             title: 'accountNotificationPreferencesTitle',
             children: notificationPreferencesSettings,
+          ),
+          _SettingsSection(
+            title: 'accountActivityTitle',
+            children: activitySettings,
           ),
           _SettingsSection(
             title: 'accountSecurityTitle',
