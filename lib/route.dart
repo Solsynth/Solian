@@ -110,7 +110,6 @@ class AppRouter extends RootStackRouter {
               page: FeedMarketplaceDetailRoute.page,
               path: 'feeds/:feedId',
             ),
-            AutoRoute(page: WalletRoute.page, path: 'wallet'),
             AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
             AutoRoute(page: AccountUpdateProfileRoute.page, path: 'me/update'),
             AutoRoute(page: LevelingRoute.page, path: 'me/leveling'),
@@ -232,6 +231,9 @@ class AppRouter extends RootStackRouter {
             ),
           ],
         ),
+
+        // Wallet tab
+        AutoRoute(page: WalletRoute.page, path: 'wallet'),
       ],
     ),
   ];
