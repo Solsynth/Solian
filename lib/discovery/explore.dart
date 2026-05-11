@@ -2200,7 +2200,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                               SliverToBoxAdapter(
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
+                                    horizontal: 12 + 16,
                                   ),
                                   child: Column(
                                     crossAxisAlignment:
@@ -2250,9 +2250,11 @@ class _TimelineDetailPane extends HookConsumerWidget {
                             if (post.realm != null)
                               SliverToBoxAdapter(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    24,
+                                    0,
+                                    24,
+                                    8,
                                   ),
                                   child: PostRealmBadge(realm: post.realm!),
                                 ),
