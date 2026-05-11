@@ -236,43 +236,56 @@ class DeveloperSelector extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final developers = ref.watch(developersProvider);
 
-    final List<DropdownItem<SnDeveloper>> developersMenu = developers.when(
-      data: (data) => data
-          .map(
-            (item) => DropdownItem<SnDeveloper>(
-              height: 54,
-              value: item,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    item.publisher?.nick ?? '',
-                    style: DefaultTextStyle.of(context).style.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).colorScheme.onSurface,
+    final List<DropdownItem<SnDeveloper?>> developersMenu = [
+      DropdownItem<SnDeveloper?>(
+        value: null,
+        height: 54,
+        child: Row(
+          children: [
+            const Icon(Symbols.close),
+            const SizedBox(width: 12),
+            Text('clearSelection').tr().fontSize(13),
+          ],
+        ),
+      ),
+      ...developers.when(
+        data: (data) => data
+            .map(
+              (item) => DropdownItem<SnDeveloper?>(
+                height: 54,
+                value: item,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.publisher?.nick ?? '',
+                      style: DefaultTextStyle.of(context).style.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '@${item.publisher?.name ?? ''}',
-                    style: DefaultTextStyle.of(context).style.copyWith(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    Text(
+                      '@${item.publisher?.name ?? ''}',
+                      style: DefaultTextStyle.of(context).style.copyWith(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          )
-          .toList(),
-      loading: () => [],
-      error: (_, _) => [],
-    );
+            )
+            .toList(),
+        loading: () => [],
+        error: (_, _) => [],
+      ),
+    ];
 
-    if (isReadOnly || currentDeveloper == null) {
+    if (isReadOnly) {
       return ProfilePictureWidget(
         radius: 16,
         file: currentDeveloper?.publisher?.picture,
@@ -286,7 +299,7 @@ class DeveloperSelector extends HookConsumerWidget {
         developersMenu.any((item) => item.value?.id == currentValue.id);
 
     return DropdownButtonHideUnderline(
-      child: DropdownButton2<SnDeveloper>(
+      child: DropdownButton2<SnDeveloper?>(
         valueListenable: ValueNotifier<SnDeveloper?>(
           isValueValid ? currentValue : null,
         ),
@@ -874,10 +887,7 @@ class DeveloperHubContentWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final developers = ref.watch(developersProvider);
-    final currentDeveloper = useState<SnDeveloper?>(
-      developers.value?.firstOrNull,
-    );
+    final currentDeveloper = useState<SnDeveloper?>(null);
 
     final projects = currentDeveloper.value?.publisher?.name != null
         ? ref.watch(
