@@ -8,20 +8,38 @@ part of 'config.dart';
 
 _ThemeColors _$ThemeColorsFromJson(Map<String, dynamic> json) => _ThemeColors(
   primary: (json['primary'] as num?)?.toInt(),
+  onPrimary: (json['on_primary'] as num?)?.toInt(),
+  primaryContainer: (json['primary_container'] as num?)?.toInt(),
   secondary: (json['secondary'] as num?)?.toInt(),
+  onSecondary: (json['on_secondary'] as num?)?.toInt(),
+  secondaryContainer: (json['secondary_container'] as num?)?.toInt(),
   tertiary: (json['tertiary'] as num?)?.toInt(),
+  onTertiary: (json['on_tertiary'] as num?)?.toInt(),
+  tertiaryContainer: (json['tertiary_container'] as num?)?.toInt(),
   surface: (json['surface'] as num?)?.toInt(),
+  surfaceContainerHighest: (json['surface_container_highest'] as num?)?.toInt(),
   background: (json['background'] as num?)?.toInt(),
+  outline: (json['outline'] as num?)?.toInt(),
+  shadow: (json['shadow'] as num?)?.toInt(),
   error: (json['error'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$ThemeColorsToJson(_ThemeColors instance) =>
     <String, dynamic>{
       'primary': instance.primary,
+      'on_primary': instance.onPrimary,
+      'primary_container': instance.primaryContainer,
       'secondary': instance.secondary,
+      'on_secondary': instance.onSecondary,
+      'secondary_container': instance.secondaryContainer,
       'tertiary': instance.tertiary,
+      'on_tertiary': instance.onTertiary,
+      'tertiary_container': instance.tertiaryContainer,
       'surface': instance.surface,
+      'surface_container_highest': instance.surfaceContainerHighest,
       'background': instance.background,
+      'outline': instance.outline,
+      'shadow': instance.shadow,
       'error': instance.error,
     };
 
