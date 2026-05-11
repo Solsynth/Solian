@@ -1639,20 +1639,11 @@ class WalletScreen extends HookConsumerWidget {
       }).toList();
     }
 
-    return AppScaffold(
-      appBar: AppBar(
-        title: Text('wallet').tr(),
-        leading: const AutoLeadingButton(),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.add),
-            onPressed: createWallet,
-            tooltip: 'walletCreateNew'.tr(),
-          ),
-          const Gap(8),
-        ],
-      ),
-      body: wallets.when(
+    final isWide = isWideScreen(context);
+    const walletContentMaxWidth = 600.0;
+
+    Widget buildBody() {
+      return wallets.when(
         data: (walletList) {
           if (walletList.isEmpty) {
             return ConstrainedBox(
@@ -1750,7 +1741,31 @@ class WalletScreen extends HookConsumerWidget {
           onRetry: () => ref.invalidate(walletListProvider),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return AppScaffold(
+      isNoBackground: false,
+      appBar: AppBar(
+        title: Text('wallet').tr(),
+        leading: const AutoLeadingButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Symbols.add),
+            onPressed: createWallet,
+            tooltip: 'walletCreateNew'.tr(),
+          ),
+          const Gap(8),
+        ],
       ),
+      body: isWide
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: walletContentMaxWidth),
+                child: buildBody(),
+              ),
+            )
+          : buildBody(),
     );
   }
 
