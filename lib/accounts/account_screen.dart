@@ -322,6 +322,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const PunishmentsRoute());
                     },
                   },
+                  {
+                    'icon': Symbols.bookmark,
+                    'title': 'bookmarks',
+                    'onTap': () {
+                      context.router.push(const BookmarksRoute());
+                    },
+                  },
                 ];
                 return Column(
                   children: menuItems.map((item) {
@@ -356,16 +363,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
               title: Text('appSettings').tr(),
               onTap: () {
                 context.router.push(const SettingsRoute());
-              },
-            ),
-            ListTile(
-              leading: const Icon(Symbols.person_edit),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              dense: true,
-              title: Text('updateYourProfile').tr(),
-              onTap: () {
-                context.router.push(const AccountUpdateProfileRoute());
               },
             ),
             ListTile(
