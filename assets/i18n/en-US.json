@@ -3063,5 +3063,8 @@
   "stickerModeEmote": "Emote",
   "shareCheckInSlogan": "See your today fortune on the Solar Network.",
   "marketplace": "Marketplace",
-  "myStickers": "My Stickers"
+  "myStickers": "My Stickers",
+  "noActiveLivestreams": "No active livestreams",
+  "thereAreNoLiveStreamsRightNow": "There are no live streams right now. Check back later or explore other content on the Solar Network.",
+  "exploreContent": "Explore Content"
 }
