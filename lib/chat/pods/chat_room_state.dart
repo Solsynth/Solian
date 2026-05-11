@@ -457,7 +457,17 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
         setReplyingTo(message.toRemoteMessage());
       case 'resend':
         notifier.retryMessage(message.id);
+      case 'redirect':
+        _redirectSingleMessage(message);
     }
+  }
+
+  void _redirectSingleMessage(LocalChatMessage message) {
+    // Enter selection mode with this single message selected
+    state = state.copyWith(
+      isSelectionMode: true,
+      selectedMessageIds: {message.id},
+    );
   }
 
   void sendMessage() {

@@ -45,6 +45,7 @@ class MessageItemAction {
   static const String reply = "reply";
   static const String forward = "forward";
   static const String resend = "resend";
+  static const String redirect = "redirect";
 }
 
 Map<String, int> getMessageReactionsCount(LocalChatMessage message) {
@@ -562,6 +563,15 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
           Navigator.pop(context);
         },
       ),
+      if (widget.message.type == 'text')
+        _ActionListTile(
+          leading: Icon(Symbols.send),
+          title: Text('redirect'.tr()),
+          onTap: () {
+            widget.onAction!.call(MessageItemAction.redirect);
+            Navigator.pop(context);
+          },
+        ),
       _ActionListTile(
         leading: const Icon(Symbols.add_reaction),
         title: Text('react'.tr()),

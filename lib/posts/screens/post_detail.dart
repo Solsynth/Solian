@@ -4,9 +4,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/posts/pods/bookmarks.dart';
 import 'package:island/core/services/time.dart';
@@ -27,6 +29,7 @@ import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -148,48 +151,50 @@ SnCloudFile? _getPostThumbnail(SnPost post) {
   }
 }
 
-class _PostRealmBadge extends ConsumerWidget {
+class PostRealmBadge extends StatelessWidget {
   final SnRealm realm;
 
-  const _PostRealmBadge({required this.realm});
+  const PostRealmBadge({super.key, required this.realm});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        context.router.push(RealmDetailRoute(slug: realm.slug));
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.tertiaryContainer.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 8,
-          children: [
-            Icon(
-              Symbols.public,
-              size: 18,
-              color: theme.colorScheme.onTertiaryContainer,
-              fill: 1,
-            ),
-            Text(
-              'publisherBelongsToRealm'.tr(args: [realm.name]),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        dense: true,
+        leading: realm.picture != null
+            ? ProfilePictureWidget(file: realm.picture, radius: 16)
+            : CircleAvatar(
+                radius: 16,
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: Icon(
+                  Symbols.public,
+                  size: 18,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
               ),
-            ),
-            const Spacer(),
-            Icon(
-              Symbols.chevron_right,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ],
+        title: Text(
+          realm.name,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          'realm'.tr(),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: FilledButton.tonal(
+          onPressed: () {
+            context.router.push(RealmDetailRoute(slug: realm.slug));
+          },
+          child: Text('open'.tr()),
         ),
       ),
     );
@@ -202,6 +207,7 @@ class PostActionButtons extends HookConsumerWidget {
   final bool noBottomPadding;
   final VoidCallback? onRefresh;
   final Function(SnPost)? onUpdate;
+  final ValueChanged<String>? onTranslate;
 
   const PostActionButtons({
     super.key,
@@ -210,10 +216,12 @@ class PostActionButtons extends HookConsumerWidget {
     this.noBottomPadding = false,
     this.onRefresh,
     this.onUpdate,
+    this.onTranslate,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final user = ref.watch(userInfoProvider);
     final isAuthor =
         user.value != null && user.value?.id == post.publisher?.accountId;
@@ -234,204 +242,6 @@ class PostActionButtons extends HookConsumerWidget {
       }
     }
 
-    final actions = <Widget>[];
-
-    if (isAuthor) {
-      actions.add(
-        Tooltip(
-          message: 'edit'.tr(),
-          child: IconButton(
-            onPressed: () {
-              if (post.type == 1) {
-                context.router.push(ArticleEditRoute(id: post.id)).then((
-                  value,
-                ) {
-                  if (value != null) {
-                    onRefresh?.call();
-                  }
-                });
-              } else {
-                PostComposeDialog.show(context, originalPost: post).then((
-                  value,
-                ) {
-                  if (value == true) {
-                    onRefresh?.call();
-                  }
-                });
-              }
-            },
-            icon: const Icon(Symbols.edit, size: 18),
-          ),
-        ),
-      );
-
-      actions.add(
-        Tooltip(
-          message: 'delete'.tr(),
-          child: IconButton(
-            onPressed: () {
-              showConfirmAlert(
-                'deletePostHint'.tr(),
-                'deletePost'.tr(),
-                isDanger: true,
-              ).then((confirm) {
-                if (confirm) {
-                  final client = ref.watch(solarNetworkClientProvider);
-                  client.sphere
-                      .deletePost(post.id)
-                      .catchError((err) {
-                        showErrorAlert(err);
-                        return err;
-                      })
-                      .then((_) {
-                        onRefresh?.call();
-                      });
-                }
-              });
-            },
-            icon: const Icon(Symbols.delete, size: 18),
-          ),
-        ),
-      );
-
-      actions.add(
-        Tooltip(
-          message: post.pinMode == null ? 'pinPost'.tr() : 'unpinPost'.tr(),
-          child: IconButton(
-            onPressed: () {
-              if (post.pinMode == null) {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => PostPinSheet(post: post),
-                ).then((value) {
-                  if (value is int) {
-                    onUpdate?.call(post.copyWith(pinMode: value));
-                  }
-                });
-              } else {
-                showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
-                  confirm,
-                ) async {
-                  if (confirm) {
-                    final client = ref.watch(solarNetworkClientProvider);
-                    try {
-                      if (context.mounted) showLoadingModal(context);
-                      await client.sphere.unpinPost(post.id);
-                      onUpdate?.call(post.copyWith(pinMode: null));
-                    } catch (err) {
-                      showErrorAlert(err);
-                    } finally {
-                      if (context.mounted) hideLoadingModal(context);
-                    }
-                  }
-                });
-              }
-            },
-            icon: Icon(
-              post.pinMode == null ? Symbols.keep : Symbols.keep_off,
-              size: 18,
-            ),
-          ),
-        ),
-      );
-    }
-
-    actions.add(
-      Tooltip(
-        message: 'reply'.tr(),
-        child: IconButton(
-          onPressed: () {
-            PostComposeDialog.show(
-              context,
-              initialState: PostComposeInitialState(replyingTo: post),
-            );
-          },
-          icon: const Icon(Symbols.reply, size: 18),
-        ),
-      ),
-    );
-
-    actions.add(
-      Tooltip(
-        message: 'fullThread'.tr(),
-        child: IconButton(
-          onPressed: () => _showPostThreadSheet(context, post),
-          icon: const Icon(Symbols.forum, size: 18),
-        ),
-      ),
-    );
-
-    actions.add(
-      Tooltip(
-        message: 'forward'.tr(),
-        child: IconButton(
-          onPressed: () {
-            PostComposeDialog.show(
-              context,
-              initialState: PostComposeInitialState(forwardingTo: post),
-            );
-          },
-          icon: const Icon(Symbols.forward, size: 18),
-        ),
-      ),
-    );
-
-    actions.add(
-      Tooltip(
-        message: post.awardedScore > 0
-            ? '${formatScore(post.awardedScore)} pts'
-            : 'award'.tr(),
-        child: IconButton(
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useRootNavigator: true,
-              builder: (context) => PostAwardSheet(post: post),
-            );
-          },
-          onLongPress: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => PostAwardHistorySheet(postId: post.id),
-            );
-          },
-          icon: const Icon(Symbols.emoji_events, size: 18),
-        ),
-      ),
-    );
-
-    actions.add(
-      Tooltip(
-        message: 'aiThought'.tr(),
-        child: IconButton(
-          onPressed: () {
-            ThoughtSheet.show(context, attachedPosts: [post.id]);
-          },
-          icon: const Icon(Symbols.smart_toy, size: 18),
-        ),
-      ),
-    );
-
-    actions.add(
-      Tooltip(
-        message: 'share'.tr(),
-        child: IconButton(
-          onPressed: () {
-            showShareSheetLink(
-              context: context,
-              link: 'https://solian.app/posts/${post.id}',
-              title: 'sharePost'.tr(),
-              toSystem: true,
-            );
-          },
-          icon: const Icon(Symbols.share, size: 18),
-        ),
-      ),
-    );
-
     final bookmarkStatus = ref.watch(bookmarkStatusProvider(post.id));
     final isBookmarked = bookmarkStatus.when(
       data: (bookmark) => bookmark != null,
@@ -439,42 +249,229 @@ class PostActionButtons extends HookConsumerWidget {
       error: (_, _) => false,
     );
 
-    actions.add(
-      Tooltip(
-        message: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
-        child: IconButton(
-          onPressed: () async {
-            final client = ref.read(solarNetworkClientProvider);
-            try {
-              if (isBookmarked) {
-                await client.sphere.unbookmarkPost(post.id);
-              } else {
-                await client.sphere.bookmarkPost(post.id);
-              }
-              ref.invalidate(bookmarkStatusProvider(post.id));
-            } catch (err) {
-              showErrorAlert(err);
-            }
-          },
-          icon: Icon(
-            isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
-            size: 18,
-          ),
-        ),
-      ),
-    );
-
-    if (!kIsWeb) {
-      actions.add(
-        Tooltip(
-          message: 'sharePostPhoto'.tr(),
-          child: IconButton(
-            onPressed: () => sharePostAsScreenshot(context, ref, post),
-            icon: const Icon(Symbols.share_reviews, size: 18),
+    Widget buildActionButton({
+      required IconData icon,
+      required String label,
+      required VoidCallback? onPressed,
+      VoidCallback? onLongPress,
+      bool isSelected = false,
+      Color? color,
+    }) {
+      return Tooltip(
+        message: label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onPressed,
+          onLongPress: onLongPress,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 6,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : color ?? theme.colorScheme.onSurfaceVariant,
+                ),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : color ?? theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
+
+    final primaryActions = <Widget>[
+      buildActionButton(
+        icon: Symbols.reply,
+        label: 'reply'.tr(),
+        onPressed: () {
+          PostComposeDialog.show(
+            context,
+            initialState: PostComposeInitialState(replyingTo: post),
+          );
+        },
+      ),
+      buildActionButton(
+        icon: Symbols.forward,
+        label: 'forward'.tr(),
+        onPressed: () {
+          PostComposeDialog.show(
+            context,
+            initialState: PostComposeInitialState(forwardingTo: post),
+          );
+        },
+      ),
+      buildActionButton(
+        icon: isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+        label: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+        isSelected: isBookmarked,
+        onPressed: () async {
+          final client = ref.read(solarNetworkClientProvider);
+          try {
+            if (isBookmarked) {
+              await client.sphere.unbookmarkPost(post.id);
+            } else {
+              await client.sphere.bookmarkPost(post.id);
+            }
+            ref.invalidate(bookmarkStatusProvider(post.id));
+          } catch (err) {
+            showErrorAlert(err);
+          }
+        },
+      ),
+      buildActionButton(
+        icon: Symbols.share,
+        label: 'share'.tr(),
+        onPressed: () {
+          showShareSheetLink(
+            context: context,
+            link: 'https://solian.app/posts/${post.id}',
+            title: 'sharePost'.tr(),
+            toSystem: true,
+          );
+        },
+      ),
+    ];
+
+    final secondaryActions = <Widget>[
+      buildActionButton(
+        icon: Symbols.forum,
+        label: 'fullThread'.tr(),
+        onPressed: () => _showPostThreadSheet(context, post),
+      ),
+      buildActionButton(
+        icon: Symbols.emoji_events,
+        label: post.awardedScore > 0
+            ? '${formatScore(post.awardedScore)} pts'
+            : 'award'.tr(),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useRootNavigator: true,
+            builder: (context) => PostAwardSheet(post: post),
+          );
+        },
+        onLongPress: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => PostAwardHistorySheet(postId: post.id),
+          );
+        },
+      ),
+      buildActionButton(
+        icon: Symbols.smart_toy,
+        label: 'aiThought'.tr(),
+        onPressed: () {
+          ThoughtSheet.show(context, attachedPosts: [post.id]);
+        },
+      ),
+      if (post.content != null && onTranslate != null)
+        buildActionButton(
+          icon: Symbols.translate,
+          label: 'translate'.tr(),
+          onPressed: () => onTranslate!(post.content!),
+        ),
+      if (!kIsWeb)
+        buildActionButton(
+          icon: Symbols.share_reviews,
+          label: 'sharePostPhoto'.tr(),
+          onPressed: () => sharePostAsScreenshot(context, ref, post),
+        ),
+    ];
+
+    final authorActions = <Widget>[
+      buildActionButton(
+        icon: Symbols.edit,
+        label: 'edit'.tr(),
+        onPressed: () {
+          if (post.type == 1) {
+            context.router.push(ArticleEditRoute(id: post.id)).then((value) {
+              if (value != null) {
+                onRefresh?.call();
+              }
+            });
+          } else {
+            PostComposeDialog.show(context, originalPost: post).then((value) {
+              if (value == true) {
+                onRefresh?.call();
+              }
+            });
+          }
+        },
+      ),
+      buildActionButton(
+        icon: post.pinMode == null ? Symbols.keep : Symbols.keep_off,
+        label: post.pinMode == null ? 'pinPost'.tr() : 'unpinPost'.tr(),
+        onPressed: () {
+          if (post.pinMode == null) {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => PostPinSheet(post: post),
+            ).then((value) {
+              if (value is int) {
+                onUpdate?.call(post.copyWith(pinMode: value));
+              }
+            });
+          } else {
+            showConfirmAlert('unpinPostHint'.tr(), 'unpinPost'.tr()).then((
+              confirm,
+            ) async {
+              if (confirm) {
+                final client = ref.watch(solarNetworkClientProvider);
+                try {
+                  if (context.mounted) showLoadingModal(context);
+                  await client.sphere.unpinPost(post.id);
+                  onUpdate?.call(post.copyWith(pinMode: null));
+                } catch (err) {
+                  showErrorAlert(err);
+                } finally {
+                  if (context.mounted) hideLoadingModal(context);
+                }
+              }
+            });
+          }
+        },
+      ),
+      buildActionButton(
+        icon: Symbols.delete,
+        label: 'delete'.tr(),
+        color: theme.colorScheme.error,
+        onPressed: () {
+          showConfirmAlert(
+            'deletePostHint'.tr(),
+            'deletePost'.tr(),
+            isDanger: true,
+          ).then((confirm) {
+            if (confirm) {
+              final client = ref.watch(solarNetworkClientProvider);
+              client.sphere
+                  .deletePost(post.id)
+                  .catchError((err) {
+                    showErrorAlert(err);
+                    return err;
+                  })
+                  .then((_) {
+                    onRefresh?.call();
+                  });
+            }
+          });
+        },
+      ),
+    ];
 
     return Padding(
       padding: noBottomPadding
@@ -482,12 +479,43 @@ class PostActionButtons extends HookConsumerWidget {
           : renderingPadding.copyWith(
               bottom: 4 + renderingPadding.vertical + renderingPadding.bottom,
             ),
-      child: Wrap(
-        spacing: 2,
-        runSpacing: 2,
-        alignment: WrapAlignment.start,
-        runAlignment: WrapAlignment.start,
-        children: actions,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            alignment: WrapAlignment.start,
+            runAlignment: WrapAlignment.start,
+            children: primaryActions,
+          ),
+          if (secondaryActions.isNotEmpty)
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              alignment: WrapAlignment.start,
+              runAlignment: WrapAlignment.start,
+              children: secondaryActions,
+            ),
+          if (isAuthor && authorActions.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withOpacity(
+                  0.3,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                alignment: WrapAlignment.start,
+                runAlignment: WrapAlignment.start,
+                children: authorActions,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -1309,12 +1337,18 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   final String postId;
   final Function(SnPost) onUpdate;
   final VoidCallback onRefresh;
+  final ValueChanged<String>? onTranslate;
+  final String? translatedText;
+  final bool isTranslating;
 
   const _PostDetailLargeScreenLayout({
     required this.post,
     required this.postId,
     required this.onUpdate,
     required this.onRefresh,
+    this.onTranslate,
+    this.translatedText,
+    this.isTranslating = false,
   });
 
   @override
@@ -1693,7 +1727,47 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                               const EdgeInsets.only(top: 8),
                                           onRefresh: onRefresh,
                                           onUpdate: onUpdate,
+                                          onTranslate: onTranslate,
                                         ).alignment(Alignment.centerLeft),
+                                        if (isTranslating || translatedText != null) ...[
+                                          const Divider(),
+                                          Row(
+                                            children: [
+                                              const Expanded(child: Divider()),
+                                              const Gap(8),
+                                              isTranslating
+                                                  ? const SizedBox(
+                                                      width: 14,
+                                                      height: 14,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                          ),
+                                                    )
+                                                  : const Text('translated')
+                                                        .tr()
+                                                        .fontSize(11)
+                                                        .opacity(0.75),
+                                            ],
+                                          ),
+                                          if (translatedText != null) ...[
+                                            const Gap(8),
+                                            MarkdownTextContent(
+                                              textStyle: TextStyle(
+                                                fontSize: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium!
+                                                        .fontSize! *
+                                                    (post.type == 1 ? 1.2 : 1.1),
+                                              ),
+                                              content: translatedText!,
+                                              isSelectable: true,
+                                              attachments: post.attachments,
+                                              noMentionChip:
+                                                  post.fediverseUri != null,
+                                            ),
+                                          ],
+                                        ],
                                         if (post.repliedPostId != null ||
                                             post.forwardedPostId != null)
                                           Padding(
@@ -1703,7 +1777,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                             child: _PostThreadCard(post: post),
                                           ),
                                         if (post.realm != null)
-                                          _PostRealmBadge(
+                                          PostRealmBadge(
                                             realm: post.realm!,
                                           ).padding(top: 8),
                                       ],
@@ -1760,6 +1834,33 @@ class PostDetailScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final postState = ref.watch(postStateProvider(id));
+    final translating = useState(false);
+    final translatedText = useState<String?>(null);
+    final currentLanguage = context.locale.toString();
+
+    Future<void> translatePost(String text) async {
+      if (translatedText.value != null) {
+        translatedText.value = null;
+        return;
+      }
+      if (translating.value) return;
+      translating.value = true;
+      try {
+        final result = await ref.read(
+          translateStringProvider(
+            TranslateQuery(
+              text: text,
+              lang: currentLanguage.substring(0, 2),
+            ),
+          ).future,
+        );
+        translatedText.value = result;
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        translating.value = false;
+      }
+    }
 
     return AppScaffold(
       isNoBackground: false,
@@ -2087,6 +2188,9 @@ class PostDetailScreen extends HookConsumerWidget {
                           ref.invalidate(postProvider(id));
                           ref.read(postRepliesProvider(id).notifier).refresh();
                         },
+                        onTranslate: translatePost,
+                        translatedText: translatedText.value,
+                        isTranslating: translating.value,
                       )
                     : CustomScrollView(
                         slivers: [
@@ -2120,6 +2224,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                   item: postItem,
                                   isFullPost: true,
                                   isEmbedReply: false,
+                                  isTranslatable: false,
                                   textScale: postItem.type == 1 ? 1.2 : 1.1,
                                   padding: const EdgeInsets.fromLTRB(
                                     8,
@@ -2185,7 +2290,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                   constraints: const BoxConstraints(
                                     maxWidth: _postDetailMaxWidth,
                                   ),
-                                  child: _PostRealmBadge(
+                                  child: PostRealmBadge(
                                     realm: postItem.realm!,
                                   ).padding(horizontal: 16, top: 8),
                                 ),
@@ -2213,10 +2318,72 @@ class PostDetailScreen extends HookConsumerWidget {
                                         .read(postStateProvider(id).notifier)
                                         .updatePost(newItem);
                                   },
+                                  onTranslate: translatePost,
                                 ).alignment(Alignment.centerLeft),
                               ),
                             ),
                           ),
+                          if (translatedText.value != null ||
+                              translating.value)
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        const Divider(),
+                                        Row(
+                                          children: [
+                                            const Expanded(child: Divider()),
+                                            const Gap(8),
+                                            translating.value
+                                                ? const SizedBox(
+                                                    width: 14,
+                                                    height: 14,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  )
+                                                : const Text('translated')
+                                                      .tr()
+                                                      .fontSize(11)
+                                                      .opacity(0.75),
+                                          ],
+                                        ),
+                                        if (translatedText.value != null) ...[
+                                          const Gap(8),
+                                          MarkdownTextContent(
+                                            textStyle: TextStyle(
+                                              fontSize: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium!
+                                                      .fontSize! *
+                                                  (postItem.type == 1
+                                                      ? 1.2
+                                                      : 1.1),
+                                            ),
+                                            content: translatedText.value!,
+                                            isSelectable: true,
+                                            attachments: postItem.attachments,
+                                            noMentionChip:
+                                                postItem.fediverseUri != null,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           DefaultTabController(
                             length: 4,
                             child: PostInteractionsSlivers(

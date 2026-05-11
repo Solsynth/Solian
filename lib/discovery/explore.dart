@@ -11,6 +11,7 @@ import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/compose_sidebar.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/translate.dart';
 import 'package:island/livestreams/livestream.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/screens/post_detail.dart';
@@ -26,7 +27,9 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -119,7 +122,8 @@ class ExploreScreen extends HookConsumerWidget {
         selectedTagIds.value.isNotEmpty;
 
     final userInfo = ref.watch(userInfoProvider);
-    final isSidePanelOpen = isWide && (composeRequest != null || selectedPostId.value != null);
+    final isSidePanelOpen =
+        isWide && (composeRequest != null || selectedPostId.value != null);
 
     if (isWide) {
       return AppScaffold(
@@ -907,7 +911,7 @@ class ExploreScreen extends HookConsumerWidget {
       if (composeRequest != null) {
         ref.read(composeRequestProvider.notifier).setRequest(null);
       }
-      
+
       if (selectedPostId.value == postId) {
         context.router.push(PostDetailRoute(id: postId));
       } else {
@@ -989,8 +993,12 @@ class ExploreScreen extends HookConsumerWidget {
         final totalWidth = constraints.maxWidth;
         final listWidth = (hasCompose || hasSelection)
             ? (totalWidth - 28) / 2
-            : (timelineContentMaxWidth < totalWidth ? timelineContentMaxWidth : totalWidth);
-        final detailWidth = (hasCompose || hasSelection) ? (totalWidth - 28) / 2 : 0.0;
+            : (timelineContentMaxWidth < totalWidth
+                  ? timelineContentMaxWidth
+                  : totalWidth);
+        final detailWidth = (hasCompose || hasSelection)
+            ? (totalWidth - 28) / 2
+            : 0.0;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1018,33 +1026,35 @@ class ExploreScreen extends HookConsumerWidget {
                       child: ComposeSidebar(
                         request: composeRequest,
                         onClose: () {
-                          ref.read(composeRequestProvider.notifier).setRequest(null);
+                          ref
+                              .read(composeRequestProvider.notifier)
+                              .setRequest(null);
                         },
                       ),
                     )
                   : hasSelection
-                      ? Container(
-                          margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: _TimelineDetailPane(
-                            postId: selectedPostId.value!,
-                            isExpanded: false,
-                            onExpandToggle: () {
-                              context.router.push(
-                                PostDetailRoute(id: selectedPostId.value!),
-                              );
-                            },
-                            onClose: () {
-                              selectedPostId.value = null;
-                            },
-                            onPostTap: handlePostTap,
-                          ),
-                        )
-                      : null,
+                  ? Container(
+                      margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _TimelineDetailPane(
+                        postId: selectedPostId.value!,
+                        isExpanded: false,
+                        onExpandToggle: () {
+                          context.router.push(
+                            PostDetailRoute(id: selectedPostId.value!),
+                          );
+                        },
+                        onClose: () {
+                          selectedPostId.value = null;
+                        },
+                        onPostTap: handlePostTap,
+                      ),
+                    )
+                  : null,
             ),
           ],
         );
@@ -1381,7 +1391,14 @@ class _FilterToggleButton extends StatelessWidget {
   }
 }
 
-enum _ExploreAction { articles, search, livestreams, categories, shuffle, footprints }
+enum _ExploreAction {
+  articles,
+  search,
+  livestreams,
+  categories,
+  shuffle,
+  footprints,
+}
 
 class _RankingToolbar extends StatelessWidget {
   final String currentMode;
@@ -2008,6 +2025,30 @@ class _TimelineDetailPane extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final postState = ref.watch(postStateProvider(postId));
     final user = ref.watch(userInfoProvider);
+    final translating = useState(false);
+    final translatedText = useState<String?>(null);
+    final currentLanguage = context.locale.toString();
+
+    Future<void> translatePost(String text) async {
+      if (translatedText.value != null) {
+        translatedText.value = null;
+        return;
+      }
+      if (translating.value) return;
+      translating.value = true;
+      try {
+        final result = await ref.read(
+          translateStringProvider(
+            TranslateQuery(text: text, lang: currentLanguage.substring(0, 2)),
+          ).future,
+        );
+        translatedText.value = result;
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        translating.value = false;
+      }
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -2116,6 +2157,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                 item: post,
                                 isFullPost: true,
                                 isEmbedReply: false,
+                                isTranslatable: false,
                                 textScale: post.type == 1 ? 1.1 : 1.0,
                                 padding: const EdgeInsets.fromLTRB(
                                   12,
@@ -2150,8 +2192,71 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                       .read(postStateProvider(postId).notifier)
                                       .updatePost(newPost);
                                 },
+                                onTranslate: translatePost,
                               ).padding(horizontal: 12, vertical: 8),
                             ),
+                            if (translatedText.value != null ||
+                                translating.value)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Expanded(child: Divider()),
+                                          const Gap(8),
+                                          translating.value
+                                              ? const SizedBox(
+                                                  width: 14,
+                                                  height: 14,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              : const Text('translated')
+                                                    .tr()
+                                                    .fontSize(11)
+                                                    .opacity(0.75),
+                                        ],
+                                      ),
+                                      if (translatedText.value != null) ...[
+                                        const Gap(8),
+                                        MarkdownTextContent(
+                                          textStyle: TextStyle(
+                                            fontSize:
+                                                Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .fontSize! *
+                                                (post.type == 1 ? 1.1 : 1.0),
+                                          ),
+                                          content: translatedText.value!,
+                                          isSelectable: true,
+                                          attachments: post.attachments,
+                                          noMentionChip:
+                                              post.fediverseUri != null,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            if (post.realm != null)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  child: PostRealmBadge(realm: post.realm!),
+                                ),
+                              ),
                             DefaultTabController(
                               length: 4,
                               child: PostInteractionsSlivers(
