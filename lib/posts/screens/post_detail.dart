@@ -1234,7 +1234,8 @@ class _PostThreadSheetState extends ConsumerState<_PostThreadSheet> {
                     hideAttachments: true,
                     isTextSelectable: false,
                     padding: EdgeInsets.zero,
-                    onPostTap: (id) => context.router.push(PostDetailRoute(id: id)),
+                    onPostTap: (id) =>
+                        context.router.push(PostDetailRoute(id: id)),
                   ),
                   if (isCurrent)
                     Padding(
@@ -1263,7 +1264,10 @@ class _PostThreadSheetState extends ConsumerState<_PostThreadSheet> {
   }
 
   Widget _buildThreadBody(PostThreadData thread) {
-    final childrenByParentId = buildThreadChildrenMap(thread.allNodes, hiddenParentId: widget.post.id);
+    final childrenByParentId = buildThreadChildrenMap(
+      thread.allNodes,
+      hiddenParentId: widget.post.id,
+    );
     final rootNodes = childrenByParentId[null] ?? const [];
 
     return ListView(
@@ -1729,7 +1733,8 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           onUpdate: onUpdate,
                                           onTranslate: onTranslate,
                                         ).alignment(Alignment.centerLeft),
-                                        if (isTranslating || translatedText != null) ...[
+                                        if (isTranslating ||
+                                            translatedText != null) ...[
                                           const Divider(),
                                           Row(
                                             children: [
@@ -1754,11 +1759,14 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                             const Gap(8),
                                             MarkdownTextContent(
                                               textStyle: TextStyle(
-                                                fontSize: Theme.of(context)
+                                                fontSize:
+                                                    Theme.of(context)
                                                         .textTheme
                                                         .bodyMedium!
                                                         .fontSize! *
-                                                    (post.type == 1 ? 1.2 : 1.1),
+                                                    (post.type == 1
+                                                        ? 1.2
+                                                        : 1.1),
                                               ),
                                               content: translatedText!,
                                               isSelectable: true,
@@ -1773,13 +1781,14 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           Padding(
                                             padding: const EdgeInsets.only(
                                               top: 8,
+                                              bottom: 8,
                                             ),
                                             child: _PostThreadCard(post: post),
                                           ),
                                         if (post.realm != null)
                                           PostRealmBadge(
                                             realm: post.realm!,
-                                          ).padding(top: 8),
+                                          ).padding(top: 8, bottom: 8),
                                       ],
                                     ),
                                   ),
@@ -1848,10 +1857,7 @@ class PostDetailScreen extends HookConsumerWidget {
       try {
         final result = await ref.read(
           translateStringProvider(
-            TranslateQuery(
-              text: text,
-              lang: currentLanguage.substring(0, 2),
-            ),
+            TranslateQuery(text: text, lang: currentLanguage.substring(0, 2)),
           ).future,
         );
         translatedText.value = result;
@@ -2032,7 +2038,7 @@ class PostDetailScreen extends HookConsumerWidget {
                 return () {
                   launchUrlString(postItem.fediverseUri!);
                 };
-               case 'report':
+              case 'report':
                 return () {
                   showAbuseReportSheet(
                     context,
@@ -2114,15 +2120,19 @@ class PostDetailScreen extends HookConsumerWidget {
               child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
             ),
             const PopupMenuDivider(),
-             PopupMenuItem<String>(
+            PopupMenuItem<String>(
               value: 'boost',
               child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
             ),
             PopupMenuItem<String>(
               value: 'bookmark',
               child: buildMenuItem(
-                label: postItem.isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
-                icon: postItem.isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+                label: postItem.isBookmarked
+                    ? 'unbookmark'.tr()
+                    : 'bookmark'.tr(),
+                icon: postItem.isBookmarked
+                    ? Symbols.bookmark_added
+                    : Symbols.bookmark,
               ),
             ),
             const PopupMenuDivider(),
@@ -2252,10 +2262,10 @@ class PostDetailScreen extends HookConsumerWidget {
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.fromLTRB(
-                                      16,
+                                      12,
                                       8,
-                                      16,
-                                      0,
+                                      12,
+                                      8,
                                     ),
                                     child: _PostThreadCard(post: postItem),
                                   ),
@@ -2323,8 +2333,7 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          if (translatedText.value != null ||
-                              translating.value)
+                          if (translatedText.value != null || translating.value)
                             SliverToBoxAdapter(
                               child: Center(
                                 child: ConstrainedBox(
@@ -2339,7 +2348,6 @@ class PostDetailScreen extends HookConsumerWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
                                       children: [
-                                        const Divider(),
                                         Row(
                                           children: [
                                             const Expanded(child: Divider()),
@@ -2363,7 +2371,8 @@ class PostDetailScreen extends HookConsumerWidget {
                                           const Gap(8),
                                           MarkdownTextContent(
                                             textStyle: TextStyle(
-                                              fontSize: Theme.of(context)
+                                              fontSize:
+                                                  Theme.of(context)
                                                       .textTheme
                                                       .bodyMedium!
                                                       .fontSize! *
@@ -2376,7 +2385,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                             attachments: postItem.attachments,
                                             noMentionChip:
                                                 postItem.fediverseUri != null,
-                                          ),
+                                          ).padding(horizontal: 4),
                                         ],
                                       ],
                                     ),
