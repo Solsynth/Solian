@@ -306,6 +306,21 @@ class PostActionableItem extends HookConsumerWidget {
               ),
             );
           };
+        case 'bookmark':
+          return () async {
+            final client = ref.read(solarNetworkClientProvider);
+            try {
+              if (item.isBookmarked) {
+                await client.sphere.unbookmarkPost(item.id);
+                onUpdate?.call(item.copyWith(isBookmarked: false));
+              } else {
+                await client.sphere.bookmarkPost(item.id);
+                onUpdate?.call(item.copyWith(isBookmarked: true));
+              }
+            } catch (err) {
+              showErrorAlert(err);
+            }
+          };
         default:
           return () {};
       }
@@ -353,6 +368,13 @@ class PostActionableItem extends HookConsumerWidget {
       PopupMenuItem<String>(
         value: 'boost',
         child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
+      ),
+      PopupMenuItem<String>(
+        value: 'bookmark',
+        child: buildMenuItem(
+          label: item.isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+          icon: item.isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+        ),
       ),
       const PopupMenuDivider(),
       PopupMenuItem<String>(

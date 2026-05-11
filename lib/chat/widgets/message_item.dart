@@ -37,6 +37,8 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+final kTextSelectable = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
 class MessageItemAction {
   static const String edit = "edit";
   static const String delete = "delete";
@@ -706,9 +708,7 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
 class _ActionSection extends StatelessWidget {
   final List<Widget> children;
 
-  const _ActionSection({
-    required this.children,
-  });
+  const _ActionSection({required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -887,7 +887,7 @@ class _MessageTextSelectionView extends HookConsumerWidget {
                               constraints: const BoxConstraints(maxWidth: 860),
                               child: MarkdownTextContent(
                                 content: text,
-                                isSelectable: true,
+                                isSelectable: kTextSelectable,
                                 textStyle: TextStyle(
                                   fontSize: 20,
                                   height: 1.6,
@@ -2313,7 +2313,7 @@ class RedirectInlineContent extends StatelessWidget {
             padding: const EdgeInsets.only(top: 4),
             child: MarkdownTextContent(
               content: content,
-              isSelectable: true,
+              isSelectable: kTextSelectable,
               linesMargin: EdgeInsets.zero,
             ),
           ),
@@ -2383,13 +2383,13 @@ class _RedirectHistorySheet extends StatelessWidget {
                       final pictureId = redirect.historyMessageSenderPictureId(
                         index,
                       );
-                      final senderAccount =
-                          redirect.historyMessageSenderAccount(index);
+                      final senderAccount = redirect
+                          .historyMessageSenderAccount(index);
 
                       final content =
                           redirect.historyMessageContent(index) ?? '';
-                      final attachments =
-                          redirect.historyMessageResolvedAttachments(index);
+                      final attachments = redirect
+                          .historyMessageResolvedAttachments(index);
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(
@@ -2438,7 +2438,7 @@ class _RedirectHistorySheet extends StatelessWidget {
                                       padding: const EdgeInsets.only(top: 4),
                                       child: MarkdownTextContent(
                                         content: content.trim(),
-                                        isSelectable: true,
+                                        isSelectable: kTextSelectable,
                                         linesMargin: EdgeInsets.zero,
                                       ),
                                     ),

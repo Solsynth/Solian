@@ -8,6 +8,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/posts/pods/bookmarks.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/compose.dart';
 import 'package:island/core/services/responsive.dart';
@@ -427,6 +428,38 @@ class PostActionButtons extends HookConsumerWidget {
             );
           },
           icon: const Icon(Symbols.share, size: 18),
+        ),
+      ),
+    );
+
+    final bookmarkStatus = ref.watch(bookmarkStatusProvider(post.id));
+    final isBookmarked = bookmarkStatus.when(
+      data: (bookmark) => bookmark != null,
+      loading: () => false,
+      error: (_, _) => false,
+    );
+
+    actions.add(
+      Tooltip(
+        message: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+        child: IconButton(
+          onPressed: () async {
+            final client = ref.read(solarNetworkClientProvider);
+            try {
+              if (isBookmarked) {
+                await client.sphere.unbookmarkPost(post.id);
+              } else {
+                await client.sphere.bookmarkPost(post.id);
+              }
+              ref.invalidate(bookmarkStatusProvider(post.id));
+            } catch (err) {
+              showErrorAlert(err);
+            }
+          },
+          icon: Icon(
+            isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+            size: 18,
+          ),
         ),
       ),
     );
@@ -1434,6 +1467,21 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
               resourceIdentifier: 'post:${post.id}',
             );
           };
+        case 'bookmark':
+          return () async {
+            final client = ref.read(solarNetworkClientProvider);
+            try {
+              if (post.isBookmarked) {
+                await client.sphere.unbookmarkPost(post.id);
+                onRefresh.call();
+              } else {
+                await client.sphere.bookmarkPost(post.id);
+                onRefresh.call();
+              }
+            } catch (err) {
+              showErrorAlert(err);
+            }
+          };
         default:
           return () {};
       }
@@ -1484,6 +1532,13 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
       PopupMenuItem<String>(
         value: 'boost',
         child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
+      ),
+      PopupMenuItem<String>(
+        value: 'bookmark',
+        child: buildMenuItem(
+          label: post.isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+          icon: post.isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+        ),
       ),
       const PopupMenuDivider(),
       PopupMenuItem<String>(
@@ -1876,12 +1931,29 @@ class PostDetailScreen extends HookConsumerWidget {
                 return () {
                   launchUrlString(postItem.fediverseUri!);
                 };
-              case 'report':
+               case 'report':
                 return () {
                   showAbuseReportSheet(
                     context,
                     resourceIdentifier: 'post:${postItem.id}',
                   );
+                };
+              case 'bookmark':
+                return () async {
+                  final client = ref.read(solarNetworkClientProvider);
+                  try {
+                    if (postItem.isBookmarked) {
+                      await client.sphere.unbookmarkPost(postItem.id);
+                      ref.invalidate(postProvider(id));
+                      ref.read(postRepliesProvider(id).notifier).refresh();
+                    } else {
+                      await client.sphere.bookmarkPost(postItem.id);
+                      ref.invalidate(postProvider(id));
+                      ref.read(postRepliesProvider(id).notifier).refresh();
+                    }
+                  } catch (err) {
+                    showErrorAlert(err);
+                  }
                 };
               default:
                 return () {};
@@ -1941,9 +2013,16 @@ class PostDetailScreen extends HookConsumerWidget {
               child: buildMenuItem(label: 'award'.tr(), icon: Symbols.star),
             ),
             const PopupMenuDivider(),
-            PopupMenuItem<String>(
+             PopupMenuItem<String>(
               value: 'boost',
               child: buildMenuItem(label: 'boosts'.tr(), icon: Symbols.repeat),
+            ),
+            PopupMenuItem<String>(
+              value: 'bookmark',
+              child: buildMenuItem(
+                label: postItem.isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
+                icon: postItem.isBookmarked ? Symbols.bookmark_added : Symbols.bookmark,
+              ),
             ),
             const PopupMenuDivider(),
             PopupMenuItem<String>(

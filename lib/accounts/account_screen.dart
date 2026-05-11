@@ -258,13 +258,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const MeetRoute());
                     },
                   },
-                  {
-                    'icon': Symbols.history,
-                    'title': 'actionLogs',
-                    'onTap': () {
-                      context.router.push(const ActionLogsRoute());
-                    },
-                  },
                   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
                     {
                       'icon': Symbols.nfc,
@@ -299,27 +292,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     'title': 'tickets',
                     'onTap': () {
                       context.router.push(const TicketListRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.fitness_center,
-                    'title': 'fitness',
-                    'onTap': () {
-                      context.router.push(const FitnessDashboardRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.gavel,
-                    'title': 'punishments',
-                    'onTap': () {
-                      context.router.push(const PunishmentsRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.bookmark,
-                    'title': 'bookmarks',
-                    'onTap': () {
-                      context.router.push(const BookmarksRoute());
                     },
                   },
                 ];
