@@ -17,6 +17,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -146,6 +147,20 @@ class AccountSettingsScreen extends HookConsumerWidget {
     final authFactors = ref.watch(authFactorsProvider);
 
     // Group settings into categories for better organization
+    final profileSettings = [
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.person_edit),
+        title: Text('updateYourProfile').tr(),
+        subtitle: Text('updateYourProfileDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          context.router.push(const AccountUpdateProfileRoute());
+        },
+      ),
+    ];
+
     final securitySettings = [
       ListTile(
         minLeadingWidth: 48,
@@ -555,6 +570,10 @@ class AccountSettingsScreen extends HookConsumerWidget {
         spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _SettingsSection(
+            title: 'accountProfileTitle',
+            children: profileSettings,
+          ),
           _SettingsSection(
             title: 'accountPublishingTitle',
             children: defaultPublisherSettings,
