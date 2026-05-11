@@ -37,6 +37,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:media_kit/media_kit.dart';
+import 'core/services/python_service.dart' as python;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -75,6 +76,15 @@ void main(List<String> args) async {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
 
+  if (!kIsWeb) {
+    try {
+      await python.initPython();
+      Logger.root.info("[pocketpy] Initialized successfully");
+    } catch (e) {
+      Logger.root.severe("[pocketpy] Init failed", e);
+    }
+  }
+  
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     Logger.root.info("[SplashScreen] Initializing desktop window manager...");
     await protocolHandler.register('solian');
