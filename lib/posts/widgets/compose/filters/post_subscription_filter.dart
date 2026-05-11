@@ -109,8 +109,6 @@ Future<DateTime?> publisherSubscriptionReadStatus(
 
 Future<void> markPublisherAsRead(WidgetRef ref, String publisherName) async {
   final client = ref.read(solarNetworkClientProvider);
-  // Note: No typed API for marking publisher as read
-  // We fall back to raw Dio call
   await client.dio.put(
     '/sphere/publishers/$publisherName/subscription/read-status',
     data: {},
@@ -256,11 +254,15 @@ class PostSubscriptionFilterWidget extends HookConsumerWidget {
                         ];
                         selectedCategories.value = [];
                         selectedTags.value = [];
-                        await markPublisherAsRead(
-                          ref,
-                          subscription.publisher.name,
-                        );
-                        ref.invalidate(publishersSubscriptionsLiveProvider);
+                        try {
+                          await markPublisherAsRead(
+                            ref,
+                            subscription.publisher.name,
+                          );
+                          ref.invalidate(publishersSubscriptionsLiveProvider);
+                        } catch (_) {
+                          // ignore
+                        }
                       } else {
                         selectedPublishers.value = selectedPublishers.value
                             .where(
