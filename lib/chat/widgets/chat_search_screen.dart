@@ -107,7 +107,10 @@ class _SearchFilters extends StatelessWidget {
 class SearchMessagesScreen extends HookConsumerWidget {
   final String roomId;
 
-  const SearchMessagesScreen({super.key, required this.roomId});
+  const SearchMessagesScreen({
+    super.key,
+    @PathParam("id") required this.roomId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

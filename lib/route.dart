@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/route.gr.dart';
 
-bool get supportsAnalytics => kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
+bool get supportsAnalytics =>
+    kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
 // Provider for the router
 final routerProvider = Provider((ref) {
@@ -14,7 +15,9 @@ final routerProvider = Provider((ref) {
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
   @override
-  RouteType get defaultRouteType => (!kIsWeb && Platform.isIOS) ? RouteType.cupertino() : RouteType.material();
+  RouteType get defaultRouteType => (!kIsWeb && Platform.isIOS)
+      ? RouteType.cupertino()
+      : RouteType.material();
 
   @override
   List<AutoRoute> get routes => [
@@ -34,14 +37,22 @@ class AppRouter extends RootStackRouter {
     // Other standalone routes
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
     AutoRoute(page: AboutRoute.page, path: '/about'),
+    // TODO make a self-contained page to take the id
     AutoRoute(page: FileDetailRoute.page, path: '/files/:id'),
     AutoRoute(page: CheckInRoute.page, path: '/check-in'),
     AutoRoute(page: PostShuffleRoute.page, path: '/posts/shuffle'),
+    AutoRoute(page: BookmarksRoute.page, path: '/posts/bookmarks'),
     AutoRoute(page: PostCategoriesListRoute.page, path: '/posts/categories'),
-    AutoRoute(page: PostCategoryDetailRoute.page, path: '/posts/categories/:slug'),
+    AutoRoute(
+      page: PostCategoryDetailRoute.page,
+      path: '/posts/categories/:slug',
+    ),
     AutoRoute(page: PostDetailRoute.page, path: '/posts/:id'),
     AutoRoute(page: PublisherProfileRoute.page, path: '/publishers/:name'),
-    AutoRoute(page: FediverseActorProfileRoute.page, path: '/fediverse/actors/:id'),
+    AutoRoute(
+      page: FediverseActorProfileRoute.page,
+      path: '/fediverse/actors/:id',
+    ),
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
     AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
 
@@ -90,9 +101,15 @@ class AppRouter extends RootStackRouter {
             // Default child route -> Account list
             AutoRoute(page: AccountListRoute.page, path: '', initial: true),
             AutoRoute(page: StickerMarketplaceRoute.page, path: 'stickers'),
-            AutoRoute(page: StickerMarketplacePackDetailRoute.page, path: 'stickers/:id'),
+            AutoRoute(
+              page: StickerMarketplacePackDetailRoute.page,
+              path: 'stickers/:id',
+            ),
             AutoRoute(page: FeedMarketplaceRoute.page, path: 'feeds'),
-            AutoRoute(page: FeedMarketplaceDetailRoute.page, path: 'feeds/:feedId'),
+            AutoRoute(
+              page: FeedMarketplaceDetailRoute.page,
+              path: 'feeds/:feedId',
+            ),
             AutoRoute(page: WalletRoute.page, path: 'wallet'),
             AutoRoute(page: RelationshipRoute.page, path: 'relationships'),
             AutoRoute(page: AccountUpdateProfileRoute.page, path: 'me/update'),
@@ -103,7 +120,10 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: MeetRoute.page, path: 'me/meet'),
             AutoRoute(page: MeetDetailRoute.page, path: 'me/meet/:id'),
             AutoRoute(page: ActionLogsRoute.page, path: 'me/action-logs'),
-            AutoRoute(page: PhysicalPassportRoute.page, path: 'me/physical-passports'),
+            AutoRoute(
+              page: PhysicalPassportRoute.page,
+              path: 'me/physical-passports',
+            ),
             // Ticket routes
             AutoRoute(page: TicketListRoute.page, path: 'tickets'),
             AutoRoute(page: TicketDetailRoute.page, path: 'tickets/:ticketId'),
@@ -114,7 +134,10 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: GoalDetailRoute.page, path: 'fitness/goals/:id'),
             AutoRoute(page: GoalCreateRoute.page, path: 'fitness/goals/create'),
             AutoRoute(page: MetricsRoute.page, path: 'fitness/metrics'),
-            AutoRoute(page: MetricDetailRoute.page, path: 'fitness/metrics/:type'),
+            AutoRoute(
+              page: MetricDetailRoute.page,
+              path: 'fitness/metrics/:type',
+            ),
             AutoRoute(page: HealthSyncRoute.page, path: 'fitness/sync'),
             AutoRoute(page: PunishmentsRoute.page, path: 'me/punishments'),
           ],
@@ -134,14 +157,29 @@ class AppRouter extends RootStackRouter {
             // Default child route -> Creator hub list
             AutoRoute(page: CreatorHubListRoute.page, path: '', initial: true),
             AutoRoute(page: CreatorFeedListRoute.page, path: ':pubName/feeds'),
-            AutoRoute(page: CreatorLivestreamListRoute.page, path: ':pubName/livestreams'),
+            AutoRoute(
+              page: CreatorLivestreamListRoute.page,
+              path: ':pubName/livestreams',
+            ),
             AutoRoute(page: CreatorPostListRoute.page, path: ':pubName/posts'),
-            AutoRoute(page: CreatorPostCollectionsRoute.page, path: ':pubName/collections'),
+            AutoRoute(
+              page: CreatorPostCollectionsRoute.page,
+              path: ':pubName/collections',
+            ),
             AutoRoute(page: CreatorPollListRoute.page, path: ':pubName/polls'),
             AutoRoute(page: CreatorSiteListRoute.page, path: ':pubName/sites'),
-            AutoRoute(page: CreatorSiteDetailRoute.page, path: ':pubName/sites/:siteSlug'),
-            AutoRoute(page: CreatorStickerListRoute.page, path: ':pubName/stickers'),
-            AutoRoute(page: CreatorStickerPackDetailRoute.page, path: ':pubName/stickers/:packId'),
+            AutoRoute(
+              page: CreatorSiteDetailRoute.page,
+              path: ':pubName/sites/:siteSlug',
+            ),
+            AutoRoute(
+              page: CreatorStickerListRoute.page,
+              path: ':pubName/stickers',
+            ),
+            AutoRoute(
+              page: CreatorStickerPackDetailRoute.page,
+              path: ':pubName/stickers/:packId',
+            ),
           ],
         ),
 
@@ -151,16 +189,47 @@ class AppRouter extends RootStackRouter {
           path: 'developers',
           children: [
             // Default child route -> Developer hub list
-            AutoRoute(page: DeveloperHubListRoute.page, path: '', initial: true),
-            AutoRoute(page: DeveloperProjectNewRoute.page, path: ':pubName/projects/new'),
-            AutoRoute(page: DeveloperProjectEditRoute.page, path: ':pubName/projects/:id/edit'),
-            AutoRoute(page: DeveloperAppListRoute.page, path: ':pubName/projects/:projectId'),
-            AutoRoute(page: DeveloperAppDetailRoute.page, path: ':pubName/projects/:projectId/apps/:appId'),
-            AutoRoute(page: DeveloperAppNewRoute.page, path: ':pubName/projects/:projectId/apps/new'),
-            AutoRoute(page: DeveloperAppEditRoute.page, path: ':pubName/projects/:projectId/apps/:appId/edit'),
-            AutoRoute(page: DeveloperBotDetailRoute.page, path: ':pubName/projects/:projectId/bots/:botId'),
-            AutoRoute(page: DeveloperBotNewRoute.page, path: ':pubName/projects/:projectId/bots/new'),
-            AutoRoute(page: DeveloperBotEditRoute.page, path: ':pubName/projects/:projectId/bots/:botId/edit'),
+            AutoRoute(
+              page: DeveloperHubListRoute.page,
+              path: '',
+              initial: true,
+            ),
+            AutoRoute(
+              page: DeveloperProjectNewRoute.page,
+              path: ':pubName/projects/new',
+            ),
+            AutoRoute(
+              page: DeveloperProjectEditRoute.page,
+              path: ':pubName/projects/:id/edit',
+            ),
+            AutoRoute(
+              page: DeveloperAppListRoute.page,
+              path: ':pubName/projects/:projectId',
+            ),
+            AutoRoute(
+              page: DeveloperAppDetailRoute.page,
+              path: ':pubName/projects/:projectId/apps/:appId',
+            ),
+            AutoRoute(
+              page: DeveloperAppNewRoute.page,
+              path: ':pubName/projects/:projectId/apps/new',
+            ),
+            AutoRoute(
+              page: DeveloperAppEditRoute.page,
+              path: ':pubName/projects/:projectId/apps/:appId/edit',
+            ),
+            AutoRoute(
+              page: DeveloperBotDetailRoute.page,
+              path: ':pubName/projects/:projectId/bots/:botId',
+            ),
+            AutoRoute(
+              page: DeveloperBotNewRoute.page,
+              path: ':pubName/projects/:projectId/bots/new',
+            ),
+            AutoRoute(
+              page: DeveloperBotEditRoute.page,
+              path: ':pubName/projects/:projectId/bots/:botId/edit',
+            ),
           ],
         ),
       ],
