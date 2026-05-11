@@ -380,16 +380,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
             ),
             const Divider(height: 1).padding(vertical: 8),
             ListTile(
-              leading: const Icon(Symbols.info),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              dense: true,
-              title: Text('about').tr(),
-              onTap: () {
-                context.router.push(const AboutRoute());
-              },
-            ),
-            ListTile(
               leading: const Icon(Symbols.bug_report),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: EdgeInsets.symmetric(horizontal: 24),
