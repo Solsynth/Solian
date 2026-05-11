@@ -21,9 +21,9 @@ class DeveloperBotDetailScreen extends HookConsumerWidget {
 
   const DeveloperBotDetailScreen({
     super.key,
-    required this.pubName,
-    required this.projectId,
-    required this.botId,
+    @PathParam("pubName") required this.pubName,
+    @PathParam("projectId") required this.projectId,
+    @PathParam("botId") required this.botId,
   });
 
   @override

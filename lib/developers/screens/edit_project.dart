@@ -25,7 +25,11 @@ Future<SnDevProject?> devProject(Ref ref, String pubName, String id) async {
 class DeveloperProjectEditScreen extends HookConsumerWidget {
   final String pubName;
   final String? id;
-  const DeveloperProjectEditScreen({super.key, required this.pubName, this.id});
+  const DeveloperProjectEditScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+    this.id,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

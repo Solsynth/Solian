@@ -49,7 +49,10 @@ class SiteListNotifier extends AsyncNotifier<PaginationState<SnPublicationSite>>
 
 @RoutePage()
 class CreatorSiteListScreen extends HookConsumerWidget {
-  const CreatorSiteListScreen({super.key, required this.pubName});
+  const CreatorSiteListScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+  });
 
   final String pubName;
 
