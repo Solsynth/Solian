@@ -264,7 +264,7 @@ class SettingsScreen extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
             child: Text(
-              'Custom Colors',
+              'settingsCustomColors'.tr(),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -272,7 +272,7 @@ class SettingsScreen extends HookConsumerWidget {
             ),
           ),
           _ColorPickerTile(
-            title: 'Primary',
+            titleKey: 'settingsColorPrimary',
             color: settings.customColors?.primary != null
                 ? Color(settings.customColors!.primary!)
                 : null,
@@ -284,7 +284,33 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Secondary',
+            titleKey: 'settingsColorOnPrimary',
+            color: settings.customColors?.onPrimary != null
+                ? Color(settings.customColors!.onPrimary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(onPrimary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorPrimaryContainer',
+            color: settings.customColors?.primaryContainer != null
+                ? Color(settings.customColors!.primaryContainer!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(primaryContainer: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorSecondary',
             color: settings.customColors?.secondary != null
                 ? Color(settings.customColors!.secondary!)
                 : null,
@@ -296,7 +322,33 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Tertiary',
+            titleKey: 'settingsColorOnSecondary',
+            color: settings.customColors?.onSecondary != null
+                ? Color(settings.customColors!.onSecondary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(onSecondary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorSecondaryContainer',
+            color: settings.customColors?.secondaryContainer != null
+                ? Color(settings.customColors!.secondaryContainer!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(secondaryContainer: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorTertiary',
             color: settings.customColors?.tertiary != null
                 ? Color(settings.customColors!.tertiary!)
                 : null,
@@ -308,7 +360,33 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Surface',
+            titleKey: 'settingsColorOnTertiary',
+            color: settings.customColors?.onTertiary != null
+                ? Color(settings.customColors!.onTertiary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(onTertiary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorTertiaryContainer',
+            color: settings.customColors?.tertiaryContainer != null
+                ? Color(settings.customColors!.tertiaryContainer!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(tertiaryContainer: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorSurface',
             color: settings.customColors?.surface != null
                 ? Color(settings.customColors!.surface!)
                 : null,
@@ -320,7 +398,21 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Background',
+            titleKey: 'settingsColorSurfaceContainerHighest',
+            color: settings.customColors?.surfaceContainerHighest != null
+                ? Color(settings.customColors!.surfaceContainerHighest!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(surfaceContainerHighest: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorBackground',
             color: settings.customColors?.background != null
                 ? Color(settings.customColors!.background!)
                 : null,
@@ -332,7 +424,31 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Error',
+            titleKey: 'settingsColorOutline',
+            color: settings.customColors?.outline != null
+                ? Color(settings.customColors!.outline!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(outline: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorShadow',
+            color: settings.customColors?.shadow != null
+                ? Color(settings.customColors!.shadow!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(shadow: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorError',
             color: settings.customColors?.error != null
                 ? Color(settings.customColors!.error!)
                 : null,
@@ -344,7 +460,7 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           ListTile(
-            title: Text('Reset Custom Colors').tr(),
+            title: Text('settingsResetCustomColors'.tr()),
             trailing: const Icon(Symbols.restart_alt).padding(right: 2),
             contentPadding: EdgeInsets.symmetric(horizontal: 20),
             onTap: () {
@@ -1536,18 +1652,19 @@ class _SettingsSection extends StatelessWidget {
 
 // Helper widget for color picker tiles
 class _ColorPickerTile extends StatelessWidget {
-  final String title;
+  final String titleKey;
   final Color? color;
   final ValueChanged<Color?> onColorChanged;
 
   const _ColorPickerTile({
-    required this.title,
+    required this.titleKey,
     required this.color,
     required this.onColorChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    final title = titleKey.tr();
     return ListTile(
       title: Text(title),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
