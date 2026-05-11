@@ -88,10 +88,19 @@ final serverUrlProvider = Provider<String>((ref) {
 sealed class ThemeColors with _$ThemeColors {
   factory ThemeColors({
     int? primary,
+    int? onPrimary,
+    int? primaryContainer,
     int? secondary,
+    int? onSecondary,
+    int? secondaryContainer,
     int? tertiary,
+    int? onTertiary,
+    int? tertiaryContainer,
     int? surface,
+    int? surfaceContainerHighest,
     int? background,
+    int? outline,
+    int? shadow,
     int? error,
   }) = _ThemeColors;
 
