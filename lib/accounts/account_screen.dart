@@ -238,13 +238,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.wallet,
-                    'title': 'wallet',
-                    'onTap': () {
-                      context.router.push(const WalletRoute());
-                    },
-                  },
-                  {
                     'icon': Symbols.military_tech,
                     'title': 'badges',
                     'onTap': () {

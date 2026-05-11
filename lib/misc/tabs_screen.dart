@@ -38,6 +38,7 @@ class TabsScreen extends StatelessWidget {
         ThoughtRoute(),
         CreatorHubRoute(),
         DeveloperHubRoute(),
+        WalletRoute(),
       ],
       builder: (context, child, _) {
         return _TabsScreenContent(child: child);
@@ -141,8 +142,17 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
           Icon(Symbols.folder_rounded, fill: selected ? 1 : null),
     ),
     _TabDestination(
-      id: 'thought',
+      id: 'wallet',
       routeIndex: 6,
+      routePath: '/wallet',
+      label: 'wallet'.tr(),
+      navigationIcon: Symbols.wallet,
+      iconBuilder: (selected) =>
+          Icon(Symbols.wallet, fill: selected ? 1 : null),
+    ),
+    _TabDestination(
+      id: 'thought',
+      routeIndex: 7,
       routePath: '/thought',
       label: 'aiThought'.tr(),
       navigationIcon: Symbols.bubble_chart,
@@ -151,7 +161,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     ),
     _TabDestination(
       id: 'creators',
-      routeIndex: 7,
+      routeIndex: 8,
       routePath: '/creators',
       label: 'creatorHub'.tr(),
       navigationIcon: Symbols.design_services_rounded,
@@ -160,7 +170,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     ),
     _TabDestination(
       id: 'developers',
-      routeIndex: 8,
+      routeIndex: 9,
       routePath: '/developers',
       label: 'developerHub'.tr(),
       navigationIcon: Symbols.data_object_rounded,
