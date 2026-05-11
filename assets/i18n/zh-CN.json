@@ -53,6 +53,7 @@
   "delete": "删除",
   "deletePublisher": "删除发布者",
   "deletePublisherHint": "确定要删除此发布者吗？这也会删除此发布者下的所有帖子和收藏。",
+  "clearSelection": "清除选择",
   "deletePost": "删除帖子",
   "deletePostHint": "确定要删除这篇帖子吗？",
   "copyLink": "复制链接",

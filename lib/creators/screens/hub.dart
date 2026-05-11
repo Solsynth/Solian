@@ -348,7 +348,7 @@ class PublisherMemberListNotifier
 
 class PublisherSelector extends StatelessWidget {
   final SnPublisher? currentPublisher;
-  final List<DropdownItem<SnPublisher>> publishersMenu;
+  final List<DropdownItem<SnPublisher?>> publishersMenu;
   final ValueChanged<SnPublisher?>? onChanged;
   final bool isReadOnly;
 
@@ -362,7 +362,7 @@ class PublisherSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isReadOnly || currentPublisher == null) {
+    if (isReadOnly) {
       return ProfilePictureWidget(
         radius: 16,
         file: currentPublisher?.picture,
@@ -377,7 +377,9 @@ class PublisherSelector extends StatelessWidget {
         publishersMenu.any((item) => item.value?.id == currentValue.id);
 
     return DropdownButtonHideUnderline(
-      child: DropdownButton2<SnPublisher>(
+      child: DropdownButton2<SnPublisher?>(
+        // Keep the dropdown interactive even when nothing is selected.
+        // The first menu entry clears the current selection.
         valueListenable: ValueNotifier<SnPublisher?>(
           isValueValid ? currentValue : null,
         ),
@@ -417,37 +419,7 @@ class PublisherSelector extends StatelessWidget {
             ],
           ),
         ),
-        items: publishersMenu
-            .map(
-              (item) => DropdownItem<SnPublisher>(
-                value: item.value,
-                height: 54,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      item.value?.nick ?? '',
-                      style: DefaultTextStyle.of(context).style.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      '@${item.value?.name ?? ''}',
-                      style: DefaultTextStyle.of(context).style.copyWith(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
+        items: publishersMenu,
         onChanged: onChanged,
         isDense: true,
         buttonStyleData: const ButtonStyleData(
@@ -635,9 +607,7 @@ class CreatorHubContentWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final publishers = ref.watch(publishersManagedProvider);
-    final currentPublisher = useState<SnPublisher?>(
-      publishers.value?.firstOrNull,
-    );
+    final currentPublisher = useState<SnPublisher?>(null);
 
     void updatePublisher() {
       showModalBottomSheet(
@@ -669,28 +639,44 @@ class CreatorHubContentWidget extends HookConsumerWidget {
       });
     }
 
-    final List<DropdownItem<SnPublisher>> publishersMenu = publishers.when(
-      data: (data) => data
-          .map(
-            (item) => DropdownItem<SnPublisher>(
-              value: item,
-              child: ListTile(
-                minTileHeight: 48,
-                leading: ProfilePictureWidget(
-                  radius: 16,
-                  file: item.picture,
-                  borderRadius: item.type == 0 ? null : 12,
+    final List<DropdownItem<SnPublisher?>> publishersMenu = publishers.when(
+      data: (data) =>
+          data
+              .map(
+                (item) => DropdownItem<SnPublisher?>(
+                  height: 64,
+                  value: item,
+                  child: ListTile(
+                    minTileHeight: 48,
+                    dense: true,
+                    leading: ProfilePictureWidget(
+                      radius: 16,
+                      file: item.picture,
+                      borderRadius: item.type == 0 ? null : 12,
+                    ),
+                    title: Text(item.nick),
+                    subtitle: Text('@${item.name}'),
+                    trailing: currentPublisher.value?.id == item.id
+                        ? const Icon(Icons.check)
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
                 ),
-                title: Text(item.nick),
-                subtitle: Text('@${item.name}'),
-                trailing: currentPublisher.value?.id == item.id
-                    ? const Icon(Icons.check)
-                    : null,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8),
+              )
+              .toList()
+            ..insert(
+              0,
+              DropdownItem<SnPublisher?>(
+                height: 64,
+                value: null,
+                child: ListTile(
+                  dense: true,
+                  minTileHeight: 48,
+                  leading: Icon(Symbols.close),
+                  title: Text('clearSelection').tr(),
+                ),
               ),
             ),
-          )
-          .toList(),
       loading: () => [],
       error: (_, _) => [],
     );
