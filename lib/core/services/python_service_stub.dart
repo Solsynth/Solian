@@ -1,7 +1,6 @@
-Future<void> initPython() async {
-  // Web 下什么都不做
-}
+// Web 平台的空实现
+Future<void> initPython() async {}
 
-Future<void> evalPythonCode(String code) async {
-  // 空实现
-}
+bool isPythonAvailable() => false;
+
+Future<void> evalPythonCode(String code) async {}
