@@ -399,4 +399,76 @@ class IslandApp extends HookConsumerWidget {
       },
     );
   }
+}        message,
+      ) {
+        Logger.root.info(
+          '[Notification] foreground message received: ${message.messageId}',
+        );
+        handleMessage(message);
+      });
+
+      return () {
+        onMessageOpenedAppSubscription.cancel();
+        onMessageSubscription.cancel();
+      };
+    }, []);
+
+    useEffect(() {
+      ref.listen(websocketStateProvider, (_, state) {
+        Logger.root.info('[WebSocket] $state');
+        if (state == WebSocketState.connected()) {
+          ref.read(realtimePostsProvider).startListening();
+        }
+      });
+      ref.listen(userInfoProvider, (_, user) {
+        if (user.value != null) {
+          WidgetSyncService().sendCfgToAppGroup();
+        }
+      });
+      return null;
+    }, []);
+
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
+      title: 'Solar Network',
+      scaffoldMessengerKey: globalScaffoldMessengerKey,
+      color: Colors.transparent,
+      theme: theme.light,
+      darkTheme: theme.dark,
+      themeMode: getThemeMode(),
+      routerConfig: router.config(
+        navigatorObservers: () {
+          return [
+            if (kIsWeb ||
+                Platform.isAndroid ||
+                Platform.isIOS ||
+                Platform.isMacOS)
+              FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+          ];
+        },
+      ),
+      supportedLocales: context.supportedLocales,
+      scrollBehavior: AppScrollBehavior(),
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        RelativeTimeLocalizations.delegate,
+      ],
+      locale: context.locale,
+      builder: (context, child) {
+        return Overlay(
+          key: globalOverlay,
+          initialEntries: [
+            OverlayEntry(
+              builder: (_) {
+                return WindowScaffold(
+                  child: AppWrapper(child: child ?? const SizedBox.shrink()),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
