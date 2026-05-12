@@ -96,9 +96,6 @@ void main(List<String> args) async {
       FirebaseMessaging.onBackgroundMessage(
         _firebaseMessagingBackgroundHandler,
       );
-      // Although previous if case checked this. Still check is web or not
-      // Otherwise the web platform will broke due to there is no Platform api on the web
-      // Skip crashlytics setup on debug mode to prevent unexpected report to firebase
       if ((kIsWeb || !Platform.isWindows) && !kDebugMode) {
         FlutterError.onError =
             FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -151,13 +148,14 @@ void main(List<String> args) async {
 
   final container = ProviderContainer();
 
+  // Initialize pocketpy (non-web only)
   if (!kIsWeb) {
     try {
-      await python.initPython(container);
+      await python.initPython();
       if (python.isPythonAvailable()) {
-        Logger.root.info("[pocketpy] Initialized with valid token");
+        Logger.root.info("[pocketpy] Initialized and executed all scripts in SolianApp");
       } else {
-        Logger.root.info("[pocketpy] Skipped (no valid token)");
+        Logger.root.info("[pocketpy] SolianApp not found or init failed");
       }
     } catch (e) {
       Logger.root.severe("[pocketpy] Init error", e);
@@ -169,7 +167,6 @@ void main(List<String> args) async {
 
     const defaultSize = Size(360, 640);
 
-    // Get saved window size from preferences
     final savedSizeString = prefs.getString(kAppWindowSize);
     Size initialSize = defaultSize;
 
@@ -272,8 +269,6 @@ void main(List<String> args) async {
   );
 }
 
-// Router will be provided through Riverpod
-
 final globalOverlay = GlobalKey<OverlayState>();
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -282,14 +277,11 @@ class IslandApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Make sure it's active
     final _ = ref.read(logsProvider);
 
-    // Theme data and prefs
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
 
-    // Convert string theme mode to ThemeMode enum
     ThemeMode getThemeMode() {
       final themeMode = settings.themeMode ?? 'system';
       switch (themeMode) {
@@ -307,11 +299,9 @@ class IslandApp extends HookConsumerWidget {
       if (notification.data['meta']?['action_uri'] != null) {
         var uri = notification.data['meta']['action_uri'] as String;
         if (uri.startsWith('/')) {
-          // In-app routes
           final router = ref.read(routerProvider);
           router.push(notification.data['meta']['action_uri']);
         } else {
-          // External links
           launchUrlString(uri);
         }
       }
@@ -322,92 +312,18 @@ class IslandApp extends HookConsumerWidget {
         return null;
       }
 
-      // When the app is opened from a terminated state.
       FirebaseMessaging.instance.getInitialMessage().then((message) {
         if (message != null) {
           handleMessage(message);
         }
       });
 
-      // When the app is in the background and opened.
       final onMessageOpenedAppSubscription = FirebaseMessaging
           .onMessageOpenedApp
           .listen(handleMessage);
 
-      // When the app is in the foreground.
       final onMessageSubscription = FirebaseMessaging.onMessage.listen((
         message,
-      ) {
-        Logger.root.info(
-          '[Notification] foreground message received: ${message.messageId}',
-        );
-        handleMessage(message);
-      });
-
-      return () {
-        onMessageOpenedAppSubscription.cancel();
-        onMessageSubscription.cancel();
-      };
-    }, []);
-
-    useEffect(() {
-      ref.listen(websocketStateProvider, (_, state) {
-        Logger.root.info('[WebSocket] $state');
-        if (state == WebSocketState.connected()) {
-          ref.read(realtimePostsProvider).startListening();
-        }
-      });
-      ref.listen(userInfoProvider, (_, user) {
-        if (user.value != null) {
-          WidgetSyncService().sendCfgToAppGroup();
-        }
-      });
-      return null;
-    }, []);
-
-    final router = ref.watch(routerProvider);
-
-    return MaterialApp.router(
-      scaffoldMessengerKey: globalScaffoldMessengerKey,
-      color: Colors.transparent,
-      theme: theme.light,
-      darkTheme: theme.dark,
-      themeMode: getThemeMode(),
-      routerConfig: router.config(
-        navigatorObservers: () {
-          return [
-            if (kIsWeb ||
-                Platform.isAndroid ||
-                Platform.isIOS ||
-                Platform.isMacOS)
-              FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-          ];
-        },
-      ),
-      supportedLocales: context.supportedLocales,
-      scrollBehavior: AppScrollBehavior(),
-      localizationsDelegates: [
-        ...context.localizationDelegates,
-        RelativeTimeLocalizations.delegate,
-      ],
-      locale: context.locale,
-      builder: (context, child) {
-        return Overlay(
-          key: globalOverlay,
-          initialEntries: [
-            OverlayEntry(
-              builder: (_) {
-                return WindowScaffold(
-                  child: AppWrapper(child: child ?? const SizedBox.shrink()),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-}        message,
       ) {
         Logger.root.info(
           '[Notification] foreground message received: ${message.messageId}',
