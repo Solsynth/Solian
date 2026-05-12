@@ -25,6 +25,7 @@ class PostFilterWidget extends HookConsumerWidget {
     final includeReplies = useState<bool?>(initialQuery.includeReplies);
     final mediaOnly = useState<bool>(initialQuery.mediaOnly ?? false);
     final queryTerm = useState<String?>(initialQuery.queryTerm);
+    final searchEngine = useState<String?>(initialQuery.searchEngine);
     final order = useState<String?>(initialQuery.order);
     final orderDesc = useState<bool>(initialQuery.orderDesc);
     final periodStart = useState<int?>(initialQuery.periodStart);
@@ -40,6 +41,7 @@ class PostFilterWidget extends HookConsumerWidget {
         includeReplies: includeReplies.value,
         mediaOnly: mediaOnly.value,
         queryTerm: queryTerm.value,
+        searchEngine: searchEngine.value,
         order: order.value,
         periodStart: periodStart.value,
         periodEnd: periodEnd.value,
@@ -178,6 +180,35 @@ class PostFilterWidget extends HookConsumerWidget {
                       },
                     ),
                   if (!hideSearch) const Gap(12),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'searchEngine'.tr(),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    value: searchEngine.value,
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('searchEngineDefault'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 'semantic',
+                        child: Text('searchEngineSemantic'.tr()),
+                      ),
+                      DropdownMenuItem(
+                        value: 'fulltext',
+                        child: Text('searchEngineFulltext'.tr()),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      searchEngine.value = value;
+                      updateQuery();
+                    },
+                  ),
+                  const Gap(12),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'sortBy'.tr(),
