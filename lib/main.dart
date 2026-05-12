@@ -37,7 +37,8 @@ import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:media_kit/media_kit.dart';
-import 'core/services/python_service.dart' as python;
+
+import 'package:island/core/services/python_service.dart' as python;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -76,15 +77,6 @@ void main(List<String> args) async {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
 
-  if (!kIsWeb) {
-    try {
-      await python.initPython();
-      Logger.root.info("[pocketpy] Initialized successfully");
-    } catch (e) {
-      Logger.root.severe("[pocketpy] Init failed", e);
-    }
-  }
-  
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     Logger.root.info("[SplashScreen] Initializing desktop window manager...");
     await protocolHandler.register('solian');
@@ -156,6 +148,21 @@ void main(List<String> args) async {
   }
 
   final prefs = await SharedPreferences.getInstance();
+
+  final container = ProviderContainer();
+
+  if (!kIsWeb) {
+    try {
+      await python.initPython(container);
+      if (python.isPythonAvailable()) {
+        Logger.root.info("[pocketpy] Initialized with valid token");
+      } else {
+        Logger.root.info("[pocketpy] Skipped (no valid token)");
+      }
+    } catch (e) {
+      Logger.root.severe("[pocketpy] Init error", e);
+    }
+  }
 
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
     await windowManager.ensureInitialized();
@@ -230,6 +237,7 @@ void main(List<String> args) async {
 
   runApp(
     ProviderScope(
+      parent: container,
       retry: (retryCount, error) {
         if (retryCount > 3) return null;
         if (error is DioException) {
@@ -329,6 +337,77 @@ class IslandApp extends HookConsumerWidget {
       // When the app is in the foreground.
       final onMessageSubscription = FirebaseMessaging.onMessage.listen((
         message,
+      ) {
+        Logger.root.info(
+          '[Notification] foreground message received: ${message.messageId}',
+        );
+        handleMessage(message);
+      });
+
+      return () {
+        onMessageOpenedAppSubscription.cancel();
+        onMessageSubscription.cancel();
+      };
+    }, []);
+
+    useEffect(() {
+      ref.listen(websocketStateProvider, (_, state) {
+        Logger.root.info('[WebSocket] $state');
+        if (state == WebSocketState.connected()) {
+          ref.read(realtimePostsProvider).startListening();
+        }
+      });
+      ref.listen(userInfoProvider, (_, user) {
+        if (user.value != null) {
+          WidgetSyncService().sendCfgToAppGroup();
+        }
+      });
+      return null;
+    }, []);
+
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
+      scaffoldMessengerKey: globalScaffoldMessengerKey,
+      color: Colors.transparent,
+      theme: theme.light,
+      darkTheme: theme.dark,
+      themeMode: getThemeMode(),
+      routerConfig: router.config(
+        navigatorObservers: () {
+          return [
+            if (kIsWeb ||
+                Platform.isAndroid ||
+                Platform.isIOS ||
+                Platform.isMacOS)
+              FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+          ];
+        },
+      ),
+      supportedLocales: context.supportedLocales,
+      scrollBehavior: AppScrollBehavior(),
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        RelativeTimeLocalizations.delegate,
+      ],
+      locale: context.locale,
+      builder: (context, child) {
+        return Overlay(
+          key: globalOverlay,
+          initialEntries: [
+            OverlayEntry(
+              builder: (_) {
+                return WindowScaffold(
+                  child: AppWrapper(child: child ?? const SizedBox.shrink()),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}        message,
       ) {
         Logger.root.info(
           '[Notification] foreground message received: ${message.messageId}',
