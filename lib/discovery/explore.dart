@@ -336,9 +336,9 @@ class ExploreScreen extends HookConsumerWidget {
                           valueListenable: currentAggressive,
                           builder: (context, value, child) {
                             return CheckboxListTile(
-                              title: Text('Aggressive Mode'),
+                              title: Text('exploreAggressiveMode'.tr()),
                               subtitle: Text(
-                                'Hide low rank post from your timeline.',
+                                'exploreAggressiveModeDescription'.tr(),
                               ),
                               value: value,
                               onChanged: (value) {
@@ -361,9 +361,9 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                           ),
                           child: ListTile(
-                            title: const Text('Discovery Profile'),
-                            subtitle: const Text(
-                              'View your personalized recommendation profile',
+                            title: Text('exploreDiscoveryProfile'.tr()),
+                            subtitle: Text(
+                              'exploreDiscoveryProfileDescription'.tr(),
                             ),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () => showDiscoveryProfileSheet(context),
@@ -1474,13 +1474,13 @@ class _TimelineModeDropdown extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
 
           onChanged: onChanged,
-          items: const [
+          items: [
             DropdownMenuItem(
               value: 'personalized',
-              child: Text('Personalized'),
+              child: Text('exploreModePersonalized'.tr()),
             ),
-            DropdownMenuItem(value: 'top', child: Text('Top')),
-            DropdownMenuItem(value: 'latest', child: Text('Latest')),
+            DropdownMenuItem(value: 'top', child: Text('exploreModeTop'.tr())),
+            DropdownMenuItem(value: 'latest', child: Text('exploreModeLatest'.tr())),
           ],
         ),
       ),
@@ -1638,7 +1638,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Top Pick',
+                            'discoveryTopPick'.tr(),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1658,7 +1658,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Not Recommended',
+                            'discoveryNotRecommended'.tr(),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1709,7 +1709,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
         final reasons =
             (item['reasons'] as List?)?.whereType<String>().toList() ??
             const <String>[];
-        if (reasons.isEmpty) reasons.add('We think you might like this.');
+        if (reasons.isEmpty) reasons.add('discoverySuggestionReason'.tr());
         final rank = item['score'] is num
             ? (item['score'] as num).toDouble()
             : null;
@@ -1758,7 +1758,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                   children: [
                     const Icon(Symbols.rule, size: 16),
                     Text(
-                      'Rank: $rank',
+                      'discoveryRank'.tr(args: ['$rank']),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -2081,8 +2081,8 @@ class _TimelineDetailPane extends HookConsumerWidget {
               children: [
                 Tooltip(
                   message: isExpanded
-                      ? 'Restore split view'
-                      : 'Expand post details',
+                      ? 'restoreSplitView'.tr()
+                      : 'expandPostDetails'.tr(),
                   child: IconButton(
                     onPressed: onExpandToggle,
                     icon: Icon(
@@ -2098,7 +2098,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                 ),
                 const Spacer(),
                 Tooltip(
-                  message: 'Close post details',
+                  message: 'closePostDetails'.tr(),
                   child: IconButton(
                     onPressed: onClose,
                     icon: Icon(Symbols.close, size: 20),
@@ -2132,7 +2132,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                           ),
                           const Gap(12),
                           Text(
-                            'Post not found',
+                            'postNotFound'.tr(),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
@@ -2311,13 +2311,13 @@ class _TimelineDetailPane extends HookConsumerWidget {
                       ),
                       const Gap(12),
                       Text(
-                        'Failed to load post',
+                        'failedToLoadPost'.tr(),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const Gap(8),
                       TextButton(
                         onPressed: () => ref.invalidate(postProvider(postId)),
-                        child: const Text('Retry'),
+                        child: Text('retry'.tr()),
                       ),
                     ],
                   ),
