@@ -1,5 +1,7 @@
+// lib/core/services/python_service_native.dart
 import 'dart:io';
 import 'dart:developer';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:pocketpy/pocketpy.dart' as pkpy;
 import 'package:path_provider/path_provider.dart';
 
@@ -14,25 +16,26 @@ Future<void> initPython() async {
   if (_isInitialized) return;
 
   try {
-    // 1. 获取文档目录下的 SolianApp
     final appDocDir = await getApplicationDocumentsDirectory();
     final solianAppDir = Directory('${appDocDir.path}/SolianApp');
 
-    if (!await solianAppDir.exists()) {
-      log('[python_service] SolianApp folder not found at ${solianAppDir.path}');
+    // 打印当前系统加载插件的文件夹（即 SolianApp 路径）
+    if (await solianAppDir.exists()) {
+      log('[python_service] Python scripts folder: ${solianAppDir.path}');
+    } else {
+      // 无则打印其父路径（即文档目录）
+      log('[python_service] SolianApp not found, parent folder: ${appDocDir.path}');
       return;
     }
 
-    // 2. 创建 VM
     _vm = pkpy.VM();
 
-    // 3. 将 SolianApp 目录添加到 sys.path（全局共享，用于 import）
+    // 将 SolianApp 目录添加到 sys.path
     _vm!.exec('''
 import sys
 sys.path.insert(0, r"${solianAppDir.path}")
 ''');
 
-    // 4. 执行所有 Python 脚本
     await _executeAllScripts(solianAppDir);
 
     _isInitialized = true;
@@ -44,14 +47,14 @@ sys.path.insert(0, r"${solianAppDir.path}")
   }
 }
 
-/// 执行 SolianApp 文件夹下的所有 .py 文件（不递归子目录，按文件名排序）
 Future<void> _executeAllScripts(Directory dir) async {
-  final files = await dir
-      .list()
-      .where((entity) => entity is File && entity.path.endsWith('.py'))
-      .toList();
-
-  // 按文件名排序，保证执行顺序可预测
+  final entities = await dir.list().toList();
+  final files = <File>[];
+  for (final entity in entities) {
+    if (entity is File && entity.path.endsWith('.py')) {
+      files.add(entity);
+    }
+  }
   files.sort((a, b) => a.path.compareTo(b.path));
 
   for (final file in files) {
@@ -59,15 +62,12 @@ Future<void> _executeAllScripts(Directory dir) async {
   }
 }
 
-/// 执行单个 Python 脚本，使用独立的全局字典
 Future<void> _executeSingleScript(File script) async {
   if (_vm == null) return;
 
   try {
     final content = await script.readAsString();
-    final globals = <String, dynamic>{};  // 独立环境
-    _vm!.exec(content, globals);
-    
+    _vm!.exec(content);
     final out = _vm!.read_output();
     if (out.stdout.isNotEmpty) {
       debugPrint('[Python stdout][${script.path.split('/').last}] ${out.stdout}');
@@ -80,10 +80,10 @@ Future<void> _executeSingleScript(File script) async {
   }
 }
 
-/// 可选：执行额外的 Python 代码字符串，可以指定是否复用某个全局字典
-Future<void> evalPythonCode(String code, [Map<String, dynamic>? globals]) async {
+/// 可选：执行额外的 Python 代码字符串
+Future<void> evalPythonCode(String code) async {
   if (!_isInitialized || _vm == null) return;
-  _vm!.exec(code, globals);
+  _vm!.exec(code);
   final out = _vm!.read_output();
   if (out.stdout.isNotEmpty) debugPrint('[Python stdout] ${out.stdout}');
   if (out.stderr.isNotEmpty) debugPrint('[Python stderr] ${out.stderr}');
