@@ -3105,5 +3105,21 @@
   "noActiveLivestreams": "No active livestreams",
   "thereAreNoLiveStreamsRightNow": "There are no live streams right now. Check back later or explore other content on the Solar Network.",
   "exploreContent": "Explore Content",
-  "accountProfileTitle": "Profile"
+  "accountProfileTitle": "Profile",
+  "exploreAggressiveMode": "Aggressive Mode",
+  "exploreAggressiveModeDescription": "Hide low rank post from your timeline.",
+  "exploreDiscoveryProfile": "Discovery Profile",
+  "exploreDiscoveryProfileDescription": "View your personalized recommendation profile",
+  "exploreModePersonalized": "Personalized",
+  "exploreModeTop": "Top",
+  "exploreModeLatest": "Latest",
+  "discoveryTopPick": "Top Pick",
+  "discoveryNotRecommended": "Not Recommended",
+  "discoverySuggestionReason": "We think you might like this.",
+  "discoveryRank": "Rank: {}",
+  "postNotFound": "Post not found",
+  "failedToLoadPost": "Failed to load post",
+  "expandPostDetails": "Expand post details",
+  "restoreSplitView": "Restore split view",
+  "closePostDetails": "Close post details"
 }
