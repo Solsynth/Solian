@@ -153,12 +153,13 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
           // Use flutter_local_notifications for universal platforms
           const AndroidNotificationDetails androidNotificationDetails =
               AndroidNotificationDetails(
-                'channel_id',
-                'channel_name',
-                channelDescription: 'channel_description',
+                'island_notifications',
+                'Notifications',
+                channelDescription: 'Receive notifications from Island',
                 importance: Importance.max,
                 priority: Priority.high,
-                ticker: 'ticker',
+                ticker: 'Island notification',
+                icon: 'launcher_icon',
               );
           const NotificationDetails notificationDetails = NotificationDetails(
             android: androidNotificationDetails,
