@@ -1748,7 +1748,14 @@ class WalletScreen extends HookConsumerWidget {
       isNoBackground: false,
       appBar: AppBar(
         title: Text('wallet').tr(),
-        leading: const AutoLeadingButton(),
+        leading: !isWideScreen(context)
+            ? IconButton(
+                icon: const Icon(Symbols.menu),
+                onPressed: () {
+                  rootScaffoldKey.currentState?.openDrawer();
+                },
+              )
+            : const AutoLeadingButton(),
         actions: [
           IconButton(
             icon: const Icon(Symbols.add),
