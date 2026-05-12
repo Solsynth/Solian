@@ -146,8 +146,6 @@ void main(List<String> args) async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  final container = ProviderContainer();
-
   // Initialize pocketpy (non-web only)
   if (!kIsWeb) {
     try {
@@ -234,7 +232,6 @@ void main(List<String> args) async {
 
   runApp(
     ProviderScope(
-      parent: container,
       retry: (retryCount, error) {
         if (retryCount > 3) return null;
         if (error is DioException) {
