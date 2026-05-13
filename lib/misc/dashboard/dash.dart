@@ -892,10 +892,7 @@ class ChatListCard extends HookConsumerWidget {
                       room: room,
                       isDirect: room.type == 1,
                       onTap: () {
-                        context.router.pushAll([
-                          const ChatListRoute(),
-                          ChatRoomRoute(id: room.id),
-                        ]);
+                        context.router.navigate(ChatRoomRoute(id: room.id));
                       },
                     );
                   }).toList(),

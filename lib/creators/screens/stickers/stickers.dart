@@ -24,7 +24,10 @@ part 'stickers.g.dart';
 @RoutePage()
 class CreatorStickerListScreen extends HookConsumerWidget {
   final String pubName;
-  const CreatorStickerListScreen({super.key, required this.pubName});
+  const CreatorStickerListScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

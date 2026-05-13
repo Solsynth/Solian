@@ -17,7 +17,10 @@ import 'package:material_symbols_icons/symbols.dart';
 class ArticleDetailScreen extends ConsumerWidget {
   final String articleId;
 
-  const ArticleDetailScreen({super.key, required this.articleId});
+  const ArticleDetailScreen({
+    super.key,
+    @PathParam("id") required this.articleId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -145,7 +148,10 @@ class _ArticleDetailContent extends HookConsumerWidget {
                       icon: const Icon(Symbols.open_in_new),
                       label: const Text('Read Full Article'),
                       style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 24,
+                        ),
                       ),
                     ),
                     Gap(MediaQuery.of(context).padding.bottom + 16),

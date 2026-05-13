@@ -345,6 +345,59 @@ class SphereApi extends BaseApi {
     await delete('$_basePath/posts/$postId/boost');
   }
 
+  /// Gets the current user's bookmark for a post.
+  ///
+  /// [postId] - The post ID.
+  /// Returns the bookmark if it exists, or null.
+  Future<SnPostBookmark?> getPostBookmark(String postId) async {
+    final response = await get<dynamic>(
+      '$_basePath/posts/$postId/bookmark',
+    );
+    if (response.data == null) return null;
+    return SnPostBookmark.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  /// Bookmarks a post.
+  ///
+  /// [postId] - The post ID.
+  /// Returns the bookmark record.
+  Future<SnPostBookmark> bookmarkPost(String postId) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/posts/$postId/bookmark',
+    );
+    return SnPostBookmark.fromJson(response.data!);
+  }
+
+  /// Removes a bookmark from a post.
+  ///
+  /// [postId] - The post ID.
+  Future<void> unbookmarkPost(String postId) async {
+    await delete('$_basePath/posts/$postId/bookmark');
+  }
+
+  /// Gets the current user's bookmarked posts.
+  ///
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  /// [order] - Sort order (e.g. "created").
+  Future<PaginatedResult<SnPost>> getBookmarks({
+    int offset = 0,
+    int take = 20,
+    String? order,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/posts/bookmarks',
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (order != null) 'order': order,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnPost.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
   /// Gets replies to a post.
   ///
   /// [postId] - The post ID.
@@ -392,11 +445,29 @@ class SphereApi extends BaseApi {
   /// Gets reactions for a post.
   ///
   /// [postId] - The post ID.
-  Future<List<SnPostReaction>> getPostReactions(String postId) async {
+  /// [symbol] - Optional emoji symbol to filter by.
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  /// [order] - Sort order ("created" or default by symbol).
+  Future<PaginatedResult<SnPostReaction>> getPostReactions({
+    required String postId,
+    String? symbol,
+    int offset = 0,
+    int take = 20,
+    String? order,
+  }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/posts/$postId/reactions',
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (symbol != null) 'symbol': symbol,
+        if (order != null) 'order': order,
+      },
     );
-    return parseList(response, SnPostReaction.fromJson);
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnPostReaction.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
   }
 
   /// Adds a reaction to a post.
@@ -418,6 +489,34 @@ class SphereApi extends BaseApi {
   /// [postId] - The post ID.
   Future<void> removeReaction(String postId) async {
     await delete('$_basePath/posts/$postId/reactions');
+  }
+
+  /// Gets visible reactions made by a specific user.
+  ///
+  /// [name] - The local username.
+  /// [offset] - Pagination offset.
+  /// [take] - Number of items to take.
+  /// [order] - Sort order ("created" or default).
+  Future<PaginatedResult<UserReactionListingItem>> getUserReactions({
+    required String name,
+    int offset = 0,
+    int take = 20,
+    String? order,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/posts/reactions/users/$name',
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (order != null) 'order': order,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(
+      response,
+      (json) => UserReactionListingItem.fromJson(json),
+    );
+    return PaginatedResult(items: items, totalCount: totalCount);
   }
 
   /// Gets awards for a post.

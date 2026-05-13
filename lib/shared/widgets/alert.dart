@@ -453,6 +453,11 @@ Future<void> openExternalLinkWithContainer(
   Uri url,
   ProviderContainer container,
 ) async {
+  if (url.scheme == 'solian') {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+    return;
+  }
+
   final context = container.read(routerProvider).navigatorKey.currentState!.context;
 
   showLoadingModal(context);

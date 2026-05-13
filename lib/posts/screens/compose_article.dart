@@ -28,7 +28,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 @RoutePage()
 class ArticleEditScreen extends HookConsumerWidget {
   final String id;
-  const ArticleEditScreen({super.key, required this.id});
+  const ArticleEditScreen({super.key, @PathParam("id") required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

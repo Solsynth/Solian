@@ -1,14 +1,17 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/network.dart';
@@ -16,13 +19,17 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/cache_service.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/core/services/udid.dart' as udid;
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
+import 'package:island/route.gr.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 @RoutePage()
 class SettingsScreen extends HookConsumerWidget {
@@ -71,6 +78,8 @@ class SettingsScreen extends HookConsumerWidget {
 
     final selectedCategoryIdx = useState(0);
     final searchQuery = useState('');
+    final searchController = useTextEditingController();
+    final searchFocusNode = useFocusNode();
 
     final categories = <_SettingCategory>[];
 
@@ -78,6 +87,7 @@ class SettingsScreen extends HookConsumerWidget {
       if (query.isEmpty) return true;
       final q = query.toLowerCase();
       return category.title.toLowerCase().contains(q) ||
+          category.getLocalizedTitle(context).toLowerCase().contains(q) ||
           category.searchTerms.any((term) => term.toLowerCase().contains(q));
     }
 
@@ -85,6 +95,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.translate,
         title: 'Language',
+        localizedTitleKey: 'settingsCategoryLanguage',
         searchTerms: ['display language', 'locale', 'system language'],
         children: [
           ListTile(
@@ -136,6 +147,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.palette,
         title: 'Appearance',
+        localizedTitleKey: 'settingsAppearance',
         searchTerms: ['theme', 'color scheme', 'opacity', 'card background'],
         children: [
           ListTile(
@@ -252,7 +264,7 @@ class SettingsScreen extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
             child: Text(
-              'Custom Colors',
+              'settingsCustomColors'.tr(),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -260,7 +272,7 @@ class SettingsScreen extends HookConsumerWidget {
             ),
           ),
           _ColorPickerTile(
-            title: 'Primary',
+            titleKey: 'settingsColorPrimary',
             color: settings.customColors?.primary != null
                 ? Color(settings.customColors!.primary!)
                 : null,
@@ -272,7 +284,33 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Secondary',
+            titleKey: 'settingsColorOnPrimary',
+            color: settings.customColors?.onPrimary != null
+                ? Color(settings.customColors!.onPrimary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(onPrimary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorPrimaryContainer',
+            color: settings.customColors?.primaryContainer != null
+                ? Color(settings.customColors!.primaryContainer!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(primaryContainer: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorSecondary',
             color: settings.customColors?.secondary != null
                 ? Color(settings.customColors!.secondary!)
                 : null,
@@ -284,7 +322,33 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Tertiary',
+            titleKey: 'settingsColorOnSecondary',
+            color: settings.customColors?.onSecondary != null
+                ? Color(settings.customColors!.onSecondary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(onSecondary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorSecondaryContainer',
+            color: settings.customColors?.secondaryContainer != null
+                ? Color(settings.customColors!.secondaryContainer!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(secondaryContainer: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorTertiary',
             color: settings.customColors?.tertiary != null
                 ? Color(settings.customColors!.tertiary!)
                 : null,
@@ -296,7 +360,33 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Surface',
+            titleKey: 'settingsColorOnTertiary',
+            color: settings.customColors?.onTertiary != null
+                ? Color(settings.customColors!.onTertiary!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(onTertiary: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorTertiaryContainer',
+            color: settings.customColors?.tertiaryContainer != null
+                ? Color(settings.customColors!.tertiaryContainer!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(tertiaryContainer: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorSurface',
             color: settings.customColors?.surface != null
                 ? Color(settings.customColors!.surface!)
                 : null,
@@ -308,7 +398,21 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Background',
+            titleKey: 'settingsColorSurfaceContainerHighest',
+            color: settings.customColors?.surfaceContainerHighest != null
+                ? Color(settings.customColors!.surfaceContainerHighest!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(
+                    current.copyWith(surfaceContainerHighest: color?.value),
+                  );
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorBackground',
             color: settings.customColors?.background != null
                 ? Color(settings.customColors!.background!)
                 : null,
@@ -320,7 +424,31 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           _ColorPickerTile(
-            title: 'Error',
+            titleKey: 'settingsColorOutline',
+            color: settings.customColors?.outline != null
+                ? Color(settings.customColors!.outline!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(outline: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorShadow',
+            color: settings.customColors?.shadow != null
+                ? Color(settings.customColors!.shadow!)
+                : null,
+            onColorChanged: (color) {
+              final current = settings.customColors ?? ThemeColors();
+              ref
+                  .read(appSettingsProvider.notifier)
+                  .setCustomColors(current.copyWith(shadow: color?.value));
+            },
+          ),
+          _ColorPickerTile(
+            titleKey: 'settingsColorError',
             color: settings.customColors?.error != null
                 ? Color(settings.customColors!.error!)
                 : null,
@@ -332,7 +460,7 @@ class SettingsScreen extends HookConsumerWidget {
             },
           ),
           ListTile(
-            title: Text('Reset Custom Colors').tr(),
+            title: Text('settingsResetCustomColors'.tr()),
             trailing: const Icon(Symbols.restart_alt).padding(right: 2),
             contentPadding: EdgeInsets.symmetric(horizontal: 20),
             onTap: () {
@@ -383,6 +511,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.font_download,
         title: 'Fonts',
+        localizedTitleKey: 'settingsCategoryFonts',
         searchTerms: ['custom fonts', 'typeface', 'font family'],
         children: [
           ListTile(
@@ -429,6 +558,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.chat,
         title: 'Messages',
+        localizedTitleKey: 'settingsCategoryMessages',
         searchTerms: ['message style', 'attachments', 'link collapse'],
         children: [
           ListTile(
@@ -568,6 +698,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.image,
         title: 'Background',
+        localizedTitleKey: 'settingsCategoryBackground',
         searchTerms: ['background image', 'wallpaper', 'generate color'],
         children: [
           if (!kIsWeb && docBasepath.value != null) ...[
@@ -708,6 +839,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.link,
         title: 'Connection',
+        localizedTitleKey: 'settingsCategoryConnection',
         searchTerms: ['server url', 'media proxy', 'default pool'],
         children: [
           ListTile(
@@ -838,6 +970,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.volume_up,
         title: 'Notifications',
+        localizedTitleKey: 'settingsCategoryNotifications',
         searchTerms: ['sound effects', 'festival features', 'haptic feedback', 'friend status'],
         children: [
           ListTile(
@@ -906,6 +1039,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.send,
         title: 'Chat',
+        localizedTitleKey: 'settingsCategoryChat',
         searchTerms: ['enter to send', 'grouped chat list', 'chat event messages'],
         children: [
           ListTile(
@@ -985,6 +1119,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.record_voice_over,
         title: 'Speech',
+        localizedTitleKey: 'settingsCategorySpeech',
         searchTerms: ['tts', 'voice', 'language', 'speech rate', 'pitch', 'volume'],
         children: [
           ListTile(
@@ -1092,6 +1227,7 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.tune,
         title: 'General',
+        localizedTitleKey: 'settingsCategoryGeneral',
         searchTerms: ['transparent app bar', 'data saving', 'disable animation', 'default screen', 'search engine'],
         children: [
           ListTile(
@@ -1226,6 +1362,7 @@ class SettingsScreen extends HookConsumerWidget {
         _SettingCategory(
           icon: Symbols.desktop_windows,
           title: 'Desktop',
+          localizedTitleKey: 'settingsDesktop',
           searchTerms: ['window opacity'],
           children: [
             ListTile(
@@ -1272,8 +1409,32 @@ class SettingsScreen extends HookConsumerWidget {
       _SettingCategory(
         icon: Symbols.storage,
         title: 'Storage',
+        localizedTitleKey: 'settingsStorage',
         searchTerms: ['cache', 'disk space'],
         children: [_StorageSettingsSection()],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.info,
+        title: 'About',
+        localizedTitleKey: 'about',
+        searchTerms: ['version', 'license', 'developer', 'privacy', 'terms'],
+        embedInWide: isWide,
+        wideContent: (context) => const _EmbeddedAboutContent(),
+        children: [
+          ListTile(
+            leading: const Icon(Symbols.info),
+            trailing: const Icon(Symbols.chevron_right),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            dense: true,
+            title: Text('about'.tr()),
+            onTap: () {
+              context.router.push(const AboutRoute());
+            },
+          ),
+        ],
       ),
     );
 
@@ -1303,7 +1464,7 @@ class SettingsScreen extends HookConsumerWidget {
                         context,
                       ).colorScheme.primaryContainer.withOpacity(0.3),
                       leading: Icon(category.icon),
-                      title: Text(category.title),
+                      title: Text(category.getLocalizedTitle(context)),
                       onTap: () => selectedCategoryIdx.value = i,
                     );
                   },
@@ -1312,12 +1473,16 @@ class SettingsScreen extends HookConsumerWidget {
               const VerticalDivider(width: 1),
               Flexible(
                 flex: 2,
-                child: SingleChildScrollView(
-                  child: _SettingsSection(
-                    title: selectedCategory.title,
-                    children: selectedCategory.children,
-                  ),
-                ),
+                child: selectedCategory.embedInWide &&
+                        selectedCategory.wideContent != null
+                    ? selectedCategory.wideContent!(context)
+                    : SingleChildScrollView(
+                        child: _SettingsSection(
+                          title: selectedCategory.title,
+                          localizedTitleKey: selectedCategory.localizedTitleKey,
+                          children: selectedCategory.children,
+                        ),
+                      ),
               ),
             ],
           ),
@@ -1331,6 +1496,7 @@ class SettingsScreen extends HookConsumerWidget {
           for (final category in visibleCategories)
             _SettingsSection(
               title: category.title,
+              localizedTitleKey: category.localizedTitleKey,
               children: category.children,
             ),
         ],
@@ -1340,8 +1506,40 @@ class SettingsScreen extends HookConsumerWidget {
     return AppScaffold(
       isNoBackground: false,
       appBar: AppBar(
-        title: Text('settings').tr(),
+        title: SearchBar(
+          controller: searchController,
+          focusNode: searchFocusNode,
+          constraints: const BoxConstraints(maxWidth: 400, minHeight: 32),
+          hintText: 'searchSettings'.tr(),
+          hintStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
+          onTapOutside: (_) => searchFocusNode.unfocus(),
+          trailing: [
+            if (searchQuery.value.isNotEmpty)
+              IconButton(
+                onPressed: () {
+                  searchController.clear();
+                  searchQuery.value = '';
+                  searchFocusNode.unfocus();
+                },
+                icon: Icon(
+                  Symbols.close,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+              ),
+          ],
+          onChanged: (value) => searchQuery.value = value,
+          leading: Icon(
+            Symbols.search,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
         leading: const AutoLeadingButton(),
+        elevation: 0,
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -1354,41 +1552,35 @@ class SettingsScreen extends HookConsumerWidget {
             selectedCategoryIdx.value = 0;
           }
 
+          if (filteredCategories.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Symbols.search_off,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'searchSettingsNoResults'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+            );
+          }
+
           return SingleChildScrollView(
             padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: SearchBar(
-                    hintText: 'Search settings',
-                    leading: const Icon(Symbols.search),
-                    trailing: [
-                      if (searchQuery.value.isNotEmpty)
-                        IconButton(
-                          onPressed: () => searchQuery.value = '',
-                          icon: const Icon(Symbols.close),
-                        ),
-                    ],
-                    onChanged: (value) => searchQuery.value = value,
-                  ),
-                ),
-                if (filteredCategories.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: Text('No settings found')),
-                  )
-                else
-                  buildSettingsList(
-                    constraints,
-                    filteredCategories,
-                    selectedCategoryIdx.value.clamp(
-                      0,
-                      filteredCategories.length - 1,
-                    ),
-                  ),
-              ],
+            child: buildSettingsList(
+              constraints,
+              filteredCategories,
+              selectedCategoryIdx.value.clamp(
+                0,
+                filteredCategories.length - 1,
+              ),
             ),
           );
         },
@@ -1400,33 +1592,51 @@ class SettingsScreen extends HookConsumerWidget {
 class _SettingCategory {
   final IconData icon;
   final String title;
+  final String? localizedTitleKey;
   final List<String> searchTerms;
   final List<Widget> children;
+  final bool embedInWide;
+  final WidgetBuilder? wideContent;
 
   _SettingCategory({
     required this.icon,
     required this.title,
+    this.localizedTitleKey,
     required this.searchTerms,
     required this.children,
+    this.embedInWide = false,
+    this.wideContent,
   });
+
+  String getLocalizedTitle(BuildContext context) {
+    if (localizedTitleKey != null) return localizedTitleKey!.tr();
+    return title;
+  }
 }
 
 // Helper widget for displaying settings sections with titles
 class _SettingsSection extends StatelessWidget {
   final String title;
+  final String? localizedTitleKey;
   final List<Widget> children;
 
-  const _SettingsSection({required this.title, required this.children});
+  const _SettingsSection({
+    required this.title,
+    this.localizedTitleKey,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final displayTitle =
+        localizedTitleKey != null ? localizedTitleKey!.tr() : title;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
           child: Text(
-            title,
+            displayTitle,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
@@ -1442,18 +1652,19 @@ class _SettingsSection extends StatelessWidget {
 
 // Helper widget for color picker tiles
 class _ColorPickerTile extends StatelessWidget {
-  final String title;
+  final String titleKey;
   final Color? color;
   final ValueChanged<Color?> onColorChanged;
 
   const _ColorPickerTile({
-    required this.title,
+    required this.titleKey,
     required this.color,
     required this.onColorChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    final title = titleKey.tr();
     return ListTile(
       title: Text(title),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1876,6 +2087,328 @@ class _StorageSettingsSectionState extends State<_StorageSettingsSection> {
           ),
           const SizedBox(height: 16),
         ],
+      ],
+    );
+  }
+}
+
+class _EmbeddedAboutContent extends HookConsumerWidget {
+  const _EmbeddedAboutContent();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final packageInfo = useState<PackageInfo?>(null);
+    final deviceInfo = useState<BaseDeviceInfo?>(null);
+    final deviceUdid = useState<String?>(null);
+    final isLoading = useState(true);
+
+    useEffect(() {
+      PackageInfo.fromPlatform().then((info) {
+        packageInfo.value = info;
+        isLoading.value = false;
+      });
+      DeviceInfoPlugin().deviceInfo.then((info) {
+        deviceInfo.value = info;
+      });
+      udid.getUdid().then((id) {
+        deviceUdid.value = id;
+      });
+      return null;
+    }, []);
+
+    Future<void> launchURL(String url) async {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    }
+
+    if (isLoading.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final info = packageInfo.value!;
+
+    return SingleChildScrollView(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 24),
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                child: Image.asset(
+                  'assets/icons/icon.webp',
+                  width: 56,
+                  height: 56,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                info.appName,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'aboutScreenVersionInfo'.tr(
+                  args: [info.version, info.buildNumber],
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                title: 'aboutScreenAppInfoSectionTitle'.tr(),
+                children: [
+                  _buildInfoItem(
+                    context,
+                    icon: Symbols.info,
+                    label: 'aboutScreenPackageNameLabel'.tr(),
+                    value: info.packageName,
+                  ),
+                  _buildInfoItem(
+                    context,
+                    icon: Symbols.update,
+                    label: 'aboutScreenVersionLabel'.tr(),
+                    value: info.version,
+                  ),
+                  _buildInfoItem(
+                    context,
+                    icon: Symbols.build,
+                    label: 'aboutScreenBuildNumberLabel'.tr(),
+                    value: info.buildNumber,
+                  ),
+                ],
+              ),
+              if (deviceInfo.value != null) ...[
+                const SizedBox(height: 16),
+                _buildSection(
+                  context,
+                  title: 'Device Information',
+                  children: [
+                    FutureBuilder<String>(
+                      future: udid.getDeviceName(),
+                      builder: (context, snapshot) {
+                        final value = snapshot.hasData
+                            ? snapshot.data!
+                            : 'unknown'.tr();
+                        return _buildInfoItem(
+                          context,
+                          icon: Symbols.label,
+                          label: 'aboutDeviceName'.tr(),
+                          value: value,
+                        );
+                      },
+                    ),
+                    _buildInfoItem(
+                      context,
+                      icon: Symbols.fingerprint,
+                      label: 'aboutDeviceIdentifier'.tr(),
+                      value: deviceUdid.value ?? 'N/A',
+                      copyable: true,
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+              _buildSection(
+                context,
+                title: 'aboutScreenLinksSectionTitle'.tr(),
+                children: [
+                  _buildListTile(
+                    context,
+                    icon: Symbols.privacy_tip,
+                    title: 'aboutScreenPrivacyPolicyTitle'.tr(),
+                    onTap: () => launchURL(
+                      'https://solsynth.dev/terms/privacy-policy',
+                    ),
+                  ),
+                  _buildListTile(
+                    context,
+                    icon: Symbols.description,
+                    title: 'aboutScreenTermsOfServiceTitle'.tr(),
+                    onTap: () => launchURL(
+                      'https://solsynth.dev/terms/user-agreement',
+                    ),
+                  ),
+                  _buildListTile(
+                    context,
+                    icon: Symbols.code,
+                    title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
+                    onTap: () {
+                      showLicensePage(
+                        context: context,
+                        applicationName: info.appName,
+                        applicationVersion: 'Version ${info.version}',
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildSection(
+                context,
+                title: 'aboutScreenDeveloperSectionTitle'.tr(),
+                children: [
+                  _buildListTile(
+                    context,
+                    icon: Symbols.email,
+                    title: 'aboutScreenContactUsTitle'.tr(),
+                    subtitle: 'lily@solsynth.dev',
+                    onTap: () => launchURL('mailto:lily@solsynth.dev'),
+                  ),
+                  _buildListTile(
+                    context,
+                    icon: Symbols.copyright,
+                    title: 'aboutScreenLicenseTitle'.tr(),
+                    subtitle: 'aboutScreenLicenseContent'.tr(),
+                    onTap: () => launchURL(
+                      'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
+                    ),
+                  ),
+                  if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
+                    _buildListTile(
+                      context,
+                      icon: Symbols.favorite,
+                      title: 'donate'.tr(),
+                      subtitle: 'donateDescription'.tr(),
+                      onTap: () {
+                        launchUrl(
+                          Uri.parse('https://afdian.com/@littlesheep'),
+                        );
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'aboutScreenCopyright'.tr(
+                        args: [DateTime.now().year.toString()],
+                      ),
+                      style: theme.textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(1),
+                    Text(
+                      'aboutScreenMadeWith'.tr(),
+                      textAlign: TextAlign.center,
+                    ).fontSize(10).opacity(0.8),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Divider(height: 1),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildInfoItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    bool copyable = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).hintColor),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(height: 2),
+                SelectableText(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: copyable ? 1 : null,
+                ),
+              ],
+            ),
+          ),
+          if (value.startsWith('http') || value.contains('@') || copyable)
+            IconButton(
+              icon: const Icon(Symbols.content_copy, size: 16),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: value));
+                showSnackBar('copiedToClipboard'.tr());
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              tooltip: 'copyToClipboardTooltip'.tr(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildListTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    final multipleLines = subtitle?.contains('\n') ?? false;
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(icon).padding(top: multipleLines ? 8 : 0),
+          title: Text(title),
+          subtitle: subtitle != null ? Text(subtitle) : null,
+          isThreeLine: multipleLines,
+          trailing: const Icon(
+            Symbols.chevron_right,
+          ).padding(top: multipleLines ? 8 : 0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          minLeadingWidth: 24,
+        ),
       ],
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/creators/screens/posts/post_collections_manage.dart';
 import 'package:island/posts/pods/post_categories.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/realms/screens/realms.dart';
@@ -50,8 +51,13 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     final currentCategories = useValueListenable(state.categories);
     final currentTags = useValueListenable(state.tags);
     final currentRealm = useValueListenable(state.realm);
+    final currentCollectionIds = useValueListenable(state.collectionIds);
     final postCategories = ref.watch(postCategoriesProvider);
     final userRealms = ref.watch(realmsJoinedProvider);
+    final publisherName = state.currentPublisher.value?.name;
+    final publisherCollections = publisherName != null && publisherName.isNotEmpty
+        ? ref.watch(publisherCollectionsProvider(publisherName))
+        : null;
 
     final languages = [
       (code: null, name: 'Auto'),
@@ -316,6 +322,121 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                 padding: EdgeInsets.zero,
               ),
             ),
+
+            // Collections field
+            if (publisherCollections != null && publisherCollections.hasValue)
+              DropdownButtonFormField2<SnPostCollection>(
+                isExpanded: true,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 9),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                hint: Text('collections'.tr(), style: TextStyle(fontSize: 15)),
+                items: (publisherCollections.value ?? <SnPostCollection>[]).map((
+                  item,
+                ) {
+                  return DropdownItem(
+                    value: item,
+                    enabled: false,
+                    child: StatefulBuilder(
+                      builder: (context, menuSetState) {
+                        final isSelected = currentCollectionIds.contains(item.id);
+                        return InkWell(
+                          onTap: () {
+                            isSelected
+                                ? state.collectionIds.value = state.collectionIds.value
+                                      .where((e) => e != item.id)
+                                      .toList()
+                                : state.collectionIds.value = [
+                                    ...state.collectionIds.value,
+                                    item.id,
+                                  ];
+                            menuSetState(() {});
+                          },
+                          child: Container(
+                            height: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              children: [
+                                if (isSelected)
+                                  const Icon(Icons.check_box_outlined)
+                                else
+                                  const Icon(Icons.check_box_outline_blank),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    item.name?.isNotEmpty == true ? item.name! : item.slug,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }).toList(),
+                valueListenable: ValueNotifier(
+                  currentCollectionIds.isEmpty
+                      ? null
+                      : (publisherCollections.value ?? []).firstWhere(
+                          (c) => c.id == currentCollectionIds.last,
+                          orElse: () => (publisherCollections.value ?? []).first,
+                        ),
+                ),
+                onChanged: (_) {},
+                selectedItemBuilder: (context) {
+                  final collections = publisherCollections.value ?? [];
+                  return collections.map((item) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (final id in currentCollectionIds)
+                            Builder(
+                              builder: (context) {
+                                final collection = collections.firstWhere(
+                                  (c) => c.id == id,
+                                  orElse: () => item,
+                                );
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
+                                  margin: const EdgeInsets.only(right: 4),
+                                  child: Text(
+                                    collection.name?.isNotEmpty == true
+                                        ? collection.name!
+                                        : collection.slug,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList();
+                },
+                buttonStyleData: const FormFieldButtonStyleData(
+                  padding: EdgeInsets.only(left: 16, right: 8),
+                  height: 38,
+                ),
+                menuItemStyleData: const MenuItemStyleData(
+                  padding: EdgeInsets.zero,
+                ),
+              ),
 
             // Language selection
             DropdownButtonFormField2<String?>(

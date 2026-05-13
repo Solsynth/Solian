@@ -9,8 +9,8 @@ class DeveloperBotNewScreen extends StatelessWidget {
   final bool isModal;
   const DeveloperBotNewScreen({
     super.key,
-    required this.publisherName,
-    required this.projectId,
+    @PathParam("pubName") required this.publisherName,
+    @PathParam("projectId") required this.projectId,
     this.isModal = false,
   });
 
