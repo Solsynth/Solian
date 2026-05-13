@@ -1,7 +1,7 @@
 // lib/core/services/python_service_native.dart
 import 'dart:io';
 import 'dart:developer';
-import 'package:pocketpy/pocketpy.dart' as pkpy;
+import 'package:pocketpy/pocketpy.dart'; // 直接导入，ComputeThread 是顶级类
 import 'package:path_provider/path_provider.dart';
 
 bool _isInitialized = false;
@@ -36,7 +36,6 @@ Future<void> initPython() async {
     // 并行执行所有脚本，每个脚本使用独立的 ComputeThread
     final futures = <Future<void>>[];
     for (int i = 0; i < files.length; i++) {
-      // vm_index 范围 1-15，循环使用
       final vmIndex = (i % 15) + 1;
       futures.add(_executeScriptInThread(files[i], vmIndex));
     }
@@ -53,13 +52,14 @@ Future<void> initPython() async {
 
 /// 在独立线程中执行单个脚本
 Future<void> _executeScriptInThread(File script, int vmIndex) async {
-  final thread = pkpy.ComputeThread(vmIndex);
+  final thread = ComputeThread(vmIndex); // 注意：直接使用 ComputeThread
   try {
-    // 设置模块搜索路径
-    thread.exec('''
+    if (_solianAppPath != null) {
+      thread.exec('''
 import sys
 sys.path.insert(0, r"$_solianAppPath")
 ''');
+    }
     final content = await script.readAsString();
     thread.exec(content);
     thread.wait_for_done();
@@ -78,14 +78,13 @@ sys.path.insert(0, r"$_solianAppPath")
   }
 }
 
-/// 执行单条 Python 代码（简单封装，仍使用主线程）
+/// 执行单条 Python 代码（简单封装，仍使用独立线程）
 Future<void> evalPythonCode(String code) async {
   if (!_isInitialized) {
     log('[python_service] Python not available');
     return;
   }
-  // 为了演示，创建一个临时线程执行（或复用主 VM，这里简单处理）
-  final thread = pkpy.ComputeThread(1);
+  final thread = ComputeThread(1);
   try {
     if (_solianAppPath != null) {
       thread.exec('''
