@@ -151,12 +151,12 @@ void main(List<String> args) async {
     try {
       await python.initPython();
       if (python.isPythonAvailable()) {
-        Logger.root.info("[pocketpy] Initialized and executed all scripts in SolianApp");
+        log('[pocketpy] Initialized and executed all scripts in SolianApp');
       } else {
-        Logger.root.info("[pocketpy] SolianApp not found or init failed");
+        log('[pocketpy] SolianApp not found or init failed');
       }
     } catch (e) {
-      Logger.root.severe("[pocketpy] Init error", e);
+      log('[pocketpy] Init error: $e');
     }
   }
 
