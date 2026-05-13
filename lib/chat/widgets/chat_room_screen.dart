@@ -45,7 +45,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 @RoutePage()
 class ChatRoomScreen extends HookConsumerWidget {
   final String id;
-  const ChatRoomScreen({super.key, required this.id});
+  const ChatRoomScreen({super.key, @PathParam("id") required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -991,15 +991,14 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 chatState.selectedLocationName,
                             selectedLocationAddress:
                                 chatState.selectedLocationAddress,
-                            selectedLocationWkt:
-                                chatState.selectedLocationWkt,
+                            selectedLocationWkt: chatState.selectedLocationWkt,
                             selectedMeetId: chatState.selectedMeetId,
-                            onLocationSelected: ({
-                              String? name,
-                              String? address,
-                              String? wkt,
-                            }) =>
-                                chatStateNotifier.setLocation(
+                            onLocationSelected:
+                                ({
+                                  String? name,
+                                  String? address,
+                                  String? wkt,
+                                }) => chatStateNotifier.setLocation(
                                   name: name,
                                   address: address,
                                   wkt: wkt,

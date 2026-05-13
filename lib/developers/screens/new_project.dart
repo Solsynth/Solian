@@ -5,7 +5,10 @@ import 'package:island/developers/screens/edit_project.dart';
 @RoutePage()
 class DeveloperProjectNewScreen extends StatelessWidget {
   final String publisherName;
-  const DeveloperProjectNewScreen({super.key, required this.publisherName});
+  const DeveloperProjectNewScreen({
+    super.key,
+    @PathParam("pubName") required this.publisherName,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -40,17 +40,44 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
       primary: customColors.primary != null
           ? Color(customColors.primary!)
           : null,
+      onPrimary: customColors.onPrimary != null
+          ? Color(customColors.onPrimary!)
+          : null,
+      primaryContainer: customColors.primaryContainer != null
+          ? Color(customColors.primaryContainer!)
+          : null,
       secondary: customColors.secondary != null
           ? Color(customColors.secondary!)
+          : null,
+      onSecondary: customColors.onSecondary != null
+          ? Color(customColors.onSecondary!)
+          : null,
+      secondaryContainer: customColors.secondaryContainer != null
+          ? Color(customColors.secondaryContainer!)
           : null,
       tertiary: customColors.tertiary != null
           ? Color(customColors.tertiary!)
           : null,
+      onTertiary: customColors.onTertiary != null
+          ? Color(customColors.onTertiary!)
+          : null,
+      tertiaryContainer: customColors.tertiaryContainer != null
+          ? Color(customColors.tertiaryContainer!)
+          : null,
       surface: customColors.surface != null
           ? Color(customColors.surface!)
           : null,
+      surfaceContainerHighest: customColors.surfaceContainerHighest != null
+          ? Color(customColors.surfaceContainerHighest!)
+          : null,
       background: customColors.background != null
           ? Color(customColors.background!)
+          : null,
+      outline: customColors.outline != null
+          ? Color(customColors.outline!)
+          : null,
+      shadow: customColors.shadow != null
+          ? Color(customColors.shadow!)
           : null,
       error: customColors.error != null ? Color(customColors.error!) : null,
     );

@@ -152,8 +152,8 @@ class FileListScreen extends HookConsumerWidget {
             ),
             onPressed: () => isSelectionMode.value = !isSelectionMode.value,
             tooltip: isSelectionMode.value
-                ? 'exitSelectionMode'
-                : 'enterSelectionMode',
+                ? 'exitSelectionMode'.tr()
+                : 'enterSelectionMode'.tr(),
           ),
 
           // Recycle toggle (only in unindexed mode)

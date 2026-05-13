@@ -262,7 +262,7 @@ class _ChatBasisWidget extends HookConsumerWidget {
 @RoutePage()
 class ChatDetailScreen extends HookConsumerWidget {
   final String id;
-  const ChatDetailScreen({super.key, required this.id});
+  const ChatDetailScreen({super.key, @PathParam("id") required this.id});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

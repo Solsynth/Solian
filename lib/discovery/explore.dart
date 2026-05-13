@@ -11,6 +11,7 @@ import 'package:island/posts/widgets/compose/compose_dialog.dart';
 import 'package:island/posts/widgets/compose/compose_sidebar.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/translate.dart';
 import 'package:island/livestreams/livestream.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/screens/post_detail.dart';
@@ -26,7 +27,9 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -119,7 +122,8 @@ class ExploreScreen extends HookConsumerWidget {
         selectedTagIds.value.isNotEmpty;
 
     final userInfo = ref.watch(userInfoProvider);
-    final isSidePanelOpen = isWide && (composeRequest != null || selectedPostId.value != null);
+    final isSidePanelOpen =
+        isWide && (composeRequest != null || selectedPostId.value != null);
 
     if (isWide) {
       return AppScaffold(
@@ -332,9 +336,9 @@ class ExploreScreen extends HookConsumerWidget {
                           valueListenable: currentAggressive,
                           builder: (context, value, child) {
                             return CheckboxListTile(
-                              title: Text('Aggressive Mode'),
+                              title: Text('exploreAggressiveMode'.tr()),
                               subtitle: Text(
-                                'Hide low rank post from your timeline.',
+                                'exploreAggressiveModeDescription'.tr(),
                               ),
                               value: value,
                               onChanged: (value) {
@@ -357,9 +361,9 @@ class ExploreScreen extends HookConsumerWidget {
                             ),
                           ),
                           child: ListTile(
-                            title: const Text('Discovery Profile'),
-                            subtitle: const Text(
-                              'View your personalized recommendation profile',
+                            title: Text('exploreDiscoveryProfile'.tr()),
+                            subtitle: Text(
+                              'exploreDiscoveryProfileDescription'.tr(),
                             ),
                             trailing: const Icon(Symbols.chevron_right),
                             onTap: () => showDiscoveryProfileSheet(context),
@@ -503,6 +507,19 @@ class ExploreScreen extends HookConsumerWidget {
                       ],
                     ),
                   ),
+                  PopupMenuItem(
+                    value: _ExploreAction.footprints,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Symbols.footprint,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        const Gap(12),
+                        Text('browseFootprints').tr(),
+                      ],
+                    ),
+                  ),
                 ],
                 onSelected: (value) {
                   switch (value) {
@@ -521,6 +538,9 @@ class ExploreScreen extends HookConsumerWidget {
                       break;
                     case _ExploreAction.shuffle:
                       context.router.push(const PostShuffleRoute());
+                      break;
+                    case _ExploreAction.footprints:
+                      context.router.push(const BookmarksRoute());
                       break;
                     default:
                       break;
@@ -891,7 +911,7 @@ class ExploreScreen extends HookConsumerWidget {
       if (composeRequest != null) {
         ref.read(composeRequestProvider.notifier).setRequest(null);
       }
-      
+
       if (selectedPostId.value == postId) {
         context.router.push(PostDetailRoute(id: postId));
       } else {
@@ -973,8 +993,12 @@ class ExploreScreen extends HookConsumerWidget {
         final totalWidth = constraints.maxWidth;
         final listWidth = (hasCompose || hasSelection)
             ? (totalWidth - 28) / 2
-            : (timelineContentMaxWidth < totalWidth ? timelineContentMaxWidth : totalWidth);
-        final detailWidth = (hasCompose || hasSelection) ? (totalWidth - 28) / 2 : 0.0;
+            : (timelineContentMaxWidth < totalWidth
+                  ? timelineContentMaxWidth
+                  : totalWidth);
+        final detailWidth = (hasCompose || hasSelection)
+            ? (totalWidth - 28) / 2
+            : 0.0;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1002,33 +1026,35 @@ class ExploreScreen extends HookConsumerWidget {
                       child: ComposeSidebar(
                         request: composeRequest,
                         onClose: () {
-                          ref.read(composeRequestProvider.notifier).setRequest(null);
+                          ref
+                              .read(composeRequestProvider.notifier)
+                              .setRequest(null);
                         },
                       ),
                     )
                   : hasSelection
-                      ? Container(
-                          margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: _TimelineDetailPane(
-                            postId: selectedPostId.value!,
-                            isExpanded: false,
-                            onExpandToggle: () {
-                              context.router.push(
-                                PostDetailRoute(id: selectedPostId.value!),
-                              );
-                            },
-                            onClose: () {
-                              selectedPostId.value = null;
-                            },
-                            onPostTap: handlePostTap,
-                          ),
-                        )
-                      : null,
+                  ? Container(
+                      margin: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _TimelineDetailPane(
+                        postId: selectedPostId.value!,
+                        isExpanded: false,
+                        onExpandToggle: () {
+                          context.router.push(
+                            PostDetailRoute(id: selectedPostId.value!),
+                          );
+                        },
+                        onClose: () {
+                          selectedPostId.value = null;
+                        },
+                        onPostTap: handlePostTap,
+                      ),
+                    )
+                  : null,
             ),
           ],
         );
@@ -1208,6 +1234,16 @@ class _ExploreFilterToolbar extends StatelessWidget {
                         ],
                       ),
                     ),
+                    PopupMenuItem(
+                      value: _ExploreAction.footprints,
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.footprint),
+                          const Gap(12),
+                          Text('browseFootprints').tr(),
+                        ],
+                      ),
+                    ),
                   ],
                   onSelected: (value) {
                     switch (value) {
@@ -1229,6 +1265,9 @@ class _ExploreFilterToolbar extends StatelessWidget {
                         break;
                       case _ExploreAction.shuffle:
                         context.router.push(const PostShuffleRoute());
+                        break;
+                      case _ExploreAction.footprints:
+                        context.router.push(const BookmarksRoute());
                         break;
                     }
                   },
@@ -1352,7 +1391,14 @@ class _FilterToggleButton extends StatelessWidget {
   }
 }
 
-enum _ExploreAction { articles, search, livestreams, categories, shuffle }
+enum _ExploreAction {
+  articles,
+  search,
+  livestreams,
+  categories,
+  shuffle,
+  footprints,
+}
 
 class _RankingToolbar extends StatelessWidget {
   final String currentMode;
@@ -1428,13 +1474,13 @@ class _TimelineModeDropdown extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
 
           onChanged: onChanged,
-          items: const [
+          items: [
             DropdownMenuItem(
               value: 'personalized',
-              child: Text('Personalized'),
+              child: Text('exploreModePersonalized'.tr()),
             ),
-            DropdownMenuItem(value: 'top', child: Text('Top')),
-            DropdownMenuItem(value: 'latest', child: Text('Latest')),
+            DropdownMenuItem(value: 'top', child: Text('exploreModeTop'.tr())),
+            DropdownMenuItem(value: 'latest', child: Text('exploreModeLatest'.tr())),
           ],
         ),
       ),
@@ -1592,7 +1638,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Top Pick',
+                            'discoveryTopPick'.tr(),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1612,7 +1658,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Not Recommended',
+                            'discoveryNotRecommended'.tr(),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1663,7 +1709,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
         final reasons =
             (item['reasons'] as List?)?.whereType<String>().toList() ??
             const <String>[];
-        if (reasons.isEmpty) reasons.add('We think you might like this.');
+        if (reasons.isEmpty) reasons.add('discoverySuggestionReason'.tr());
         final rank = item['score'] is num
             ? (item['score'] as num).toDouble()
             : null;
@@ -1712,7 +1758,7 @@ class _DiscoveryActivityItem extends ConsumerWidget {
                   children: [
                     const Icon(Symbols.rule, size: 16),
                     Text(
-                      'Rank: $rank',
+                      'discoveryRank'.tr(args: ['$rank']),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -1979,6 +2025,30 @@ class _TimelineDetailPane extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final postState = ref.watch(postStateProvider(postId));
     final user = ref.watch(userInfoProvider);
+    final translating = useState(false);
+    final translatedText = useState<String?>(null);
+    final currentLanguage = context.locale.toString();
+
+    Future<void> translatePost(String text) async {
+      if (translatedText.value != null) {
+        translatedText.value = null;
+        return;
+      }
+      if (translating.value) return;
+      translating.value = true;
+      try {
+        final result = await ref.read(
+          translateStringProvider(
+            TranslateQuery(text: text, lang: currentLanguage.substring(0, 2)),
+          ).future,
+        );
+        translatedText.value = result;
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        translating.value = false;
+      }
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -2011,8 +2081,8 @@ class _TimelineDetailPane extends HookConsumerWidget {
               children: [
                 Tooltip(
                   message: isExpanded
-                      ? 'Restore split view'
-                      : 'Expand post details',
+                      ? 'restoreSplitView'.tr()
+                      : 'expandPostDetails'.tr(),
                   child: IconButton(
                     onPressed: onExpandToggle,
                     icon: Icon(
@@ -2028,7 +2098,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                 ),
                 const Spacer(),
                 Tooltip(
-                  message: 'Close post details',
+                  message: 'closePostDetails'.tr(),
                   child: IconButton(
                     onPressed: onClose,
                     icon: Icon(Symbols.close, size: 20),
@@ -2062,7 +2132,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                           ),
                           const Gap(12),
                           Text(
-                            'Post not found',
+                            'postNotFound'.tr(),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
@@ -2087,6 +2157,7 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                 item: post,
                                 isFullPost: true,
                                 isEmbedReply: false,
+                                isTranslatable: false,
                                 textScale: post.type == 1 ? 1.1 : 1.0,
                                 padding: const EdgeInsets.fromLTRB(
                                   12,
@@ -2121,8 +2192,73 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                       .read(postStateProvider(postId).notifier)
                                       .updatePost(newPost);
                                 },
+                                onTranslate: translatePost,
                               ).padding(horizontal: 12, vertical: 8),
                             ),
+                            if (translatedText.value != null ||
+                                translating.value)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12 + 16,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Expanded(child: Divider()),
+                                          const Gap(8),
+                                          translating.value
+                                              ? const SizedBox(
+                                                  width: 14,
+                                                  height: 14,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              : const Text('translated')
+                                                    .tr()
+                                                    .fontSize(11)
+                                                    .opacity(0.75),
+                                        ],
+                                      ),
+                                      if (translatedText.value != null) ...[
+                                        const Gap(8),
+                                        MarkdownTextContent(
+                                          textStyle: TextStyle(
+                                            fontSize:
+                                                Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .fontSize! *
+                                                (post.type == 1 ? 1.1 : 1.0),
+                                          ),
+                                          content: translatedText.value!,
+                                          isSelectable: true,
+                                          attachments: post.attachments,
+                                          noMentionChip:
+                                              post.fediverseUri != null,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            if (post.realm != null)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    24,
+                                    0,
+                                    24,
+                                    8,
+                                  ),
+                                  child: PostRealmBadge(realm: post.realm!),
+                                ),
+                              ),
                             DefaultTabController(
                               length: 4,
                               child: PostInteractionsSlivers(
@@ -2175,13 +2311,13 @@ class _TimelineDetailPane extends HookConsumerWidget {
                       ),
                       const Gap(12),
                       Text(
-                        'Failed to load post',
+                        'failedToLoadPost'.tr(),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const Gap(8),
                       TextButton(
                         onPressed: () => ref.invalidate(postProvider(postId)),
-                        child: const Text('Retry'),
+                        child: Text('retry'.tr()),
                       ),
                     ],
                   ),

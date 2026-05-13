@@ -22,9 +22,9 @@ class DeveloperAppDetailScreen extends HookConsumerWidget {
 
   const DeveloperAppDetailScreen({
     super.key,
-    required this.pubName,
-    required this.projectId,
-    required this.appId,
+    @PathParam("pubName") required this.pubName,
+    @PathParam("projectId") required this.projectId,
+    @PathParam("appId") required this.appId,
   });
 
   @override

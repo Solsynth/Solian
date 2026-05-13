@@ -56,8 +56,8 @@ class DeveloperAppListScreen extends HookConsumerWidget {
   final String projectId;
   const DeveloperAppListScreen({
     super.key,
-    required this.publisherName,
-    required this.projectId,
+    @PathParam("pubName") required this.publisherName,
+    @PathParam("projectId") required this.projectId,
   });
 
   @override

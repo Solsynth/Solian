@@ -22,6 +22,7 @@ sealed class PostListQuery with _$PostListQuery {
     bool? includeReplies,
     bool? mediaOnly,
     String? queryTerm,
+    String? searchEngine,
     String? order,
     int? periodStart,
     int? periodEnd,
@@ -152,6 +153,8 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
           if (currentFilter.periodEnd != null)
             'periodEnd': currentFilter.periodEnd,
           if (currentFilter.queryTerm != null) 'query': currentFilter.queryTerm,
+          if (currentFilter.searchEngine != null)
+            'searchEngine': currentFilter.searchEngine,
           if (currentFilter.mediaOnly != null) 'media': currentFilter.mediaOnly,
         };
 
@@ -206,6 +209,8 @@ class PostListNotifier extends AsyncNotifier<PaginationState<SnPost>>
         if (currentFilter.periodEnd != null)
           'periodEnd': currentFilter.periodEnd,
         if (currentFilter.queryTerm != null) 'query': currentFilter.queryTerm,
+        if (currentFilter.searchEngine != null)
+          'searchEngine': currentFilter.searchEngine,
         if (currentFilter.mediaOnly != null) 'media': currentFilter.mediaOnly,
       };
 

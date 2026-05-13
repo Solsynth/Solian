@@ -317,7 +317,8 @@ class _PostsSearchTab extends HookConsumerWidget {
                               ),
                             ),
                             const Gap(8),
-                            if (showFilters.value) buildFilterPanel(),
+                            if (showFilters.value)
+                              buildFilterPanel().padding(horizontal: 8),
                           ],
                         ),
                       ),
@@ -364,7 +365,8 @@ class _PostsSearchTab extends HookConsumerWidget {
                           ),
                         ),
                         const Gap(4),
-                        if (showFilters.value) buildFilterPanel(),
+                        if (showFilters.value)
+                          buildFilterPanel().padding(horizontal: 8),
                       ],
                     ),
                   ),
@@ -782,9 +784,7 @@ class _AccountSearchTab extends HookConsumerWidget {
                                 account.profile.bio,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall,
+                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                               trailing: const Icon(
                                 Symbols.chevron_right,
