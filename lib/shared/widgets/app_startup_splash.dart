@@ -9,6 +9,7 @@ import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
+import 'package:island/core/services/python_service.dart' as python; // 新增导入
 
 const kDefaultBootstrapRetryTimeouts = <Duration>[
   Duration(milliseconds: 1000),
@@ -122,6 +123,14 @@ class StartupSplashScreen extends HookConsumerWidget {
             await ref.read(audioSessionProvider.future);
             await ref.read(notificationSfxProvider.future);
             await ref.read(messageSfxProvider.future);
+          },
+        ),
+        // 新增：Python 脚本加载阶段
+        _BootstrapStage(
+          label: 'Initializing Python scripts',
+          isCritical: false, // 非关键，失败不影响主流程
+          action: () async {
+            await python.initPython();
           },
         ),
       ],
