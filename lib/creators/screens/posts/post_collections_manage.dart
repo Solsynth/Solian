@@ -16,26 +16,28 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-final publisherCollectionsProvider =
-    FutureProvider.autoDispose.family<List<SnPostCollection>, String>((ref, pubName) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  return client.sphere.listPublisherCollections(pubName);
-});
+final publisherCollectionsProvider = FutureProvider.autoDispose
+    .family<List<SnPostCollection>, String>((ref, pubName) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      return client.sphere.listPublisherCollections(pubName);
+    });
 
-final collectionPostsProvider = FutureProvider.autoDispose.family<PaginatedResult<SnPost>, (String, String)>(
-  (ref, args) async {
-    final client = ref.watch(solarNetworkClientProvider);
-    return client.sphere.listPublisherCollectionPosts(
-      publisherName: args.$1,
-      slug: args.$2,
-    );
-  },
-);
+final collectionPostsProvider = FutureProvider.autoDispose
+    .family<PaginatedResult<SnPost>, (String, String)>((ref, args) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      return client.sphere.listPublisherCollectionPosts(
+        publisherName: args.$1,
+        slug: args.$2,
+      );
+    });
 
 @RoutePage()
 class CreatorPostCollectionsScreen extends HookConsumerWidget {
   final String pubName;
-  const CreatorPostCollectionsScreen({super.key, required this.pubName});
+  const CreatorPostCollectionsScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,7 +72,9 @@ class CreatorPostCollectionsScreen extends HookConsumerWidget {
                 separatorBuilder: (_, _) => const Gap(8),
                 itemBuilder: (context, index) {
                   final collection = items[index];
-                  final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+                  final title = collection.name?.isNotEmpty == true
+                      ? collection.name!
+                      : collection.slug;
                   return Card(
                     child: ListTile(
                       title: Text(title),
@@ -98,7 +102,9 @@ class CreatorPostCollectionsScreen extends HookConsumerWidget {
                           ),
                         ).then((value) {
                           if (value != null) {
-                            ref.invalidate(publisherCollectionsProvider(pubName));
+                            ref.invalidate(
+                              publisherCollectionsProvider(pubName),
+                            );
                           }
                         });
                       },
@@ -137,7 +143,9 @@ class _CollectionAvatar extends StatelessWidget {
             if (background != null)
               CloudFileWidget(item: background, fit: BoxFit.cover)
             else
-              ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+              ColoredBox(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
             Center(
               child: ProfilePictureWidget(
                 file: icon,
@@ -162,7 +170,9 @@ class _CollectionEditorSheet extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final slugController = useTextEditingController(text: existing?.slug ?? '');
     final nameController = useTextEditingController(text: existing?.name ?? '');
-    final descController = useTextEditingController(text: existing?.description ?? '');
+    final descController = useTextEditingController(
+      text: existing?.description ?? '',
+    );
     final background = useState<SnCloudFile?>(existing?.background);
     final icon = useState<SnCloudFile?>(existing?.icon);
     final saving = useState(false);
@@ -215,7 +225,8 @@ class _CollectionEditorSheet extends HookConsumerWidget {
                     : descController.text.trim(),
                 backgroundId: background.value?.id,
                 iconId: icon.value?.id,
-                clearBackground: existing?.background != null && background.value == null,
+                clearBackground:
+                    existing?.background != null && background.value == null,
                 clearIcon: existing?.icon != null && icon.value == null,
               );
         if (context.mounted) Navigator.pop(context, result);
@@ -241,9 +252,14 @@ class _CollectionEditorSheet extends HookConsumerWidget {
                     background.value = await pickBackground();
                   },
                   child: background.value != null
-                      ? CloudImageWidget(file: background.value!, fit: BoxFit.cover)
+                      ? CloudImageWidget(
+                          file: background.value!,
+                          fit: BoxFit.cover,
+                        )
                       : Container(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           alignment: Alignment.center,
                           child: const Icon(Symbols.wallpaper),
                         ),
@@ -258,11 +274,18 @@ class _CollectionEditorSheet extends HookConsumerWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Theme.of(context).colorScheme.surface, width: 3),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.surface,
+                          width: 3,
+                        ),
                       ),
                       child: icon.value != null
                           ? ProfilePictureWidget(file: icon.value!, radius: 28)
-                          : ProfilePictureWidget(file: null, radius: 28, fallbackIcon: Symbols.collections),
+                          : ProfilePictureWidget(
+                              file: null,
+                              radius: 28,
+                              fallbackIcon: Symbols.collections,
+                            ),
                     ),
                   ),
                 ),
@@ -273,11 +296,15 @@ class _CollectionEditorSheet extends HookConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        onPressed: background.value == null ? null : () => background.value = null,
+                        onPressed: background.value == null
+                            ? null
+                            : () => background.value = null,
                         icon: const Icon(Symbols.delete),
                       ),
                       IconButton(
-                        onPressed: icon.value == null ? null : () => icon.value = null,
+                        onPressed: icon.value == null
+                            ? null
+                            : () => icon.value = null,
                         icon: const Icon(Symbols.delete),
                       ),
                     ],
@@ -321,12 +348,19 @@ class _CollectionDetailSheet extends HookConsumerWidget {
   final String pubName;
   final SnPostCollection collection;
 
-  const _CollectionDetailSheet({required this.pubName, required this.collection});
+  const _CollectionDetailSheet({
+    required this.pubName,
+    required this.collection,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final posts = ref.watch(collectionPostsProvider((pubName, collection.slug)));
-    final title = collection.name?.isNotEmpty == true ? collection.name! : collection.slug;
+    final posts = ref.watch(
+      collectionPostsProvider((pubName, collection.slug)),
+    );
+    final title = collection.name?.isNotEmpty == true
+        ? collection.name!
+        : collection.slug;
 
     Future<void> deleteCollection() async {
       final confirm = await showConfirmAlert(
@@ -361,7 +395,8 @@ class _CollectionDetailSheet extends HookConsumerWidget {
                 existing: collection,
               ),
             ).then((value) {
-              if (value != null && context.mounted) Navigator.pop(context, true);
+              if (value != null && context.mounted)
+                Navigator.pop(context, true);
             });
           },
         ),
@@ -379,9 +414,16 @@ class _CollectionDetailSheet extends HookConsumerWidget {
               fit: StackFit.expand,
               children: [
                 if (collection.background != null)
-                  CloudFileWidget(item: collection.background!, fit: BoxFit.cover)
+                  CloudFileWidget(
+                    item: collection.background!,
+                    fit: BoxFit.cover,
+                  )
                 else
-                  Container(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+                  Container(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                  ),
                 Positioned(
                   left: 16,
                   bottom: 16,
@@ -397,11 +439,16 @@ class _CollectionDetailSheet extends HookConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white)),
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: Colors.white),
+                          ),
                           if (collection.description?.isNotEmpty ?? false)
                             Text(
                               collection.description!,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Colors.white70),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -441,7 +488,12 @@ class _CollectionDetailSheet extends HookConsumerWidget {
                               slug: collection.slug,
                               postIds: ids,
                             );
-                            ref.invalidate(collectionPostsProvider((pubName, collection.slug)));
+                            ref.invalidate(
+                              collectionPostsProvider((
+                                pubName,
+                                collection.slug,
+                              )),
+                            );
                           },
                         ),
                       if (index < result.items.length - 1)
@@ -458,7 +510,12 @@ class _CollectionDetailSheet extends HookConsumerWidget {
                               slug: collection.slug,
                               postIds: ids,
                             );
-                            ref.invalidate(collectionPostsProvider((pubName, collection.slug)));
+                            ref.invalidate(
+                              collectionPostsProvider((
+                                pubName,
+                                collection.slug,
+                              )),
+                            );
                           },
                         ),
                     ],
@@ -466,11 +523,13 @@ class _CollectionDetailSheet extends HookConsumerWidget {
                 ).padding(horizontal: 16);
               },
             ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => ResponseErrorWidget(
-          error: error,
-          onRetry: () => ref.invalidate(collectionPostsProvider((pubName, collection.slug))),
-        ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => ResponseErrorWidget(
+              error: error,
+              onRetry: () => ref.invalidate(
+                collectionPostsProvider((pubName, collection.slug)),
+              ),
+            ),
           ),
         ],
       ),

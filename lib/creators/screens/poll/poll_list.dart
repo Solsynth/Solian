@@ -62,7 +62,10 @@ Future<SnPollWithStats> pollWithStats(Ref ref, String id) async {
 
 @RoutePage()
 class CreatorPollListScreen extends HookConsumerWidget {
-  const CreatorPollListScreen({super.key, required this.pubName});
+  const CreatorPollListScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+  });
 
   final String pubName;
 

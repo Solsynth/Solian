@@ -36,8 +36,8 @@ class CreatorSiteDetailScreen extends HookConsumerWidget {
 
   const CreatorSiteDetailScreen({
     super.key,
-    required this.siteSlug,
-    required this.pubName,
+    @PathParam("siteSlug") required this.siteSlug,
+    @PathParam("pubName") required this.pubName,
   });
 
   @override

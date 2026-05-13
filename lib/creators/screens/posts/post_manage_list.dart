@@ -23,7 +23,10 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class CreatorPostListScreen extends HookConsumerWidget {
   final String pubName;
 
-  const CreatorPostListScreen({super.key, required this.pubName});
+  const CreatorPostListScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,7 +50,9 @@ class CreatorPostListScreen extends HookConsumerWidget {
       clearSelection();
     }
 
-    Future<void> runBatchAction(Future<void> Function(List<String>) action) async {
+    Future<void> runBatchAction(
+      Future<void> Function(List<String>) action,
+    ) async {
       final ids = selectedIds.value.toList();
       if (ids.isEmpty) return;
       if (context.mounted) showLoadingModal(context);
@@ -120,10 +125,12 @@ class CreatorPostListScreen extends HookConsumerWidget {
                       isDanger: true,
                     );
                     if (confirmed == true) {
-                      await runBatchAction((ids) => ref
-                          .read(solarNetworkClientProvider)
-                          .sphere
-                          .batchDeletePosts(ids));
+                      await runBatchAction(
+                        (ids) => ref
+                            .read(solarNetworkClientProvider)
+                            .sphere
+                            .batchDeletePosts(ids),
+                      );
                     }
                   case _BatchAction.changeVisibility:
                     await _showBatchVisibilitySheet(
@@ -179,7 +186,9 @@ class CreatorPostListScreen extends HookConsumerWidget {
           IconButton(
             onPressed: () => isFilterVisible.value = !isFilterVisible.value,
             icon: Icon(
-              isFilterVisible.value ? Symbols.filter_list_off : Symbols.filter_list,
+              isFilterVisible.value
+                  ? Symbols.filter_list_off
+                  : Symbols.filter_list,
             ),
             tooltip: isFilterVisible.value ? 'Hide filters' : 'Show filters',
           ),
@@ -201,7 +210,7 @@ class CreatorPostListScreen extends HookConsumerWidget {
                     ),
                   )
                 : const SizedBox(key: ValueKey('filters-hidden')),
-            ),
+          ),
           Expanded(
             child: PaginationList<SnPost>(
               key: ValueKey(queryState.value),
@@ -228,7 +237,8 @@ class CreatorPostListScreen extends HookConsumerWidget {
                 },
                 onLongPress: () {
                   enterSelectionMode();
-                  final next = Set<String>.from(selectedIds.value)..add(post.id);
+                  final next = Set<String>.from(selectedIds.value)
+                    ..add(post.id);
                   selectedIds.value = next;
                 },
               ),
@@ -253,7 +263,10 @@ class CreatorPostListScreen extends HookConsumerWidget {
     if (visibility == null) return;
     if (context.mounted) showLoadingModal(context);
     try {
-      await ref.read(solarNetworkClientProvider).sphere.batchUpdatePostVisibility(
+      await ref
+          .read(solarNetworkClientProvider)
+          .sphere
+          .batchUpdatePostVisibility(
             postIds: postIds,
             visibility: switch (visibility) {
               1 => 'friends',
@@ -280,10 +293,8 @@ class CreatorPostListScreen extends HookConsumerWidget {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _BatchCollectionSheet(
-        pubName: pubName,
-        postIds: postIds,
-      ),
+      builder: (context) =>
+          _BatchCollectionSheet(pubName: pubName, postIds: postIds),
     );
     clearSelection();
   }
@@ -296,7 +307,6 @@ class CreatorPostListScreen extends HookConsumerWidget {
       builder: (context) => _PostDetailSheet(post: post),
     );
   }
-
 }
 
 class _BatchVisibilitySheet extends StatefulWidget {
@@ -355,7 +365,9 @@ class _BatchCollectionSheet extends HookConsumerWidget {
       try {
         isLoading.value = true;
         final client = ref.read(solarNetworkClientProvider);
-        collections.value = await client.sphere.listPublisherCollections(pubName);
+        collections.value = await client.sphere.listPublisherCollections(
+          pubName,
+        );
       } catch (err) {
         showErrorAlert(err);
       } finally {
@@ -429,11 +441,15 @@ class _BatchCollectionSheet extends HookConsumerWidget {
                       spacing: 8,
                       children: [
                         TextButton(
-                          onPressed: isLoading.value ? null : () => addToCollection(c),
+                          onPressed: isLoading.value
+                              ? null
+                              : () => addToCollection(c),
                           child: const Text('Add'),
                         ),
                         TextButton(
-                          onPressed: isLoading.value ? null : () => removeFromCollection(c),
+                          onPressed: isLoading.value
+                              ? null
+                              : () => removeFromCollection(c),
                           child: const Text('Remove'),
                         ),
                       ],
@@ -641,11 +657,7 @@ class _PostDetailSheet extends StatelessWidget {
         value: '${post.attachments.length}',
         icon: Symbols.attach_file,
       ),
-      (
-        label: 'Tags',
-        value: '${post.tags.length}',
-        icon: Symbols.label,
-      ),
+      (label: 'Tags', value: '${post.tags.length}', icon: Symbols.label),
       (
         label: 'Categories',
         value: '${post.categories.length}',
@@ -692,7 +704,11 @@ class _PostDetailSheet extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(detail.icon, size: 14, color: theme.colorScheme.secondary),
+                        Icon(
+                          detail.icon,
+                          size: 14,
+                          color: theme.colorScheme.secondary,
+                        ),
                         const Gap(8),
                         Expanded(
                           child: Column(

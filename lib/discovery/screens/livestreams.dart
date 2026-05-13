@@ -77,7 +77,7 @@ class ActiveLivestreamsScreen extends ConsumerWidget {
               title: 'noActiveLivestreams'.tr(),
               description: 'thereAreNoLiveStreamsRightNow'.tr(),
               action: FilledButton.icon(
-                onPressed: () => context.router.push(const ExploreRoute()),
+                onPressed: () => context.router.navigate(const ExploreRoute()),
                 icon: const Icon(Symbols.explore),
                 label: Text('exploreContent'.tr()),
               ),

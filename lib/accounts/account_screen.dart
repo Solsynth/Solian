@@ -238,13 +238,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.wallet,
-                    'title': 'wallet',
-                    'onTap': () {
-                      context.router.push(const WalletRoute());
-                    },
-                  },
-                  {
                     'icon': Symbols.military_tech,
                     'title': 'badges',
                     'onTap': () {
@@ -263,13 +256,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     'title': 'meet',
                     'onTap': () {
                       context.router.push(const MeetRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.history,
-                    'title': 'actionLogs',
-                    'onTap': () {
-                      context.router.push(const ActionLogsRoute());
                     },
                   },
                   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
@@ -306,20 +292,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     'title': 'tickets',
                     'onTap': () {
                       context.router.push(const TicketListRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.fitness_center,
-                    'title': 'fitness',
-                    'onTap': () {
-                      context.router.push(const FitnessDashboardRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.gavel,
-                    'title': 'punishments',
-                    'onTap': () {
-                      context.router.push(const PunishmentsRoute());
                     },
                   },
                 ];
@@ -359,16 +331,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Symbols.person_edit),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              dense: true,
-              title: Text('updateYourProfile').tr(),
-              onTap: () {
-                context.router.push(const AccountUpdateProfileRoute());
-              },
-            ),
-            ListTile(
               leading: const Icon(Symbols.manage_accounts),
               trailing: const Icon(Symbols.chevron_right),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -379,16 +341,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
               },
             ),
             const Divider(height: 1).padding(vertical: 8),
-            ListTile(
-              leading: const Icon(Symbols.info),
-              trailing: const Icon(Symbols.chevron_right),
-              contentPadding: EdgeInsets.symmetric(horizontal: 24),
-              dense: true,
-              title: Text('about').tr(),
-              onTap: () {
-                context.router.push(const AboutRoute());
-              },
-            ),
             ListTile(
               leading: const Icon(Symbols.bug_report),
               trailing: const Icon(Symbols.chevron_right),
