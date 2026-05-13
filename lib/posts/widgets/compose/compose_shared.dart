@@ -63,6 +63,8 @@ class ComposeState {
   final ValueNotifier<String?> meetId;
   // Thumbnail id for article type post (nullable)
   final ValueNotifier<String?> thumbnailId;
+  // Collection IDs to assign the post to on creation
+  final ValueNotifier<List<String>> collectionIds;
   Timer? _autoSaveTimer;
 
   ComposeState({
@@ -92,6 +94,7 @@ class ComposeState {
     String? locationWkt,
     String? meetId,
     String? thumbnailId,
+    List<String>? collectionIds,
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
        liveStreamId = ValueNotifier<String?>(liveStreamId),
@@ -101,6 +104,7 @@ class ComposeState {
        locationWkt = ValueNotifier<String?>(locationWkt),
        meetId = ValueNotifier<String?>(meetId),
        thumbnailId = ValueNotifier<String?>(thumbnailId),
+       collectionIds = ValueNotifier<List<String>>(collectionIds ?? []),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
   void startAutoSave(WidgetRef ref) {
@@ -189,6 +193,10 @@ class ComposeLogic {
     // Extract thumbnail ID from meta
     final thumbnailId = originalPost?.meta?['thumbnail'] as String?;
 
+    // Extract collection IDs from publisher collections
+    final collectionIds =
+        originalPost?.publisherCollections.map((c) => c.id).toList() ?? <String>[];
+
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
         originalPost?.attachments
@@ -235,12 +243,18 @@ class ComposeLogic {
       locationWkt: locationWkt,
       meetId: meetId,
       thumbnailId: thumbnailId,
+      collectionIds: collectionIds,
     );
   }
 
   static ComposeState createStateFromDraft(SnPost draft, {int postType = 0}) {
     final tags = draft.tags.map((tag) => tag.slug).toList();
     final thumbnailId = draft.meta?['thumbnail'] as String?;
+    final collectionIds =
+        (draft.meta?['collection_ids'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        <String>[];
 
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
@@ -267,6 +281,7 @@ class ComposeLogic {
       fundId: null,
       liveStreamId: null,
       thumbnailId: thumbnailId,
+      collectionIds: collectionIds,
     );
   }
 
@@ -367,6 +382,8 @@ class ComposeLogic {
     final meta = <String, dynamic>{
       if (state.postType == 1 && state.thumbnailId.value != null)
         'thumbnail': state.thumbnailId.value,
+      if (state.collectionIds.value.isNotEmpty)
+        'collection_ids': state.collectionIds.value,
       if (embeds.isNotEmpty) 'embeds': embeds,
     };
     final draft = SnPost(
@@ -477,6 +494,8 @@ class ComposeLogic {
         'thumbnail_id': state.thumbnailId.value,
       if (state.embedView.value != null)
         'embed_view': state.embedView.value!.toJson(),
+      if (state.collectionIds.value.isNotEmpty)
+        'collection_ids': state.collectionIds.value,
       'drafted_at': now,
       'published_at': null,
     };
@@ -983,6 +1002,8 @@ class ComposeLogic {
           'thumbnail_id': state.thumbnailId.value,
         if (state.embedView.value != null)
           'embed_view': state.embedView.value!.toJson(),
+        if (state.collectionIds.value.isNotEmpty)
+          'collection_ids': state.collectionIds.value,
       };
 
       final publisherName = state.currentPublisher.value?.name;
@@ -1173,6 +1194,7 @@ class ComposeLogic {
     state.locationWkt.dispose();
     state.meetId.dispose();
     state.thumbnailId.dispose();
+    state.collectionIds.dispose();
     state.cloudDraftId.dispose();
   }
 }

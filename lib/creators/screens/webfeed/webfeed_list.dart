@@ -14,7 +14,10 @@ import 'package:styled_widget/styled_widget.dart';
 class CreatorFeedListScreen extends ConsumerWidget {
   final String pubName;
 
-  const CreatorFeedListScreen({super.key, required this.pubName});
+  const CreatorFeedListScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

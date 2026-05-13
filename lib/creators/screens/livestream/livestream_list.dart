@@ -62,7 +62,10 @@ String? _extractCloudFileId(dynamic pickerResult) {
 class CreatorLivestreamListScreen extends ConsumerWidget {
   final String pubName;
 
-  const CreatorLivestreamListScreen({super.key, required this.pubName});
+  const CreatorLivestreamListScreen({
+    super.key,
+    @PathParam("pubName") required this.pubName,
+  });
 
   Future<void> _createLivestream(
     BuildContext context,

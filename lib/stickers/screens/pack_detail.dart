@@ -55,7 +55,10 @@ Future<bool> marketplaceStickerPackOwnership(
 @RoutePage()
 class StickerMarketplacePackDetailScreen extends HookConsumerWidget {
   final String id;
-  const StickerMarketplacePackDetailScreen({super.key, required this.id});
+  const StickerMarketplacePackDetailScreen({
+    super.key,
+    @PathParam("id") required this.id,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

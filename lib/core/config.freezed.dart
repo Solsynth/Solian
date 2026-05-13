@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ThemeColors {
 
- int? get primary; int? get secondary; int? get tertiary; int? get surface; int? get background; int? get error;
+ int? get primary; int? get onPrimary; int? get primaryContainer; int? get secondary; int? get onSecondary; int? get secondaryContainer; int? get tertiary; int? get onTertiary; int? get tertiaryContainer; int? get surface; int? get surfaceContainerHighest; int? get background; int? get outline; int? get shadow; int? get error;
 /// Create a copy of ThemeColors
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ThemeColorsCopyWith<ThemeColors> get copyWith => _$ThemeColorsCopyWithImpl<Them
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThemeColors&&(identical(other.primary, primary) || other.primary == primary)&&(identical(other.secondary, secondary) || other.secondary == secondary)&&(identical(other.tertiary, tertiary) || other.tertiary == tertiary)&&(identical(other.surface, surface) || other.surface == surface)&&(identical(other.background, background) || other.background == background)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThemeColors&&(identical(other.primary, primary) || other.primary == primary)&&(identical(other.onPrimary, onPrimary) || other.onPrimary == onPrimary)&&(identical(other.primaryContainer, primaryContainer) || other.primaryContainer == primaryContainer)&&(identical(other.secondary, secondary) || other.secondary == secondary)&&(identical(other.onSecondary, onSecondary) || other.onSecondary == onSecondary)&&(identical(other.secondaryContainer, secondaryContainer) || other.secondaryContainer == secondaryContainer)&&(identical(other.tertiary, tertiary) || other.tertiary == tertiary)&&(identical(other.onTertiary, onTertiary) || other.onTertiary == onTertiary)&&(identical(other.tertiaryContainer, tertiaryContainer) || other.tertiaryContainer == tertiaryContainer)&&(identical(other.surface, surface) || other.surface == surface)&&(identical(other.surfaceContainerHighest, surfaceContainerHighest) || other.surfaceContainerHighest == surfaceContainerHighest)&&(identical(other.background, background) || other.background == background)&&(identical(other.outline, outline) || other.outline == outline)&&(identical(other.shadow, shadow) || other.shadow == shadow)&&(identical(other.error, error) || other.error == error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,primary,secondary,tertiary,surface,background,error);
+int get hashCode => Object.hash(runtimeType,primary,onPrimary,primaryContainer,secondary,onSecondary,secondaryContainer,tertiary,onTertiary,tertiaryContainer,surface,surfaceContainerHighest,background,outline,shadow,error);
 
 @override
 String toString() {
-  return 'ThemeColors(primary: $primary, secondary: $secondary, tertiary: $tertiary, surface: $surface, background: $background, error: $error)';
+  return 'ThemeColors(primary: $primary, onPrimary: $onPrimary, primaryContainer: $primaryContainer, secondary: $secondary, onSecondary: $onSecondary, secondaryContainer: $secondaryContainer, tertiary: $tertiary, onTertiary: $onTertiary, tertiaryContainer: $tertiaryContainer, surface: $surface, surfaceContainerHighest: $surfaceContainerHighest, background: $background, outline: $outline, shadow: $shadow, error: $error)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ThemeColorsCopyWith<$Res>  {
   factory $ThemeColorsCopyWith(ThemeColors value, $Res Function(ThemeColors) _then) = _$ThemeColorsCopyWithImpl;
 @useResult
 $Res call({
- int? primary, int? secondary, int? tertiary, int? surface, int? background, int? error
+ int? primary, int? onPrimary, int? primaryContainer, int? secondary, int? onSecondary, int? secondaryContainer, int? tertiary, int? onTertiary, int? tertiaryContainer, int? surface, int? surfaceContainerHighest, int? background, int? outline, int? shadow, int? error
 });
 
 
@@ -65,13 +65,22 @@ class _$ThemeColorsCopyWithImpl<$Res>
 
 /// Create a copy of ThemeColors
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? primary = freezed,Object? secondary = freezed,Object? tertiary = freezed,Object? surface = freezed,Object? background = freezed,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? primary = freezed,Object? onPrimary = freezed,Object? primaryContainer = freezed,Object? secondary = freezed,Object? onSecondary = freezed,Object? secondaryContainer = freezed,Object? tertiary = freezed,Object? onTertiary = freezed,Object? tertiaryContainer = freezed,Object? surface = freezed,Object? surfaceContainerHighest = freezed,Object? background = freezed,Object? outline = freezed,Object? shadow = freezed,Object? error = freezed,}) {
   return _then(_self.copyWith(
 primary: freezed == primary ? _self.primary : primary // ignore: cast_nullable_to_non_nullable
+as int?,onPrimary: freezed == onPrimary ? _self.onPrimary : onPrimary // ignore: cast_nullable_to_non_nullable
+as int?,primaryContainer: freezed == primaryContainer ? _self.primaryContainer : primaryContainer // ignore: cast_nullable_to_non_nullable
 as int?,secondary: freezed == secondary ? _self.secondary : secondary // ignore: cast_nullable_to_non_nullable
+as int?,onSecondary: freezed == onSecondary ? _self.onSecondary : onSecondary // ignore: cast_nullable_to_non_nullable
+as int?,secondaryContainer: freezed == secondaryContainer ? _self.secondaryContainer : secondaryContainer // ignore: cast_nullable_to_non_nullable
 as int?,tertiary: freezed == tertiary ? _self.tertiary : tertiary // ignore: cast_nullable_to_non_nullable
+as int?,onTertiary: freezed == onTertiary ? _self.onTertiary : onTertiary // ignore: cast_nullable_to_non_nullable
+as int?,tertiaryContainer: freezed == tertiaryContainer ? _self.tertiaryContainer : tertiaryContainer // ignore: cast_nullable_to_non_nullable
 as int?,surface: freezed == surface ? _self.surface : surface // ignore: cast_nullable_to_non_nullable
+as int?,surfaceContainerHighest: freezed == surfaceContainerHighest ? _self.surfaceContainerHighest : surfaceContainerHighest // ignore: cast_nullable_to_non_nullable
 as int?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as int?,outline: freezed == outline ? _self.outline : outline // ignore: cast_nullable_to_non_nullable
+as int?,shadow: freezed == shadow ? _self.shadow : shadow // ignore: cast_nullable_to_non_nullable
 as int?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
@@ -155,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? primary,  int? secondary,  int? tertiary,  int? surface,  int? background,  int? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? primary,  int? onPrimary,  int? primaryContainer,  int? secondary,  int? onSecondary,  int? secondaryContainer,  int? tertiary,  int? onTertiary,  int? tertiaryContainer,  int? surface,  int? surfaceContainerHighest,  int? background,  int? outline,  int? shadow,  int? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ThemeColors() when $default != null:
-return $default(_that.primary,_that.secondary,_that.tertiary,_that.surface,_that.background,_that.error);case _:
+return $default(_that.primary,_that.onPrimary,_that.primaryContainer,_that.secondary,_that.onSecondary,_that.secondaryContainer,_that.tertiary,_that.onTertiary,_that.tertiaryContainer,_that.surface,_that.surfaceContainerHighest,_that.background,_that.outline,_that.shadow,_that.error);case _:
   return orElse();
 
 }
@@ -176,10 +185,10 @@ return $default(_that.primary,_that.secondary,_that.tertiary,_that.surface,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? primary,  int? secondary,  int? tertiary,  int? surface,  int? background,  int? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? primary,  int? onPrimary,  int? primaryContainer,  int? secondary,  int? onSecondary,  int? secondaryContainer,  int? tertiary,  int? onTertiary,  int? tertiaryContainer,  int? surface,  int? surfaceContainerHighest,  int? background,  int? outline,  int? shadow,  int? error)  $default,) {final _that = this;
 switch (_that) {
 case _ThemeColors():
-return $default(_that.primary,_that.secondary,_that.tertiary,_that.surface,_that.background,_that.error);}
+return $default(_that.primary,_that.onPrimary,_that.primaryContainer,_that.secondary,_that.onSecondary,_that.secondaryContainer,_that.tertiary,_that.onTertiary,_that.tertiaryContainer,_that.surface,_that.surfaceContainerHighest,_that.background,_that.outline,_that.shadow,_that.error);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -193,10 +202,10 @@ return $default(_that.primary,_that.secondary,_that.tertiary,_that.surface,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? primary,  int? secondary,  int? tertiary,  int? surface,  int? background,  int? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? primary,  int? onPrimary,  int? primaryContainer,  int? secondary,  int? onSecondary,  int? secondaryContainer,  int? tertiary,  int? onTertiary,  int? tertiaryContainer,  int? surface,  int? surfaceContainerHighest,  int? background,  int? outline,  int? shadow,  int? error)?  $default,) {final _that = this;
 switch (_that) {
 case _ThemeColors() when $default != null:
-return $default(_that.primary,_that.secondary,_that.tertiary,_that.surface,_that.background,_that.error);case _:
+return $default(_that.primary,_that.onPrimary,_that.primaryContainer,_that.secondary,_that.onSecondary,_that.secondaryContainer,_that.tertiary,_that.onTertiary,_that.tertiaryContainer,_that.surface,_that.surfaceContainerHighest,_that.background,_that.outline,_that.shadow,_that.error);case _:
   return null;
 
 }
@@ -208,14 +217,23 @@ return $default(_that.primary,_that.secondary,_that.tertiary,_that.surface,_that
 @JsonSerializable()
 
 class _ThemeColors implements ThemeColors {
-   _ThemeColors({this.primary, this.secondary, this.tertiary, this.surface, this.background, this.error});
+   _ThemeColors({this.primary, this.onPrimary, this.primaryContainer, this.secondary, this.onSecondary, this.secondaryContainer, this.tertiary, this.onTertiary, this.tertiaryContainer, this.surface, this.surfaceContainerHighest, this.background, this.outline, this.shadow, this.error});
   factory _ThemeColors.fromJson(Map<String, dynamic> json) => _$ThemeColorsFromJson(json);
 
 @override final  int? primary;
+@override final  int? onPrimary;
+@override final  int? primaryContainer;
 @override final  int? secondary;
+@override final  int? onSecondary;
+@override final  int? secondaryContainer;
 @override final  int? tertiary;
+@override final  int? onTertiary;
+@override final  int? tertiaryContainer;
 @override final  int? surface;
+@override final  int? surfaceContainerHighest;
 @override final  int? background;
+@override final  int? outline;
+@override final  int? shadow;
 @override final  int? error;
 
 /// Create a copy of ThemeColors
@@ -231,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThemeColors&&(identical(other.primary, primary) || other.primary == primary)&&(identical(other.secondary, secondary) || other.secondary == secondary)&&(identical(other.tertiary, tertiary) || other.tertiary == tertiary)&&(identical(other.surface, surface) || other.surface == surface)&&(identical(other.background, background) || other.background == background)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThemeColors&&(identical(other.primary, primary) || other.primary == primary)&&(identical(other.onPrimary, onPrimary) || other.onPrimary == onPrimary)&&(identical(other.primaryContainer, primaryContainer) || other.primaryContainer == primaryContainer)&&(identical(other.secondary, secondary) || other.secondary == secondary)&&(identical(other.onSecondary, onSecondary) || other.onSecondary == onSecondary)&&(identical(other.secondaryContainer, secondaryContainer) || other.secondaryContainer == secondaryContainer)&&(identical(other.tertiary, tertiary) || other.tertiary == tertiary)&&(identical(other.onTertiary, onTertiary) || other.onTertiary == onTertiary)&&(identical(other.tertiaryContainer, tertiaryContainer) || other.tertiaryContainer == tertiaryContainer)&&(identical(other.surface, surface) || other.surface == surface)&&(identical(other.surfaceContainerHighest, surfaceContainerHighest) || other.surfaceContainerHighest == surfaceContainerHighest)&&(identical(other.background, background) || other.background == background)&&(identical(other.outline, outline) || other.outline == outline)&&(identical(other.shadow, shadow) || other.shadow == shadow)&&(identical(other.error, error) || other.error == error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,primary,secondary,tertiary,surface,background,error);
+int get hashCode => Object.hash(runtimeType,primary,onPrimary,primaryContainer,secondary,onSecondary,secondaryContainer,tertiary,onTertiary,tertiaryContainer,surface,surfaceContainerHighest,background,outline,shadow,error);
 
 @override
 String toString() {
-  return 'ThemeColors(primary: $primary, secondary: $secondary, tertiary: $tertiary, surface: $surface, background: $background, error: $error)';
+  return 'ThemeColors(primary: $primary, onPrimary: $onPrimary, primaryContainer: $primaryContainer, secondary: $secondary, onSecondary: $onSecondary, secondaryContainer: $secondaryContainer, tertiary: $tertiary, onTertiary: $onTertiary, tertiaryContainer: $tertiaryContainer, surface: $surface, surfaceContainerHighest: $surfaceContainerHighest, background: $background, outline: $outline, shadow: $shadow, error: $error)';
 }
 
 
@@ -251,7 +269,7 @@ abstract mixin class _$ThemeColorsCopyWith<$Res> implements $ThemeColorsCopyWith
   factory _$ThemeColorsCopyWith(_ThemeColors value, $Res Function(_ThemeColors) _then) = __$ThemeColorsCopyWithImpl;
 @override @useResult
 $Res call({
- int? primary, int? secondary, int? tertiary, int? surface, int? background, int? error
+ int? primary, int? onPrimary, int? primaryContainer, int? secondary, int? onSecondary, int? secondaryContainer, int? tertiary, int? onTertiary, int? tertiaryContainer, int? surface, int? surfaceContainerHighest, int? background, int? outline, int? shadow, int? error
 });
 
 
@@ -268,13 +286,22 @@ class __$ThemeColorsCopyWithImpl<$Res>
 
 /// Create a copy of ThemeColors
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? primary = freezed,Object? secondary = freezed,Object? tertiary = freezed,Object? surface = freezed,Object? background = freezed,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? primary = freezed,Object? onPrimary = freezed,Object? primaryContainer = freezed,Object? secondary = freezed,Object? onSecondary = freezed,Object? secondaryContainer = freezed,Object? tertiary = freezed,Object? onTertiary = freezed,Object? tertiaryContainer = freezed,Object? surface = freezed,Object? surfaceContainerHighest = freezed,Object? background = freezed,Object? outline = freezed,Object? shadow = freezed,Object? error = freezed,}) {
   return _then(_ThemeColors(
 primary: freezed == primary ? _self.primary : primary // ignore: cast_nullable_to_non_nullable
+as int?,onPrimary: freezed == onPrimary ? _self.onPrimary : onPrimary // ignore: cast_nullable_to_non_nullable
+as int?,primaryContainer: freezed == primaryContainer ? _self.primaryContainer : primaryContainer // ignore: cast_nullable_to_non_nullable
 as int?,secondary: freezed == secondary ? _self.secondary : secondary // ignore: cast_nullable_to_non_nullable
+as int?,onSecondary: freezed == onSecondary ? _self.onSecondary : onSecondary // ignore: cast_nullable_to_non_nullable
+as int?,secondaryContainer: freezed == secondaryContainer ? _self.secondaryContainer : secondaryContainer // ignore: cast_nullable_to_non_nullable
 as int?,tertiary: freezed == tertiary ? _self.tertiary : tertiary // ignore: cast_nullable_to_non_nullable
+as int?,onTertiary: freezed == onTertiary ? _self.onTertiary : onTertiary // ignore: cast_nullable_to_non_nullable
+as int?,tertiaryContainer: freezed == tertiaryContainer ? _self.tertiaryContainer : tertiaryContainer // ignore: cast_nullable_to_non_nullable
 as int?,surface: freezed == surface ? _self.surface : surface // ignore: cast_nullable_to_non_nullable
+as int?,surfaceContainerHighest: freezed == surfaceContainerHighest ? _self.surfaceContainerHighest : surfaceContainerHighest // ignore: cast_nullable_to_non_nullable
 as int?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as int?,outline: freezed == outline ? _self.outline : outline // ignore: cast_nullable_to_non_nullable
+as int?,shadow: freezed == shadow ? _self.shadow : shadow // ignore: cast_nullable_to_non_nullable
 as int?,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as int?,
   ));

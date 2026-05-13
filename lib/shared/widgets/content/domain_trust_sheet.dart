@@ -53,9 +53,10 @@ class DomainTrustSheet extends StatelessWidget {
     final characterHeight = isCompact ? 180.0 : 240.0;
     final contentRightPadding = isCompact ? 120.0 : 156.0;
 
+    final bottomSafeArea = MediaQuery.of(context).padding.bottom;
     return SheetScaffold(
       showHeader: false,
-      height: 320,
+      height: 320 + bottomSafeArea,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -71,7 +72,7 @@ class DomainTrustSheet extends StatelessWidget {
             ),
           ),
           SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(20, 28, 20, 20),
+            padding: EdgeInsets.fromLTRB(20, 28, 20, 20 + bottomSafeArea),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,

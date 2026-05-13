@@ -16,8 +16,8 @@ class CreatorStickerPackDetailScreen extends HookConsumerWidget {
 
   const CreatorStickerPackDetailScreen({
     super.key,
-    required this.packId,
-    required this.pubName,
+    @PathParam("packId") required this.packId,
+    @PathParam("pubName") required this.pubName,
   });
 
   @override

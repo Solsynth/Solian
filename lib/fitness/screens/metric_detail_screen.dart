@@ -26,7 +26,11 @@ enum MetricTimeRange {
 class MetricDetailScreen extends ConsumerStatefulWidget {
   final FitnessMetricType metricType;
 
-  const MetricDetailScreen({super.key, required this.metricType});
+  const MetricDetailScreen({
+    super.key,
+    // This can't be labeled with @pathParam because it's not a primitive type, so we need to handle it manually in the route configuration
+    required this.metricType,
+  });
 
   @override
   ConsumerState<MetricDetailScreen> createState() => _MetricDetailScreenState();
