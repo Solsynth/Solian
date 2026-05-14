@@ -189,10 +189,8 @@ class SphereApi extends BaseApi {
   }) async {
     await post<void>(
       '$_pubBasePath/publishers/$publisherName/collections/$slug/posts',
-      data: {
-        'post_id': postId,
-        'order': order,
-      }..removeWhere((_, v) => v == null),
+      data: {'post_id': postId, 'order': order}
+        ..removeWhere((_, v) => v == null),
     );
   }
 
@@ -226,7 +224,7 @@ class SphereApi extends BaseApi {
     required List<String> postIds,
   }) async {
     await post<void>(
-      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/batch-remove',
+      '$_pubBasePath/publishers/$publisherName/collections/$slug/posts/batch/remove',
       data: {'post_ids': postIds},
     );
   }
@@ -269,11 +267,8 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/posts',
-      queryParameters: {
-        'offset': offset,
-        'take': take,
-        'sort': sort,
-      }..removeWhere((_, v) => v == null),
+      queryParameters: {'offset': offset, 'take': take, 'sort': sort}
+        ..removeWhere((_, v) => v == null),
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnPost.fromJson);
@@ -350,9 +345,7 @@ class SphereApi extends BaseApi {
   /// [postId] - The post ID.
   /// Returns the bookmark if it exists, or null.
   Future<SnPostBookmark?> getPostBookmark(String postId) async {
-    final response = await get<dynamic>(
-      '$_basePath/posts/$postId/bookmark',
-    );
+    final response = await get<dynamic>('$_basePath/posts/$postId/bookmark');
     if (response.data == null) return null;
     return SnPostBookmark.fromJson(response.data as Map<String, dynamic>);
   }
