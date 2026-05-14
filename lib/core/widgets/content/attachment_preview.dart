@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cross_file/cross_file.dart';
@@ -10,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/core/utils/format.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -173,11 +171,8 @@ class AttachmentPreview extends HookConsumerWidget {
                     if (item.isOnCloud) {
                       try {
                         showLoadingModal(context);
-                        final apiClient = ref.watch(apiClientProvider);
-                        await apiClient.patch(
-                          '/drive/files/${item.data.id}/name',
-                          data: jsonEncode(newName),
-                        );
+                        final uploader = ref.read(driveFileUploaderProvider);
+                        await uploader.renameFile(item.data.id, newName);
                         final newData = item.data;
                         newData.name = newName;
                         onUpdate?.call(
@@ -250,13 +245,12 @@ class AttachmentPreview extends HookConsumerWidget {
                   onPressed: () async {
                     try {
                       showLoadingModal(context);
-                      final apiClient = ref.watch(apiClientProvider);
-                      // Use the current selections from stateful selector via GlobalKey
+                      final uploader = ref.read(driveFileUploaderProvider);
                       final selectorState = _sensitiveSelectorKey.currentState;
                       final marks = selectorState?.current ?? <int>[];
-                      await apiClient.put(
-                        '/drive/files/${item.data.id}/marks',
-                        data: jsonEncode({'sensitive_marks': marks}),
+                      await uploader.updateSensitiveMarks(
+                        item.data.id,
+                        marks.map((e) => e.toString()).toList(),
                       );
                       final newData = item.data as SnCloudFile;
                       final updatedFile = item.copyWith(

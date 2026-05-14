@@ -93,6 +93,16 @@ sealed class SnCloudFile with _$SnCloudFile {
     required DateTime updatedAt,
     required DateTime? deletedAt,
     String? url,
+    @Default(false) bool isFolder,
+    String? parentId,
+    String? bundleId,
+    String? accountId,
+    @Default(false) bool indexed,
+    @Default(false) bool isMarkedRecycle,
+    String? storageId,
+    String? storageUrl,
+    String? usage,
+    String? applicationType,
   }) = _SnCloudFile;
 
   factory SnCloudFile.fromJson(Map<String, dynamic> json) =>

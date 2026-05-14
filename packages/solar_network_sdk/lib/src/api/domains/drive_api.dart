@@ -1,479 +1,658 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/drive/file.dart';
 import 'package:solar_network_sdk/src/models/drive/file_pool.dart';
-import 'package:solar_network_sdk/src/models/drive/folder.dart';
-import 'package:solar_network_sdk/src/models/drive/drive_task.dart';
 
 /// API for cloud drive/storage endpoints (/drive).
 ///
-/// Handles files, folders, file pools, and storage management.
+/// Covers files, folders, upload tasks, bundles, pools, and billing
+/// as documented in DRIVE_API.md.
 class DriveApi extends BaseApi {
   DriveApi(super.dio);
 
-  /// Base path for all drive endpoints.
   static const String _basePath = '/drive';
 
-  // ==========================================
-  // File endpoints
-  // ==========================================
+  // ===========================================================================
+  // Files — open / info / metadata
+  // ===========================================================================
 
-  /// Gets all files.
+  /// Opens (serves) a file. May redirect for remote files.
   ///
-  /// [folderId] - Optional folder ID to filter by.
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<PaginatedResult<SnCloudFile>> getFiles({
-    String? folderId,
+  /// [fileId] — file ID, optionally with extension.
+  /// [download] — set `Content-Disposition: attachment`.
+  /// [original] — skip compression, serve original.
+  /// [thumbnail] — serve thumbnail variant.
+  /// [overrideMimeType] — override Content-Type.
+  /// [passcode] — bundle passcode for protected files.
+  Future<Response> openFile(
+    String fileId, {
+    bool download = false,
+    bool original = false,
+    bool thumbnail = false,
+    String? overrideMimeType,
+    String? passcode,
+  }) {
+    return get(
+      '$_basePath/files/$fileId',
+      queryParameters: {
+        if (download) 'download': true,
+        if (original) 'original': true,
+        if (thumbnail) 'thumbnail': true,
+        if (overrideMimeType != null) 'overrideMimeType': overrideMimeType,
+        if (passcode != null) 'passcode': passcode,
+      },
+    );
+  }
+
+  /// Downloads a file to [savePath].
+  Future<Response> downloadFile({
+    required String fileId,
+    required String savePath,
+    bool original = true,
+    ProgressCallback? onReceiveProgress,
+  }) {
+    return dio.download(
+      '$_basePath/files/$fileId',
+      savePath,
+      queryParameters: {'original': original},
+      onReceiveProgress: onReceiveProgress,
+    );
+  }
+
+  /// Returns end-to-end encryption metadata for a file.
+  Future<Map<String, dynamic>?> getE2eeMeta(
+    String fileId, {
+    String? passcode,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/files/$fileId/e2ee',
+      queryParameters: {if (passcode != null) 'passcode': passcode},
+    );
+    return response.data;
+  }
+
+  /// Returns the full [SnCloudFile] object.
+  Future<SnCloudFile> getFileInfo(String fileId) {
+    return get<SnCloudFile>(
+      '$_basePath/files/$fileId/info',
+    ).then((r) => SnCloudFile.fromJson(r.data as Map<String, dynamic>));
+  }
+
+  /// Returns all cloud files sharing the same underlying storage object.
+  Future<List<SnCloudFile>> getFileReferences(String fileId) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/files/$fileId/references',
+    );
+    return parseList(response, SnCloudFile.fromJson);
+  }
+
+  // ===========================================================================
+  // Files — update / delete
+  // ===========================================================================
+
+  /// Updates the file's display name. Owner only.
+  Future<SnCloudFile> updateFileName(String fileId, String newName) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/files/$fileId/name',
+      data: newName,
+    );
+    return SnCloudFile.fromJson(response.data!);
+  }
+
+  /// Sets content sensitivity labels. Owner only.
+  Future<SnCloudFile> updateSensitiveMarks(
+    String fileId,
+    List<String> marks,
+  ) async {
+    final response = await put<Map<String, dynamic>>(
+      '$_basePath/files/$fileId/marks',
+      data: {'sensitive_marks': marks},
+    );
+    return SnCloudFile.fromJson(response.data!);
+  }
+
+  /// Sets arbitrary user-defined metadata. Owner only.
+  Future<SnCloudFile> updateUserMeta(
+    String fileId,
+    Map<String, dynamic> meta,
+  ) async {
+    final response = await put<Map<String, dynamic>>(
+      '$_basePath/files/$fileId/meta',
+      data: meta,
+    );
+    return SnCloudFile.fromJson(response.data!);
+  }
+
+  /// Permanently deletes a file. Owner only.
+  Future<SnCloudFile> deleteFile(String fileId) async {
+    final response = await delete<Map<String, dynamic>>(
+      '$_basePath/files/$fileId',
+    );
+    return SnCloudFile.fromJson(response.data!);
+  }
+
+  /// Deletes multiple files at once. Owner only.
+  Future<int> batchDeleteFiles(List<String> fileIds) async {
+    final response = await delete<Map<String, dynamic>>(
+      '$_basePath/files/batches/delete',
+      data: {'file_ids': fileIds},
+    );
+    return (response.data!['count'] as num).toInt();
+  }
+
+  // ===========================================================================
+  // Folders & hierarchy
+  // ===========================================================================
+
+  /// Lists indexed files at the root level (no parent).
+  Future<PaginatedResult<SnCloudFile>> listRootChildren({
     int offset = 0,
-    int take = 20,
+    int take = 50,
+    String? query,
+    String? order,
+    bool orderDesc = true,
+    String? poolId,
   }) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/files',
-      queryParameters: {'folder_id': ?folderId, 'offset': offset, 'take': take},
+      '$_basePath/files/root/children',
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (query != null) 'query': query,
+        if (order != null) 'order': order,
+        'orderDesc': orderDesc,
+        if (poolId != null) 'pool': poolId,
+      },
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnCloudFile.fromJson);
     return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Gets a specific file by ID.
-  ///
-  /// [fileId] - The file ID.
-  Future<SnCloudFile> getFile(String fileId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/files/$fileId',
-    );
-    return SnCloudFile.fromJson(response.data!);
-  }
-
-  /// Uploads a file.
-  ///
-  /// [file] - The file to upload.
-  /// [folderId] - Optional folder ID to upload to.
-  /// [onProgress] - Optional progress callback.
-  Future<SnCloudFile> uploadFile({
-    required File file,
-    String? folderId,
-    ProgressCallback? onProgress,
+  /// Lists files inside a folder.
+  Future<PaginatedResult<SnCloudFile>> listFolderChildren(
+    String parentId, {
+    int offset = 0,
+    int take = 50,
+    String? query,
+    String? order,
+    bool orderDesc = true,
+    String? poolId,
   }) async {
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(file.path),
-      'folder_id': ?folderId,
-    });
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/files',
-      data: formData,
-      onSendProgress: onProgress,
-    );
-    return SnCloudFile.fromJson(response.data!);
-  }
-
-  /// Updates file metadata.
-  ///
-  /// [fileId] - The file ID.
-  /// [data] - The metadata to update.
-  Future<SnCloudFile> updateFile({
-    required String fileId,
-    required Map<String, dynamic> data,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/files/$fileId',
-      data: data,
-    );
-    return SnCloudFile.fromJson(response.data!);
-  }
-
-  /// Deletes a file.
-  ///
-  /// [fileId] - The file ID.
-  Future<void> deleteFile(String fileId) async {
-    await delete('$_basePath/files/$fileId');
-  }
-
-  /// Downloads a file.
-  ///
-  /// [fileId] - The file ID.
-  /// [savePath] - The path to save the file.
-  /// [onProgress] - Optional progress callback.
-  Future<Response> downloadFile({
-    required String fileId,
-    required String savePath,
-    ProgressCallback? onProgress,
-  }) async {
-    return await dio.download(
-      '$_basePath/files/$fileId/download',
-      savePath,
-      onReceiveProgress: onProgress,
-    );
-  }
-
-  /// Gets a temporary download URL for a file.
-  ///
-  /// [fileId] - The file ID.
-  /// [expiresIn] - URL expiration time in seconds.
-  Future<String> getDownloadUrl({
-    required String fileId,
-    int expiresIn = 3600,
-  }) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/files/$fileId/download-url',
-      queryParameters: {'expires_in': expiresIn},
-    );
-    return response.data!['url'] as String;
-  }
-
-  /// Copies a file.
-  ///
-  /// [fileId] - The file ID to copy.
-  /// [destinationFolderId] - The destination folder ID.
-  Future<SnCloudFile> copyFile({
-    required String fileId,
-    required String destinationFolderId,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/files/$fileId/copy',
-      data: {'destination_folder_id': destinationFolderId},
-    );
-    return SnCloudFile.fromJson(response.data!);
-  }
-
-  /// Moves a file.
-  ///
-  /// [fileId] - The file ID to move.
-  /// [destinationFolderId] - The destination folder ID.
-  Future<SnCloudFile> moveFile({
-    required String fileId,
-    required String destinationFolderId,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/files/$fileId/move',
-      data: {'destination_folder_id': destinationFolderId},
-    );
-    return SnCloudFile.fromJson(response.data!);
-  }
-
-  /// Renames a file.
-  ///
-  /// [fileId] - The file ID.
-  /// [newName] - The new file name.
-  Future<SnCloudFile> renameFile({
-    required String fileId,
-    required String newName,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/files/$fileId/rename',
-      data: {'name': newName},
-    );
-    return SnCloudFile.fromJson(response.data!);
-  }
-
-  // ==========================================
-  // Folder endpoints
-  // ==========================================
-
-  /// Gets all folders.
-  ///
-  /// [parentId] - Optional parent folder ID.
-  Future<List<SnCloudFolder>> getFolders({String? parentId}) async {
     final response = await get<List<dynamic>>(
-      '$_basePath/folders',
-      queryParameters: parentId != null ? {'parent_id': parentId} : null,
+      '$_basePath/files/$parentId/children',
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        if (query != null) 'query': query,
+        if (order != null) 'order': order,
+        'orderDesc': orderDesc,
+        if (poolId != null) 'pool': poolId,
+      },
     );
-    return parseList(response, SnCloudFolder.fromJson);
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnCloudFile.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
   }
 
-  /// Gets a specific folder by ID.
-  ///
-  /// [folderId] - The folder ID.
-  Future<SnCloudFolder> getFolder(String folderId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/folders/$folderId',
-    );
-    return SnCloudFolder.fromJson(response.data!);
-  }
-
-  /// Creates a new folder.
-  ///
-  /// [name] - The folder name.
-  /// [parentId] - Optional parent folder ID.
-  Future<SnCloudFolder> createFolder({
+  /// Creates a new virtual folder.
+  Future<SnCloudFile> createFolder({
     required String name,
     String? parentId,
   }) async {
     final response = await post<Map<String, dynamic>>(
-      '$_basePath/folders',
-      data: {'name': name, 'parent_id': ?parentId},
-    );
-    return SnCloudFolder.fromJson(response.data!);
-  }
-
-  /// Updates a folder.
-  ///
-  /// [folderId] - The folder ID.
-  /// [data] - The data to update.
-  Future<SnCloudFolder> updateFolder({
-    required String folderId,
-    required Map<String, dynamic> data,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/folders/$folderId',
-      data: data,
-    );
-    return SnCloudFolder.fromJson(response.data!);
-  }
-
-  /// Deletes a folder.
-  ///
-  /// [folderId] - The folder ID.
-  Future<void> deleteFolder(String folderId) async {
-    await delete('$_basePath/folders/$folderId');
-  }
-
-  /// Renames a folder.
-  ///
-  /// [folderId] - The folder ID.
-  /// [newName] - The new folder name.
-  Future<SnCloudFolder> renameFolder({
-    required String folderId,
-    required String newName,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/folders/$folderId/rename',
-      data: {'name': newName},
-    );
-    return SnCloudFolder.fromJson(response.data!);
-  }
-
-  /// Moves a folder.
-  ///
-  /// [folderId] - The folder ID to move.
-  /// [destinationParentId] - The destination parent folder ID.
-  Future<SnCloudFolder> moveFolder({
-    required String folderId,
-    required String destinationParentId,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/folders/$folderId/move',
-      data: {'destination_parent_id': destinationParentId},
-    );
-    return SnCloudFolder.fromJson(response.data!);
-  }
-
-  // ==========================================
-  // File pool endpoints
-  // ==========================================
-
-  /// Gets all file pools.
-  Future<List<SnFilePool>> getFilePools() async {
-    final response = await get<List<dynamic>>('$_basePath/pools');
-    return parseList(response, SnFilePool.fromJson);
-  }
-
-  /// Gets a specific file pool by ID.
-  ///
-  /// [poolId] - The pool ID.
-  Future<SnFilePool> getFilePool(String poolId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/pools/$poolId',
-    );
-    return SnFilePool.fromJson(response.data!);
-  }
-
-  /// Creates a new file pool.
-  ///
-  /// [name] - The pool name.
-  /// [description] - Optional description.
-  Future<SnFilePool> createFilePool({
-    required String name,
-    String? description,
-  }) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/pools',
-      data: {'name': name, 'description': ?description},
-    );
-    return SnFilePool.fromJson(response.data!);
-  }
-
-  /// Updates a file pool.
-  ///
-  /// [poolId] - The pool ID.
-  /// [data] - The data to update.
-  Future<SnFilePool> updateFilePool({
-    required String poolId,
-    required Map<String, dynamic> data,
-  }) async {
-    final response = await patch<Map<String, dynamic>>(
-      '$_basePath/pools/$poolId',
-      data: data,
-    );
-    return SnFilePool.fromJson(response.data!);
-  }
-
-  /// Deletes a file pool.
-  ///
-  /// [poolId] - The pool ID.
-  Future<void> deleteFilePool(String poolId) async {
-    await delete('$_basePath/pools/$poolId');
-  }
-
-  /// Gets files in a pool.
-  ///
-  /// [poolId] - The pool ID.
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<PaginatedResult<SnCloudFile>> getPoolFiles({
-    required String poolId,
-    int offset = 0,
-    int take = 20,
-  }) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/pools/$poolId/files',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-    final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnCloudFile.fromJson);
-    return PaginatedResult(items: items, totalCount: totalCount);
-  }
-
-  /// Adds a file to a pool.
-  ///
-  /// [poolId] - The pool ID.
-  /// [fileId] - The file ID.
-  Future<void> addFileToPool({
-    required String poolId,
-    required String fileId,
-  }) async {
-    await post('$_basePath/pools/$poolId/files/$fileId');
-  }
-
-  /// Removes a file from a pool.
-  ///
-  /// [poolId] - The pool ID.
-  /// [fileId] - The file ID.
-  Future<void> removeFileFromPool({
-    required String poolId,
-    required String fileId,
-  }) async {
-    await delete('$_basePath/pools/$poolId/files/$fileId');
-  }
-
-  // ==========================================
-  // Task endpoints
-  // ==========================================
-
-  /// Gets all drive tasks.
-  ///
-  /// [status] - Optional status filter.
-  Future<List<DriveTask>> getTasks({String? status}) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/tasks',
-      queryParameters: status != null ? {'status': status} : null,
-    );
-    return parseList(response, DriveTask.fromJson);
-  }
-
-  /// Gets a specific task by ID.
-  ///
-  /// [taskId] - The task ID.
-  Future<DriveTask> getTask(String taskId) async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/tasks/$taskId',
-    );
-    return DriveTask.fromJson(response.data!);
-  }
-
-  /// Cancels a task.
-  ///
-  /// [taskId] - The task ID.
-  Future<void> cancelTask(String taskId) async {
-    await delete('$_basePath/tasks/$taskId');
-  }
-
-  // ==========================================
-  // Storage info endpoints
-  // ==========================================
-
-  /// Gets storage usage information.
-  Future<Map<String, dynamic>> getStorageInfo() async {
-    final response = await get<Map<String, dynamic>>('$_basePath/storage');
-    return response.data!;
-  }
-
-  /// Gets storage quota.
-  Future<Map<String, dynamic>> getStorageQuota() async {
-    final response = await get<Map<String, dynamic>>(
-      '$_basePath/storage/quota',
-    );
-    return response.data!;
-  }
-
-  // ==========================================
-  // Search endpoints
-  // ==========================================
-
-  /// Searches files.
-  ///
-  /// [query] - The search query.
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<PaginatedResult<SnCloudFile>> searchFiles({
-    required String query,
-    int offset = 0,
-    int take = 20,
-  }) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/search',
-      queryParameters: {'q': query, 'offset': offset, 'take': take},
-    );
-    final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnCloudFile.fromJson);
-    return PaginatedResult(items: items, totalCount: totalCount);
-  }
-
-  // ==========================================
-  // Trash endpoints
-  // ==========================================
-
-  /// Gets trashed files.
-  ///
-  /// [offset] - Pagination offset.
-  /// [take] - Number of items to take.
-  Future<PaginatedResult<SnCloudFile>> getTrashedFiles({
-    int offset = 0,
-    int take = 20,
-  }) async {
-    final response = await get<List<dynamic>>(
-      '$_basePath/trash',
-      queryParameters: {'offset': offset, 'take': take},
-    );
-    final totalCount = getTotalCount(response.headers);
-    final items = parseList(response, SnCloudFile.fromJson);
-    return PaginatedResult(items: items, totalCount: totalCount);
-  }
-
-  /// Restores a file from trash.
-  ///
-  /// [fileId] - The file ID.
-  Future<SnCloudFile> restoreFromTrash(String fileId) async {
-    final response = await post<Map<String, dynamic>>(
-      '$_basePath/trash/$fileId/restore',
+      '$_basePath/files/folders',
+      data: {
+        'name': name,
+        if (parentId != null) 'parent_id': parentId,
+      },
     );
     return SnCloudFile.fromJson(response.data!);
   }
 
-  /// Permanently deletes a file from trash.
+  /// Moves a file to a different folder or to root. Owner only.
   ///
-  /// [fileId] - The file ID.
-  Future<void> permanentDelete(String fileId) async {
-    await delete('$_basePath/trash/$fileId/permanent');
+  /// [parentId] — target folder ID, `null` for root.
+  /// [indexed] — whether file appears in hierarchy.
+  Future<SnCloudFile> moveFile(
+    String fileId, {
+    String? parentId,
+    bool? indexed,
+  }) async {
+    final response = await patch<Map<String, dynamic>>(
+      '$_basePath/files/$fileId/hierarchy',
+      data: {
+        if (parentId != null) 'parent_id': parentId,
+        if (indexed != null) 'indexed': indexed,
+      },
+    );
+    return SnCloudFile.fromJson(response.data!);
   }
 
-  /// Empties the trash.
-  Future<void> emptyTrash() async {
-    await delete('$_basePath/trash');
+  // ===========================================================================
+  // Unindexed / my files / recycle
+  // ===========================================================================
+
+  /// Lists files not part of the folder hierarchy.
+  Future<PaginatedResult<SnCloudFile>> listUnindexedFiles({
+    String? poolId,
+    bool recycled = false,
+    int offset = 0,
+    int take = 20,
+    String? query,
+    String? order,
+    bool orderDesc = true,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/files/unindexed',
+      queryParameters: {
+        if (poolId != null) 'pool': poolId,
+        'recycled': recycled,
+        'offset': offset,
+        'take': take,
+        if (query != null) 'query': query,
+        if (order != null) 'order': order,
+        'orderDesc': orderDesc,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnCloudFile.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Lists all files owned by the user, regardless of hierarchy.
+  Future<PaginatedResult<SnCloudFile>> listMyFiles({
+    String? poolId,
+    bool recycled = false,
+    int offset = 0,
+    int take = 20,
+    String? query,
+    String? order,
+    bool orderDesc = true,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/files/me',
+      queryParameters: {
+        if (poolId != null) 'pool': poolId,
+        'recycled': recycled,
+        'offset': offset,
+        'take': take,
+        if (query != null) 'query': query,
+        if (order != null) 'order': order,
+        'orderDesc': orderDesc,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = parseList(response, SnCloudFile.fromJson);
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Permanently deletes all recycled files for the current user.
+  Future<int> deleteRecycledFiles() async {
+    final response = await delete<Map<String, dynamic>>(
+      '$_basePath/files/me/recycle',
+    );
+    return (response.data!['count'] as num).toInt();
+  }
+
+  /// Permanently deletes all recycled files across all users. Admin only.
+  Future<int> deleteAllRecycledFiles() async {
+    final response = await delete<Map<String, dynamic>>(
+      '$_basePath/files/recycle',
+    );
+    return (response.data!['count'] as num).toInt();
+  }
+
+  // ===========================================================================
+  // Upload — chunked
+  // ===========================================================================
+
+  /// Initiates a chunked upload. Supports deduplication by hash.
+  ///
+  /// Returns a map with `task_id`, `chunk_size`, `chunks_count`, or
+  /// `file_exists: true` with `file` if deduplicated.
+  Future<Map<String, dynamic>> createUploadTask({
+    required String hash,
+    required String fileName,
+    required int fileSize,
+    required String contentType,
+    String? poolId,
+    String? bundleId,
+    String? encryptionScheme,
+    String? encryptionHeader,
+    String? encryptionSignature,
+    String? expiredAt,
+    int? chunkSize,
+    String? parentId,
+    String? usage,
+    String? applicationType,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/files/upload/create',
+      data: {
+        'hash': hash,
+        'file_name': fileName,
+        'file_size': fileSize,
+        'content_type': contentType,
+        if (poolId != null) 'pool_id': poolId,
+        if (bundleId != null) 'bundle_id': bundleId,
+        if (encryptionScheme != null) 'encryption_scheme': encryptionScheme,
+        if (encryptionHeader != null) 'encryption_header': encryptionHeader,
+        if (encryptionSignature != null)
+          'encryption_signature': encryptionSignature,
+        if (expiredAt != null) 'expired_at': expiredAt,
+        if (chunkSize != null) 'chunk_size': chunkSize,
+        if (parentId != null) 'parent_id': parentId,
+        if (usage != null) 'usage': usage,
+        if (applicationType != null) 'application_type': applicationType,
+      },
+    );
+    return response.data!;
+  }
+
+  /// Uploads a single chunk of the file.
+  Future<void> uploadChunk({
+    required String taskId,
+    required int chunkIndex,
+    required List<int> chunkData,
+    String? fileName,
+    ProgressCallback? onSendProgress,
+  }) async {
+    final formData = FormData.fromMap({
+      'chunk': MultipartFile.fromBytes(
+        chunkData,
+        filename: fileName ?? 'chunk_$chunkIndex',
+      ),
+    });
+    await post(
+      '$_basePath/files/upload/chunk/$taskId/$chunkIndex',
+      data: formData,
+      onSendProgress: onSendProgress,
+    );
+  }
+
+  /// Completes a chunked upload. Returns 200 with SnCloudFile or 202 if still processing.
+  Future<Response> completeUpload(String taskId) async {
+    return post(
+      '$_basePath/files/upload/complete/$taskId',
+    );
+  }
+
+  // ===========================================================================
+  // Upload — direct
+  // ===========================================================================
+
+  /// Single-request upload for files ≤ 20MB.
+  Future<SnCloudFile> directUpload({
+    required List<int> fileBytes,
+    required String fileName,
+    String? contentType,
+    String? poolId,
+    String? bundleId,
+    String? encryptionScheme,
+    String? encryptionHeader,
+    String? encryptionSignature,
+    String? expiredAt,
+    String? parentId,
+    String? usage,
+    String? applicationType,
+    ProgressCallback? onSendProgress,
+  }) async {
+    final formData = FormData.fromMap({
+      'file': MultipartFile.fromBytes(fileBytes, filename: fileName),
+      if (contentType != null) 'content_type': contentType,
+      if (poolId != null) 'pool_id': poolId,
+      if (bundleId != null) 'bundle_id': bundleId,
+      if (encryptionScheme != null) 'encryption_scheme': encryptionScheme,
+      if (encryptionHeader != null) 'encryption_header': encryptionHeader,
+      if (encryptionSignature != null)
+        'encryption_signature': encryptionSignature,
+      if (expiredAt != null) 'expired_at': expiredAt,
+      if (parentId != null) 'parent_id': parentId,
+      if (usage != null) 'usage': usage,
+      if (applicationType != null) 'application_type': applicationType,
+    });
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/files/upload/direct',
+      data: formData,
+      onSendProgress: onSendProgress,
+    );
+    return SnCloudFile.fromJson(response.data!);
+  }
+
+  // ===========================================================================
+  // Upload — task management
+  // ===========================================================================
+
+  /// Lists the authenticated user's upload tasks.
+  Future<List<Map<String, dynamic>>> listUploadTasks({
+    String? status,
+    String sortBy = 'lastActivity',
+    bool sortDescending = true,
+    int offset = 0,
+    int limit = 50,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/files/upload/tasks',
+      queryParameters: {
+        if (status != null) 'status': status,
+        'sortBy': sortBy,
+        'sortDescending': sortDescending,
+        'offset': offset,
+        'limit': limit,
+      },
+    );
+    return (response.data as List)
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+  }
+
+  /// Returns real-time progress for an upload task.
+  Future<Map<String, dynamic>> getUploadProgress(String taskId) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/files/upload/progress/$taskId',
+    );
+    return response.data!;
+  }
+
+  /// Returns information needed to resume an interrupted upload.
+  Future<Map<String, dynamic>> resumeUpload(String taskId) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/files/upload/resume/$taskId',
+    );
+    return response.data!;
+  }
+
+  /// Cancels an in-progress upload and cleans up temp files.
+  Future<void> cancelUpload(String taskId) async {
+    await delete('$_basePath/files/upload/task/$taskId');
+  }
+
+  /// Returns upload statistics for the authenticated user.
+  Future<Map<String, dynamic>> getUploadStats() async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/files/upload/stats',
+    );
+    return response.data!;
+  }
+
+  /// Returns the user's most recent upload tasks.
+  Future<List<Map<String, dynamic>>> getRecentTasks({int limit = 10}) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/files/upload/tasks/recent',
+      queryParameters: {'limit': limit},
+    );
+    return (response.data as List)
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+  }
+
+  /// Returns detailed task info including pool/bundle metadata.
+  Future<Map<String, dynamic>> getTaskDetails(String taskId) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/files/upload/tasks/$taskId/details',
+    );
+    return response.data!;
+  }
+
+  /// Cleans up all failed upload tasks for the authenticated user.
+  Future<String> cleanupFailedTasks() async {
+    final response = await delete<Map<String, dynamic>>(
+      '$_basePath/files/upload/tasks/cleanup',
+    );
+    return response.data!['message'] as String;
+  }
+
+  // ===========================================================================
+  // Bundles
+  // ===========================================================================
+
+  /// Gets a bundle by ID.
+  Future<Map<String, dynamic>> getBundle(
+    String bundleId, {
+    String? passcode,
+  }) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/bundles/$bundleId',
+      queryParameters: {if (passcode != null) 'passcode': passcode},
+    );
+    return response.data!;
+  }
+
+  /// Lists bundles owned by the authenticated user.
+  Future<PaginatedResult<Map<String, dynamic>>> listMyBundles({
+    String? term,
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/bundles/me',
+      queryParameters: {
+        if (term != null) 'term': term,
+        'offset': offset,
+        'take': take,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = (response.data as List)
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    return PaginatedResult(items: items, totalCount: totalCount);
+  }
+
+  /// Creates a new file bundle.
+  Future<Map<String, dynamic>> createBundle({
+    String? slug,
+    String? name,
+    String? description,
+    String? passcode,
+    String? expiredAt,
+  }) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/bundles',
+      data: {
+        if (slug != null) 'slug': slug,
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (passcode != null) 'passcode': passcode,
+        if (expiredAt != null) 'expired_at': expiredAt,
+      },
+    );
+    return response.data!;
+  }
+
+  /// Updates a bundle. Owner only.
+  Future<Map<String, dynamic>> updateBundle(
+    String bundleId, {
+    String? slug,
+    String? name,
+    String? description,
+    String? passcode,
+    String? expiredAt,
+  }) async {
+    final response = await put<Map<String, dynamic>>(
+      '$_basePath/bundles/$bundleId',
+      data: {
+        if (slug != null) 'slug': slug,
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (passcode != null) 'passcode': passcode,
+        if (expiredAt != null) 'expired_at': expiredAt,
+      },
+    );
+    return response.data!;
+  }
+
+  /// Deletes a bundle. Files are marked for recycle. Owner only.
+  Future<void> deleteBundle(String bundleId) async {
+    await delete('$_basePath/bundles/$bundleId');
+  }
+
+  // ===========================================================================
+  // Pools
+  // ===========================================================================
+
+  /// Lists storage pools available to the authenticated user.
+  Future<List<SnFilePool>> listPools() async {
+    final response = await get<List<dynamic>>('$_basePath/pools');
+    return parseList(response, SnFilePool.fromJson);
+  }
+
+  /// Permanently deletes all recycled files in a pool.
+  Future<int> deletePoolRecycledFiles(String poolId) async {
+    final response = await delete<Map<String, dynamic>>(
+      '$_basePath/pools/$poolId/recycle',
+    );
+    return (response.data!['count'] as num).toInt();
+  }
+
+  // ===========================================================================
+  // Billing
+  // ===========================================================================
+
+  /// Returns total storage usage across all pools.
+  Future<Map<String, dynamic>> getTotalUsage() async {
+    final response = await get<Map<String, dynamic>>('$_basePath/billing/usage');
+    return response.data!;
+  }
+
+  /// Returns usage details for a specific pool.
+  Future<Map<String, dynamic>> getPoolUsage(String poolId) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/billing/usage/$poolId',
+    );
+    return response.data!;
+  }
+
+  /// Returns the user's storage quota breakdown.
+  Future<Map<String, dynamic>> getQuota() async {
+    final response = await get<Map<String, dynamic>>('$_basePath/billing/quota');
+    return response.data!;
+  }
+
+  /// Returns the user's quota purchase/addition records.
+  Future<PaginatedResult<Map<String, dynamic>>> getQuotaRecords({
+    bool expired = false,
+    int offset = 0,
+    int take = 20,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/billing/quota/records',
+      queryParameters: {
+        'expired': expired,
+        'offset': offset,
+        'take': take,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    final items = (response.data as List)
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    return PaginatedResult(items: items, totalCount: totalCount);
   }
 }

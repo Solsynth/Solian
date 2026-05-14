@@ -21,22 +21,16 @@ class ChatCloudFileListNotifier
     with AsyncPaginationController<SnCloudFile> {
   @override
   Future<List<SnCloudFile>> fetch() async {
-    final client = ref.read(apiClientProvider);
-    final take = 20;
+    final driveApi = ref.read(solarNetworkClientProvider).drive;
+    const take = 20;
 
-    final queryParameters = {'offset': fetchedCount, 'take': take};
-
-    final response = await client.get(
-      '/drive/files/me',
-      queryParameters: queryParameters,
+    final result = await driveApi.listMyFiles(
+      offset: fetchedCount,
+      take: take,
     );
 
-    final List<SnCloudFile> items = (response.data as List)
-        .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
-        .toList();
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-
-    return items;
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 
