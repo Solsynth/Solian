@@ -23,23 +23,16 @@ class CloudFileListNotifier extends AsyncNotifier<PaginationState<SnCloudFile>>
     with AsyncPaginationController<SnCloudFile> {
   @override
   Future<List<SnCloudFile>> fetch() async {
-    final client = ref.read(solarNetworkClientProvider);
-    // Note: DriveApi.getFiles doesn't have a 'me' filter
-    // We fall back to raw Dio call
-    final take = 20;
+    final driveApi = ref.read(solarNetworkClientProvider).drive;
+    const take = 20;
 
-    final queryParameters = {'offset': fetchedCount, 'take': take};
-
-    final response = await client.dio.get(
-      '/drive/files/me',
-      queryParameters: queryParameters,
+    final result = await driveApi.listMyFiles(
+      offset: fetchedCount,
+      take: take,
     );
 
-    totalCount = int.parse(response.headers.value('X-Total') ?? '0');
-    final List<dynamic> data = response.data;
-    return data
-        .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
-        .toList();
+    totalCount = result.totalCount;
+    return result.items;
   }
 }
 
@@ -287,7 +280,7 @@ class _ManualCloudFileLinkForm extends ConsumerWidget {
 
                 try {
                   final client = ref.read(solarNetworkClientProvider);
-                  final cloudFile = await client.drive.getFile(fileId);
+                  final cloudFile = await client.drive.getFileInfo(fileId);
 
                   if (context.mounted) {
                     onSelected(cloudFile);

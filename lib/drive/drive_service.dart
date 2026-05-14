@@ -384,6 +384,7 @@ FileUploader driveFileUploader(Ref ref) {
 class FileUploader {
   final Ref ref;
   late final _client = ref.watch(solarNetworkClientProvider).dio;
+  late final _driveApi = ref.watch(solarNetworkClientProvider).drive;
   FileUploader(this.ref);
 
   List<Map<String, dynamic>> _extractChildrenPayload(dynamic responseData) {
@@ -507,6 +508,8 @@ class FileUploader {
     String? encryptionScheme,
     String? encryptionHeader,
     String? encryptionSignature,
+    String? usage,
+    String? applicationType,
     ProgressCallback? onSendProgress,
   }) async {
     late final Uint8List bytes;
@@ -542,6 +545,8 @@ class FileUploader {
           parentId ?? await _resolveParentIdFromPath(path: path, poolId: poolId),
       'bundleId': bundleId,
       'expiredAt': expiredAt,
+      'usage': usage,
+      'applicationType': applicationType,
     };
 
     if (encryptionScheme != null && encryptionScheme.isNotEmpty) {
@@ -627,6 +632,8 @@ class FileUploader {
     int? chunkSize,
     String? parentId,
     String? path,
+    String? usage,
+    String? applicationType,
   }) async {
     final stepTimer = Stopwatch()..start();
 
@@ -673,6 +680,8 @@ class FileUploader {
       'chunk_size': chunkSize,
       'parent_id':
           parentId ?? await _resolveParentIdFromPath(path: path, poolId: poolId),
+      'usage': usage,
+      'application_type': applicationType,
     };
 
     if (encryptionScheme != null && encryptionScheme.isNotEmpty) {
@@ -1266,12 +1275,67 @@ class FileUploader {
       throw ArgumentError('Invalid file data type');
     }
   }
+
+  // =========================================================================
+  // File management operations
+  // =========================================================================
+
+  /// Updates the file's display name. Owner only.
+  Future<SnCloudFile> renameFile(String fileId, String newName) {
+    return _driveApi.updateFileName(fileId, newName);
+  }
+
+  /// Moves a file to a different folder or to root. Owner only.
+  Future<SnCloudFile> moveFile(
+    String fileId, {
+    String? parentId,
+    bool? indexed,
+  }) {
+    return _driveApi.moveFile(fileId, parentId: parentId, indexed: indexed);
+  }
+
+  /// Permanently deletes a file. Owner only.
+  Future<SnCloudFile> deleteFile(String fileId) {
+    return _driveApi.deleteFile(fileId);
+  }
+
+  /// Deletes multiple files at once. Owner only.
+  Future<int> batchDeleteFiles(List<String> fileIds) {
+    return _driveApi.batchDeleteFiles(fileIds);
+  }
+
+  /// Creates a new virtual folder.
+  Future<SnCloudFile> createFolder({required String name, String? parentId}) {
+    return _driveApi.createFolder(name: name, parentId: parentId);
+  }
+
+  /// Sets content sensitivity labels. Owner only.
+  Future<SnCloudFile> updateSensitiveMarks(
+    String fileId,
+    List<String> marks,
+  ) {
+    return _driveApi.updateSensitiveMarks(fileId, marks);
+  }
+
+  /// Sets arbitrary user-defined metadata. Owner only.
+  Future<SnCloudFile> updateUserMeta(
+    String fileId,
+    Map<String, dynamic> meta,
+  ) {
+    return _driveApi.updateUserMeta(fileId, meta);
+  }
+
+  /// Permanently deletes all recycled files for the current user.
+  Future<int> deleteRecycledFiles() {
+    return _driveApi.deleteRecycledFiles();
+  }
 }
 
 enum FileUploadMode { generic, mediaSafe }
 
 class FileDownloadService {
   final Ref ref;
+  late final _driveApi = ref.read(solarNetworkClientProvider).drive;
 
   FileDownloadService(this.ref);
 
@@ -1348,14 +1412,13 @@ class FileDownloadService {
       return filePath;
     }
 
-    final client = ref.read(solarNetworkClientProvider).dio;
     final tempDir = await getTemporaryDirectory();
     final filePath = '${tempDir.path}/${item.id}.$extName';
 
-    await client.download(
-      '/drive/files/${item.id}',
-      filePath,
-      queryParameters: {'original': true},
+    await _driveApi.downloadFile(
+      fileId: item.id,
+      savePath: filePath,
+      original: true,
     );
     await _tryDecryptDownloadedFile(filePath, item);
 
@@ -1411,15 +1474,14 @@ class FileDownloadService {
     try {
       showSnackBar('Downloading file...');
 
-      final client = ref.read(solarNetworkClientProvider).dio;
       final extName = _getFileExtension(item);
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/${item.id}.$extName';
 
-      await client.download(
-        '/drive/files/${item.id}',
-        filePath,
-        queryParameters: {'original': true},
+      await _driveApi.downloadFile(
+        fileId: item.id,
+        savePath: filePath,
+        original: true,
         onReceiveProgress: (count, total) {
           onProgress?.call(count, total);
           if (total > 0) {

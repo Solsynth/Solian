@@ -1947,7 +1947,7 @@ class ChatInput extends HookConsumerWidget {
                                         key: ValueKey('close'),
                                       )
                                     : const Icon(
-                                        Symbols.add_circle,
+                                        Symbols.add,
                                         key: ValueKey('add'),
                                       ),
                               ),
