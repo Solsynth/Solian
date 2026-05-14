@@ -304,7 +304,7 @@ class ComposeLogic {
           try {
             final cloudFile = await ref
                 .read(driveFileUploaderProvider)
-                .createCloudFile(fileData: attachment)
+                .createCloudFile(fileData: attachment, usage: 'post')
                 .future;
             if (cloudFile != null) {
               // Update attachments list with cloud file
@@ -702,6 +702,7 @@ class ComposeLogic {
           .createCloudFile(
             fileData: attachment,
             poolId: poolId ?? selectedPoolId,
+            usage: 'post',
             mode: attachment.type == UniversalFileType.file
                 ? FileUploadMode.generic
                 : FileUploadMode.mediaSafe,

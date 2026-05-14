@@ -384,6 +384,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
           .createCloudFile(
             fileData: attachment,
             poolId: selectedPoolId,
+            usage: 'thought',
             mode: attachment.type == UniversalFileType.file
                 ? FileUploadMode.generic
                 : FileUploadMode.mediaSafe,

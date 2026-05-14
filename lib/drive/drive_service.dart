@@ -841,6 +841,8 @@ class FileUploader {
     int? customChunkSize,
     String? parentId,
     String? path,
+    String? usage,
+    String? applicationType,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     final overallTimer = Stopwatch()..start();
@@ -896,6 +898,8 @@ class FileUploader {
         encryptionScheme: encryptionScheme,
         encryptionHeader: encryptionHeader,
         encryptionSignature: encryptionSignature,
+        usage: usage,
+        applicationType: applicationType,
         onSendProgress: (sent, total) {
           if (total > 0) {
             onProgress?.call(sent / total, Duration.zero);
@@ -936,6 +940,8 @@ class FileUploader {
       chunkSize: customChunkSize,
       parentId: parentId,
       path: path,
+      usage: usage,
+      applicationType: applicationType,
     );
     createTimer.stop();
     debugPrint(
@@ -1068,6 +1074,8 @@ class FileUploader {
     String? path,
     String? encryptPassword,
     FileUploadMode? mode,
+    String? usage,
+    String? applicationType,
     Function(double? progress, Duration estimate)? onProgress,
   }) {
     final completer = Completer<SnCloudFile?>();
@@ -1110,6 +1118,8 @@ class FileUploader {
                 encryptPassword,
                 onProgress,
                 completer,
+                usage: usage,
+                applicationType: applicationType,
               ),
             )
             .catchError((e) {
@@ -1122,6 +1132,8 @@ class FileUploader {
                 encryptPassword,
                 onProgress,
                 completer,
+                usage: usage,
+                applicationType: applicationType,
               );
             });
 
@@ -1137,6 +1149,8 @@ class FileUploader {
       encryptPassword,
       onProgress,
       completer,
+      usage: usage,
+      applicationType: applicationType,
     );
     return completer;
   }
@@ -1149,8 +1163,10 @@ class FileUploader {
     String? path,
     String? encryptPassword,
     Function(double? progress, Duration estimate)? onProgress,
-    Completer<SnCloudFile?> completer,
-  ) {
+    Completer<SnCloudFile?> completer, {
+    String? usage,
+    String? applicationType,
+  }) {
     String actualMimetype = getMimeType(fileData);
     String actualFilename = fileData.displayName ?? 'randomly_file';
     Uint8List? bytes;
@@ -1169,6 +1185,8 @@ class FileUploader {
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
+        usage: usage,
+        applicationType: applicationType,
       );
       return completer;
     } else if (data is List<int> || data is Uint8List) {
@@ -1198,6 +1216,8 @@ class FileUploader {
         poolId: poolId,
         onProgress: onProgress,
         completer: completer,
+        usage: usage,
+        applicationType: applicationType,
       );
     }
 
@@ -1213,6 +1233,8 @@ class FileUploader {
     String? parentId,
     String? path,
     String? encryptPassword,
+    String? usage,
+    String? applicationType,
     Function(double? progress, Duration estimate)? onProgress,
     required Completer<SnCloudFile?> completer,
   }) {
@@ -1230,6 +1252,8 @@ class FileUploader {
           parentId: parentId,
           path: path,
           encryptPassword: encryptPassword,
+          usage: usage,
+          applicationType: applicationType,
           onProgress: onProgress,
         )
         .then((result) {

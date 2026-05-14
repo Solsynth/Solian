@@ -325,7 +325,7 @@ class _CreatorLivestreamItem extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) =>
-          const CloudFilePicker(allowedTypes: {UniversalFileType.image}),
+          const CloudFilePicker(allowedTypes: {UniversalFileType.image}, usage: 'livestream'),
     );
     final fileId = _extractCloudFileId(picked);
     if (fileId == null) return;
@@ -888,6 +888,7 @@ class _CreateLivestreamSheet extends HookConsumerWidget {
                         isScrollControlled: true,
                         builder: (context) => const CloudFilePicker(
                           allowedTypes: {UniversalFileType.image},
+                          usage: 'livestream',
                         ),
                       );
                       final fileId = _extractCloudFileId(picked);
