@@ -440,12 +440,8 @@ class FileListView extends HookConsumerWidget {
                                   showLoadingModal(context);
                                 }
                                 try {
-                                  final client = ref.read(solarNetworkClientProvider).dio;
-                                  final resp = await client.post(
-                                    '/drive/files/batches/delete',
-                                    data: {'file_ids': selectedFileIds.value.toList()},
-                                  );
-                                  final count = resp.data['count'] as int;
+                                  final uploader = ref.read(driveFileUploaderProvider);
+                                  final count = await uploader.batchDeleteFiles(selectedFileIds.value.toList());
                                   selectedFileIds.value.clear();
                                   isSelectionMode.value = false;
                                   ref.invalidate(
@@ -554,12 +550,12 @@ class FileListView extends HookConsumerWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
                 child: SizedBox(height: 48, width: 48, child: const Icon(Symbols.folder, fill: 1).center()),
               ),
-              title: Text(folderItem.folderName, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(folderItem.file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
               subtitle: Text('folder').tr(),
               onTap: () {
                 final newPath = currentPath.value == '/'
-                    ? '/${folderItem.folderName}'
-                    : '${currentPath.value}/${folderItem.folderName}';
+                    ? '/${folderItem.file.name}'
+                    : '${currentPath.value}/${folderItem.file.name}';
                 currentPath.value = newPath;
               },
             ),
@@ -649,8 +645,8 @@ class FileListView extends HookConsumerWidget {
               showLoadingModal(context);
             }
             try {
-              final client = ref.read(solarNetworkClientProvider).dio;
-              await client.delete('/drive/files/${fileItem.file.id}');
+              final uploader = ref.read(driveFileUploaderProvider);
+              await uploader.deleteFile(fileItem.file.id);
               ref.invalidate(indexedCloudFileListProvider);
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
@@ -778,8 +774,8 @@ class FileListView extends HookConsumerWidget {
       borderRadius: BorderRadius.circular(8),
       onTap: () {
         final newPath = currentPath.value == '/'
-            ? '/${folderItem.folderName}'
-            : '${currentPath.value}/${folderItem.folderName}';
+            ? '/${folderItem.file.name}'
+            : '${currentPath.value}/${folderItem.file.name}';
         currentPath.value = newPath;
       },
       child: Container(
@@ -795,7 +791,7 @@ class FileListView extends HookConsumerWidget {
             Icon(Symbols.folder, fill: 1, size: 24, color: Theme.of(context).colorScheme.primaryFixedDim),
             const Gap(16),
             Text(
-              folderItem.folderName,
+              folderItem.file.name,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -939,8 +935,8 @@ class FileListView extends HookConsumerWidget {
             showLoadingModal(context);
           }
           try {
-            final client = ref.read(solarNetworkClientProvider).dio;
-            await client.delete('/drive/files/${fileItem.file.id}');
+            final uploader = ref.read(driveFileUploaderProvider);
+            await uploader.deleteFile(fileItem.file.id);
             ref.invalidate(indexedCloudFileListProvider);
           } catch (e) {
             showSnackBar('failedToDeleteFile'.tr());
@@ -995,8 +991,8 @@ class FileListView extends HookConsumerWidget {
             showLoadingModal(context);
           }
           try {
-            final client = ref.read(solarNetworkClientProvider).dio;
-            await client.delete('/drive/files/${file.id}');
+            final uploader = ref.read(driveFileUploaderProvider);
+            await uploader.deleteFile(file.id);
             ref.invalidate(unindexedFileListProvider);
           } catch (e) {
             showSnackBar('failedToDeleteFile'.tr());
@@ -1034,8 +1030,8 @@ class FileListView extends HookConsumerWidget {
               showLoadingModal(context);
             }
             try {
-              final client = ref.read(solarNetworkClientProvider).dio;
-              await client.delete('/drive/files/${unindexedFileItem.file.id}');
+              final uploader = ref.read(driveFileUploaderProvider);
+              await uploader.deleteFile(unindexedFileItem.file.id);
               ref.invalidate(unindexedFileListProvider);
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
@@ -1111,9 +1107,8 @@ class FileListView extends HookConsumerWidget {
                   showLoadingModal(ref.context);
                 }
                 try {
-                  final client = ref.read(solarNetworkClientProvider).dio;
-                  final response = await client.delete('/drive/files/me/recycle');
-                  final count = response.data['count'] as int? ?? 0;
+                  final uploader = ref.read(driveFileUploaderProvider);
+                  final count = await uploader.deleteRecycledFiles();
                   showSnackBar('clearedRecycledFilesCount'.tr(args: [count.toString()]));
                   ref.invalidate(unindexedFileListProvider);
                 } catch (e) {

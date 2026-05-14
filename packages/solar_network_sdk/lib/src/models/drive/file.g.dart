@@ -118,6 +118,16 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
       ? null
       : DateTime.parse(json['deleted_at'] as String),
   url: json['url'] as String?,
+  isFolder: json['is_folder'] as bool? ?? false,
+  parentId: json['parent_id'] as String?,
+  bundleId: json['bundle_id'] as String?,
+  accountId: json['account_id'] as String?,
+  indexed: json['indexed'] as bool? ?? false,
+  isMarkedRecycle: json['is_marked_recycle'] as bool? ?? false,
+  storageId: json['storage_id'] as String?,
+  storageUrl: json['storage_url'] as String?,
+  usage: json['usage'] as String?,
+  applicationType: json['application_type'] as String?,
 );
 
 Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
@@ -136,6 +146,16 @@ Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
       'url': instance.url,
+      'is_folder': instance.isFolder,
+      'parent_id': instance.parentId,
+      'bundle_id': instance.bundleId,
+      'account_id': instance.accountId,
+      'indexed': instance.indexed,
+      'is_marked_recycle': instance.isMarkedRecycle,
+      'storage_id': instance.storageId,
+      'storage_url': instance.storageUrl,
+      'usage': instance.usage,
+      'application_type': instance.applicationType,
     };
 
 _SnCloudFileIndex _$SnCloudFileIndexFromJson(Map<String, dynamic> json) =>
