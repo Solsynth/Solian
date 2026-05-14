@@ -111,13 +111,19 @@ class PostThreadData {
     return PostThreadData(
       ancestors:
           (json['ancestors'] as List<dynamic>?)
-              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
-      current: ThreadedReplyNode.fromJson(json['current'] as Map<String, dynamic>),
+      current: ThreadedReplyNode.fromJson(
+        json['current'] as Map<String, dynamic>,
+      ),
       descendants:
           (json['descendants'] as List<dynamic>?)
-              ?.map((e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) => ThreadedReplyNode.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
       hasMore: json['has_more'] as bool? ?? false,
@@ -721,7 +727,7 @@ class PostReplyPreview extends HookConsumerWidget {
                             child: _buildAttachmentPreview(
                               context,
                               data.value!.attachments,
-                            ),
+                            ).padding(bottom: 4),
                           )
                         else
                           Expanded(

@@ -499,3 +499,44 @@ Map<String, dynamic> _$SnNotificationTopicToJson(
   'description': instance.description,
   'is_custom': instance.isCustom,
 };
+
+_SnNotificationPushSubscription _$SnNotificationPushSubscriptionFromJson(
+  Map<String, dynamic> json,
+) => _SnNotificationPushSubscription(
+  id: json['id'] as String,
+  accountId: json['account_id'] as String,
+  deviceId: json['device_id'] as String,
+  deviceToken: json['device_token'] as String,
+  provider: $enumDecode(
+    _$SnNotificationPushSubscriptionProviderEnumMap,
+    json['provider'],
+  ),
+  isActivated: json['is_activated'] as bool,
+  lastUsedAt: json['last_used_at'] == null
+      ? null
+      : DateTime.parse(json['last_used_at'] as String),
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+);
+
+Map<String, dynamic> _$SnNotificationPushSubscriptionToJson(
+  _SnNotificationPushSubscription instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'account_id': instance.accountId,
+  'device_id': instance.deviceId,
+  'device_token': instance.deviceToken,
+  'provider':
+      _$SnNotificationPushSubscriptionProviderEnumMap[instance.provider]!,
+  'is_activated': instance.isActivated,
+  'last_used_at': instance.lastUsedAt?.toIso8601String(),
+  'created_at': instance.createdAt.toIso8601String(),
+  'updated_at': instance.updatedAt.toIso8601String(),
+};
+
+const _$SnNotificationPushSubscriptionProviderEnumMap = {
+  SnNotificationPushSubscriptionProvider.apple: 0,
+  SnNotificationPushSubscriptionProvider.fcm: 1,
+  SnNotificationPushSubscriptionProvider.sop: 2,
+  SnNotificationPushSubscriptionProvider.unifiedpush: 3,
+};
