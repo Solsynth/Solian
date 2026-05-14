@@ -474,6 +474,7 @@ class MeetScreen extends HookConsumerWidget {
                   isScrollControlled: true,
                   builder: (context) => const CloudFilePicker(
                     allowedTypes: {UniversalFileType.image},
+                    usage: 'meet',
                   ),
                 );
                 if (result != null) {

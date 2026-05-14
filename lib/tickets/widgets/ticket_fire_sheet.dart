@@ -243,7 +243,7 @@ class TicketCreateSheet extends HookConsumerWidget {
                       context: context,
                       isScrollControlled: true,
                       builder: (context) =>
-                          const CloudFilePicker(allowMultiple: true),
+                          const CloudFilePicker(allowMultiple: true, usage: 'ticket'),
                     ).then((value) {
                       if (value != null && value.isNotEmpty) {
                         attachments.value = [...attachments.value, ...value];

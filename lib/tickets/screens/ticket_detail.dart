@@ -96,6 +96,7 @@ class TicketDetailScreen extends HookConsumerWidget {
           .createCloudFile(
             fileData: universalFile,
             poolId: poolId,
+            usage: 'ticket',
             mode: selectedFile.isImage
                 ? FileUploadMode.mediaSafe
                 : FileUploadMode.generic,

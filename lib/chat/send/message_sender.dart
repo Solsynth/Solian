@@ -417,6 +417,7 @@ class MessageSender {
           .createCloudFile(
             fileData: attachment,
             encryptPassword: _fileEncryptKey,
+            usage: 'chat_message',
             onProgress: (progress, _) {
               _pendingCache.updateProgress(pendingMessageId, i, progress);
               onProgress?.call(

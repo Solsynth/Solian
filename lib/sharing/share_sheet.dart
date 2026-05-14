@@ -246,6 +246,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                   .read(driveFileUploaderProvider)
                   .createCloudFile(
                     fileData: file,
+                    usage: 'post',
                     onProgress: (progress, _) {
                       if (mounted) {
                         setState(() {

@@ -577,6 +577,7 @@ class ChatRoomScreen extends HookConsumerWidget {
               fileData: attachment,
               poolId: config.poolId,
               encryptPassword: encryptKey,
+              usage: 'chat_message',
               mode: attachment.type == UniversalFileType.file
                   ? FileUploadMode.generic
                   : FileUploadMode.mediaSafe,

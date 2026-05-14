@@ -53,6 +53,9 @@ class ImageEditorConfig {
   /// Whether to enable adjust feature (brightness, contrast, saturation)
   final bool enableAdjustments;
 
+  /// Usage context for the uploaded file (e.g. 'profile_picture', 'post')
+  final String? usage;
+
   const ImageEditorConfig({
     this.allowedAspectRatios,
     this.maxImages,
@@ -65,6 +68,7 @@ class ImageEditorConfig {
     this.enableFilters = true,
     this.enableBlur = true,
     this.enableAdjustments = true,
+    this.usage,
   });
 
   /// Preset for avatar/profile picture (1:1 aspect ratio, single image)
@@ -73,6 +77,7 @@ class ImageEditorConfig {
     allowMultiple: false,
     allowCompression: true,
     defaultCompressionQuality: 90,
+    usage: 'profile_picture',
   );
 
   /// Preset for banner/background (16:9 aspect ratio, single image)
@@ -81,6 +86,7 @@ class ImageEditorConfig {
     allowMultiple: false,
     allowCompression: true,
     defaultCompressionQuality: 85,
+    usage: 'profile_background',
   );
 
   /// Preset for post attachments (freeform, multiple images)
@@ -89,6 +95,7 @@ class ImageEditorConfig {
     allowMultiple: true,
     allowCompression: true,
     defaultCompressionQuality: 85,
+    usage: 'post',
   );
 
   /// Preset for story (9:16 aspect ratio, single image)
@@ -97,6 +104,7 @@ class ImageEditorConfig {
     allowMultiple: false,
     allowCompression: true,
     defaultCompressionQuality: 90,
+    usage: 'post',
   );
 
   /// Preset with all features enabled
@@ -698,6 +706,7 @@ class ImagePickerEditor extends HookConsumerWidget {
                   data: xfile,
                   type: UniversalFileType.image,
                 ),
+                usage: config.usage,
                 onProgress: (progress, _) {
                   uploadProgress.value = progress;
                 },
