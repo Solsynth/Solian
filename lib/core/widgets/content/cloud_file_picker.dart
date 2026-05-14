@@ -16,6 +16,7 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 class CloudFilePicker extends HookConsumerWidget {
   final bool allowMultiple;
   final Set<UniversalFileType> allowedTypes;
+  final String? usage;
   const CloudFilePicker({
     super.key,
     this.allowMultiple = false,
@@ -24,6 +25,7 @@ class CloudFilePicker extends HookConsumerWidget {
       UniversalFileType.video,
       UniversalFileType.file,
     },
+    this.usage,
   });
 
   @override
@@ -62,6 +64,7 @@ class CloudFilePicker extends HookConsumerWidget {
               .read(driveFileUploaderProvider)
               .createCloudFile(
                 fileData: file,
+                usage: usage,
                 onProgress: (progress, _) {
                   uploadProgress.value = progress;
                 },

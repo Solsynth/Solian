@@ -401,6 +401,8 @@ class EnhancedFileUploader extends FileUploader {
     int? customChunkSize,
     String? parentId,
     String? path,
+    String? usage,
+    String? applicationType,
     Function(double? progress, Duration estimate)? onProgress,
   }) async {
     final overallTimer = Stopwatch()..start();
@@ -480,6 +482,8 @@ class EnhancedFileUploader extends FileUploader {
           encryptionScheme: encryptionScheme,
           encryptionHeader: encryptionHeader,
           encryptionSignature: encryptionSignature,
+          usage: usage,
+          applicationType: applicationType,
           onSendProgress: (sent, total) {
             if (total <= 0) return;
             final progress = sent / total;
@@ -542,6 +546,8 @@ class EnhancedFileUploader extends FileUploader {
       chunkSize: customChunkSize,
       parentId: parentId,
       path: path,
+      usage: usage,
+      applicationType: applicationType,
     );
     createTimer.stop();
     debugPrint(
