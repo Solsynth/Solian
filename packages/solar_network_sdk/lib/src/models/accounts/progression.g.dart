@@ -64,6 +64,47 @@ Map<String, dynamic> _$SnQuestScheduleConfigToJson(
   'active_days_of_week': instance.activeDaysOfWeek,
 };
 
+_SnSeriesStage _$SnSeriesStageFromJson(Map<String, dynamic> json) =>
+    _SnSeriesStage(
+      identifier: json['identifier'] as String,
+      title: json['title'] as String,
+      seriesOrder: (json['series_order'] as num?)?.toInt() ?? 0,
+      targetCount: (json['target_count'] as num?)?.toInt() ?? 1,
+      isCompleted: json['is_completed'] as bool? ?? false,
+      completedAt: json['completed_at'] == null
+          ? null
+          : DateTime.parse(json['completed_at'] as String),
+    );
+
+Map<String, dynamic> _$SnSeriesStageToJson(_SnSeriesStage instance) =>
+    <String, dynamic>{
+      'identifier': instance.identifier,
+      'title': instance.title,
+      'series_order': instance.seriesOrder,
+      'target_count': instance.targetCount,
+      'is_completed': instance.isCompleted,
+      'completed_at': instance.completedAt?.toIso8601String(),
+    };
+
+_SnAchievementStats _$SnAchievementStatsFromJson(Map<String, dynamic> json) =>
+    _SnAchievementStats(
+      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
+      completedCount: (json['completed_count'] as num?)?.toInt() ?? 0,
+      hiddenTotalCount: (json['hidden_total_count'] as num?)?.toInt() ?? 0,
+      hiddenCompletedCount:
+          (json['hidden_completed_count'] as num?)?.toInt() ?? 0,
+      completionPercentage: json['completion_percentage'] as num? ?? 0,
+    );
+
+Map<String, dynamic> _$SnAchievementStatsToJson(_SnAchievementStats instance) =>
+    <String, dynamic>{
+      'total_count': instance.totalCount,
+      'completed_count': instance.completedCount,
+      'hidden_total_count': instance.hiddenTotalCount,
+      'hidden_completed_count': instance.hiddenCompletedCount,
+      'completion_percentage': instance.completionPercentage,
+    };
+
 _SnAchievementState _$SnAchievementStateFromJson(Map<String, dynamic> json) =>
     _SnAchievementState(
       identifier: json['identifier'] as String,
@@ -90,6 +131,11 @@ _SnAchievementState _$SnAchievementStateFromJson(Map<String, dynamic> json) =>
       seriesTotalSteps: (json['series_total_steps'] as num?)?.toInt() ?? 0,
       seriesCompletedSteps:
           (json['series_completed_steps'] as num?)?.toInt() ?? 0,
+      seriesStages:
+          (json['series_stages'] as List<dynamic>?)
+              ?.map((e) => SnSeriesStage.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SnAchievementStateToJson(_SnAchievementState instance) =>
@@ -111,6 +157,7 @@ Map<String, dynamic> _$SnAchievementStateToJson(_SnAchievementState instance) =>
       'series_order': instance.seriesOrder,
       'series_total_steps': instance.seriesTotalSteps,
       'series_completed_steps': instance.seriesCompletedSteps,
+      'series_stages': instance.seriesStages.map((e) => e.toJson()).toList(),
     };
 
 _SnQuestState _$SnQuestStateFromJson(Map<String, dynamic> json) =>
@@ -148,6 +195,11 @@ _SnQuestState _$SnQuestStateFromJson(Map<String, dynamic> json) =>
       seriesTotalSteps: (json['series_total_steps'] as num?)?.toInt() ?? 0,
       seriesCompletedSteps:
           (json['series_completed_steps'] as num?)?.toInt() ?? 0,
+      seriesStages:
+          (json['series_stages'] as List<dynamic>?)
+              ?.map((e) => SnSeriesStage.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SnQuestStateToJson(_SnQuestState instance) =>
@@ -172,6 +224,7 @@ Map<String, dynamic> _$SnQuestStateToJson(_SnQuestState instance) =>
       'series_order': instance.seriesOrder,
       'series_total_steps': instance.seriesTotalSteps,
       'series_completed_steps': instance.seriesCompletedSteps,
+      'series_stages': instance.seriesStages.map((e) => e.toJson()).toList(),
     };
 
 _SnProgressRewardGrant _$SnProgressRewardGrantFromJson(

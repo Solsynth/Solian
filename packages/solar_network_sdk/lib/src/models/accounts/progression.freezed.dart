@@ -843,9 +843,550 @@ as List<int>,
 
 
 /// @nodoc
+mixin _$SnSeriesStage {
+
+ String get identifier; String get title; int get seriesOrder; int get targetCount; bool get isCompleted; DateTime? get completedAt;
+/// Create a copy of SnSeriesStage
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnSeriesStageCopyWith<SnSeriesStage> get copyWith => _$SnSeriesStageCopyWithImpl<SnSeriesStage>(this as SnSeriesStage, _$identity);
+
+  /// Serializes this SnSeriesStage to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSeriesStage&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,identifier,title,seriesOrder,targetCount,isCompleted,completedAt);
+
+@override
+String toString() {
+  return 'SnSeriesStage(identifier: $identifier, title: $title, seriesOrder: $seriesOrder, targetCount: $targetCount, isCompleted: $isCompleted, completedAt: $completedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnSeriesStageCopyWith<$Res>  {
+  factory $SnSeriesStageCopyWith(SnSeriesStage value, $Res Function(SnSeriesStage) _then) = _$SnSeriesStageCopyWithImpl;
+@useResult
+$Res call({
+ String identifier, String title, int seriesOrder, int targetCount, bool isCompleted, DateTime? completedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnSeriesStageCopyWithImpl<$Res>
+    implements $SnSeriesStageCopyWith<$Res> {
+  _$SnSeriesStageCopyWithImpl(this._self, this._then);
+
+  final SnSeriesStage _self;
+  final $Res Function(SnSeriesStage) _then;
+
+/// Create a copy of SnSeriesStage
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? seriesOrder = null,Object? targetCount = null,Object? isCompleted = null,Object? completedAt = freezed,}) {
+  return _then(_self.copyWith(
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,seriesOrder: null == seriesOrder ? _self.seriesOrder : seriesOrder // ignore: cast_nullable_to_non_nullable
+as int,targetCount: null == targetCount ? _self.targetCount : targetCount // ignore: cast_nullable_to_non_nullable
+as int,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
+as bool,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnSeriesStage].
+extension SnSeriesStagePatterns on SnSeriesStage {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnSeriesStage value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnSeriesStage() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnSeriesStage value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnSeriesStage():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnSeriesStage value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnSeriesStage() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String title,  int seriesOrder,  int targetCount,  bool isCompleted,  DateTime? completedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnSeriesStage() when $default != null:
+return $default(_that.identifier,_that.title,_that.seriesOrder,_that.targetCount,_that.isCompleted,_that.completedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String title,  int seriesOrder,  int targetCount,  bool isCompleted,  DateTime? completedAt)  $default,) {final _that = this;
+switch (_that) {
+case _SnSeriesStage():
+return $default(_that.identifier,_that.title,_that.seriesOrder,_that.targetCount,_that.isCompleted,_that.completedAt);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String title,  int seriesOrder,  int targetCount,  bool isCompleted,  DateTime? completedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _SnSeriesStage() when $default != null:
+return $default(_that.identifier,_that.title,_that.seriesOrder,_that.targetCount,_that.isCompleted,_that.completedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnSeriesStage implements SnSeriesStage {
+  const _SnSeriesStage({required this.identifier, required this.title, this.seriesOrder = 0, this.targetCount = 1, this.isCompleted = false, this.completedAt});
+  factory _SnSeriesStage.fromJson(Map<String, dynamic> json) => _$SnSeriesStageFromJson(json);
+
+@override final  String identifier;
+@override final  String title;
+@override@JsonKey() final  int seriesOrder;
+@override@JsonKey() final  int targetCount;
+@override@JsonKey() final  bool isCompleted;
+@override final  DateTime? completedAt;
+
+/// Create a copy of SnSeriesStage
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnSeriesStageCopyWith<_SnSeriesStage> get copyWith => __$SnSeriesStageCopyWithImpl<_SnSeriesStage>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnSeriesStageToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSeriesStage&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,identifier,title,seriesOrder,targetCount,isCompleted,completedAt);
+
+@override
+String toString() {
+  return 'SnSeriesStage(identifier: $identifier, title: $title, seriesOrder: $seriesOrder, targetCount: $targetCount, isCompleted: $isCompleted, completedAt: $completedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnSeriesStageCopyWith<$Res> implements $SnSeriesStageCopyWith<$Res> {
+  factory _$SnSeriesStageCopyWith(_SnSeriesStage value, $Res Function(_SnSeriesStage) _then) = __$SnSeriesStageCopyWithImpl;
+@override @useResult
+$Res call({
+ String identifier, String title, int seriesOrder, int targetCount, bool isCompleted, DateTime? completedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnSeriesStageCopyWithImpl<$Res>
+    implements _$SnSeriesStageCopyWith<$Res> {
+  __$SnSeriesStageCopyWithImpl(this._self, this._then);
+
+  final _SnSeriesStage _self;
+  final $Res Function(_SnSeriesStage) _then;
+
+/// Create a copy of SnSeriesStage
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? title = null,Object? seriesOrder = null,Object? targetCount = null,Object? isCompleted = null,Object? completedAt = freezed,}) {
+  return _then(_SnSeriesStage(
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,seriesOrder: null == seriesOrder ? _self.seriesOrder : seriesOrder // ignore: cast_nullable_to_non_nullable
+as int,targetCount: null == targetCount ? _self.targetCount : targetCount // ignore: cast_nullable_to_non_nullable
+as int,isCompleted: null == isCompleted ? _self.isCompleted : isCompleted // ignore: cast_nullable_to_non_nullable
+as bool,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$SnAchievementStats {
+
+ int get totalCount; int get completedCount; int get hiddenTotalCount; int get hiddenCompletedCount; num get completionPercentage;
+/// Create a copy of SnAchievementStats
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnAchievementStatsCopyWith<SnAchievementStats> get copyWith => _$SnAchievementStatsCopyWithImpl<SnAchievementStats>(this as SnAchievementStats, _$identity);
+
+  /// Serializes this SnAchievementStats to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAchievementStats&&(identical(other.totalCount, totalCount) || other.totalCount == totalCount)&&(identical(other.completedCount, completedCount) || other.completedCount == completedCount)&&(identical(other.hiddenTotalCount, hiddenTotalCount) || other.hiddenTotalCount == hiddenTotalCount)&&(identical(other.hiddenCompletedCount, hiddenCompletedCount) || other.hiddenCompletedCount == hiddenCompletedCount)&&(identical(other.completionPercentage, completionPercentage) || other.completionPercentage == completionPercentage));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,totalCount,completedCount,hiddenTotalCount,hiddenCompletedCount,completionPercentage);
+
+@override
+String toString() {
+  return 'SnAchievementStats(totalCount: $totalCount, completedCount: $completedCount, hiddenTotalCount: $hiddenTotalCount, hiddenCompletedCount: $hiddenCompletedCount, completionPercentage: $completionPercentage)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnAchievementStatsCopyWith<$Res>  {
+  factory $SnAchievementStatsCopyWith(SnAchievementStats value, $Res Function(SnAchievementStats) _then) = _$SnAchievementStatsCopyWithImpl;
+@useResult
+$Res call({
+ int totalCount, int completedCount, int hiddenTotalCount, int hiddenCompletedCount, num completionPercentage
+});
+
+
+
+
+}
+/// @nodoc
+class _$SnAchievementStatsCopyWithImpl<$Res>
+    implements $SnAchievementStatsCopyWith<$Res> {
+  _$SnAchievementStatsCopyWithImpl(this._self, this._then);
+
+  final SnAchievementStats _self;
+  final $Res Function(SnAchievementStats) _then;
+
+/// Create a copy of SnAchievementStats
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? totalCount = null,Object? completedCount = null,Object? hiddenTotalCount = null,Object? hiddenCompletedCount = null,Object? completionPercentage = null,}) {
+  return _then(_self.copyWith(
+totalCount: null == totalCount ? _self.totalCount : totalCount // ignore: cast_nullable_to_non_nullable
+as int,completedCount: null == completedCount ? _self.completedCount : completedCount // ignore: cast_nullable_to_non_nullable
+as int,hiddenTotalCount: null == hiddenTotalCount ? _self.hiddenTotalCount : hiddenTotalCount // ignore: cast_nullable_to_non_nullable
+as int,hiddenCompletedCount: null == hiddenCompletedCount ? _self.hiddenCompletedCount : hiddenCompletedCount // ignore: cast_nullable_to_non_nullable
+as int,completionPercentage: null == completionPercentage ? _self.completionPercentage : completionPercentage // ignore: cast_nullable_to_non_nullable
+as num,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SnAchievementStats].
+extension SnAchievementStatsPatterns on SnAchievementStats {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnAchievementStats value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnAchievementStats() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnAchievementStats value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnAchievementStats():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnAchievementStats value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnAchievementStats() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int totalCount,  int completedCount,  int hiddenTotalCount,  int hiddenCompletedCount,  num completionPercentage)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnAchievementStats() when $default != null:
+return $default(_that.totalCount,_that.completedCount,_that.hiddenTotalCount,_that.hiddenCompletedCount,_that.completionPercentage);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int totalCount,  int completedCount,  int hiddenTotalCount,  int hiddenCompletedCount,  num completionPercentage)  $default,) {final _that = this;
+switch (_that) {
+case _SnAchievementStats():
+return $default(_that.totalCount,_that.completedCount,_that.hiddenTotalCount,_that.hiddenCompletedCount,_that.completionPercentage);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int totalCount,  int completedCount,  int hiddenTotalCount,  int hiddenCompletedCount,  num completionPercentage)?  $default,) {final _that = this;
+switch (_that) {
+case _SnAchievementStats() when $default != null:
+return $default(_that.totalCount,_that.completedCount,_that.hiddenTotalCount,_that.hiddenCompletedCount,_that.completionPercentage);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnAchievementStats implements SnAchievementStats {
+  const _SnAchievementStats({this.totalCount = 0, this.completedCount = 0, this.hiddenTotalCount = 0, this.hiddenCompletedCount = 0, this.completionPercentage = 0});
+  factory _SnAchievementStats.fromJson(Map<String, dynamic> json) => _$SnAchievementStatsFromJson(json);
+
+@override@JsonKey() final  int totalCount;
+@override@JsonKey() final  int completedCount;
+@override@JsonKey() final  int hiddenTotalCount;
+@override@JsonKey() final  int hiddenCompletedCount;
+@override@JsonKey() final  num completionPercentage;
+
+/// Create a copy of SnAchievementStats
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnAchievementStatsCopyWith<_SnAchievementStats> get copyWith => __$SnAchievementStatsCopyWithImpl<_SnAchievementStats>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnAchievementStatsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAchievementStats&&(identical(other.totalCount, totalCount) || other.totalCount == totalCount)&&(identical(other.completedCount, completedCount) || other.completedCount == completedCount)&&(identical(other.hiddenTotalCount, hiddenTotalCount) || other.hiddenTotalCount == hiddenTotalCount)&&(identical(other.hiddenCompletedCount, hiddenCompletedCount) || other.hiddenCompletedCount == hiddenCompletedCount)&&(identical(other.completionPercentage, completionPercentage) || other.completionPercentage == completionPercentage));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,totalCount,completedCount,hiddenTotalCount,hiddenCompletedCount,completionPercentage);
+
+@override
+String toString() {
+  return 'SnAchievementStats(totalCount: $totalCount, completedCount: $completedCount, hiddenTotalCount: $hiddenTotalCount, hiddenCompletedCount: $hiddenCompletedCount, completionPercentage: $completionPercentage)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnAchievementStatsCopyWith<$Res> implements $SnAchievementStatsCopyWith<$Res> {
+  factory _$SnAchievementStatsCopyWith(_SnAchievementStats value, $Res Function(_SnAchievementStats) _then) = __$SnAchievementStatsCopyWithImpl;
+@override @useResult
+$Res call({
+ int totalCount, int completedCount, int hiddenTotalCount, int hiddenCompletedCount, num completionPercentage
+});
+
+
+
+
+}
+/// @nodoc
+class __$SnAchievementStatsCopyWithImpl<$Res>
+    implements _$SnAchievementStatsCopyWith<$Res> {
+  __$SnAchievementStatsCopyWithImpl(this._self, this._then);
+
+  final _SnAchievementStats _self;
+  final $Res Function(_SnAchievementStats) _then;
+
+/// Create a copy of SnAchievementStats
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? totalCount = null,Object? completedCount = null,Object? hiddenTotalCount = null,Object? hiddenCompletedCount = null,Object? completionPercentage = null,}) {
+  return _then(_SnAchievementStats(
+totalCount: null == totalCount ? _self.totalCount : totalCount // ignore: cast_nullable_to_non_nullable
+as int,completedCount: null == completedCount ? _self.completedCount : completedCount // ignore: cast_nullable_to_non_nullable
+as int,hiddenTotalCount: null == hiddenTotalCount ? _self.hiddenTotalCount : hiddenTotalCount // ignore: cast_nullable_to_non_nullable
+as int,hiddenCompletedCount: null == hiddenCompletedCount ? _self.hiddenCompletedCount : hiddenCompletedCount // ignore: cast_nullable_to_non_nullable
+as int,completionPercentage: null == completionPercentage ? _self.completionPercentage : completionPercentage // ignore: cast_nullable_to_non_nullable
+as num,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SnAchievementState {
 
- String get identifier; String get title; String get summary; String? get icon; int get sortOrder; bool get hidden; bool get isEnabled; int get targetCount; int get progressCount; bool get isCompleted; DateTime? get completedAt; SnProgressRewardDefinition? get reward; String? get seriesIdentifier; String? get seriesTitle; int get seriesOrder; int get seriesTotalSteps; int get seriesCompletedSteps;
+ String get identifier; String get title; String get summary; String? get icon; int get sortOrder; bool get hidden; bool get isEnabled; int get targetCount; int get progressCount; bool get isCompleted; DateTime? get completedAt; SnProgressRewardDefinition? get reward; String? get seriesIdentifier; String? get seriesTitle; int get seriesOrder; int get seriesTotalSteps; int get seriesCompletedSteps; List<SnSeriesStage> get seriesStages;
 /// Create a copy of SnAchievementState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -858,16 +1399,16 @@ $SnAchievementStateCopyWith<SnAchievementState> get copyWith => _$SnAchievementS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAchievementState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnAchievementState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps)&&const DeepCollectionEquality().equals(other.seriesStages, seriesStages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps);
+int get hashCode => Object.hash(runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps,const DeepCollectionEquality().hash(seriesStages));
 
 @override
 String toString() {
-  return 'SnAchievementState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps)';
+  return 'SnAchievementState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps, seriesStages: $seriesStages)';
 }
 
 
@@ -878,7 +1419,7 @@ abstract mixin class $SnAchievementStateCopyWith<$Res>  {
   factory $SnAchievementStateCopyWith(SnAchievementState value, $Res Function(SnAchievementState) _then) = _$SnAchievementStateCopyWithImpl;
 @useResult
 $Res call({
- String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps
+ String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps, List<SnSeriesStage> seriesStages
 });
 
 
@@ -895,7 +1436,7 @@ class _$SnAchievementStateCopyWithImpl<$Res>
 
 /// Create a copy of SnAchievementState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,Object? seriesStages = null,}) {
   return _then(_self.copyWith(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -914,7 +1455,8 @@ as String?,seriesTitle: freezed == seriesTitle ? _self.seriesTitle : seriesTitle
 as String?,seriesOrder: null == seriesOrder ? _self.seriesOrder : seriesOrder // ignore: cast_nullable_to_non_nullable
 as int,seriesTotalSteps: null == seriesTotalSteps ? _self.seriesTotalSteps : seriesTotalSteps // ignore: cast_nullable_to_non_nullable
 as int,seriesCompletedSteps: null == seriesCompletedSteps ? _self.seriesCompletedSteps : seriesCompletedSteps // ignore: cast_nullable_to_non_nullable
-as int,
+as int,seriesStages: null == seriesStages ? _self.seriesStages : seriesStages // ignore: cast_nullable_to_non_nullable
+as List<SnSeriesStage>,
   ));
 }
 /// Create a copy of SnAchievementState
@@ -1008,10 +1550,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps,  List<SnSeriesStage> seriesStages)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnAchievementState() when $default != null:
-return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps);case _:
+return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps,_that.seriesStages);case _:
   return orElse();
 
 }
@@ -1029,10 +1571,10 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps,  List<SnSeriesStage> seriesStages)  $default,) {final _that = this;
 switch (_that) {
 case _SnAchievementState():
-return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps);}
+return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps,_that.seriesStages);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1046,10 +1588,10 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps,  List<SnSeriesStage> seriesStages)?  $default,) {final _that = this;
 switch (_that) {
 case _SnAchievementState() when $default != null:
-return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps);case _:
+return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps,_that.seriesStages);case _:
   return null;
 
 }
@@ -1061,7 +1603,7 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 @JsonSerializable()
 
 class _SnAchievementState implements SnAchievementState {
-  const _SnAchievementState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0});
+  const _SnAchievementState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0, final  List<SnSeriesStage> seriesStages = const []}): _seriesStages = seriesStages;
   factory _SnAchievementState.fromJson(Map<String, dynamic> json) => _$SnAchievementStateFromJson(json);
 
 @override final  String identifier;
@@ -1081,6 +1623,13 @@ class _SnAchievementState implements SnAchievementState {
 @override@JsonKey() final  int seriesOrder;
 @override@JsonKey() final  int seriesTotalSteps;
 @override@JsonKey() final  int seriesCompletedSteps;
+ final  List<SnSeriesStage> _seriesStages;
+@override@JsonKey() List<SnSeriesStage> get seriesStages {
+  if (_seriesStages is EqualUnmodifiableListView) return _seriesStages;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_seriesStages);
+}
+
 
 /// Create a copy of SnAchievementState
 /// with the given fields replaced by the non-null parameter values.
@@ -1095,16 +1644,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAchievementState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnAchievementState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps)&&const DeepCollectionEquality().equals(other._seriesStages, _seriesStages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps);
+int get hashCode => Object.hash(runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps,const DeepCollectionEquality().hash(_seriesStages));
 
 @override
 String toString() {
-  return 'SnAchievementState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps)';
+  return 'SnAchievementState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps, seriesStages: $seriesStages)';
 }
 
 
@@ -1115,7 +1664,7 @@ abstract mixin class _$SnAchievementStateCopyWith<$Res> implements $SnAchievemen
   factory _$SnAchievementStateCopyWith(_SnAchievementState value, $Res Function(_SnAchievementState) _then) = __$SnAchievementStateCopyWithImpl;
 @override @useResult
 $Res call({
- String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps
+ String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps, List<SnSeriesStage> seriesStages
 });
 
 
@@ -1132,7 +1681,7 @@ class __$SnAchievementStateCopyWithImpl<$Res>
 
 /// Create a copy of SnAchievementState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,Object? seriesStages = null,}) {
   return _then(_SnAchievementState(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -1151,7 +1700,8 @@ as String?,seriesTitle: freezed == seriesTitle ? _self.seriesTitle : seriesTitle
 as String?,seriesOrder: null == seriesOrder ? _self.seriesOrder : seriesOrder // ignore: cast_nullable_to_non_nullable
 as int,seriesTotalSteps: null == seriesTotalSteps ? _self.seriesTotalSteps : seriesTotalSteps // ignore: cast_nullable_to_non_nullable
 as int,seriesCompletedSteps: null == seriesCompletedSteps ? _self.seriesCompletedSteps : seriesCompletedSteps // ignore: cast_nullable_to_non_nullable
-as int,
+as int,seriesStages: null == seriesStages ? _self._seriesStages : seriesStages // ignore: cast_nullable_to_non_nullable
+as List<SnSeriesStage>,
   ));
 }
 
@@ -1174,7 +1724,7 @@ $SnProgressRewardDefinitionCopyWith<$Res>? get reward {
 /// @nodoc
 mixin _$SnQuestState {
 
- String get identifier; String get title; String get summary; String? get icon; int get sortOrder; bool get hidden; bool get isEnabled; int get targetCount; int get progressCount; bool get isCompleted; DateTime? get completedAt; String get periodKey; DateTime? get nextResetAt; SnQuestScheduleConfig? get schedule; SnProgressRewardDefinition? get reward; String? get seriesIdentifier; String? get seriesTitle; int get seriesOrder; int get seriesTotalSteps; int get seriesCompletedSteps;
+ String get identifier; String get title; String get summary; String? get icon; int get sortOrder; bool get hidden; bool get isEnabled; int get targetCount; int get progressCount; bool get isCompleted; DateTime? get completedAt; String get periodKey; DateTime? get nextResetAt; SnQuestScheduleConfig? get schedule; SnProgressRewardDefinition? get reward; String? get seriesIdentifier; String? get seriesTitle; int get seriesOrder; int get seriesTotalSteps; int get seriesCompletedSteps; List<SnSeriesStage> get seriesStages;
 /// Create a copy of SnQuestState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1187,16 +1737,16 @@ $SnQuestStateCopyWith<SnQuestState> get copyWith => _$SnQuestStateCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnQuestState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.periodKey, periodKey) || other.periodKey == periodKey)&&(identical(other.nextResetAt, nextResetAt) || other.nextResetAt == nextResetAt)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnQuestState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.periodKey, periodKey) || other.periodKey == periodKey)&&(identical(other.nextResetAt, nextResetAt) || other.nextResetAt == nextResetAt)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps)&&const DeepCollectionEquality().equals(other.seriesStages, seriesStages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,periodKey,nextResetAt,schedule,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps]);
+int get hashCode => Object.hashAll([runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,periodKey,nextResetAt,schedule,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps,const DeepCollectionEquality().hash(seriesStages)]);
 
 @override
 String toString() {
-  return 'SnQuestState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, periodKey: $periodKey, nextResetAt: $nextResetAt, schedule: $schedule, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps)';
+  return 'SnQuestState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, periodKey: $periodKey, nextResetAt: $nextResetAt, schedule: $schedule, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps, seriesStages: $seriesStages)';
 }
 
 
@@ -1207,7 +1757,7 @@ abstract mixin class $SnQuestStateCopyWith<$Res>  {
   factory $SnQuestStateCopyWith(SnQuestState value, $Res Function(SnQuestState) _then) = _$SnQuestStateCopyWithImpl;
 @useResult
 $Res call({
- String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, String periodKey, DateTime? nextResetAt, SnQuestScheduleConfig? schedule, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps
+ String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, String periodKey, DateTime? nextResetAt, SnQuestScheduleConfig? schedule, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps, List<SnSeriesStage> seriesStages
 });
 
 
@@ -1224,7 +1774,7 @@ class _$SnQuestStateCopyWithImpl<$Res>
 
 /// Create a copy of SnQuestState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? periodKey = null,Object? nextResetAt = freezed,Object? schedule = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? periodKey = null,Object? nextResetAt = freezed,Object? schedule = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,Object? seriesStages = null,}) {
   return _then(_self.copyWith(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -1246,7 +1796,8 @@ as String?,seriesTitle: freezed == seriesTitle ? _self.seriesTitle : seriesTitle
 as String?,seriesOrder: null == seriesOrder ? _self.seriesOrder : seriesOrder // ignore: cast_nullable_to_non_nullable
 as int,seriesTotalSteps: null == seriesTotalSteps ? _self.seriesTotalSteps : seriesTotalSteps // ignore: cast_nullable_to_non_nullable
 as int,seriesCompletedSteps: null == seriesCompletedSteps ? _self.seriesCompletedSteps : seriesCompletedSteps // ignore: cast_nullable_to_non_nullable
-as int,
+as int,seriesStages: null == seriesStages ? _self.seriesStages : seriesStages // ignore: cast_nullable_to_non_nullable
+as List<SnSeriesStage>,
   ));
 }
 /// Create a copy of SnQuestState
@@ -1352,10 +1903,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  String periodKey,  DateTime? nextResetAt,  SnQuestScheduleConfig? schedule,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  String periodKey,  DateTime? nextResetAt,  SnQuestScheduleConfig? schedule,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps,  List<SnSeriesStage> seriesStages)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnQuestState() when $default != null:
-return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.periodKey,_that.nextResetAt,_that.schedule,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps);case _:
+return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.periodKey,_that.nextResetAt,_that.schedule,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps,_that.seriesStages);case _:
   return orElse();
 
 }
@@ -1373,10 +1924,10 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  String periodKey,  DateTime? nextResetAt,  SnQuestScheduleConfig? schedule,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  String periodKey,  DateTime? nextResetAt,  SnQuestScheduleConfig? schedule,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps,  List<SnSeriesStage> seriesStages)  $default,) {final _that = this;
 switch (_that) {
 case _SnQuestState():
-return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.periodKey,_that.nextResetAt,_that.schedule,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps);}
+return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.periodKey,_that.nextResetAt,_that.schedule,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps,_that.seriesStages);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1390,10 +1941,10 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  String periodKey,  DateTime? nextResetAt,  SnQuestScheduleConfig? schedule,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String title,  String summary,  String? icon,  int sortOrder,  bool hidden,  bool isEnabled,  int targetCount,  int progressCount,  bool isCompleted,  DateTime? completedAt,  String periodKey,  DateTime? nextResetAt,  SnQuestScheduleConfig? schedule,  SnProgressRewardDefinition? reward,  String? seriesIdentifier,  String? seriesTitle,  int seriesOrder,  int seriesTotalSteps,  int seriesCompletedSteps,  List<SnSeriesStage> seriesStages)?  $default,) {final _that = this;
 switch (_that) {
 case _SnQuestState() when $default != null:
-return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.periodKey,_that.nextResetAt,_that.schedule,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps);case _:
+return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sortOrder,_that.hidden,_that.isEnabled,_that.targetCount,_that.progressCount,_that.isCompleted,_that.completedAt,_that.periodKey,_that.nextResetAt,_that.schedule,_that.reward,_that.seriesIdentifier,_that.seriesTitle,_that.seriesOrder,_that.seriesTotalSteps,_that.seriesCompletedSteps,_that.seriesStages);case _:
   return null;
 
 }
@@ -1405,7 +1956,7 @@ return $default(_that.identifier,_that.title,_that.summary,_that.icon,_that.sort
 @JsonSerializable()
 
 class _SnQuestState implements SnQuestState {
-  const _SnQuestState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.periodKey = '', this.nextResetAt, this.schedule, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0});
+  const _SnQuestState({required this.identifier, required this.title, required this.summary, this.icon, this.sortOrder = 0, this.hidden = false, this.isEnabled = true, this.targetCount = 1, this.progressCount = 0, this.isCompleted = false, this.completedAt, this.periodKey = '', this.nextResetAt, this.schedule, this.reward, this.seriesIdentifier, this.seriesTitle, this.seriesOrder = 0, this.seriesTotalSteps = 0, this.seriesCompletedSteps = 0, final  List<SnSeriesStage> seriesStages = const []}): _seriesStages = seriesStages;
   factory _SnQuestState.fromJson(Map<String, dynamic> json) => _$SnQuestStateFromJson(json);
 
 @override final  String identifier;
@@ -1428,6 +1979,13 @@ class _SnQuestState implements SnQuestState {
 @override@JsonKey() final  int seriesOrder;
 @override@JsonKey() final  int seriesTotalSteps;
 @override@JsonKey() final  int seriesCompletedSteps;
+ final  List<SnSeriesStage> _seriesStages;
+@override@JsonKey() List<SnSeriesStage> get seriesStages {
+  if (_seriesStages is EqualUnmodifiableListView) return _seriesStages;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_seriesStages);
+}
+
 
 /// Create a copy of SnQuestState
 /// with the given fields replaced by the non-null parameter values.
@@ -1442,16 +2000,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnQuestState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.periodKey, periodKey) || other.periodKey == periodKey)&&(identical(other.nextResetAt, nextResetAt) || other.nextResetAt == nextResetAt)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnQuestState&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.isEnabled, isEnabled) || other.isEnabled == isEnabled)&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.progressCount, progressCount) || other.progressCount == progressCount)&&(identical(other.isCompleted, isCompleted) || other.isCompleted == isCompleted)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.periodKey, periodKey) || other.periodKey == periodKey)&&(identical(other.nextResetAt, nextResetAt) || other.nextResetAt == nextResetAt)&&(identical(other.schedule, schedule) || other.schedule == schedule)&&(identical(other.reward, reward) || other.reward == reward)&&(identical(other.seriesIdentifier, seriesIdentifier) || other.seriesIdentifier == seriesIdentifier)&&(identical(other.seriesTitle, seriesTitle) || other.seriesTitle == seriesTitle)&&(identical(other.seriesOrder, seriesOrder) || other.seriesOrder == seriesOrder)&&(identical(other.seriesTotalSteps, seriesTotalSteps) || other.seriesTotalSteps == seriesTotalSteps)&&(identical(other.seriesCompletedSteps, seriesCompletedSteps) || other.seriesCompletedSteps == seriesCompletedSteps)&&const DeepCollectionEquality().equals(other._seriesStages, _seriesStages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,periodKey,nextResetAt,schedule,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps]);
+int get hashCode => Object.hashAll([runtimeType,identifier,title,summary,icon,sortOrder,hidden,isEnabled,targetCount,progressCount,isCompleted,completedAt,periodKey,nextResetAt,schedule,reward,seriesIdentifier,seriesTitle,seriesOrder,seriesTotalSteps,seriesCompletedSteps,const DeepCollectionEquality().hash(_seriesStages)]);
 
 @override
 String toString() {
-  return 'SnQuestState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, periodKey: $periodKey, nextResetAt: $nextResetAt, schedule: $schedule, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps)';
+  return 'SnQuestState(identifier: $identifier, title: $title, summary: $summary, icon: $icon, sortOrder: $sortOrder, hidden: $hidden, isEnabled: $isEnabled, targetCount: $targetCount, progressCount: $progressCount, isCompleted: $isCompleted, completedAt: $completedAt, periodKey: $periodKey, nextResetAt: $nextResetAt, schedule: $schedule, reward: $reward, seriesIdentifier: $seriesIdentifier, seriesTitle: $seriesTitle, seriesOrder: $seriesOrder, seriesTotalSteps: $seriesTotalSteps, seriesCompletedSteps: $seriesCompletedSteps, seriesStages: $seriesStages)';
 }
 
 
@@ -1462,7 +2020,7 @@ abstract mixin class _$SnQuestStateCopyWith<$Res> implements $SnQuestStateCopyWi
   factory _$SnQuestStateCopyWith(_SnQuestState value, $Res Function(_SnQuestState) _then) = __$SnQuestStateCopyWithImpl;
 @override @useResult
 $Res call({
- String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, String periodKey, DateTime? nextResetAt, SnQuestScheduleConfig? schedule, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps
+ String identifier, String title, String summary, String? icon, int sortOrder, bool hidden, bool isEnabled, int targetCount, int progressCount, bool isCompleted, DateTime? completedAt, String periodKey, DateTime? nextResetAt, SnQuestScheduleConfig? schedule, SnProgressRewardDefinition? reward, String? seriesIdentifier, String? seriesTitle, int seriesOrder, int seriesTotalSteps, int seriesCompletedSteps, List<SnSeriesStage> seriesStages
 });
 
 
@@ -1479,7 +2037,7 @@ class __$SnQuestStateCopyWithImpl<$Res>
 
 /// Create a copy of SnQuestState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? periodKey = null,Object? nextResetAt = freezed,Object? schedule = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? title = null,Object? summary = null,Object? icon = freezed,Object? sortOrder = null,Object? hidden = null,Object? isEnabled = null,Object? targetCount = null,Object? progressCount = null,Object? isCompleted = null,Object? completedAt = freezed,Object? periodKey = null,Object? nextResetAt = freezed,Object? schedule = freezed,Object? reward = freezed,Object? seriesIdentifier = freezed,Object? seriesTitle = freezed,Object? seriesOrder = null,Object? seriesTotalSteps = null,Object? seriesCompletedSteps = null,Object? seriesStages = null,}) {
   return _then(_SnQuestState(
 identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -1501,7 +2059,8 @@ as String?,seriesTitle: freezed == seriesTitle ? _self.seriesTitle : seriesTitle
 as String?,seriesOrder: null == seriesOrder ? _self.seriesOrder : seriesOrder // ignore: cast_nullable_to_non_nullable
 as int,seriesTotalSteps: null == seriesTotalSteps ? _self.seriesTotalSteps : seriesTotalSteps // ignore: cast_nullable_to_non_nullable
 as int,seriesCompletedSteps: null == seriesCompletedSteps ? _self.seriesCompletedSteps : seriesCompletedSteps // ignore: cast_nullable_to_non_nullable
-as int,
+as int,seriesStages: null == seriesStages ? _self._seriesStages : seriesStages // ignore: cast_nullable_to_non_nullable
+as List<SnSeriesStage>,
   ));
 }
 

@@ -317,14 +317,8 @@ class PostActionButtons extends HookConsumerWidget {
         label: isBookmarked ? 'unbookmark'.tr() : 'bookmark'.tr(),
         isSelected: isBookmarked,
         onPressed: () async {
-          final client = ref.read(solarNetworkClientProvider);
           try {
-            if (isBookmarked) {
-              await client.sphere.unbookmarkPost(post.id);
-            } else {
-              await client.sphere.bookmarkPost(post.id);
-            }
-            ref.invalidate(bookmarkStatusProvider(post.id));
+            await toggleBookmark(ref, postId: post.id, currentlyBookmarked: isBookmarked);
           } catch (err) {
             showErrorAlert(err);
           }
@@ -1507,15 +1501,15 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
           };
         case 'bookmark':
           return () async {
-            final client = ref.read(solarNetworkClientProvider);
             try {
-              if (post.isBookmarked) {
-                await client.sphere.unbookmarkPost(post.id);
-                onRefresh.call();
-              } else {
-                await client.sphere.bookmarkPost(post.id);
-                onRefresh.call();
-              }
+              final bookmarkStatus = ref.read(bookmarkStatusProvider(post.id));
+              final isBookmarked = bookmarkStatus.when(
+                data: (bookmark) => bookmark != null,
+                loading: () => post.isBookmarked,
+                error: (_, _) => post.isBookmarked,
+              );
+              await toggleBookmark(ref, postId: post.id, currentlyBookmarked: isBookmarked);
+              onRefresh.call();
             } catch (err) {
               showErrorAlert(err);
             }
@@ -2047,17 +2041,10 @@ class PostDetailScreen extends HookConsumerWidget {
                 };
               case 'bookmark':
                 return () async {
-                  final client = ref.read(solarNetworkClientProvider);
                   try {
-                    if (postItem.isBookmarked) {
-                      await client.sphere.unbookmarkPost(postItem.id);
-                      ref.invalidate(postProvider(id));
-                      ref.read(postRepliesProvider(id).notifier).refresh();
-                    } else {
-                      await client.sphere.bookmarkPost(postItem.id);
-                      ref.invalidate(postProvider(id));
-                      ref.read(postRepliesProvider(id).notifier).refresh();
-                    }
+                    await toggleBookmark(ref, postId: postItem.id, currentlyBookmarked: postItem.isBookmarked);
+                    ref.invalidate(postProvider(id));
+                    ref.read(postRepliesProvider(id).notifier).refresh();
                   } catch (err) {
                     showErrorAlert(err);
                   }

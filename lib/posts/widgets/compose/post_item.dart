@@ -10,6 +10,7 @@ import 'package:island/accounts/screens/me/account_settings.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/posts/pods/bookmarks.dart';
 import 'package:island/creators/screens/publishers_form.dart';
 import 'package:island/discovery/discovery_feedback_service.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -308,15 +309,9 @@ class PostActionableItem extends HookConsumerWidget {
           };
         case 'bookmark':
           return () async {
-            final client = ref.read(solarNetworkClientProvider);
             try {
-              if (item.isBookmarked) {
-                await client.sphere.unbookmarkPost(item.id);
-                onUpdate?.call(item.copyWith(isBookmarked: false));
-              } else {
-                await client.sphere.bookmarkPost(item.id);
-                onUpdate?.call(item.copyWith(isBookmarked: true));
-              }
+              await toggleBookmark(ref, postId: item.id, currentlyBookmarked: item.isBookmarked);
+              onUpdate?.call(item.copyWith(isBookmarked: !item.isBookmarked));
             } catch (err) {
               showErrorAlert(err);
             }
