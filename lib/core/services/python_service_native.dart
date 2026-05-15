@@ -16,6 +16,7 @@ Future<void> initPython() async {
     final appSupportDir = await getApplicationSupportDirectory();
     final pluginsDir = Directory('${appSupportDir.path}/plugins');
     final eventFile = File('${appSupportDir.path}/event.py');
+    final loaderFile = File('${appSupportDir.path}/loader.py');
 
     if (!await pluginsDir.exists()) {
       await pluginsDir.create(recursive: true);
@@ -25,6 +26,9 @@ Future<void> initPython() async {
     final eventScript = await rootBundle.loadString('assets/scripts/event.py');
     await eventFile.writeAsString(eventScript);
 
+    final loaderScript = await rootBundle.loadString('assets/scripts/loader.py');
+    await loaderFile.writeAsString(loaderScript);
+
     _vm = pkpy.VM();
 
     _vm!.exec('''
@@ -33,22 +37,8 @@ sys.path.insert(0, r"${appSupportDir.path}")
 ''');
 
     _vm!.exec('import event');
-
-    final loadPluginsCode = '''
-import os
-import sys
-plugins_dir = os.path.join(sys.path[0], 'plugins')
-if os.path.exists(plugins_dir):
-    for filename in os.listdir(plugins_dir):
-        if filename.endswith('.py'):
-            module_name = filename[:-3]
-            try:
-                __import__(module_name)
-                print(f"Imported plugin: {module_name}")
-            except Exception as e:
-                print(f"Failed to import plugin {module_name}: {e}")
-''';
-    _vm!.exec(loadPluginsCode);
+    _vm!.exec('import loader');
+    _vm!.exec('loader.load_plugins()');
 
     final out = _vm!.read_output();
     if (out.stdout.isNotEmpty) log('[Python stdout] ${out.stdout}');
