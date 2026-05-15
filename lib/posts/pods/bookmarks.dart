@@ -23,11 +23,23 @@ class BookmarksNotifier extends AsyncNotifier<PaginationState<SnPost>>
   }
 }
 
-final bookmarkStatusProvider = FutureProvider.autoDispose
-    .family<SnPostBookmark?, String>((ref, postId) async {
-      final client = ref.read(solarNetworkClientProvider);
-      return client.sphere.getPostBookmark(postId);
-    });
+final bookmarkStatusProvider = FutureProvider.family<SnPostBookmark?, String>(
+  (ref, postId) {
+    ref.keepAlive();
+    final client = ref.read(solarNetworkClientProvider);
+    return client.sphere.getPostBookmark(postId);
+  },
+);
+
+Future<void> toggleBookmark(WidgetRef ref, {required String postId, required bool currentlyBookmarked}) async {
+  final client = ref.read(solarNetworkClientProvider);
+  if (currentlyBookmarked) {
+    await client.sphere.unbookmarkPost(postId);
+  } else {
+    await client.sphere.bookmarkPost(postId);
+  }
+  ref.invalidate(bookmarkStatusProvider(postId));
+}
 
 final userReactionsProvider = AsyncNotifierProvider.autoDispose
     .family<UserReactionsNotifier, PaginationState<UserReactionListingItem>, String>(

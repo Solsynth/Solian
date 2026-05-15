@@ -181,4 +181,43 @@ class NotificationsApi extends BaseApi {
       data: {'topic': topic, 'description': description},
     );
   }
+
+  // ==========================================
+  // Push subscription endpoints
+  // ==========================================
+
+  /// Lists all push subscriptions for the current account.
+  Future<List<SnNotificationPushSubscription>> getSubscriptions() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/notifications/subscription',
+    );
+    final data = response.data ?? [];
+    return data
+        .map(
+          (json) => SnNotificationPushSubscription.fromJson(
+            json as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+  }
+
+  /// Gets the active push subscription for the current device session.
+  ///
+  /// Returns null if no subscription is active on this device.
+  Future<SnNotificationPushSubscription?> getCurrentSubscription() async {
+    final response = await get<dynamic>(
+      '$_basePath/notifications/subscription/current',
+    );
+    if (response.data == null) return null;
+    return SnNotificationPushSubscription.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
+  /// Deletes a specific push subscription by ID.
+  ///
+  /// [subscriptionId] - The subscription ID to delete.
+  Future<void> deleteSubscription(String subscriptionId) async {
+    await delete('$_basePath/notifications/subscription/$subscriptionId');
+  }
 }

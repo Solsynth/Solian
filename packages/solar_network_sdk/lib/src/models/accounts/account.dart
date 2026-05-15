@@ -349,3 +349,40 @@ sealed class SnNotificationTopic with _$SnNotificationTopic {
   factory SnNotificationTopic.fromJson(Map<String, dynamic> json) =>
       _$SnNotificationTopicFromJson(json);
 }
+
+@JsonEnum(valueField: 'value')
+enum SnNotificationPushSubscriptionProvider {
+  apple(0),
+  fcm(1),
+  sop(2),
+  unifiedpush(3);
+
+  final int value;
+  const SnNotificationPushSubscriptionProvider(this.value);
+
+  static SnNotificationPushSubscriptionProvider fromValue(int value) {
+    return SnNotificationPushSubscriptionProvider.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => SnNotificationPushSubscriptionProvider.fcm,
+    );
+  }
+}
+
+@freezed
+sealed class SnNotificationPushSubscription
+    with _$SnNotificationPushSubscription {
+  const factory SnNotificationPushSubscription({
+    required String id,
+    required String accountId,
+    required String deviceId,
+    required String deviceToken,
+    required SnNotificationPushSubscriptionProvider provider,
+    required bool isActivated,
+    DateTime? lastUsedAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) = _SnNotificationPushSubscription;
+
+  factory SnNotificationPushSubscription.fromJson(Map<String, dynamic> json) =>
+      _$SnNotificationPushSubscriptionFromJson(json);
+}
