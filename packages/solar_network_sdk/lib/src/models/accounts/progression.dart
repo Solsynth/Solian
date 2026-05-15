@@ -42,6 +42,35 @@ sealed class SnQuestScheduleConfig with _$SnQuestScheduleConfig {
 }
 
 @freezed
+sealed class SnSeriesStage with _$SnSeriesStage {
+  const factory SnSeriesStage({
+    required String identifier,
+    required String title,
+    @Default(0) int seriesOrder,
+    @Default(1) int targetCount,
+    @Default(false) bool isCompleted,
+    DateTime? completedAt,
+  }) = _SnSeriesStage;
+
+  factory SnSeriesStage.fromJson(Map<String, dynamic> json) =>
+      _$SnSeriesStageFromJson(json);
+}
+
+@freezed
+sealed class SnAchievementStats with _$SnAchievementStats {
+  const factory SnAchievementStats({
+    @Default(0) int totalCount,
+    @Default(0) int completedCount,
+    @Default(0) int hiddenTotalCount,
+    @Default(0) int hiddenCompletedCount,
+    @Default(0) num completionPercentage,
+  }) = _SnAchievementStats;
+
+  factory SnAchievementStats.fromJson(Map<String, dynamic> json) =>
+      _$SnAchievementStatsFromJson(json);
+}
+
+@freezed
 sealed class SnAchievementState with _$SnAchievementState {
   const factory SnAchievementState({
     required String identifier,
@@ -61,6 +90,7 @@ sealed class SnAchievementState with _$SnAchievementState {
     @Default(0) int seriesOrder,
     @Default(0) int seriesTotalSteps,
     @Default(0) int seriesCompletedSteps,
+    @Default([]) List<SnSeriesStage> seriesStages,
   }) = _SnAchievementState;
 
   factory SnAchievementState.fromJson(Map<String, dynamic> json) =>
@@ -90,6 +120,7 @@ sealed class SnQuestState with _$SnQuestState {
     @Default(0) int seriesOrder,
     @Default(0) int seriesTotalSteps,
     @Default(0) int seriesCompletedSteps,
+    @Default([]) List<SnSeriesStage> seriesStages,
   }) = _SnQuestState;
 
   factory SnQuestState.fromJson(Map<String, dynamic> json) =>

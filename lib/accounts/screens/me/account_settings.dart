@@ -71,6 +71,14 @@ Future<Map<String, SnNotificationPreferenceLevel>> notificationPreferences(
 }
 
 @riverpod
+Future<List<SnNotificationPushSubscription>> notificationSubscriptions(
+  Ref ref,
+) async {
+  final client = ref.read(solarNetworkClientProvider);
+  return await client.notifications.getSubscriptions();
+}
+
+@riverpod
 bool hasFediverseIdentity(Ref ref) {
   final publishingSettings = ref.watch(publishingSettingsProvider);
   final fediverseAvailability = ref.watch(fediverseAvailabilityProvider);
@@ -546,6 +554,25 @@ class AccountSettingsScreen extends HookConsumerWidget {
           ).then((value) {
             if (value == true) {
               ref.invalidate(notificationPreferencesProvider);
+            }
+          });
+        },
+      ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.cell_tower),
+        title: Text('notificationSubscriptions').tr(),
+        subtitle: Text('notificationSubscriptionsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => const NotificationSubscriptionsSheet(),
+          ).then((value) {
+            if (value == true) {
+              ref.invalidate(notificationSubscriptionsProvider);
             }
           });
         },
@@ -1284,5 +1311,253 @@ class _NotificationCustomTopicSheetState
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+}
+
+class NotificationSubscriptionsSheet extends ConsumerWidget {
+  const NotificationSubscriptionsSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subscriptions = ref.watch(notificationSubscriptionsProvider);
+
+    return SheetScaffold(
+      titleText: 'notificationSubscriptions'.tr(),
+      heightFactor: 0.8,
+      child: subscriptions.when(
+        data: (subs) => subs.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.cell_tower,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'notificationSubscriptionsEmpty'.tr(),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: subs.length,
+                itemBuilder: (context, index) {
+                  final sub = subs[index];
+                  return ListTile(
+                    minLeadingWidth: 48,
+                    contentPadding: const EdgeInsets.only(
+                      left: 16,
+                      right: 17,
+                      top: 2,
+                      bottom: 4,
+                    ),
+                    title: Text(_getProviderLabel(sub.provider)),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sub.deviceId,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          sub.isActivated
+                              ? 'notificationSubscriptionActive'.tr()
+                              : 'notificationSubscriptionInactive'.tr(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: sub.isActivated
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer,
+                      child: Icon(
+                        _getProviderIcon(sub.provider),
+                        size: 16,
+                      ),
+                    ).padding(top: 4),
+                    trailing: const Icon(Symbols.chevron_right),
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) =>
+                            NotificationSubscriptionDetailSheet(
+                              subscription: sub,
+                            ),
+                      ).then((value) {
+                        if (value == true) {
+                          ref.invalidate(notificationSubscriptionsProvider);
+                        }
+                      });
+                    },
+                  );
+                },
+              ),
+        error: (err, _) => ResponseErrorWidget(
+          error: err,
+          onRetry: () => ref.invalidate(notificationSubscriptionsProvider),
+        ),
+        loading: () => const ResponseLoadingWidget(),
+      ),
+    );
+  }
+
+  static String _getProviderLabel(
+    SnNotificationPushSubscriptionProvider provider,
+  ) {
+    switch (provider) {
+      case SnNotificationPushSubscriptionProvider.apple:
+        return 'Apple Push (APNS)';
+      case SnNotificationPushSubscriptionProvider.fcm:
+        return 'Firebase (FCM)';
+      case SnNotificationPushSubscriptionProvider.sop:
+        return 'Solar Network Push (SOP)';
+      case SnNotificationPushSubscriptionProvider.unifiedpush:
+        return 'UnifiedPush';
+    }
+  }
+
+  static IconData _getProviderIcon(
+    SnNotificationPushSubscriptionProvider provider,
+  ) {
+    switch (provider) {
+      case SnNotificationPushSubscriptionProvider.apple:
+        return Symbols.phone_iphone;
+      case SnNotificationPushSubscriptionProvider.fcm:
+        return Symbols.android;
+      case SnNotificationPushSubscriptionProvider.sop:
+        return Symbols.cloud;
+      case SnNotificationPushSubscriptionProvider.unifiedpush:
+        return Symbols.rss_feed;
+    }
+  }
+}
+
+class NotificationSubscriptionDetailSheet extends ConsumerWidget {
+  final SnNotificationPushSubscription subscription;
+
+  const NotificationSubscriptionDetailSheet({
+    super.key,
+    required this.subscription,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> unsubscribe() async {
+      final confirm = await showConfirmAlert(
+        'notificationSubscriptionDeleteHint'.tr(),
+        'notificationSubscriptionDelete'.tr(),
+        isDanger: true,
+      );
+      if (!confirm || !context.mounted) return;
+      try {
+        showLoadingModal(context);
+        final client = ref.read(solarNetworkClientProvider);
+        await client.notifications.deleteSubscription(subscription.id);
+        if (context.mounted) {
+          Navigator.pop(context, true);
+          showSnackBar('settingsSaved'.tr());
+        }
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    return SheetScaffold(
+      titleText: 'notificationSubscriptionDetail'.tr(),
+      heightFactor: 0.5,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  NotificationSubscriptionsSheet._getProviderIcon(
+                    subscription.provider,
+                  ),
+                  size: 32,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  NotificationSubscriptionsSheet._getProviderLabel(
+                    subscription.provider,
+                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subscription.deviceId,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      subscription.isActivated
+                          ? Symbols.check_circle
+                          : Symbols.cancel,
+                      size: 16,
+                      color: subscription.isActivated
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outline,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      subscription.isActivated
+                          ? 'notificationSubscriptionActive'.tr()
+                          : 'notificationSubscriptionInactive'.tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: subscription.isActivated
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: Icon(
+              Symbols.delete,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: Text(
+              'notificationSubscriptionDelete'.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            onTap: unsubscribe,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+          ),
+        ],
+      ),
+    );
   }
 }
