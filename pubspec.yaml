@@ -229,6 +229,7 @@ flutter:
     - assets/images/michan/
     - assets/icons/
     - assets/audio/
+    - assets/scripts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
