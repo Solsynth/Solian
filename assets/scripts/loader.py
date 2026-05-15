@@ -15,6 +15,3 @@ def load_plugins():
                 print(f"Imported plugin: {module_name}")
             except Exception as e:
                 print(f"Failed to import plugin {module_name}: {e}")
-
-if __name__ == '__main__':
-    load_plugins()
