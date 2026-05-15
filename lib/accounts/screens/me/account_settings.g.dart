@@ -306,6 +306,48 @@ final class NotificationPreferencesProvider
 String _$notificationPreferencesHash() =>
     r'fe6fd1e8f8947127fbbf3c18033375f4dccf3409';
 
+@ProviderFor(notificationSubscriptions)
+final notificationSubscriptionsProvider = NotificationSubscriptionsProvider._();
+
+final class NotificationSubscriptionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SnNotificationPushSubscription>>,
+          List<SnNotificationPushSubscription>,
+          FutureOr<List<SnNotificationPushSubscription>>
+        >
+    with
+        $FutureModifier<List<SnNotificationPushSubscription>>,
+        $FutureProvider<List<SnNotificationPushSubscription>> {
+  NotificationSubscriptionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationSubscriptionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationSubscriptionsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SnNotificationPushSubscription>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SnNotificationPushSubscription>> create(Ref ref) {
+    return notificationSubscriptions(ref);
+  }
+}
+
+String _$notificationSubscriptionsHash() =>
+    r'f0cdc4325e00bcdc44e78b725b808ab7a03a458f';
+
 @ProviderFor(hasFediverseIdentity)
 final hasFediverseIdentityProvider = HasFediverseIdentityProvider._();
 

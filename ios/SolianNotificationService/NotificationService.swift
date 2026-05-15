@@ -51,6 +51,8 @@ class NotificationService: UNNotificationServiceExtension {
     }
     
     private func processNotification(request: UNNotificationRequest, content: UNMutableNotificationContent) throws {
+        applyGrouping(to: content)
+        
         switch content.userInfo["type"] as? String {
         case "messages.new":
             content.sound = UNNotificationSound(named: UNNotificationSoundName("SfxMessage.caf"))
@@ -58,6 +60,20 @@ class NotificationService: UNNotificationServiceExtension {
         default:
             content.sound = UNNotificationSound(named: UNNotificationSoundName("SfxNotification.caf"))
             try handleDefaultNotification(content: content)
+        }
+    }
+    
+    private func applyGrouping(to content: UNMutableNotificationContent) {
+        guard let meta = content.userInfo["meta"] as? [AnyHashable: Any] else { return }
+        
+        if let roomId = meta["room_id"] {
+            content.threadIdentifier = "room_\(roomId)"
+        } else if let userId = meta["user_id"] {
+            content.threadIdentifier = "user_\(userId)"
+        } else if let topic = meta["topic"] as? String {
+            content.threadIdentifier = "topic_\(topic)"
+        } else if let type = content.userInfo["type"] as? String {
+            content.threadIdentifier = "type_\(type)"
         }
     }
     

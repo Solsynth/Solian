@@ -56,6 +56,18 @@ final achievementsProvider =
       return [];
     });
 
+final achievementStatsProvider = FutureProvider.autoDispose<SnAchievementStats>(
+  (ref) async {
+    final client = ref.watch(apiClientProvider);
+    final response = await client.get(
+      '/passport/accounts/me/progression/achievements/stats',
+    );
+    return SnAchievementStats.fromJson(
+      Map<String, dynamic>.from(response.data),
+    );
+  },
+);
+
 final questsProvider = FutureProvider.autoDispose<List<SnQuestState>>((
   ref,
 ) async {
@@ -159,10 +171,69 @@ class ProgressScreen extends ConsumerWidget {
   }
 }
 
-class _AchievementsTab extends ConsumerWidget {
+class _AchievementsTab extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AchievementsTab> createState() => _AchievementsTabState();
+}
+
+class _AchievementsTabState extends ConsumerState<_AchievementsTab> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  List<SnAchievementState>? _searchResults;
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _performSearch(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchQuery = '';
+        _searchResults = null;
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _searchQuery = query;
+      _isSearching = true;
+    });
+
+    try {
+      final client = ref.read(apiClientProvider);
+      final response = await client.get(
+        '/passport/accounts/me/progression/achievements',
+        queryParameters: {'query': query},
+      );
+      final data = response.data;
+      if (data is List && mounted) {
+        setState(() {
+          _searchResults = data
+              .map(
+                (e) =>
+                    SnAchievementState.fromJson(Map<String, dynamic>.from(e)),
+              )
+              .toList();
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSearching = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final achievementsAsync = ref.watch(achievementsProvider);
+    final statsAsync = ref.watch(achievementStatsProvider);
 
     return achievementsAsync.when(
       data: (achievements) {
@@ -173,25 +244,71 @@ class _AchievementsTab extends ConsumerWidget {
           );
         }
 
-        final completedCount = achievements.where((a) => a.isCompleted).length;
-
         return CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
-              child: _ProgressHeader(
-                completed: completedCount,
-                total: achievements.length,
+              child: statsAsync.when(
+                data: (stats) => _AchievementStatsCard(stats: stats),
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList.separated(
-                itemCount: achievements.length,
-                separatorBuilder: (context, index) => const Gap(12),
-                itemBuilder: (context, index) =>
-                    _AchievementCard(achievement: achievements[index]),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: SearchBar(
+                  controller: _searchController,
+                  hintText: 'searchAchievements'.tr(),
+                  leading: const Icon(Symbols.search),
+                  padding: WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 24),
+                  ),
+                  trailing: [
+                    if (_searchQuery.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Symbols.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _performSearch('');
+                        },
+                      ),
+                  ],
+                  onChanged: _performSearch,
+                ),
               ),
             ),
+            if (_searchQuery.isNotEmpty)
+              if (_isSearching)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_searchResults == null || _searchResults!.isEmpty)
+                SliverFillRemaining(
+                  child: _EmptyState(
+                    icon: Symbols.search_off,
+                    message: 'noSearchResults'.tr(),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList.separated(
+                    itemCount: _searchResults!.length,
+                    separatorBuilder: (context, index) => const Gap(12),
+                    itemBuilder: (context, index) =>
+                        _AchievementCard(achievement: _searchResults![index]),
+                  ),
+                )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList.separated(
+                  itemCount: achievements.length,
+                  separatorBuilder: (context, index) => const Gap(12),
+                  itemBuilder: (context, index) =>
+                      _AchievementCard(achievement: achievements[index]),
+                ),
+              ),
           ],
         );
       },
@@ -331,6 +448,121 @@ class _ProgressHeader extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AchievementStatsCard extends StatelessWidget {
+  final SnAchievementStats stats;
+
+  const _AchievementStatsCard({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'overallProgress'.tr(),
+                  style: theme.textTheme.titleMedium,
+                ),
+                Text(
+                  '${stats.completionPercentage}%',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const Gap(12),
+            LinearProgressIndicator(
+              value: stats.completionPercentage / 100,
+              minHeight: 6,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            const Gap(16),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatItem(
+                    label: 'completed'.tr(),
+                    value: '${stats.completedCount}',
+                    total: '${stats.totalCount}',
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: theme.colorScheme.outlineVariant,
+                ),
+                Expanded(
+                  child: _StatItem(
+                    label: 'hidden'.tr(),
+                    value: '${stats.hiddenCompletedCount}',
+                    total: '${stats.hiddenTotalCount}',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final String total;
+
+  const _StatItem({
+    required this.label,
+    required this.value,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Gap(4),
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: value,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text: ' / $total',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -537,6 +769,7 @@ class _AchievementDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final reward = achievement.reward;
+    final hasStages = achievement.seriesStages.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -575,6 +808,14 @@ class _AchievementDetailSheet extends StatelessWidget {
                       ),
                       style: theme.textTheme.titleLarge,
                     ),
+                    if (achievement.seriesTitle != null &&
+                        achievement.seriesTotalSteps > 1)
+                      Text(
+                        '${achievement.seriesTitle} · ${achievement.seriesCompletedSteps}/${achievement.seriesTotalSteps}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     if (achievement.isCompleted)
                       Text(
                         'completedAt'.tr(
@@ -596,6 +837,12 @@ class _AchievementDetailSheet extends StatelessWidget {
           Text(
             _getAchievementSummary(achievement.identifier, achievement.summary),
           ),
+          if (hasStages && achievement.seriesStages.length > 1) ...[
+            const Gap(16),
+            Text('stages'.tr(), style: theme.textTheme.titleMedium),
+            const Gap(12),
+            _SeriesStagesList(stages: achievement.seriesStages),
+          ],
           if (reward != null) ...[
             const Gap(16),
             Text('rewards'.tr(), style: theme.textTheme.titleMedium),
@@ -906,6 +1153,7 @@ class _QuestDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final reward = quest.reward;
+    final hasStages = quest.seriesStages.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -941,6 +1189,13 @@ class _QuestDetailSheet extends StatelessWidget {
                       _getQuestTitle(quest.identifier, quest.title),
                       style: theme.textTheme.titleLarge,
                     ),
+                    if (quest.seriesTitle != null && quest.seriesTotalSteps > 1)
+                      Text(
+                        '${quest.seriesTitle} · ${quest.seriesCompletedSteps}/${quest.seriesTotalSteps}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     const Gap(4),
                     _ScheduleBadge(schedule: quest.schedule),
                   ],
@@ -997,6 +1252,12 @@ class _QuestDetailSheet extends StatelessWidget {
                 color: theme.colorScheme.secondary,
               ),
             ),
+          ],
+          if (hasStages && quest.seriesStages.length > 1) ...[
+            const Gap(16),
+            Text('stages'.tr(), style: theme.textTheme.titleMedium),
+            const Gap(12),
+            _SeriesStagesList(stages: quest.seriesStages),
           ],
           if (reward != null) ...[
             const Gap(16),
@@ -1247,6 +1508,67 @@ bool _hasRewards(SnProgressRewardDefinition reward) {
   return reward.experience > 0 ||
       reward.sourcePoints > 0 ||
       reward.badge != null;
+}
+
+class _SeriesStagesList extends StatelessWidget {
+  final List<SnSeriesStage> stages;
+
+  const _SeriesStagesList({required this.stages});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      children: stages.map((stage) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              Icon(
+                stage.isCompleted
+                    ? Symbols.check_circle
+                    : Symbols.radio_button_unchecked,
+                size: 20,
+                color: stage.isCompleted
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      stage.title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: stage.isCompleted
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    Text(
+                      '${stage.targetCount}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (stage.isCompleted && stage.completedAt != null)
+                Text(
+                  stage.completedAt!.formatRelative(context),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
 }
 
 class _EmptyState extends StatelessWidget {
