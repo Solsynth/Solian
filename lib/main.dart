@@ -54,6 +54,9 @@ void main(List<String> args) async {
     _earlyLogs.add(record);
   });
 
+  // 此时早期日志已经被缓存，但还未正式输出到 DevTools
+  // 以下所有初始化代码中产生的 Logger 日志都会被缓存起来
+
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
 
