@@ -130,7 +130,9 @@ class AppWrapper extends HookConsumerWidget {
 
     useEffect(() {
       if (!hasConnectivity) {
-        ref.read(networkStatusProvider.notifier).setOffline();
+        Future.microtask(() {
+          ref.read(networkStatusProvider.notifier).setOffline();
+        });
         return null;
       }
 
