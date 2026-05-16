@@ -40,7 +40,6 @@ import 'package:media_kit/media_kit.dart';
 
 import 'package:island/core/services/python_service.dart' as python;
 
-// 早期日志缓存队列
 final List<LogRecord> _earlyLogs = [];
 
 @pragma('vm:entry-point')
@@ -50,14 +49,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main(List<String> args) async {
-  // 第一步：立即设置日志根级别和临时监听器（收集早期日志到缓存）
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
     _earlyLogs.add(record);
   });
-
-  // 此时早期日志已经被缓存，但还未正式输出到 DevTools
-  // 以下所有初始化代码中产生的 Logger 日志都会被缓存起来
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
@@ -226,24 +221,20 @@ void main(List<String> args) async {
     Logger.root.info("[SplashScreen] Now hiding splash screen...");
   }
 
-  // 正式日志系统配置：将缓存中的日志重放，并接管未来所有日志
   Logger.root.onRecord.listen((record) {
     developer.log(
       record.message,
       time: record.time,
       level: record.level.value,
       name: record.loggerName,
-      zone: Zone.current,
     );
   });
-  // 重放早期缓存的日志
   for (final record in _earlyLogs) {
     developer.log(
       record.message,
       time: record.time,
       level: record.level.value,
       name: record.loggerName,
-      zone: Zone.current,
     );
   }
 
@@ -283,7 +274,6 @@ void main(List<String> args) async {
   );
 }
 
-// 以下 IslandApp 等代码保持原样不变
 final globalOverlay = GlobalKey<OverlayState>();
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
