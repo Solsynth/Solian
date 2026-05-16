@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
@@ -40,6 +40,9 @@ import 'package:media_kit/media_kit.dart';
 
 import 'package:island/core/services/python_service.dart' as python;
 
+// 早期日志缓存队列
+final List<LogRecord> _earlyLogs = [];
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -47,18 +50,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main(List<String> args) async {
-  // Initialize logging
+  // 第一步：立即设置日志根级别和临时监听器（收集早期日志到缓存）
+  Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
-    log(
-      [
-        '[${record.time}] [${record.level}] ${record.message}',
-        if (record.error != null) 'Error: ${record.error}',
-        ?record.stackTrace,
-      ].join('\n'),
-      time: record.time,
-      level: record.level.value,
-    );
+    _earlyLogs.add(record);
   });
+
+  // 此时早期日志已经被缓存，但还未正式输出到 DevTools
+  // 以下所有初始化代码中产生的 Logger 日志都会被缓存起来
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
@@ -86,7 +85,6 @@ void main(List<String> args) async {
 
   try {
     await EasyLocalization.ensureInitialized();
-    // Disable logs
     EasyLocalization.logger.enableBuildModes = [];
 
     if (kIsWeb || !Platform.isLinux) {
@@ -146,17 +144,16 @@ void main(List<String> args) async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  // Initialize pocketpy (non-web only)
   if (!kIsWeb) {
     try {
       await python.initPython();
       if (python.isPythonAvailable()) {
-        log('[pocketpy] Initialized and executed all scripts in SolianApp');
+        Logger.root.info("[pocketpy] Initialized and executed all scripts in SolianApp");
       } else {
-        log('[pocketpy] SolianApp not found or init failed');
+        Logger.root.info("[pocketpy] SolianApp not found or init failed");
       }
     } catch (e) {
-      log('[pocketpy] Init error: $e');
+      Logger.root.severe("[pocketpy] Init error", e);
     }
   }
 
@@ -164,7 +161,6 @@ void main(List<String> args) async {
     await windowManager.ensureInitialized();
 
     const defaultSize = Size(360, 640);
-
     final savedSizeString = prefs.getString(kAppWindowSize);
     Size initialSize = defaultSize;
 
@@ -230,6 +226,27 @@ void main(List<String> args) async {
     Logger.root.info("[SplashScreen] Now hiding splash screen...");
   }
 
+  // 正式日志系统配置：将缓存中的日志重放，并接管未来所有日志
+  Logger.root.onRecord.listen((record) {
+    developer.log(
+      record.message,
+      time: record.time,
+      level: record.level.value,
+      name: record.loggerName,
+      zone: Zone.current,
+    );
+  });
+  // 重放早期缓存的日志
+  for (final record in _earlyLogs) {
+    developer.log(
+      record.message,
+      time: record.time,
+      level: record.level.value,
+      name: record.loggerName,
+      zone: Zone.current,
+    );
+  }
+
   runApp(
     ProviderScope(
       retry: (retryCount, error) {
@@ -266,6 +283,7 @@ void main(List<String> args) async {
   );
 }
 
+// 以下 IslandApp 等代码保持原样不变
 final globalOverlay = GlobalKey<OverlayState>();
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
