@@ -620,6 +620,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   void setIpOverrideEnabled(bool value) {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppIpOverrideEnabled, value);
+    ref.invalidate(ipOverrideSettingsProvider);
   }
 
   void setIpOverrideList(List<IpOverride> overrides) {
@@ -630,6 +631,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       final encoded = jsonEncode(overrides.map((o) => o.toJson()).toList());
       prefs.setString(kAppIpOverrideList, encoded);
     }
+    ref.invalidate(ipOverrideSettingsProvider);
   }
 }
 

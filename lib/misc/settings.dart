@@ -22,6 +22,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/udid.dart' as udid;
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -921,8 +922,30 @@ class SettingsScreen extends HookConsumerWidget {
                       : null,
                 ),
                 onTap: domainSuffix != null
+                  ? () {
+                        _showIpOverrideEditor(context, ref);
+                      }
+                    : null,
+              );
+            },
+          ),
+          Builder(
+            builder: (context) {
+              final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
+              return ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsIpOverrideEntries').tr(),
+                subtitle: Text(
+                  domainSuffix != null
+                      ? 'settingsIpOverrideEntriesHelper'.tr(args: [domainSuffix])
+                      : 'settingsIpOverrideEntriesHelperOff'.tr(),
+                ),
+                contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                leading: const Icon(Symbols.edit),
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: domainSuffix != null
                     ? () {
-                        _showIpOverrideDialog(context, ref);
+                        _showIpOverrideEditor(context, ref);
                       }
                     : null,
               );
@@ -2457,66 +2480,108 @@ class _EmbeddedAboutContent extends HookConsumerWidget {
   }
 }
 
-void _showIpOverrideDialog(BuildContext context, WidgetRef ref) {
+void _showIpOverrideEditor(BuildContext context, WidgetRef ref) {
   final settings = ref.read(ipOverrideSettingsProvider);
-  final ipController = TextEditingController(
-    text: settings.overrides.isNotEmpty ? settings.overrides.first.ip : '',
-  );
-  final portController = TextEditingController(
-    text: settings.overrides.isNotEmpty && settings.overrides.first.port != null
-        ? settings.overrides.first.port.toString()
-        : '',
+  final controller = TextEditingController(
+    text: settings.overrides
+        .map((override) => override.port == null ? override.ip : '${override.ip}:${override.port}')
+        .join('\n'),
   );
 
-  showDialog(
+  Future<void> save() async {
+    final lines = controller.text
+        .split(RegExp(r'[\n,]'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+
+    final overrides = <IpOverride>[];
+    for (final line in lines) {
+      final idx = line.lastIndexOf(':');
+      if (idx > 0 && idx < line.length - 1 && !line.contains(']')) {
+        final ip = line.substring(0, idx).trim();
+        final port = int.tryParse(line.substring(idx + 1).trim());
+        if (ip.isNotEmpty) {
+          overrides.add(IpOverride(ip: ip, port: port));
+        }
+      } else {
+        overrides.add(IpOverride(ip: line));
+      }
+    }
+
+    ref.read(appSettingsProvider.notifier).setIpOverrideList(overrides);
+    ref.read(appSettingsProvider.notifier).setIpOverrideEnabled(overrides.isNotEmpty);
+  }
+
+  showModalBottomSheet(
     context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text('settingsIpOverride').tr(),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: ipController,
-              decoration: InputDecoration(
-                labelText: 'IP Address',
-                hintText: '192.168.1.1',
-                border: const OutlineInputBorder(),
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) {
+      return SheetScaffold(
+        titleText: 'settingsIpOverrideEntries'.tr(),
+        onClose: () => Navigator.pop(sheetContext),
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+            top: 12,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'settingsIpOverrideEntriesHelper'.tr(
+                  args: [ref.read(ipOverrideDomainSuffixProvider) ?? ''],
+                ),
+                style: Theme.of(sheetContext).textTheme.bodySmall,
               ),
-              keyboardType: TextInputType.text,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: portController,
-              decoration: InputDecoration(
-                labelText: 'Port (optional)',
-                hintText: '443',
-                border: const OutlineInputBorder(),
+              const SizedBox(height: 12),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  maxLines: null,
+                  expands: true,
+                  keyboardType: TextInputType.multiline,
+                  textAlignVertical: TextAlignVertical.top,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: '192.168.1.10\n192.168.1.11:443',
+                    alignLabelWithHint: true,
+                  ),
+                ),
               ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      controller.text = '';
+                      save();
+                      Navigator.pop(sheetContext);
+                    },
+                    child: Text('clear').tr(),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.pop(sheetContext),
+                    child: Text('cancel').tr(),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () async {
+                      await save();
+                      if (sheetContext.mounted) Navigator.pop(sheetContext);
+                      showSnackBar('settingsApplied'.tr());
+                    },
+                    child: Text('confirm').tr(),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('cancel').tr(),
-          ),
-          TextButton(
-            onPressed: () {
-              final ip = ipController.text.trim();
-              if (ip.isNotEmpty) {
-                final port = int.tryParse(portController.text.trim());
-                ref.read(appSettingsProvider.notifier).setIpOverrideList([
-                  IpOverride(ip: ip, port: port),
-                ]);
-                ref.read(appSettingsProvider.notifier).setIpOverrideEnabled(true);
-              }
-              Navigator.pop(context);
-            },
-            child: Text('confirm').tr(),
-          ),
-        ],
       );
     },
   );
