@@ -14,6 +14,7 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/log_recorder.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/core/network.dart';
 import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/firebase_options.dart';
@@ -146,6 +147,7 @@ void main(List<String> args) async {
   }
 
   final prefs = await SharedPreferences.getInstance();
+  HttpOverrides.global = createAppHttpOverridesFromPrefs(prefs);
 
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
     await windowManager.ensureInitialized();
@@ -234,7 +236,7 @@ void main(List<String> args) async {
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: Directionality(
         textDirection: TextDirection.ltr,
-        child: EasyLocalization(
+      child: EasyLocalization(
           supportedLocales: [
             Locale('en', 'US'),
             Locale('zh', 'CN'),
@@ -300,6 +302,10 @@ class IslandApp extends HookConsumerWidget {
     }
 
     useEffect(() {
+      ref.listen<HttpOverrides?>(appHttpOverridesProvider, (_, overrides) {
+        HttpOverrides.global = overrides;
+      });
+
       if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
         return null;
       }
