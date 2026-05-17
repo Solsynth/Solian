@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:disk_space_2/disk_space_2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DiskSpaceInfo {
@@ -49,22 +51,31 @@ class CacheService {
 
   static Future<int> getFlutterCacheSize() async {
     try {
-      final directory = await _getCacheDirectory();
-      if (directory == null) return 0;
-      return await _getDirectorySize(directory);
+      return await DefaultCacheManager().store.getCacheSize();
     } catch (e) {
-      return 0;
+      try {
+        final directory = await _getCacheDirectory();
+        if (directory == null) return 0;
+        return await _getDirectorySize(directory);
+      } catch (e) {
+        Logger.root.warning('Failed to get Flutter cache size', e);
+        return 0;
+      }
     }
   }
 
   static Future<void> clearFlutterCache() async {
     try {
-      final directory = await _getCacheDirectory();
-      if (directory != null && await directory.exists()) {
-        await _deleteDirectory(directory);
-      }
+      await DefaultCacheManager().emptyCache();
     } catch (e) {
-      debugPrint('Failed to clear Flutter cache: $e');
+      try {
+        final directory = await _getCacheDirectory();
+        if (directory != null && await directory.exists()) {
+          await _deleteDirectory(directory);
+        }
+      } catch (e) {
+        Logger.root.warning('Failed to clear Flutter cache: $e');
+      }
     }
   }
 
