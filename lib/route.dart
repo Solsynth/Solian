@@ -36,6 +36,7 @@ class AppRouter extends RootStackRouter {
 
     // Other standalone routes
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
+    AutoRoute(page: ChatRoomStorageRoute.page, path: '/settings/chat-room-storage'),
     AutoRoute(page: AboutRoute.page, path: '/about'),
     AutoRoute(page: CfIpSpeedTestRoute.page, path: '/cf-ip-speed-test'),
     // TODO make a self-contained page to take the id

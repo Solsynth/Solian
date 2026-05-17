@@ -10,7 +10,7 @@ _SnSticker _$SnStickerFromJson(Map<String, dynamic> json) => _SnSticker(
   id: json['id'] as String,
   slug: json['slug'] as String,
   name: json['name'] as String?,
-  image: SnCloudFile.fromJson(json['image'] as Map<String, dynamic>),
+  image: SnCloudFileReference.fromJson(json['image'] as Map<String, dynamic>),
   order: (json['order'] as num?)?.toInt() ?? 0,
   size: json['size'] == null ? 0 : _stickerSizeFromJson(json['size']),
   mode: json['mode'] == null ? 0 : _stickerModeFromJson(json['mode']),
@@ -50,7 +50,7 @@ _SnStickerPack _$SnStickerPackFromJson(Map<String, dynamic> json) =>
       publisherId: json['publisher_id'] as String,
       icon: json['icon'] == null
           ? null
-          : SnCloudFile.fromJson(json['icon'] as Map<String, dynamic>),
+          : SnCloudFileReference.fromJson(json['icon'] as Map<String, dynamic>),
       publisher: json['publisher'] == null
           ? null
           : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),

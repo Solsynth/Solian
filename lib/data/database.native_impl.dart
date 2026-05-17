@@ -219,6 +219,19 @@ class AppDatabase {
         .count();
   }
 
+  Future<Map<String, int>> getChatRoomMessageStats() async {
+    if (_isWeb) return {};
+    final store = await _getStore();
+    if (store == null) return {};
+    final box = store.box<ChatMessageEntity>();
+    final allMessages = box.getAll();
+    final stats = <String, int>{};
+    for (final msg in allMessages) {
+      stats[msg.roomId] = (stats[msg.roomId] ?? 0) + 1;
+    }
+    return stats;
+  }
+
   Future<List<LocalChatMessage>> searchMessages(
     String roomId,
     String query, {

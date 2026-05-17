@@ -2921,6 +2921,14 @@
   "directoryPathHint": "例如：documents, projects/my-app",
   "directoryPathHelper": "輸入目錄路徑。當您上傳檔案到該路徑時，目錄將被建立。",
   "goToDirectory": "前往目錄",
+  "createNewFolder": "新增資料夾",
+  "folderName": "資料夾名稱",
+  "folderNameHint": "輸入新資料夾的名稱",
+  "folderNameRequired": "資料夾名稱不能為空",
+  "folderNameInvalid": "資料夾名稱包含無效字元",
+  "folderNameTooLong": "資料夾名稱過長",
+  "folderCreated": "資料夾建立成功",
+  "folderCreationFailed": "建立資料夾失敗",
   "errorPickingFile": "選擇檔案出錯：{}",
 
   "calendarEventCreate": "建立行程",
@@ -2979,4 +2987,16 @@
   "holidayOptional": "可選假日",
   "holidayObservance": "紀念日",
   "holidayOther": "假日"
+,
+  "settingsChatRoomStorage": "Chat Room Storage",
+  "settingsChatRoomStorageHelper": "View stored messages per chat room",
+  "settingsTotalMessages": "Total Messages",
+  "settingsMessageCount": "{} messages",
+  "settingsUnknownRoom": "Unknown Room",
+  "settingsNoChatMessages": "No chat messages stored",
+  "settingsClearChatHistory": "Clear Chat History",
+  "settingsClearChatHistoryConfirm": "Are you sure you want to clear all messages from \"{}\"? This action cannot be undone.",
+  "settingsExportChat": "匯出聊天記錄",
+  "settingsExportJsonDesc": "包含中繼資料的完整訊息資料",
+  "settingsExportCsvDesc": "簡易試算表格式"
 }

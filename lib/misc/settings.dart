@@ -2023,183 +2023,202 @@ class _TtsLanguageSelector extends StatelessWidget {
   }
 }
 
-class _StorageSettingsSection extends StatefulWidget {
-  @override
-  State<_StorageSettingsSection> createState() =>
-      _StorageSettingsSectionState();
-}
-
-class _StorageSettingsSectionState extends State<_StorageSettingsSection> {
-  DiskSpaceInfo? _diskSpace;
-  int _flutterCacheSize = 0;
-  int _nativeCacheSize = 0;
-  bool _loading = true;
-  bool _clearing = false;
+class _StorageSettingsSection extends HookConsumerWidget {
+  const _StorageSettingsSection();
 
   @override
-  void initState() {
-    super.initState();
-    _loadStorageInfo();
-  }
-
-  Future<void> _loadStorageInfo() async {
-    final diskSpace = await CacheService.getDiskSpace();
-    final flutterCache = await CacheService.getFlutterCacheSize();
-    final nativeCache = await CacheService.getNativeCacheSize();
-
-    if (mounted) {
-      setState(() {
-        _diskSpace = diskSpace;
-        _flutterCacheSize = flutterCache;
-        _nativeCacheSize = nativeCache;
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _clearFlutterCache() async {
-    setState(() => _clearing = true);
-    await CacheService.clearFlutterCache();
-    await _loadStorageInfo();
-    setState(() => _clearing = false);
-    if (mounted) {
-      showSnackBar('settingsCacheCleared'.tr());
-    }
-  }
-
-  Future<void> _clearNativeCache() async {
-    setState(() => _clearing = true);
-    await CacheService.clearNativeCache();
-    await _loadStorageInfo();
-    setState(() => _clearing = false);
-    if (mounted) {
-      showSnackBar('settingsCacheCleared'.tr());
-    }
-  }
-
-  Future<void> _clearAllCache() async {
-    setState(() => _clearing = true);
-    await CacheService.clearAllCaches();
-    await _loadStorageInfo();
-    setState(() => _clearing = false);
-    if (mounted) {
-      showSnackBar('settingsCacheCleared'.tr());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isIOS = !kIsWeb && Platform.isIOS;
     final theme = Theme.of(context);
+    final diskSpace = useState<DiskSpaceInfo?>(null);
+    final flutterCacheSize = useState(0);
+    final nativeCacheSize = useState(0);
+    final loading = useState(true);
+    final clearing = useState(false);
+
+    useEffect(() {
+      CacheService.getDiskSpace().then((space) {
+        diskSpace.value = space;
+      });
+      CacheService.getFlutterCacheSize().then((size) {
+        flutterCacheSize.value = size;
+      });
+      CacheService.getNativeCacheSize().then((size) {
+        nativeCacheSize.value = size;
+      });
+      loading.value = false;
+      return null;
+    }, []);
+
+    Future<void> clearFlutterCache() async {
+      clearing.value = true;
+      await CacheService.clearFlutterCache();
+      flutterCacheSize.value = await CacheService.getFlutterCacheSize();
+      clearing.value = false;
+      if (context.mounted) {
+        showSnackBar('settingsCacheCleared'.tr());
+      }
+    }
+
+    Future<void> clearNativeCache() async {
+      clearing.value = true;
+      await CacheService.clearNativeCache();
+      nativeCacheSize.value = await CacheService.getNativeCacheSize();
+      clearing.value = false;
+      if (context.mounted) {
+        showSnackBar('settingsCacheCleared'.tr());
+      }
+    }
+
+    Future<void> clearAllCache() async {
+      clearing.value = true;
+      await CacheService.clearAllCaches();
+      flutterCacheSize.value = await CacheService.getFlutterCacheSize();
+      nativeCacheSize.value = await CacheService.getNativeCacheSize();
+      clearing.value = false;
+      if (context.mounted) {
+        showSnackBar('settingsCacheCleared'.tr());
+      }
+    }
+
+    if (loading.value) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_loading)
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else ...[
-          // Storage usage bar
-          if (_diskSpace != null)
-            ...([
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'settingsStorageUsed'.tr(),
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        Text(
-                          'settingsStorageUsedPercent'.tr(
-                            args: [
-                              (_diskSpace!.usedPercentage * 100)
-                                  .toStringAsFixed(0),
-                            ],
-                          ),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: _diskSpace!.usedPercentage.clamp(0.0, 1.0),
-                        minHeight: 8,
-                        backgroundColor:
-                            theme.colorScheme.surfaceContainerHighest,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${CacheService.formatBytes(_diskSpace!.usedSpace)} / ${CacheService.formatBytes(_diskSpace!.totalSpace)}',
-                          style: theme.textTheme.bodySmall,
-                        ),
-                        Text(
-                          '${'settingsStorageFree'.tr()}: ${CacheService.formatBytes(_diskSpace!.freeSpace)}',
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 24),
-            ])
-          else
-            ...([
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'settingsStorageNotAvailable'.tr(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-              const Divider(height: 24),
-            ]),
-
-          // App Cache section
+        if (diskSpace.value != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'settingsAppCache'.tr(),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'settingsStorageUsed'.tr(),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    Text(
+                      'settingsStorageUsedPercent'.tr(
+                        args: [
+                          (diskSpace.value!.usedPercentage * 100)
+                              .toStringAsFixed(0),
+                        ],
+                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: diskSpace.value!.usedPercentage.clamp(0.0, 1.0),
+                    minHeight: 8,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Flutter cache
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${CacheService.formatBytes(diskSpace.value!.usedSpace)} / ${CacheService.formatBytes(diskSpace.value!.totalSpace)}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      '${'settingsStorageFree'.tr()}: ${CacheService.formatBytes(diskSpace.value!.freeSpace)}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'settingsStorageNotAvailable'.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        const Divider(height: 24),
+        ListTile(
+          minLeadingWidth: 48,
+          title: Text('settingsChatRoomStorage').tr(),
+          subtitle: Text('settingsChatRoomStorageHelper').tr(),
+          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          leading: const Icon(Symbols.storage),
+          trailing: const Icon(Symbols.chevron_right),
+          onTap: () {
+            context.router.push(const ChatRoomStorageRoute());
+          },
+        ),
+        const Divider(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'settingsAppCache'.tr(),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Symbols.cached, size: 20),
+                title: Text('settingsFlutterCache'.tr()),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      CacheService.formatBytes(flutterCacheSize.value),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(width: 8),
+                    if (clearing.value)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else
+                      TextButton(
+                        onPressed: clearFlutterCache,
+                        child: Text('settingsClearCache'.tr()),
+                      ),
+                  ],
+                ),
+              ),
+              if (isIOS)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Symbols.cached, size: 20),
-                  title: Text('settingsFlutterCache'.tr()),
+                  leading: const Icon(Symbols.android, size: 20),
+                  title: Text('settingsNativeCache'.tr()),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        CacheService.formatBytes(_flutterCacheSize),
+                        CacheService.formatBytes(nativeCacheSize.value),
                         style: theme.textTheme.bodySmall,
                       ),
                       const SizedBox(width: 8),
-                      if (_clearing)
+                      if (clearing.value)
                         const SizedBox(
                           width: 16,
                           height: 16,
@@ -2207,66 +2226,34 @@ class _StorageSettingsSectionState extends State<_StorageSettingsSection> {
                         )
                       else
                         TextButton(
-                          onPressed: _clearFlutterCache,
+                          onPressed: clearNativeCache,
                           child: Text('settingsClearCache'.tr()),
                         ),
                     ],
                   ),
                 ),
-                // Native cache (iOS only)
-                if (isIOS)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Symbols.android, size: 20),
-                    title: Text('settingsNativeCache'.tr()),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          CacheService.formatBytes(_nativeCacheSize),
-                          style: theme.textTheme.bodySmall,
-                        ),
-                        const SizedBox(width: 8),
-                        if (_clearing)
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        else
-                          TextButton(
-                            onPressed: _clearNativeCache,
-                            child: Text('settingsClearCache'.tr()),
-                          ),
-                      ],
+              if (!isIOS && flutterCacheSize.value > 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: clearing.value ? null : clearAllCache,
+                      icon: clearing.value
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Symbols.delete_outline),
+                      label: Text('settingsClearCache'.tr()),
                     ),
                   ),
-                // Non-iOS: single clear all button
-                if (!isIOS && (_flutterCacheSize > 0))
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _clearing ? null : _clearAllCache,
-                        icon: _clearing
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Symbols.delete_outline),
-                        label: Text('settingsClearCache'.tr()),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
-          const SizedBox(height: 16),
-        ],
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }

@@ -1818,4 +1818,16 @@
   "holidayOptional": "Festivo opcional",
   "holidayObservance": "Conmemoración",
   "holidayOther": "Festivo"
+,
+  "settingsChatRoomStorage": "Chat Room Storage",
+  "settingsChatRoomStorageHelper": "View stored messages per chat room",
+  "settingsTotalMessages": "Total Messages",
+  "settingsMessageCount": "{} messages",
+  "settingsUnknownRoom": "Unknown Room",
+  "settingsNoChatMessages": "No chat messages stored",
+  "settingsClearChatHistory": "Clear Chat History",
+  "settingsClearChatHistoryConfirm": "Are you sure you want to clear all messages from \"{}\"? This action cannot be undone.",
+  "settingsExportChat": "Exportar Chat",
+  "settingsExportJsonDesc": "Datos completos del mensaje con metadatos",
+  "settingsExportCsvDesc": "Formato simple de hoja de cálculo"
 }

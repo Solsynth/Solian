@@ -41,6 +41,8 @@ class AppDatabase {
 
   Future<int> getTotalMessagesForRoom(String roomId) async => 0;
 
+  Future<Map<String, int>> getChatRoomMessageStats() async => {};
+
   Future<List<LocalChatMessage>> searchMessages(
     String roomId,
     String query, {
