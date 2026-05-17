@@ -1071,7 +1071,12 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.volume_up,
         title: 'Notifications',
         localizedTitleKey: 'settingsCategoryNotifications',
-        searchTerms: ['sound effects', 'festival features', 'haptic feedback', 'friend status'],
+        searchTerms: [
+          'sound effects',
+          'festival features',
+          'haptic feedback',
+          'friend status',
+        ],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -1140,7 +1145,11 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.send,
         title: 'Chat',
         localizedTitleKey: 'settingsCategoryChat',
-        searchTerms: ['enter to send', 'grouped chat list', 'chat event messages'],
+        searchTerms: [
+          'enter to send',
+          'grouped chat list',
+          'chat event messages',
+        ],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -1220,7 +1229,14 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.record_voice_over,
         title: 'Speech',
         localizedTitleKey: 'settingsCategorySpeech',
-        searchTerms: ['tts', 'voice', 'language', 'speech rate', 'pitch', 'volume'],
+        searchTerms: [
+          'tts',
+          'voice',
+          'language',
+          'speech rate',
+          'pitch',
+          'volume',
+        ],
         children: [
           ListTile(
             title: Text('settingsEnableTts').tr(),
@@ -1328,7 +1344,13 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.tune,
         title: 'General',
         localizedTitleKey: 'settingsCategoryGeneral',
-        searchTerms: ['transparent app bar', 'data saving', 'disable animation', 'default screen', 'search engine'],
+        searchTerms: [
+          'transparent app bar',
+          'data saving',
+          'disable animation',
+          'default screen',
+          'search engine',
+        ],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -1553,27 +1575,32 @@ class SettingsScreen extends HookConsumerWidget {
             children: [
               Flexible(
                 flex: 1,
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: visibleCategories.length,
-                  itemBuilder: (context, i) {
-                    final category = visibleCategories[i];
-                    return ListTile(
-                      selected: selectedIdx == i,
-                      selectedTileColor: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withOpacity(0.3),
-                      leading: Icon(category.icon),
-                      title: Text(category.getLocalizedTitle(context)),
-                      onTap: () => selectedCategoryIdx.value = i,
-                    );
-                  },
-                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (var i = 0; i < visibleCategories.length; i++)
+                        () {
+                          final category = visibleCategories[i];
+                          return ListTile(
+                            selected: selectedIdx == i,
+                            selectedTileColor: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer.withOpacity(0.3),
+                            leading: Icon(category.icon),
+                            title: Text(category.getLocalizedTitle(context)),
+                            onTap: () => selectedCategoryIdx.value = i,
+                          );
+                        }(),
+                    ],
+                  ),
+                ).alignment(Alignment.center),
               ),
               const VerticalDivider(width: 1),
               Flexible(
                 flex: 2,
-                child: selectedCategory.embedInWide &&
+                child:
+                    selectedCategory.embedInWide &&
                         selectedCategory.wideContent != null
                     ? selectedCategory.wideContent!(context)
                     : SingleChildScrollView(
@@ -1589,16 +1616,54 @@ class SettingsScreen extends HookConsumerWidget {
         );
       }
 
+      // Narrow layout with category dropdown
       return Column(
-        spacing: 16,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          for (final category in visibleCategories)
-            _SettingsSection(
-              title: category.title,
-              localizedTitleKey: category.localizedTitleKey,
-              children: category.children,
+          // Category dropdown selector
+          DropdownButtonHideUnderline(
+            child: DropdownButton2<int>(
+              isExpanded: true,
+              valueListenable: ValueNotifier<int>(selectedIdx),
+              items: visibleCategories.asMap().entries.map((entry) {
+                final index = entry.key;
+                final category = entry.value;
+                return DropdownItem<int>(
+                  value: index,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      children: [
+                        Icon(category.icon, size: 20),
+                        const SizedBox(width: 12),
+                        Text(
+                          category.getLocalizedTitle(context),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  selectedCategoryIdx.value = value;
+                }
+              },
+              buttonStyleData: const ButtonStyleData(padding: EdgeInsets.zero),
+              dropdownStyleData: const DropdownStyleData(),
             ),
+          ),
+          // Selected category content
+          Flexible(
+            child: SingleChildScrollView(
+              child: _SettingsSection(
+                title: selectedCategory.title,
+                localizedTitleKey: selectedCategory.localizedTitleKey,
+                children: selectedCategory.children,
+              ),
+            ),
+          ),
         ],
       );
     }
@@ -1672,17 +1737,31 @@ class SettingsScreen extends HookConsumerWidget {
             );
           }
 
-          return SingleChildScrollView(
-            padding: EdgeInsets.zero,
-            child: buildSettingsList(
-              constraints,
-              filteredCategories,
-              selectedCategoryIdx.value.clamp(
-                0,
-                filteredCategories.length - 1,
+          if (isWide) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.zero,
+              child: buildSettingsList(
+                constraints,
+                filteredCategories,
+                selectedCategoryIdx.value.clamp(
+                  0,
+                  filteredCategories.length - 1,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            return SizedBox(
+              height: constraints.maxHeight,
+              child: buildSettingsList(
+                constraints,
+                filteredCategories,
+                selectedCategoryIdx.value.clamp(
+                  0,
+                  filteredCategories.length - 1,
+                ),
+              ),
+            );
+          }
         },
       ),
     );
@@ -1728,8 +1807,9 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayTitle =
-        localizedTitleKey != null ? localizedTitleKey!.tr() : title;
+    final displayTitle = localizedTitleKey != null
+        ? localizedTitleKey!.tr()
+        : title;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2326,17 +2406,15 @@ class _EmbeddedAboutContent extends HookConsumerWidget {
                     context,
                     icon: Symbols.privacy_tip,
                     title: 'aboutScreenPrivacyPolicyTitle'.tr(),
-                    onTap: () => launchURL(
-                      'https://solsynth.dev/terms/privacy-policy',
-                    ),
+                    onTap: () =>
+                        launchURL('https://solsynth.dev/terms/privacy-policy'),
                   ),
                   _buildListTile(
                     context,
                     icon: Symbols.description,
                     title: 'aboutScreenTermsOfServiceTitle'.tr(),
-                    onTap: () => launchURL(
-                      'https://solsynth.dev/terms/user-agreement',
-                    ),
+                    onTap: () =>
+                        launchURL('https://solsynth.dev/terms/user-agreement'),
                   ),
                   _buildListTile(
                     context,
@@ -2380,9 +2458,7 @@ class _EmbeddedAboutContent extends HookConsumerWidget {
                       title: 'donate'.tr(),
                       subtitle: 'donateDescription'.tr(),
                       onTap: () {
-                        launchUrl(
-                          Uri.parse('https://afdian.com/@littlesheep'),
-                        );
+                        launchUrl(Uri.parse('https://afdian.com/@littlesheep'));
                       },
                     ),
                 ],
@@ -2502,9 +2578,7 @@ class _EmbeddedAboutContent extends HookConsumerWidget {
           trailing: const Icon(
             Symbols.chevron_right,
           ).padding(top: multipleLines ? 8 : 0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           onTap: onTap,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
           minLeadingWidth: 24,
@@ -2559,6 +2633,7 @@ class _IpOverrideModeSheet extends StatelessWidget {
                 ref
                     .read(appSettingsProvider.notifier)
                     .setIpOverrideMode(selected.first);
+                context.pop();
               },
               showSelectedIcon: false,
             ),
