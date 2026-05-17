@@ -6,6 +6,28 @@ part of 'config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_IpOverride _$IpOverrideFromJson(Map<String, dynamic> json) => _IpOverride(
+  ip: json['ip'] as String,
+  port: (json['port'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$IpOverrideToJson(_IpOverride instance) =>
+    <String, dynamic>{'ip': instance.ip, 'port': instance.port};
+
+_IpOverrideSettings _$IpOverrideSettingsFromJson(Map<String, dynamic> json) =>
+    _IpOverrideSettings(
+      enabled: json['enabled'] as bool,
+      overrides: (json['overrides'] as List<dynamic>)
+          .map((e) => IpOverride.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$IpOverrideSettingsToJson(_IpOverrideSettings instance) =>
+    <String, dynamic>{
+      'enabled': instance.enabled,
+      'overrides': instance.overrides.map((e) => e.toJson()).toList(),
+    };
+
 _ThemeColors _$ThemeColorsFromJson(Map<String, dynamic> json) => _ThemeColors(
   primary: (json['primary'] as num?)?.toInt(),
   onPrimary: (json['on_primary'] as num?)?.toInt(),
@@ -133,7 +155,7 @@ final class AppSettingsNotifierProvider
 }
 
 String _$appSettingsNotifierHash() =>
-    r'0d67f6a6c635d6edd03beffe7ed2048c77a76204';
+    r'02e7a8c42d49f5db94092392922f429f75564fda';
 
 abstract class _$AppSettingsNotifier extends $Notifier<AppSettings> {
   AppSettings build();

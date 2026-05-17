@@ -1025,7 +1025,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                               if (attachment.isOnCloud && !attachment.isLink) {
                                 final client = ref.watch(apiClientProvider);
                                 await client.delete(
-                                  '/drive/files/${attachment.data.id}',
+                                  '/fs/files/${attachment.data.id}',
                                 );
                               }
                               final clone = List.of(chatState.attachments);

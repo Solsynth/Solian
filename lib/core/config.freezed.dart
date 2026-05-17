@@ -13,6 +13,532 @@ part of 'config.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
+mixin _$IpOverride {
+
+ String get ip; int? get port;
+/// Create a copy of IpOverride
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$IpOverrideCopyWith<IpOverride> get copyWith => _$IpOverrideCopyWithImpl<IpOverride>(this as IpOverride, _$identity);
+
+  /// Serializes this IpOverride to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IpOverride&&(identical(other.ip, ip) || other.ip == ip)&&(identical(other.port, port) || other.port == port));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,ip,port);
+
+@override
+String toString() {
+  return 'IpOverride(ip: $ip, port: $port)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $IpOverrideCopyWith<$Res>  {
+  factory $IpOverrideCopyWith(IpOverride value, $Res Function(IpOverride) _then) = _$IpOverrideCopyWithImpl;
+@useResult
+$Res call({
+ String ip, int? port
+});
+
+
+
+
+}
+/// @nodoc
+class _$IpOverrideCopyWithImpl<$Res>
+    implements $IpOverrideCopyWith<$Res> {
+  _$IpOverrideCopyWithImpl(this._self, this._then);
+
+  final IpOverride _self;
+  final $Res Function(IpOverride) _then;
+
+/// Create a copy of IpOverride
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? ip = null,Object? port = freezed,}) {
+  return _then(_self.copyWith(
+ip: null == ip ? _self.ip : ip // ignore: cast_nullable_to_non_nullable
+as String,port: freezed == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
+as int?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [IpOverride].
+extension IpOverridePatterns on IpOverride {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _IpOverride value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _IpOverride() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _IpOverride value)  $default,){
+final _that = this;
+switch (_that) {
+case _IpOverride():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _IpOverride value)?  $default,){
+final _that = this;
+switch (_that) {
+case _IpOverride() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String ip,  int? port)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _IpOverride() when $default != null:
+return $default(_that.ip,_that.port);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String ip,  int? port)  $default,) {final _that = this;
+switch (_that) {
+case _IpOverride():
+return $default(_that.ip,_that.port);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String ip,  int? port)?  $default,) {final _that = this;
+switch (_that) {
+case _IpOverride() when $default != null:
+return $default(_that.ip,_that.port);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _IpOverride implements IpOverride {
+  const _IpOverride({required this.ip, this.port});
+  factory _IpOverride.fromJson(Map<String, dynamic> json) => _$IpOverrideFromJson(json);
+
+@override final  String ip;
+@override final  int? port;
+
+/// Create a copy of IpOverride
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$IpOverrideCopyWith<_IpOverride> get copyWith => __$IpOverrideCopyWithImpl<_IpOverride>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$IpOverrideToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IpOverride&&(identical(other.ip, ip) || other.ip == ip)&&(identical(other.port, port) || other.port == port));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,ip,port);
+
+@override
+String toString() {
+  return 'IpOverride(ip: $ip, port: $port)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$IpOverrideCopyWith<$Res> implements $IpOverrideCopyWith<$Res> {
+  factory _$IpOverrideCopyWith(_IpOverride value, $Res Function(_IpOverride) _then) = __$IpOverrideCopyWithImpl;
+@override @useResult
+$Res call({
+ String ip, int? port
+});
+
+
+
+
+}
+/// @nodoc
+class __$IpOverrideCopyWithImpl<$Res>
+    implements _$IpOverrideCopyWith<$Res> {
+  __$IpOverrideCopyWithImpl(this._self, this._then);
+
+  final _IpOverride _self;
+  final $Res Function(_IpOverride) _then;
+
+/// Create a copy of IpOverride
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? ip = null,Object? port = freezed,}) {
+  return _then(_IpOverride(
+ip: null == ip ? _self.ip : ip // ignore: cast_nullable_to_non_nullable
+as String,port: freezed == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
+as int?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$IpOverrideSettings {
+
+ bool get enabled; List<IpOverride> get overrides;
+/// Create a copy of IpOverrideSettings
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$IpOverrideSettingsCopyWith<IpOverrideSettings> get copyWith => _$IpOverrideSettingsCopyWithImpl<IpOverrideSettings>(this as IpOverrideSettings, _$identity);
+
+  /// Serializes this IpOverrideSettings to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IpOverrideSettings&&(identical(other.enabled, enabled) || other.enabled == enabled)&&const DeepCollectionEquality().equals(other.overrides, overrides));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(overrides));
+
+@override
+String toString() {
+  return 'IpOverrideSettings(enabled: $enabled, overrides: $overrides)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $IpOverrideSettingsCopyWith<$Res>  {
+  factory $IpOverrideSettingsCopyWith(IpOverrideSettings value, $Res Function(IpOverrideSettings) _then) = _$IpOverrideSettingsCopyWithImpl;
+@useResult
+$Res call({
+ bool enabled, List<IpOverride> overrides
+});
+
+
+
+
+}
+/// @nodoc
+class _$IpOverrideSettingsCopyWithImpl<$Res>
+    implements $IpOverrideSettingsCopyWith<$Res> {
+  _$IpOverrideSettingsCopyWithImpl(this._self, this._then);
+
+  final IpOverrideSettings _self;
+  final $Res Function(IpOverrideSettings) _then;
+
+/// Create a copy of IpOverrideSettings
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? overrides = null,}) {
+  return _then(_self.copyWith(
+enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,overrides: null == overrides ? _self.overrides : overrides // ignore: cast_nullable_to_non_nullable
+as List<IpOverride>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [IpOverrideSettings].
+extension IpOverrideSettingsPatterns on IpOverrideSettings {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _IpOverrideSettings value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _IpOverrideSettings() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _IpOverrideSettings value)  $default,){
+final _that = this;
+switch (_that) {
+case _IpOverrideSettings():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _IpOverrideSettings value)?  $default,){
+final _that = this;
+switch (_that) {
+case _IpOverrideSettings() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enabled,  List<IpOverride> overrides)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _IpOverrideSettings() when $default != null:
+return $default(_that.enabled,_that.overrides);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enabled,  List<IpOverride> overrides)  $default,) {final _that = this;
+switch (_that) {
+case _IpOverrideSettings():
+return $default(_that.enabled,_that.overrides);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enabled,  List<IpOverride> overrides)?  $default,) {final _that = this;
+switch (_that) {
+case _IpOverrideSettings() when $default != null:
+return $default(_that.enabled,_that.overrides);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _IpOverrideSettings implements IpOverrideSettings {
+  const _IpOverrideSettings({required this.enabled, required final  List<IpOverride> overrides}): _overrides = overrides;
+  factory _IpOverrideSettings.fromJson(Map<String, dynamic> json) => _$IpOverrideSettingsFromJson(json);
+
+@override final  bool enabled;
+ final  List<IpOverride> _overrides;
+@override List<IpOverride> get overrides {
+  if (_overrides is EqualUnmodifiableListView) return _overrides;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_overrides);
+}
+
+
+/// Create a copy of IpOverrideSettings
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$IpOverrideSettingsCopyWith<_IpOverrideSettings> get copyWith => __$IpOverrideSettingsCopyWithImpl<_IpOverrideSettings>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$IpOverrideSettingsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IpOverrideSettings&&(identical(other.enabled, enabled) || other.enabled == enabled)&&const DeepCollectionEquality().equals(other._overrides, _overrides));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(_overrides));
+
+@override
+String toString() {
+  return 'IpOverrideSettings(enabled: $enabled, overrides: $overrides)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$IpOverrideSettingsCopyWith<$Res> implements $IpOverrideSettingsCopyWith<$Res> {
+  factory _$IpOverrideSettingsCopyWith(_IpOverrideSettings value, $Res Function(_IpOverrideSettings) _then) = __$IpOverrideSettingsCopyWithImpl;
+@override @useResult
+$Res call({
+ bool enabled, List<IpOverride> overrides
+});
+
+
+
+
+}
+/// @nodoc
+class __$IpOverrideSettingsCopyWithImpl<$Res>
+    implements _$IpOverrideSettingsCopyWith<$Res> {
+  __$IpOverrideSettingsCopyWithImpl(this._self, this._then);
+
+  final _IpOverrideSettings _self;
+  final $Res Function(_IpOverrideSettings) _then;
+
+/// Create a copy of IpOverrideSettings
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? enabled = null,Object? overrides = null,}) {
+  return _then(_IpOverrideSettings(
+enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,overrides: null == overrides ? _self._overrides : overrides // ignore: cast_nullable_to_non_nullable
+as List<IpOverride>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$ThemeColors {
 
  int? get primary; int? get onPrimary; int? get primaryContainer; int? get secondary; int? get onSecondary; int? get secondaryContainer; int? get tertiary; int? get onTertiary; int? get tertiaryContainer; int? get surface; int? get surfaceContainerHighest; int? get background; int? get outline; int? get shadow; int? get error;
