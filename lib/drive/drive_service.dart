@@ -497,13 +497,9 @@ class FileUploader {
     required String fileName,
     required String contentType,
     String? poolId,
-    String? bundleId,
     String? expiredAt,
     String? parentId,
     String? path,
-    String? encryptionScheme,
-    String? encryptionHeader,
-    String? encryptionSignature,
     String? usage,
     String? applicationType,
     ProgressCallback? onSendProgress,
@@ -536,21 +532,15 @@ class FileUploader {
         filename: multipartFileName,
         contentType: multipartContentType,
       ),
-      'poolId': poolId,
+      'pool_id': poolId,
       'parent_id':
           parentId ??
           await _resolveParentIdFromPath(path: path, poolId: poolId),
-      'bundleId': bundleId,
-      'expiredAt': expiredAt,
+      'expired_at': expiredAt,
       'usage': usage,
-      'applicationType': applicationType,
+      'application_type': applicationType,
     };
 
-    if (encryptionScheme != null && encryptionScheme.isNotEmpty) {
-      payload['encryptionScheme'] = encryptionScheme;
-      payload['encryptionHeader'] = encryptionHeader;
-      payload['encryptionSignature'] = encryptionSignature;
-    }
     payload.removeWhere((_, value) => value == null);
 
     final response = await _client.post(
@@ -620,11 +610,6 @@ class FileUploader {
     required String fileName,
     required String contentType,
     String? poolId,
-    String? bundleId,
-    String? encryptPassword,
-    String? encryptionScheme,
-    String? encryptionHeader,
-    String? encryptionSignature,
     String? expiredAt,
     int? chunkSize,
     String? parentId,
@@ -649,30 +634,12 @@ class FileUploader {
     debugPrint(
       '[DriveUpload] Hash calculation took: ${stepTimer.elapsedMilliseconds}ms',
     );
-
-    if (encryptionScheme != null &&
-        encryptionScheme.isNotEmpty &&
-        (encryptionHeader == null || encryptionHeader.isEmpty)) {
-      throw const FormatException(
-        'encryption_header is required when encryption_scheme is set.',
-      );
-    }
-    if (encryptionHeader != null &&
-        !DriveE2eeFileEnvelope._isValidBase64(encryptionHeader)) {
-      throw const FormatException('encryption_header must be valid base64.');
-    }
-    if (encryptionSignature != null &&
-        !DriveE2eeFileEnvelope._isValidBase64(encryptionSignature)) {
-      throw const FormatException('encryption_signature must be valid base64.');
-    }
-
     final payload = <String, dynamic>{
       'hash': hash,
       'file_name': fileName,
       'file_size': fileSize,
       'content_type': contentType,
       'pool_id': poolId,
-      'bundle_id': bundleId,
       'expired_at': expiredAt,
       'chunk_size': chunkSize,
       'parent_id':
@@ -681,12 +648,6 @@ class FileUploader {
       'usage': usage,
       'application_type': applicationType,
     };
-
-    if (encryptionScheme != null && encryptionScheme.isNotEmpty) {
-      payload['encryption_scheme'] = encryptionScheme;
-      payload['encryption_header'] = encryptionHeader;
-      payload['encryption_signature'] = encryptionSignature;
-    }
 
     stepTimer
       ..reset()
@@ -889,13 +850,9 @@ class FileUploader {
         fileName: fileName,
         contentType: contentType,
         poolId: poolId,
-        bundleId: bundleId,
         expiredAt: expiredAt,
         parentId: parentId,
         path: path,
-        encryptionScheme: encryptionScheme,
-        encryptionHeader: encryptionHeader,
-        encryptionSignature: encryptionSignature,
         usage: usage,
         applicationType: applicationType,
         onSendProgress: (sent, total) {
@@ -929,11 +886,6 @@ class FileUploader {
       fileName: fileName,
       contentType: contentType,
       poolId: poolId,
-      bundleId: bundleId,
-      encryptPassword: encryptPassword,
-      encryptionScheme: encryptionScheme,
-      encryptionHeader: encryptionHeader,
-      encryptionSignature: encryptionSignature,
       expiredAt: expiredAt,
       chunkSize: customChunkSize,
       parentId: parentId,

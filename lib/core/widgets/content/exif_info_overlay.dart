@@ -8,23 +8,104 @@ class ExifInfoOverlay extends StatelessWidget {
   const ExifInfoOverlay({super.key, required this.item});
 
   static bool precheck(IDisplayableCloudFile item) {
+    final exifVersion = item.fileMeta['exif_version'] as int? ?? 1;
     final exifData = item.fileMeta['exif'] as Map<String, dynamic>? ?? {};
 
     if (exifData.isEmpty) return false;
 
-    final dateTime = exifData['ifd0-DateTime'];
-    final model = exifData['ifd0-Model'];
-    final iso = exifData['ifd2-ISOSpeedRatings'];
-    final fnumber = exifData['ifd2-FNumber'];
-    final exposureTime = exifData['ifd2-ExposureTime'];
-    final focalLength = exifData['ifd2-FocalLength'];
+    if (exifVersion == 2) {
+      final dateTime = exifData['DateTime'];
+      final model = exifData['Model'];
+      final iso = exifData['ISOSpeedRatings'];
+      final fnumber = exifData['FNumber'];
+      final exposureTime = exifData['ExposureTime'];
+      final focalLength = exifData['FocalLength'];
 
-    return (dateTime != null && dateTime.isNotEmpty) ||
-        (model != null && model.isNotEmpty) ||
-        iso != null ||
-        fnumber != null ||
-        exposureTime != null ||
-        focalLength != null;
+      return (dateTime != null && dateTime.toString().isNotEmpty) ||
+          (model != null && model.toString().isNotEmpty) ||
+          iso != null ||
+          fnumber != null ||
+          exposureTime != null ||
+          focalLength != null;
+    } else {
+      final dateTime = exifData['ifd0-DateTime'];
+      final model = exifData['ifd0-Model'];
+      final iso = exifData['ifd2-ISOSpeedRatings'];
+      final fnumber = exifData['ifd2-FNumber'];
+      final exposureTime = exifData['ifd2-ExposureTime'];
+      final focalLength = exifData['ifd2-FocalLength'];
+
+      return (dateTime != null && dateTime.isNotEmpty) ||
+          (model != null && model.isNotEmpty) ||
+          iso != null ||
+          fnumber != null ||
+          exposureTime != null ||
+          focalLength != null;
+    }
+  }
+
+  String? _getExifValue(Map<String, dynamic> exifData, int version, String key) {
+    if (version == 2) {
+      return exifData[key]?.toString();
+    } else {
+      final prefixMap = {
+        'DateTime': 'ifd0',
+        'Model': 'ifd0',
+        'ISOSpeedRatings': 'ifd2',
+        'FNumber': 'ifd2',
+        'ExposureTime': 'ifd2',
+        'FocalLength': 'ifd2',
+      };
+      final prefix = prefixMap[key];
+      if (prefix == null) return null;
+      return exifData['$prefix-$key']?.toString();
+    }
+  }
+
+  String _stripQuotes(String value) {
+    if (value.startsWith('"') && value.endsWith('"')) {
+      return value.substring(1, value.length - 1);
+    }
+    return value;
+  }
+
+  double _parseFraction(String value) {
+    final parts = value.split('/');
+    if (parts.length == 2) {
+      final numerator = double.tryParse(parts[0]);
+      final denominator = double.tryParse(parts[1]);
+      if (numerator != null && denominator != null && denominator != 0) {
+        return numerator / denominator;
+      }
+    }
+    return double.tryParse(value) ?? 0.0;
+  }
+
+  String _formatExifValueV2(String key, String value) {
+    final cleanValue = _stripQuotes(value);
+
+    switch (key) {
+      case 'FNumber':
+        final decimal = _parseFraction(cleanValue);
+        return 'f/${decimal.toStringAsFixed(1)}';
+      case 'ExposureTime':
+        final decimal = _parseFraction(cleanValue);
+        if (decimal >= 1) {
+          return '${cleanValue}s (${decimal.toStringAsFixed(3)}s)';
+        } else {
+          return '$cleanValue (${decimal.toStringAsFixed(3)}s)';
+        }
+      case 'FocalLength':
+        final decimal = _parseFraction(cleanValue);
+        return '${decimal.toInt()}mm';
+      case 'ISOSpeedRatings':
+        return cleanValue;
+      case 'DateTime':
+      case 'Model':
+        return cleanValue;
+      default:
+        return cleanValue;
+    }
   }
 
   bool _isPreferredValue(String key, String value) {
@@ -41,7 +122,7 @@ class ExifInfoOverlay extends StatelessWidget {
     return false;
   }
 
-  String _formatExifValue(String key, String value) {
+  String _formatExifValueV1(String key, String value) {
     final lastOpen = value.lastIndexOf('(');
     final lastClose = value.endsWith(')') ? value.length - 1 : -1;
 
@@ -69,34 +150,35 @@ class ExifInfoOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final exifVersion = item.fileMeta['exif_version'] as int? ?? 1;
     final exifData = item.fileMeta['exif'] as Map<String, dynamic>? ?? {};
 
     if (exifData.isEmpty) return const SizedBox.shrink();
 
-    final dateTime = exifData['ifd0-DateTime'];
-    final model = exifData['ifd0-Model'];
-    final iso = exifData['ifd2-ISOSpeedRatings'];
-    final fnumber = exifData['ifd2-FNumber'];
-    final exposureTime = exifData['ifd2-ExposureTime'];
-    final focalLength = exifData['ifd2-FocalLength'];
+    final dateTime = _getExifValue(exifData, exifVersion, 'DateTime');
+    final model = _getExifValue(exifData, exifVersion, 'Model');
+    final iso = _getExifValue(exifData, exifVersion, 'ISOSpeedRatings');
+    final fnumber = _getExifValue(exifData, exifVersion, 'FNumber');
+    final exposureTime = _getExifValue(exifData, exifVersion, 'ExposureTime');
+    final focalLength = _getExifValue(exifData, exifVersion, 'FocalLength');
 
     final items = <Widget>[];
 
-    if (dateTime != null && dateTime.isNotEmpty) {
-      items.add(_buildExifItem('DateTime', dateTime, Symbols.calendar_check));
+    if (dateTime?.isNotEmpty ?? false) {
+      items.add(_buildExifItem('DateTime', dateTime!, Symbols.calendar_check, exifVersion));
     }
-    if (model != null && model.isNotEmpty) {
-      items.add(_buildExifItem('Model', model, Symbols.camera_alt));
+    if (model?.isNotEmpty ?? false) {
+      items.add(_buildExifItem('Model', model!, Symbols.camera_alt, exifVersion));
     }
     if (iso != null) {
-      items.add(_buildExifItem('ISO', iso, Icons.iso));
+      items.add(_buildExifItem('ISO', iso, Icons.iso, exifVersion));
     }
     if (fnumber != null) {
-      items.add(_buildExifItem('FNumber', fnumber, Symbols.camera_enhance));
+      items.add(_buildExifItem('FNumber', fnumber, Symbols.camera_enhance, exifVersion));
     }
     if (exposureTime != null) {
       items.add(
-        _buildExifItem('ExposureTime', exposureTime, Icons.shutter_speed),
+        _buildExifItem('ExposureTime', exposureTime, Icons.shutter_speed, exifVersion),
       );
     }
     if (focalLength != null) {
@@ -105,6 +187,7 @@ class ExifInfoOverlay extends StatelessWidget {
           'FocalLength',
           focalLength,
           Symbols.photo_size_select_large,
+          exifVersion,
         ),
       );
     }
@@ -130,8 +213,10 @@ class ExifInfoOverlay extends StatelessWidget {
     );
   }
 
-  Widget _buildExifItem(String key, String value, IconData icon) {
-    final formattedValue = _formatExifValue(key, value);
+  Widget _buildExifItem(String key, String value, IconData icon, int version) {
+    final formattedValue = version == 2
+        ? _formatExifValueV2(key, value)
+        : _formatExifValueV1(key, value);
     final shadow = [
       Shadow(
         color: Colors.black54,

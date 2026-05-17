@@ -1114,7 +1114,7 @@ return $default(_that.id,_that.accountId,_that.description,_that.indexed,_that.i
 @JsonSerializable()
 
 class _SnCloudFile extends SnCloudFile {
-  const _SnCloudFile({required this.id, required this.accountId, required this.description, required this.indexed, required this.isFolder, required this.isMarkedRecycle, required this.name, required this.object, required this.objectId, required this.parentId, required this.resourceIdentifier, required this.storageId, required this.storageUrl, required this.mimeType, required this.applicationType, required this.usage, final  List<int> sensitiveMarks = const [], required final  Map<String, dynamic> fileMeta, required final  Map<String, dynamic> userMeta, required this.uploadedAt, required this.expiredAt, required this.updatedAt, required this.createdAt, required this.deletedAt}): _sensitiveMarks = sensitiveMarks,_fileMeta = fileMeta,_userMeta = userMeta,super._();
+  const _SnCloudFile({required this.id, required this.accountId, required this.description, required this.indexed, required this.isFolder, required this.isMarkedRecycle, required this.name, required this.object, required this.objectId, required this.parentId, required this.resourceIdentifier, required this.storageId, required this.storageUrl, required this.mimeType, required this.applicationType, required this.usage, final  List<int> sensitiveMarks = const [], final  Map<String, dynamic> fileMeta = const {}, final  Map<String, dynamic> userMeta = const {}, required this.uploadedAt, required this.expiredAt, required this.updatedAt, required this.createdAt, required this.deletedAt}): _sensitiveMarks = sensitiveMarks,_fileMeta = fileMeta,_userMeta = userMeta,super._();
   factory _SnCloudFile.fromJson(Map<String, dynamic> json) => _$SnCloudFileFromJson(json);
 
 @override final  String id;
@@ -1142,14 +1142,14 @@ class _SnCloudFile extends SnCloudFile {
 }
 
  final  Map<String, dynamic> _fileMeta;
-@override Map<String, dynamic> get fileMeta {
+@override@JsonKey() Map<String, dynamic> get fileMeta {
   if (_fileMeta is EqualUnmodifiableMapView) return _fileMeta;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_fileMeta);
 }
 
  final  Map<String, dynamic> _userMeta;
-@override Map<String, dynamic> get userMeta {
+@override@JsonKey() Map<String, dynamic> get userMeta {
   if (_userMeta is EqualUnmodifiableMapView) return _userMeta;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_userMeta);
