@@ -207,8 +207,9 @@ sealed class SnCloudFileReference
   }
 
   @override
-  String? get blurhash =>
-      blur ?? fileMeta['blurhash'] as String? ?? fileMeta['blur'] as String?;
+  String? get blurhash => (blur?.isNotEmpty ?? false)
+      ? blur
+      : fileMeta['blurhash'] as String? ?? fileMeta['blur'] as String?;
 
   factory SnCloudFileReference.fromJson(Map<String, dynamic> json) =>
       _$SnCloudFileReferenceFromJson(json);
