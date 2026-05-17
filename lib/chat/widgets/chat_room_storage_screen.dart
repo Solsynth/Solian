@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -185,17 +186,28 @@ class _RoomStorageListState extends ConsumerState<_RoomStorageList> {
       final dir = await getTemporaryDirectory();
       final safeName = roomName.replaceAll(RegExp(r'[^\w\s-]'), '').trim();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final file = File('${dir.path}/chat_export_${safeName}_$timestamp.$extension');
+      final fileName = 'chat_export_${safeName}_$timestamp.$extension';
+      final file = File('${dir.path}/$fileName');
       await file.writeAsString(content);
 
       if (!mounted) return;
       hideLoadingModal(context);
 
-      final box = context.findRenderObject() as RenderBox?;
-      await Share.shareXFiles(
-        [XFile(file.path, mimeType: mimeType)],
-        sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
-      );
+      final isDesktop = !kIsWeb &&
+          (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+
+      if (isDesktop) {
+        await FileSaver.instance.saveFile(name: fileName, file: file);
+        if (mounted) {
+          showSnackBar('settingsExportSaved'.tr());
+        }
+      } else {
+        final box = context.findRenderObject() as RenderBox?;
+        await Share.shareXFiles(
+          [XFile(file.path, mimeType: mimeType)],
+          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+        );
+      }
     } catch (e) {
       if (mounted) {
         hideLoadingModal(context);

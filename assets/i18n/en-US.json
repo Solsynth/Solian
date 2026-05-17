@@ -3294,5 +3294,6 @@
   "settingsClearChatHistoryConfirm": "Are you sure you want to clear all messages from \"{}\"? This action cannot be undone.",
   "settingsExportChat": "Export Chat",
   "settingsExportJsonDesc": "Full message data with metadata",
-  "settingsExportCsvDesc": "Simple spreadsheet format"
+  "settingsExportCsvDesc": "Simple spreadsheet format",
+  "settingsExportSaved": "Export saved to downloads"
 }
