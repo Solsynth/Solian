@@ -190,7 +190,7 @@ sealed class SnCloudFileReference
     @JsonKey(name: "url") required String? storageUrl,
     required double? width,
     required double? height,
-    required String? blurhash,
+    @JsonKey(name: 'blurhash') String? blur,
     required String? usage,
     required String? applicationType,
   }) = _SnCloudFileReference;
@@ -205,6 +205,10 @@ sealed class SnCloudFileReference
     }
     return null;
   }
+
+  @override
+  String? get blurhash =>
+      blur ?? fileMeta['blurhash'] as String? ?? fileMeta['blur'] as String?;
 
   factory SnCloudFileReference.fromJson(Map<String, dynamic> json) =>
       _$SnCloudFileReferenceFromJson(json);
