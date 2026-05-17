@@ -138,7 +138,172 @@ typedef IpOverrideConnectionFactory =
       Uri url,
       String? proxyHost,
       int? proxyPort,
+    );
+
+class AppHttpOverrides extends HttpOverrides {
+  final IpOverrideConnectionFactory? connectionFactory;
+
+  AppHttpOverrides({this.connectionFactory});
+
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context);
+    if (connectionFactory != null) {
+      client.connectionFactory = connectionFactory;
+    }
+    return client;
+  }
+}
+
+IpOverrideMode _readIpOverrideMode(SharedPreferences prefs) {
+  final rawMode = prefs.getString(kAppIpOverrideMode);
+  if (rawMode != null) {
+    return IpOverrideMode.values.firstWhere(
+      (mode) => mode.name == rawMode,
+      orElse: () => IpOverrideMode.off,
+    );
+  }
+
+  final enabled = prefs.getBool(kAppIpOverrideEnabled) ?? false;
+  return enabled ? IpOverrideMode.complete : IpOverrideMode.off;
+}
+
+List<IpOverride> _readIpOverrideList(SharedPreferences prefs) {
+  final rawList = prefs.getString(kAppIpOverrideList);
+  if (rawList == null || rawList.isEmpty) {
+    return [];
+  }
+
+  try {
+    final decoded = jsonDecode(rawList) as List;
+    return decoded
+        .map((e) => IpOverride.fromJson(e as Map<String, dynamic>))
+        .toList();
+  } catch (_) {
+    return [];
+  }
+}
+
+List<String> _readIpOverrideDomains(SharedPreferences prefs, String serverUrl) {
+  final defaults = <String>[];
+
+  try {
+    final host = Uri.parse(serverUrl).host;
+    if (host.isNotEmpty) {
+      defaults.add(host);
+    }
+  } catch (_) {}
+
+  final rawDomains = prefs.getString(kAppIpOverrideDomains);
+  if (rawDomains == null || rawDomains.isEmpty) {
+    return defaults;
+  }
+
+  try {
+    final decoded = jsonDecode(rawDomains);
+    if (decoded is List) {
+      final domains = decoded
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+      return domains.isNotEmpty ? domains : defaults;
+    }
+  } catch (_) {}
+
+  return defaults;
+}
+
+HttpOverrides? createAppHttpOverrides({
+  required IpOverrideMode mode,
+  required IpOverrideSettings settings,
+  required List<String> domains,
+  required String serverUrl,
+}) {
+  if (mode == IpOverrideMode.off || settings.overrides.isEmpty) {
+    return null;
+  }
+
+  final override = settings.overrides.firstOrNull;
+  if (override == null) {
+    return null;
+  }
+
+  IpOverrideConnectionFactory? connectionFactory;
+
+  if (mode == IpOverrideMode.complete) {
+    final host = Uri.tryParse(serverUrl)?.host;
+    if (host == null || host.isEmpty) {
+      Logger.root.fine('[http.override] Disabled: server host is unavailable.');
+      return null;
+    }
+    connectionFactory = createIpOverrideConnectionFactory(
+      domainSuffix: host,
+      ip: override.ip,
+      port: override.port,
+    );
+    Logger.root.fine(
+      '[http.override] Complete mode enabled for $host -> ${override.ip}${override.port != null ? ':${override.port}' : ''}',
+    );
+  } else {
+    connectionFactory = (uri, proxyHost, proxyPort) async {
+      final useOverride = domains.any((domain) => matchesIpOverrideDomain(uri, domain));
+      final targetHost = useOverride ? override.ip : uri.host;
+      final targetPort = (useOverride ? override.port : null) ?? uri.port;
+      Logger.root.fine(
+        '[http.override] ${useOverride ? 'Using' : 'Skipping'} override for ${uri.host}${uri.hasPort ? ':${uri.port}' : ''} -> $targetHost:$targetPort',
+      );
+      final socketFuture = () async {
+        final socket = await Socket.connect(
+          targetHost,
+          targetPort == 0 ? 443 : targetPort,
+        );
+
+        return SecureSocket.secure(
+          socket,
+          host: uri.host,
+          onBadCertificate: (_) => true,
+        );
+        }();
+        return ConnectionTask.fromSocket(socketFuture, () {
+          Logger.root.fine(
+            '[http.override] Cancelled IP override connection to ${uri.host} ($targetHost:$targetPort)',
+          );
+        });
+      };
+  }
+
+  return AppHttpOverrides(connectionFactory: connectionFactory);
+}
+
+HttpOverrides? createAppHttpOverridesFromPrefs(SharedPreferences prefs) {
+  final mode = _readIpOverrideMode(prefs);
+  final serverUrl =
+      prefs.getString(kNetworkServerStoreKey) ?? kNetworkServerDefault;
+  final settings = IpOverrideSettings(
+    enabled: mode != IpOverrideMode.off,
+    overrides: _readIpOverrideList(prefs),
   );
+  final domains = _readIpOverrideDomains(prefs, serverUrl);
+  return createAppHttpOverrides(
+    mode: mode,
+    settings: settings,
+    domains: domains,
+    serverUrl: serverUrl,
+  );
+}
+
+final appHttpOverridesProvider = Provider<HttpOverrides?>((ref) {
+  final mode = ref.watch(ipOverrideModeProvider);
+  final settings = ref.watch(ipOverrideSettingsProvider);
+  final domains = ref.watch(ipOverrideDomainsProvider);
+  final serverUrl = ref.watch(serverUrlProvider);
+  return createAppHttpOverrides(
+    mode: mode,
+    settings: settings,
+    domains: domains,
+    serverUrl: serverUrl,
+  );
+});
 
 IpOverrideConnectionFactory createIpOverrideConnectionFactory({
   required String domainSuffix,
@@ -146,21 +311,27 @@ IpOverrideConnectionFactory createIpOverrideConnectionFactory({
   int? port,
 }) {
   return (Uri uri, String? proxyHost, int? proxyPort) async {
-    if (!uri.host.endsWith(domainSuffix)) {
-      throw UnimplementedError();
-    }
-    final targetPort = port ?? uri.port;
-    final socketFuture = Socket.connect(ip, targetPort == 0 ? 443 : targetPort)
-        .then(
-          (socket) => SecureSocket.secure(
-            socket,
-            host: uri.host,
-            onBadCertificate: (_) => true,
-          ),
-        );
+    final useOverride = uri.host.endsWith(domainSuffix);
+    final targetHost = useOverride ? ip : uri.host;
+    final targetPort = (useOverride ? port : null) ?? uri.port;
+    Logger.root.fine(
+      '[http.override] ${useOverride ? 'Using' : 'Skipping'} override for ${uri.host}${uri.hasPort ? ':${uri.port}' : ''} -> $targetHost:$targetPort',
+    );
+    final socketFuture = () async {
+      final socket = await Socket.connect(
+        targetHost,
+        targetPort == 0 ? 443 : targetPort,
+      );
+
+      return SecureSocket.secure(
+        socket,
+        host: uri.host,
+        onBadCertificate: (_) => true,
+      );
+    }();
     return ConnectionTask.fromSocket(socketFuture, () {
       Logger.root.fine(
-        'Canncelled established IP override connection to ${uri.host} ($ip:$targetPort)',
+        'Canncelled established IP override connection to ${uri.host} ($targetHost:$targetPort)',
       );
     });
   };
@@ -204,23 +375,27 @@ final mediaIpOverrideConnectionFactoryProvider =
         return null;
       }
       return (uri, proxyHost, proxyPort) async {
-        if (!domains.any((domain) => matchesIpOverrideDomain(uri, domain))) {
-          throw UnimplementedError();
-        }
-        final targetPort = override.port ?? uri.port;
-        final socketFuture = Socket.connect(
-          override.ip,
-          targetPort == 0 ? 443 : targetPort,
-        ).then(
-          (socket) => SecureSocket.secure(
+        final useOverride = domains.any((domain) => matchesIpOverrideDomain(uri, domain));
+        final targetHost = useOverride ? override.ip : uri.host;
+        final targetPort = (useOverride ? override.port : null) ?? uri.port;
+        Logger.root.fine(
+          '[media.proxy] ${useOverride ? 'Using' : 'Skipping'} override for ${uri.host}${uri.hasPort ? ':${uri.port}' : ''} -> $targetHost:$targetPort',
+        );
+        final socketFuture = () async {
+          final socket = await Socket.connect(
+            targetHost,
+            targetPort == 0 ? 443 : targetPort,
+          );
+
+          return SecureSocket.secure(
             socket,
             host: uri.host,
             onBadCertificate: (_) => true,
-          ),
-        );
+          );
+        }();
         return ConnectionTask.fromSocket(socketFuture, () {
           Logger.root.fine(
-            '[media.proxy] Cancelled IP override connection to ${uri.host} (${override.ip}:$targetPort)',
+            '[media.proxy] Cancelled IP override connection to ${uri.host} ($targetHost:$targetPort)',
           );
         });
       };

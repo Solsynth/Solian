@@ -2537,7 +2537,6 @@
   "questSummaryMonthlyRealmJoin": "Join a new realm this month.",
   "stages": "Stages",
   "searchAchievements": "Search achievements...",
-  "noSearchResults": "No achievements found",
   "overallProgress": "Overall Progress",
   "hidden": "Hidden",
   "hideBalance": "Hide Balance",
@@ -3275,5 +3274,6 @@
   "quickTestMode": "Quick Test",
   "quickTestOn": "Random 10 IPs for fast results",
   "quickTestOff": "Test all Cloudflare IPs for best results",
-  "testingIp": "Testing: {}"
+  "testingIp": "Testing: {}",
+  "stop": "Stop"
 }
