@@ -20,10 +20,10 @@ sealed class UniversalFile with _$UniversalFile {
   factory UniversalFile.fromJson(Map<String, dynamic> json) =>
       _$UniversalFileFromJson(json);
 
-  bool get isOnCloud => data is SnCloudFile;
+  bool get isOnCloud => data is IDisplayableCloudFile;
   bool get isOnDevice => !isOnCloud;
 
-  factory UniversalFile.fromAttachment(SnCloudFile attachment) {
+  factory UniversalFile.fromAttachment(IDisplayableCloudFile attachment) {
     return UniversalFile(
       data: attachment,
       type: switch (attachment.mimeType.split('/').firstOrNull) {
@@ -76,8 +76,34 @@ sealed class SnCloudFileObject with _$SnCloudFileObject {
       _$SnCloudFileObjectFromJson(json);
 }
 
+abstract interface class IDisplayableCloudFile {
+  String get id;
+  String get name;
+  String? get storageUrl;
+  Map<String, dynamic> get fileMeta;
+  Map<String, dynamic> get userMeta;
+  String get mimeType;
+  int get size;
+  double? get width;
+  double? get height;
+  String? get blurhash;
+  List<int> get sensitiveMarks;
+  String? get hash;
+
+  double? get ratio {
+    if (width != null && height != null && height != 0) {
+      return width! / height!;
+    }
+    final meta = fileMeta;
+    if (meta['ratio'] is num) {
+      return (meta['ratio'] as num).toDouble();
+    }
+    return null;
+  }
+}
+
 @freezed
-sealed class SnCloudFile with _$SnCloudFile {
+sealed class SnCloudFile with _$SnCloudFile implements IDisplayableCloudFile {
   const SnCloudFile._();
 
   const factory SnCloudFile({
@@ -140,17 +166,40 @@ sealed class SnCloudFile with _$SnCloudFile {
 }
 
 @freezed
-sealed class SnCloudFileIndex with _$SnCloudFileIndex {
-  const factory SnCloudFileIndex({
-    required String id,
-    required String path,
-    required String fileId,
-    required SnCloudFile file,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    required DateTime? deletedAt,
-  }) = _SnCloudFileIndex;
+sealed class SnCloudFileReference
+    with _$SnCloudFileReference
+    implements IDisplayableCloudFile {
+  const SnCloudFileReference._();
 
-  factory SnCloudFileIndex.fromJson(Map<String, dynamic> json) =>
-      _$SnCloudFileIndexFromJson(json);
+  const factory SnCloudFileReference({
+    required String id,
+    required String name,
+    @Default({}) Map<String, dynamic> fileMeta,
+    @Default({}) Map<String, dynamic> userMeta,
+    @Default([]) List<int> sensitiveMarks,
+    required String mimeType,
+    required String hash,
+    required int size,
+    required bool hasCompression,
+    @JsonKey(name: "url") required String? storageUrl,
+    required double? width,
+    required double? height,
+    required String? blurhash,
+    required String? usage,
+    required String? applicationType,
+  }) = _SnCloudFileReference;
+
+  @override
+  double? get ratio {
+    if (width != null && height != null && height != 0) {
+      return width! / height!;
+    }
+    if (fileMeta['ratio'] is num) {
+      return (fileMeta['ratio'] as num).toDouble();
+    }
+    return null;
+  }
+
+  factory SnCloudFileReference.fromJson(Map<String, dynamic> json) =>
+      _$SnCloudFileReferenceFromJson(json);
 }

@@ -21,7 +21,7 @@ import 'package:island/core/data_saving_gate.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CloudFileWidget extends HookConsumerWidget {
-  final SnCloudFile item;
+  final IDisplayableCloudFile item;
   final BoxFit fit;
   final String? heroTag;
   final bool noBlurhash;
@@ -46,28 +46,35 @@ class CloudFileWidget extends HookConsumerWidget {
     final unlocked = useState(false);
 
     final meta = item.fileMeta as Map;
-    final isEncrypted = DriveE2eeFileEnvelope.isEncryptedFile(item);
-    final e2eeMeta = meta['e2ee'] is Map
-        ? Map<String, dynamic>.from(meta['e2ee'] as Map)
-        : const <String, dynamic>{};
+    final rawE2eeMeta = meta['e2ee'];
+    final e2eeMeta = rawE2eeMeta is Map ? Map<String, dynamic>.from(rawE2eeMeta) : <String, dynamic>{};
+    final isEncrypted = e2eeMeta['scheme']?.toString().isNotEmpty == true;
     final e2eeScheme = e2eeMeta['scheme']?.toString();
     final blurHash = noBlurhash ? null : (meta['blur'] as String?);
     var ratio = meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
     if (ratio == 0) ratio = 1.0;
 
-    Widget cloudImage() =>
+Widget cloudImage() =>
         UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
-    Widget cloudVideo() => CloudVideoWidget(item: item);
+    Widget cloudVideo() {
+      if (item is SnCloudFile) {
+        return CloudVideoWidget(item: item as SnCloudFile);
+      }
+      return const SizedBox();
+    }
 
     Widget dataPlaceHolder(IconData icon) => _DataSavingPlaceholder(
-      icon: icon,
-      onTap: () {
-        unlocked.value = true;
-      },
-    );
+          icon: icon,
+          onTap: () {
+            unlocked.value = true;
+          },
+        );
 
     if (isEncrypted) {
-      return _EncryptedFileCard(item: item, scheme: e2eeScheme);
+      if (item is SnCloudFile) {
+        return _EncryptedFileCard(item: item as SnCloudFile, scheme: e2eeScheme);
+      }
+      return const SizedBox();
     }
 
     if (item.mimeType.startsWith('text/') == true) {
@@ -151,7 +158,9 @@ class CloudFileWidget extends HookConsumerWidget {
                         size: 16,
                       ),
                       onPressed: () {
-                        context.router.push(FileDetailRoute(item: item));
+                        if (item is SnCloudFile) {
+                          context.router.push(FileDetailRoute(item: item as SnCloudFile));
+                        }
                       },
                       padding: EdgeInsets.all(4),
                       constraints: const BoxConstraints(),
@@ -179,7 +188,12 @@ class CloudFileWidget extends HookConsumerWidget {
             ? dataPlaceHolder(Symbols.play_arrow)
             : cloudVideo(),
       ),
-      'audio' => AudioFileContent(item: item, uri: uri),
+      'audio' => () {
+          if (item is SnCloudFile) {
+            return AudioFileContent(item: item as SnCloudFile, uri: uri);
+          }
+          return const SizedBox();
+        }(),
       _ => Builder(
         builder: (context) {
           return Container(
@@ -222,7 +236,9 @@ class CloudFileWidget extends HookConsumerWidget {
                   children: [
                     TextButton.icon(
                       onPressed: () {
-                        context.router.push(FileDetailRoute(item: item));
+                        if (item is SnCloudFile) {
+                          context.router.push(FileDetailRoute(item: item as SnCloudFile));
+                        }
                       },
                       icon: const Icon(Symbols.info),
                       label: Text('info').tr(),
@@ -490,7 +506,7 @@ class CloudVideoWidget extends HookConsumerWidget {
 
 class CloudImageWidget extends ConsumerWidget {
   final String? fileId;
-  final SnCloudFile? file;
+  final IDisplayableCloudFile? file;
   final BoxFit fit;
   final double aspectRatio;
   final String? blurHash;
@@ -524,7 +540,7 @@ class CloudImageWidget extends ConsumerWidget {
   }
 
   static ImageProvider provider({
-    required SnCloudFile file,
+    required IDisplayableCloudFile file,
     required String serverUrl,
     bool original = false,
   }) {
@@ -539,7 +555,7 @@ class CloudImageWidget extends ConsumerWidget {
 
 class ProfilePictureWidget extends ConsumerWidget {
   final String? fileId;
-  final SnCloudFile? file;
+  final IDisplayableCloudFile? file;
   final double radius;
   final double? borderRadius;
   final IconData? fallbackIcon;
@@ -613,7 +629,7 @@ class ProfilePictureWidget extends ConsumerWidget {
 }
 
 class SplitAvatarWidget extends ConsumerWidget {
-  final List<SnCloudFile?> files;
+  final List<IDisplayableCloudFile?> files;
   final double radius;
   final IconData fallbackIcon;
   final Color? fallbackColor;
@@ -736,7 +752,7 @@ class SplitAvatarWidget extends ConsumerWidget {
 
   Widget _buildQuadrant(
     BuildContext context,
-    SnCloudFile? file,
+    IDisplayableCloudFile? file,
     WidgetRef ref,
     double radius,
   ) {

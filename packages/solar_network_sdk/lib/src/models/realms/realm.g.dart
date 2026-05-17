@@ -19,10 +19,12 @@ _SnRealm _$SnRealmFromJson(Map<String, dynamic> json) => _SnRealm(
   isPublic: json['is_public'] as bool,
   picture: json['picture'] == null
       ? null
-      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
   background: json['background'] == null
       ? null
-      : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(
+          json['background'] as Map<String, dynamic>,
+        ),
   accountId: json['account_id'] as String,
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),

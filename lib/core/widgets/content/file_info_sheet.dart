@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class FileInfoSheet extends StatelessWidget {
-  final SnCloudFile item;
+  final IDisplayableCloudFile item;
   final VoidCallback? onClose;
   const FileInfoSheet({super.key, required this.item, this.onClose});
 

@@ -59,7 +59,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
     final nameController = useTextEditingController();
     final nickController = useTextEditingController();
     final slugController = useTextEditingController();
-    final picture = useState<SnCloudFile?>(null);
+    final picture = useState<IDisplayableCloudFile?>(null);
 
     final firstNameController = useTextEditingController();
     final middleNameController = useTextEditingController();
@@ -70,7 +70,7 @@ class DeveloperBotEditScreen extends HookConsumerWidget {
     final timeZoneController = useTextEditingController();
     final bioController = useTextEditingController();
     final birthday = useState<DateTime?>(null);
-    final background = useState<SnCloudFile?>(null);
+    final background = useState<IDisplayableCloudFile?>(null);
 
     useEffect(() {
       if (botData?.value != null) {

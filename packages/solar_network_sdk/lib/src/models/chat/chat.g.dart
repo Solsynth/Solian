@@ -17,10 +17,12 @@ _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   isCommunity: json['is_community'] as bool? ?? false,
   picture: json['picture'] == null
       ? null
-      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
   background: json['background'] == null
       ? null
-      : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(
+          json['background'] as Map<String, dynamic>,
+        ),
   realmId: json['realm_id'] as String?,
   accountId: json['account_id'] as String?,
   realm: json['realm'] == null
@@ -82,7 +84,9 @@ _SnChatMessage _$SnChatMessageFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['edited_at'] as String),
       attachments:
           (json['attachments'] as List<dynamic>?)
-              ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) => SnCloudFileReference.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
       reactions:

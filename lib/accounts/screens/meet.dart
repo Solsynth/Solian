@@ -3900,7 +3900,7 @@ class _MeetPinsMapCard extends StatelessWidget {
 class _MeetParticipantPin extends StatelessWidget {
   final String name;
   final Color color;
-  final SnCloudFile? avatar;
+  final IDisplayableCloudFile? avatar;
   final String? accountName;
 
   const _MeetParticipantPin({

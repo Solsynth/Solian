@@ -288,7 +288,7 @@ class PostReplyPreview extends HookConsumerWidget {
   /// Builds a compact attachment preview list for inline display
   Widget _buildAttachmentPreview(
     BuildContext context,
-    List<SnCloudFile> attachments,
+    List<IDisplayableCloudFile> attachments,
   ) {
     const maxVisible = 3;
     final visibleAttachments = attachments.take(maxVisible).toList();
@@ -309,7 +309,7 @@ class PostReplyPreview extends HookConsumerWidget {
   /// Builds a small thumbnail for a single attachment
   Widget _buildAttachmentThumbnail(
     BuildContext context,
-    SnCloudFile attachment,
+    IDisplayableCloudFile attachment,
   ) {
     final isImage = attachment.mimeType.startsWith('image');
     final isVideo = attachment.mimeType.startsWith('video');
@@ -355,7 +355,7 @@ class PostReplyPreview extends HookConsumerWidget {
   /// Builds an icon-based representation for non-image files
   Widget _buildFileTypeIcon(
     BuildContext context,
-    SnCloudFile attachment, {
+    IDisplayableCloudFile attachment, {
     IconData? icon,
   }) {
     final fileIcon = icon ?? _getFileIcon(attachment.mimeType);
@@ -1594,7 +1594,7 @@ class PostBody extends ConsumerWidget {
       );
     }
 
-    SnCloudFile? getThumbnailAttachment() {
+    IDisplayableCloudFile? getThumbnailAttachment() {
       final thumbnailId = item.meta?['thumbnail'] as String?;
       if (thumbnailId == null) return null;
       try {

@@ -85,7 +85,7 @@ class _ChatBasisWidget extends HookConsumerWidget {
         : data.name ?? 'Chat';
 
     // Get chat picture
-    SnCloudFile? pictureFile;
+    IDisplayableCloudFile? pictureFile;
     if (data.picture != null) {
       pictureFile = data.picture;
     } else if (data.type == 1 && data.members?.isNotEmpty == true) {

@@ -162,26 +162,46 @@ Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
-_SnCloudFileIndex _$SnCloudFileIndexFromJson(Map<String, dynamic> json) =>
-    _SnCloudFileIndex(
-      id: json['id'] as String,
-      path: json['path'] as String,
-      fileId: json['file_id'] as String,
-      file: SnCloudFile.fromJson(json['file'] as Map<String, dynamic>),
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt: json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
-    );
+_SnCloudFileReference _$SnCloudFileReferenceFromJson(
+  Map<String, dynamic> json,
+) => _SnCloudFileReference(
+  id: json['id'] as String,
+  name: json['name'] as String,
+  fileMeta: json['file_meta'] as Map<String, dynamic>? ?? const {},
+  userMeta: json['user_meta'] as Map<String, dynamic>? ?? const {},
+  sensitiveMarks:
+      (json['sensitive_marks'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList() ??
+      const [],
+  mimeType: json['mime_type'] as String,
+  hash: json['hash'] as String,
+  size: (json['size'] as num).toInt(),
+  hasCompression: json['has_compression'] as bool,
+  storageUrl: json['url'] as String?,
+  width: (json['width'] as num?)?.toDouble(),
+  height: (json['height'] as num?)?.toDouble(),
+  blurhash: json['blurhash'] as String?,
+  usage: json['usage'] as String?,
+  applicationType: json['application_type'] as String?,
+);
 
-Map<String, dynamic> _$SnCloudFileIndexToJson(_SnCloudFileIndex instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'path': instance.path,
-      'file_id': instance.fileId,
-      'file': instance.file.toJson(),
-      'created_at': instance.createdAt.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'deleted_at': instance.deletedAt?.toIso8601String(),
-    };
+Map<String, dynamic> _$SnCloudFileReferenceToJson(
+  _SnCloudFileReference instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'file_meta': instance.fileMeta,
+  'user_meta': instance.userMeta,
+  'sensitive_marks': instance.sensitiveMarks,
+  'mime_type': instance.mimeType,
+  'hash': instance.hash,
+  'size': instance.size,
+  'has_compression': instance.hasCompression,
+  'url': instance.storageUrl,
+  'width': instance.width,
+  'height': instance.height,
+  'blurhash': instance.blurhash,
+  'usage': instance.usage,
+  'application_type': instance.applicationType,
+};

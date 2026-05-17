@@ -94,7 +94,7 @@ _SnThinkingMessagePart _$SnThinkingMessagePartFromJson(
   reasoning: json['reasoning'] as String?,
   metadata: json['metadata'] as Map<String, dynamic>?,
   files: (json['files'] as List<dynamic>?)
-      ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+      ?.map((e) => SnCloudFileReference.fromJson(e as Map<String, dynamic>))
       .toList(),
   functionCall: json['function_call'] == null
       ? null

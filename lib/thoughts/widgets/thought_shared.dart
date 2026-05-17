@@ -1308,7 +1308,7 @@ class ThoughtItem extends StatelessWidget {
     }
   }
 
-  Widget _buildFilesWidget(BuildContext context, List<SnCloudFile> files) {
+  Widget _buildFilesWidget(BuildContext context, List<IDisplayableCloudFile> files) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -1325,7 +1325,7 @@ class ThoughtItem extends StatelessWidget {
                   heroTag: 'cloud-file-thought-${file.id}',
                 ),
               );
-            } else {
+            } else if (file is SnCloudFile) {
               context.router.push(
                 FileDetailRoute(
                   item: file,

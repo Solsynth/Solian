@@ -11,7 +11,7 @@ sealed class SnPublisherLeaderboardEntry with _$SnPublisherLeaderboardEntry {
     @JsonKey(name: 'publisher_id') required String publisherId,
     required String name,
     required String nick,
-    SnCloudFile? picture,
+    SnCloudFileReference? picture,
     required double rating,
     required int rank,
     required double percentile,

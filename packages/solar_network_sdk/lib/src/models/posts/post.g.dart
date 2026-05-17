@@ -67,7 +67,7 @@ _SnPost _$SnPostFromJson(Map<String, dynamic> json) => _SnPost(
   contentType: (json['content_type'] as num?)?.toInt() ?? 0,
   attachments:
       (json['attachments'] as List<dynamic>?)
-          ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => SnCloudFileReference.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   reactionsCount:
