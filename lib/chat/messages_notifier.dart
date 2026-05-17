@@ -288,8 +288,28 @@ class MessagesNotifier extends _$MessagesNotifier {
         unawaited(loadInitial(forceRemoteRefresh: false));
       },
     );
+    StreamSubscription<MlsExternalJoinStartedEvent>? e2eeStartSub;
+    StreamSubscription<MlsExternalJoinCompletedEvent>? e2eeCompleteSub;
+    StreamSubscription<MlsRecoveryFailedEvent>? e2eeFailedSub;
+    var disposed = false;
+
+    ref.onDispose(() {
+      disposed = true;
+      _realtime.stopListening();
+      e2eeStartSub?.cancel();
+      e2eeCompleteSub?.cancel();
+      e2eeFailedSub?.cancel();
+      _messageCache.clear();
+      _messageCache.clearPendingFetches();
+      _pendingCache.clear();
+    });
+
     final room = await ref.read(chatRoomProvider(roomId).future);
     final identity = await ref.read(chatRoomIdentityProvider(roomId).future);
+
+    if (disposed || !ref.mounted) {
+      return const <LocalChatMessage>[];
+    }
 
     // Initialize fetch account method for corrupted data recovery
     _fetchAccount = (String accountId) async {
@@ -305,8 +325,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     }
     _roomEncryptionMode = room.encryptionMode;
     _mlsGroupId = room.mlsGroupId;
-
-    var disposed = false;
 
     // Defer heavy MLS operations to post-frame callback to not block initial build
     Future.microtask(() async {
@@ -369,10 +387,6 @@ class MessagesNotifier extends _$MessagesNotifier {
     Logger.root.info('MessagesNotifier built for room $roomId');
 
     _realtime.startListening();
-
-    StreamSubscription<MlsExternalJoinStartedEvent>? e2eeStartSub;
-    StreamSubscription<MlsExternalJoinCompletedEvent>? e2eeCompleteSub;
-    StreamSubscription<MlsRecoveryFailedEvent>? e2eeFailedSub;
 
     e2eeStartSub = eventBus.on<MlsExternalJoinStartedEvent>().listen((event) {
       if (event.mlsGroupId != _mlsGroupId) return;
@@ -467,17 +481,6 @@ class MessagesNotifier extends _$MessagesNotifier {
         unawaited(loadInitial(forceRemoteRefresh: false));
       },
     );
-
-    ref.onDispose(() {
-      disposed = true;
-      _realtime.stopListening();
-      e2eeStartSub?.cancel();
-      e2eeCompleteSub?.cancel();
-      e2eeFailedSub?.cancel();
-      _messageCache.clear();
-      _messageCache.clearPendingFetches();
-      _pendingCache.clear();
-    });
 
     return _loadInitialMessages(forceRemoteRefresh: false);
   }
