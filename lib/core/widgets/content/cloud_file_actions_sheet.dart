@@ -12,14 +12,14 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class CloudFileActionsSheet extends StatelessWidget {
-  final SnCloudFile item;
+  final IDisplayableCloudFile item;
   final VoidCallback? onClose;
 
   const CloudFileActionsSheet({super.key, required this.item, this.onClose});
 
   static Future<T?> show<T>({
     required BuildContext context,
-    required SnCloudFile item,
+    required IDisplayableCloudFile item,
   }) {
     return showModalBottomSheet<T>(
       useRootNavigator: true,
@@ -96,7 +96,9 @@ class CloudFileActionsSheet extends StatelessWidget {
             subtitle: 'openInFullscreenViewer'.tr(),
             onTap: () {
               Navigator.pop(context);
-              context.router.push(FileDetailRoute(item: item));
+              if (item is SnCloudFile) {
+                context.router.push(FileDetailRoute(item: item as SnCloudFile));
+              }
             },
           ),
           const Gap(16),

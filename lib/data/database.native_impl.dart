@@ -764,10 +764,10 @@ class AppDatabase {
       isPublic: entity.isPublic,
       isCommunity: entity.isCommunity,
       picture: entity.pictureJson != null
-          ? SnCloudFile.fromJson(_decodeMap(entity.pictureJson!))
+          ? SnCloudFileReference.fromJson(_decodeMap(entity.pictureJson!))
           : null,
       background: entity.backgroundJson != null
-          ? SnCloudFile.fromJson(_decodeMap(entity.backgroundJson!))
+          ? SnCloudFileReference.fromJson(_decodeMap(entity.backgroundJson!))
           : null,
       realmId: entity.realmId,
       accountId: entity.accountId,
@@ -904,10 +904,10 @@ class AppDatabase {
       isCommunity: entity.isCommunity,
       isPublic: entity.isPublic,
       picture: entity.pictureJson != null
-          ? SnCloudFile.fromJson(_decodeMap(entity.pictureJson!))
+          ? SnCloudFileReference.fromJson(_decodeMap(entity.pictureJson!))
           : null,
       background: entity.backgroundJson != null
-          ? SnCloudFile.fromJson(_decodeMap(entity.backgroundJson!))
+          ? SnCloudFileReference.fromJson(_decodeMap(entity.backgroundJson!))
           : null,
       accountId: entity.accountId ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),

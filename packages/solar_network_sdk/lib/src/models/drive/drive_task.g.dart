@@ -24,7 +24,7 @@ _DriveTask _$DriveTaskFromJson(Map<String, dynamic> json) => _DriveTask(
   statusMessage: json['status_message'] as String?,
   result: json['result'] == null
       ? null
-      : SnCloudFile.fromJson(json['result'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(json['result'] as Map<String, dynamic>),
   poolId: json['pool_id'] as String?,
   bundleId: json['bundle_id'] as String?,
   encryptPassword: json['encrypt_password'] as String?,

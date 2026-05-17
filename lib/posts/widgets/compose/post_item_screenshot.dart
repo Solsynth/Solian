@@ -33,7 +33,7 @@ class PostItemScreenshot extends ConsumerWidget {
 
   Widget _buildScreenshotAttachments(
     BuildContext context,
-    List<SnCloudFile> attachments, {
+    List<IDisplayableCloudFile> attachments, {
     required double maxHeight,
     required int maxVisible,
     required EdgeInsets padding,

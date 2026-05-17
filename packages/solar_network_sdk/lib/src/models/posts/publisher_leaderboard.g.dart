@@ -14,7 +14,7 @@ _SnPublisherLeaderboardEntry _$SnPublisherLeaderboardEntryFromJson(
   nick: json['nick'] as String,
   picture: json['picture'] == null
       ? null
-      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
   rating: (json['rating'] as num).toDouble(),
   rank: (json['rank'] as num).toInt(),
   percentile: (json['percentile'] as num).toDouble(),

@@ -18,10 +18,12 @@ _SnPostCollection _$SnPostCollectionFromJson(Map<String, dynamic> json) =>
           : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
       background: json['background'] == null
           ? null
-          : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+          : SnCloudFileReference.fromJson(
+              json['background'] as Map<String, dynamic>,
+            ),
       icon: json['icon'] == null
           ? null
-          : SnCloudFile.fromJson(json['icon'] as Map<String, dynamic>),
+          : SnCloudFileReference.fromJson(json['icon'] as Map<String, dynamic>),
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),

@@ -93,7 +93,7 @@ class MarkdownTextContent extends HookConsumerWidget {
   final TextStyle? linkStyle;
   final EdgeInsets? linesMargin;
   final bool isSelectable;
-  final List<SnCloudFile>? attachments;
+  final List<IDisplayableCloudFile>? attachments;
   final List<markdown.InlineSyntax> extraInlineSyntaxList;
   final List<markdown.BlockSyntax> extraBlockSyntaxList;
   final List<dynamic> extraGenerators;

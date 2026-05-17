@@ -3,11 +3,11 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class ExifInfoOverlay extends StatelessWidget {
-  final SnCloudFile item;
+  final IDisplayableCloudFile item;
 
   const ExifInfoOverlay({super.key, required this.item});
 
-  static bool precheck(SnCloudFile item) {
+  static bool precheck(IDisplayableCloudFile item) {
     final exifData = item.fileMeta['exif'] as Map<String, dynamic>? ?? {};
 
     if (exifData.isEmpty) return false;

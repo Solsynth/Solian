@@ -16,7 +16,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CloudFileList extends HookConsumerWidget {
-  final List<SnCloudFile> files;
+  final List<IDisplayableCloudFile> files;
   final double maxHeight;
   final double maxWidth;
   final double? minWidth;
@@ -719,7 +719,7 @@ class _AnimatedScrollArrowButton extends StatelessWidget {
 }
 
 class _CloudFileListEntry extends HookConsumerWidget {
-  final SnCloudFile file;
+  final IDisplayableCloudFile file;
   final String heroTag;
   final bool isImage;
   final bool disableZoomIn;
@@ -847,7 +847,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
 }
 
 class _SensitiveOverlay extends StatelessWidget {
-  final SnCloudFile file;
+  final IDisplayableCloudFile file;
 
   const _SensitiveOverlay({required this.file, super.key});
 

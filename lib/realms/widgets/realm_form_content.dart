@@ -48,8 +48,8 @@ class RealmFormContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final submitting = useState(false);
-    final picture = useState<SnCloudFile?>(null);
-    final background = useState<SnCloudFile?>(null);
+    final picture = useState<IDisplayableCloudFile?>(null);
+    final background = useState<IDisplayableCloudFile?>(null);
     final isPublic = useState(true);
     final isCommunity = useState(false);
 

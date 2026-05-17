@@ -454,7 +454,7 @@ class ThoughtChatNotifier extends _$ThoughtChatNotifier {
           files: attachments
               .where((a) => a.isOnCloud)
               .map((a) => a.data)
-              .cast<SnCloudFile>()
+              .whereType<SnCloudFileReference>()
               .toList(),
         ),
       ],

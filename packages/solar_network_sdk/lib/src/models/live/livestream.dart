@@ -52,7 +52,7 @@ sealed class SnLiveStream with _$SnLiveStream {
     DateTime? endedAt,
     @Default(0) int viewerCount,
     @Default(0) int peakViewerCount,
-    SnCloudFile? thumbnail,
+    SnCloudFileReference? thumbnail,
     Map<String, dynamic>? metadata,
     String? publisherId,
     SnPublisher? publisher,
