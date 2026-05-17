@@ -47,19 +47,9 @@ class CloudFileList extends HookConsumerWidget {
 
     // Collect all valid ratios
     for (final file in files) {
-      final meta = file.fileMeta;
-      if (meta is Map<String, dynamic> && meta.containsKey('ratio')) {
-        final ratioValue = meta['ratio'];
-        if (ratioValue is num && ratioValue > 0) {
-          ratios.add(ratioValue.toDouble());
-        } else if (ratioValue is String) {
-          try {
-            final parsed = double.parse(ratioValue);
-            if (parsed > 0) ratios.add(parsed);
-          } catch (_) {
-            // Skip invalid string ratios
-          }
-        }
+      final ratioValue = file.ratio;
+      if (ratioValue != null && ratioValue > 0) {
+        ratios.add(ratioValue.toDouble());
       }
     }
 
@@ -144,7 +134,7 @@ class CloudFileList extends HookConsumerWidget {
     final viewableFiles = files
         .asMap()
         .entries
-        .where((e) => e.value.mimeType?.startsWith('image') == true)
+        .where((e) => e.value.mimeType.startsWith('image') == true)
         .toList();
     final viewableIndex = viewableFiles.indexWhere((e) => e.key == index);
     if (viewableIndex == -1) return;
@@ -180,8 +170,8 @@ class CloudFileList extends HookConsumerWidget {
 
       for (var i = 0; i < filesToShow.length; i++) {
         final file = filesToShow[i];
-        final isImage = file.mimeType?.startsWith('image') ?? false;
-        final isAudio = file.mimeType?.startsWith('audio') ?? false;
+        final isImage = file.mimeType.startsWith('image');
+        final isAudio = file.mimeType.startsWith('audio');
         final widgetItem = ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           child: _CloudFileListEntry(
@@ -203,7 +193,7 @@ class CloudFileList extends HookConsumerWidget {
           item = SizedBox(height: 120, child: widgetItem);
         } else {
           item = AspectRatio(
-            aspectRatio: (file.fileMeta?['ratio'] as num?)?.toDouble() ?? 1.0,
+            aspectRatio: (file.ratio as num?)?.toDouble() ?? 1.0,
             child: widgetItem,
           );
         }
@@ -243,8 +233,7 @@ class CloudFileList extends HookConsumerWidget {
                       constraints: BoxConstraints(
                         maxWidth: files.length == 1 ? double.infinity : 320,
                       ),
-                      child:
-                          filesToShow[i].mimeType?.startsWith('audio') ?? false
+                      child: filesToShow[i].mimeType.startsWith('audio')
                           ? SizedBox(
                               height: 120,
                               child: _CloudFileListEntry(
@@ -256,23 +245,19 @@ class CloudFileList extends HookConsumerWidget {
                             )
                           : AspectRatio(
                               aspectRatio:
-                                  (filesToShow[i].fileMeta?['ratio'] as num?)
-                                      ?.toDouble() ??
+                                  (filesToShow[i].ratio as num?)?.toDouble() ??
                                   1.0,
                               child: _CloudFileListEntry(
                                 file: filesToShow[i],
                                 heroTag: _heroTag(files[i].id),
-                                isImage:
-                                    filesToShow[i].mimeType?.startsWith(
-                                      'image',
-                                    ) ??
-                                    false,
+                                isImage: filesToShow[i].mimeType.startsWith(
+                                  'image',
+                                ),
                                 disableZoomIn: disableZoomIn,
                                 onTap: () {
-                                  if (!(filesToShow[i].mimeType?.startsWith(
-                                        'image',
-                                      ) ??
-                                      false)) {
+                                  if (!(filesToShow[i].mimeType.startsWith(
+                                    'image',
+                                  ))) {
                                     return;
                                   }
                                   openLightbox(i);
@@ -331,9 +316,9 @@ class CloudFileList extends HookConsumerWidget {
     }
 
     if (files.length == 1) {
-      final isImage = files.first.mimeType?.startsWith('image') ?? false;
-      final isAudio = files.first.mimeType?.startsWith('audio') ?? false;
-      final ratio = files.first.fileMeta?['ratio'] as num?;
+      final isImage = files.first.mimeType.startsWith('image');
+      final isAudio = files.first.mimeType.startsWith('audio');
+      final ratio = files.first.ratio as num?;
       final widgetItem = ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         child: _CloudFileListEntry(
@@ -367,9 +352,7 @@ class CloudFileList extends HookConsumerWidget {
       );
     }
 
-    final allImages = !files.any(
-      (e) => e.mimeType == null || !e.mimeType!.startsWith('image'),
-    );
+    final allImages = !files.any((e) => !e.mimeType.startsWith('image'));
 
     if (allImages) {
       return ConstrainedBox(
@@ -398,8 +381,7 @@ class CloudFileList extends HookConsumerWidget {
                           _CloudFileListEntry(
                             file: files[i],
                             heroTag: _heroTag(files[i].id),
-                            isImage:
-                                files[i].mimeType?.startsWith('image') ?? false,
+                            isImage: files[i].mimeType.startsWith('image'),
                             disableZoomIn: disableZoomIn,
                           ),
                           Positioned(
@@ -417,8 +399,7 @@ class CloudFileList extends HookConsumerWidget {
                       ),
                   ],
                   onTap: (index) {
-                    if (!(files[index].mimeType?.startsWith('image') ??
-                        false)) {
+                    if (!(files[index].mimeType.startsWith('image'))) {
                       return;
                     }
                     openLightbox(index);
@@ -440,9 +421,7 @@ class CloudFileList extends HookConsumerWidget {
           children: [
             for (var index = 0; index < files.length; index++)
               AspectRatio(
-                aspectRatio: files[index].fileMeta?['ratio'] is num
-                    ? files[index].fileMeta!['ratio'].toDouble()
-                    : 1.0,
+                aspectRatio: files[index].ratio ?? 1.0,
                 child: Stack(
                   children: [
                     ClipRRect(
@@ -450,12 +429,10 @@ class CloudFileList extends HookConsumerWidget {
                       child: _CloudFileListEntry(
                         file: files[index],
                         heroTag: _heroTag(files[index].id),
-                        isImage:
-                            files[index].mimeType?.startsWith('image') ?? false,
+                        isImage: files[index].mimeType.startsWith('image'),
                         disableZoomIn: disableZoomIn,
                         onTap: () {
-                          if (!(files[index].mimeType?.startsWith('image') ??
-                              false)) {
+                          if (!(files[index].mimeType.startsWith('image'))) {
                             return;
                           }
                           openLightbox(index);
@@ -765,7 +742,7 @@ class _CloudFileListEntry extends HookConsumerWidget {
     final showDataSaving = useState(!dataSaving);
     final lockedByDS = dataSaving && !showDataSaving.value;
     final lockedByMature = file.sensitiveMarks.isNotEmpty && !showMature.value;
-    final meta = file.fileMeta is Map ? file.fileMeta as Map : const {};
+    final meta = file.fileMeta as Map;
 
     final fit = BoxFit.cover;
 

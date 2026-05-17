@@ -1501,7 +1501,7 @@ class _LinkedFileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isImage = file.mimeType?.startsWith('image/') ?? false;
+    final isImage = file.mimeType.startsWith('image/');
 
     return Container(
       width: 160,

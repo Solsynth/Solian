@@ -62,7 +62,7 @@ class ChatLinkAttachment extends HookConsumerWidget {
                     notifier: chatCloudFileListNotifierProvider.notifier,
                     padding: EdgeInsets.only(top: 8),
                     itemBuilder: (context, index, item) {
-                      final itemType = item.mimeType?.split('/').firstOrNull;
+                      final itemType = item.mimeType.split('/').firstOrNull;
                       return ListTile(
                         leading: ClipRRect(
                           borderRadius: const BorderRadius.all(
