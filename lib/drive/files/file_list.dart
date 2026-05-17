@@ -16,6 +16,8 @@ import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/responsive_sidebar.dart';
 import 'package:island/drive/widgets/file_list_view.dart';
+import 'package:island/core/widgets/content/file_info_sheet.dart';
+import 'package:island/drive/file_permissions.dart';
 import 'package:island/accounts/usage_overview.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -45,40 +47,57 @@ class FileListScreen extends HookConsumerWidget {
     // Notifiers should be read fresh each time to avoid disposal issues
 
     // Sidebar content widget
-    final sidebarContent = poolsAsync.when(
-      data: (pools) => usageAsync.when(
-        data: (usage) => quotaAsync.when(
-          data: (quota) => QuotaSidebarWidget(
-            usage: usage,
-            quota: quota,
-            pools: pools,
-            selectedPool: selectedPool.value,
-            onPoolSelected: (pool) {
-              selectedPool.value = pool;
-              if (mode.value == FileListMode.unindexed) {
-                ref.read(unindexedFileListProvider.notifier).setPool(pool?.id);
-              } else {
-                ref
-                    .read(indexedCloudFileListProvider.notifier)
-                    .setPool(pool?.id);
-              }
-            },
-            onViewDetails: () => _showUsageSheet(context, usage, quota),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, _) => Center(child: Text('errorLoadingQuota'.tr())),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => Center(child: Text('errorLoadingUsage'.tr())),
-      ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => Center(child: Text('errorLoadingPools'.tr())),
-    );
+    final inspectorFile = ref.watch(driveInspectorFileProvider);
+
+    final sidebarContent = inspectorFile != null
+        ? FileInspectorSheet(key: ValueKey(inspectorFile.id))
+        : poolsAsync.when(
+            data: (pools) => usageAsync.when(
+              data: (usage) => quotaAsync.when(
+                data: (quota) => QuotaSidebarWidget(
+                  usage: usage,
+                  quota: quota,
+                  pools: pools,
+                  selectedPool: selectedPool.value,
+                  onPoolSelected: (pool) {
+                    ref.read(driveInspectorFileProvider.notifier).setFile(null);
+                    selectedPool.value = pool;
+                    if (mode.value == FileListMode.unindexed) {
+                      ref
+                          .read(unindexedFileListProvider.notifier)
+                          .setPool(pool?.id);
+                    } else {
+                      ref
+                          .read(indexedCloudFileListProvider.notifier)
+                          .setPool(pool?.id);
+                    }
+                  },
+                  onViewDetails: () => _showUsageSheet(context, usage, quota),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, _) => Center(child: Text('errorLoadingQuota'.tr())),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, _) => Center(child: Text('errorLoadingUsage'.tr())),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, _) => Center(child: Text('errorLoadingPools'.tr())),
+          );
 
     // Drawer builder for narrow screens - uses builder to access providers
     Consumer drawerBuilder(BuildContext sheetContext) {
       return Consumer(
         builder: (context, ref, _) {
+          final inspector = ref.watch(driveInspectorFileProvider);
+          if (inspector != null) {
+            return FileInfoSheet(
+              item: inspector,
+              onClose: () {
+                ref.read(driveInspectorFileProvider.notifier).setFile(null);
+                Navigator.of(sheetContext).pop();
+              },
+            );
+          }
           final usage = ref.watch(billingUsageProvider);
           final quota = ref.watch(billingQuotaProvider);
           final pools = ref.watch(poolsProvider);
@@ -177,7 +196,14 @@ class FileListScreen extends HookConsumerWidget {
           // Storage sidebar toggle
           IconButton(
             icon: const Icon(Symbols.storage),
-            onPressed: () => showSidebar.value = !showSidebar.value,
+            onPressed: () {
+            if (showSidebar.value) {
+              showSidebar.value = false;
+              ref.read(driveInspectorFileProvider.notifier).setFile(null);
+            } else {
+                showSidebar.value = true;
+              }
+            },
             tooltip: 'storageOverview'.tr(),
           ),
           const Gap(8),
@@ -213,6 +239,10 @@ class FileListScreen extends HookConsumerWidget {
               currentPath.value,
               selectedPool.value?.id,
             ),
+            onInspectFile: (file) {
+              ref.read(driveInspectorFileProvider.notifier).setFile(file);
+              showSidebar.value = true;
+            },
             mode: mode,
             viewMode: viewMode,
             isSelectionMode: isSelectionMode,

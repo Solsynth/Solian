@@ -346,7 +346,7 @@ class SphereApi extends BaseApi {
   /// Returns the bookmark if it exists, or null.
   Future<SnPostBookmark?> getPostBookmark(String postId) async {
     final response = await get<dynamic>('$_basePath/posts/$postId/bookmark');
-    if (response.data == null) return null;
+    if (response.statusCode == 204) return null;
     return SnPostBookmark.fromJson(response.data as Map<String, dynamic>);
   }
 

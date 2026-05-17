@@ -38,6 +38,7 @@ export 'src/models/drive/file.dart';
 export 'src/models/drive/file_list_item.dart';
 export 'src/models/drive/file_pool.dart';
 export 'src/models/drive/folder.dart';
+export 'src/models/drive/file_permission.dart';
 
 // Live models
 export 'src/models/live/livestream.dart';

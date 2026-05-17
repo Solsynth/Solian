@@ -33,6 +33,7 @@ class FileListView extends HookConsumerWidget {
   final ValueNotifier<SnFilePool?> selectedPool;
   final VoidCallback onPickAndUpload;
   final VoidCallback onShowCreateFolder;
+  final void Function(SnCloudFile file) onInspectFile;
   final ValueNotifier<FileListMode> mode;
   final ValueNotifier<FileListViewMode> viewMode;
   final ValueNotifier<bool> isSelectionMode;
@@ -45,6 +46,7 @@ class FileListView extends HookConsumerWidget {
     required this.selectedPool,
     required this.onPickAndUpload,
     required this.onShowCreateFolder,
+    required this.onInspectFile,
     required this.mode,
     required this.viewMode,
     required this.isSelectionMode,
@@ -637,27 +639,31 @@ class FileListView extends HookConsumerWidget {
                 }
               },
             ),
-            folder: (folderItem) => ListTile(
-              leading: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                child: SizedBox(
-                  height: 48,
-                  width: 48,
-                  child: const Icon(Symbols.folder, fill: 1).center(),
-                ),
-              ),
-              title: Text(
-                folderItem.file.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text('folder').tr(),
+            folder: (folderItem) => InkWell(
               onTap: () {
                 final newPath = currentPath.value == '/'
                     ? '/${folderItem.file.name}'
                     : '${currentPath.value}/${folderItem.file.name}';
                 currentPath.value = newPath;
               },
+              onLongPress: () => onInspectFile(folderItem.file),
+              onSecondaryTap: () => onInspectFile(folderItem.file),
+              child: ListTile(
+                leading: ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  child: SizedBox(
+                    height: 48,
+                    width: 48,
+                    child: const Icon(Symbols.folder, fill: 1).center(),
+                  ),
+                ),
+                title: Text(
+                  folderItem.file.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text('folder').tr(),
+              ),
             ),
             unindexedFile: (unindexedFileItem) {
               // Should not happen in normal mode
@@ -848,6 +854,8 @@ class FileListView extends HookConsumerWidget {
           context.router.pushPath(getRoutePath());
         }
       },
+      onLongPress: () => onInspectFile(file),
+      onSecondaryTap: () => onInspectFile(file),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -921,6 +929,8 @@ class FileListView extends HookConsumerWidget {
             : '${currentPath.value}/${folderItem.file.name}';
         currentPath.value = newPath;
       },
+      onLongPress: () => onInspectFile(folderItem.file),
+      onSecondaryTap: () => onInspectFile(folderItem.file),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
