@@ -742,14 +742,13 @@ class _CloudFileListEntry extends HookConsumerWidget {
     final showDataSaving = useState(!dataSaving);
     final lockedByDS = dataSaving && !showDataSaving.value;
     final lockedByMature = file.sensitiveMarks.isNotEmpty && !showMature.value;
-    final meta = file.fileMeta as Map;
 
     final fit = BoxFit.cover;
 
     Widget bg = const SizedBox.shrink();
     if (isImage) {
-      if (meta['blur'] is String) {
-        bg = BlurHash(hash: meta['blur'] as String);
+      if (file.blurhash != null && file.blurhash!.isNotEmpty) {
+        bg = BlurHash(hash: file.blurhash!);
       } else if (!lockedByDS && !lockedByMature) {
         bg = ImageFiltered(
           imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),

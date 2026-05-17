@@ -50,8 +50,8 @@ class CloudFileWidget extends HookConsumerWidget {
     final e2eeMeta = rawE2eeMeta is Map ? Map<String, dynamic>.from(rawE2eeMeta) : <String, dynamic>{};
     final isEncrypted = e2eeMeta['scheme']?.toString().isNotEmpty == true;
     final e2eeScheme = e2eeMeta['scheme']?.toString();
-    final blurHash = noBlurhash ? null : (meta['blur'] as String?);
-    var ratio = meta['ratio'] is num ? (meta['ratio'] as num).toDouble() : 1.0;
+    final blurHash = noBlurhash ? null : item.blurhash;
+    var ratio = item.ratio ?? 1.0;
     if (ratio == 0) ratio = 1.0;
 
 Widget cloudImage() =>
@@ -380,9 +380,7 @@ class CloudVideoWidget extends HookConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
 
-    var ratio = item.fileMeta['ratio'] is num
-        ? item.fileMeta['ratio'].toDouble()
-        : 1.0;
+    var ratio = item.ratio ?? 1.0;
     if (ratio == 0) ratio = 1.0;
 
     return GestureDetector(
@@ -578,7 +576,7 @@ class ProfilePictureWidget extends ConsumerWidget {
     final String? id = file?.id ?? fileId;
 
     final meta = file?.fileMeta is Map ? (file!.fileMeta as Map) : const {};
-    final blurHash = meta['blur'] as String?;
+    final blurHash = meta['blurhash'] as String?;
 
     final fallback = Icon(
       fallbackIcon ?? Symbols.account_circle,
