@@ -1815,4 +1815,16 @@
   "holidayOptional": "選休",
   "holidayObservance": "紀日",
   "holidayOther": "休"
+,
+  "settingsChatRoomStorage": "Chat Room Storage",
+  "settingsChatRoomStorageHelper": "View stored messages per chat room",
+  "settingsTotalMessages": "Total Messages",
+  "settingsMessageCount": "{} messages",
+  "settingsUnknownRoom": "Unknown Room",
+  "settingsNoChatMessages": "No chat messages stored",
+  "settingsClearChatHistory": "Clear Chat History",
+  "settingsClearChatHistoryConfirm": "Are you sure you want to clear all messages from \"{}\"? This action cannot be undone.",
+  "settingsExportChat": "Export Chat",
+  "settingsExportJsonDesc": "Full message data with metadata",
+  "settingsExportCsvDesc": "Simple spreadsheet format"
 }

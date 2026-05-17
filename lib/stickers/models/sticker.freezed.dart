@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnSticker {
 
- String get id; String get slug; String? get name; SnCloudFile get image; int get order;@JsonKey(fromJson: _stickerSizeFromJson) int get size;@JsonKey(fromJson: _stickerModeFromJson) int get mode; String get packId; SnStickerPack? get pack; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; String get slug; String? get name; SnCloudFileReference get image; int get order;@JsonKey(fromJson: _stickerSizeFromJson) int get size;@JsonKey(fromJson: _stickerModeFromJson) int get mode; String get packId; SnStickerPack? get pack; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnSticker
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,11 +48,11 @@ abstract mixin class $SnStickerCopyWith<$Res>  {
   factory $SnStickerCopyWith(SnSticker value, $Res Function(SnSticker) _then) = _$SnStickerCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String? name, SnCloudFile image, int order,@JsonKey(fromJson: _stickerSizeFromJson) int size,@JsonKey(fromJson: _stickerModeFromJson) int mode, String packId, SnStickerPack? pack, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String slug, String? name, SnCloudFileReference image, int order,@JsonKey(fromJson: _stickerSizeFromJson) int size,@JsonKey(fromJson: _stickerModeFromJson) int mode, String packId, SnStickerPack? pack, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-$SnCloudFileCopyWith<$Res> get image;$SnStickerPackCopyWith<$Res>? get pack;
+$SnCloudFileReferenceCopyWith<$Res> get image;$SnStickerPackCopyWith<$Res>? get pack;
 
 }
 /// @nodoc
@@ -71,7 +71,7 @@ id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
-as SnCloudFile,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as int,packId: null == packId ? _self.packId : packId // ignore: cast_nullable_to_non_nullable
@@ -86,9 +86,9 @@ as DateTime?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res> get image {
+$SnCloudFileReferenceCopyWith<$Res> get image {
   
-  return $SnCloudFileCopyWith<$Res>(_self.image, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.image, (value) {
     return _then(_self.copyWith(image: value));
   });
 }/// Create a copy of SnSticker
@@ -182,7 +182,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  SnCloudFile image,  int order, @JsonKey(fromJson: _stickerSizeFromJson)  int size, @JsonKey(fromJson: _stickerModeFromJson)  int mode,  String packId,  SnStickerPack? pack,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  SnCloudFileReference image,  int order, @JsonKey(fromJson: _stickerSizeFromJson)  int size, @JsonKey(fromJson: _stickerModeFromJson)  int mode,  String packId,  SnStickerPack? pack,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnSticker() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.image,_that.order,_that.size,_that.mode,_that.packId,_that.pack,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -203,7 +203,7 @@ return $default(_that.id,_that.slug,_that.name,_that.image,_that.order,_that.siz
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  SnCloudFile image,  int order, @JsonKey(fromJson: _stickerSizeFromJson)  int size, @JsonKey(fromJson: _stickerModeFromJson)  int mode,  String packId,  SnStickerPack? pack,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String? name,  SnCloudFileReference image,  int order, @JsonKey(fromJson: _stickerSizeFromJson)  int size, @JsonKey(fromJson: _stickerModeFromJson)  int mode,  String packId,  SnStickerPack? pack,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnSticker():
 return $default(_that.id,_that.slug,_that.name,_that.image,_that.order,_that.size,_that.mode,_that.packId,_that.pack,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -220,7 +220,7 @@ return $default(_that.id,_that.slug,_that.name,_that.image,_that.order,_that.siz
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  SnCloudFile image,  int order, @JsonKey(fromJson: _stickerSizeFromJson)  int size, @JsonKey(fromJson: _stickerModeFromJson)  int mode,  String packId,  SnStickerPack? pack,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String? name,  SnCloudFileReference image,  int order, @JsonKey(fromJson: _stickerSizeFromJson)  int size, @JsonKey(fromJson: _stickerModeFromJson)  int mode,  String packId,  SnStickerPack? pack,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnSticker() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.image,_that.order,_that.size,_that.mode,_that.packId,_that.pack,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -241,7 +241,7 @@ class _SnSticker implements SnSticker {
 @override final  String id;
 @override final  String slug;
 @override final  String? name;
-@override final  SnCloudFile image;
+@override final  SnCloudFileReference image;
 @override@JsonKey() final  int order;
 @override@JsonKey(fromJson: _stickerSizeFromJson) final  int size;
 @override@JsonKey(fromJson: _stickerModeFromJson) final  int mode;
@@ -284,11 +284,11 @@ abstract mixin class _$SnStickerCopyWith<$Res> implements $SnStickerCopyWith<$Re
   factory _$SnStickerCopyWith(_SnSticker value, $Res Function(_SnSticker) _then) = __$SnStickerCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String? name, SnCloudFile image, int order,@JsonKey(fromJson: _stickerSizeFromJson) int size,@JsonKey(fromJson: _stickerModeFromJson) int mode, String packId, SnStickerPack? pack, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, String slug, String? name, SnCloudFileReference image, int order,@JsonKey(fromJson: _stickerSizeFromJson) int size,@JsonKey(fromJson: _stickerModeFromJson) int mode, String packId, SnStickerPack? pack, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnCloudFileCopyWith<$Res> get image;@override $SnStickerPackCopyWith<$Res>? get pack;
+@override $SnCloudFileReferenceCopyWith<$Res> get image;@override $SnStickerPackCopyWith<$Res>? get pack;
 
 }
 /// @nodoc
@@ -307,7 +307,7 @@ id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
-as SnCloudFile,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as int,packId: null == packId ? _self.packId : packId // ignore: cast_nullable_to_non_nullable
@@ -323,9 +323,9 @@ as DateTime?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res> get image {
+$SnCloudFileReferenceCopyWith<$Res> get image {
   
-  return $SnCloudFileCopyWith<$Res>(_self.image, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.image, (value) {
     return _then(_self.copyWith(image: value));
   });
 }/// Create a copy of SnSticker
@@ -347,7 +347,7 @@ $SnStickerPackCopyWith<$Res>? get pack {
 /// @nodoc
 mixin _$SnStickerPack {
 
- String get id; String get name; String get description; String get prefix; String get publisherId; SnCloudFile? get icon; SnPublisher? get publisher; int get order; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnSticker> get stickers;
+ String get id; String get name; String get description; String get prefix; String get publisherId; SnCloudFileReference? get icon; SnPublisher? get publisher; int get order; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnSticker> get stickers;
 /// Create a copy of SnStickerPack
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -380,11 +380,11 @@ abstract mixin class $SnStickerPackCopyWith<$Res>  {
   factory $SnStickerPackCopyWith(SnStickerPack value, $Res Function(SnStickerPack) _then) = _$SnStickerPackCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description, String prefix, String publisherId, SnCloudFile? icon, SnPublisher? publisher, int order, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
+ String id, String name, String description, String prefix, String publisherId, SnCloudFileReference? icon, SnPublisher? publisher, int order, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
 });
 
 
-$SnCloudFileCopyWith<$Res>? get icon;$SnPublisherCopyWith<$Res>? get publisher;
+$SnCloudFileReferenceCopyWith<$Res>? get icon;$SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -405,7 +405,7 @@ as String,description: null == description ? _self.description : description // 
 as String,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -418,12 +418,12 @@ as List<SnSticker>,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get icon {
+$SnCloudFileReferenceCopyWith<$Res>? get icon {
     if (_self.icon == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.icon!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.icon!, (value) {
     return _then(_self.copyWith(icon: value));
   });
 }/// Create a copy of SnStickerPack
@@ -517,7 +517,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFile? icon,  SnPublisher? publisher,  int order,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFileReference? icon,  SnPublisher? publisher,  int order,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnStickerPack() when $default != null:
 return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.icon,_that.publisher,_that.order,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);case _:
@@ -538,7 +538,7 @@ return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publish
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFile? icon,  SnPublisher? publisher,  int order,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFileReference? icon,  SnPublisher? publisher,  int order,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)  $default,) {final _that = this;
 switch (_that) {
 case _SnStickerPack():
 return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.icon,_that.publisher,_that.order,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);}
@@ -555,7 +555,7 @@ return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publish
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFile? icon,  SnPublisher? publisher,  int order,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String prefix,  String publisherId,  SnCloudFileReference? icon,  SnPublisher? publisher,  int order,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnSticker> stickers)?  $default,) {final _that = this;
 switch (_that) {
 case _SnStickerPack() when $default != null:
 return $default(_that.id,_that.name,_that.description,_that.prefix,_that.publisherId,_that.icon,_that.publisher,_that.order,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.stickers);case _:
@@ -578,7 +578,7 @@ class _SnStickerPack implements SnStickerPack {
 @override final  String description;
 @override final  String prefix;
 @override final  String publisherId;
-@override final  SnCloudFile? icon;
+@override final  SnCloudFileReference? icon;
 @override final  SnPublisher? publisher;
 @override@JsonKey() final  int order;
 @override final  DateTime createdAt;
@@ -625,11 +625,11 @@ abstract mixin class _$SnStickerPackCopyWith<$Res> implements $SnStickerPackCopy
   factory _$SnStickerPackCopyWith(_SnStickerPack value, $Res Function(_SnStickerPack) _then) = __$SnStickerPackCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description, String prefix, String publisherId, SnCloudFile? icon, SnPublisher? publisher, int order, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
+ String id, String name, String description, String prefix, String publisherId, SnCloudFileReference? icon, SnPublisher? publisher, int order, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnSticker> stickers
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get icon;@override $SnPublisherCopyWith<$Res>? get publisher;
+@override $SnCloudFileReferenceCopyWith<$Res>? get icon;@override $SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -650,7 +650,7 @@ as String,description: null == description ? _self.description : description // 
 as String,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
 as String,publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -664,12 +664,12 @@ as List<SnSticker>,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get icon {
+$SnCloudFileReferenceCopyWith<$Res>? get icon {
     if (_self.icon == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.icon!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.icon!, (value) {
     return _then(_self.copyWith(icon: value));
   });
 }/// Create a copy of SnStickerPack

@@ -406,7 +406,7 @@ class FileUploader {
     return const [];
   }
 
-  Future<String?> _resolveParentIdFromPath({
+  Future<String?> resolveParentIdFromPath({
     String? path,
     String? poolId,
   }) async {
@@ -535,7 +535,7 @@ class FileUploader {
       'pool_id': poolId,
       'parent_id':
           parentId ??
-          await _resolveParentIdFromPath(path: path, poolId: poolId),
+          await resolveParentIdFromPath(path: path, poolId: poolId),
       'expired_at': expiredAt,
       'usage': usage,
       'application_type': applicationType,
@@ -644,7 +644,7 @@ class FileUploader {
       'chunk_size': chunkSize,
       'parent_id':
           parentId ??
-          await _resolveParentIdFromPath(path: path, poolId: poolId),
+          await resolveParentIdFromPath(path: path, poolId: poolId),
       'usage': usage,
       'application_type': applicationType,
     };

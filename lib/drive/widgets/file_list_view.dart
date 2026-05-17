@@ -32,7 +32,7 @@ class FileListView extends HookConsumerWidget {
   final ValueNotifier<String> currentPath;
   final ValueNotifier<SnFilePool?> selectedPool;
   final VoidCallback onPickAndUpload;
-  final Function(BuildContext, ValueNotifier<String>) onShowCreateDirectory;
+  final VoidCallback onShowCreateFolder;
   final ValueNotifier<FileListMode> mode;
   final ValueNotifier<FileListViewMode> viewMode;
   final ValueNotifier<bool> isSelectionMode;
@@ -44,7 +44,7 @@ class FileListView extends HookConsumerWidget {
     required this.currentPath,
     required this.selectedPool,
     required this.onPickAndUpload,
-    required this.onShowCreateDirectory,
+    required this.onShowCreateFolder,
     required this.mode,
     required this.viewMode,
     required this.isSelectionMode,
@@ -715,8 +715,7 @@ class FileListView extends HookConsumerWidget {
                   ),
                   const Gap(12),
                   OutlinedButton.icon(
-                    onPressed: () =>
-                        onShowCreateDirectory(ref.context, currentPath),
+                    onPressed: onShowCreateFolder,
                     icon: const Icon(Symbols.create_new_folder),
                     label: Text('createDirectory').tr(),
                   ),
