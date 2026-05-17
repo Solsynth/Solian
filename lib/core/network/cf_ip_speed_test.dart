@@ -649,22 +649,31 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
     }
     Logger.root.info('[CfIpSpeedTest][TCP] batch size=${batch.length} done=$tcpCompleted/${allIps.length}');
     var skipTcpStage = false;
-    for (final ip in batch) {
+    final batchResults = await Future.wait(
+      batch.map((ip) async {
+        if (_isCancelled(cancelToken)) {
+          return (ip: ip, result: null);
+        }
+        currentTestingIp = ip;
+        Logger.root.info('[CfIpSpeedTest][TCP] start $ip');
+        final result = await _tcpPingIp(ip, tcpPort, tcpPingTimes, tcpTimeout);
+        return (ip: ip, result: result);
+      }),
+    );
+
+    for (final item in batchResults) {
       if (_isCancelled(cancelToken)) {
         return;
       }
-      currentTestingIp = ip;
-      Logger.root.info('[CfIpSpeedTest][TCP] start $ip');
-      final result = await _tcpPingIp(ip, tcpPort, tcpPingTimes, tcpTimeout);
-      if (_isCancelled(cancelToken)) {
-        return;
+      final result = item.result;
+      if (result == null) {
+        continue;
       }
       if (result.tcpReceived > 0) {
         tcpResults.add(result);
-        Logger.root.info('[CfIpSpeedTest][TCP] ok $ip received=${result.tcpReceived}/${result.tcpSended} ping=${result.tcpPingMs}ms');
+        Logger.root.info('[CfIpSpeedTest][TCP] ok ${item.ip} received=${result.tcpReceived}/${result.tcpSended} ping=${result.tcpPingMs}ms');
       } else {
-        Logger.root.info('[CfIpSpeedTest][TCP] timeout $ip');
-        if (currentTestingIp == ip) currentTestingIp = null;
+        Logger.root.info('[CfIpSpeedTest][TCP] timeout ${item.ip}');
       }
       tcpCompleted++;
       Logger.root.info('[CfIpSpeedTest][TCP] progress $tcpCompleted/${allIps.length} available=${tcpResults.length} current=$currentTestingIp');
