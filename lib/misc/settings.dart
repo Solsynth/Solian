@@ -95,10 +95,22 @@ class SettingsScreen extends HookConsumerWidget {
 
     categories.add(
       _SettingCategory(
-        icon: Symbols.translate,
-        title: 'Language',
-        localizedTitleKey: 'settingsCategoryLanguage',
-        searchTerms: ['display language', 'locale', 'system language'],
+        icon: Symbols.palette,
+        title: 'Appearance',
+        localizedTitleKey: 'settingsAppearance',
+        searchTerms: [
+          'theme',
+          'color scheme',
+          'opacity',
+          'card background',
+          'display language',
+          'locale',
+          'system language',
+          'window opacity',
+          'custom fonts',
+          'typeface',
+          'font family',
+        ],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -141,17 +153,6 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-
-    categories.add(
-      _SettingCategory(
-        icon: Symbols.palette,
-        title: 'Appearance',
-        localizedTitleKey: 'settingsAppearance',
-        searchTerms: ['theme', 'color scheme', 'opacity', 'card background'],
-        children: [
           ListTile(
             minLeadingWidth: 48,
             title: Text('settingsThemeMode').tr(),
@@ -505,17 +506,43 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-
-    categories.add(
-      _SettingCategory(
-        icon: Symbols.font_download,
-        title: 'Fonts',
-        localizedTitleKey: 'settingsCategoryFonts',
-        searchTerms: ['custom fonts', 'typeface', 'font family'],
-        children: [
+          if (isDesktop)
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsWindowOpacity').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.opacity),
+              isThreeLine: true,
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SliderTheme(
+                  data: SliderThemeData(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 8,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 24,
+                    ),
+                    trackShape: RoundedRectSliderTrackShape(),
+                  ),
+                  child: Slider(
+                    value: settings.windowOpacity,
+                    min: 0.1,
+                    max: 1.0,
+                    year2023: true,
+                    padding: EdgeInsets.only(right: 24),
+                    label: '${(settings.windowOpacity * 100).round()}%',
+                    onChanged: (value) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .setWindowOpacity(value);
+                    },
+                  ),
+                ),
+              ),
+            ),
+          if (isDesktop) const Divider(height: 24),
           ListTile(
             isThreeLine: true,
             minLeadingWidth: 48,
@@ -561,7 +588,15 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.chat,
         title: 'Messages',
         localizedTitleKey: 'settingsCategoryMessages',
-        searchTerms: ['message style', 'attachments', 'link collapse'],
+        searchTerms: [
+          'message style',
+          'attachments',
+          'link collapse',
+          'sound effects',
+          'festival features',
+          'haptic feedback',
+          'friend status',
+        ],
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -1068,80 +1103,6 @@ class SettingsScreen extends HookConsumerWidget {
 
     categories.add(
       _SettingCategory(
-        icon: Symbols.volume_up,
-        title: 'Notifications',
-        localizedTitleKey: 'settingsCategoryNotifications',
-        searchTerms: [
-          'sound effects',
-          'festival features',
-          'haptic feedback',
-          'friend status',
-        ],
-        children: [
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsSoundEffects').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.volume_up),
-            trailing: Switch(
-              value: settings.soundEffects,
-              onChanged: (value) {
-                ref.read(appSettingsProvider.notifier).setSoundEffects(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsFestivalFeatures').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.celebration),
-            trailing: Switch(
-              value: settings.festivalFeatures,
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setFeativalFeatures(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsNotifyWithHaptic').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.vibration),
-            trailing: Switch(
-              value: settings.notifyWithHaptic,
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setNotifyWithHaptic(value);
-              },
-            ),
-          ),
-          if (isDesktop)
-            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsFriendStatusDesktopNotification').tr(),
-              subtitle: Text(
-                'settingsFriendStatusDesktopNotificationHelper'.tr(),
-              ).fontSize(12),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.notifications_active),
-              trailing: Switch(
-                value: settings.friendStatusDesktopNotification,
-                onChanged: (value) {
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .setFriendStatusDesktopNotification(value);
-                },
-              ),
-            ),
-        ],
-      ),
-    );
-
-    categories.add(
-      _SettingCategory(
         icon: Symbols.send,
         title: 'Chat',
         localizedTitleKey: 'settingsCategoryChat',
@@ -1220,6 +1181,72 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+            child: Text(
+              'settingsCategoryNotifications'.tr(),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsSoundEffects').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.volume_up),
+            trailing: Switch(
+              value: settings.soundEffects,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setSoundEffects(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsFestivalFeatures').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.celebration),
+            trailing: Switch(
+              value: settings.festivalFeatures,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setFeativalFeatures(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsNotifyWithHaptic').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.vibration),
+            trailing: Switch(
+              value: settings.notifyWithHaptic,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setNotifyWithHaptic(value);
+              },
+            ),
+          ),
+          if (isDesktop)
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsFriendStatusDesktopNotification').tr(),
+              subtitle: Text(
+                'settingsFriendStatusDesktopNotificationHelper'.tr(),
+              ).fontSize(12),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.notifications_active),
+              trailing: Switch(
+                value: settings.friendStatusDesktopNotification,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setFriendStatusDesktopNotification(value);
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -1478,54 +1505,6 @@ class SettingsScreen extends HookConsumerWidget {
         ],
       ),
     );
-
-    if (isDesktop) {
-      categories.add(
-        _SettingCategory(
-          icon: Symbols.desktop_windows,
-          title: 'Desktop',
-          localizedTitleKey: 'settingsDesktop',
-          searchTerms: ['window opacity'],
-          children: [
-            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsWindowOpacity').tr(),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.opacity),
-              isThreeLine: true,
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: SliderTheme(
-                  data: SliderThemeData(
-                    trackHeight: 2,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 8,
-                    ),
-                    overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 24,
-                    ),
-                    trackShape: RoundedRectSliderTrackShape(),
-                  ),
-                  child: Slider(
-                    value: settings.windowOpacity,
-                    min: 0.1,
-                    max: 1.0,
-                    year2023: true,
-                    padding: EdgeInsets.only(right: 24),
-                    label: '${(settings.windowOpacity * 100).round()}%',
-                    onChanged: (value) {
-                      ref
-                          .read(appSettingsProvider.notifier)
-                          .setWindowOpacity(value);
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
     categories.add(
       _SettingCategory(
