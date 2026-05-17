@@ -150,11 +150,14 @@ IpOverrideConnectionFactory createIpOverrideConnectionFactory({
       throw UnimplementedError();
     }
     final targetPort = port ?? uri.port;
-    final socketFuture = SecureSocket.connect(
-      ip,
-      targetPort == 0 ? 443 : targetPort,
-      onBadCertificate: (_) => true,
-    );
+    final socketFuture = Socket.connect(ip, targetPort == 0 ? 443 : targetPort)
+        .then(
+          (socket) => SecureSocket.secure(
+            socket,
+            host: uri.host,
+            onBadCertificate: (_) => true,
+          ),
+        );
     return ConnectionTask.fromSocket(socketFuture, () {
       Logger.root.fine(
         'Canncelled established IP override connection to ${uri.host} ($ip:$targetPort)',
