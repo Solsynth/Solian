@@ -138,7 +138,7 @@ typedef IpOverrideConnectionFactory =
       Uri url,
       String? proxyHost,
       int? proxyPort,
-    );
+  );
 
 IpOverrideConnectionFactory createIpOverrideConnectionFactory({
   required String domainSuffix,
@@ -166,10 +166,11 @@ IpOverrideConnectionFactory createIpOverrideConnectionFactory({
   };
 }
 
-final ipOverrideConnectionFactoryProvider =
+final apiIpOverrideConnectionFactoryProvider =
     Provider<IpOverrideConnectionFactory?>((ref) {
+      final mode = ref.watch(ipOverrideModeProvider);
       final settings = ref.watch(ipOverrideSettingsProvider);
-      if (!settings.enabled || settings.overrides.isEmpty) {
+      if (mode != IpOverrideMode.complete || settings.overrides.isEmpty) {
         return null;
       }
       final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
@@ -187,6 +188,44 @@ final ipOverrideConnectionFactoryProvider =
       );
     });
 
+final mediaIpOverrideConnectionFactoryProvider =
+    Provider<IpOverrideConnectionFactory?>((ref) {
+      final mode = ref.watch(ipOverrideModeProvider);
+      final settings = ref.watch(ipOverrideSettingsProvider);
+      final domains = ref.watch(ipOverrideDomainsProvider);
+      if (mode == IpOverrideMode.off || settings.overrides.isEmpty) {
+        return null;
+      }
+      if (domains.isEmpty) {
+        return null;
+      }
+      final override = settings.overrides.firstOrNull;
+      if (override == null) {
+        return null;
+      }
+      return (uri, proxyHost, proxyPort) async {
+        if (!domains.any((domain) => matchesIpOverrideDomain(uri, domain))) {
+          throw UnimplementedError();
+        }
+        final targetPort = override.port ?? uri.port;
+        final socketFuture = Socket.connect(
+          override.ip,
+          targetPort == 0 ? 443 : targetPort,
+        ).then(
+          (socket) => SecureSocket.secure(
+            socket,
+            host: uri.host,
+            onBadCertificate: (_) => true,
+          ),
+        );
+        return ConnectionTask.fromSocket(socketFuture, () {
+          Logger.root.fine(
+            '[media.proxy] Cancelled IP override connection to ${uri.host} (${override.ip}:$targetPort)',
+          );
+        });
+      };
+    });
+
 final padlockApiClientProvider = Provider<Dio>((ref) {
   final serverUrl = ref.watch(serverUrlProvider);
   final dio = Dio(
@@ -202,7 +241,7 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
     ),
   );
 
-  final connectionFactory = ref.watch(ipOverrideConnectionFactoryProvider);
+  final connectionFactory = ref.watch(apiIpOverrideConnectionFactoryProvider);
   if (connectionFactory != null) {
     dio.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {
@@ -337,7 +376,7 @@ final apiClientProvider = Provider<Dio>((ref) {
     ),
   );
 
-  final connectionFactory = ref.watch(ipOverrideConnectionFactoryProvider);
+  final connectionFactory = ref.watch(apiIpOverrideConnectionFactoryProvider);
   if (connectionFactory != null) {
     dio.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {

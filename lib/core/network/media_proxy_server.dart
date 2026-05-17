@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
 import 'package:logging/logging.dart';
 
 import 'package:path_provider/path_provider.dart';
@@ -30,45 +31,27 @@ class MediaProxyServer {
     _httpClient = HttpClient()
       ..badCertificateCallback = (cert, host, port) => true;
     _applyIpOverride();
+    _ref.listen<IpOverrideMode>(
+      ipOverrideModeProvider,
+      (previous, next) => _applyIpOverride(),
+    );
+    _ref.listen<List<String>>(
+      ipOverrideDomainsProvider,
+      (previous, next) => _applyIpOverride(),
+    );
+    _ref.listen<IpOverrideSettings>(
+      ipOverrideSettingsProvider,
+      (previous, next) => _applyIpOverride(),
+    );
   }
 
   void _applyIpOverride() {
-    final settings = _ref.read(ipOverrideSettingsProvider);
-    if (!settings.enabled || settings.overrides.isEmpty) return;
-    final serverUrl = _ref.read(serverUrlProvider);
-    String? domainSuffix;
-    try {
-      final uri = Uri.parse(serverUrl);
-      if (uri.host.contains('.')) domainSuffix = uri.host;
-    } catch (_) {}
-    if (domainSuffix == null) return;
-    final override = settings.overrides.firstOrNull;
-    if (override == null) return;
-    final suffix = domainSuffix;
-
-    _httpClient.connectionFactory = (
-      Uri uri,
-      String? proxyHost,
-      int? proxyPort,
-    ) async {
-      if (!uri.host.endsWith(suffix)) {
-        throw UnimplementedError();
-      }
-      final targetPort = override.port ?? uri.port;
-      return ConnectionTask.fromSocket(
-        SecureSocket.connect(
-          override.ip,
-          targetPort == 0 ? 443 : targetPort,
-          onBadCertificate: (_) => true,
-        ),
-        () {
-          Logger.root.fine(
-            '[$kLogPrefix] Cancelled IP override connection to ${uri.host} (${override.ip}:$targetPort)',
-          );
-        },
-      );
-    };
+    _httpClient.connectionFactory = _ref.read(
+      mediaIpOverrideConnectionFactoryProvider,
+    );
   }
+
+  void refreshIpOverride() => _applyIpOverride();
 
   Future<void> start() async {
     if (_isRunning) return;
