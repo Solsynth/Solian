@@ -119,8 +119,8 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
           ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
-  fileMeta: json['file_meta'] as Map<String, dynamic>,
-  userMeta: json['user_meta'] as Map<String, dynamic>,
+  fileMeta: json['file_meta'] as Map<String, dynamic>? ?? const {},
+  userMeta: json['user_meta'] as Map<String, dynamic>? ?? const {},
   uploadedAt: json['uploaded_at'] == null
       ? null
       : DateTime.parse(json['uploaded_at'] as String),
