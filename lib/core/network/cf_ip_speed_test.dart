@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:logging/logging.dart';
+
 const cfIpv4Ranges = [
   '173.245.48.0/20',
   '103.21.244.0/22',
@@ -93,22 +95,30 @@ class CfIpTcpPingProgress extends CfIpTestProgress {
   final CfIpTestPhase phase;
   final int availableCount;
   final String? currentIp;
+  final List<CfIpTestResult> results;
 
-  const CfIpTcpPingProgress({required this.phase, required this.availableCount, this.currentIp});
+  const CfIpTcpPingProgress({
+    required this.phase,
+    required this.availableCount,
+    required this.results,
+    this.currentIp,
+  });
 }
 
 class CfIpHttpPingProgress extends CfIpTestProgress {
   final CfIpTestPhase phase;
   final List<CfIpTestResult> results;
+  final String? currentIp;
 
-  const CfIpHttpPingProgress({required this.phase, required this.results});
+  const CfIpHttpPingProgress({required this.phase, required this.results, this.currentIp});
 }
 
 class CfIpDownloadProgress extends CfIpTestProgress {
   final CfIpTestPhase phase;
   final List<CfIpTestResult> results;
+  final String? currentIp;
 
-  const CfIpDownloadProgress({required this.phase, required this.results});
+  const CfIpDownloadProgress({required this.phase, required this.results, this.currentIp});
 }
 
 class CfIpTestComplete extends CfIpTestProgress {
@@ -122,6 +132,31 @@ class CfIpTestError extends CfIpTestProgress {
 
   const CfIpTestError(this.message);
 }
+
+class CfIpTestCancelToken {
+  bool _cancelled = false;
+  bool _skipStageRequested = false;
+
+  bool get cancelled => _cancelled;
+
+  bool get skipStageRequested => _skipStageRequested;
+
+  void cancel() {
+    _cancelled = true;
+  }
+
+  void requestSkipStage() {
+    _skipStageRequested = true;
+  }
+
+  bool consumeSkipStageRequest() {
+    final requested = _skipStageRequested;
+    _skipStageRequested = false;
+    return requested;
+  }
+}
+
+bool _isCancelled(CfIpTestCancelToken cancelToken) => cancelToken.cancelled;
 
 class _Semaphore {
   final int max;
@@ -162,64 +197,73 @@ class _MovingAverage {
 }
 
 List<String> _generateIps(List<String> ranges, {bool quick = false, bool ipv6 = false}) {
-  if (quick) {
-    return _generateRandomIps(ranges, ipv6);
-  }
-  return _generateAllIps(ranges, ipv6);
+  return _generateReferenceStyleIps(ranges, ipv6);
 }
 
-List<String> _generateRandomIps(List<String> ranges, bool ipv6) {
-  const count = 10;
-  final random = Random();
-  final ips = <String>[];
-  final perRange = (count / ranges.length).ceil();
+List<String> _interleaveIps(List<String> a, List<String> b) {
+  final out = <String>[];
+  final maxLen = a.length > b.length ? a.length : b.length;
 
-  for (final range in ranges) {
-    final parts = range.split('/');
-    final ipStr = parts[0];
-    final cidr = int.parse(parts[1]);
-
-    if (ipv6) {
-      _generateRandomIpv6(ipStr, cidr, perRange, random, ips);
-    } else {
-      _generateRandomIpv4(ipStr, cidr, perRange, random, ips);
-    }
+  for (var i = 0; i < maxLen; i++) {
+    if (i < a.length) out.add(a[i]);
+    if (i < b.length) out.add(b[i]);
   }
 
-  return ips.take(count).toList();
+  return out;
 }
 
-List<String> _generateAllIps(List<String> ranges, bool ipv6) {
+List<String> _generateReferenceStyleIps(List<String> ranges, bool ipv6) {
   final ips = <String>[];
 
   for (final range in ranges) {
     final parts = range.split('/');
     final ipStr = parts[0];
     final cidr = int.parse(parts[1]);
-
     if (ipv6) {
-      _generateAllIpv6(ipStr, cidr, ips);
+      ips.addAll(_generateReferenceStyleIpv6(ipStr, cidr));
     } else {
-      _generateAllIpv4(ipStr, cidr, ips);
+      ips.addAll(_generateReferenceStyleIpv4(ipStr, cidr));
     }
   }
 
   return ips;
 }
 
-void _generateAllIpv4(String ip, int cidr, List<String> out) {
-  final ipBytes = ip.split('.').map(int.parse).toList();
-  final maskBits = 32 - cidr;
+List<String> _generateReferenceStyleIpv4(String ip, int cidr) {
+  final octets = ip.split('.').map(int.parse).toList();
+  final hostBits = 32 - cidr;
 
-  final max4 = (1 << maskBits) - 1;
-  final base4 = ipBytes[3] & (~max4 & 0xFF);
+  if (hostBits <= 0) return [ip];
 
-  for (var i = 0; i <= max4; i++) {
-    out.add('${ipBytes[0]}.${ipBytes[1]}.${ipBytes[2]}.${base4 + i}');
+  final ipInt = _ipv4ToInt(octets);
+  final mask = hostBits >= 32 ? 0 : (0xFFFFFFFF << hostBits) & 0xFFFFFFFF;
+  final networkStart = ipInt & mask;
+  final networkEnd = networkStart | (~mask & 0xFFFFFFFF);
+  final random = Random();
+  final out = <String>[];
+
+  for (var blockStart = networkStart; blockStart <= networkEnd; blockStart += 256) {
+    final blockEnd = blockStart + 255 <= networkEnd ? blockStart + 255 : networkEnd;
+    final candidate = blockStart + random.nextInt(blockEnd - blockStart + 1);
+    out.add(_formatIpv4Int(candidate));
   }
+
+  return out;
 }
 
-void _generateAllIpv6(String ip, int cidr, List<String> out) {
+int _ipv4ToInt(List<int> octets) {
+  return (octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3];
+}
+
+String _formatIpv4Int(int value) {
+  final a = (value >> 24) & 0xFF;
+  final b = (value >> 16) & 0xFF;
+  final c = (value >> 8) & 0xFF;
+  final d = value & 0xFF;
+  return '$a.$b.$c.$d';
+}
+
+List<String> _generateReferenceStyleIpv6(String ip, int cidr) {
   final full = _expandIpv6(ip);
   final bytes = Uint8List(16);
   for (var i = 0; i < 8; i++) {
@@ -229,49 +273,56 @@ void _generateAllIpv6(String ip, int cidr, List<String> out) {
   }
 
   final hostBits = 128 - cidr;
-  final totalIps = BigInt.from(2).pow(hostBits);
+  if (hostBits <= 0) return [_formatIpv6(bytes)];
 
-  if (totalIps > BigInt.from(1000000)) {
-    for (var i = 0; i < 1000000; i++) {
-      final newBytes = Uint8List.fromList(bytes);
-      final bigI = BigInt.from(i);
-      var bitOffset = 0;
-      for (var byteIdx = 15; byteIdx >= 0; byteIdx--) {
-        if (bitOffset >= hostBits) break;
-        final bitsInByte = hostBits - bitOffset > 8 ? 8 : hostBits - bitOffset;
-        final mask = (1 << bitsInByte) - 1;
-        final shift = bitOffset;
-        final byteBits = (bigI >> shift).toInt() & mask;
-        final networkMask = ~((1 << bitsInByte) - 1) & 0xFF;
-        newBytes[byteIdx] = (newBytes[byteIdx] & networkMask) | byteBits;
-        bitOffset += bitsInByte;
+  final random = Random();
+  final out = <String>[];
+  final current = Uint8List.fromList(bytes);
+
+  while (_ipv6InNetwork(current, bytes, cidr)) {
+    current[15] = random.nextInt(255);
+    current[14] = random.nextInt(255);
+
+    final targetIP = Uint8List.fromList(current);
+    out.add(_formatIpv6(targetIP));
+
+    for (var i = 13; i >= 0; i--) {
+      final tempIP = current[i];
+      current[i] = (current[i] + random.nextInt(255)) & 0xFF;
+      if (current[i] >= tempIP) {
+        break;
       }
-      out.add(_formatIpv6(newBytes));
     }
-    return;
   }
 
-  var counter = BigInt.zero;
-  while (counter < totalIps) {
-    final newBytes = Uint8List.fromList(bytes);
-    var bigI = counter;
-    var bitOffset = 0;
-    for (var byteIdx = 15; byteIdx >= 0; byteIdx--) {
-      if (bitOffset >= hostBits) break;
-      final bitsInByte = hostBits - bitOffset > 8 ? 8 : hostBits - bitOffset;
-      final mask = (1 << bitsInByte) - 1;
-      final byteBits = bigI.toInt() & mask;
-      final networkMask = ~((1 << bitsInByte) - 1) & 0xFF;
-      newBytes[byteIdx] = (newBytes[byteIdx] & networkMask) | byteBits;
-      bigI >>= bitsInByte;
-      bitOffset += bitsInByte;
-    }
-    out.add(_formatIpv6(newBytes));
-    counter += BigInt.one;
-  }
+  return out;
 }
 
-void _generateRandomIpv4(String ip, int cidr, int count, Random random, List<String> out) {
+bool _ipv6InNetwork(Uint8List current, Uint8List network, int cidr) {
+  final fullBytes = cidr ~/ 8;
+  final remainingBits = cidr % 8;
+
+  for (var i = 0; i < fullBytes; i++) {
+    if (current[i] != network[i]) return false;
+  }
+
+  if (remainingBits == 0) return true;
+
+  final mask = 0xFF << (8 - remainingBits) & 0xFF;
+  return (current[fullBytes] & mask) == (network[fullBytes] & mask);
+}
+
+List<List<String>> _chunkIps(List<String> ips, int chunkSize) {
+  if (chunkSize <= 0) return [ips];
+  final chunks = <List<String>>[];
+  for (var i = 0; i < ips.length; i += chunkSize) {
+    final end = i + chunkSize > ips.length ? ips.length : i + chunkSize;
+    chunks.add(ips.sublist(i, end));
+  }
+  return chunks;
+}
+
+void _generateRandomIpv4(String ip, int cidr, int count, Random random, List<String> out, int remainingBudget) {
   final ipBytes = ip.split('.').map(int.parse).toList();
   final maskBits = 32 - cidr;
   final hostBits4 = maskBits > 16 ? 16 : (maskBits > 8 ? maskBits - 8 : 0);
@@ -285,7 +336,8 @@ void _generateRandomIpv4(String ip, int cidr, int count, Random random, List<Str
   final base2 = ipBytes[2] & (~max3 & 0xFF);
   final base3 = ipBytes[3] & (~max4 & 0xFF);
 
-  for (var i = 0; i < count; i++) {
+  final limit = count < remainingBudget ? count : remainingBudget;
+  for (var i = 0; i < limit; i++) {
     final b2 = base2 + (max2 > 0 ? random.nextInt(max2 + 1) : 0);
     final b3 = base3 + (max3 > 0 ? random.nextInt(max3 + 1) : 0);
     final b4 = random.nextInt(max4 + 1);
@@ -293,7 +345,7 @@ void _generateRandomIpv4(String ip, int cidr, int count, Random random, List<Str
   }
 }
 
-void _generateRandomIpv6(String ip, int cidr, int count, Random random, List<String> out) {
+void _generateRandomIpv6(String ip, int cidr, int count, Random random, List<String> out, int remainingBudget) {
   final full = _expandIpv6(ip);
   final bytes = Uint8List(16);
   for (var i = 0; i < 8; i++) {
@@ -302,21 +354,25 @@ void _generateRandomIpv6(String ip, int cidr, int count, Random random, List<Str
     bytes[i * 2 + 1] = val & 0xFF;
   }
 
-  final hostBits = 128 - cidr;
-  final networkBytes = hostBits ~/ 8;
-  final remainingBits = hostBits % 8;
+  final limit = count < remainingBudget ? count : remainingBudget;
 
-  for (var i = 0; i < count; i++) {
-    final newBytes = Uint8List.fromList(bytes);
-    for (var j = 15; j > 15 - networkBytes; j--) {
-      newBytes[j] = random.nextInt(256);
+  if (limit <= 0) return;
+
+  final current = Uint8List.fromList(bytes);
+  while (out.length < limit && _ipv6InNetwork(current, bytes, cidr)) {
+    current[15] = random.nextInt(255);
+    current[14] = random.nextInt(255);
+
+    final targetIP = Uint8List.fromList(current);
+    out.add(_formatIpv6(targetIP));
+
+    for (var i = 13; i >= 0; i--) {
+      final tempIP = current[i];
+      current[i] = (current[i] + random.nextInt(255)) & 0xFF;
+      if (current[i] >= tempIP) {
+        break;
+      }
     }
-    if (networkBytes < 16 && remainingBits > 0) {
-      final idx = 15 - networkBytes;
-      final mask = (1 << remainingBits) - 1;
-      newBytes[idx] = (newBytes[idx] & ~mask) | random.nextInt(mask + 1);
-    }
-    out.add(_formatIpv6(newBytes));
   }
 }
 
@@ -547,6 +603,9 @@ Future<CfIpTestResult> _downloadTestIp(
 Stream<CfIpTestProgress> runCfIpSpeedTest({
   required List<String> ipRangesV4,
   required List<String> ipRangesV6,
+  required bool enableIpv4,
+  required bool enableIpv6,
+  required CfIpTestCancelToken cancelToken,
   required int ipCount,
   required int tcpPingTimes,
   required int maxRoutines,
@@ -561,94 +620,186 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
   required bool quickTest,
   int tcpPort = 443,
 }) async* {
-  final allIps = [
-    ..._generateIps(ipRangesV4, quick: quickTest, ipv6: false),
-    ..._generateIps(ipRangesV6, quick: quickTest, ipv6: true),
-  ];
+  final ipv4Ips = enableIpv4 ? _generateIps(ipRangesV4, quick: quickTest, ipv6: false) : <String>[];
+  final ipv6Ips = enableIpv6 ? _generateIps(ipRangesV6, quick: quickTest, ipv6: true) : <String>[];
+  final allIps = _interleaveIps(ipv4Ips, ipv6Ips);
+  final effectiveMaxRoutines = max(1, min(maxRoutines, 32));
+  final batchSize = effectiveMaxRoutines;
+
+  Logger.root.info(
+    '[CfIpSpeedTest] start quick=$quickTest ipv4=$enableIpv4(${ipv4Ips.length}) ipv6=$enableIpv6(${ipv6Ips.length}) total=${allIps.length} batchSize=$batchSize concurrency=$effectiveMaxRoutines',
+  );
+
+  if (allIps.isEmpty) {
+    yield const CfIpTestError('No IP ranges enabled');
+    return;
+  }
+
+  if (_isCancelled(cancelToken)) {
+    return;
+  }
 
   final tcpResults = <CfIpTestResult>[];
   var tcpCompleted = 0;
   String? currentTestingIp;
-  final semaphore = _Semaphore(maxRoutines);
-  final tcpDone = Completer<void>();
 
-  for (final ip in allIps) {
-    unawaited(semaphore.acquire().then((_) async {
+  for (final batch in _chunkIps(allIps, batchSize)) {
+    if (_isCancelled(cancelToken)) {
+      return;
+    }
+    Logger.root.info('[CfIpSpeedTest][TCP] batch size=${batch.length} done=$tcpCompleted/${allIps.length}');
+    var skipTcpStage = false;
+    for (final ip in batch) {
+      if (_isCancelled(cancelToken)) {
+        return;
+      }
       currentTestingIp = ip;
-      try {
-        final result = await _tcpPingIp(ip, tcpPort, tcpPingTimes, tcpTimeout);
-        if (result.tcpReceived > 0) {
-          tcpResults.add(result);
-        }
-      } finally {
-        semaphore.release();
+      Logger.root.info('[CfIpSpeedTest][TCP] start $ip');
+      final result = await _tcpPingIp(ip, tcpPort, tcpPingTimes, tcpTimeout);
+      if (_isCancelled(cancelToken)) {
+        return;
+      }
+      if (result.tcpReceived > 0) {
+        tcpResults.add(result);
+        Logger.root.info('[CfIpSpeedTest][TCP] ok $ip received=${result.tcpReceived}/${result.tcpSended} ping=${result.tcpPingMs}ms');
+      } else {
+        Logger.root.info('[CfIpSpeedTest][TCP] timeout $ip');
+        if (currentTestingIp == ip) currentTestingIp = null;
       }
       tcpCompleted++;
-      if (tcpCompleted == allIps.length) {
-        currentTestingIp = null;
-        tcpDone.complete();
-      }
-    }));
-  }
+      Logger.root.info('[CfIpSpeedTest][TCP] progress $tcpCompleted/${allIps.length} available=${tcpResults.length} current=$currentTestingIp');
+      yield CfIpTcpPingProgress(
+        phase: CfIpTestPhase(name: 'TCP Ping', current: tcpCompleted, total: allIps.length),
+        availableCount: tcpResults.length,
+        results: List.from(tcpResults),
+        currentIp: currentTestingIp,
+      );
 
-  while (!tcpDone.isCompleted) {
-    await Future.delayed(const Duration(milliseconds: 200));
-    yield CfIpTcpPingProgress(
-      phase: CfIpTestPhase(name: 'TCP Ping', current: tcpCompleted, total: allIps.length),
-      availableCount: tcpResults.length,
-      currentIp: currentTestingIp,
-    );
+      if (cancelToken.skipStageRequested && tcpResults.isNotEmpty) {
+        cancelToken.consumeSkipStageRequest();
+        skipTcpStage = true;
+        break;
+      }
+    }
+
+    if (skipTcpStage) {
+      break;
+    }
   }
 
   tcpResults.sort((a, b) => a.tcpPingMs.compareTo(b.tcpPingMs));
 
   if (tcpResults.isEmpty) {
+    if (_isCancelled(cancelToken)) {
+      return;
+    }
+    Logger.root.info('[CfIpSpeedTest] no reachable IPs found after TCP phase');
     yield const CfIpTestError('No reachable IPs found');
     return;
   }
 
   final httpTargets = tcpResults.take(httpPingCount).toList();
+  Logger.root.info('[CfIpSpeedTest][HTTP] targets=${httpTargets.length}');
   final httpResults = <CfIpTestResult>[];
   var httpCompleted = 0;
+  String? currentHttpIp;
 
   yield CfIpHttpPingProgress(
     phase: CfIpTestPhase(name: 'HTTP Ping', current: 0, total: httpTargets.length),
     results: [],
+    currentIp: null,
   );
 
-  for (final target in httpTargets) {
-    final result = await _httpPingIp(target, httpUrl, httpPingTimes, httpTimeout);
-    httpCompleted++;
-    if (result.httpPingMs != null) {
-      httpResults.add(result);
+  for (final batch in _chunkIps(httpTargets.map((e) => e.ip).toList(), effectiveMaxRoutines)) {
+    if (_isCancelled(cancelToken)) {
+      return;
     }
-    yield CfIpHttpPingProgress(
-      phase: CfIpTestPhase(name: 'HTTP Ping', current: httpCompleted, total: httpTargets.length),
-      results: List.from(httpResults),
-    );
+    Logger.root.info('[CfIpSpeedTest][HTTP] batch size=${batch.length} done=$httpCompleted/${httpTargets.length}');
+    var skipHttpStage = false;
+    for (final ip in batch) {
+      if (_isCancelled(cancelToken)) break;
+      final target = httpTargets.firstWhere((e) => e.ip == ip);
+      currentHttpIp = ip;
+      Logger.root.info('[CfIpSpeedTest][HTTP] start $ip');
+      final result = await _httpPingIp(target, httpUrl, httpPingTimes, httpTimeout);
+      if (_isCancelled(cancelToken)) return;
+      httpCompleted++;
+      if (result.httpPingMs != null) {
+        httpResults.add(result);
+        Logger.root.info('[CfIpSpeedTest][HTTP] ok ${result.ip} ping=${result.httpPingMs}ms colo=${result.colo ?? '-'}');
+      } else {
+        Logger.root.info('[CfIpSpeedTest][HTTP] fail $ip');
+        if (currentHttpIp == ip) currentHttpIp = null;
+      }
+      yield CfIpHttpPingProgress(
+        phase: CfIpTestPhase(name: 'HTTP Ping', current: httpCompleted, total: httpTargets.length),
+        results: List.from(httpResults),
+        currentIp: currentHttpIp,
+      );
+
+      if (cancelToken.skipStageRequested && httpResults.isNotEmpty) {
+        cancelToken.consumeSkipStageRequest();
+        skipHttpStage = true;
+        break;
+      }
+    }
+
+    if (skipHttpStage) {
+      break;
+    }
   }
 
   httpResults.sort((a, b) => (a.httpPingMs ?? 9999).compareTo(b.httpPingMs ?? 9999));
 
   final downloadTargets = httpResults.take(downloadCount).toList();
+  Logger.root.info('[CfIpSpeedTest][Download] targets=${downloadTargets.length}');
   final downloadResults = <CfIpTestResult>[];
   var downloadCompleted = 0;
+  String? currentDownloadIp;
 
   yield CfIpDownloadProgress(
     phase: CfIpTestPhase(name: 'Download', current: 0, total: downloadTargets.length),
     results: [],
+    currentIp: null,
   );
 
-  for (final target in downloadTargets) {
-    final result = await _downloadTestIp(target, downloadUrl, downloadTimeout);
-    downloadCompleted++;
-    if (result.downloadSpeedMbps != null && result.downloadSpeedMbps! > 0) {
-      downloadResults.add(result);
+  for (final batch in _chunkIps(downloadTargets.map((e) => e.ip).toList(), effectiveMaxRoutines)) {
+    if (_isCancelled(cancelToken)) {
+      return;
     }
-    yield CfIpDownloadProgress(
-      phase: CfIpTestPhase(name: 'Download', current: downloadCompleted, total: downloadTargets.length),
-      results: List.from(downloadResults),
-    );
+    Logger.root.info('[CfIpSpeedTest][Download] batch size=${batch.length} done=$downloadCompleted/${downloadTargets.length}');
+    var skipDownloadStage = false;
+    for (final ip in batch) {
+      if (_isCancelled(cancelToken)) break;
+      final target = downloadTargets.firstWhere((e) => e.ip == ip);
+      currentDownloadIp = ip;
+      Logger.root.info('[CfIpSpeedTest][Download] start $ip');
+      final result = await _downloadTestIp(target, downloadUrl, downloadTimeout);
+      if (_isCancelled(cancelToken)) return;
+      downloadCompleted++;
+      if (result.downloadSpeedMbps != null && result.downloadSpeedMbps! > 0) {
+        downloadResults.add(result);
+        Logger.root.info('[CfIpSpeedTest][Download] ok ${result.ip} speed=${result.downloadSpeedMbps!.toStringAsFixed(2)}MB/s');
+      } else {
+        Logger.root.info('[CfIpSpeedTest][Download] fail $ip');
+        if (currentDownloadIp == ip) currentDownloadIp = null;
+      }
+      yield CfIpDownloadProgress(
+        phase: CfIpTestPhase(name: 'Download', current: downloadCompleted, total: downloadTargets.length),
+        results: List.from(downloadResults),
+        currentIp: currentDownloadIp,
+      );
+
+      if (cancelToken.skipStageRequested && downloadResults.isNotEmpty) {
+        cancelToken.consumeSkipStageRequest();
+        skipDownloadStage = true;
+        break;
+      }
+    }
+
+    if (skipDownloadStage) {
+      break;
+    }
   }
 
   final allResults = downloadResults.isNotEmpty ? downloadResults : httpResults;
@@ -662,4 +813,5 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
   });
 
   yield CfIpTestComplete(results: allResults);
+  Logger.root.info('[CfIpSpeedTest] complete results=${allResults.length}');
 }
