@@ -93,66 +93,65 @@ sealed class SnRedirectData with _$SnRedirectData {
 
   /// Resolved content for single-message redirects.
   String? get resolvedSourceContent => map(
-        singleMessage: (d) =>
-            d.sourceContent ?? d.sourceMessage['content']?.toString(),
-        historySegment: (_) => null,
-      );
+    singleMessage: (d) =>
+        d.sourceContent ?? d.sourceMessage['content']?.toString(),
+    historySegment: (_) => null,
+  );
 
   /// Resolved sender display name for single-message redirects.
   String? get resolvedSourceSenderName => map(
-        singleMessage: (d) => _resolveSenderDisplayName(
-          topLevelName: d.sourceSenderName,
-          senderMap: d.senderMap,
-          senderId: d.sourceSenderId,
-          message: d.sourceMessage,
-        ),
-        historySegment: (_) => null,
-      );
+    singleMessage: (d) => _resolveSenderDisplayName(
+      topLevelName: d.sourceSenderName,
+      senderMap: d.senderMap,
+      senderId: d.sourceSenderId,
+      message: d.sourceMessage,
+    ),
+    historySegment: (_) => null,
+  );
 
   /// Parsed attachments for single-message redirects.
   List<SnCloudFile> get resolvedSourceAttachments => map(
-        singleMessage: (d) {
-          final raw =
-              d.sourceAttachments.isNotEmpty
-                  ? d.sourceAttachments
-                  : _safeMapList(d.sourceMessage['attachments']);
-          return _parseAttachments(raw);
-        },
-        historySegment: (_) => const [],
-      );
+    singleMessage: (d) {
+      final raw = d.sourceAttachments.isNotEmpty
+          ? d.sourceAttachments
+          : _safeMapList(d.sourceMessage['attachments']);
+      return _parseAttachments(raw);
+    },
+    historySegment: (_) => const [],
+  );
 
   /// Profile picture of the source sender (V1 only).
   SnCloudFile? get sourceSenderProfilePicture => map(
-        singleMessage: (d) => _extractProfilePicture(
-          senderMap: d.senderMap,
-          senderId: d.sourceSenderId,
-          message: d.sourceMessage,
-        ),
-        historySegment: (_) => null,
-      );
+    singleMessage: (d) => _extractProfilePicture(
+      senderMap: d.senderMap,
+      senderId: d.sourceSenderId,
+      message: d.sourceMessage,
+    ),
+    historySegment: (_) => null,
+  );
 
   /// Profile picture ID of the source sender (V1 only).
   /// Unlike [sourceSenderProfilePicture], this avoids `SnCloudFile.fromJson`
   /// and works directly with the raw JSON picture ID.
   String? get sourceSenderPictureId => map(
-        singleMessage: (d) => _resolveSenderPictureId(
-          senderMap: d.senderMap,
-          senderId: d.sourceSenderId,
-          message: d.sourceMessage,
-        ),
-        historySegment: (_) => null,
-      );
+    singleMessage: (d) => _resolveSenderPictureId(
+      senderMap: d.senderMap,
+      senderId: d.sourceSenderId,
+      message: d.sourceMessage,
+    ),
+    historySegment: (_) => null,
+  );
 
   /// Number of messages in the redirect.
   int get messageCount => map(
-        singleMessage: (_) => 1,
-        historySegment: (d) {
-          final count = d.range['message_count'];
-          if (count is int) return count;
-          if (count is String) return int.tryParse(count) ?? d.messages.length;
-          return d.messages.length;
-        },
-      );
+    singleMessage: (_) => 1,
+    historySegment: (d) {
+      final count = d.range['message_count'];
+      if (count is int) return count;
+      if (count is String) return int.tryParse(count) ?? d.messages.length;
+      return d.messages.length;
+    },
+  );
 
   // ---------------------------------------------------------------
   // Redirected-by accessors
@@ -160,15 +159,15 @@ sealed class SnRedirectData with _$SnRedirectData {
 
   /// Display name of the member who performed the redirect.
   String? get redirectedByName => map(
-        singleMessage: (d) => _extractName(d.redirectedBy),
-        historySegment: (d) => _extractName(d.redirectedBy),
-      );
+    singleMessage: (d) => _extractName(d.redirectedBy),
+    historySegment: (d) => _extractName(d.redirectedBy),
+  );
 
   /// Profile picture of the member who performed the redirect.
   SnCloudFile? get redirectedByProfilePicture => map(
-        singleMessage: (d) => _extractPictureMember(d.redirectedBy),
-        historySegment: (d) => _extractPictureMember(d.redirectedBy),
-      );
+    singleMessage: (d) => _extractPictureMember(d.redirectedBy),
+    historySegment: (d) => _extractPictureMember(d.redirectedBy),
+  );
 
   // ---------------------------------------------------------------
   // Per-message accessors (V2 history segment)
@@ -176,123 +175,126 @@ sealed class SnRedirectData with _$SnRedirectData {
 
   /// Sender display name for a message at [index] in the history segment.
   String? historyMessageSenderName(int index) => map(
-        singleMessage: (_) => null,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return null;
-          final msg = d.messages[index];
-          return _resolveSenderDisplayName(
-            senderMap: d.senderMap,
-            senderId: msg['sender_id']?.toString(),
-            message: msg,
-          );
-        },
+    singleMessage: (_) => null,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return null;
+      final msg = d.messages[index];
+      return _resolveSenderDisplayName(
+        senderMap: d.senderMap,
+        senderId: msg['sender_id']?.toString(),
+        message: msg,
       );
+    },
+  );
 
   /// Sender profile picture for a message at [index] in the history segment.
   SnCloudFile? historyMessageSenderPicture(int index) => map(
-        singleMessage: (_) => null,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return null;
-          return _extractProfilePicture(
-            senderMap: d.senderMap,
-            senderId: d.messages[index]['sender_id']?.toString(),
-            message: d.messages[index],
-          );
-        },
+    singleMessage: (_) => null,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return null;
+      return _extractProfilePicture(
+        senderMap: d.senderMap,
+        senderId: d.messages[index]['sender_id']?.toString(),
+        message: d.messages[index],
       );
+    },
+  );
 
   /// Sender account name (username) for a message at [index].
   String? historyMessageSenderAccountName(int index) => map(
-        singleMessage: (_) => null,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return null;
-          final msg = d.messages[index];
-          return _resolveSenderField(
-            senderMap: d.senderMap,
-            senderId: msg['sender_id']?.toString(),
-            message: msg,
-            field: 'name',
-            accountField: 'name',
-          );
-        },
+    singleMessage: (_) => null,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return null;
+      final msg = d.messages[index];
+      return _resolveSenderField(
+        senderMap: d.senderMap,
+        senderId: msg['sender_id']?.toString(),
+        message: msg,
+        field: 'name',
+        accountField: 'name',
       );
+    },
+  );
 
   /// Sender account nick for a message at [index].
   String? historyMessageSenderAccountNick(int index) => map(
-        singleMessage: (_) => null,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return null;
-          final msg = d.messages[index];
-          return _resolveSenderField(
-            senderMap: d.senderMap,
-            senderId: msg['sender_id']?.toString(),
-            message: msg,
-            field: 'nick',
-            accountField: 'nick',
-          );
-        },
+    singleMessage: (_) => null,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return null;
+      final msg = d.messages[index];
+      return _resolveSenderField(
+        senderMap: d.senderMap,
+        senderId: msg['sender_id']?.toString(),
+        message: msg,
+        field: 'nick',
+        accountField: 'nick',
       );
+    },
+  );
 
   /// Resolved [SnAccount] for a message sender at [index], for use with [AccountName].
   /// Returns null if the account data can't be parsed from the snapshot.
   SnAccount? historyMessageSenderAccount(int index) => map(
-        singleMessage: (_) => null,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return null;
-          final msg = d.messages[index];
-          return _resolveSnAccount(
-            senderMap: d.senderMap,
-            senderId: msg['sender_id']?.toString(),
-            message: msg,
-          );
-        },
+    singleMessage: (_) => null,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return null;
+      final msg = d.messages[index];
+      return _resolveSnAccount(
+        senderMap: d.senderMap,
+        senderId: msg['sender_id']?.toString(),
+        message: msg,
       );
+    },
+  );
 
   /// Content text for a message at [index].
   String? historyMessageContent(int index) => map(
-        singleMessage: (_) => null,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return null;
-          return d.messages[index]['content']?.toString();
-        },
-      );
+    singleMessage: (_) => null,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return null;
+      return d.messages[index]['content']?.toString();
+    },
+  );
 
   /// Number of attachments for a message at [index].
   int historyMessageAttachmentCount(int index) => map(
-        singleMessage: (_) => 0,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return 0;
-          final raw = d.messages[index]['attachments'];
-          return raw is List ? raw.length : 0;
-        },
-      );
+    singleMessage: (_) => 0,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return 0;
+      final raw = d.messages[index]['attachments'];
+      return raw is List ? raw.length : 0;
+    },
+  );
 
   /// Resolved attachments for a message at [index] as [SnCloudFile] list.
   List<SnCloudFile> historyMessageResolvedAttachments(int index) => map(
-        singleMessage: (_) => const [],
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return const [];
-          final raw = d.messages[index]['attachments'];
-          final list = raw is List
-              ? raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList()
-              : <Map<String, dynamic>>[];
-          return _parseAttachmentThumbnails(list);
-        },
-      );
+    singleMessage: (_) => const [],
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return const [];
+      final raw = d.messages[index]['attachments'];
+      final list = raw is List
+          ? raw
+                .whereType<Map>()
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList()
+          : <Map<String, dynamic>>[];
+      return _parseAttachmentThumbnails(list);
+    },
+  );
 
   /// Picture id of a message sender at [index] (used for ProfilePictureWidget with fileId).
   String? historyMessageSenderPictureId(int index) => map(
-        singleMessage: (_) => null,
-        historySegment: (d) {
-          if (index < 0 || index >= d.messages.length) return null;
-          final msg = d.messages[index];
-          return _resolveSenderPictureId(
-            senderMap: d.senderMap,
-            senderId: msg['sender_id']?.toString(),
-            message: msg,
-          );
-        },
+    singleMessage: (_) => null,
+    historySegment: (d) {
+      if (index < 0 || index >= d.messages.length) return null;
+      final msg = d.messages[index];
+      return _resolveSenderPictureId(
+        senderMap: d.senderMap,
+        senderId: msg['sender_id']?.toString(),
+        message: msg,
       );
+    },
+  );
 }
 
 // -----------------------------------------------------------------
@@ -302,10 +304,9 @@ sealed class SnRedirectData with _$SnRedirectData {
 Map<String, dynamic> _safeMap(dynamic value) =>
     value is Map ? Map<String, dynamic>.from(value) : const {};
 
-List<Map<String, dynamic>> _safeMapList(dynamic value) =>
-    value is List
-        ? value.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList()
-        : const [];
+List<Map<String, dynamic>> _safeMapList(dynamic value) => value is List
+    ? value.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList()
+    : const [];
 
 String _resolveRoomName(Map<String, dynamic> room) {
   final explicitName = room['name']?.toString();
@@ -331,8 +332,16 @@ String? _resolveSenderDisplayName({
   if (topLevelName != null && topLevelName.trim().isNotEmpty) {
     return topLevelName;
   }
-  return _resolveSenderNick(senderMap: senderMap, senderId: senderId, message: message) ??
-      _resolveSenderAccountNick(senderMap: senderMap, senderId: senderId, message: message);
+  return _resolveSenderNick(
+        senderMap: senderMap,
+        senderId: senderId,
+        message: message,
+      ) ??
+      _resolveSenderAccountNick(
+        senderMap: senderMap,
+        senderId: senderId,
+        message: message,
+      );
 }
 
 /// Resolve a generic sender field with fallback chain:
@@ -346,16 +355,22 @@ String? _resolveSenderField({
 }) {
   Map<String, dynamic>? sender;
   if (senderId != null && senderMap.isNotEmpty) {
-    sender = senderMap[senderId] is Map ? Map<String, dynamic>.from(senderMap[senderId]) : null;
+    sender = senderMap[senderId] is Map
+        ? Map<String, dynamic>.from(senderMap[senderId])
+        : null;
   }
-  sender ??= message['sender'] is Map ? Map<String, dynamic>.from(message['sender']) : null;
+  sender ??= message['sender'] is Map
+      ? Map<String, dynamic>.from(message['sender'])
+      : null;
   if (sender == null) return null;
 
   final value = sender[field]?.toString();
   if (value != null && value.trim().isNotEmpty) return value;
 
   if (accountField != null) {
-    final account = sender['account'] is Map ? Map<String, dynamic>.from(sender['account']) : null;
+    final account = sender['account'] is Map
+        ? Map<String, dynamic>.from(sender['account'])
+        : null;
     return account?[accountField]?.toString();
   }
   return null;
@@ -368,13 +383,16 @@ String? _resolveSenderNick({
 }) {
   Map<String, dynamic>? sender;
   if (senderId != null && senderMap.isNotEmpty) {
-    sender = senderMap[senderId] is Map ? Map<String, dynamic>.from(senderMap[senderId]) : null;
+    sender = senderMap[senderId] is Map
+        ? Map<String, dynamic>.from(senderMap[senderId])
+        : null;
   }
-  sender ??= message['sender'] is Map ? Map<String, dynamic>.from(message['sender']) : null;
+  sender ??= message['sender'] is Map
+      ? Map<String, dynamic>.from(message['sender'])
+      : null;
   if (sender == null) return null;
 
-  return (sender['nick']?.toString()) ??
-      (sender['realm_nick']?.toString());
+  return (sender['nick']?.toString()) ?? (sender['realm_nick']?.toString());
 }
 
 String? _resolveSenderAccountNick({
@@ -384,13 +402,18 @@ String? _resolveSenderAccountNick({
 }) {
   Map<String, dynamic>? sender;
   if (senderId != null && senderMap.isNotEmpty) {
-    sender = senderMap[senderId] is Map ? Map<String, dynamic>.from(senderMap[senderId]) : null;
+    sender = senderMap[senderId] is Map
+        ? Map<String, dynamic>.from(senderMap[senderId])
+        : null;
   }
-  sender ??= message['sender'] is Map ? Map<String, dynamic>.from(message['sender']) : null;
+  sender ??= message['sender'] is Map
+      ? Map<String, dynamic>.from(message['sender'])
+      : null;
   if (sender == null) return null;
 
-  final account =
-      sender['account'] is Map ? Map<String, dynamic>.from(sender['account']) : null;
+  final account = sender['account'] is Map
+      ? Map<String, dynamic>.from(sender['account'])
+      : null;
   return account?['nick']?.toString();
 }
 
@@ -401,19 +424,26 @@ String? _resolveSenderPictureId({
 }) {
   Map<String, dynamic>? sender;
   if (senderId != null && senderMap.isNotEmpty) {
-    sender = senderMap[senderId] is Map ? Map<String, dynamic>.from(senderMap[senderId]) : null;
+    sender = senderMap[senderId] is Map
+        ? Map<String, dynamic>.from(senderMap[senderId])
+        : null;
   }
-  sender ??= message['sender'] is Map ? Map<String, dynamic>.from(message['sender']) : null;
+  sender ??= message['sender'] is Map
+      ? Map<String, dynamic>.from(message['sender'])
+      : null;
   if (sender == null) return null;
 
-  final account =
-      sender['account'] is Map ? Map<String, dynamic>.from(sender['account']) : null;
+  final account = sender['account'] is Map
+      ? Map<String, dynamic>.from(sender['account'])
+      : null;
   final profileRaw = account?['profile'];
-  final profile =
-      profileRaw is Map ? Map<String, dynamic>.from(profileRaw) : null;
+  final profile = profileRaw is Map
+      ? Map<String, dynamic>.from(profileRaw)
+      : null;
   final pictureRaw = profile?['picture'];
-  final picture =
-      pictureRaw is Map ? Map<String, dynamic>.from(pictureRaw) : null;
+  final picture = pictureRaw is Map
+      ? Map<String, dynamic>.from(pictureRaw)
+      : null;
   return picture?['id']?.toString();
 }
 
@@ -424,19 +454,26 @@ SnCloudFile? _extractProfilePicture({
 }) {
   Map<String, dynamic>? sender;
   if (senderId != null && senderMap.isNotEmpty) {
-    sender = senderMap[senderId] is Map ? Map<String, dynamic>.from(senderMap[senderId]) : null;
+    sender = senderMap[senderId] is Map
+        ? Map<String, dynamic>.from(senderMap[senderId])
+        : null;
   }
-  sender ??= message['sender'] is Map ? Map<String, dynamic>.from(message['sender']) : null;
+  sender ??= message['sender'] is Map
+      ? Map<String, dynamic>.from(message['sender'])
+      : null;
   if (sender == null) return null;
 
-  final account =
-      sender['account'] is Map ? Map<String, dynamic>.from(sender['account']) : null;
+  final account = sender['account'] is Map
+      ? Map<String, dynamic>.from(sender['account'])
+      : null;
   final profileRaw = account?['profile'];
-  final profile =
-      profileRaw is Map ? Map<String, dynamic>.from(profileRaw) : null;
+  final profile = profileRaw is Map
+      ? Map<String, dynamic>.from(profileRaw)
+      : null;
   final pictureRaw = profile?['picture'];
-  final picture =
-      pictureRaw is Map ? Map<String, dynamic>.from(pictureRaw) : null;
+  final picture = pictureRaw is Map
+      ? Map<String, dynamic>.from(pictureRaw)
+      : null;
   if (picture == null) return null;
 
   try {
@@ -457,14 +494,17 @@ String? _extractName(Map<String, dynamic> member) {
 
 /// Extract profile picture from a member map.
 SnCloudFile? _extractPictureMember(Map<String, dynamic> member) {
-  final account =
-      member['account'] is Map ? Map<String, dynamic>.from(member['account']) : null;
+  final account = member['account'] is Map
+      ? Map<String, dynamic>.from(member['account'])
+      : null;
   final profileRaw = account?['profile'];
-  final profile =
-      profileRaw is Map ? Map<String, dynamic>.from(profileRaw) : null;
+  final profile = profileRaw is Map
+      ? Map<String, dynamic>.from(profileRaw)
+      : null;
   final pictureRaw = profile?['picture'];
-  final picture =
-      pictureRaw is Map ? Map<String, dynamic>.from(pictureRaw) : null;
+  final picture = pictureRaw is Map
+      ? Map<String, dynamic>.from(pictureRaw)
+      : null;
   if (picture == null) return null;
   try {
     return SnCloudFile.fromJson(picture);
@@ -491,26 +531,10 @@ List<SnCloudFile> _parseAttachments(List<Map<String, dynamic>> raw) {
 /// Redirect attachments may lack standard fields like `created_at`/`updated_at`.
 List<SnCloudFile> _parseAttachmentThumbnails(List<Map<String, dynamic>> raw) {
   if (raw.isEmpty) return const [];
-  final now = DateTime.now();
   return raw
       .map((e) {
         try {
-          return SnCloudFile(
-            id: e['id'] as String? ?? '',
-            name: e['name'] as String? ?? '',
-            description: null,
-            fileMeta: null,
-            userMeta: null,
-            sensitiveMarks: const [],
-            mimeType: e['mime_type'] as String?,
-            hash: null,
-            size: (e['size'] as num?)?.toInt() ?? 0,
-            uploadedAt: null,
-            createdAt: now,
-            updatedAt: now,
-            deletedAt: null,
-            url: e['url'] as String?,
-          );
+          return SnCloudFile.fromJson(e);
         } catch (_) {
           return null;
         }

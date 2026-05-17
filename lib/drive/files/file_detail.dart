@@ -149,7 +149,7 @@ class FileDetailScreen extends HookConsumerWidget {
     final actions = <Widget>[];
 
     // Add content-specific actions
-    switch (item.mimeType?.split('/').firstOrNull) {
+    switch (item.mimeType.split('/').firstOrNull) {
       case 'image':
         if (!kIsWeb) {
           actions.add(
@@ -192,17 +192,17 @@ class FileDetailScreen extends HookConsumerWidget {
   Widget _buildContent(BuildContext context, WidgetRef ref, String serverUrl) {
     final uri = '$serverUrl/drive/files/${item.id}';
 
-    Widget content = switch (item.mimeType?.split('/').firstOrNull) {
+    Widget content = switch (item.mimeType.split('/').firstOrNull) {
       'image' => ImageFileContent(item: item, uri: uri),
       'video' => VideoFileContent(item: item, uri: uri),
       'audio' => AudioFileContent(item: item, uri: uri),
-      _ when item.mimeType?.startsWith('text/') == true => TextFileContent(
+      _ when item.mimeType.startsWith('text/') == true => TextFileContent(
         uri: uri,
       ),
       _ => GenericFileContent(item: item),
     };
 
-    if (heroTag != null && item.mimeType?.startsWith('image') == true) {
+    if (heroTag != null && item.mimeType.startsWith('image') == true) {
       content = Hero(tag: heroTag!, child: content);
     }
 
@@ -211,7 +211,7 @@ class FileDetailScreen extends HookConsumerWidget {
 
   Widget _buildBackground(SnCloudFile item, String serverUrl) {
     final uri = '$serverUrl/drive/files/${item.id}?thumbnail=true';
-    final isVideo = item.mimeType?.startsWith('video') == true;
+    final isVideo = item.mimeType.startsWith('video') == true;
 
     if (isVideo) {
       return ClipRect(

@@ -97,65 +97,69 @@ Map<String, dynamic> _$SnCloudFileObjectToJson(_SnCloudFileObject instance) =>
 
 _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
   id: json['id'] as String,
-  name: json['name'] as String,
+  accountId: json['account_id'] as String,
   description: json['description'] as String?,
-  fileMeta: json['file_meta'] as Map<String, dynamic>?,
-  userMeta: json['user_meta'] as Map<String, dynamic>?,
+  indexed: json['indexed'] as bool,
+  isFolder: json['is_folder'] as bool,
+  isMarkedRecycle: json['is_marked_recycle'] as bool,
+  name: json['name'] as String,
+  object: json['object'] == null
+      ? null
+      : SnCloudFileObject.fromJson(json['object'] as Map<String, dynamic>),
+  objectId: json['object_id'] as String?,
+  parentId: json['parent_id'] as String?,
+  resourceIdentifier: json['resource_identifier'] as String,
+  storageId: json['storage_id'] as String?,
+  storageUrl: json['storage_url'] as String?,
+  mimeType: json['mime_type'] as String,
+  applicationType: json['application_type'] as String?,
+  usage: json['usage'] as String?,
   sensitiveMarks:
       (json['sensitive_marks'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
-  mimeType: json['mime_type'] as String?,
-  hash: json['hash'] as String?,
-  size: (json['size'] as num).toInt(),
+  fileMeta: json['file_meta'] as Map<String, dynamic>,
+  userMeta: json['user_meta'] as Map<String, dynamic>,
   uploadedAt: json['uploaded_at'] == null
       ? null
       : DateTime.parse(json['uploaded_at'] as String),
-  createdAt: DateTime.parse(json['created_at'] as String),
+  expiredAt: json['expired_at'] == null
+      ? null
+      : DateTime.parse(json['expired_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
+  createdAt: DateTime.parse(json['created_at'] as String),
   deletedAt: json['deleted_at'] == null
       ? null
       : DateTime.parse(json['deleted_at'] as String),
-  url: json['url'] as String?,
-  isFolder: json['is_folder'] as bool? ?? false,
-  parentId: json['parent_id'] as String?,
-  bundleId: json['bundle_id'] as String?,
-  accountId: json['account_id'] as String?,
-  indexed: json['indexed'] as bool? ?? false,
-  isMarkedRecycle: json['is_marked_recycle'] as bool? ?? false,
-  storageId: json['storage_id'] as String?,
-  storageUrl: json['storage_url'] as String?,
-  usage: json['usage'] as String?,
-  applicationType: json['application_type'] as String?,
 );
 
 Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'name': instance.name,
-      'description': instance.description,
-      'file_meta': instance.fileMeta,
-      'user_meta': instance.userMeta,
-      'sensitive_marks': instance.sensitiveMarks,
-      'mime_type': instance.mimeType,
-      'hash': instance.hash,
-      'size': instance.size,
-      'uploaded_at': instance.uploadedAt?.toIso8601String(),
-      'created_at': instance.createdAt.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'deleted_at': instance.deletedAt?.toIso8601String(),
-      'url': instance.url,
-      'is_folder': instance.isFolder,
-      'parent_id': instance.parentId,
-      'bundle_id': instance.bundleId,
       'account_id': instance.accountId,
+      'description': instance.description,
       'indexed': instance.indexed,
+      'is_folder': instance.isFolder,
       'is_marked_recycle': instance.isMarkedRecycle,
+      'name': instance.name,
+      'object': instance.object?.toJson(),
+      'object_id': instance.objectId,
+      'parent_id': instance.parentId,
+      'resource_identifier': instance.resourceIdentifier,
       'storage_id': instance.storageId,
       'storage_url': instance.storageUrl,
-      'usage': instance.usage,
+      'mime_type': instance.mimeType,
       'application_type': instance.applicationType,
+      'usage': instance.usage,
+      'sensitive_marks': instance.sensitiveMarks,
+      'file_meta': instance.fileMeta,
+      'user_meta': instance.userMeta,
+      'uploaded_at': instance.uploadedAt?.toIso8601String(),
+      'expired_at': instance.expiredAt?.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
 _SnCloudFileIndex _$SnCloudFileIndexFromJson(Map<String, dynamic> json) =>

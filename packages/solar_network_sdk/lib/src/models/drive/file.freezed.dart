@@ -890,7 +890,8 @@ as DateTime?,
 /// @nodoc
 mixin _$SnCloudFile {
 
- String get id; String get name; String? get description; Map<String, dynamic>? get fileMeta; Map<String, dynamic>? get userMeta; List<int> get sensitiveMarks; String? get mimeType; String? get hash; int get size; DateTime? get uploadedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String? get url; bool get isFolder; String? get parentId; String? get bundleId; String? get accountId; bool get indexed; bool get isMarkedRecycle; String? get storageId; String? get storageUrl; String? get usage; String? get applicationType;
+ String get id; String get accountId; String? get description; bool get indexed; bool get isFolder; bool get isMarkedRecycle; String get name;// Folder will not have object
+ SnCloudFileObject? get object; String? get objectId; String? get parentId; String get resourceIdentifier; String? get storageId; String? get storageUrl; String get mimeType; String? get applicationType; String? get usage; List<int> get sensitiveMarks; Map<String, dynamic> get fileMeta; Map<String, dynamic> get userMeta; DateTime? get uploadedAt; DateTime? get expiredAt; DateTime get updatedAt; DateTime get createdAt; DateTime? get deletedAt;
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -903,16 +904,16 @@ $SnCloudFileCopyWith<SnCloudFile> get copyWith => _$SnCloudFileCopyWithImpl<SnCl
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCloudFile&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.fileMeta, fileMeta)&&const DeepCollectionEquality().equals(other.userMeta, userMeta)&&const DeepCollectionEquality().equals(other.sensitiveMarks, sensitiveMarks)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.hash, hash) || other.hash == hash)&&(identical(other.size, size) || other.size == size)&&(identical(other.uploadedAt, uploadedAt) || other.uploadedAt == uploadedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.url, url) || other.url == url)&&(identical(other.isFolder, isFolder) || other.isFolder == isFolder)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.bundleId, bundleId) || other.bundleId == bundleId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.indexed, indexed) || other.indexed == indexed)&&(identical(other.isMarkedRecycle, isMarkedRecycle) || other.isMarkedRecycle == isMarkedRecycle)&&(identical(other.storageId, storageId) || other.storageId == storageId)&&(identical(other.storageUrl, storageUrl) || other.storageUrl == storageUrl)&&(identical(other.usage, usage) || other.usage == usage)&&(identical(other.applicationType, applicationType) || other.applicationType == applicationType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnCloudFile&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.description, description) || other.description == description)&&(identical(other.indexed, indexed) || other.indexed == indexed)&&(identical(other.isFolder, isFolder) || other.isFolder == isFolder)&&(identical(other.isMarkedRecycle, isMarkedRecycle) || other.isMarkedRecycle == isMarkedRecycle)&&(identical(other.name, name) || other.name == name)&&(identical(other.object, object) || other.object == object)&&(identical(other.objectId, objectId) || other.objectId == objectId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&(identical(other.storageId, storageId) || other.storageId == storageId)&&(identical(other.storageUrl, storageUrl) || other.storageUrl == storageUrl)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.applicationType, applicationType) || other.applicationType == applicationType)&&(identical(other.usage, usage) || other.usage == usage)&&const DeepCollectionEquality().equals(other.sensitiveMarks, sensitiveMarks)&&const DeepCollectionEquality().equals(other.fileMeta, fileMeta)&&const DeepCollectionEquality().equals(other.userMeta, userMeta)&&(identical(other.uploadedAt, uploadedAt) || other.uploadedAt == uploadedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,description,const DeepCollectionEquality().hash(fileMeta),const DeepCollectionEquality().hash(userMeta),const DeepCollectionEquality().hash(sensitiveMarks),mimeType,hash,size,uploadedAt,createdAt,updatedAt,deletedAt,url,isFolder,parentId,bundleId,accountId,indexed,isMarkedRecycle,storageId,storageUrl,usage,applicationType]);
+int get hashCode => Object.hashAll([runtimeType,id,accountId,description,indexed,isFolder,isMarkedRecycle,name,object,objectId,parentId,resourceIdentifier,storageId,storageUrl,mimeType,applicationType,usage,const DeepCollectionEquality().hash(sensitiveMarks),const DeepCollectionEquality().hash(fileMeta),const DeepCollectionEquality().hash(userMeta),uploadedAt,expiredAt,updatedAt,createdAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnCloudFile(id: $id, name: $name, description: $description, fileMeta: $fileMeta, userMeta: $userMeta, sensitiveMarks: $sensitiveMarks, mimeType: $mimeType, hash: $hash, size: $size, uploadedAt: $uploadedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, url: $url, isFolder: $isFolder, parentId: $parentId, bundleId: $bundleId, accountId: $accountId, indexed: $indexed, isMarkedRecycle: $isMarkedRecycle, storageId: $storageId, storageUrl: $storageUrl, usage: $usage, applicationType: $applicationType)';
+  return 'SnCloudFile(id: $id, accountId: $accountId, description: $description, indexed: $indexed, isFolder: $isFolder, isMarkedRecycle: $isMarkedRecycle, name: $name, object: $object, objectId: $objectId, parentId: $parentId, resourceIdentifier: $resourceIdentifier, storageId: $storageId, storageUrl: $storageUrl, mimeType: $mimeType, applicationType: $applicationType, usage: $usage, sensitiveMarks: $sensitiveMarks, fileMeta: $fileMeta, userMeta: $userMeta, uploadedAt: $uploadedAt, expiredAt: $expiredAt, updatedAt: $updatedAt, createdAt: $createdAt, deletedAt: $deletedAt)';
 }
 
 
@@ -923,11 +924,11 @@ abstract mixin class $SnCloudFileCopyWith<$Res>  {
   factory $SnCloudFileCopyWith(SnCloudFile value, $Res Function(SnCloudFile) _then) = _$SnCloudFileCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, List<int> sensitiveMarks, String? mimeType, String? hash, int size, DateTime? uploadedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String? url, bool isFolder, String? parentId, String? bundleId, String? accountId, bool indexed, bool isMarkedRecycle, String? storageId, String? storageUrl, String? usage, String? applicationType
+ String id, String accountId, String? description, bool indexed, bool isFolder, bool isMarkedRecycle, String name, SnCloudFileObject? object, String? objectId, String? parentId, String resourceIdentifier, String? storageId, String? storageUrl, String mimeType, String? applicationType, String? usage, List<int> sensitiveMarks, Map<String, dynamic> fileMeta, Map<String, dynamic> userMeta, DateTime? uploadedAt, DateTime? expiredAt, DateTime updatedAt, DateTime createdAt, DateTime? deletedAt
 });
 
 
-
+$SnCloudFileObjectCopyWith<$Res>? get object;
 
 }
 /// @nodoc
@@ -940,36 +941,48 @@ class _$SnCloudFileCopyWithImpl<$Res>
 
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? fileMeta = freezed,Object? userMeta = freezed,Object? sensitiveMarks = null,Object? mimeType = freezed,Object? hash = freezed,Object? size = null,Object? uploadedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? url = freezed,Object? isFolder = null,Object? parentId = freezed,Object? bundleId = freezed,Object? accountId = freezed,Object? indexed = null,Object? isMarkedRecycle = null,Object? storageId = freezed,Object? storageUrl = freezed,Object? usage = freezed,Object? applicationType = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? description = freezed,Object? indexed = null,Object? isFolder = null,Object? isMarkedRecycle = null,Object? name = null,Object? object = freezed,Object? objectId = freezed,Object? parentId = freezed,Object? resourceIdentifier = null,Object? storageId = freezed,Object? storageUrl = freezed,Object? mimeType = null,Object? applicationType = freezed,Object? usage = freezed,Object? sensitiveMarks = null,Object? fileMeta = null,Object? userMeta = null,Object? uploadedAt = freezed,Object? expiredAt = freezed,Object? updatedAt = null,Object? createdAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,fileMeta: freezed == fileMeta ? _self.fileMeta : fileMeta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,userMeta: freezed == userMeta ? _self.userMeta : userMeta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,sensitiveMarks: null == sensitiveMarks ? _self.sensitiveMarks : sensitiveMarks // ignore: cast_nullable_to_non_nullable
-as List<int>,mimeType: freezed == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
-as String?,hash: freezed == hash ? _self.hash : hash // ignore: cast_nullable_to_non_nullable
-as String?,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
-as int,uploadedAt: freezed == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String?,isFolder: null == isFolder ? _self.isFolder : isFolder // ignore: cast_nullable_to_non_nullable
-as bool,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
-as String?,bundleId: freezed == bundleId ? _self.bundleId : bundleId // ignore: cast_nullable_to_non_nullable
-as String?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,indexed: null == indexed ? _self.indexed : indexed // ignore: cast_nullable_to_non_nullable
+as bool,isFolder: null == isFolder ? _self.isFolder : isFolder // ignore: cast_nullable_to_non_nullable
 as bool,isMarkedRecycle: null == isMarkedRecycle ? _self.isMarkedRecycle : isMarkedRecycle // ignore: cast_nullable_to_non_nullable
-as bool,storageId: freezed == storageId ? _self.storageId : storageId // ignore: cast_nullable_to_non_nullable
+as bool,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,object: freezed == object ? _self.object : object // ignore: cast_nullable_to_non_nullable
+as SnCloudFileObject?,objectId: freezed == objectId ? _self.objectId : objectId // ignore: cast_nullable_to_non_nullable
+as String?,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,resourceIdentifier: null == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
+as String,storageId: freezed == storageId ? _self.storageId : storageId // ignore: cast_nullable_to_non_nullable
 as String?,storageUrl: freezed == storageUrl ? _self.storageUrl : storageUrl // ignore: cast_nullable_to_non_nullable
+as String?,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
+as String,applicationType: freezed == applicationType ? _self.applicationType : applicationType // ignore: cast_nullable_to_non_nullable
 as String?,usage: freezed == usage ? _self.usage : usage // ignore: cast_nullable_to_non_nullable
-as String?,applicationType: freezed == applicationType ? _self.applicationType : applicationType // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,sensitiveMarks: null == sensitiveMarks ? _self.sensitiveMarks : sensitiveMarks // ignore: cast_nullable_to_non_nullable
+as List<int>,fileMeta: null == fileMeta ? _self.fileMeta : fileMeta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,userMeta: null == userMeta ? _self.userMeta : userMeta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,uploadedAt: freezed == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
+/// Create a copy of SnCloudFile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileObjectCopyWith<$Res>? get object {
+    if (_self.object == null) {
+    return null;
+  }
 
+  return $SnCloudFileObjectCopyWith<$Res>(_self.object!, (value) {
+    return _then(_self.copyWith(object: value));
+  });
+}
 }
 
 
@@ -1048,10 +1061,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  Map<String, dynamic>? fileMeta,  Map<String, dynamic>? userMeta,  List<int> sensitiveMarks,  String? mimeType,  String? hash,  int size,  DateTime? uploadedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String? url,  bool isFolder,  String? parentId,  String? bundleId,  String? accountId,  bool indexed,  bool isMarkedRecycle,  String? storageId,  String? storageUrl,  String? usage,  String? applicationType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String? description,  bool indexed,  bool isFolder,  bool isMarkedRecycle,  String name,  SnCloudFileObject? object,  String? objectId,  String? parentId,  String resourceIdentifier,  String? storageId,  String? storageUrl,  String mimeType,  String? applicationType,  String? usage,  List<int> sensitiveMarks,  Map<String, dynamic> fileMeta,  Map<String, dynamic> userMeta,  DateTime? uploadedAt,  DateTime? expiredAt,  DateTime updatedAt,  DateTime createdAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnCloudFile() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.fileMeta,_that.userMeta,_that.sensitiveMarks,_that.mimeType,_that.hash,_that.size,_that.uploadedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.url,_that.isFolder,_that.parentId,_that.bundleId,_that.accountId,_that.indexed,_that.isMarkedRecycle,_that.storageId,_that.storageUrl,_that.usage,_that.applicationType);case _:
+return $default(_that.id,_that.accountId,_that.description,_that.indexed,_that.isFolder,_that.isMarkedRecycle,_that.name,_that.object,_that.objectId,_that.parentId,_that.resourceIdentifier,_that.storageId,_that.storageUrl,_that.mimeType,_that.applicationType,_that.usage,_that.sensitiveMarks,_that.fileMeta,_that.userMeta,_that.uploadedAt,_that.expiredAt,_that.updatedAt,_that.createdAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1069,10 +1082,10 @@ return $default(_that.id,_that.name,_that.description,_that.fileMeta,_that.userM
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  Map<String, dynamic>? fileMeta,  Map<String, dynamic>? userMeta,  List<int> sensitiveMarks,  String? mimeType,  String? hash,  int size,  DateTime? uploadedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String? url,  bool isFolder,  String? parentId,  String? bundleId,  String? accountId,  bool indexed,  bool isMarkedRecycle,  String? storageId,  String? storageUrl,  String? usage,  String? applicationType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String? description,  bool indexed,  bool isFolder,  bool isMarkedRecycle,  String name,  SnCloudFileObject? object,  String? objectId,  String? parentId,  String resourceIdentifier,  String? storageId,  String? storageUrl,  String mimeType,  String? applicationType,  String? usage,  List<int> sensitiveMarks,  Map<String, dynamic> fileMeta,  Map<String, dynamic> userMeta,  DateTime? uploadedAt,  DateTime? expiredAt,  DateTime updatedAt,  DateTime createdAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnCloudFile():
-return $default(_that.id,_that.name,_that.description,_that.fileMeta,_that.userMeta,_that.sensitiveMarks,_that.mimeType,_that.hash,_that.size,_that.uploadedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.url,_that.isFolder,_that.parentId,_that.bundleId,_that.accountId,_that.indexed,_that.isMarkedRecycle,_that.storageId,_that.storageUrl,_that.usage,_that.applicationType);}
+return $default(_that.id,_that.accountId,_that.description,_that.indexed,_that.isFolder,_that.isMarkedRecycle,_that.name,_that.object,_that.objectId,_that.parentId,_that.resourceIdentifier,_that.storageId,_that.storageUrl,_that.mimeType,_that.applicationType,_that.usage,_that.sensitiveMarks,_that.fileMeta,_that.userMeta,_that.uploadedAt,_that.expiredAt,_that.updatedAt,_that.createdAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1086,10 +1099,10 @@ return $default(_that.id,_that.name,_that.description,_that.fileMeta,_that.userM
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? description,  Map<String, dynamic>? fileMeta,  Map<String, dynamic>? userMeta,  List<int> sensitiveMarks,  String? mimeType,  String? hash,  int size,  DateTime? uploadedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String? url,  bool isFolder,  String? parentId,  String? bundleId,  String? accountId,  bool indexed,  bool isMarkedRecycle,  String? storageId,  String? storageUrl,  String? usage,  String? applicationType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String? description,  bool indexed,  bool isFolder,  bool isMarkedRecycle,  String name,  SnCloudFileObject? object,  String? objectId,  String? parentId,  String resourceIdentifier,  String? storageId,  String? storageUrl,  String mimeType,  String? applicationType,  String? usage,  List<int> sensitiveMarks,  Map<String, dynamic> fileMeta,  Map<String, dynamic> userMeta,  DateTime? uploadedAt,  DateTime? expiredAt,  DateTime updatedAt,  DateTime createdAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnCloudFile() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.fileMeta,_that.userMeta,_that.sensitiveMarks,_that.mimeType,_that.hash,_that.size,_that.uploadedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.url,_that.isFolder,_that.parentId,_that.bundleId,_that.accountId,_that.indexed,_that.isMarkedRecycle,_that.storageId,_that.storageUrl,_that.usage,_that.applicationType);case _:
+return $default(_that.id,_that.accountId,_that.description,_that.indexed,_that.isFolder,_that.isMarkedRecycle,_that.name,_that.object,_that.objectId,_that.parentId,_that.resourceIdentifier,_that.storageId,_that.storageUrl,_that.mimeType,_that.applicationType,_that.usage,_that.sensitiveMarks,_that.fileMeta,_that.userMeta,_that.uploadedAt,_that.expiredAt,_that.updatedAt,_that.createdAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1100,31 +1113,27 @@ return $default(_that.id,_that.name,_that.description,_that.fileMeta,_that.userM
 /// @nodoc
 @JsonSerializable()
 
-class _SnCloudFile implements SnCloudFile {
-  const _SnCloudFile({required this.id, required this.name, required this.description, required final  Map<String, dynamic>? fileMeta, required final  Map<String, dynamic>? userMeta, final  List<int> sensitiveMarks = const [], required this.mimeType, required this.hash, required this.size, required this.uploadedAt, required this.createdAt, required this.updatedAt, required this.deletedAt, this.url, this.isFolder = false, this.parentId, this.bundleId, this.accountId, this.indexed = false, this.isMarkedRecycle = false, this.storageId, this.storageUrl, this.usage, this.applicationType}): _fileMeta = fileMeta,_userMeta = userMeta,_sensitiveMarks = sensitiveMarks;
+class _SnCloudFile extends SnCloudFile {
+  const _SnCloudFile({required this.id, required this.accountId, required this.description, required this.indexed, required this.isFolder, required this.isMarkedRecycle, required this.name, required this.object, required this.objectId, required this.parentId, required this.resourceIdentifier, required this.storageId, required this.storageUrl, required this.mimeType, required this.applicationType, required this.usage, final  List<int> sensitiveMarks = const [], required final  Map<String, dynamic> fileMeta, required final  Map<String, dynamic> userMeta, required this.uploadedAt, required this.expiredAt, required this.updatedAt, required this.createdAt, required this.deletedAt}): _sensitiveMarks = sensitiveMarks,_fileMeta = fileMeta,_userMeta = userMeta,super._();
   factory _SnCloudFile.fromJson(Map<String, dynamic> json) => _$SnCloudFileFromJson(json);
 
 @override final  String id;
-@override final  String name;
+@override final  String accountId;
 @override final  String? description;
- final  Map<String, dynamic>? _fileMeta;
-@override Map<String, dynamic>? get fileMeta {
-  final value = _fileMeta;
-  if (value == null) return null;
-  if (_fileMeta is EqualUnmodifiableMapView) return _fileMeta;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(value);
-}
-
- final  Map<String, dynamic>? _userMeta;
-@override Map<String, dynamic>? get userMeta {
-  final value = _userMeta;
-  if (value == null) return null;
-  if (_userMeta is EqualUnmodifiableMapView) return _userMeta;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(value);
-}
-
+@override final  bool indexed;
+@override final  bool isFolder;
+@override final  bool isMarkedRecycle;
+@override final  String name;
+// Folder will not have object
+@override final  SnCloudFileObject? object;
+@override final  String? objectId;
+@override final  String? parentId;
+@override final  String resourceIdentifier;
+@override final  String? storageId;
+@override final  String? storageUrl;
+@override final  String mimeType;
+@override final  String? applicationType;
+@override final  String? usage;
  final  List<int> _sensitiveMarks;
 @override@JsonKey() List<int> get sensitiveMarks {
   if (_sensitiveMarks is EqualUnmodifiableListView) return _sensitiveMarks;
@@ -1132,24 +1141,25 @@ class _SnCloudFile implements SnCloudFile {
   return EqualUnmodifiableListView(_sensitiveMarks);
 }
 
-@override final  String? mimeType;
-@override final  String? hash;
-@override final  int size;
+ final  Map<String, dynamic> _fileMeta;
+@override Map<String, dynamic> get fileMeta {
+  if (_fileMeta is EqualUnmodifiableMapView) return _fileMeta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_fileMeta);
+}
+
+ final  Map<String, dynamic> _userMeta;
+@override Map<String, dynamic> get userMeta {
+  if (_userMeta is EqualUnmodifiableMapView) return _userMeta;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_userMeta);
+}
+
 @override final  DateTime? uploadedAt;
-@override final  DateTime createdAt;
+@override final  DateTime? expiredAt;
 @override final  DateTime updatedAt;
+@override final  DateTime createdAt;
 @override final  DateTime? deletedAt;
-@override final  String? url;
-@override@JsonKey() final  bool isFolder;
-@override final  String? parentId;
-@override final  String? bundleId;
-@override final  String? accountId;
-@override@JsonKey() final  bool indexed;
-@override@JsonKey() final  bool isMarkedRecycle;
-@override final  String? storageId;
-@override final  String? storageUrl;
-@override final  String? usage;
-@override final  String? applicationType;
 
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
@@ -1164,16 +1174,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCloudFile&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._fileMeta, _fileMeta)&&const DeepCollectionEquality().equals(other._userMeta, _userMeta)&&const DeepCollectionEquality().equals(other._sensitiveMarks, _sensitiveMarks)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.hash, hash) || other.hash == hash)&&(identical(other.size, size) || other.size == size)&&(identical(other.uploadedAt, uploadedAt) || other.uploadedAt == uploadedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.url, url) || other.url == url)&&(identical(other.isFolder, isFolder) || other.isFolder == isFolder)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.bundleId, bundleId) || other.bundleId == bundleId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.indexed, indexed) || other.indexed == indexed)&&(identical(other.isMarkedRecycle, isMarkedRecycle) || other.isMarkedRecycle == isMarkedRecycle)&&(identical(other.storageId, storageId) || other.storageId == storageId)&&(identical(other.storageUrl, storageUrl) || other.storageUrl == storageUrl)&&(identical(other.usage, usage) || other.usage == usage)&&(identical(other.applicationType, applicationType) || other.applicationType == applicationType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnCloudFile&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.description, description) || other.description == description)&&(identical(other.indexed, indexed) || other.indexed == indexed)&&(identical(other.isFolder, isFolder) || other.isFolder == isFolder)&&(identical(other.isMarkedRecycle, isMarkedRecycle) || other.isMarkedRecycle == isMarkedRecycle)&&(identical(other.name, name) || other.name == name)&&(identical(other.object, object) || other.object == object)&&(identical(other.objectId, objectId) || other.objectId == objectId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.resourceIdentifier, resourceIdentifier) || other.resourceIdentifier == resourceIdentifier)&&(identical(other.storageId, storageId) || other.storageId == storageId)&&(identical(other.storageUrl, storageUrl) || other.storageUrl == storageUrl)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.applicationType, applicationType) || other.applicationType == applicationType)&&(identical(other.usage, usage) || other.usage == usage)&&const DeepCollectionEquality().equals(other._sensitiveMarks, _sensitiveMarks)&&const DeepCollectionEquality().equals(other._fileMeta, _fileMeta)&&const DeepCollectionEquality().equals(other._userMeta, _userMeta)&&(identical(other.uploadedAt, uploadedAt) || other.uploadedAt == uploadedAt)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,description,const DeepCollectionEquality().hash(_fileMeta),const DeepCollectionEquality().hash(_userMeta),const DeepCollectionEquality().hash(_sensitiveMarks),mimeType,hash,size,uploadedAt,createdAt,updatedAt,deletedAt,url,isFolder,parentId,bundleId,accountId,indexed,isMarkedRecycle,storageId,storageUrl,usage,applicationType]);
+int get hashCode => Object.hashAll([runtimeType,id,accountId,description,indexed,isFolder,isMarkedRecycle,name,object,objectId,parentId,resourceIdentifier,storageId,storageUrl,mimeType,applicationType,usage,const DeepCollectionEquality().hash(_sensitiveMarks),const DeepCollectionEquality().hash(_fileMeta),const DeepCollectionEquality().hash(_userMeta),uploadedAt,expiredAt,updatedAt,createdAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnCloudFile(id: $id, name: $name, description: $description, fileMeta: $fileMeta, userMeta: $userMeta, sensitiveMarks: $sensitiveMarks, mimeType: $mimeType, hash: $hash, size: $size, uploadedAt: $uploadedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, url: $url, isFolder: $isFolder, parentId: $parentId, bundleId: $bundleId, accountId: $accountId, indexed: $indexed, isMarkedRecycle: $isMarkedRecycle, storageId: $storageId, storageUrl: $storageUrl, usage: $usage, applicationType: $applicationType)';
+  return 'SnCloudFile(id: $id, accountId: $accountId, description: $description, indexed: $indexed, isFolder: $isFolder, isMarkedRecycle: $isMarkedRecycle, name: $name, object: $object, objectId: $objectId, parentId: $parentId, resourceIdentifier: $resourceIdentifier, storageId: $storageId, storageUrl: $storageUrl, mimeType: $mimeType, applicationType: $applicationType, usage: $usage, sensitiveMarks: $sensitiveMarks, fileMeta: $fileMeta, userMeta: $userMeta, uploadedAt: $uploadedAt, expiredAt: $expiredAt, updatedAt: $updatedAt, createdAt: $createdAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1184,11 +1194,11 @@ abstract mixin class _$SnCloudFileCopyWith<$Res> implements $SnCloudFileCopyWith
   factory _$SnCloudFileCopyWith(_SnCloudFile value, $Res Function(_SnCloudFile) _then) = __$SnCloudFileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String? description, Map<String, dynamic>? fileMeta, Map<String, dynamic>? userMeta, List<int> sensitiveMarks, String? mimeType, String? hash, int size, DateTime? uploadedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String? url, bool isFolder, String? parentId, String? bundleId, String? accountId, bool indexed, bool isMarkedRecycle, String? storageId, String? storageUrl, String? usage, String? applicationType
+ String id, String accountId, String? description, bool indexed, bool isFolder, bool isMarkedRecycle, String name, SnCloudFileObject? object, String? objectId, String? parentId, String resourceIdentifier, String? storageId, String? storageUrl, String mimeType, String? applicationType, String? usage, List<int> sensitiveMarks, Map<String, dynamic> fileMeta, Map<String, dynamic> userMeta, DateTime? uploadedAt, DateTime? expiredAt, DateTime updatedAt, DateTime createdAt, DateTime? deletedAt
 });
 
 
-
+@override $SnCloudFileObjectCopyWith<$Res>? get object;
 
 }
 /// @nodoc
@@ -1201,37 +1211,49 @@ class __$SnCloudFileCopyWithImpl<$Res>
 
 /// Create a copy of SnCloudFile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? fileMeta = freezed,Object? userMeta = freezed,Object? sensitiveMarks = null,Object? mimeType = freezed,Object? hash = freezed,Object? size = null,Object? uploadedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? url = freezed,Object? isFolder = null,Object? parentId = freezed,Object? bundleId = freezed,Object? accountId = freezed,Object? indexed = null,Object? isMarkedRecycle = null,Object? storageId = freezed,Object? storageUrl = freezed,Object? usage = freezed,Object? applicationType = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? description = freezed,Object? indexed = null,Object? isFolder = null,Object? isMarkedRecycle = null,Object? name = null,Object? object = freezed,Object? objectId = freezed,Object? parentId = freezed,Object? resourceIdentifier = null,Object? storageId = freezed,Object? storageUrl = freezed,Object? mimeType = null,Object? applicationType = freezed,Object? usage = freezed,Object? sensitiveMarks = null,Object? fileMeta = null,Object? userMeta = null,Object? uploadedAt = freezed,Object? expiredAt = freezed,Object? updatedAt = null,Object? createdAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnCloudFile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,fileMeta: freezed == fileMeta ? _self._fileMeta : fileMeta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,userMeta: freezed == userMeta ? _self._userMeta : userMeta // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,sensitiveMarks: null == sensitiveMarks ? _self._sensitiveMarks : sensitiveMarks // ignore: cast_nullable_to_non_nullable
-as List<int>,mimeType: freezed == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
-as String?,hash: freezed == hash ? _self.hash : hash // ignore: cast_nullable_to_non_nullable
-as String?,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
-as int,uploadedAt: freezed == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String?,isFolder: null == isFolder ? _self.isFolder : isFolder // ignore: cast_nullable_to_non_nullable
-as bool,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
-as String?,bundleId: freezed == bundleId ? _self.bundleId : bundleId // ignore: cast_nullable_to_non_nullable
-as String?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,indexed: null == indexed ? _self.indexed : indexed // ignore: cast_nullable_to_non_nullable
+as bool,isFolder: null == isFolder ? _self.isFolder : isFolder // ignore: cast_nullable_to_non_nullable
 as bool,isMarkedRecycle: null == isMarkedRecycle ? _self.isMarkedRecycle : isMarkedRecycle // ignore: cast_nullable_to_non_nullable
-as bool,storageId: freezed == storageId ? _self.storageId : storageId // ignore: cast_nullable_to_non_nullable
+as bool,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,object: freezed == object ? _self.object : object // ignore: cast_nullable_to_non_nullable
+as SnCloudFileObject?,objectId: freezed == objectId ? _self.objectId : objectId // ignore: cast_nullable_to_non_nullable
+as String?,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,resourceIdentifier: null == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
+as String,storageId: freezed == storageId ? _self.storageId : storageId // ignore: cast_nullable_to_non_nullable
 as String?,storageUrl: freezed == storageUrl ? _self.storageUrl : storageUrl // ignore: cast_nullable_to_non_nullable
+as String?,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
+as String,applicationType: freezed == applicationType ? _self.applicationType : applicationType // ignore: cast_nullable_to_non_nullable
 as String?,usage: freezed == usage ? _self.usage : usage // ignore: cast_nullable_to_non_nullable
-as String?,applicationType: freezed == applicationType ? _self.applicationType : applicationType // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,sensitiveMarks: null == sensitiveMarks ? _self._sensitiveMarks : sensitiveMarks // ignore: cast_nullable_to_non_nullable
+as List<int>,fileMeta: null == fileMeta ? _self._fileMeta : fileMeta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,userMeta: null == userMeta ? _self._userMeta : userMeta // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,uploadedAt: freezed == uploadedAt ? _self.uploadedAt : uploadedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
+/// Create a copy of SnCloudFile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileObjectCopyWith<$Res>? get object {
+    if (_self.object == null) {
+    return null;
+  }
 
+  return $SnCloudFileObjectCopyWith<$Res>(_self.object!, (value) {
+    return _then(_self.copyWith(object: value));
+  });
+}
 }
 
 

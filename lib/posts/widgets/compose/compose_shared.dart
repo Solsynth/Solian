@@ -177,9 +177,7 @@ class ComposeLogic {
         fitnessReference = '${fitnessEmbed['type']}:${fitnessEmbed['id']}';
       } catch (_) {}
       try {
-        final locationEmbed = embeds.firstWhere(
-          (e) => e['type'] == 'location',
-        );
+        final locationEmbed = embeds.firstWhere((e) => e['type'] == 'location');
         locationName = locationEmbed['name']?.toString();
         locationAddress = locationEmbed['address']?.toString();
         locationWkt = locationEmbed['wkt']?.toString();
@@ -195,7 +193,8 @@ class ComposeLogic {
 
     // Extract collection IDs from publisher collections
     final collectionIds =
-        originalPost?.publisherCollections.map((c) => c.id).toList() ?? <String>[];
+        originalPost?.publisherCollections.map((c) => c.id).toList() ??
+        <String>[];
 
     return ComposeState(
       attachments: ValueNotifier<List<UniversalFile>>(
@@ -203,7 +202,7 @@ class ComposeLogic {
                 .map(
                   (e) => UniversalFile(
                     data: e,
-                    type: switch (e.mimeType?.split('/').firstOrNull) {
+                    type: switch (e.mimeType.split('/').firstOrNull) {
                       'image' => UniversalFileType.image,
                       'video' => UniversalFileType.video,
                       'audio' => UniversalFileType.audio,
@@ -373,8 +372,7 @@ class ComposeLogic {
             'name': state.locationName.value,
           if (state.locationAddress.value != null)
             'address': state.locationAddress.value,
-          if (state.locationWkt.value != null)
-            'wkt': state.locationWkt.value,
+          if (state.locationWkt.value != null) 'wkt': state.locationWkt.value,
         },
       if (state.meetId.value != null)
         {'type': 'meet', 'id': state.meetId.value},
@@ -433,13 +431,15 @@ class ComposeLogic {
       ),
       reactions: [],
       tags: state.tags.value
-          .map((tag) => SnPostTag(
-                  id: tag,
-                  slug: tag,
-                  name: tag,
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                ))
+          .map(
+            (tag) => SnPostTag(
+              id: tag,
+              slug: tag,
+              name: tag,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+          )
           .toList(),
       categories: state.categories.value,
       collections: [],
@@ -652,7 +652,7 @@ class ComposeLogic {
       ...state.attachments.value,
       UniversalFile(
         data: cloudFile,
-        type: switch (cloudFile.mimeType?.split('/').firstOrNull) {
+        type: switch (cloudFile.mimeType.split('/').firstOrNull) {
           'image' => UniversalFileType.image,
           'video' => UniversalFileType.video,
           'audio' => UniversalFileType.audio,

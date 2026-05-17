@@ -19,7 +19,7 @@ class FileInfoSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final exifData = item.fileMeta?['exif'] as Map<String, dynamic>? ?? {};
+    final exifData = item.fileMeta['exif'];
 
     return SheetScaffold(
       onClose: onClose,
@@ -37,7 +37,7 @@ class FileInfoSheet extends StatelessWidget {
                     children: [
                       Text('mimeType').tr(),
                       Text(
-                        item.mimeType ?? 'unknown'.tr(),
+                        item.mimeType,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleMedium?.copyWith(
@@ -186,7 +186,7 @@ class FileInfoSheet extends StatelessWidget {
                 ),
               ),
             ],
-            if (item.fileMeta != null && item.fileMeta!.isNotEmpty) ...[
+            if (item.fileMeta.isNotEmpty) ...[
               const Divider(height: 1),
               Theme(
                 data: theme.copyWith(dividerColor: Colors.transparent),
@@ -202,7 +202,7 @@ class FileInfoSheet extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...item.fileMeta!.entries.map(
+                        ...item.fileMeta.entries.map(
                           (entry) => ListTile(
                             dense: true,
                             contentPadding: EdgeInsets.symmetric(
@@ -234,7 +234,7 @@ class FileInfoSheet extends StatelessWidget {
                 ),
               ),
             ],
-            if (item.userMeta != null && item.userMeta!.isNotEmpty) ...[
+            if (item.userMeta.isNotEmpty) ...[
               const Divider(height: 1),
               Theme(
                 data: theme.copyWith(dividerColor: Colors.transparent),
@@ -250,7 +250,7 @@ class FileInfoSheet extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...item.userMeta!.entries.map(
+                        ...item.userMeta.entries.map(
                           (entry) => ListTile(
                             dense: true,
                             contentPadding: EdgeInsets.symmetric(

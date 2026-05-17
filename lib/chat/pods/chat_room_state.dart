@@ -118,8 +118,9 @@ class ChatRoomState {
       selectedLocationWkt: clearLocation
           ? null
           : (selectedLocationWkt ?? this.selectedLocationWkt),
-      selectedMeetId:
-          clearMeet ? null : (selectedMeetId ?? this.selectedMeetId),
+      selectedMeetId: clearMeet
+          ? null
+          : (selectedMeetId ?? this.selectedMeetId),
       isScrollingToMessage: isScrollingToMessage ?? this.isScrollingToMessage,
       roomOpenTime: roomOpenTime ?? this.roomOpenTime,
       lastReadAnchorMessageId: clearLastReadAnchor
@@ -369,11 +370,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     state = state.copyWith(selectedFund: fund, clearFund: fund == null);
   }
 
-  void setLocation({
-    String? name,
-    String? address,
-    String? wkt,
-  }) {
+  void setLocation({String? name, String? address, String? wkt}) {
     final hasLocation = name != null || address != null || wkt != null;
     state = state.copyWith(
       selectedLocationName: name,
@@ -638,7 +635,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       ...state.attachments,
       UniversalFile(
         data: cloudFile,
-        type: switch (cloudFile.mimeType?.split('/').firstOrNull) {
+        type: switch (cloudFile.mimeType.split('/').firstOrNull) {
           'image' => UniversalFileType.image,
           'video' => UniversalFileType.video,
           'audio' => UniversalFileType.audio,

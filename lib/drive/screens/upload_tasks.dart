@@ -341,7 +341,7 @@ class UploadTasks extends _$UploadTasks {
       id: taskId,
       taskId: taskId,
       fileName: item.name,
-      contentType: item.mimeType ?? '',
+      contentType: item.mimeType,
       fileSize: 0,
       uploadedBytes: 0,
       totalChunks: 1,

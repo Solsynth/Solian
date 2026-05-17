@@ -437,7 +437,7 @@ class ThoughtInput extends HookWidget {
       ...attachments,
       UniversalFile(
         data: cloudFile,
-        type: switch (cloudFile.mimeType?.split('/').firstOrNull) {
+        type: switch (cloudFile.mimeType.split('/').firstOrNull) {
           'image' => UniversalFileType.image,
           'video' => UniversalFileType.video,
           'audio' => UniversalFileType.audio,
@@ -1316,7 +1316,7 @@ class ThoughtItem extends StatelessWidget {
         final file = entry.value;
         return InkWell(
           onTap: () {
-            final isImage = file.mimeType?.startsWith('image') == true;
+            final isImage = file.mimeType.startsWith('image') == true;
             if (isImage) {
               context.pushTransparentRoute(
                 CloudFileLightbox(
