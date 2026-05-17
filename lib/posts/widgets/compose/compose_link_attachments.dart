@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/utils/file_icon_utils.dart';
 import 'package:island/core/utils/format.dart';
+import 'package:island/drive/screens/file_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -65,13 +66,14 @@ class CloudFileLinkPicker extends HookConsumerWidget {
     final idController = useTextEditingController();
     final errorMessage = useState<String?>(null);
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TabBar(
             tabs: [
+              Tab(text: 'indexedFiles'.tr()),
               Tab(text: 'attachmentsRecentUploads'.tr()),
               Tab(text: 'attachmentsManualInput'.tr()),
             ],
@@ -79,6 +81,7 @@ class CloudFileLinkPicker extends HookConsumerWidget {
           Expanded(
             child: TabBarView(
               children: [
+                _IndexedCloudFilesBrowser(onSelected: onSelected),
                 _RecentCloudFilesWaterfall(
                   padding: padding,
                   onSelected: onSelected,
@@ -94,6 +97,132 @@ class CloudFileLinkPicker extends HookConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _IndexedCloudFilesBrowser extends HookConsumerWidget {
+  final ValueChanged<SnCloudFile> onSelected;
+
+  const _IndexedCloudFilesBrowser({required this.onSelected});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentPath = useState('/');
+
+    useEffect(() {
+      ref.read(indexedCloudFileListProvider.notifier).setPath(currentPath.value);
+      return null;
+    }, [currentPath.value]);
+
+    List<({String label, String path})> buildBreadcrumbs(String path) {
+      final parts = path.split('/').where((part) => part.isNotEmpty).toList();
+      final crumbs = <({String label, String path})>[
+        (label: 'rootDirectory'.tr(), path: '/'),
+      ];
+
+      var current = '';
+      for (final part in parts) {
+        current = '$current/$part';
+        crumbs.add((label: part, path: current));
+      }
+      return crumbs;
+    }
+
+    return PaginationWidget(
+      provider: indexedCloudFileListProvider,
+      notifier: indexedCloudFileListProvider.notifier,
+      isRefreshable: false,
+      contentBuilder: (data, footer) {
+        final breadcrumbs = buildBreadcrumbs(currentPath.value);
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: [
+                    for (var i = 0; i < breadcrumbs.length; i++) ...[
+                      TextButton(
+                        onPressed: breadcrumbs[i].path == currentPath.value
+                            ? null
+                            : () => currentPath.value = breadcrumbs[i].path,
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(breadcrumbs[i].label),
+                      ),
+                      if (i != breadcrumbs.length - 1)
+                        const Icon(Symbols.chevron_right, size: 18),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              sliver: SliverList.builder(
+                itemCount: data.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == data.length) return footer;
+                  return data[index].map(
+                    file: (fileItem) => Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Symbols.description),
+                          title: Text(
+                            fileItem.file.name.isEmpty
+                                ? 'untitled'.tr()
+                                : fileItem.file.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(formatFileSize(fileItem.file.size)),
+                          onTap: () => onSelected(fileItem.file),
+                        ),
+                        if (index != data.length - 1)
+                          const Divider(height: 1),
+                      ],
+                    ),
+                    folder: (folderItem) => Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Symbols.folder),
+                          title: Text(
+                            folderItem.file.name.isEmpty
+                                ? 'untitled'.tr()
+                                : folderItem.file.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text('folder'.tr()),
+                          onTap: () {
+                            currentPath.value = currentPath.value == '/'
+                                ? '/${folderItem.file.name}'
+                                : '${currentPath.value}/${folderItem.file.name}';
+                          },
+                        ),
+                        if (index != data.length - 1)
+                          const Divider(height: 1),
+                      ],
+                    ),
+                    unindexedFile: (unindexedFileItem) => const SizedBox.shrink(),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

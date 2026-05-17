@@ -1770,6 +1770,7 @@
   "amountOfSplits": "Amount of Splits",
   "enterNumberOfSplits": "Enter Splits Amount",
   "orCreateWith": "Or\ncreate with",
+  "indexedFiles": "Indexed files",
   "unindexedFiles": "Unindexed files",
   "folder": "Folder",
   "rootDirectory": "Root Directory",
