@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/io.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -337,28 +336,6 @@ IpOverrideConnectionFactory createIpOverrideConnectionFactory({
   };
 }
 
-final apiIpOverrideConnectionFactoryProvider =
-    Provider<IpOverrideConnectionFactory?>((ref) {
-      final mode = ref.watch(ipOverrideModeProvider);
-      final settings = ref.watch(ipOverrideSettingsProvider);
-      if (mode != IpOverrideMode.complete || settings.overrides.isEmpty) {
-        return null;
-      }
-      final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
-      if (domainSuffix == null) {
-        return null;
-      }
-      final override = settings.overrides.firstOrNull;
-      if (override == null) {
-        return null;
-      }
-      return createIpOverrideConnectionFactory(
-        domainSuffix: domainSuffix,
-        ip: override.ip,
-        port: override.port,
-      );
-    });
-
 final mediaIpOverrideConnectionFactoryProvider =
     Provider<IpOverrideConnectionFactory?>((ref) {
       final mode = ref.watch(ipOverrideModeProvider);
@@ -415,17 +392,6 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
       },
     ),
   );
-
-  final connectionFactory = ref.watch(apiIpOverrideConnectionFactoryProvider);
-  if (connectionFactory != null) {
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.connectionFactory = connectionFactory;
-        return client;
-      },
-    );
-  }
 
   dio.interceptors.addAll([
     InterceptorsWrapper(
@@ -550,17 +516,6 @@ final apiClientProvider = Provider<Dio>((ref) {
       },
     ),
   );
-
-  final connectionFactory = ref.watch(apiIpOverrideConnectionFactoryProvider);
-  if (connectionFactory != null) {
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.connectionFactory = connectionFactory;
-        return client;
-      },
-    );
-  }
 
   dio.interceptors.addAll([
     InterceptorsWrapper(
