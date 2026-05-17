@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:developer';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:pocketpy/pocketpy.dart' as pkpy;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:logging/logging.dart';
 
 pkpy.VM? _vm;
 bool _isInitialized = false;
@@ -17,7 +17,7 @@ Future<void> initPython() async {
   try {
     Directory baseDir;
     if (kIsWeb) {
-      log('[python_service] Web platform, skipping');
+      Logger.root.info('[python_service] Web platform, skipping');
       return;
     } else if (Platform.isAndroid || Platform.isIOS) {
       baseDir = await getApplicationSupportDirectory();
@@ -29,7 +29,7 @@ Future<void> initPython() async {
     final pluginsDir = Directory(path.join(baseDir.path, 'plugins'));
     if (!await pluginsDir.exists()) {
       await pluginsDir.create(recursive: true);
-      log('[python_service] Created plugins directory: ${pluginsDir.path}');
+      Logger.root.info('[python_service] Created plugins directory: ${pluginsDir.path}');
     }
 
     // 动态获取 assets/scripts/ 下的所有 .py 文件
@@ -42,7 +42,7 @@ Future<void> initPython() async {
       final destFile = File(path.join(baseDir.path, fileName));
       final content = await rootBundle.loadString(assetPath);
       await destFile.writeAsString(content);
-      log('[python_service] Wrote $fileName to ${destFile.path}');
+      Logger.root.info('[python_service] Wrote $fileName to ${destFile.path}');
     }
 
     _vm = pkpy.VM();
@@ -57,13 +57,13 @@ sys.path.insert(0, r"${baseDir.path}")
     _vm!.exec('loader.load_plugins()');
 
     final out = _vm!.read_output();
-    if (out.stdout.isNotEmpty) log('[Python stdout] ${out.stdout}');
-    if (out.stderr.isNotEmpty) log('[Python stderr] ${out.stderr}');
+    if (out.stdout.isNotEmpty) Logger.root.info('[Python stdout] ${out.stdout}');
+    if (out.stderr.isNotEmpty) Logger.root.warning('[Python stderr] ${out.stderr}');
 
     _isInitialized = true;
-    log('[python_service] Initialized, base dir: ${baseDir.path}');
+    Logger.root.info('[python_service] Initialized, base dir: ${baseDir.path}');
   } catch (e) {
-    log('[python_service] Init failed: $e');
+    Logger.root.severe('[python_service] Init failed: $e');
     _isInitialized = false;
     _vm = null;
   }
@@ -73,6 +73,6 @@ Future<void> evalPythonCode(String code) async {
   if (!_isInitialized || _vm == null) return;
   _vm!.exec(code);
   final out = _vm!.read_output();
-  if (out.stdout.isNotEmpty) log('[Python stdout] ${out.stdout}');
-  if (out.stderr.isNotEmpty) log('[Python stderr] ${out.stderr}');
+  if (out.stdout.isNotEmpty) Logger.root.info('[Python stdout] ${out.stdout}');
+  if (out.stderr.isNotEmpty) Logger.root.warning('[Python stderr] ${out.stderr}');
 }
