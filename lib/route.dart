@@ -37,6 +37,7 @@ class AppRouter extends RootStackRouter {
     // Other standalone routes
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
     AutoRoute(page: AboutRoute.page, path: '/about'),
+    AutoRoute(page: CfIpSpeedTestRoute.page, path: '/cf-ip-speed-test'),
     // TODO make a self-contained page to take the id
     AutoRoute(page: FileDetailRoute.page, path: '/files/:id'),
     AutoRoute(page: CheckInRoute.page, path: '/check-in'),

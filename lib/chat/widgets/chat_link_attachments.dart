@@ -24,10 +24,7 @@ class ChatCloudFileListNotifier
     final driveApi = ref.read(solarNetworkClientProvider).drive;
     const take = 20;
 
-    final result = await driveApi.listMyFiles(
-      offset: fetchedCount,
-      take: take,
-    );
+    final result = await driveApi.listMyFiles(offset: fetchedCount, take: take);
 
     totalCount = result.totalCount;
     return result.items;
@@ -145,7 +142,7 @@ class ChatLinkAttachment extends HookConsumerWidget {
                               try {
                                 final client = ref.read(apiClientProvider);
                                 final response = await client.get(
-                                  '/drive/files/$fileId/info',
+                                  '/fs/files/$fileId/info',
                                 );
                                 final SnCloudFile cloudFile =
                                     SnCloudFile.fromJson(response.data);

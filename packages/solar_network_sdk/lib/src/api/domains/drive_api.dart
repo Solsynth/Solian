@@ -39,8 +39,8 @@ class DriveApi extends BaseApi {
         if (download) 'download': true,
         if (original) 'original': true,
         if (thumbnail) 'thumbnail': true,
-        if (overrideMimeType != null) 'overrideMimeType': overrideMimeType,
-        if (passcode != null) 'passcode': passcode,
+        'overrideMimeType': ?overrideMimeType,
+        'passcode': ?passcode,
       },
     );
   }
@@ -67,7 +67,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/files/$fileId/e2ee',
-      queryParameters: {if (passcode != null) 'passcode': passcode},
+      queryParameters: {'passcode': ?passcode},
     );
     return response.data;
   }
@@ -159,10 +159,10 @@ class DriveApi extends BaseApi {
       queryParameters: {
         'offset': offset,
         'take': take,
-        if (query != null) 'query': query,
-        if (order != null) 'order': order,
+        'query': ?query,
+        'order': ?order,
         'orderDesc': orderDesc,
-        if (poolId != null) 'pool': poolId,
+        'pool': ?poolId,
       },
     );
     final totalCount = getTotalCount(response.headers);
@@ -185,10 +185,10 @@ class DriveApi extends BaseApi {
       queryParameters: {
         'offset': offset,
         'take': take,
-        if (query != null) 'query': query,
-        if (order != null) 'order': order,
+        'query': ?query,
+        'order': ?order,
         'orderDesc': orderDesc,
-        if (poolId != null) 'pool': poolId,
+        'pool': ?poolId,
       },
     );
     final totalCount = getTotalCount(response.headers);
@@ -203,10 +203,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/files/folders',
-      data: {
-        'name': name,
-        if (parentId != null) 'parent_id': parentId,
-      },
+      data: {'name': name, 'parent_id': ?parentId},
     );
     return SnCloudFile.fromJson(response.data!);
   }
@@ -222,10 +219,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await patch<Map<String, dynamic>>(
       '$_basePath/files/$fileId/hierarchy',
-      data: {
-        if (parentId != null) 'parent_id': parentId,
-        if (indexed != null) 'indexed': indexed,
-      },
+      data: {'parent_id': ?parentId, 'indexed': ?indexed},
     );
     return SnCloudFile.fromJson(response.data!);
   }
@@ -247,12 +241,12 @@ class DriveApi extends BaseApi {
     final response = await get<List<dynamic>>(
       '$_basePath/files/unindexed',
       queryParameters: {
-        if (poolId != null) 'pool': poolId,
+        'pool': ?poolId,
         'recycled': recycled,
         'offset': offset,
         'take': take,
-        if (query != null) 'query': query,
-        if (order != null) 'order': order,
+        'query': ?query,
+        'order': ?order,
         'orderDesc': orderDesc,
       },
     );
@@ -274,12 +268,12 @@ class DriveApi extends BaseApi {
     final response = await get<List<dynamic>>(
       '$_basePath/files/me',
       queryParameters: {
-        if (poolId != null) 'pool': poolId,
+        'pool': ?poolId,
         'recycled': recycled,
         'offset': offset,
         'take': take,
-        if (query != null) 'query': query,
-        if (order != null) 'order': order,
+        'query': ?query,
+        'order': ?order,
         'orderDesc': orderDesc,
       },
     );
@@ -335,17 +329,16 @@ class DriveApi extends BaseApi {
         'file_name': fileName,
         'file_size': fileSize,
         'content_type': contentType,
-        if (poolId != null) 'pool_id': poolId,
-        if (bundleId != null) 'bundle_id': bundleId,
-        if (encryptionScheme != null) 'encryption_scheme': encryptionScheme,
-        if (encryptionHeader != null) 'encryption_header': encryptionHeader,
-        if (encryptionSignature != null)
-          'encryption_signature': encryptionSignature,
-        if (expiredAt != null) 'expired_at': expiredAt,
-        if (chunkSize != null) 'chunk_size': chunkSize,
-        if (parentId != null) 'parent_id': parentId,
-        if (usage != null) 'usage': usage,
-        if (applicationType != null) 'application_type': applicationType,
+        'pool_id': ?poolId,
+        'bundle_id': ?bundleId,
+        'encryption_scheme': ?encryptionScheme,
+        'encryption_header': ?encryptionHeader,
+        'encryption_signature': ?encryptionSignature,
+        'expired_at': ?expiredAt,
+        'chunk_size': ?chunkSize,
+        'parent_id': ?parentId,
+        'usage': ?usage,
+        'application_type': ?applicationType,
       },
     );
     return response.data!;
@@ -374,9 +367,7 @@ class DriveApi extends BaseApi {
 
   /// Completes a chunked upload. Returns 200 with SnCloudFile or 202 if still processing.
   Future<Response> completeUpload(String taskId) async {
-    return post(
-      '$_basePath/files/upload/complete/$taskId',
-    );
+    return post('$_basePath/files/upload/complete/$taskId');
   }
 
   // ===========================================================================
@@ -401,17 +392,16 @@ class DriveApi extends BaseApi {
   }) async {
     final formData = FormData.fromMap({
       'file': MultipartFile.fromBytes(fileBytes, filename: fileName),
-      if (contentType != null) 'content_type': contentType,
-      if (poolId != null) 'pool_id': poolId,
-      if (bundleId != null) 'bundle_id': bundleId,
-      if (encryptionScheme != null) 'encryption_scheme': encryptionScheme,
-      if (encryptionHeader != null) 'encryption_header': encryptionHeader,
-      if (encryptionSignature != null)
-        'encryption_signature': encryptionSignature,
-      if (expiredAt != null) 'expired_at': expiredAt,
-      if (parentId != null) 'parent_id': parentId,
-      if (usage != null) 'usage': usage,
-      if (applicationType != null) 'application_type': applicationType,
+      'content_type': ?contentType,
+      'pool_id': ?poolId,
+      'bundle_id': ?bundleId,
+      'encryption_scheme': ?encryptionScheme,
+      'encryption_header': ?encryptionHeader,
+      'encryption_signature': ?encryptionSignature,
+      'expired_at': ?expiredAt,
+      'parent_id': ?parentId,
+      'usage': ?usage,
+      'application_type': ?applicationType,
     });
     final response = await post<Map<String, dynamic>>(
       '$_basePath/files/upload/direct',
@@ -436,7 +426,7 @@ class DriveApi extends BaseApi {
     final response = await get<List<dynamic>>(
       '$_basePath/files/upload/tasks',
       queryParameters: {
-        if (status != null) 'status': status,
+        'status': ?status,
         'sortBy': sortBy,
         'sortDescending': sortDescending,
         'offset': offset,
@@ -517,7 +507,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await get<Map<String, dynamic>>(
       '$_basePath/bundles/$bundleId',
-      queryParameters: {if (passcode != null) 'passcode': passcode},
+      queryParameters: {'passcode': ?passcode},
     );
     return response.data!;
   }
@@ -530,11 +520,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/bundles/me',
-      queryParameters: {
-        if (term != null) 'term': term,
-        'offset': offset,
-        'take': take,
-      },
+      queryParameters: {'term': ?term, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
     final items = (response.data as List)
@@ -555,11 +541,11 @@ class DriveApi extends BaseApi {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/bundles',
       data: {
-        if (slug != null) 'slug': slug,
-        if (name != null) 'name': name,
-        if (description != null) 'description': description,
-        if (passcode != null) 'passcode': passcode,
-        if (expiredAt != null) 'expired_at': expiredAt,
+        'slug': ?slug,
+        'name': ?name,
+        'description': ?description,
+        'passcode': ?passcode,
+        'expired_at': ?expiredAt,
       },
     );
     return response.data!;
@@ -577,11 +563,11 @@ class DriveApi extends BaseApi {
     final response = await put<Map<String, dynamic>>(
       '$_basePath/bundles/$bundleId',
       data: {
-        if (slug != null) 'slug': slug,
-        if (name != null) 'name': name,
-        if (description != null) 'description': description,
-        if (passcode != null) 'passcode': passcode,
-        if (expiredAt != null) 'expired_at': expiredAt,
+        'slug': ?slug,
+        'name': ?name,
+        'description': ?description,
+        'passcode': ?passcode,
+        'expired_at': ?expiredAt,
       },
     );
     return response.data!;
@@ -616,7 +602,9 @@ class DriveApi extends BaseApi {
 
   /// Returns total storage usage across all pools.
   Future<Map<String, dynamic>> getTotalUsage() async {
-    final response = await get<Map<String, dynamic>>('$_basePath/billing/usage');
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/billing/usage',
+    );
     return response.data!;
   }
 
@@ -630,7 +618,9 @@ class DriveApi extends BaseApi {
 
   /// Returns the user's storage quota breakdown.
   Future<Map<String, dynamic>> getQuota() async {
-    final response = await get<Map<String, dynamic>>('$_basePath/billing/quota');
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/billing/quota',
+    );
     return response.data!;
   }
 
@@ -642,11 +632,7 @@ class DriveApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/billing/quota/records',
-      queryParameters: {
-        'expired': expired,
-        'offset': offset,
-        'take': take,
-      },
+      queryParameters: {'expired': expired, 'offset': offset, 'take': take},
     );
     final totalCount = getTotalCount(response.headers);
     final items = (response.data as List)

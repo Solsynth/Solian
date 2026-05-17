@@ -73,6 +73,8 @@ const kAppExploreSettings = 'app_explore_settings';
 const kAppMediaProxyEnabled = 'app_media_proxy_enabled';
 const kAppFriendStatusDesktopNotification =
     'app_friend_status_desktop_notification';
+const kAppIpOverrideEnabled = 'app_ip_override_enabled';
+const kAppIpOverrideList = 'app_ip_override_list';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -82,6 +84,55 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 final serverUrlProvider = Provider<String>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return prefs.getString(kNetworkServerStoreKey) ?? kNetworkServerDefault;
+});
+
+@freezed
+sealed class IpOverride with _$IpOverride {
+  const factory IpOverride({
+    required String ip,
+    int? port,
+  }) = _IpOverride;
+
+  factory IpOverride.fromJson(Map<String, dynamic> json) =>
+      _$IpOverrideFromJson(json);
+}
+
+@freezed
+sealed class IpOverrideSettings with _$IpOverrideSettings {
+  const factory IpOverrideSettings({
+    required bool enabled,
+    required List<IpOverride> overrides,
+  }) = _IpOverrideSettings;
+
+  factory IpOverrideSettings.fromJson(Map<String, dynamic> json) =>
+      _$IpOverrideSettingsFromJson(json);
+}
+
+final ipOverrideSettingsProvider = Provider<IpOverrideSettings>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final enabled = prefs.getBool(kAppIpOverrideEnabled) ?? false;
+  final rawList = prefs.getString(kAppIpOverrideList);
+  List<IpOverride> overrides = [];
+  if (rawList != null && rawList.isNotEmpty) {
+    try {
+      final decoded = jsonDecode(rawList) as List;
+      overrides = decoded
+          .map((e) => IpOverride.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {}
+  }
+  return IpOverrideSettings(enabled: enabled, overrides: overrides);
+});
+
+final ipOverrideDomainSuffixProvider = Provider<String?>((ref) {
+  final serverUrl = ref.watch(serverUrlProvider);
+  try {
+    final uri = Uri.parse(serverUrl);
+    if (uri.host.contains('.')) {
+      return uri.host;
+    }
+  } catch (_) {}
+  return null;
 });
 
 @freezed
@@ -564,6 +615,21 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppFriendStatusDesktopNotification, value);
     state = state.copyWith(friendStatusDesktopNotification: value);
+  }
+
+  void setIpOverrideEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppIpOverrideEnabled, value);
+  }
+
+  void setIpOverrideList(List<IpOverride> overrides) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (overrides.isEmpty) {
+      prefs.remove(kAppIpOverrideList);
+    } else {
+      final encoded = jsonEncode(overrides.map((o) => o.toJson()).toList());
+      prefs.setString(kAppIpOverrideList, encoded);
+    }
   }
 }
 

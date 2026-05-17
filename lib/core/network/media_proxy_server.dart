@@ -29,6 +29,45 @@ class MediaProxyServer {
   MediaProxyServer(this._ref) {
     _httpClient = HttpClient()
       ..badCertificateCallback = (cert, host, port) => true;
+    _applyIpOverride();
+  }
+
+  void _applyIpOverride() {
+    final settings = _ref.read(ipOverrideSettingsProvider);
+    if (!settings.enabled || settings.overrides.isEmpty) return;
+    final serverUrl = _ref.read(serverUrlProvider);
+    String? domainSuffix;
+    try {
+      final uri = Uri.parse(serverUrl);
+      if (uri.host.contains('.')) domainSuffix = uri.host;
+    } catch (_) {}
+    if (domainSuffix == null) return;
+    final override = settings.overrides.firstOrNull;
+    if (override == null) return;
+    final suffix = domainSuffix;
+
+    _httpClient.connectionFactory = (
+      Uri uri,
+      String? proxyHost,
+      int? proxyPort,
+    ) async {
+      if (!uri.host.endsWith(suffix)) {
+        throw UnimplementedError();
+      }
+      final targetPort = override.port ?? uri.port;
+      return ConnectionTask.fromSocket(
+        SecureSocket.connect(
+          override.ip,
+          targetPort == 0 ? 443 : targetPort,
+          onBadCertificate: (_) => true,
+        ),
+        () {
+          Logger.root.fine(
+            '[$kLogPrefix] Cancelled IP override connection to ${uri.host} (${override.ip}:$targetPort)',
+          );
+        },
+      );
+    };
   }
 
   Future<void> start() async {

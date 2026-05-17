@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/io.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -132,6 +133,57 @@ const Duration _tokenRefreshInterval = Duration(minutes: 5);
 Future<_StoredTokenPair?>? _tokenRefreshInFlight;
 Future<_StoredTokenPair?>? _forceTokenRefreshInFlight;
 
+typedef IpOverrideConnectionFactory =
+    Future<ConnectionTask<SecureSocket>> Function(
+      Uri url,
+      String? proxyHost,
+      int? proxyPort,
+    );
+
+IpOverrideConnectionFactory createIpOverrideConnectionFactory({
+  required String domainSuffix,
+  required String ip,
+  int? port,
+}) {
+  return (Uri uri, String? proxyHost, int? proxyPort) async {
+    if (!uri.host.endsWith(domainSuffix)) {
+      throw UnimplementedError();
+    }
+    final targetPort = port ?? uri.port;
+    final socketFuture = SecureSocket.connect(
+      ip,
+      targetPort == 0 ? 443 : targetPort,
+      onBadCertificate: (_) => true,
+    );
+    return ConnectionTask.fromSocket(socketFuture, () {
+      Logger.root.fine(
+        'Canncelled established IP override connection to ${uri.host} ($ip:$targetPort)',
+      );
+    });
+  };
+}
+
+final ipOverrideConnectionFactoryProvider =
+    Provider<IpOverrideConnectionFactory?>((ref) {
+      final settings = ref.watch(ipOverrideSettingsProvider);
+      if (!settings.enabled || settings.overrides.isEmpty) {
+        return null;
+      }
+      final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
+      if (domainSuffix == null) {
+        return null;
+      }
+      final override = settings.overrides.firstOrNull;
+      if (override == null) {
+        return null;
+      }
+      return createIpOverrideConnectionFactory(
+        domainSuffix: domainSuffix,
+        ip: override.ip,
+        port: override.port,
+      );
+    });
+
 final padlockApiClientProvider = Provider<Dio>((ref) {
   final serverUrl = ref.watch(serverUrlProvider);
   final dio = Dio(
@@ -146,6 +198,17 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
       },
     ),
   );
+
+  final connectionFactory = ref.watch(ipOverrideConnectionFactoryProvider);
+  if (connectionFactory != null) {
+    dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.connectionFactory = connectionFactory;
+        return client;
+      },
+    );
+  }
 
   dio.interceptors.addAll([
     InterceptorsWrapper(
@@ -270,6 +333,17 @@ final apiClientProvider = Provider<Dio>((ref) {
       },
     ),
   );
+
+  final connectionFactory = ref.watch(ipOverrideConnectionFactoryProvider);
+  if (connectionFactory != null) {
+    dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.connectionFactory = connectionFactory;
+        return client;
+      },
+    );
+  }
 
   dio.interceptors.addAll([
     InterceptorsWrapper(
