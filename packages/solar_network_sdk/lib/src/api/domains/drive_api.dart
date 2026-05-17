@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'package:solar_network_sdk/src/api/base_api.dart';
 import 'package:solar_network_sdk/src/models/drive/file.dart';
+import 'package:solar_network_sdk/src/models/drive/file_permission.dart';
 import 'package:solar_network_sdk/src/models/drive/file_pool.dart';
 
 /// API for cloud drive/storage endpoints (/drive).
@@ -87,6 +88,14 @@ class DriveApi extends BaseApi {
     return parseList(response, SnCloudFile.fromJson);
   }
 
+  /// Returns the direct permission rows for a file.
+  Future<List<SnFilePermission>> getFilePermissions(String fileId) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/files/$fileId/permissions',
+    );
+    return parseList(response, SnFilePermission.fromJson);
+  }
+
   // ===========================================================================
   // Files — update / delete
   // ===========================================================================
@@ -122,6 +131,19 @@ class DriveApi extends BaseApi {
       data: meta,
     );
     return SnCloudFile.fromJson(response.data!);
+  }
+
+  /// Replaces the full direct permission set for a file.
+  Future<void> updateFilePermissions(
+    String fileId,
+    List<SnFilePermission> items,
+  ) async {
+    await put(
+      '$_basePath/files/$fileId/permissions',
+      data: {
+        'items': items.map((item) => item.toJson()).toList(),
+      },
+    );
   }
 
   /// Permanently deletes a file. Owner only.

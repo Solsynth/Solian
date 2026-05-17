@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:solar_network_sdk/src/models/drive/file_pool.dart';
+import 'package:solar_network_sdk/src/models/drive/file_permission.dart';
 
 part 'file.freezed.dart';
 part 'file.g.dart';
@@ -127,6 +128,9 @@ sealed class SnCloudFile with _$SnCloudFile implements IDisplayableCloudFile {
     @Default([]) List<int> sensitiveMarks,
     @Default({}) Map<String, dynamic> fileMeta,
     @Default({}) Map<String, dynamic> userMeta,
+    @JsonKey(name: 'children_count') @Default(0) int childrenCount,
+    @JsonKey(name: 'permission_status')
+    required SnFilePermissionStatus? permissionStatus,
     required DateTime? uploadedAt,
     required DateTime? expiredAt,
     required DateTime updatedAt,
