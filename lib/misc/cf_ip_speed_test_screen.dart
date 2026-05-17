@@ -584,8 +584,8 @@ class _ResultsView extends StatelessWidget {
     final displayResults = downloadResults.isNotEmpty
         ? downloadResults
         : httpResults.isNotEmpty
-            ? httpResults
-            : tcpResults;
+        ? httpResults
+        : tcpResults;
     if (displayResults.isEmpty && phase != 'tcp') {
       return Center(
         child: Column(
@@ -612,7 +612,7 @@ class _ResultsView extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       itemCount: displayResults.length,
       itemBuilder: (context, index) {
         final result = displayResults[index];
