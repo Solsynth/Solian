@@ -1829,5 +1829,6 @@
   "settingsClearChatHistoryConfirm": "Are you sure you want to clear all messages from \"{}\"? This action cannot be undone.",
   "settingsExportChat": "Exportar Chat",
   "settingsExportJsonDesc": "Datos completos del mensaje con metadatos",
-  "settingsExportCsvDesc": "Formato simple de hoja de cálculo"
+  "settingsExportCsvDesc": "Formato simple de hoja de cálculo",
+  "settingsExportSaved": "Exportación guardada en descargas"
 }
