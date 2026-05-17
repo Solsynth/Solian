@@ -116,7 +116,7 @@ class CloudFileLightbox extends HookConsumerWidget {
               },
               builder: (context, index) {
                 final item = items[index];
-                final isImage = item.mimeType?.startsWith('image') == true;
+                final isImage = item.mimeType.startsWith('image') == true;
                 final isHero = heroTag != null && index == initialIndex;
 
                 if (isImage) {
@@ -238,7 +238,7 @@ class CloudFileLightbox extends HookConsumerWidget {
               GestureDetector(
                 onTap: () {
                   final currentItem = items[currentIndex.value];
-                  if (currentItem.mimeType?.startsWith('image') == true) {
+                  if (currentItem.mimeType.startsWith('image') == true) {
                     showControls.value = !showControls.value;
                     controlsVisible.value = true;
                   }
@@ -480,7 +480,7 @@ class _LightboxBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentItem = items[currentIndex];
-    final isImage = currentItem.mimeType?.startsWith('image') == true;
+    final isImage = currentItem.mimeType.startsWith('image') == true;
     final hasExifData = ExifInfoOverlay.precheck(currentItem);
     final paddingBottom = MediaQuery.of(context).padding.bottom;
 

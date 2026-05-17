@@ -143,13 +143,15 @@ class VideoFileContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var ratio = item.fileMeta?['ratio'] is num
-        ? item.fileMeta!['ratio'].toDouble()
-        : 1.0;
+    var ratio = item.ratio;
     if (ratio == 0) ratio = 16 / 9;
 
     return Center(
-      child: UniversalVideo(uri: uri, autoplay: true, aspectRatio: ratio,),
+      child: UniversalVideo(
+        uri: uri,
+        autoplay: true,
+        aspectRatio: ratio ?? 16 / 9,
+      ),
     );
   }
 }

@@ -282,11 +282,7 @@ class AttachmentPreview extends HookConsumerWidget {
         DriveE2eeFileEnvelope.isEncryptedFile(item.data as SnCloudFile);
     final showEncryptedIndicator = isEncryptedUpload || isEncryptedOnCloud;
 
-    var ratio = item.isOnCloud
-        ? (item.data.fileMeta?['ratio'] is num
-              ? item.data.fileMeta!['ratio'].toDouble()
-              : null)
-        : null;
+    var ratio = item.isOnCloud ? item.data.ratio : null;
 
     final innerContentWidget = Stack(
       fit: StackFit.expand,

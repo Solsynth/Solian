@@ -65,7 +65,7 @@ class CloudFileActionsSheet extends StatelessWidget {
               );
             },
           ),
-          if (item.url != null)
+          if (item.storageUrl != null)
             _ActionTile(
               icon: Symbols.open_in_new,
               title: 'openInBrowser'.tr(),
@@ -73,7 +73,7 @@ class CloudFileActionsSheet extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 launchUrlString(
-                  item.url!,
+                  item.storageUrl!,
                   mode: LaunchMode.externalApplication,
                 );
               },
@@ -83,7 +83,9 @@ class CloudFileActionsSheet extends StatelessWidget {
             title: 'copyLink'.tr(),
             subtitle: 'copyFileLinkToClipboard'.tr(),
             onTap: () {
-              Clipboard.setData(ClipboardData(text: item.url ?? item.id));
+              Clipboard.setData(
+                ClipboardData(text: item.storageUrl ?? item.id),
+              );
               showSnackBar('linkCopied'.tr());
               Navigator.pop(context);
             },

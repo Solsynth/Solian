@@ -395,8 +395,9 @@ class _CollectionDetailSheet extends HookConsumerWidget {
                 existing: collection,
               ),
             ).then((value) {
-              if (value != null && context.mounted)
+              if (value != null && context.mounted) {
                 Navigator.pop(context, true);
+              }
             });
           },
         ),

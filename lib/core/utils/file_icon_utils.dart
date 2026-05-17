@@ -10,8 +10,8 @@ Widget getFileIcon(
   required double size,
   bool tinyPreview = true,
 }) {
-  final itemType = file.mimeType?.split('/').firstOrNull;
-  final mimeType = file.mimeType ?? '';
+  final itemType = file.mimeType.split('/').firstOrNull;
+  final mimeType = file.mimeType;
   final extension = file.name.split('.').lastOrNull?.toLowerCase() ?? '';
 
   // For images, show the actual image thumbnail

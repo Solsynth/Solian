@@ -41,11 +41,11 @@ class CloudFileWidget extends HookConsumerWidget {
       appSettingsProvider.select((s) => s.dataSavingMode),
     );
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = item.url ?? '$serverUrl/drive/files/${item.id}';
+    final uri = item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
 
     final unlocked = useState(false);
 
-    final meta = item.fileMeta is Map ? (item.fileMeta as Map) : const {};
+    final meta = item.fileMeta as Map;
     final isEncrypted = DriveE2eeFileEnvelope.isEncryptedFile(item);
     final e2eeMeta = meta['e2ee'] is Map
         ? Map<String, dynamic>.from(meta['e2ee'] as Map)
@@ -70,7 +70,7 @@ class CloudFileWidget extends HookConsumerWidget {
       return _EncryptedFileCard(item: item, scheme: e2eeScheme);
     }
 
-    if (item.mimeType?.startsWith('text/') == true) {
+    if (item.mimeType.startsWith('text/') == true) {
       return Container(
         height: 400,
         decoration: BoxDecoration(
@@ -166,7 +166,7 @@ class CloudFileWidget extends HookConsumerWidget {
       );
     }
 
-    var content = switch (item.mimeType?.split('/').firstOrNull) {
+    var content = switch (item.mimeType.split('/').firstOrNull) {
       'image' => AspectRatio(
         aspectRatio: ratio,
         child: (useInternalGate && dataSaving && !unlocked.value)
@@ -355,7 +355,7 @@ class CloudVideoWidget extends HookConsumerWidget {
     if (DriveE2eeFileEnvelope.isEncryptedFile(item)) {
       return _EncryptedFileCard(
         item: item,
-        scheme: (item.fileMeta is Map && (item.fileMeta as Map)['e2ee'] is Map)
+        scheme: ((item.fileMeta as Map)['e2ee'] is Map)
             ? ((item.fileMeta as Map)['e2ee'] as Map)['scheme']?.toString()
             : null,
       );
@@ -364,8 +364,8 @@ class CloudVideoWidget extends HookConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${item.id}';
 
-    var ratio = item.fileMeta?['ratio'] is num
-        ? item.fileMeta!['ratio'].toDouble()
+    var ratio = item.fileMeta['ratio'] is num
+        ? item.fileMeta['ratio'].toDouble()
         : 1.0;
     if (ratio == 0) ratio = 1.0;
 
@@ -423,11 +423,11 @@ class CloudVideoWidget extends HookConsumerWidget {
                 Wrap(
                   spacing: 8,
                   children: [
-                    if (item.fileMeta?['duration'] != null)
+                    if (item.fileMeta['duration'] != null)
                       Text(
                         Duration(
                           milliseconds:
-                              ((item.fileMeta?['duration'] as num) * 1000)
+                              ((item.fileMeta['duration'] as num) * 1000)
                                   .toInt(),
                         ).formatDuration(),
                         style: TextStyle(
@@ -442,9 +442,9 @@ class CloudVideoWidget extends HookConsumerWidget {
                           ],
                         ),
                       ),
-                    if (item.fileMeta?['bit_rate'] != null)
+                    if (item.fileMeta['bit_rate'] != null)
                       Text(
-                        '${int.parse(item.fileMeta?['bit_rate'] as String) ~/ 1000} Kbps',
+                        '${int.parse(item.fileMeta['bit_rate'] as String) ~/ 1000} Kbps',
                         style: TextStyle(
                           color: Colors.white,
                           shadows: [
@@ -508,7 +508,8 @@ class CloudImageWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = file?.url ?? '$serverUrl/drive/files/${file?.id ?? fileId}';
+    final uri =
+        file?.storageUrl ?? '$serverUrl/drive/files/${file?.id ?? fileId}';
 
     return AspectRatio(
       aspectRatio: aspectRatio,
@@ -528,7 +529,7 @@ class CloudImageWidget extends ConsumerWidget {
     bool original = false,
   }) {
     final uri =
-        file.url ??
+        file.storageUrl ??
         (original
             ? '$serverUrl/drive/files/${file.id}?original=true'
             : '$serverUrl/drive/files/${file.id}');

@@ -68,7 +68,6 @@ class DriveE2eeFileEnvelope {
 
   static Map<String, dynamic>? _extractE2eeMeta(SnCloudFile file) {
     final fileMeta = file.fileMeta;
-    if (fileMeta is! Map) return null;
     final root = Map<String, dynamic>.from(fileMeta as Map);
     final e2ee = root['e2ee'];
     if (e2ee is! Map) return null;
@@ -77,7 +76,6 @@ class DriveE2eeFileEnvelope {
 
   static String? extractEncryptionKey(SnCloudFile file) {
     final fileMeta = file.fileMeta;
-    if (fileMeta is! Map) return null;
     final root = Map<String, dynamic>.from(fileMeta as Map);
     final e2ee = root['e2ee'];
     if (e2ee is Map) {
@@ -428,9 +426,7 @@ class FileUploader {
           : '/drive/files/$parentId/children';
       final response = await _client.get(
         endpoint,
-        queryParameters: {
-          'pool': ?poolId,
-        },
+        queryParameters: {'pool': ?poolId},
       );
 
       final children = _extractChildrenPayload(response.data);
@@ -542,7 +538,8 @@ class FileUploader {
       ),
       'poolId': poolId,
       'parent_id':
-          parentId ?? await _resolveParentIdFromPath(path: path, poolId: poolId),
+          parentId ??
+          await _resolveParentIdFromPath(path: path, poolId: poolId),
       'bundleId': bundleId,
       'expiredAt': expiredAt,
       'usage': usage,
@@ -679,7 +676,8 @@ class FileUploader {
       'expired_at': expiredAt,
       'chunk_size': chunkSize,
       'parent_id':
-          parentId ?? await _resolveParentIdFromPath(path: path, poolId: poolId),
+          parentId ??
+          await _resolveParentIdFromPath(path: path, poolId: poolId),
       'usage': usage,
       'application_type': applicationType,
     };
@@ -1294,7 +1292,7 @@ class FileUploader {
     } else if (data is List<int> || data is Uint8List) {
       return 'application/octet-stream';
     } else if (data is SnCloudFile) {
-      return data.mimeType ?? 'application/octet-stream';
+      return data.mimeType;
     } else {
       throw ArgumentError('Invalid file data type');
     }
@@ -1334,18 +1332,12 @@ class FileUploader {
   }
 
   /// Sets content sensitivity labels. Owner only.
-  Future<SnCloudFile> updateSensitiveMarks(
-    String fileId,
-    List<String> marks,
-  ) {
+  Future<SnCloudFile> updateSensitiveMarks(String fileId, List<String> marks) {
     return _driveApi.updateSensitiveMarks(fileId, marks);
   }
 
   /// Sets arbitrary user-defined metadata. Owner only.
-  Future<SnCloudFile> updateUserMeta(
-    String fileId,
-    Map<String, dynamic> meta,
-  ) {
+  Future<SnCloudFile> updateUserMeta(String fileId, Map<String, dynamic> meta) {
     return _driveApi.updateUserMeta(fileId, meta);
   }
 
@@ -1366,7 +1358,7 @@ class FileDownloadService {
   String _getFileExtension(SnCloudFile item) {
     var extName = extension(item.name).trim();
     if (extName.isEmpty) {
-      extName = item.mimeType?.split('/').lastOrNull ?? 'jpeg';
+      extName = item.mimeType.split('/').lastOrNull ?? 'jpeg';
     }
     return extName.replaceFirst('.', '');
   }
@@ -1405,10 +1397,10 @@ class FileDownloadService {
   }
 
   String _getOriginalUrl(SnCloudFile item, {String? serverUrl}) {
-    if (serverUrl != null && item.url == null) {
+    if (serverUrl != null && item.storageUrl == null) {
       return '$serverUrl/drive/files/${item.id}?original=true';
     }
-    final baseUri = item.url ?? '/drive/files/${item.id}';
+    final baseUri = item.storageUrl ?? '/drive/files/${item.id}';
     return baseUri.contains('?')
         ? '$baseUri&original=true'
         : '$baseUri?original=true';
