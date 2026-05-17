@@ -134,9 +134,12 @@ sealed class SnCloudFile with _$SnCloudFile implements IDisplayableCloudFile {
     required DateTime? deletedAt,
   }) = _SnCloudFile;
 
+  @override
   int get size => object?.size ?? 0;
+  @override
   String? get hash => object?.hash;
 
+  @override
   double? get ratio {
     if (object?.meta?['width'] != null && object?.meta?['height'] != null) {
       final width = object!.meta?['width'] as num;
@@ -151,13 +154,16 @@ sealed class SnCloudFile with _$SnCloudFile implements IDisplayableCloudFile {
     return null;
   }
 
+  @override
   double? get width => object?.meta?['width'] != null
       ? (object!.meta?['width'] as num).toDouble()
       : null;
+  @override
   double? get height => object?.meta?['height'] != null
       ? (object!.meta?['height'] as num).toDouble()
       : null;
 
+  @override
   String? get blurhash =>
       (object?.meta?['blurhash'] ?? object?.meta?['blur']) as String?;
 
