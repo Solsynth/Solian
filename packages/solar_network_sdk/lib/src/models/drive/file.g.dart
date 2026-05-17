@@ -181,7 +181,7 @@ _SnCloudFileReference _$SnCloudFileReferenceFromJson(
   storageUrl: json['url'] as String?,
   width: (json['width'] as num?)?.toDouble(),
   height: (json['height'] as num?)?.toDouble(),
-  blurhash: json['blurhash'] as String?,
+  blur: json['blurhash'] as String?,
   usage: json['usage'] as String?,
   applicationType: json['application_type'] as String?,
 );
@@ -201,7 +201,7 @@ Map<String, dynamic> _$SnCloudFileReferenceToJson(
   'url': instance.storageUrl,
   'width': instance.width,
   'height': instance.height,
-  'blurhash': instance.blurhash,
+  'blurhash': instance.blur,
   'usage': instance.usage,
   'application_type': instance.applicationType,
 };
