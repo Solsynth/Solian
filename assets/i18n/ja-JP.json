@@ -1918,5 +1918,6 @@
   "settingsClearChatHistoryConfirm": "Are you sure you want to clear all messages from \"{}\"? This action cannot be undone.",
   "settingsExportChat": "チャットをエクスポート",
   "settingsExportJsonDesc": "メタデータ付きの完全なメッセージデータ",
-  "settingsExportCsvDesc": "シンプルなスプレッドシート形式"
+  "settingsExportCsvDesc": "シンプルなスプレッドシート形式",
+  "settingsExportSaved": "ダウンロードフォルダに保存されました"
 }
