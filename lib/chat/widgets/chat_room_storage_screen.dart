@@ -41,11 +41,7 @@ class ChatRoomStorageScreen extends HookConsumerWidget {
       body: roomsAsync.when(
         data: (rooms) {
           final summaries = summariesAsync.whenData((data) => data).value ?? {};
-          return _RoomStorageList(
-            rooms: rooms,
-            summaries: summaries,
-            db: db,
-          );
+          return _RoomStorageList(rooms: rooms, summaries: summaries, db: db);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('Error: $err')),
@@ -193,7 +189,8 @@ class _RoomStorageListState extends ConsumerState<_RoomStorageList> {
       if (!mounted) return;
       hideLoadingModal(context);
 
-      final isDesktop = !kIsWeb &&
+      final isDesktop =
+          !kIsWeb &&
           (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
       if (isDesktop) {
@@ -203,10 +200,9 @@ class _RoomStorageListState extends ConsumerState<_RoomStorageList> {
         }
       } else {
         final box = context.findRenderObject() as RenderBox?;
-        await Share.shareXFiles(
-          [XFile(file.path, mimeType: mimeType)],
-          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
-        );
+        await Share.shareXFiles([
+          XFile(file.path, mimeType: mimeType),
+        ], sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
       }
     } catch (e) {
       if (mounted) {
