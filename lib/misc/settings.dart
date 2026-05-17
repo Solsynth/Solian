@@ -900,55 +900,72 @@ class SettingsScreen extends HookConsumerWidget {
           ),
           Builder(
             builder: (context) {
-              final ipOverrideSettings = ref.watch(ipOverrideSettingsProvider);
-              final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
+              final ipOverrideMode = ref.watch(ipOverrideModeProvider);
               return ListTile(
                 minLeadingWidth: 48,
                 title: Text('settingsIpOverride').tr(),
                 subtitle: Text(
-                  domainSuffix != null
-                      ? 'settingsIpOverrideHelperOn'.tr(args: [domainSuffix])
-                      : 'settingsIpOverrideHelperOff'.tr(),
+                  'settingsIpOverrideModeHelper'.tr(
+                    args: [_ipOverrideModeLabel(ipOverrideMode)],
+                  ),
                 ),
                 contentPadding: const EdgeInsets.only(left: 24, right: 17),
                 leading: const Icon(Symbols.dns),
-                trailing: Switch(
-                  value: ipOverrideSettings.enabled,
-                  onChanged: domainSuffix != null
-                      ? (value) {
-                          ref
-                              .read(appSettingsProvider.notifier)
-                              .setIpOverrideEnabled(value);
-                        }
-                      : null,
-                ),
-                onTap: domainSuffix != null
-                  ? () {
-                        _showIpOverrideEditor(context, ref);
-                      }
-                    : null,
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (_) => _IpOverrideModeSheet(ref: ref),
+                  );
+                },
               );
             },
           ),
           Builder(
             builder: (context) {
-              final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
+              final domains = ref.watch(ipOverrideDomainsProvider);
               return ListTile(
                 minLeadingWidth: 48,
-                title: Text('settingsIpOverrideEntries').tr(),
+                title: Text('settingsIpOverrideDomains').tr(),
                 subtitle: Text(
-                  domainSuffix != null
-                      ? 'settingsIpOverrideEntriesHelper'.tr(args: [domainSuffix])
-                      : 'settingsIpOverrideEntriesHelperOff'.tr(),
+                  domains.isNotEmpty
+                      ? domains.join(', ')
+                      : 'settingsIpOverrideDomainsHelper'.tr(),
                 ),
                 contentPadding: const EdgeInsets.only(left: 24, right: 17),
                 leading: const Icon(Symbols.edit),
                 trailing: const Icon(Symbols.chevron_right),
-                onTap: domainSuffix != null
-                    ? () {
-                        _showIpOverrideEditor(context, ref);
-                      }
-                    : null,
+                onTap: () {
+                  _showIpOverrideDomainsEditor(context, ref);
+                },
+              );
+            },
+          ),
+          Builder(
+            builder: (context) {
+              final ipOverrideSettings = ref.watch(ipOverrideSettingsProvider);
+              return ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsIpOverrideEntries').tr(),
+                subtitle: Text(
+                  ipOverrideSettings.overrides.isNotEmpty
+                      ? ipOverrideSettings.overrides
+                            .map(
+                              (entry) => entry.port == null
+                                  ? entry.ip
+                                  : '${entry.ip}:${entry.port}',
+                            )
+                            .join(', ')
+                      : 'settingsIpOverrideEntriesEmpty'.tr(),
+                ),
+                contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                leading: const Icon(Symbols.edit),
+                trailing: const Icon(Symbols.chevron_right),
+                onTap: () {
+                  _showIpOverrideEntriesEditor(context, ref);
+                },
               );
             },
           ),
@@ -2497,11 +2514,170 @@ class _EmbeddedAboutContent extends HookConsumerWidget {
   }
 }
 
-void _showIpOverrideEditor(BuildContext context, WidgetRef ref) {
+String _ipOverrideModeLabel(IpOverrideMode mode) {
+  return switch (mode) {
+    IpOverrideMode.complete => 'settingsIpOverrideModeComplete'.tr(),
+    IpOverrideMode.mixed => 'settingsIpOverrideModeMixed'.tr(),
+    IpOverrideMode.off => 'settingsIpOverrideModeOff'.tr(),
+  };
+}
+
+class _IpOverrideModeSheet extends StatelessWidget {
+  final WidgetRef ref;
+
+  const _IpOverrideModeSheet({required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = ref.watch(ipOverrideModeProvider);
+    final domains = ref.watch(ipOverrideDomainsProvider);
+
+    return SheetScaffold(
+      titleText: 'settingsIpOverride'.tr(),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SegmentedButton<IpOverrideMode>(
+              segments: [
+                ButtonSegment(
+                  value: IpOverrideMode.complete,
+                  label: Text('settingsIpOverrideModeComplete').tr(),
+                ),
+                ButtonSegment(
+                  value: IpOverrideMode.mixed,
+                  label: Text('settingsIpOverrideModeMixed').tr(),
+                ),
+                ButtonSegment(
+                  value: IpOverrideMode.off,
+                  label: Text('settingsIpOverrideModeOff').tr(),
+                ),
+              ],
+              selected: {mode},
+              onSelectionChanged: (selected) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setIpOverrideMode(selected.first);
+              },
+              showSelectedIcon: false,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'settingsIpOverrideModeDescription'.tr(
+                args: [_ipOverrideModeLabel(mode)],
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => _showIpOverrideDomainsEditor(context, ref),
+              icon: const Icon(Symbols.list),
+              label: Text('settingsIpOverrideDomains').tr(),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              domains.isEmpty
+                  ? 'settingsIpOverrideDomainsHelper'.tr()
+                  : domains.join('\n'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _showIpOverrideDomainsEditor(BuildContext context, WidgetRef ref) {
+  final domains = ref.read(ipOverrideDomainsProvider);
+  final controller = TextEditingController(text: domains.join('\n'));
+
+  Future<void> save() async {
+    final lines = controller.text
+        .split(RegExp(r'[\n,]'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    ref.read(appSettingsProvider.notifier).setIpOverrideDomains(lines);
+  }
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) {
+      return SheetScaffold(
+        titleText: 'settingsIpOverrideDomains'.tr(),
+        onClose: () => Navigator.pop(sheetContext),
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+            top: 12,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('settingsIpOverrideDomainsHelper'.tr()),
+              const SizedBox(height: 12),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  maxLines: null,
+                  expands: true,
+                  keyboardType: TextInputType.multiline,
+                  textAlignVertical: TextAlignVertical.top,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'io.solian.app\nmedia.solian.app',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      controller.text = '';
+                      save();
+                      Navigator.pop(sheetContext);
+                    },
+                    child: Text('clear').tr(),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.pop(sheetContext),
+                    child: Text('cancel').tr(),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () async {
+                      await save();
+                      if (sheetContext.mounted) Navigator.pop(sheetContext);
+                      showSnackBar('settingsApplied'.tr());
+                    },
+                    child: Text('confirm').tr(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void _showIpOverrideEntriesEditor(BuildContext context, WidgetRef ref) {
   final settings = ref.read(ipOverrideSettingsProvider);
   final controller = TextEditingController(
     text: settings.overrides
-        .map((override) => override.port == null ? override.ip : '${override.ip}:${override.port}')
+        .map(
+          (override) => override.port == null
+              ? override.ip
+              : '${override.ip}:${override.port}',
+        )
         .join('\n'),
   );
 
@@ -2527,7 +2703,6 @@ void _showIpOverrideEditor(BuildContext context, WidgetRef ref) {
     }
 
     ref.read(appSettingsProvider.notifier).setIpOverrideList(overrides);
-    ref.read(appSettingsProvider.notifier).setIpOverrideEnabled(overrides.isNotEmpty);
   }
 
   showModalBottomSheet(
@@ -2548,12 +2723,7 @@ void _showIpOverrideEditor(BuildContext context, WidgetRef ref) {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'settingsIpOverrideEntriesHelper'.tr(
-                  args: [ref.read(ipOverrideDomainSuffixProvider) ?? ''],
-                ),
-                style: Theme.of(sheetContext).textTheme.bodySmall,
-              ),
+              Text('settingsIpOverrideEntriesHelper'.tr()),
               const SizedBox(height: 12),
               Expanded(
                 child: TextField(
@@ -2590,7 +2760,7 @@ void _showIpOverrideEditor(BuildContext context, WidgetRef ref) {
                     onPressed: () async {
                       await save();
                       if (sheetContext.mounted) Navigator.pop(sheetContext);
-                      showSnackBar('settingsApplied'.tr());
+                      showSnackBar('settingsIpOverrideEntriesSaved'.tr());
                     },
                     child: Text('confirm').tr(),
                   ),
