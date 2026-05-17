@@ -20,6 +20,7 @@ import 'package:island/core/services/cache_service.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/udid.dart' as udid;
+import 'package:island/misc/connectivity_self_check_screen.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -960,6 +961,22 @@ class SettingsScreen extends HookConsumerWidget {
             trailing: const Icon(Symbols.chevron_right),
             onTap: () {
               context.router.push(const CfIpSpeedTestRoute());
+            },
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('connectivitySelfCheck').tr(),
+            subtitle: Text('connectivitySelfCheckSubtitle').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.health_and_safety),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ConnectivitySelfCheckScreen(),
+                ),
+              );
             },
           ),
           if (user.value != null)

@@ -54,7 +54,8 @@ class CfIpTestResult {
     this.downloadSpeedMbps,
   });
 
-  double get tcpLossRate => tcpSended > 0 ? (tcpSended - tcpReceived) / tcpSended : 1.0;
+  double get tcpLossRate =>
+      tcpSended > 0 ? (tcpSended - tcpReceived) / tcpSended : 1.0;
 
   Map<String, dynamic> toJson() => {
     'ip': ip,
@@ -88,7 +89,11 @@ class CfIpTestPhase {
   final int current;
   final int total;
 
-  const CfIpTestPhase({required this.name, required this.current, required this.total});
+  const CfIpTestPhase({
+    required this.name,
+    required this.current,
+    required this.total,
+  });
 }
 
 class CfIpTcpPingProgress extends CfIpTestProgress {
@@ -110,7 +115,11 @@ class CfIpHttpPingProgress extends CfIpTestProgress {
   final List<CfIpTestResult> results;
   final String? currentIp;
 
-  const CfIpHttpPingProgress({required this.phase, required this.results, this.currentIp});
+  const CfIpHttpPingProgress({
+    required this.phase,
+    required this.results,
+    this.currentIp,
+  });
 }
 
 class CfIpDownloadProgress extends CfIpTestProgress {
@@ -118,7 +127,11 @@ class CfIpDownloadProgress extends CfIpTestProgress {
   final List<CfIpTestResult> results;
   final String? currentIp;
 
-  const CfIpDownloadProgress({required this.phase, required this.results, this.currentIp});
+  const CfIpDownloadProgress({
+    required this.phase,
+    required this.results,
+    this.currentIp,
+  });
 }
 
 class CfIpTestComplete extends CfIpTestProgress {
@@ -158,32 +171,6 @@ class CfIpTestCancelToken {
 
 bool _isCancelled(CfIpTestCancelToken cancelToken) => cancelToken.cancelled;
 
-class _Semaphore {
-  final int max;
-  int _current = 0;
-  final _waiters = <Completer<void>>[];
-
-  _Semaphore(this.max);
-
-  Future<void> acquire() async {
-    if (_current < max) {
-      _current++;
-      return;
-    }
-    final completer = Completer<void>();
-    _waiters.add(completer);
-    await completer.future;
-  }
-
-  void release() {
-    if (_waiters.isNotEmpty) {
-      _waiters.removeAt(0).complete();
-    } else {
-      _current--;
-    }
-  }
-}
-
 class _MovingAverage {
   double _sum = 0;
   int _count = 0;
@@ -196,7 +183,11 @@ class _MovingAverage {
   double get value => _count > 0 ? _sum / _count : 0;
 }
 
-List<String> _generateIps(List<String> ranges, {bool quick = false, bool ipv6 = false}) {
+List<String> _generateIps(
+  List<String> ranges, {
+  bool quick = false,
+  bool ipv6 = false,
+}) {
   return _generateReferenceStyleIps(ranges, ipv6);
 }
 
@@ -242,8 +233,14 @@ List<String> _generateReferenceStyleIpv4(String ip, int cidr) {
   final random = Random();
   final out = <String>[];
 
-  for (var blockStart = networkStart; blockStart <= networkEnd; blockStart += 256) {
-    final blockEnd = blockStart + 255 <= networkEnd ? blockStart + 255 : networkEnd;
+  for (
+    var blockStart = networkStart;
+    blockStart <= networkEnd;
+    blockStart += 256
+  ) {
+    final blockEnd = blockStart + 255 <= networkEnd
+        ? blockStart + 255
+        : networkEnd;
     final candidate = blockStart + random.nextInt(blockEnd - blockStart + 1);
     out.add(_formatIpv4Int(candidate));
   }
@@ -322,60 +319,6 @@ List<List<String>> _chunkIps(List<String> ips, int chunkSize) {
   return chunks;
 }
 
-void _generateRandomIpv4(String ip, int cidr, int count, Random random, List<String> out, int remainingBudget) {
-  final ipBytes = ip.split('.').map(int.parse).toList();
-  final maskBits = 32 - cidr;
-  final hostBits4 = maskBits > 16 ? 16 : (maskBits > 8 ? maskBits - 8 : 0);
-  final hostBits3 = maskBits > 8 ? (maskBits > 16 ? 8 : maskBits - 8) : 0;
-  final hostBits2 = maskBits > 16 ? 8 : 0;
-
-  final max4 = (1 << hostBits4) - 1;
-  final max3 = (1 << hostBits3) - 1;
-  final max2 = (1 << hostBits2) - 1;
-
-  final base2 = ipBytes[2] & (~max3 & 0xFF);
-  final base3 = ipBytes[3] & (~max4 & 0xFF);
-
-  final limit = count < remainingBudget ? count : remainingBudget;
-  for (var i = 0; i < limit; i++) {
-    final b2 = base2 + (max2 > 0 ? random.nextInt(max2 + 1) : 0);
-    final b3 = base3 + (max3 > 0 ? random.nextInt(max3 + 1) : 0);
-    final b4 = random.nextInt(max4 + 1);
-    out.add('${ipBytes[0]}.$b2.$b3.$b4');
-  }
-}
-
-void _generateRandomIpv6(String ip, int cidr, int count, Random random, List<String> out, int remainingBudget) {
-  final full = _expandIpv6(ip);
-  final bytes = Uint8List(16);
-  for (var i = 0; i < 8; i++) {
-    final val = int.parse(full[i], radix: 16);
-    bytes[i * 2] = (val >> 8) & 0xFF;
-    bytes[i * 2 + 1] = val & 0xFF;
-  }
-
-  final limit = count < remainingBudget ? count : remainingBudget;
-
-  if (limit <= 0) return;
-
-  final current = Uint8List.fromList(bytes);
-  while (out.length < limit && _ipv6InNetwork(current, bytes, cidr)) {
-    current[15] = random.nextInt(255);
-    current[14] = random.nextInt(255);
-
-    final targetIP = Uint8List.fromList(current);
-    out.add(_formatIpv6(targetIP));
-
-    for (var i = 13; i >= 0; i--) {
-      final tempIP = current[i];
-      current[i] = (current[i] + random.nextInt(255)) & 0xFF;
-      if (current[i] >= tempIP) {
-        break;
-      }
-    }
-  }
-}
-
 List<String> _expandIpv6(String ip) {
   final parts = ip.split('::');
   if (parts.length == 2) {
@@ -412,7 +355,12 @@ Future<(bool, Duration)> _tcpPing(String ip, int port, Duration timeout) async {
   }
 }
 
-Future<CfIpTestResult> _tcpPingIp(String ip, int port, int times, Duration timeout) async {
+Future<CfIpTestResult> _tcpPingIp(
+  String ip,
+  int port,
+  int times,
+  Duration timeout,
+) async {
   var received = 0;
   var totalDelay = Duration.zero;
 
@@ -474,10 +422,7 @@ Future<CfIpTestResult> _httpPingIp(
       );
       final client = HttpClient();
       client.connectionFactory = (uri, proxyHost, proxyPort) async {
-        return ConnectionTask.fromSocket(
-          Future.value(socket),
-          () {},
-        );
+        return ConnectionTask.fromSocket(Future.value(socket), () {});
       };
 
       final request = await client.getUrl(uri);
@@ -485,7 +430,9 @@ Future<CfIpTestResult> _httpPingIp(
       final response = await request.close();
       sw.stop();
 
-      if (response.statusCode == 200 || response.statusCode == 301 || response.statusCode == 302) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 301 ||
+          response.statusCode == 302) {
         received++;
         totalDelay += sw.elapsed;
         if (colo == null) {
@@ -534,10 +481,7 @@ Future<CfIpTestResult> _downloadTestIp(
 
     final client = HttpClient();
     client.connectionFactory = (uri, proxyHost, proxyPort) async {
-      return ConnectionTask.fromSocket(
-        Future.value(socket),
-        () {},
-      );
+      return ConnectionTask.fromSocket(Future.value(socket), () {});
     };
 
     final request = await client.getUrl(uri);
@@ -620,8 +564,12 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
   required bool quickTest,
   int tcpPort = 443,
 }) async* {
-  final ipv4Ips = enableIpv4 ? _generateIps(ipRangesV4, quick: quickTest, ipv6: false) : <String>[];
-  final ipv6Ips = enableIpv6 ? _generateIps(ipRangesV6, quick: quickTest, ipv6: true) : <String>[];
+  final ipv4Ips = enableIpv4
+      ? _generateIps(ipRangesV4, quick: quickTest, ipv6: false)
+      : <String>[];
+  final ipv6Ips = enableIpv6
+      ? _generateIps(ipRangesV6, quick: quickTest, ipv6: true)
+      : <String>[];
   final allIps = _interleaveIps(ipv4Ips, ipv6Ips);
   final effectiveMaxRoutines = max(1, min(maxRoutines, 32));
   final batchSize = effectiveMaxRoutines;
@@ -647,7 +595,9 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
     if (_isCancelled(cancelToken)) {
       return;
     }
-    Logger.root.info('[CfIpSpeedTest][TCP] batch size=${batch.length} done=$tcpCompleted/${allIps.length}');
+    Logger.root.info(
+      '[CfIpSpeedTest][TCP] batch size=${batch.length} done=$tcpCompleted/${allIps.length}',
+    );
     var skipTcpStage = false;
     final batchResults = await Future.wait(
       batch.map((ip) async {
@@ -671,14 +621,22 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
       }
       if (result.tcpReceived > 0) {
         tcpResults.add(result);
-        Logger.root.info('[CfIpSpeedTest][TCP] ok ${item.ip} received=${result.tcpReceived}/${result.tcpSended} ping=${result.tcpPingMs}ms');
+        Logger.root.info(
+          '[CfIpSpeedTest][TCP] ok ${item.ip} received=${result.tcpReceived}/${result.tcpSended} ping=${result.tcpPingMs}ms',
+        );
       } else {
         Logger.root.info('[CfIpSpeedTest][TCP] timeout ${item.ip}');
       }
       tcpCompleted++;
-      Logger.root.info('[CfIpSpeedTest][TCP] progress $tcpCompleted/${allIps.length} available=${tcpResults.length} current=$currentTestingIp');
+      Logger.root.info(
+        '[CfIpSpeedTest][TCP] progress $tcpCompleted/${allIps.length} available=${tcpResults.length} current=$currentTestingIp',
+      );
       yield CfIpTcpPingProgress(
-        phase: CfIpTestPhase(name: 'TCP Ping', current: tcpCompleted, total: allIps.length),
+        phase: CfIpTestPhase(
+          name: 'TCP Ping',
+          current: tcpCompleted,
+          total: allIps.length,
+        ),
         availableCount: tcpResults.length,
         results: List.from(tcpResults),
         currentIp: currentTestingIp,
@@ -714,34 +672,54 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
   String? currentHttpIp;
 
   yield CfIpHttpPingProgress(
-    phase: CfIpTestPhase(name: 'HTTP Ping', current: 0, total: httpTargets.length),
+    phase: CfIpTestPhase(
+      name: 'HTTP Ping',
+      current: 0,
+      total: httpTargets.length,
+    ),
     results: [],
     currentIp: null,
   );
 
-  for (final batch in _chunkIps(httpTargets.map((e) => e.ip).toList(), effectiveMaxRoutines)) {
+  for (final batch in _chunkIps(
+    httpTargets.map((e) => e.ip).toList(),
+    effectiveMaxRoutines,
+  )) {
     if (_isCancelled(cancelToken)) {
       return;
     }
-    Logger.root.info('[CfIpSpeedTest][HTTP] batch size=${batch.length} done=$httpCompleted/${httpTargets.length}');
+    Logger.root.info(
+      '[CfIpSpeedTest][HTTP] batch size=${batch.length} done=$httpCompleted/${httpTargets.length}',
+    );
     var skipHttpStage = false;
     for (final ip in batch) {
       if (_isCancelled(cancelToken)) break;
       final target = httpTargets.firstWhere((e) => e.ip == ip);
       currentHttpIp = ip;
       Logger.root.info('[CfIpSpeedTest][HTTP] start $ip');
-      final result = await _httpPingIp(target, httpUrl, httpPingTimes, httpTimeout);
+      final result = await _httpPingIp(
+        target,
+        httpUrl,
+        httpPingTimes,
+        httpTimeout,
+      );
       if (_isCancelled(cancelToken)) return;
       httpCompleted++;
       if (result.httpPingMs != null) {
         httpResults.add(result);
-        Logger.root.info('[CfIpSpeedTest][HTTP] ok ${result.ip} ping=${result.httpPingMs}ms colo=${result.colo ?? '-'}');
+        Logger.root.info(
+          '[CfIpSpeedTest][HTTP] ok ${result.ip} ping=${result.httpPingMs}ms colo=${result.colo ?? '-'}',
+        );
       } else {
         Logger.root.info('[CfIpSpeedTest][HTTP] fail $ip');
         if (currentHttpIp == ip) currentHttpIp = null;
       }
       yield CfIpHttpPingProgress(
-        phase: CfIpTestPhase(name: 'HTTP Ping', current: httpCompleted, total: httpTargets.length),
+        phase: CfIpTestPhase(
+          name: 'HTTP Ping',
+          current: httpCompleted,
+          total: httpTargets.length,
+        ),
         results: List.from(httpResults),
         currentIp: currentHttpIp,
       );
@@ -758,43 +736,66 @@ Stream<CfIpTestProgress> runCfIpSpeedTest({
     }
   }
 
-  httpResults.sort((a, b) => (a.httpPingMs ?? 9999).compareTo(b.httpPingMs ?? 9999));
+  httpResults.sort(
+    (a, b) => (a.httpPingMs ?? 9999).compareTo(b.httpPingMs ?? 9999),
+  );
 
   final downloadTargets = httpResults.take(downloadCount).toList();
-  Logger.root.info('[CfIpSpeedTest][Download] targets=${downloadTargets.length}');
+  Logger.root.info(
+    '[CfIpSpeedTest][Download] targets=${downloadTargets.length}',
+  );
   final downloadResults = <CfIpTestResult>[];
   var downloadCompleted = 0;
   String? currentDownloadIp;
 
   yield CfIpDownloadProgress(
-    phase: CfIpTestPhase(name: 'Download', current: 0, total: downloadTargets.length),
+    phase: CfIpTestPhase(
+      name: 'Download',
+      current: 0,
+      total: downloadTargets.length,
+    ),
     results: [],
     currentIp: null,
   );
 
-  for (final batch in _chunkIps(downloadTargets.map((e) => e.ip).toList(), effectiveMaxRoutines)) {
+  for (final batch in _chunkIps(
+    downloadTargets.map((e) => e.ip).toList(),
+    effectiveMaxRoutines,
+  )) {
     if (_isCancelled(cancelToken)) {
       return;
     }
-    Logger.root.info('[CfIpSpeedTest][Download] batch size=${batch.length} done=$downloadCompleted/${downloadTargets.length}');
+    Logger.root.info(
+      '[CfIpSpeedTest][Download] batch size=${batch.length} done=$downloadCompleted/${downloadTargets.length}',
+    );
     var skipDownloadStage = false;
     for (final ip in batch) {
       if (_isCancelled(cancelToken)) break;
       final target = downloadTargets.firstWhere((e) => e.ip == ip);
       currentDownloadIp = ip;
       Logger.root.info('[CfIpSpeedTest][Download] start $ip');
-      final result = await _downloadTestIp(target, downloadUrl, downloadTimeout);
+      final result = await _downloadTestIp(
+        target,
+        downloadUrl,
+        downloadTimeout,
+      );
       if (_isCancelled(cancelToken)) return;
       downloadCompleted++;
       if (result.downloadSpeedMbps != null && result.downloadSpeedMbps! > 0) {
         downloadResults.add(result);
-        Logger.root.info('[CfIpSpeedTest][Download] ok ${result.ip} speed=${result.downloadSpeedMbps!.toStringAsFixed(2)}MB/s');
+        Logger.root.info(
+          '[CfIpSpeedTest][Download] ok ${result.ip} speed=${result.downloadSpeedMbps!.toStringAsFixed(2)}MB/s',
+        );
       } else {
         Logger.root.info('[CfIpSpeedTest][Download] fail $ip');
         if (currentDownloadIp == ip) currentDownloadIp = null;
       }
       yield CfIpDownloadProgress(
-        phase: CfIpTestPhase(name: 'Download', current: downloadCompleted, total: downloadTargets.length),
+        phase: CfIpTestPhase(
+          name: 'Download',
+          current: downloadCompleted,
+          total: downloadTargets.length,
+        ),
         results: List.from(downloadResults),
         currentIp: currentDownloadIp,
       );
