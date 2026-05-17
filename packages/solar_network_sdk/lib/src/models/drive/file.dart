@@ -26,7 +26,7 @@ sealed class UniversalFile with _$UniversalFile {
   factory UniversalFile.fromAttachment(SnCloudFile attachment) {
     return UniversalFile(
       data: attachment,
-      type: switch (attachment.mimeType?.split('/').firstOrNull) {
+      type: switch (attachment.mimeType.split('/').firstOrNull) {
         'image' => UniversalFileType.image,
         'audio' => UniversalFileType.audio,
         'video' => UniversalFileType.video,
@@ -78,32 +78,62 @@ sealed class SnCloudFileObject with _$SnCloudFileObject {
 
 @freezed
 sealed class SnCloudFile with _$SnCloudFile {
+  const SnCloudFile._();
+
   const factory SnCloudFile({
     required String id,
-    required String name,
+    required String accountId,
     required String? description,
-    required Map<String, dynamic>? fileMeta,
-    required Map<String, dynamic>? userMeta,
+    required bool indexed,
+    required bool isFolder,
+    required bool isMarkedRecycle,
+    required String name,
+    // Folder will not have object
+    required SnCloudFileObject? object,
+    required String? objectId,
+    required String? parentId,
+    required String resourceIdentifier,
+    required String? storageId,
+    required String? storageUrl,
+    required String mimeType,
+    required String? applicationType,
+    required String? usage,
     @Default([]) List<int> sensitiveMarks,
-    required String? mimeType,
-    required String? hash,
-    required int size,
+    required Map<String, dynamic> fileMeta,
+    required Map<String, dynamic> userMeta,
     required DateTime? uploadedAt,
-    required DateTime createdAt,
+    required DateTime? expiredAt,
     required DateTime updatedAt,
+    required DateTime createdAt,
     required DateTime? deletedAt,
-    String? url,
-    @Default(false) bool isFolder,
-    String? parentId,
-    String? bundleId,
-    String? accountId,
-    @Default(false) bool indexed,
-    @Default(false) bool isMarkedRecycle,
-    String? storageId,
-    String? storageUrl,
-    String? usage,
-    String? applicationType,
   }) = _SnCloudFile;
+
+  int get size => object?.size ?? 0;
+  String? get hash => object?.hash;
+
+  double? get ratio {
+    if (object?.meta?['width'] != null && object?.meta?['height'] != null) {
+      final width = object!.meta?['width'] as num;
+      final height = object!.meta?['height'] as num;
+      if (height != 0) {
+        return width / height;
+      }
+    }
+    if (object?.meta?['ratio'] != null) {
+      return (object!.meta?['ratio'] as num).toDouble();
+    }
+    return null;
+  }
+
+  double? get width => object?.meta?['width'] != null
+      ? (object!.meta?['width'] as num).toDouble()
+      : null;
+  double? get height => object?.meta?['height'] != null
+      ? (object!.meta?['height'] as num).toDouble()
+      : null;
+
+  String? get blurhash =>
+      (object?.meta?['blurhash'] ?? object?.meta?['blur']) as String?;
 
   factory SnCloudFile.fromJson(Map<String, dynamic> json) =>
       _$SnCloudFileFromJson(json);

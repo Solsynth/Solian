@@ -311,9 +311,9 @@ class PostReplyPreview extends HookConsumerWidget {
     BuildContext context,
     SnCloudFile attachment,
   ) {
-    final isImage = attachment.mimeType?.startsWith('image') ?? false;
-    final isVideo = attachment.mimeType?.startsWith('video') ?? false;
-    final isAudio = attachment.mimeType?.startsWith('audio') ?? false;
+    final isImage = attachment.mimeType.startsWith('image');
+    final isVideo = attachment.mimeType.startsWith('video');
+    final isAudio = attachment.mimeType.startsWith('audio');
 
     Widget content;
     if (isImage) {

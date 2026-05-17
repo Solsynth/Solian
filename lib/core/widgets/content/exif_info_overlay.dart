@@ -8,7 +8,7 @@ class ExifInfoOverlay extends StatelessWidget {
   const ExifInfoOverlay({super.key, required this.item});
 
   static bool precheck(SnCloudFile item) {
-    final exifData = item.fileMeta?['exif'] as Map<String, dynamic>? ?? {};
+    final exifData = item.fileMeta['exif'] as Map<String, dynamic>? ?? {};
 
     if (exifData.isEmpty) return false;
 
@@ -69,7 +69,7 @@ class ExifInfoOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final exifData = item.fileMeta?['exif'] as Map<String, dynamic>? ?? {};
+    final exifData = item.fileMeta['exif'] as Map<String, dynamic>? ?? {};
 
     if (exifData.isEmpty) return const SizedBox.shrink();
 

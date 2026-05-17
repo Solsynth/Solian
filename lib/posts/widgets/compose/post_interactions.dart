@@ -356,7 +356,7 @@ class BoostListItem extends HookConsumerWidget {
     final account = boost.account;
     final displayName = actor?.displayName ?? account?.nick ?? 'unknown';
     final username = actor?.username ?? (account?.name ?? '');
-    final avatarUrl = actor?.avatarUrl ?? account?.profile.picture?.url;
+    final avatarUrl = actor?.avatarUrl ?? account?.profile.picture?.storageUrl;
 
     return ListTile(
       leading: avatarUrl != null
@@ -607,7 +607,11 @@ class PostRepliesListNonSliver extends HookConsumerWidget {
 class PostInteractionsSlivers extends HookConsumerWidget {
   final String postId;
   final double? maxWidth;
-  const PostInteractionsSlivers({super.key, required this.postId, this.maxWidth});
+  const PostInteractionsSlivers({
+    super.key,
+    required this.postId,
+    this.maxWidth,
+  });
 
   Widget _buildTabBar(BuildContext context) {
     final tabController = DefaultTabController.of(context);
@@ -618,8 +622,12 @@ class PostInteractionsSlivers extends HookConsumerWidget {
           ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
           : EdgeInsets.zero,
       decoration: BoxDecoration(
-        color: isWideMode ? Theme.of(context).colorScheme.surfaceContainerLow : Colors.transparent,
-        borderRadius: isWideMode ? BorderRadius.circular(24) : BorderRadius.zero,
+        color: isWideMode
+            ? Theme.of(context).colorScheme.surfaceContainerLow
+            : Colors.transparent,
+        borderRadius: isWideMode
+            ? BorderRadius.circular(24)
+            : BorderRadius.zero,
       ),
       child: TabBar(
         controller: tabController,
@@ -633,7 +641,9 @@ class PostInteractionsSlivers extends HookConsumerWidget {
               )
             : null,
         labelColor: isWideMode ? Colors.white : null,
-        unselectedLabelColor: isWideMode ? Theme.of(context).colorScheme.onSurfaceVariant : null,
+        unselectedLabelColor: isWideMode
+            ? Theme.of(context).colorScheme.onSurfaceVariant
+            : null,
         tabs: [
           Tab(text: 'replies'.tr()),
           Tab(text: 'forwards'.tr()),

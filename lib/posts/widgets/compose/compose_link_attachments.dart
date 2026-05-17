@@ -26,10 +26,7 @@ class CloudFileListNotifier extends AsyncNotifier<PaginationState<SnCloudFile>>
     final driveApi = ref.read(solarNetworkClientProvider).drive;
     const take = 20;
 
-    final result = await driveApi.listMyFiles(
-      offset: fetchedCount,
-      take: take,
-    );
+    final result = await driveApi.listMyFiles(offset: fetchedCount, take: take);
 
     totalCount = result.totalCount;
     return result.items;
@@ -153,11 +150,11 @@ class _CloudFileLinkTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final meta = file.fileMeta is Map ? (file.fileMeta as Map) : const {};
+    final meta = file.fileMeta;
     final ratio = meta['ratio'] is num
         ? (meta['ratio'] as num).toDouble()
         : 1.0;
-    final itemType = file.mimeType?.split('/').first;
+    final itemType = file.mimeType.split('/').first;
 
     final previewWidget = switch (itemType) {
       'image' => CloudImageWidget(
