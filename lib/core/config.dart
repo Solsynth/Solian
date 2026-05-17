@@ -75,6 +75,8 @@ const kAppFriendStatusDesktopNotification =
     'app_friend_status_desktop_notification';
 const kAppIpOverrideEnabled = 'app_ip_override_enabled';
 const kAppIpOverrideList = 'app_ip_override_list';
+const kAppIpOverrideMode = 'app_ip_override_mode';
+const kAppIpOverrideDomains = 'app_ip_override_domains';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -108,9 +110,66 @@ sealed class IpOverrideSettings with _$IpOverrideSettings {
       _$IpOverrideSettingsFromJson(json);
 }
 
+enum IpOverrideMode { complete, mixed, off }
+
+bool matchesIpOverrideDomain(Uri uri, String domain) {
+  final trimmed = domain.trim().toLowerCase();
+  if (trimmed.isEmpty) return false;
+  final host = uri.host.toLowerCase();
+  if (trimmed.startsWith('.')) {
+    return host.endsWith(trimmed);
+  }
+  return host == trimmed;
+}
+
+final ipOverrideModeProvider = Provider<IpOverrideMode>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final rawMode = prefs.getString(kAppIpOverrideMode);
+  if (rawMode != null) {
+    return IpOverrideMode.values.firstWhere(
+      (mode) => mode.name == rawMode,
+      orElse: () => IpOverrideMode.off,
+    );
+  }
+
+  final enabled = prefs.getBool(kAppIpOverrideEnabled) ?? false;
+  return enabled ? IpOverrideMode.complete : IpOverrideMode.off;
+});
+
+final ipOverrideDomainsProvider = Provider<List<String>>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final serverUrl = ref.watch(serverUrlProvider);
+  final defaults = <String>[];
+
+  try {
+    final host = Uri.parse(serverUrl).host;
+    if (host.isNotEmpty) {
+      defaults.add(host);
+    }
+  } catch (_) {}
+
+  final rawDomains = prefs.getString(kAppIpOverrideDomains);
+  if (rawDomains == null || rawDomains.isEmpty) {
+    return defaults;
+  }
+
+  try {
+    final decoded = jsonDecode(rawDomains);
+    if (decoded is List) {
+      final domains = decoded
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+      return domains.isNotEmpty ? domains : defaults;
+    }
+  } catch (_) {}
+
+  return defaults;
+});
+
 final ipOverrideSettingsProvider = Provider<IpOverrideSettings>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  final enabled = prefs.getBool(kAppIpOverrideEnabled) ?? false;
+  final enabled = ref.watch(ipOverrideModeProvider) != IpOverrideMode.off;
   final rawList = prefs.getString(kAppIpOverrideList);
   List<IpOverride> overrides = [];
   if (rawList != null && rawList.isNotEmpty) {
@@ -617,10 +676,28 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     state = state.copyWith(friendStatusDesktopNotification: value);
   }
 
-  void setIpOverrideEnabled(bool value) {
+  void setIpOverrideMode(IpOverrideMode mode) {
     final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppIpOverrideEnabled, value);
+    prefs.setString(kAppIpOverrideMode, mode.name);
+    prefs.setBool(kAppIpOverrideEnabled, mode != IpOverrideMode.off);
+    ref.invalidate(ipOverrideModeProvider);
     ref.invalidate(ipOverrideSettingsProvider);
+    ref.invalidate(ipOverrideDomainsProvider);
+  }
+
+  void setIpOverrideDomains(List<String> domains) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final cleaned = domains.map((domain) => domain.trim()).where((domain) => domain.isNotEmpty).toList();
+    if (cleaned.isEmpty) {
+      prefs.remove(kAppIpOverrideDomains);
+    } else {
+      prefs.setString(kAppIpOverrideDomains, jsonEncode(cleaned));
+    }
+    ref.invalidate(ipOverrideDomainsProvider);
+  }
+
+  void setIpOverrideEnabled(bool value) {
+    setIpOverrideMode(value ? IpOverrideMode.complete : IpOverrideMode.off);
   }
 
   void setIpOverrideList(List<IpOverride> overrides) {

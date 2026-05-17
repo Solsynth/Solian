@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,23 +18,36 @@ class ConnectivitySelfCheckScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isWide = isWiderScreen(context);
+    final isWide = isWideScreen(context);
     final isRunning = useState(false);
     final results = useState<List<_SelfCheckResult>>([]);
     final errorMessage = useState<String?>(null);
+    final mode = ref.watch(ipOverrideModeProvider);
     final settings = ref.watch(ipOverrideSettingsProvider);
-    final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
+    final domains = ref.watch(ipOverrideDomainsProvider);
     final serverUrl = ref.watch(serverUrlProvider);
+    final serverUri = Uri.parse(serverUrl);
 
-    final override = settings.overrides.firstOrNull;
-    final canTestOverride = domainSuffix != null && override != null;
+    final probeHosts = mode == IpOverrideMode.mixed
+        ? domains.where((domain) => !domain.startsWith('.')).toList()
+        : [serverUri.host];
+    final canTestOverride =
+        probeHosts.isNotEmpty &&
+        settings.overrides.isNotEmpty &&
+        mode != IpOverrideMode.off;
 
-    Dio buildClient({IpOverrideConnectionFactory? connectionFactory}) {
+    Dio buildClient(
+      String host, {
+      IpOverrideConnectionFactory? connectionFactory,
+    }) {
       final dio = Dio(
         BaseOptions(
-          baseUrl: serverUrl,
+          baseUrl:
+              '${serverUri.scheme}://$host${serverUri.hasPort ? ':${serverUri.port}' : ''}',
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
+          receiveDataWhenStatusError: true,
+          validateStatus: (_) => true,
           headers: const {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -63,27 +75,27 @@ class ConnectivitySelfCheckScreen extends HookConsumerWidget {
       final stopwatch = Stopwatch()..start();
       try {
         final response = await client.get(
-          '/health',
+          '/',
           options: Options(validateStatus: (_) => true),
         );
         stopwatch.stop();
         final code = response.statusCode ?? 0;
         return _SelfCheckResult(
           label: label,
-          isSuccess: code == 200,
+          isSuccess: true,
           statusCode: code,
           duration: stopwatch.elapsed,
-          details: code == 200
-              ? 'connectivitySelfCheckSuccess'.tr()
-              : 'connectivitySelfCheckFailed'.tr(args: ['$code']),
+          details: 'connectivitySelfCheckSuccess'.tr(),
         );
       } catch (err) {
         stopwatch.stop();
         return _SelfCheckResult(
           label: label,
-          isSuccess: false,
+          isSuccess:
+              err is DioException &&
+              err.type != DioExceptionType.connectionTimeout,
           duration: stopwatch.elapsed,
-          details: err is DioException
+          details: err is DioException && err.error is SocketException
               ? (err.message ?? err.error?.toString() ?? err.toString())
               : err.toString(),
         );
@@ -92,31 +104,83 @@ class ConnectivitySelfCheckScreen extends HookConsumerWidget {
       }
     }
 
+    Future<_SelfCheckResult> runCheckAverage({
+      required String label,
+      required Dio Function() clientBuilder,
+      int attempts = 3,
+    }) async {
+      final runs = <_SelfCheckResult>[];
+      for (var i = 0; i < attempts; i++) {
+        runs.add(await runCheck(label: label, client: clientBuilder()));
+      }
+
+      final successes = runs.where((run) => run.isSuccess).toList();
+      final avgMs = successes.isEmpty
+          ? null
+          : (successes
+                        .map((run) => run.duration.inMicroseconds)
+                        .reduce((a, b) => a + b) /
+                    successes.length) /
+                1000.0;
+
+      return _SelfCheckResult(
+        label: label,
+        isSuccess: successes.isNotEmpty,
+        statusCode: runs.lastOrNull?.statusCode,
+        duration: Duration(microseconds: (avgMs ?? 0).round() * 1000),
+        details: 'connectivitySelfCheckAttempts'.tr(
+          args: [
+            successes.length.toString(),
+            attempts.toString(),
+            avgMs == null ? '-' : avgMs.toStringAsFixed(0),
+          ],
+        ),
+        attempts: attempts,
+        successCount: successes.length,
+      );
+    }
+
     Future<void> runSelfCheck() async {
       isRunning.value = true;
       errorMessage.value = null;
 
       try {
-        final nextResults = <_SelfCheckResult>[
-          await runCheck(
-            label: 'connectivitySelfCheckWithoutOverride'.tr(),
-            client: buildClient(),
-          ),
-        ];
+        final nextResults = <_SelfCheckResult>[];
 
-        if (canTestOverride) {
+        for (final host in probeHosts) {
           nextResults.add(
-            await runCheck(
-              label: 'connectivitySelfCheckWithOverride'.tr(),
-              client: buildClient(
-                connectionFactory: createIpOverrideConnectionFactory(
-                  domainSuffix: domainSuffix,
-                  ip: override.ip,
-                  port: override.port,
-                ),
-              ),
+            await runCheckAverage(
+              label: 'connectivitySelfCheckTarget'.tr(args: [host]),
+              clientBuilder: () => buildClient(host),
             ),
           );
+        }
+
+        if (canTestOverride) {
+          for (final host in probeHosts) {
+            for (final override in settings.overrides) {
+              nextResults.add(
+                await runCheckAverage(
+                  label: 'connectivitySelfCheckWithOverrideIp'.tr(
+                    args: [
+                      host,
+                      override.port == null
+                          ? override.ip
+                          : '${override.ip}:${override.port}',
+                    ],
+                  ),
+                  clientBuilder: () => buildClient(
+                    host,
+                    connectionFactory: createIpOverrideConnectionFactory(
+                      domainSuffix: host,
+                      ip: override.ip,
+                      port: override.port,
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
         }
 
         results.value = nextResults;
@@ -178,7 +242,7 @@ class ConnectivitySelfCheckScreen extends HookConsumerWidget {
                                   child: _OverviewPanel(
                                     isRunning: isRunning.value,
                                     canTestOverride: canTestOverride,
-                                    serverUrl: serverUrl,
+                                    probeHosts: probeHosts,
                                     overrideSummary: overrideSummary,
                                     onRun: runSelfCheck,
                                   ),
@@ -199,7 +263,7 @@ class ConnectivitySelfCheckScreen extends HookConsumerWidget {
                                 _OverviewPanel(
                                   isRunning: isRunning.value,
                                   canTestOverride: canTestOverride,
-                                  serverUrl: serverUrl,
+                                  probeHosts: probeHosts,
                                   overrideSummary: overrideSummary,
                                   onRun: runSelfCheck,
                                 ),
@@ -229,12 +293,16 @@ class _SelfCheckResult {
   final int? statusCode;
   final Duration duration;
   final String details;
+  final int attempts;
+  final int successCount;
 
   const _SelfCheckResult({
     required this.label,
     required this.isSuccess,
     required this.duration,
     required this.details,
+    this.attempts = 1,
+    this.successCount = 0,
     this.statusCode,
   });
 }
@@ -273,8 +341,21 @@ class _SelfCheckResultCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'connectivitySelfCheckDuration'.tr(
-                args: [result.duration.inMilliseconds.toString()],
+              'connectivitySelfCheckAvgDuration'.tr(
+                args: [
+                  result.successCount > 0
+                      ? result.duration.inMilliseconds.toString()
+                      : '-',
+                ],
+              ),
+            ),
+            Text(
+              'connectivitySelfCheckAttempts'.tr(
+                args: [
+                  result.successCount.toString(),
+                  result.attempts.toString(),
+                  result.duration.inMilliseconds.toString(),
+                ],
               ),
             ),
             if (result.statusCode != null) ...[
@@ -297,14 +378,14 @@ class _SelfCheckResultCard extends StatelessWidget {
 class _OverviewPanel extends StatelessWidget {
   final bool isRunning;
   final bool canTestOverride;
-  final String serverUrl;
+  final List<String> probeHosts;
   final String overrideSummary;
   final VoidCallback onRun;
 
   const _OverviewPanel({
     required this.isRunning,
     required this.canTestOverride,
-    required this.serverUrl,
+    required this.probeHosts,
     required this.overrideSummary,
     required this.onRun,
   });
@@ -340,8 +421,8 @@ class _OverviewPanel extends StatelessWidget {
                   Text(
                     'connectivitySelfCheckSubtitle'.tr(),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -356,7 +437,7 @@ class _OverviewPanel extends StatelessWidget {
             _StatusChip(
               icon: Symbols.language,
               label: 'Server',
-              value: serverUrl,
+              value: probeHosts.join(', '),
             ),
             _StatusChip(
               icon: Symbols.dns,
@@ -386,11 +467,13 @@ class _OverviewPanel extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           canTestOverride
-              ? 'connectivitySelfCheckReadyHelper'.tr()
+              ? 'connectivitySelfCheckReadyHelper'.tr(
+                  args: [probeHosts.join(', ')],
+                )
               : 'connectivitySelfCheckUnavailableHelper'.tr(),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
       ],
     );
@@ -449,7 +532,11 @@ class _ResultsSurface extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Symbols.network_check, size: 48, color: scheme.onSurfaceVariant),
+                    Icon(
+                      Symbols.network_check,
+                      size: 48,
+                      color: scheme.onSurfaceVariant,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       'connectivitySelfCheckEmptyTitle'.tr(),
@@ -460,8 +547,8 @@ class _ResultsSurface extends StatelessWidget {
                       'connectivitySelfCheckEmptyHelper'.tr(),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
