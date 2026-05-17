@@ -575,8 +575,7 @@ class ProfilePictureWidget extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final String? id = file?.id ?? fileId;
 
-    final meta = file?.fileMeta is Map ? (file!.fileMeta as Map) : const {};
-    final blurHash = meta['blurhash'] as String?;
+    final blurHash = file?.blurhash;
 
     final fallback = Icon(
       fallbackIcon ?? Symbols.account_circle,
