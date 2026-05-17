@@ -896,6 +896,49 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
+          Builder(
+            builder: (context) {
+              final ipOverrideSettings = ref.watch(ipOverrideSettingsProvider);
+              final domainSuffix = ref.watch(ipOverrideDomainSuffixProvider);
+              return ListTile(
+                minLeadingWidth: 48,
+                title: Text('settingsIpOverride').tr(),
+                subtitle: Text(
+                  domainSuffix != null
+                      ? 'settingsIpOverrideHelperOn'.tr(args: [domainSuffix])
+                      : 'settingsIpOverrideHelperOff'.tr(),
+                ),
+                contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                leading: const Icon(Symbols.dns),
+                trailing: Switch(
+                  value: ipOverrideSettings.enabled,
+                  onChanged: domainSuffix != null
+                      ? (value) {
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .setIpOverrideEnabled(value);
+                        }
+                      : null,
+                ),
+                onTap: domainSuffix != null
+                    ? () {
+                        _showIpOverrideDialog(context, ref);
+                      }
+                    : null,
+              );
+            },
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('cfIpSpeedTest').tr(),
+            subtitle: Text('cfIpSpeedTestSubtitle').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.speed),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              context.router.push(const CfIpSpeedTestRoute());
+            },
+          ),
           if (user.value != null)
             pools.when(
               data: (data) {
@@ -2412,4 +2455,69 @@ class _EmbeddedAboutContent extends HookConsumerWidget {
       ],
     );
   }
+}
+
+void _showIpOverrideDialog(BuildContext context, WidgetRef ref) {
+  final settings = ref.read(ipOverrideSettingsProvider);
+  final ipController = TextEditingController(
+    text: settings.overrides.isNotEmpty ? settings.overrides.first.ip : '',
+  );
+  final portController = TextEditingController(
+    text: settings.overrides.isNotEmpty && settings.overrides.first.port != null
+        ? settings.overrides.first.port.toString()
+        : '',
+  );
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('settingsIpOverride').tr(),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: ipController,
+              decoration: InputDecoration(
+                labelText: 'IP Address',
+                hintText: '192.168.1.1',
+                border: const OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.text,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: portController,
+              decoration: InputDecoration(
+                labelText: 'Port (optional)',
+                hintText: '443',
+                border: const OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('cancel').tr(),
+          ),
+          TextButton(
+            onPressed: () {
+              final ip = ipController.text.trim();
+              if (ip.isNotEmpty) {
+                final port = int.tryParse(portController.text.trim());
+                ref.read(appSettingsProvider.notifier).setIpOverrideList([
+                  IpOverride(ip: ip, port: port),
+                ]);
+                ref.read(appSettingsProvider.notifier).setIpOverrideEnabled(true);
+              }
+              Navigator.pop(context);
+            },
+            child: Text('confirm').tr(),
+          ),
+        ],
+      );
+    },
+  );
 }

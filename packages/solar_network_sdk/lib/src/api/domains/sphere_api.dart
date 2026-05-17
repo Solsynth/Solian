@@ -380,11 +380,7 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/posts/bookmarks',
-      queryParameters: {
-        'offset': offset,
-        'take': take,
-        if (order != null) 'order': order,
-      },
+      queryParameters: {'offset': offset, 'take': take, 'order': ?order},
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnPost.fromJson);
@@ -454,8 +450,8 @@ class SphereApi extends BaseApi {
       queryParameters: {
         'offset': offset,
         'take': take,
-        if (symbol != null) 'symbol': symbol,
-        if (order != null) 'order': order,
+        'symbol': ?symbol,
+        'order': ?order,
       },
     );
     final totalCount = getTotalCount(response.headers);
@@ -498,11 +494,7 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/posts/reactions/users/$name',
-      queryParameters: {
-        'offset': offset,
-        'take': take,
-        if (order != null) 'order': order,
-      },
+      queryParameters: {'offset': offset, 'take': take, 'order': ?order},
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(
