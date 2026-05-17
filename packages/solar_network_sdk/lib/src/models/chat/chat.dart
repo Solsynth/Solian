@@ -17,8 +17,8 @@ sealed class SnChatRoom with _$SnChatRoom {
     @JsonKey(name: 'mls_group_id') String? mlsGroupId,
     @Default(false) bool isPublic,
     @Default(false) bool isCommunity,
-    required SnCloudFile? picture,
-    required SnCloudFile? background,
+    required SnCloudFileReference? picture,
+    required SnCloudFileReference? background,
     required String? realmId,
     required String? accountId,
     required SnRealm? realm,
@@ -48,7 +48,7 @@ sealed class SnChatMessage with _$SnChatMessage {
     @Default({}) Map<String, dynamic> meta,
     @Default([]) List<String> membersMentioned,
     DateTime? editedAt,
-    @Default([]) List<SnCloudFile> attachments,
+    @Default([]) List<SnCloudFileReference> attachments,
     @Default([]) List<SnChatReaction> reactions,
     @JsonKey(name: 'reactions_count')
     @Default({})

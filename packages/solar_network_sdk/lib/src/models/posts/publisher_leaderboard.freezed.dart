@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnPublisherLeaderboardEntry {
 
-@JsonKey(name: 'publisher_id') String get publisherId; String get name; String get nick; SnCloudFile? get picture; double get rating; int get rank; double get percentile; String get grade;
+@JsonKey(name: 'publisher_id') String get publisherId; String get name; String get nick; SnCloudFileReference? get picture; double get rating; int get rank; double get percentile; String get grade;
 /// Create a copy of SnPublisherLeaderboardEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,11 +48,11 @@ abstract mixin class $SnPublisherLeaderboardEntryCopyWith<$Res>  {
   factory $SnPublisherLeaderboardEntryCopyWith(SnPublisherLeaderboardEntry value, $Res Function(SnPublisherLeaderboardEntry) _then) = _$SnPublisherLeaderboardEntryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'publisher_id') String publisherId, String name, String nick, SnCloudFile? picture, double rating, int rank, double percentile, String grade
+@JsonKey(name: 'publisher_id') String publisherId, String name, String nick, SnCloudFileReference? picture, double rating, int rank, double percentile, String grade
 });
 
 
-$SnCloudFileCopyWith<$Res>? get picture;
+$SnCloudFileReferenceCopyWith<$Res>? get picture;
 
 }
 /// @nodoc
@@ -71,7 +71,7 @@ publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: ca
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
 as String,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as double,rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
 as int,percentile: null == percentile ? _self.percentile : percentile // ignore: cast_nullable_to_non_nullable
 as double,grade: null == grade ? _self.grade : grade // ignore: cast_nullable_to_non_nullable
@@ -82,12 +82,12 @@ as String,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }
@@ -169,7 +169,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'publisher_id')  String publisherId,  String name,  String nick,  SnCloudFile? picture,  double rating,  int rank,  double percentile,  String grade)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'publisher_id')  String publisherId,  String name,  String nick,  SnCloudFileReference? picture,  double rating,  int rank,  double percentile,  String grade)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnPublisherLeaderboardEntry() when $default != null:
 return $default(_that.publisherId,_that.name,_that.nick,_that.picture,_that.rating,_that.rank,_that.percentile,_that.grade);case _:
@@ -190,7 +190,7 @@ return $default(_that.publisherId,_that.name,_that.nick,_that.picture,_that.rati
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'publisher_id')  String publisherId,  String name,  String nick,  SnCloudFile? picture,  double rating,  int rank,  double percentile,  String grade)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'publisher_id')  String publisherId,  String name,  String nick,  SnCloudFileReference? picture,  double rating,  int rank,  double percentile,  String grade)  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisherLeaderboardEntry():
 return $default(_that.publisherId,_that.name,_that.nick,_that.picture,_that.rating,_that.rank,_that.percentile,_that.grade);}
@@ -207,7 +207,7 @@ return $default(_that.publisherId,_that.name,_that.nick,_that.picture,_that.rati
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'publisher_id')  String publisherId,  String name,  String nick,  SnCloudFile? picture,  double rating,  int rank,  double percentile,  String grade)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'publisher_id')  String publisherId,  String name,  String nick,  SnCloudFileReference? picture,  double rating,  int rank,  double percentile,  String grade)?  $default,) {final _that = this;
 switch (_that) {
 case _SnPublisherLeaderboardEntry() when $default != null:
 return $default(_that.publisherId,_that.name,_that.nick,_that.picture,_that.rating,_that.rank,_that.percentile,_that.grade);case _:
@@ -228,7 +228,7 @@ class _SnPublisherLeaderboardEntry implements SnPublisherLeaderboardEntry {
 @override@JsonKey(name: 'publisher_id') final  String publisherId;
 @override final  String name;
 @override final  String nick;
-@override final  SnCloudFile? picture;
+@override final  SnCloudFileReference? picture;
 @override final  double rating;
 @override final  int rank;
 @override final  double percentile;
@@ -267,11 +267,11 @@ abstract mixin class _$SnPublisherLeaderboardEntryCopyWith<$Res> implements $SnP
   factory _$SnPublisherLeaderboardEntryCopyWith(_SnPublisherLeaderboardEntry value, $Res Function(_SnPublisherLeaderboardEntry) _then) = __$SnPublisherLeaderboardEntryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'publisher_id') String publisherId, String name, String nick, SnCloudFile? picture, double rating, int rank, double percentile, String grade
+@JsonKey(name: 'publisher_id') String publisherId, String name, String nick, SnCloudFileReference? picture, double rating, int rank, double percentile, String grade
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get picture;
+@override $SnCloudFileReferenceCopyWith<$Res>? get picture;
 
 }
 /// @nodoc
@@ -290,7 +290,7 @@ publisherId: null == publisherId ? _self.publisherId : publisherId // ignore: ca
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,nick: null == nick ? _self.nick : nick // ignore: cast_nullable_to_non_nullable
 as String,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
 as double,rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
 as int,percentile: null == percentile ? _self.percentile : percentile // ignore: cast_nullable_to_non_nullable
 as double,grade: null == grade ? _self.grade : grade // ignore: cast_nullable_to_non_nullable
@@ -302,12 +302,12 @@ as String,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }

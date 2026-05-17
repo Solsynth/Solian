@@ -43,7 +43,9 @@ _SnLiveStream _$SnLiveStreamFromJson(Map<String, dynamic> json) =>
       peakViewerCount: (json['peak_viewer_count'] as num?)?.toInt() ?? 0,
       thumbnail: json['thumbnail'] == null
           ? null
-          : SnCloudFile.fromJson(json['thumbnail'] as Map<String, dynamic>),
+          : SnCloudFileReference.fromJson(
+              json['thumbnail'] as Map<String, dynamic>,
+            ),
       metadata: json['metadata'] as Map<String, dynamic>?,
       publisherId: json['publisher_id'] as String?,
       publisher: json['publisher'] == null

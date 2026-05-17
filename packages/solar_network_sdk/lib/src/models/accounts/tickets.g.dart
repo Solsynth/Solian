@@ -69,7 +69,7 @@ _SnTicketMessage _$SnTicketMessageFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['deleted_at'] as String),
       files: (json['files'] as List<dynamic>)
-          .map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+          .map((e) => SnCloudFileReference.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

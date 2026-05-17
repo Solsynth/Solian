@@ -371,7 +371,7 @@ $SnAccountCopyWith<$Res>? get assignee {
 /// @nodoc
 mixin _$SnTicketMessage {
 
- String get id; String get ticketId; String get senderId; SnAccount get sender; String get content; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnCloudFile> get files;
+ String get id; String get ticketId; String get senderId; SnAccount get sender; String get content; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnCloudFileReference> get files;
 /// Create a copy of SnTicketMessage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -404,7 +404,7 @@ abstract mixin class $SnTicketMessageCopyWith<$Res>  {
   factory $SnTicketMessageCopyWith(SnTicketMessage value, $Res Function(SnTicketMessage) _then) = _$SnTicketMessageCopyWithImpl;
 @useResult
 $Res call({
- String id, String ticketId, String senderId, SnAccount sender, String content, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnCloudFile> files
+ String id, String ticketId, String senderId, SnAccount sender, String content, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnCloudFileReference> files
 });
 
 
@@ -432,7 +432,7 @@ as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,files: null == files ? _self.files : files // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>,
+as List<SnCloudFileReference>,
   ));
 }
 /// Create a copy of SnTicketMessage
@@ -523,7 +523,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String ticketId,  String senderId,  SnAccount sender,  String content,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnCloudFile> files)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String ticketId,  String senderId,  SnAccount sender,  String content,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnCloudFileReference> files)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnTicketMessage() when $default != null:
 return $default(_that.id,_that.ticketId,_that.senderId,_that.sender,_that.content,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.files);case _:
@@ -544,7 +544,7 @@ return $default(_that.id,_that.ticketId,_that.senderId,_that.sender,_that.conten
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String ticketId,  String senderId,  SnAccount sender,  String content,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnCloudFile> files)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String ticketId,  String senderId,  SnAccount sender,  String content,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnCloudFileReference> files)  $default,) {final _that = this;
 switch (_that) {
 case _SnTicketMessage():
 return $default(_that.id,_that.ticketId,_that.senderId,_that.sender,_that.content,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.files);}
@@ -561,7 +561,7 @@ return $default(_that.id,_that.ticketId,_that.senderId,_that.sender,_that.conten
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String ticketId,  String senderId,  SnAccount sender,  String content,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnCloudFile> files)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String ticketId,  String senderId,  SnAccount sender,  String content,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnCloudFileReference> files)?  $default,) {final _that = this;
 switch (_that) {
 case _SnTicketMessage() when $default != null:
 return $default(_that.id,_that.ticketId,_that.senderId,_that.sender,_that.content,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.files);case _:
@@ -576,7 +576,7 @@ return $default(_that.id,_that.ticketId,_that.senderId,_that.sender,_that.conten
 @JsonSerializable()
 
 class _SnTicketMessage implements SnTicketMessage {
-  const _SnTicketMessage({required this.id, required this.ticketId, required this.senderId, required this.sender, required this.content, required this.createdAt, required this.updatedAt, this.deletedAt, required final  List<SnCloudFile> files}): _files = files;
+  const _SnTicketMessage({required this.id, required this.ticketId, required this.senderId, required this.sender, required this.content, required this.createdAt, required this.updatedAt, this.deletedAt, required final  List<SnCloudFileReference> files}): _files = files;
   factory _SnTicketMessage.fromJson(Map<String, dynamic> json) => _$SnTicketMessageFromJson(json);
 
 @override final  String id;
@@ -587,8 +587,8 @@ class _SnTicketMessage implements SnTicketMessage {
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  DateTime? deletedAt;
- final  List<SnCloudFile> _files;
-@override List<SnCloudFile> get files {
+ final  List<SnCloudFileReference> _files;
+@override List<SnCloudFileReference> get files {
   if (_files is EqualUnmodifiableListView) return _files;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_files);
@@ -628,7 +628,7 @@ abstract mixin class _$SnTicketMessageCopyWith<$Res> implements $SnTicketMessage
   factory _$SnTicketMessageCopyWith(_SnTicketMessage value, $Res Function(_SnTicketMessage) _then) = __$SnTicketMessageCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String ticketId, String senderId, SnAccount sender, String content, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnCloudFile> files
+ String id, String ticketId, String senderId, SnAccount sender, String content, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnCloudFileReference> files
 });
 
 
@@ -656,7 +656,7 @@ as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,files: null == files ? _self._files : files // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>,
+as List<SnCloudFileReference>,
   ));
 }
 

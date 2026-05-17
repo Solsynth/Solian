@@ -16,7 +16,7 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class CloudFileLightbox extends HookConsumerWidget {
-  final List<SnCloudFile> items;
+  final List<IDisplayableCloudFile> items;
   final int initialIndex;
   final String? heroTag;
 
@@ -87,9 +87,12 @@ class CloudFileLightbox extends HookConsumerWidget {
 
       switch (result) {
         case 'save':
-          ref
-              .read(driveFileDownloaderProvider)
-              .saveToGallery(items[currentIndex.value]);
+          final item = items[currentIndex.value];
+          if (item is SnCloudFile) {
+            ref
+                .read(driveFileDownloaderProvider)
+                .saveToGallery(item);
+          }
           break;
         case 'toggle_original':
           showOriginal.value = !showOriginal.value;
@@ -387,7 +390,7 @@ class _ArrowButton extends StatelessWidget {
 
 class _LightboxTopBar extends StatelessWidget {
   final BuildContext context;
-  final List<SnCloudFile> items;
+  final List<IDisplayableCloudFile> items;
   final int currentIndex;
   final VoidCallback onShowActions;
 
@@ -460,7 +463,7 @@ class _LightboxTopBar extends StatelessWidget {
 
 class _LightboxBottomBar extends StatelessWidget {
   final BuildContext context;
-  final List<SnCloudFile> items;
+  final List<IDisplayableCloudFile> items;
   final int currentIndex;
   final bool showOriginal;
   final bool showExif;

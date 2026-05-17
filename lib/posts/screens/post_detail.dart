@@ -141,7 +141,7 @@ final postCollectionPostsProvider = FutureProvider.autoDispose
 
 const _postDetailMaxWidth = 640.0;
 
-SnCloudFile? _getPostThumbnail(SnPost post) {
+IDisplayableCloudFile? _getPostThumbnail(SnPost post) {
   final thumbnailId = post.meta?['thumbnail'] as String?;
   if (thumbnailId == null) return null;
   try {

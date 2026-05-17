@@ -1117,7 +1117,7 @@ as bool,
 /// @nodoc
 mixin _$SnThinkingMessagePart {
 
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType get type; String? get text; String? get reasoning; Map<String, dynamic>? get metadata; List<SnCloudFile>? get files; SnFunctionCall? get functionCall; SnFunctionResult? get functionResult;
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType get type; String? get text; String? get reasoning; Map<String, dynamic>? get metadata; List<SnCloudFileReference>? get files; SnFunctionCall? get functionCall; SnFunctionResult? get functionResult;
 /// Create a copy of SnThinkingMessagePart
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1150,7 +1150,7 @@ abstract mixin class $SnThinkingMessagePartCopyWith<$Res>  {
   factory $SnThinkingMessagePartCopyWith(SnThinkingMessagePart value, $Res Function(SnThinkingMessagePart) _then) = _$SnThinkingMessagePartCopyWithImpl;
 @useResult
 $Res call({
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, String? reasoning, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, String? reasoning, Map<String, dynamic>? metadata, List<SnCloudFileReference>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
 });
 
 
@@ -1174,7 +1174,7 @@ as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: 
 as String?,reasoning: freezed == reasoning ? _self.reasoning : reasoning // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,files: freezed == files ? _self.files : files // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFileReference>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
 as SnFunctionCall?,functionResult: freezed == functionResult ? _self.functionResult : functionResult // ignore: cast_nullable_to_non_nullable
 as SnFunctionResult?,
   ));
@@ -1282,7 +1282,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFileReference>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart() when $default != null:
 return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
@@ -1303,7 +1303,7 @@ return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFileReference>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart():
 return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files,_that.functionCall,_that.functionResult);}
@@ -1320,7 +1320,7 @@ return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFile>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ThinkingMessagePartTypeConverter()  ThinkingMessagePartType type,  String? text,  String? reasoning,  Map<String, dynamic>? metadata,  List<SnCloudFileReference>? files,  SnFunctionCall? functionCall,  SnFunctionResult? functionResult)?  $default,) {final _that = this;
 switch (_that) {
 case _SnThinkingMessagePart() when $default != null:
 return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files,_that.functionCall,_that.functionResult);case _:
@@ -1335,7 +1335,7 @@ return $default(_that.type,_that.text,_that.reasoning,_that.metadata,_that.files
 @JsonSerializable()
 
 class _SnThinkingMessagePart implements SnThinkingMessagePart {
-  const _SnThinkingMessagePart({@ThinkingMessagePartTypeConverter() required this.type, this.text, this.reasoning, final  Map<String, dynamic>? metadata, final  List<SnCloudFile>? files, this.functionCall, this.functionResult}): _metadata = metadata,_files = files;
+  const _SnThinkingMessagePart({@ThinkingMessagePartTypeConverter() required this.type, this.text, this.reasoning, final  Map<String, dynamic>? metadata, final  List<SnCloudFileReference>? files, this.functionCall, this.functionResult}): _metadata = metadata,_files = files;
   factory _SnThinkingMessagePart.fromJson(Map<String, dynamic> json) => _$SnThinkingMessagePartFromJson(json);
 
 @override@ThinkingMessagePartTypeConverter() final  ThinkingMessagePartType type;
@@ -1350,8 +1350,8 @@ class _SnThinkingMessagePart implements SnThinkingMessagePart {
   return EqualUnmodifiableMapView(value);
 }
 
- final  List<SnCloudFile>? _files;
-@override List<SnCloudFile>? get files {
+ final  List<SnCloudFileReference>? _files;
+@override List<SnCloudFileReference>? get files {
   final value = _files;
   if (value == null) return null;
   if (_files is EqualUnmodifiableListView) return _files;
@@ -1395,7 +1395,7 @@ abstract mixin class _$SnThinkingMessagePartCopyWith<$Res> implements $SnThinkin
   factory _$SnThinkingMessagePartCopyWith(_SnThinkingMessagePart value, $Res Function(_SnThinkingMessagePart) _then) = __$SnThinkingMessagePartCopyWithImpl;
 @override @useResult
 $Res call({
-@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, String? reasoning, Map<String, dynamic>? metadata, List<SnCloudFile>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
+@ThinkingMessagePartTypeConverter() ThinkingMessagePartType type, String? text, String? reasoning, Map<String, dynamic>? metadata, List<SnCloudFileReference>? files, SnFunctionCall? functionCall, SnFunctionResult? functionResult
 });
 
 
@@ -1419,7 +1419,7 @@ as ThinkingMessagePartType,text: freezed == text ? _self.text : text // ignore: 
 as String?,reasoning: freezed == reasoning ? _self.reasoning : reasoning // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,files: freezed == files ? _self._files : files // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFileReference>?,functionCall: freezed == functionCall ? _self.functionCall : functionCall // ignore: cast_nullable_to_non_nullable
 as SnFunctionCall?,functionResult: freezed == functionResult ? _self.functionResult : functionResult // ignore: cast_nullable_to_non_nullable
 as SnFunctionResult?,
   ));

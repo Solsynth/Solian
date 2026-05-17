@@ -412,7 +412,7 @@ class ComposeLogic {
       realm: state.realm.value,
       attachments: state.attachments.value
           .map((e) => e.data)
-          .whereType<SnCloudFile>()
+          .whereType<SnCloudFileReference>()
           .toList(),
       publisher: SnPublisher(
         id: state.currentPublisher.value?.id ?? '',

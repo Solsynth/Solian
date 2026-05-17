@@ -138,7 +138,7 @@ sealed class SnThinkingMessagePart with _$SnThinkingMessagePart {
     String? text,
     String? reasoning,
     Map<String, dynamic>? metadata,
-    List<SnCloudFile>? files,
+    List<SnCloudFileReference>? files,
     SnFunctionCall? functionCall,
     SnFunctionResult? functionResult,
   }) = _SnThinkingMessagePart;

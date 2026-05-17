@@ -173,26 +173,26 @@ class _CollectionEditorSheet extends HookConsumerWidget {
     final descController = useTextEditingController(
       text: existing?.description ?? '',
     );
-    final background = useState<SnCloudFile?>(existing?.background);
-    final icon = useState<SnCloudFile?>(existing?.icon);
+    final background = useState<IDisplayableCloudFile?>(existing?.background);
+    final icon = useState<IDisplayableCloudFile?>(existing?.icon);
     final saving = useState(false);
 
-    Future<SnCloudFile?> pickBackground() async {
+    Future<IDisplayableCloudFile?> pickBackground() async {
       final result = await showImagePickerEditor(
         context,
         config: ImageEditorConfig.banner,
         title: 'collectionBackground'.tr(),
       );
-      return result as SnCloudFile?;
+      return result as IDisplayableCloudFile?;
     }
 
-    Future<SnCloudFile?> pickIcon() async {
+    Future<IDisplayableCloudFile?> pickIcon() async {
       final result = await showImagePickerEditor(
         context,
         config: ImageEditorConfig.avatar,
         title: 'collectionIcon'.tr(),
       );
-      return result as SnCloudFile?;
+      return result as IDisplayableCloudFile?;
     }
 
     Future<void> submit() async {

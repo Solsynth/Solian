@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnChatRoom {
 
- String get id; String? get name; String? get description; int get type;@JsonKey(name: 'encryption_mode') int get encryptionMode;@JsonKey(name: 'mls_group_id') String? get mlsGroupId; bool get isPublic; bool get isCommunity; SnCloudFile? get picture; SnCloudFile? get background; String? get realmId; String? get accountId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members;// Frontend data
+ String get id; String? get name; String? get description; int get type;@JsonKey(name: 'encryption_mode') int get encryptionMode;@JsonKey(name: 'mls_group_id') String? get mlsGroupId; bool get isPublic; bool get isCommunity; SnCloudFileReference? get picture; SnCloudFileReference? get background; String? get realmId; String? get accountId; SnRealm? get realm; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnChatMember>? get members;// Frontend data
  bool get isPinned;
 /// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
@@ -49,11 +49,11 @@ abstract mixin class $SnChatRoomCopyWith<$Res>  {
   factory $SnChatRoomCopyWith(SnChatRoom value, $Res Function(SnChatRoom) _then) = _$SnChatRoomCopyWithImpl;
 @useResult
 $Res call({
- String id, String? name, String? description, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity, SnCloudFile? picture, SnCloudFile? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
+ String id, String? name, String? description, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity, SnCloudFileReference? picture, SnCloudFileReference? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
 });
 
 
-$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;$SnRealmCopyWith<$Res>? get realm;
+$SnCloudFileReferenceCopyWith<$Res>? get picture;$SnCloudFileReferenceCopyWith<$Res>? get background;$SnRealmCopyWith<$Res>? get realm;
 
 }
 /// @nodoc
@@ -77,8 +77,8 @@ as int,mlsGroupId: freezed == mlsGroupId ? _self.mlsGroupId : mlsGroupId // igno
 as String?,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,realm: freezed == realm ? _self.realm : realm // ignore: cast_nullable_to_non_nullable
 as SnRealm?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -93,24 +93,24 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }/// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
+$SnCloudFileReferenceCopyWith<$Res>? get background {
     if (_self.background == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
     return _then(_self.copyWith(background: value));
   });
 }/// Create a copy of SnChatRoom
@@ -204,7 +204,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFile? picture,  SnCloudFile? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatRoom() when $default != null:
 return $default(_that.id,_that.name,_that.description,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);case _:
@@ -225,7 +225,7 @@ return $default(_that.id,_that.name,_that.description,_that.type,_that.encryptio
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFile? picture,  SnCloudFile? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  String? description,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatRoom():
 return $default(_that.id,_that.name,_that.description,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);}
@@ -242,7 +242,7 @@ return $default(_that.id,_that.name,_that.description,_that.type,_that.encryptio
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  String? description,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFile? picture,  SnCloudFile? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  String? description,  int type, @JsonKey(name: 'encryption_mode')  int encryptionMode, @JsonKey(name: 'mls_group_id')  String? mlsGroupId,  bool isPublic,  bool isCommunity,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String? realmId,  String? accountId,  SnRealm? realm,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnChatMember>? members,  bool isPinned)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatRoom() when $default != null:
 return $default(_that.id,_that.name,_that.description,_that.type,_that.encryptionMode,_that.mlsGroupId,_that.isPublic,_that.isCommunity,_that.picture,_that.background,_that.realmId,_that.accountId,_that.realm,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.members,_that.isPinned);case _:
@@ -268,8 +268,8 @@ class _SnChatRoom implements SnChatRoom {
 @override@JsonKey(name: 'mls_group_id') final  String? mlsGroupId;
 @override@JsonKey() final  bool isPublic;
 @override@JsonKey() final  bool isCommunity;
-@override final  SnCloudFile? picture;
-@override final  SnCloudFile? background;
+@override final  SnCloudFileReference? picture;
+@override final  SnCloudFileReference? background;
 @override final  String? realmId;
 @override final  String? accountId;
 @override final  SnRealm? realm;
@@ -321,11 +321,11 @@ abstract mixin class _$SnChatRoomCopyWith<$Res> implements $SnChatRoomCopyWith<$
   factory _$SnChatRoomCopyWith(_SnChatRoom value, $Res Function(_SnChatRoom) _then) = __$SnChatRoomCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? name, String? description, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity, SnCloudFile? picture, SnCloudFile? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
+ String id, String? name, String? description, int type,@JsonKey(name: 'encryption_mode') int encryptionMode,@JsonKey(name: 'mls_group_id') String? mlsGroupId, bool isPublic, bool isCommunity, SnCloudFileReference? picture, SnCloudFileReference? background, String? realmId, String? accountId, SnRealm? realm, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnChatMember>? members, bool isPinned
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;@override $SnRealmCopyWith<$Res>? get realm;
+@override $SnCloudFileReferenceCopyWith<$Res>? get picture;@override $SnCloudFileReferenceCopyWith<$Res>? get background;@override $SnRealmCopyWith<$Res>? get realm;
 
 }
 /// @nodoc
@@ -349,8 +349,8 @@ as int,mlsGroupId: freezed == mlsGroupId ? _self.mlsGroupId : mlsGroupId // igno
 as String?,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,realmId: freezed == realmId ? _self.realmId : realmId // ignore: cast_nullable_to_non_nullable
 as String?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,realm: freezed == realm ? _self.realm : realm // ignore: cast_nullable_to_non_nullable
 as SnRealm?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -366,24 +366,24 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }/// Create a copy of SnChatRoom
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
+$SnCloudFileReferenceCopyWith<$Res>? get background {
     if (_self.background == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
     return _then(_self.copyWith(background: value));
   });
 }/// Create a copy of SnChatRoom
@@ -405,7 +405,7 @@ $SnRealmCopyWith<$Res>? get realm {
 /// @nodoc
 mixin _$SnChatMessage {
 
- DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get type; String? get content;@JsonKey(name: 'client_message_id') String? get clientMessageId; String? get nonce; Map<String, dynamic> get meta; List<String> get membersMentioned; DateTime? get editedAt; List<SnCloudFile> get attachments; List<SnChatReaction> get reactions;@JsonKey(name: 'reactions_count') Map<String, int> get reactionsCount;@JsonKey(name: 'reactions_made') Map<String, bool> get reactionsMade; String? get repliedMessageId; String? get forwardedMessageId; String get senderId; SnChatMember get sender; String get chatRoomId;
+ DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get type; String? get content;@JsonKey(name: 'client_message_id') String? get clientMessageId; String? get nonce; Map<String, dynamic> get meta; List<String> get membersMentioned; DateTime? get editedAt; List<SnCloudFileReference> get attachments; List<SnChatReaction> get reactions;@JsonKey(name: 'reactions_count') Map<String, int> get reactionsCount;@JsonKey(name: 'reactions_made') Map<String, bool> get reactionsMade; String? get repliedMessageId; String? get forwardedMessageId; String get senderId; SnChatMember get sender; String get chatRoomId;
 /// Create a copy of SnChatMessage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -438,7 +438,7 @@ abstract mixin class $SnChatMessageCopyWith<$Res>  {
   factory $SnChatMessageCopyWith(SnChatMessage value, $Res Function(SnChatMessage) _then) = _$SnChatMessageCopyWithImpl;
 @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount,@JsonKey(name: 'reactions_made') Map<String, bool> reactionsMade, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFileReference> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount,@JsonKey(name: 'reactions_made') Map<String, bool> reactionsMade, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
 
 
@@ -469,7 +469,7 @@ as String?,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_no
 as Map<String, dynamic>,membersMentioned: null == membersMentioned ? _self.membersMentioned : membersMentioned // ignore: cast_nullable_to_non_nullable
 as List<String>,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,attachments: null == attachments ? _self.attachments : attachments // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>,reactions: null == reactions ? _self.reactions : reactions // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFileReference>,reactions: null == reactions ? _self.reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<SnChatReaction>,reactionsCount: null == reactionsCount ? _self.reactionsCount : reactionsCount // ignore: cast_nullable_to_non_nullable
 as Map<String, int>,reactionsMade: null == reactionsMade ? _self.reactionsMade : reactionsMade // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,repliedMessageId: freezed == repliedMessageId ? _self.repliedMessageId : repliedMessageId // ignore: cast_nullable_to_non_nullable
@@ -568,7 +568,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFileReference> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnChatMessage() when $default != null:
 return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.reactionsMade,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
@@ -589,7 +589,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFileReference> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMessage():
 return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.reactionsMade,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);}
@@ -606,7 +606,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFile> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  String id,  String type,  String? content, @JsonKey(name: 'client_message_id')  String? clientMessageId,  String? nonce,  Map<String, dynamic> meta,  List<String> membersMentioned,  DateTime? editedAt,  List<SnCloudFileReference> attachments,  List<SnChatReaction> reactions, @JsonKey(name: 'reactions_count')  Map<String, int> reactionsCount, @JsonKey(name: 'reactions_made')  Map<String, bool> reactionsMade,  String? repliedMessageId,  String? forwardedMessageId,  String senderId,  SnChatMember sender,  String chatRoomId)?  $default,) {final _that = this;
 switch (_that) {
 case _SnChatMessage() when $default != null:
 return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.type,_that.content,_that.clientMessageId,_that.nonce,_that.meta,_that.membersMentioned,_that.editedAt,_that.attachments,_that.reactions,_that.reactionsCount,_that.reactionsMade,_that.repliedMessageId,_that.forwardedMessageId,_that.senderId,_that.sender,_that.chatRoomId);case _:
@@ -621,7 +621,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.id,_that.t
 @JsonSerializable()
 
 class _SnChatMessage implements SnChatMessage {
-  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, @JsonKey(name: 'client_message_id') this.clientMessageId, this.nonce, final  Map<String, dynamic> meta = const {}, final  List<String> membersMentioned = const [], this.editedAt, final  List<SnCloudFile> attachments = const [], final  List<SnChatReaction> reactions = const [], @JsonKey(name: 'reactions_count') final  Map<String, int> reactionsCount = const {}, @JsonKey(name: 'reactions_made') final  Map<String, bool> reactionsMade = const {}, this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMentioned = membersMentioned,_attachments = attachments,_reactions = reactions,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade;
+  const _SnChatMessage({required this.createdAt, required this.updatedAt, this.deletedAt, required this.id, this.type = 'text', this.content, @JsonKey(name: 'client_message_id') this.clientMessageId, this.nonce, final  Map<String, dynamic> meta = const {}, final  List<String> membersMentioned = const [], this.editedAt, final  List<SnCloudFileReference> attachments = const [], final  List<SnChatReaction> reactions = const [], @JsonKey(name: 'reactions_count') final  Map<String, int> reactionsCount = const {}, @JsonKey(name: 'reactions_made') final  Map<String, bool> reactionsMade = const {}, this.repliedMessageId, this.forwardedMessageId, required this.senderId, required this.sender, required this.chatRoomId}): _meta = meta,_membersMentioned = membersMentioned,_attachments = attachments,_reactions = reactions,_reactionsCount = reactionsCount,_reactionsMade = reactionsMade;
   factory _SnChatMessage.fromJson(Map<String, dynamic> json) => _$SnChatMessageFromJson(json);
 
 @override final  DateTime createdAt;
@@ -647,8 +647,8 @@ class _SnChatMessage implements SnChatMessage {
 }
 
 @override final  DateTime? editedAt;
- final  List<SnCloudFile> _attachments;
-@override@JsonKey() List<SnCloudFile> get attachments {
+ final  List<SnCloudFileReference> _attachments;
+@override@JsonKey() List<SnCloudFileReference> get attachments {
   if (_attachments is EqualUnmodifiableListView) return _attachments;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_attachments);
@@ -714,7 +714,7 @@ abstract mixin class _$SnChatMessageCopyWith<$Res> implements $SnChatMessageCopy
   factory _$SnChatMessageCopyWith(_SnChatMessage value, $Res Function(_SnChatMessage) _then) = __$SnChatMessageCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFile> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount,@JsonKey(name: 'reactions_made') Map<String, bool> reactionsMade, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
+ DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, String id, String type, String? content,@JsonKey(name: 'client_message_id') String? clientMessageId, String? nonce, Map<String, dynamic> meta, List<String> membersMentioned, DateTime? editedAt, List<SnCloudFileReference> attachments, List<SnChatReaction> reactions,@JsonKey(name: 'reactions_count') Map<String, int> reactionsCount,@JsonKey(name: 'reactions_made') Map<String, bool> reactionsMade, String? repliedMessageId, String? forwardedMessageId, String senderId, SnChatMember sender, String chatRoomId
 });
 
 
@@ -745,7 +745,7 @@ as String?,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_n
 as Map<String, dynamic>,membersMentioned: null == membersMentioned ? _self._membersMentioned : membersMentioned // ignore: cast_nullable_to_non_nullable
 as List<String>,editedAt: freezed == editedAt ? _self.editedAt : editedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,attachments: null == attachments ? _self._attachments : attachments // ignore: cast_nullable_to_non_nullable
-as List<SnCloudFile>,reactions: null == reactions ? _self._reactions : reactions // ignore: cast_nullable_to_non_nullable
+as List<SnCloudFileReference>,reactions: null == reactions ? _self._reactions : reactions // ignore: cast_nullable_to_non_nullable
 as List<SnChatReaction>,reactionsCount: null == reactionsCount ? _self._reactionsCount : reactionsCount // ignore: cast_nullable_to_non_nullable
 as Map<String, int>,reactionsMade: null == reactionsMade ? _self._reactionsMade : reactionsMade // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,repliedMessageId: freezed == repliedMessageId ? _self.repliedMessageId : repliedMessageId // ignore: cast_nullable_to_non_nullable

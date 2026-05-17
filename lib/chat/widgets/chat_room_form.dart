@@ -40,8 +40,8 @@ class EditChatScreen extends HookConsumerWidget {
 
     final nameController = useTextEditingController();
     final descriptionController = useTextEditingController();
-    final picture = useState<SnCloudFile?>(null);
-    final background = useState<SnCloudFile?>(null);
+    final picture = useState<IDisplayableCloudFile?>(null);
+    final background = useState<IDisplayableCloudFile?>(null);
     final isPublic = useState(true);
     final isCommunity = useState(false);
 

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnRealm {
 
- String get id; String get slug; String get name; String get description; String? get verifiedAs; DateTime? get verifiedAt; bool get isCommunity; bool get isPublic; SnCloudFile? get picture; SnCloudFile? get background; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; int get boostPoints; int get boostLevel;
+ String get id; String get slug; String get name; String get description; String? get verifiedAs; DateTime? get verifiedAt; bool get isCommunity; bool get isPublic; SnCloudFileReference? get picture; SnCloudFileReference? get background; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; int get boostPoints; int get boostLevel;
 /// Create a copy of SnRealm
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,11 +48,11 @@ abstract mixin class $SnRealmCopyWith<$Res>  {
   factory $SnRealmCopyWith(SnRealm value, $Res Function(SnRealm) _then) = _$SnRealmCopyWithImpl;
 @useResult
 $Res call({
- String id, String slug, String name, String description, String? verifiedAs, DateTime? verifiedAt, bool isCommunity, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, int boostPoints, int boostLevel
+ String id, String slug, String name, String description, String? verifiedAs, DateTime? verifiedAt, bool isCommunity, bool isPublic, SnCloudFileReference? picture, SnCloudFileReference? background, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, int boostPoints, int boostLevel
 });
 
 
-$SnCloudFileCopyWith<$Res>? get picture;$SnCloudFileCopyWith<$Res>? get background;
+$SnCloudFileReferenceCopyWith<$Res>? get picture;$SnCloudFileReferenceCopyWith<$Res>? get background;
 
 }
 /// @nodoc
@@ -76,8 +76,8 @@ as String?,verifiedAt: freezed == verifiedAt ? _self.verifiedAt : verifiedAt // 
 as DateTime?,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
 as bool,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -90,24 +90,24 @@ as int,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }/// Create a copy of SnRealm
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
+$SnCloudFileReferenceCopyWith<$Res>? get background {
     if (_self.background == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
     return _then(_self.copyWith(background: value));
   });
 }
@@ -189,7 +189,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  String? verifiedAs,  DateTime? verifiedAt,  bool isCommunity,  bool isPublic,  SnCloudFile? picture,  SnCloudFile? background,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  int boostPoints,  int boostLevel)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  String? verifiedAs,  DateTime? verifiedAt,  bool isCommunity,  bool isPublic,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  int boostPoints,  int boostLevel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnRealm() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.verifiedAs,_that.verifiedAt,_that.isCommunity,_that.isPublic,_that.picture,_that.background,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.boostPoints,_that.boostLevel);case _:
@@ -210,7 +210,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.verifiedA
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  String? verifiedAs,  DateTime? verifiedAt,  bool isCommunity,  bool isPublic,  SnCloudFile? picture,  SnCloudFile? background,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  int boostPoints,  int boostLevel)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String description,  String? verifiedAs,  DateTime? verifiedAt,  bool isCommunity,  bool isPublic,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  int boostPoints,  int boostLevel)  $default,) {final _that = this;
 switch (_that) {
 case _SnRealm():
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.verifiedAs,_that.verifiedAt,_that.isCommunity,_that.isPublic,_that.picture,_that.background,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.boostPoints,_that.boostLevel);}
@@ -227,7 +227,7 @@ return $default(_that.id,_that.slug,_that.name,_that.description,_that.verifiedA
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String description,  String? verifiedAs,  DateTime? verifiedAt,  bool isCommunity,  bool isPublic,  SnCloudFile? picture,  SnCloudFile? background,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  int boostPoints,  int boostLevel)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String description,  String? verifiedAs,  DateTime? verifiedAt,  bool isCommunity,  bool isPublic,  SnCloudFileReference? picture,  SnCloudFileReference? background,  String accountId,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  int boostPoints,  int boostLevel)?  $default,) {final _that = this;
 switch (_that) {
 case _SnRealm() when $default != null:
 return $default(_that.id,_that.slug,_that.name,_that.description,_that.verifiedAs,_that.verifiedAt,_that.isCommunity,_that.isPublic,_that.picture,_that.background,_that.accountId,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.boostPoints,_that.boostLevel);case _:
@@ -253,8 +253,8 @@ class _SnRealm implements SnRealm {
 @override final  DateTime? verifiedAt;
 @override final  bool isCommunity;
 @override final  bool isPublic;
-@override final  SnCloudFile? picture;
-@override final  SnCloudFile? background;
+@override final  SnCloudFileReference? picture;
+@override final  SnCloudFileReference? background;
 @override final  String accountId;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -295,11 +295,11 @@ abstract mixin class _$SnRealmCopyWith<$Res> implements $SnRealmCopyWith<$Res> {
   factory _$SnRealmCopyWith(_SnRealm value, $Res Function(_SnRealm) _then) = __$SnRealmCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String slug, String name, String description, String? verifiedAs, DateTime? verifiedAt, bool isCommunity, bool isPublic, SnCloudFile? picture, SnCloudFile? background, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, int boostPoints, int boostLevel
+ String id, String slug, String name, String description, String? verifiedAs, DateTime? verifiedAt, bool isCommunity, bool isPublic, SnCloudFileReference? picture, SnCloudFileReference? background, String accountId, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, int boostPoints, int boostLevel
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get picture;@override $SnCloudFileCopyWith<$Res>? get background;
+@override $SnCloudFileReferenceCopyWith<$Res>? get picture;@override $SnCloudFileReferenceCopyWith<$Res>? get background;
 
 }
 /// @nodoc
@@ -323,8 +323,8 @@ as String?,verifiedAt: freezed == verifiedAt ? _self.verifiedAt : verifiedAt // 
 as DateTime?,isCommunity: null == isCommunity ? _self.isCommunity : isCommunity // ignore: cast_nullable_to_non_nullable
 as bool,isPublic: null == isPublic ? _self.isPublic : isPublic // ignore: cast_nullable_to_non_nullable
 as bool,picture: freezed == picture ? _self.picture : picture // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
@@ -338,24 +338,24 @@ as int,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get picture {
+$SnCloudFileReferenceCopyWith<$Res>? get picture {
     if (_self.picture == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.picture!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.picture!, (value) {
     return _then(_self.copyWith(picture: value));
   });
 }/// Create a copy of SnRealm
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get background {
+$SnCloudFileReferenceCopyWith<$Res>? get background {
     if (_self.background == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.background!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
     return _then(_self.copyWith(background: value));
   });
 }

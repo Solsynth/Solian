@@ -45,7 +45,7 @@ sealed class SnPost with _$SnPost {
     int? fediverseType,
     @Default(true) bool isCached,
     @Default(0) int contentType,
-    @Default([]) List<SnCloudFile> attachments,
+    @Default([]) List<SnCloudFileReference> attachments,
     @Default({}) Map<String, int> reactionsCount,
     @Default({}) Map<String, bool> reactionsMade,
     @Default([]) List<dynamic> reactions,

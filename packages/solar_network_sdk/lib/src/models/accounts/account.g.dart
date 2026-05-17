@@ -114,10 +114,12 @@ _SnAccountProfile _$SnAccountProfileFromJson(
   levelingProgress: (json['leveling_progress'] as num).toDouble(),
   picture: json['picture'] == null
       ? null
-      : SnCloudFile.fromJson(json['picture'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
   background: json['background'] == null
       ? null
-      : SnCloudFile.fromJson(json['background'] as Map<String, dynamic>),
+      : SnCloudFileReference.fromJson(
+          json['background'] as Map<String, dynamic>,
+        ),
   verification: json['verification'] == null
       ? null
       : SnVerificationMark.fromJson(
@@ -324,6 +326,74 @@ Map<String, dynamic> _$SnVerificationMarkToJson(_SnVerificationMark instance) =>
       'title': instance.title,
       'description': instance.description,
       'verified_by': instance.verifiedBy,
+    };
+
+_SnAccountProfileRef _$SnAccountProfileRefFromJson(
+  Map<String, dynamic> json,
+) => _SnAccountProfileRef(
+  id: json['id'] as String,
+  firstName: json['first_name'] as String? ?? '',
+  middleName: json['middle_name'] as String? ?? '',
+  lastName: json['last_name'] as String? ?? '',
+  bio: json['bio'] as String? ?? '',
+  picture: json['picture'] == null
+      ? null
+      : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
+  background: json['background'] == null
+      ? null
+      : SnCloudFileReference.fromJson(
+          json['background'] as Map<String, dynamic>,
+        ),
+  verification: json['verification'] == null
+      ? null
+      : SnVerificationMark.fromJson(
+          json['verification'] as Map<String, dynamic>,
+        ),
+  usernameColor: json['username_color'] == null
+      ? null
+      : UsernameColor.fromJson(json['username_color'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$SnAccountProfileRefToJson(
+  _SnAccountProfileRef instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'first_name': instance.firstName,
+  'middle_name': instance.middleName,
+  'last_name': instance.lastName,
+  'bio': instance.bio,
+  'picture': instance.picture?.toJson(),
+  'background': instance.background?.toJson(),
+  'verification': instance.verification?.toJson(),
+  'username_color': instance.usernameColor?.toJson(),
+};
+
+_SnAccountReference _$SnAccountReferenceFromJson(Map<String, dynamic> json) =>
+    _SnAccountReference(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      nick: json['nick'] as String,
+      profile: json['profile'] == null
+          ? null
+          : SnAccountProfileRef.fromJson(
+              json['profile'] as Map<String, dynamic>,
+            ),
+      badges:
+          (json['badges'] as List<dynamic>?)
+              ?.map((e) => SnAccountBadge.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      automatedId: json['automated_id'] as String?,
+    );
+
+Map<String, dynamic> _$SnAccountReferenceToJson(_SnAccountReference instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'nick': instance.nick,
+      'profile': instance.profile?.toJson(),
+      'badges': instance.badges.map((e) => e.toJson()).toList(),
+      'automated_id': instance.automatedId,
     };
 
 _SnAuthDevice _$SnAuthDeviceFromJson(Map<String, dynamic> json) =>

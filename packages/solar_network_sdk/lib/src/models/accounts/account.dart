@@ -4,6 +4,20 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 part 'account.freezed.dart';
 part 'account.g.dart';
 
+abstract interface class IDisplayableAccount {
+  String get id;
+  String get name;
+  String get nick;
+  SnCloudFileReference? get profilePicture;
+  SnCloudFileReference? get profileBackground;
+  SnVerificationMark? get profileVerification;
+}
+
+extension IDisplayableAccountDisplayName on IDisplayableAccount {
+  String get displayName =>
+      nick.isNotEmpty ? nick : (name.isNotEmpty ? '@$name' : 'Unknown');
+}
+
 abstract final class SnAccountStatusType {
   static const int defaultType = 0;
   static const int busy = 1;
@@ -26,7 +40,9 @@ int _statusTypeFromJson(Object? value) =>
     (value as num?)?.toInt() ?? SnAccountStatusType.defaultType;
 
 @freezed
-sealed class SnAccount with _$SnAccount {
+sealed class SnAccount with _$SnAccount implements IDisplayableAccount {
+  const SnAccount._();
+
   const factory SnAccount({
     required String id,
     required String name,
@@ -47,6 +63,15 @@ sealed class SnAccount with _$SnAccount {
 
   factory SnAccount.fromJson(Map<String, dynamic> json) =>
       _$SnAccountFromJson(json);
+
+  @override
+  SnCloudFileReference? get profilePicture => profile.picture;
+
+  @override
+  SnCloudFileReference? get profileBackground => profile.background;
+
+  @override
+  SnVerificationMark? get profileVerification => profile.verification;
 }
 
 @freezed
@@ -109,8 +134,8 @@ sealed class SnAccountProfile with _$SnAccountProfile {
     @Default(100) double socialCredits,
     @Default(0) int socialCreditsLevel,
     required double levelingProgress,
-    required SnCloudFile? picture,
-    required SnCloudFile? background,
+    required SnCloudFileReference? picture,
+    required SnCloudFileReference? background,
     required SnVerificationMark? verification,
     UsernameColor? usernameColor,
     required DateTime createdAt,
@@ -225,6 +250,55 @@ sealed class SnVerificationMark with _$SnVerificationMark {
 
   factory SnVerificationMark.fromJson(Map<String, dynamic> json) =>
       _$SnVerificationMarkFromJson(json);
+}
+
+@freezed
+sealed class SnAccountProfileRef with _$SnAccountProfileRef {
+  const factory SnAccountProfileRef({
+    required String id,
+    @Default('') String firstName,
+    @Default('') String middleName,
+    @Default('') String lastName,
+    @Default('') String bio,
+    SnCloudFileReference? picture,
+    SnCloudFileReference? background,
+    SnVerificationMark? verification,
+    UsernameColor? usernameColor,
+  }) = _SnAccountProfileRef;
+
+  factory SnAccountProfileRef.fromJson(Map<String, dynamic> json) =>
+      _$SnAccountProfileRefFromJson(json);
+}
+
+@freezed
+sealed class SnAccountReference with _$SnAccountReference implements IDisplayableAccount {
+  const SnAccountReference._();
+
+  const factory SnAccountReference({
+    required String id,
+    required String name,
+    required String nick,
+    SnAccountProfileRef? profile,
+    @Default([]) List<SnAccountBadge> badges,
+    String? automatedId,
+  }) = _SnAccountReference;
+
+  factory SnAccountReference.fromJson(Map<String, dynamic> json) =>
+      _$SnAccountReferenceFromJson(json);
+
+  @override
+  SnCloudFileReference? get profilePicture => profile?.picture;
+
+  @override
+  SnCloudFileReference? get profileBackground => profile?.background;
+
+  @override
+  SnVerificationMark? get profileVerification => profile?.verification;
+}
+
+extension SnAccountReferenceDisplay on SnAccountReference {
+  String get displayName =>
+      nick.isNotEmpty ? nick : (name.isNotEmpty ? '@$name' : 'Unknown');
 }
 
 @freezed

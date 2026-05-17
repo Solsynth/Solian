@@ -183,7 +183,7 @@ class UploadTasks extends _$UploadTasks {
           fileSize: results?['file_size'] as int? ?? task.fileSize,
           contentType: results?['mime_type'] as String? ?? task.contentType,
           result: results?['file_info'] != null
-              ? SnCloudFile.fromJson(results!['file_info'])
+              ? SnCloudFileReference.fromJson(results!['file_info'])
               : null,
           updatedAt: DateTime.now(),
         );

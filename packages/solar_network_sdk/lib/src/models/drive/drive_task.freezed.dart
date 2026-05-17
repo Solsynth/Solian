@@ -17,7 +17,7 @@ mixin _$DriveTask {
 
  String get id; String get taskId; String get fileName; String get contentType; int get fileSize; int get uploadedBytes; int get totalChunks; int get uploadedChunks; DriveTaskStatus get status; DateTime get createdAt; DateTime get updatedAt; String get type;// Task type (e.g., 'FileUpload')
  double? get transmissionProgress;// Local file upload progress (0.0-1.0)
- String? get errorMessage; String? get statusMessage; SnCloudFile? get result; String? get poolId; String? get bundleId; String? get encryptPassword; String? get expiredAt;
+ String? get errorMessage; String? get statusMessage; SnCloudFileReference? get result; String? get poolId; String? get bundleId; String? get encryptPassword; String? get expiredAt;
 /// Create a copy of DriveTask
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -50,11 +50,11 @@ abstract mixin class $DriveTaskCopyWith<$Res>  {
   factory $DriveTaskCopyWith(DriveTask value, $Res Function(DriveTask) _then) = _$DriveTaskCopyWithImpl;
 @useResult
 $Res call({
- String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, DriveTaskStatus status, DateTime createdAt, DateTime updatedAt, String type, double? transmissionProgress, String? errorMessage, String? statusMessage, SnCloudFile? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
+ String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, DriveTaskStatus status, DateTime createdAt, DateTime updatedAt, String type, double? transmissionProgress, String? errorMessage, String? statusMessage, SnCloudFileReference? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
 });
 
 
-$SnCloudFileCopyWith<$Res>? get result;
+$SnCloudFileReferenceCopyWith<$Res>? get result;
 
 }
 /// @nodoc
@@ -85,7 +85,7 @@ as String,transmissionProgress: freezed == transmissionProgress ? _self.transmis
 as double?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,statusMessage: freezed == statusMessage ? _self.statusMessage : statusMessage // ignore: cast_nullable_to_non_nullable
 as String?,result: freezed == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,poolId: freezed == poolId ? _self.poolId : poolId // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,poolId: freezed == poolId ? _self.poolId : poolId // ignore: cast_nullable_to_non_nullable
 as String?,bundleId: freezed == bundleId ? _self.bundleId : bundleId // ignore: cast_nullable_to_non_nullable
 as String?,encryptPassword: freezed == encryptPassword ? _self.encryptPassword : encryptPassword // ignore: cast_nullable_to_non_nullable
 as String?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
@@ -96,12 +96,12 @@ as String?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get result {
+$SnCloudFileReferenceCopyWith<$Res>? get result {
     if (_self.result == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.result!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.result!, (value) {
     return _then(_self.copyWith(result: value));
   });
 }
@@ -183,7 +183,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  DriveTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  String? statusMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  DriveTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  String? statusMessage,  SnCloudFileReference? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DriveTask() when $default != null:
 return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.type,_that.transmissionProgress,_that.errorMessage,_that.statusMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);case _:
@@ -204,7 +204,7 @@ return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fil
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  DriveTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  String? statusMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  DriveTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  String? statusMessage,  SnCloudFileReference? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)  $default,) {final _that = this;
 switch (_that) {
 case _DriveTask():
 return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.type,_that.transmissionProgress,_that.errorMessage,_that.statusMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);}
@@ -221,7 +221,7 @@ return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fil
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  DriveTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  String? statusMessage,  SnCloudFile? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String taskId,  String fileName,  String contentType,  int fileSize,  int uploadedBytes,  int totalChunks,  int uploadedChunks,  DriveTaskStatus status,  DateTime createdAt,  DateTime updatedAt,  String type,  double? transmissionProgress,  String? errorMessage,  String? statusMessage,  SnCloudFileReference? result,  String? poolId,  String? bundleId,  String? encryptPassword,  String? expiredAt)?  $default,) {final _that = this;
 switch (_that) {
 case _DriveTask() when $default != null:
 return $default(_that.id,_that.taskId,_that.fileName,_that.contentType,_that.fileSize,_that.uploadedBytes,_that.totalChunks,_that.uploadedChunks,_that.status,_that.createdAt,_that.updatedAt,_that.type,_that.transmissionProgress,_that.errorMessage,_that.statusMessage,_that.result,_that.poolId,_that.bundleId,_that.encryptPassword,_that.expiredAt);case _:
@@ -256,7 +256,7 @@ class _DriveTask extends DriveTask {
 // Local file upload progress (0.0-1.0)
 @override final  String? errorMessage;
 @override final  String? statusMessage;
-@override final  SnCloudFile? result;
+@override final  SnCloudFileReference? result;
 @override final  String? poolId;
 @override final  String? bundleId;
 @override final  String? encryptPassword;
@@ -295,11 +295,11 @@ abstract mixin class _$DriveTaskCopyWith<$Res> implements $DriveTaskCopyWith<$Re
   factory _$DriveTaskCopyWith(_DriveTask value, $Res Function(_DriveTask) _then) = __$DriveTaskCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, DriveTaskStatus status, DateTime createdAt, DateTime updatedAt, String type, double? transmissionProgress, String? errorMessage, String? statusMessage, SnCloudFile? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
+ String id, String taskId, String fileName, String contentType, int fileSize, int uploadedBytes, int totalChunks, int uploadedChunks, DriveTaskStatus status, DateTime createdAt, DateTime updatedAt, String type, double? transmissionProgress, String? errorMessage, String? statusMessage, SnCloudFileReference? result, String? poolId, String? bundleId, String? encryptPassword, String? expiredAt
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get result;
+@override $SnCloudFileReferenceCopyWith<$Res>? get result;
 
 }
 /// @nodoc
@@ -330,7 +330,7 @@ as String,transmissionProgress: freezed == transmissionProgress ? _self.transmis
 as double?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,statusMessage: freezed == statusMessage ? _self.statusMessage : statusMessage // ignore: cast_nullable_to_non_nullable
 as String?,result: freezed == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,poolId: freezed == poolId ? _self.poolId : poolId // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,poolId: freezed == poolId ? _self.poolId : poolId // ignore: cast_nullable_to_non_nullable
 as String?,bundleId: freezed == bundleId ? _self.bundleId : bundleId // ignore: cast_nullable_to_non_nullable
 as String?,encryptPassword: freezed == encryptPassword ? _self.encryptPassword : encryptPassword // ignore: cast_nullable_to_non_nullable
 as String?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
@@ -342,12 +342,12 @@ as String?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get result {
+$SnCloudFileReferenceCopyWith<$Res>? get result {
     if (_self.result == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.result!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.result!, (value) {
     return _then(_self.copyWith(result: value));
   });
 }

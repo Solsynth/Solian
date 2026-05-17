@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnLiveStream {
 
- String get id; String? get title; String? get description; String? get slug; SnLiveStreamType get type; SnLiveStreamVisibility get visibility; SnLiveStreamStatus get status; String get roomName; String? get ingressId; String? get ingressStreamKey; String? get egressId; String? get hlsEgressId; String? get hlsPlaylistPath; DateTime? get hlsStartedAt; DateTime? get startedAt; DateTime? get endedAt; int get viewerCount; int get peakViewerCount; SnCloudFile? get thumbnail; Map<String, dynamic>? get metadata; String? get publisherId; SnPublisher? get publisher; String? get resourceIdentifier; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt;
+ String get id; String? get title; String? get description; String? get slug; SnLiveStreamType get type; SnLiveStreamVisibility get visibility; SnLiveStreamStatus get status; String get roomName; String? get ingressId; String? get ingressStreamKey; String? get egressId; String? get hlsEgressId; String? get hlsPlaylistPath; DateTime? get hlsStartedAt; DateTime? get startedAt; DateTime? get endedAt; int get viewerCount; int get peakViewerCount; SnCloudFileReference? get thumbnail; Map<String, dynamic>? get metadata; String? get publisherId; SnPublisher? get publisher; String? get resourceIdentifier; DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnLiveStream
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,11 +48,11 @@ abstract mixin class $SnLiveStreamCopyWith<$Res>  {
   factory $SnLiveStreamCopyWith(SnLiveStream value, $Res Function(SnLiveStream) _then) = _$SnLiveStreamCopyWithImpl;
 @useResult
 $Res call({
- String id, String? title, String? description, String? slug, SnLiveStreamType type, SnLiveStreamVisibility visibility, SnLiveStreamStatus status, String roomName, String? ingressId, String? ingressStreamKey, String? egressId, String? hlsEgressId, String? hlsPlaylistPath, DateTime? hlsStartedAt, DateTime? startedAt, DateTime? endedAt, int viewerCount, int peakViewerCount, SnCloudFile? thumbnail, Map<String, dynamic>? metadata, String? publisherId, SnPublisher? publisher, String? resourceIdentifier, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt
+ String id, String? title, String? description, String? slug, SnLiveStreamType type, SnLiveStreamVisibility visibility, SnLiveStreamStatus status, String roomName, String? ingressId, String? ingressStreamKey, String? egressId, String? hlsEgressId, String? hlsPlaylistPath, DateTime? hlsStartedAt, DateTime? startedAt, DateTime? endedAt, int viewerCount, int peakViewerCount, SnCloudFileReference? thumbnail, Map<String, dynamic>? metadata, String? publisherId, SnPublisher? publisher, String? resourceIdentifier, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt
 });
 
 
-$SnCloudFileCopyWith<$Res>? get thumbnail;$SnPublisherCopyWith<$Res>? get publisher;
+$SnCloudFileReferenceCopyWith<$Res>? get thumbnail;$SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -86,7 +86,7 @@ as DateTime?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: ca
 as DateTime?,viewerCount: null == viewerCount ? _self.viewerCount : viewerCount // ignore: cast_nullable_to_non_nullable
 as int,peakViewerCount: null == peakViewerCount ? _self.peakViewerCount : peakViewerCount // ignore: cast_nullable_to_non_nullable
 as int,thumbnail: freezed == thumbnail ? _self.thumbnail : thumbnail // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,publisherId: freezed == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,resourceIdentifier: freezed == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
@@ -100,12 +100,12 @@ as DateTime?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get thumbnail {
+$SnCloudFileReferenceCopyWith<$Res>? get thumbnail {
     if (_self.thumbnail == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.thumbnail!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.thumbnail!, (value) {
     return _then(_self.copyWith(thumbnail: value));
   });
 }/// Create a copy of SnLiveStream
@@ -199,7 +199,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? slug,  SnLiveStreamType type,  SnLiveStreamVisibility visibility,  SnLiveStreamStatus status,  String roomName,  String? ingressId,  String? ingressStreamKey,  String? egressId,  String? hlsEgressId,  String? hlsPlaylistPath,  DateTime? hlsStartedAt,  DateTime? startedAt,  DateTime? endedAt,  int viewerCount,  int peakViewerCount,  SnCloudFile? thumbnail,  Map<String, dynamic>? metadata,  String? publisherId,  SnPublisher? publisher,  String? resourceIdentifier,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? slug,  SnLiveStreamType type,  SnLiveStreamVisibility visibility,  SnLiveStreamStatus status,  String roomName,  String? ingressId,  String? ingressStreamKey,  String? egressId,  String? hlsEgressId,  String? hlsPlaylistPath,  DateTime? hlsStartedAt,  DateTime? startedAt,  DateTime? endedAt,  int viewerCount,  int peakViewerCount,  SnCloudFileReference? thumbnail,  Map<String, dynamic>? metadata,  String? publisherId,  SnPublisher? publisher,  String? resourceIdentifier,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnLiveStream() when $default != null:
 return $default(_that.id,_that.title,_that.description,_that.slug,_that.type,_that.visibility,_that.status,_that.roomName,_that.ingressId,_that.ingressStreamKey,_that.egressId,_that.hlsEgressId,_that.hlsPlaylistPath,_that.hlsStartedAt,_that.startedAt,_that.endedAt,_that.viewerCount,_that.peakViewerCount,_that.thumbnail,_that.metadata,_that.publisherId,_that.publisher,_that.resourceIdentifier,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -220,7 +220,7 @@ return $default(_that.id,_that.title,_that.description,_that.slug,_that.type,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? slug,  SnLiveStreamType type,  SnLiveStreamVisibility visibility,  SnLiveStreamStatus status,  String roomName,  String? ingressId,  String? ingressStreamKey,  String? egressId,  String? hlsEgressId,  String? hlsPlaylistPath,  DateTime? hlsStartedAt,  DateTime? startedAt,  DateTime? endedAt,  int viewerCount,  int peakViewerCount,  SnCloudFile? thumbnail,  Map<String, dynamic>? metadata,  String? publisherId,  SnPublisher? publisher,  String? resourceIdentifier,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? description,  String? slug,  SnLiveStreamType type,  SnLiveStreamVisibility visibility,  SnLiveStreamStatus status,  String roomName,  String? ingressId,  String? ingressStreamKey,  String? egressId,  String? hlsEgressId,  String? hlsPlaylistPath,  DateTime? hlsStartedAt,  DateTime? startedAt,  DateTime? endedAt,  int viewerCount,  int peakViewerCount,  SnCloudFileReference? thumbnail,  Map<String, dynamic>? metadata,  String? publisherId,  SnPublisher? publisher,  String? resourceIdentifier,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnLiveStream():
 return $default(_that.id,_that.title,_that.description,_that.slug,_that.type,_that.visibility,_that.status,_that.roomName,_that.ingressId,_that.ingressStreamKey,_that.egressId,_that.hlsEgressId,_that.hlsPlaylistPath,_that.hlsStartedAt,_that.startedAt,_that.endedAt,_that.viewerCount,_that.peakViewerCount,_that.thumbnail,_that.metadata,_that.publisherId,_that.publisher,_that.resourceIdentifier,_that.createdAt,_that.updatedAt,_that.deletedAt);}
@@ -237,7 +237,7 @@ return $default(_that.id,_that.title,_that.description,_that.slug,_that.type,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? description,  String? slug,  SnLiveStreamType type,  SnLiveStreamVisibility visibility,  SnLiveStreamStatus status,  String roomName,  String? ingressId,  String? ingressStreamKey,  String? egressId,  String? hlsEgressId,  String? hlsPlaylistPath,  DateTime? hlsStartedAt,  DateTime? startedAt,  DateTime? endedAt,  int viewerCount,  int peakViewerCount,  SnCloudFile? thumbnail,  Map<String, dynamic>? metadata,  String? publisherId,  SnPublisher? publisher,  String? resourceIdentifier,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? description,  String? slug,  SnLiveStreamType type,  SnLiveStreamVisibility visibility,  SnLiveStreamStatus status,  String roomName,  String? ingressId,  String? ingressStreamKey,  String? egressId,  String? hlsEgressId,  String? hlsPlaylistPath,  DateTime? hlsStartedAt,  DateTime? startedAt,  DateTime? endedAt,  int viewerCount,  int peakViewerCount,  SnCloudFileReference? thumbnail,  Map<String, dynamic>? metadata,  String? publisherId,  SnPublisher? publisher,  String? resourceIdentifier,  DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnLiveStream() when $default != null:
 return $default(_that.id,_that.title,_that.description,_that.slug,_that.type,_that.visibility,_that.status,_that.roomName,_that.ingressId,_that.ingressStreamKey,_that.egressId,_that.hlsEgressId,_that.hlsPlaylistPath,_that.hlsStartedAt,_that.startedAt,_that.endedAt,_that.viewerCount,_that.peakViewerCount,_that.thumbnail,_that.metadata,_that.publisherId,_that.publisher,_that.resourceIdentifier,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
@@ -273,7 +273,7 @@ class _SnLiveStream implements SnLiveStream {
 @override final  DateTime? endedAt;
 @override@JsonKey() final  int viewerCount;
 @override@JsonKey() final  int peakViewerCount;
-@override final  SnCloudFile? thumbnail;
+@override final  SnCloudFileReference? thumbnail;
  final  Map<String, dynamic>? _metadata;
 @override Map<String, dynamic>? get metadata {
   final value = _metadata;
@@ -323,11 +323,11 @@ abstract mixin class _$SnLiveStreamCopyWith<$Res> implements $SnLiveStreamCopyWi
   factory _$SnLiveStreamCopyWith(_SnLiveStream value, $Res Function(_SnLiveStream) _then) = __$SnLiveStreamCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? title, String? description, String? slug, SnLiveStreamType type, SnLiveStreamVisibility visibility, SnLiveStreamStatus status, String roomName, String? ingressId, String? ingressStreamKey, String? egressId, String? hlsEgressId, String? hlsPlaylistPath, DateTime? hlsStartedAt, DateTime? startedAt, DateTime? endedAt, int viewerCount, int peakViewerCount, SnCloudFile? thumbnail, Map<String, dynamic>? metadata, String? publisherId, SnPublisher? publisher, String? resourceIdentifier, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt
+ String id, String? title, String? description, String? slug, SnLiveStreamType type, SnLiveStreamVisibility visibility, SnLiveStreamStatus status, String roomName, String? ingressId, String? ingressStreamKey, String? egressId, String? hlsEgressId, String? hlsPlaylistPath, DateTime? hlsStartedAt, DateTime? startedAt, DateTime? endedAt, int viewerCount, int peakViewerCount, SnCloudFileReference? thumbnail, Map<String, dynamic>? metadata, String? publisherId, SnPublisher? publisher, String? resourceIdentifier, DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt
 });
 
 
-@override $SnCloudFileCopyWith<$Res>? get thumbnail;@override $SnPublisherCopyWith<$Res>? get publisher;
+@override $SnCloudFileReferenceCopyWith<$Res>? get thumbnail;@override $SnPublisherCopyWith<$Res>? get publisher;
 
 }
 /// @nodoc
@@ -361,7 +361,7 @@ as DateTime?,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: ca
 as DateTime?,viewerCount: null == viewerCount ? _self.viewerCount : viewerCount // ignore: cast_nullable_to_non_nullable
 as int,peakViewerCount: null == peakViewerCount ? _self.peakViewerCount : peakViewerCount // ignore: cast_nullable_to_non_nullable
 as int,thumbnail: freezed == thumbnail ? _self.thumbnail : thumbnail // ignore: cast_nullable_to_non_nullable
-as SnCloudFile?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,publisherId: freezed == publisherId ? _self.publisherId : publisherId // ignore: cast_nullable_to_non_nullable
 as String?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
 as SnPublisher?,resourceIdentifier: freezed == resourceIdentifier ? _self.resourceIdentifier : resourceIdentifier // ignore: cast_nullable_to_non_nullable
@@ -376,12 +376,12 @@ as DateTime?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$SnCloudFileCopyWith<$Res>? get thumbnail {
+$SnCloudFileReferenceCopyWith<$Res>? get thumbnail {
     if (_self.thumbnail == null) {
     return null;
   }
 
-  return $SnCloudFileCopyWith<$Res>(_self.thumbnail!, (value) {
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.thumbnail!, (value) {
     return _then(_self.copyWith(thumbnail: value));
   });
 }/// Create a copy of SnLiveStream

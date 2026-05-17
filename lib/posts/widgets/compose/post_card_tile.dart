@@ -190,7 +190,7 @@ class CreatorPostCardTile extends StatelessWidget {
     );
   }
 
-  Widget _buildAttachmentThumbnail(SnCloudFile file) {
+  Widget _buildAttachmentThumbnail(IDisplayableCloudFile file) {
     return CloudFileWidget(item: file);
   }
 

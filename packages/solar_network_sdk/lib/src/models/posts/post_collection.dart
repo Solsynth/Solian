@@ -14,8 +14,8 @@ sealed class SnPostCollection with _$SnPostCollection {
     String? description,
     @JsonKey(name: 'publisher_id') required String publisherId,
     SnPublisher? publisher,
-    SnCloudFile? background,
-    SnCloudFile? icon,
+    SnCloudFileReference? background,
+    SnCloudFileReference? icon,
     @Default(null) DateTime? createdAt,
     @Default(null) DateTime? updatedAt,
   }) = _SnPostCollection;
