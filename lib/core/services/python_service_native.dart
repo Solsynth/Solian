@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:developer';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:pocketpy/pocketpy.dart' as pkpy;
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 pkpy.VM? _vm;
 bool _isInitialized = false;
@@ -13,30 +15,44 @@ Future<void> initPython() async {
   if (_isInitialized) return;
 
   try {
-    final appSupportDir = await getApplicationSupportDirectory();
-    final pluginsDir = Directory('${appSupportDir.path}/plugins');
-    final eventFile = File('${appSupportDir.path}/event.py');
-    final loaderFile = File('${appSupportDir.path}/loader.py');
+    Directory baseDir;
+    if (kIsWeb) {
+      log('[python_service] Web platform, skipping');
+      return;
+    } else if (Platform.isAndroid || Platform.isIOS) {
+      baseDir = await getApplicationSupportDirectory();
+    } else {
+      final exeDir = path.dirname(Platform.resolvedExecutable);
+      baseDir = Directory(exeDir);
+    }
 
+    final pluginsDir = Directory(path.join(baseDir.path, 'plugins'));
     if (!await pluginsDir.exists()) {
       await pluginsDir.create(recursive: true);
       log('[python_service] Created plugins directory: ${pluginsDir.path}');
     }
 
-    final eventScript = await rootBundle.loadString('assets/scripts/event.py');
-    await eventFile.writeAsString(eventScript);
+    // 动态获取 assets/scripts/ 下的所有 .py 文件
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final assets = manifest.listAssets();
+    final scriptPaths = assets.where((asset) => asset.startsWith('assets/scripts/') && asset.endsWith('.py')).toList();
 
-    final loaderScript = await rootBundle.loadString('assets/scripts/loader.py');
-    await loaderFile.writeAsString(loaderScript);
+    for (final assetPath in scriptPaths) {
+      final fileName = path.basename(assetPath);
+      final destFile = File(path.join(baseDir.path, fileName));
+      final content = await rootBundle.loadString(assetPath);
+      await destFile.writeAsString(content);
+      log('[python_service] Wrote $fileName to ${destFile.path}');
+    }
 
     _vm = pkpy.VM();
 
     _vm!.exec('''
 import sys
-sys.path.insert(0, r"${appSupportDir.path}")
+sys.path.insert(0, r"${baseDir.path}")
 ''');
 
-    _vm!.exec('import event');
+    // 确保 loader.py 存在（它应该在 scriptPaths 中）
     _vm!.exec('import loader');
     _vm!.exec('loader.load_plugins()');
 
@@ -45,23 +61,12 @@ sys.path.insert(0, r"${appSupportDir.path}")
     if (out.stderr.isNotEmpty) log('[Python stderr] ${out.stderr}');
 
     _isInitialized = true;
-    log('[python_service] Initialized');
+    log('[python_service] Initialized, base dir: ${baseDir.path}');
   } catch (e) {
     log('[python_service] Init failed: $e');
     _isInitialized = false;
     _vm = null;
   }
-}
-
-Future<void> callEvent(String eventName, List<dynamic> args) async {
-  if (!_isInitialized || _vm == null) return;
-  final argsStr = args.map((a) {
-    if (a is String) return '"${a.replaceAll('"', '\\"')}"';
-    if (a is bool) return a ? 'True' : 'False';
-    if (a == null) return 'None';
-    return a.toString();
-  }).join(', ');
-  await evalPythonCode('event.call("$eventName", $argsStr)');
 }
 
 Future<void> evalPythonCode(String code) async {
