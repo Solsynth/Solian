@@ -8,6 +8,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/drive/file_permissions.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
@@ -25,6 +26,8 @@ class FileDetailScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
     final isWide = isWideScreen(context);
+    final fileAsync = ref.watch(driveFileInfoProvider(item.id));
+    final currentItem = fileAsync.asData?.value ?? item;
 
     // Animation controller for the drawer
     final animationController = useAnimationController(
@@ -54,7 +57,7 @@ class FileDetailScreen extends HookConsumerWidget {
           useRootNavigator: true,
           context: context,
           isScrollControlled: true,
-          builder: (context) => FileInfoSheet(item: item),
+          builder: (context) => FileInfoSheet(item: currentItem),
         );
       }
     }
@@ -85,7 +88,7 @@ class FileDetailScreen extends HookConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          item.name.isEmpty ? 'File Details' : item.name,
+          currentItem.name.isEmpty ? 'File Details' : currentItem.name,
           style: const TextStyle(color: Colors.white),
         ),
         actions: _buildAppBarActions(context, ref, showInfoSheet),
@@ -105,7 +108,7 @@ class FileDetailScreen extends HookConsumerWidget {
                       top: 0,
                       bottom: 0,
                       width: constraints.maxWidth - animation.value * 400,
-                      child: _buildContent(context, ref, serverUrl),
+                      child: _buildContent(context, ref, serverUrl, currentItem),
                     ),
                     // Animated drawer panel - overlays
                     if (isWide)
@@ -119,12 +122,12 @@ class FileDetailScreen extends HookConsumerWidget {
                           child: SizedBox(
                             width: 400,
                             child: Material(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer,
-                              elevation: 8,
-                              child: FileInfoSheet(
-                                item: item,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainer,
+                                elevation: 8,
+                                child: FileInfoSheet(
+                                item: currentItem,
                                 onClose: showInfoSheet,
                               ),
                             ),
@@ -189,7 +192,12 @@ class FileDetailScreen extends HookConsumerWidget {
     return actions;
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, String serverUrl) {
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    String serverUrl,
+    SnCloudFile item,
+  ) {
     final uri = '$serverUrl/drive/files/${item.id}';
 
     Widget content = switch (item.mimeType.split('/').firstOrNull) {

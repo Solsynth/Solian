@@ -204,6 +204,9 @@ class ResponsiveSidebar extends HookConsumerWidget {
       },
     ).then((_) {
       showSidebar.value = false;
+      if (drawerBuilder != null) {
+        // Let the owning screen clear any selection/inspector state.
+      }
     });
   }
 
@@ -237,14 +240,15 @@ class ResponsiveSidebar extends HookConsumerWidget {
 
     return Transform.translate(
       offset: Offset((1 - animation.value) * currentSidebarWidth, 0),
-      child: SizedBox(
-        width: currentSidebarWidth,
+      child: SizedBox.expand(
         child: Stack(
           children: [
-            Material(
-              elevation: sidebarElevation,
-              color: bgColor,
-              child: sidebarContent,
+            Positioned.fill(
+              child: Material(
+                elevation: sidebarElevation,
+                color: bgColor,
+                child: sidebarContent,
+              ),
             ),
             if (enableWideResize)
               Positioned(
