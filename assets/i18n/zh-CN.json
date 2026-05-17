@@ -3058,6 +3058,14 @@
   "directoryPathHint": "例如：documents, projects/my-app",
   "directoryPathHelper": "输入目录路径。当您上传文件到该路径时，目录将被创建。",
   "goToDirectory": "前往目录",
+  "createNewFolder": "新建文件夹",
+  "folderName": "文件夹名称",
+  "folderNameHint": "输入新文件夹的名称",
+  "folderNameRequired": "文件夹名称不能为空",
+  "folderNameInvalid": "文件夹名称包含无效字符",
+  "folderNameTooLong": "文件夹名称过长",
+  "folderCreated": "文件夹创建成功",
+  "folderCreationFailed": "创建文件夹失败",
   "uploadFile": "上传文件",
   "errorPickingFile": "选择文件出错：{}",
 
@@ -3134,4 +3142,16 @@
   "expandPostDetails": "展开帖子详情",
   "restoreSplitView": "恢复分屏视图",
   "closePostDetails": "关闭帖子详情"
+,
+  "settingsChatRoomStorage": "Chat Room Storage",
+  "settingsChatRoomStorageHelper": "View stored messages per chat room",
+  "settingsTotalMessages": "Total Messages",
+  "settingsMessageCount": "{} messages",
+  "settingsUnknownRoom": "Unknown Room",
+  "settingsNoChatMessages": "No chat messages stored",
+  "settingsClearChatHistory": "Clear Chat History",
+  "settingsClearChatHistoryConfirm": "Are you sure you want to clear all messages from \"{}\"? This action cannot be undone.",
+  "settingsExportChat": "导出聊天记录",
+  "settingsExportJsonDesc": "包含元数据的完整消息数据",
+  "settingsExportCsvDesc": "简易电子表格格式"
 }
