@@ -869,13 +869,16 @@ class FileListView extends HookConsumerWidget {
             value: 'delete',
             child: Row(
               children: [
-                Icon(Symbols.delete,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.error),
+                Icon(
+                  Symbols.delete,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 const Gap(12),
-                Text('delete'.tr(),
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  'delete'.tr(),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ],
             ),
           ),
