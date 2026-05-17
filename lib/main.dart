@@ -38,7 +38,7 @@ import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:media_kit/media_kit.dart';
 
-import 'package:island/core/services/python_service.dart' as python;
+// 注意：不再导入 python_service
 
 final List<LogRecord> _earlyLogs = [];
 
@@ -139,18 +139,7 @@ void main(List<String> args) async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  if (!kIsWeb) {
-    try {
-      await python.initPython();
-      if (python.isPythonAvailable()) {
-        Logger.root.info("[pocketpy] Initialized and executed all scripts in SolianApp");
-      } else {
-        Logger.root.info("[pocketpy] SolianApp not found or init failed");
-      }
-    } catch (e) {
-      Logger.root.severe("[pocketpy] Init error", e);
-    }
-  }
+  // 移除 Python 初始化代码
 
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
     await windowManager.ensureInitialized();
@@ -274,6 +263,7 @@ void main(List<String> args) async {
   );
 }
 
+// 以下是 IslandApp 等代码保持不变...
 final globalOverlay = GlobalKey<OverlayState>();
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
