@@ -32,7 +32,6 @@ Future<void> initPython() async {
       Logger.root.info('[python_service] Created plugins directory: ${pluginsDir.path}');
     }
 
-    // 动态获取 assets/scripts/ 下的所有 .py 文件
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
     final assets = manifest.listAssets();
     final scriptPaths = assets.where((asset) => asset.startsWith('assets/scripts/') && asset.endsWith('.py')).toList();
@@ -47,12 +46,9 @@ Future<void> initPython() async {
 
     _vm = pkpy.VM();
 
-    _vm!.exec('''
-import sys
-sys.path.insert(0, r"${baseDir.path}")
-''');
+    _vm!.exec('import sys');
+    _vm!.exec('sys.path.insert(0, r"${baseDir.path}")');
 
-    // 确保 loader.py 存在（它应该在 scriptPaths 中）
     _vm!.exec('import loader');
     _vm!.exec('loader.load_plugins()');
 
