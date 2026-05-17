@@ -1444,8 +1444,9 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                       width: 180,
                       height: 80,
                       child: InkWell(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(12)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
+                        ),
                         onTap: onOpenIndexed,
                         child: Card(
                           margin: EdgeInsets.zero,
@@ -1458,8 +1459,11 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Symbols.cloud,
-                                    size: 24, color: colorScheme.primary),
+                                Icon(
+                                  Symbols.cloud,
+                                  size: 24,
+                                  color: colorScheme.primary,
+                                ),
                                 const Gap(8),
                                 Text(
                                   'driveIndexedEntryLabel'.tr(),
@@ -1476,8 +1480,9 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                       width: 180,
                       height: 80,
                       child: InkWell(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(12)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(12),
+                        ),
                         onTap: onOpenUnindexed,
                         child: Card(
                           margin: EdgeInsets.zero,
@@ -1490,8 +1495,11 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Symbols.inventory_2,
-                                    size: 24, color: colorScheme.primary),
+                                Icon(
+                                  Symbols.inventory_2,
+                                  size: 24,
+                                  color: colorScheme.primary,
+                                ),
                                 const Gap(8),
                                 Text(
                                   'driveUnindexedEntryLabel'.tr(),
