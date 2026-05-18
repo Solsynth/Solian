@@ -29,7 +29,6 @@ import 'package:island/realms/widgets/realm_card.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
-import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -2202,48 +2201,17 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12 + 16,
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Expanded(child: Divider()),
-                                          const Gap(8),
-                                          translating.value
-                                              ? const SizedBox(
-                                                  width: 14,
-                                                  height: 14,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
-                                                )
-                                              : const Text('translated')
-                                                    .tr()
-                                                    .fontSize(11)
-                                                    .opacity(0.75),
-                                        ],
-                                      ),
-                                      if (translatedText.value != null) ...[
-                                        const Gap(8),
-                                        MarkdownTextContent(
-                                          textStyle: TextStyle(
-                                            fontSize:
-                                                Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium!
-                                                    .fontSize! *
-                                                (post.type == 1 ? 1.1 : 1.0),
-                                          ),
-                                          content: translatedText.value!,
-                                          isSelectable: true,
-                                          attachments: post.attachments,
-                                          noMentionChip:
-                                              post.fediverseUri != null,
-                                        ),
-                                      ],
-                                    ],
+                                  child: buildPostTranslationSection(
+                                    context: context,
+                                    item: post,
+                                    isTextSelectable: true,
+                                    textScale: post.type == 1 ? 1.1 : 1.0,
+                                    translatedText: translatedText.value,
+                                    isTranslating: translating.value,
+                                    onTranslate: () => translatePost(
+                                      post.content ?? '',
+                                    ),
+                                    showTranslateButton: false,
                                   ),
                                 ),
                               ),
