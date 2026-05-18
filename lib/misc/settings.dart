@@ -12,12 +12,14 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/database.dart';
+import 'package:island/core/debug_sheet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/cache_service.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/core/services/update_service.dart';
 import 'package:island/misc/connectivity_self_check_screen.dart';
 import 'package:island/misc/about_content.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -68,6 +70,13 @@ class SettingsScreen extends HookConsumerWidget {
     final pools = ref.watch(poolsProvider);
     final user = ref.watch(userInfoProvider);
     final docBasepath = useState<String?>(null);
+    final latestReleaseRefreshNonce = useState(0);
+    final latestRelease = useFuture(
+      useMemoized(
+        () => UpdateService().fetchLatestRelease(),
+        [latestReleaseRefreshNonce.value],
+      ),
+    );
 
     useEffect(() {
       getApplicationSupportDirectory().then((dir) {
@@ -1528,6 +1537,82 @@ class SettingsScreen extends HookConsumerWidget {
         localizedTitleKey: 'settingsStorage',
         searchTerms: ['cache', 'disk space'],
         children: [_StorageSettingsSection()],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
+        icon: Symbols.update,
+        title: 'Update',
+        localizedTitleKey: 'settingsUpdate',
+        searchTerms: ['release', 'version', 'debug', 'force update'],
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
+            child: Text(
+              'settingsCheckForUpdatesSection'.tr(),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsCheckForUpdates').tr(),
+            subtitle: Text('settingsCheckForUpdatesHelper').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.update),
+            trailing: IconButton(
+              icon: const Icon(Symbols.refresh),
+              tooltip: 'refresh'.tr(),
+              onPressed: () {
+                latestReleaseRefreshNonce.value++;
+              },
+            ),
+            onTap: () async {
+              await UpdateService().checkForUpdates(context);
+            },
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsGithubLatestVersion').tr(),
+            subtitle: latestRelease.connectionState == ConnectionState.waiting
+                ? Text('settingsGithubLatestVersionLoading').tr()
+                : latestRelease.hasError
+                ? Text('settingsGithubLatestVersionUnavailable').tr()
+                : Text(
+                    '${'settingsGithubLatestVersionValue'.tr()}: ${latestRelease.data?.tagName ?? '-'}',
+                  ),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.cloud_download),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: latestRelease.data == null
+                ? null
+                : () async {
+                    await UpdateService().showUpdateSheet(
+                      context,
+                      latestRelease.data!,
+                    );
+                  },
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsOpenDebugSheet').tr(),
+            subtitle: Text('settingsOpenDebugSheetHelper').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.bug_report),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useRootNavigator: true,
+                builder: (context) => const DebugSheet(),
+              );
+            },
+          ),
+        ],
       ),
     );
 
