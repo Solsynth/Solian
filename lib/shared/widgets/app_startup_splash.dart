@@ -9,6 +9,7 @@ import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
+import 'package:island/core/services/python_service.dart' as python;
 
 const kDefaultBootstrapRetryTimeouts = <Duration>[
   Duration(milliseconds: 1000),
@@ -96,6 +97,14 @@ class StartupSplashScreen extends HookConsumerWidget {
           isCritical: true,
           action: () async {
             await ref.read(websocketStateProvider.notifier).connect();
+          },
+        ),
+        // Python 初始化阶段 - 放在网络连接之后，推送通知之前
+        _BootstrapStage(
+          label: 'Initializing Python scripts',
+          isCritical: false,
+          action: () async {
+            await python.initPython();
           },
         ),
         _BootstrapStage(
