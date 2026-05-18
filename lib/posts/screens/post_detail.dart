@@ -19,6 +19,7 @@ import 'package:island/posts/widgets/compose/embed_view_renderer.dart';
 import 'package:island/posts/widgets/compose/post_award_history_sheet.dart';
 import 'package:island/posts/widgets/compose/post_award_sheet.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
+import 'package:island/posts/widgets/compose/post_collections_sheet.dart';
 import 'package:island/posts/widgets/compose/post_pin_sheet.dart';
 import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
@@ -29,7 +30,6 @@ import 'package:island/tickets/widgets/ticket_fire.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
-import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -372,6 +372,16 @@ class PostActionButtons extends HookConsumerWidget {
           ThoughtSheet.show(context, attachedPosts: [post.id]);
         },
       ),
+      if (isAuthor)
+        buildActionButton(
+          icon: Symbols.collections,
+          label: 'collections'.tr(),
+          onPressed: () => showPostCollectionsSheet(
+            context,
+            post,
+            onChanged: onRefresh,
+          ),
+        ),
       if (post.content != null && onTranslate != null)
         buildActionButton(
           icon: Symbols.translate,
@@ -1728,48 +1738,27 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           onTranslate: onTranslate,
                                         ).alignment(Alignment.centerLeft),
                                         if (isTranslating ||
-                                            translatedText != null) ...[
-                                          const Divider(),
-                                          Row(
-                                            children: [
-                                              const Expanded(child: Divider()),
-                                              const Gap(8),
-                                              isTranslating
-                                                  ? const SizedBox(
-                                                      width: 14,
-                                                      height: 14,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                          ),
-                                                    )
-                                                  : const Text('translated')
-                                                        .tr()
-                                                        .fontSize(11)
-                                                        .opacity(0.75),
-                                            ],
-                                          ),
-                                          if (translatedText != null) ...[
-                                            const Gap(8),
-                                            MarkdownTextContent(
-                                              textStyle: TextStyle(
-                                                fontSize:
-                                                    Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium!
-                                                        .fontSize! *
-                                                    (post.type == 1
-                                                        ? 1.2
-                                                        : 1.1),
-                                              ),
-                                              content: translatedText!,
-                                              isSelectable: true,
-                                              attachments: post.attachments,
-                                              noMentionChip:
-                                                  post.fediverseUri != null,
+                                            translatedText != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
                                             ),
-                                          ],
-                                        ],
+                                            child: buildPostTranslationSection(
+                                              context: context,
+                                              item: post,
+                                              isTextSelectable: true,
+                                              textScale:
+                                                  post.type == 1 ? 1.2 : 1.1,
+                                              translatedText: translatedText,
+                                              isTranslating: isTranslating,
+                                              onTranslate: onTranslate == null
+                                                  ? null
+                                                  : () => onTranslate!(
+                                                      post.content!,
+                                                    ),
+                                              showTranslateButton: false,
+                                            ),
+                                          ),
                                         if (post.repliedPostId != null ||
                                             post.forwardedPostId != null)
                                           Padding(
@@ -2320,66 +2309,33 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          if (translatedText.value != null || translating.value)
-                            SliverToBoxAdapter(
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
+                            if (translatedText.value != null || translating.value)
+                              SliverToBoxAdapter(
+                                child: Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: _postDetailMaxWidth,
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Expanded(child: Divider()),
-                                            const Gap(8),
-                                            translating.value
-                                                ? const SizedBox(
-                                                    width: 14,
-                                                    height: 14,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          strokeWidth: 2,
-                                                        ),
-                                                  )
-                                                : const Text('translated')
-                                                      .tr()
-                                                      .fontSize(11)
-                                                      .opacity(0.75),
-                                          ],
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                      ),
+                                      child: buildPostTranslationSection(
+                                        context: context,
+                                        item: postItem,
+                                        isTextSelectable: true,
+                                        textScale: postItem.type == 1 ? 1.2 : 1.1,
+                                        translatedText: translatedText.value,
+                                        isTranslating: translating.value,
+                                        onTranslate: () => translatePost(
+                                          postItem.content ?? '',
                                         ),
-                                        if (translatedText.value != null) ...[
-                                          const Gap(8),
-                                          MarkdownTextContent(
-                                            textStyle: TextStyle(
-                                              fontSize:
-                                                  Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium!
-                                                      .fontSize! *
-                                                  (postItem.type == 1
-                                                      ? 1.2
-                                                      : 1.1),
-                                            ),
-                                            content: translatedText.value!,
-                                            isSelectable: true,
-                                            attachments: postItem.attachments,
-                                            noMentionChip:
-                                                postItem.fediverseUri != null,
-                                          ).padding(horizontal: 4),
-                                        ],
-                                      ],
+                                        showTranslateButton: false,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
                           DefaultTabController(
                             length: 4,
                             child: PostInteractionsSlivers(
