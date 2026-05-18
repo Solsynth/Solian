@@ -318,7 +318,11 @@ class PostActionButtons extends HookConsumerWidget {
         isSelected: isBookmarked,
         onPressed: () async {
           try {
-            await toggleBookmark(ref, postId: post.id, currentlyBookmarked: isBookmarked);
+            await toggleBookmark(
+              ref,
+              postId: post.id,
+              currentlyBookmarked: isBookmarked,
+            );
           } catch (err) {
             showErrorAlert(err);
           }
@@ -376,11 +380,8 @@ class PostActionButtons extends HookConsumerWidget {
         buildActionButton(
           icon: Symbols.collections,
           label: 'collections'.tr(),
-          onPressed: () => showPostCollectionsSheet(
-            context,
-            post,
-            onChanged: onRefresh,
-          ),
+          onPressed: () =>
+              showPostCollectionsSheet(context, post, onChanged: onRefresh),
         ),
       if (post.content != null && onTranslate != null)
         buildActionButton(
@@ -1518,7 +1519,11 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                 loading: () => post.isBookmarked,
                 error: (_, _) => post.isBookmarked,
               );
-              await toggleBookmark(ref, postId: post.id, currentlyBookmarked: isBookmarked);
+              await toggleBookmark(
+                ref,
+                postId: post.id,
+                currentlyBookmarked: isBookmarked,
+              );
               onRefresh.call();
             } catch (err) {
               showErrorAlert(err);
@@ -1747,8 +1752,9 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                               context: context,
                                               item: post,
                                               isTextSelectable: true,
-                                              textScale:
-                                                  post.type == 1 ? 1.2 : 1.1,
+                                              textScale: post.type == 1
+                                                  ? 1.2
+                                                  : 1.1,
                                               translatedText: translatedText,
                                               isTranslating: isTranslating,
                                               onTranslate: onTranslate == null
@@ -2031,7 +2037,11 @@ class PostDetailScreen extends HookConsumerWidget {
               case 'bookmark':
                 return () async {
                   try {
-                    await toggleBookmark(ref, postId: postItem.id, currentlyBookmarked: postItem.isBookmarked);
+                    await toggleBookmark(
+                      ref,
+                      postId: postItem.id,
+                      currentlyBookmarked: postItem.isBookmarked,
+                    );
                     ref.invalidate(postProvider(id));
                     ref.read(postRepliesProvider(id).notifier).refresh();
                   } catch (err) {
@@ -2260,7 +2270,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                       16,
                                       8,
                                       16,
-                                      0,
+                                      8,
                                     ),
                                     child: PostCollectionNavigation(
                                       post: postItem,
@@ -2278,7 +2288,7 @@ class PostDetailScreen extends HookConsumerWidget {
                                   ),
                                   child: PostRealmBadge(
                                     realm: postItem.realm!,
-                                  ).padding(horizontal: 16, top: 8),
+                                  ).padding(horizontal: 16, vertical: 8),
                                 ),
                               ),
                             ),
@@ -2309,33 +2319,32 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                            if (translatedText.value != null || translating.value)
-                              SliverToBoxAdapter(
-                                child: Center(
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: _postDetailMaxWidth,
+                          if (translatedText.value != null || translating.value)
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                      child: buildPostTranslationSection(
-                                        context: context,
-                                        item: postItem,
-                                        isTextSelectable: true,
-                                        textScale: postItem.type == 1 ? 1.2 : 1.1,
-                                        translatedText: translatedText.value,
-                                        isTranslating: translating.value,
-                                        onTranslate: () => translatePost(
-                                          postItem.content ?? '',
-                                        ),
-                                        showTranslateButton: false,
-                                      ),
+                                    child: buildPostTranslationSection(
+                                      context: context,
+                                      item: postItem,
+                                      isTextSelectable: true,
+                                      textScale: postItem.type == 1 ? 1.2 : 1.1,
+                                      translatedText: translatedText.value,
+                                      isTranslating: translating.value,
+                                      onTranslate: () =>
+                                          translatePost(postItem.content ?? ''),
+                                      showTranslateButton: false,
                                     ),
                                   ),
                                 ),
                               ),
+                            ),
                           DefaultTabController(
                             length: 4,
                             child: PostInteractionsSlivers(
