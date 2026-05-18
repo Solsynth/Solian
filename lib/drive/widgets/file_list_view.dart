@@ -1099,7 +1099,7 @@ class FileListView extends HookConsumerWidget {
         if (isSelectionMode) {
           toggleSelection();
         } else {
-          context.router.push(FileDetailRoute(item: file));
+          context.router.push(FileDetailRoute(id: file.id));
         }
       },
       trailing: IconButton(
@@ -1167,7 +1167,7 @@ class FileListView extends HookConsumerWidget {
         if (isSelectionMode) {
           toggleSelection();
         } else {
-          context.router.push(FileDetailRoute(item: file));
+          context.router.push(FileDetailRoute(id: file.id));
         }
       },
       trailing: IconButton(

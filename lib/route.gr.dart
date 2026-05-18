@@ -2658,14 +2658,14 @@ class FeedMarketplaceRoute extends _i91.PageRouteInfo<void> {
 class FileDetailRoute extends _i91.PageRouteInfo<FileDetailRouteArgs> {
   FileDetailRoute({
     _i92.Key? key,
-    required _i94.SnCloudFile item,
+    required String id,
     String? heroTag,
     List<_i91.PageRouteInfo>? children,
   }) : super(
-         FileDetailRoute.name,
-         args: FileDetailRouteArgs(key: key, item: item, heroTag: heroTag),
-         initialChildren: children,
-       );
+          FileDetailRoute.name,
+          args: FileDetailRouteArgs(key: key, id: id, heroTag: heroTag),
+          initialChildren: children,
+        );
 
   static const String name = 'FileDetailRoute';
 
@@ -2675,7 +2675,7 @@ class FileDetailRoute extends _i91.PageRouteInfo<FileDetailRouteArgs> {
       final args = data.argsAs<FileDetailRouteArgs>();
       return _i53.FileDetailScreen(
         key: args.key,
-        item: args.item,
+        id: args.id,
         heroTag: args.heroTag,
       );
     },
@@ -2683,28 +2683,28 @@ class FileDetailRoute extends _i91.PageRouteInfo<FileDetailRouteArgs> {
 }
 
 class FileDetailRouteArgs {
-  const FileDetailRouteArgs({this.key, required this.item, this.heroTag});
+  const FileDetailRouteArgs({this.key, required this.id, this.heroTag});
 
   final _i92.Key? key;
 
-  final _i94.SnCloudFile item;
+  final String id;
 
   final String? heroTag;
 
   @override
   String toString() {
-    return 'FileDetailRouteArgs{key: $key, item: $item, heroTag: $heroTag}';
+    return 'FileDetailRouteArgs{key: $key, id: $id, heroTag: $heroTag}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! FileDetailRouteArgs) return false;
-    return key == other.key && item == other.item && heroTag == other.heroTag;
+    return key == other.key && id == other.id && heroTag == other.heroTag;
   }
 
   @override
-  int get hashCode => key.hashCode ^ item.hashCode ^ heroTag.hashCode;
+  int get hashCode => key.hashCode ^ id.hashCode ^ heroTag.hashCode;
 }
 
 /// generated route for

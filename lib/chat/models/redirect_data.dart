@@ -361,9 +361,7 @@ String? _resolveSenderField({
     sender = senderMap[senderId] is Map
         ? Map<String, dynamic>.from(senderMap[senderId])
         : null;
-    if (sender == null) {
-      sender = _findSenderByAccountId(senderMap, senderId);
-    }
+    sender ??= _findSenderByAccountId(senderMap, senderId);
   }
   sender ??= message['sender'] is Map
       ? Map<String, dynamic>.from(message['sender'])

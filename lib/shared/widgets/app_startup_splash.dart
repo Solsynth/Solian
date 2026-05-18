@@ -9,7 +9,7 @@ import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/core/services/python_service.dart' as python;
+import 'package:island/plugin/python_service.dart' as python;
 
 const kDefaultBootstrapRetryTimeouts = <Duration>[
   Duration(milliseconds: 1000),

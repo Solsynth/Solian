@@ -418,7 +418,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
           if (mounted) {
             Navigator.of(context).pop(); // Close share sheet
             if (shouldView == true) {
-              context.router.push(FileDetailRoute(item: uploadedFiles.first));
+               context.router.push(FileDetailRoute(id: uploadedFiles.first.id));
             }
           }
         } else {
