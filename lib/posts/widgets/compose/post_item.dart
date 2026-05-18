@@ -296,17 +296,11 @@ class PostActionableItem extends HookConsumerWidget {
             );
           };
         case 'collections':
-          return () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useRootNavigator: true,
-              builder: (_) => PostCollectionsSheet(
-                post: item,
-                onChanged: onRefresh,
-              ),
-            );
-          };
+          return () => showPostCollectionsSheet(
+            context,
+            item,
+            onChanged: onRefresh,
+          );
         case 'bookmark':
           return () async {
             try {
@@ -685,6 +679,95 @@ class PostItem extends HookConsumerWidget {
       ],
     );
   }
+}
+
+Widget buildPostTranslationSection({
+  required BuildContext context,
+  required SnPost item,
+  required bool isTextSelectable,
+  required double? textScale,
+  required String? translatedText,
+  required bool isTranslating,
+  required VoidCallback? onTranslate,
+  bool showTranslateButton = true,
+}) {
+  final theme = Theme.of(context);
+  final translatedWidget = (translatedText?.isNotEmpty ?? false)
+      ? Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                const Gap(8),
+                const Text('translated').tr().fontSize(11).opacity(0.75),
+              ],
+            ),
+            MarkdownTextContent(
+              textStyle: TextStyle(
+                fontSize: theme.textTheme.bodyMedium!.fontSize! * (textScale ?? 1),
+              ),
+              content: translatedText!,
+              isSelectable: isTextSelectable,
+              attachments: item.attachments,
+              noMentionChip: item.fediverseUri != null,
+            ),
+          ],
+        )
+      : null;
+
+  final translationStatusWidget = isTranslating
+      ? const SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : null;
+
+  final translatableWidget = onTranslate != null
+      ? Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: isTranslating ? null : onTranslate,
+            style: ButtonStyle(
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 2),
+              ),
+              visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+              foregroundColor: WidgetStatePropertyAll(
+                translatedText == null ? null : Colors.grey,
+              ),
+            ),
+            icon: const Icon(Symbols.translate),
+            label: translatedText != null
+                ? const Text('translated').tr()
+                : isTranslating
+                ? const Text('translating').tr()
+                : const Text('translate').tr(),
+          ),
+        )
+      : null;
+
+  final children = <Widget>[];
+  if (translationStatusWidget != null) {
+    children.add(
+      Row(
+        children: [
+          const Expanded(child: Divider()),
+          const Gap(8),
+          translationStatusWidget,
+        ],
+      ),
+    );
+  }
+  if (translatedWidget != null) {
+    children.add(translatedWidget);
+  }
+  if (showTranslateButton && translatableWidget != null) {
+    children.add(translatableWidget);
+  }
+
+  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
 }
 
 class PostReactionList extends HookConsumerWidget {
