@@ -44,8 +44,6 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'package:island/plugin/python_service.dart' as python;
-
 const kForceShowStartupSplashForTesting = false;
 const kOnboardingLastShownVersion = 'app_onboarding_last_shown_version';
 
@@ -148,21 +146,22 @@ class AppWrapper extends HookConsumerWidget {
       return null;
     }, [hasConnectivity, token, websocketState]);
 
-    useEffect(() {
-      if (!kIsWeb) {
-        Future(() async {
-          await python.initPython();
-          if (python.isPythonAvailable()) {
-            Logger.root.info("[pocketpy] Initialized from AppWrapper");
-          } else {
-            Logger.root.info(
-              "[pocketpy] Not available (folder missing or init failed)",
-            );
-          }
-        });
-      }
-      return null;
-    }, []);
+    // TODO reenable this till the python service is stable
+    // useEffect(() {
+    //   if (!kIsWeb) {
+    //     Future(() async {
+    //       await python.initPython();
+    //       if (python.isPythonAvailable()) {
+    //         Logger.root.info("[pocketpy] Initialized from AppWrapper");
+    //       } else {
+    //         Logger.root.info(
+    //           "[pocketpy] Not available (folder missing or init failed)",
+    //         );
+    //       }
+    //     });
+    //   }
+    //   return null;
+    // }, []);
 
     useEffect(() {
       final ntySubs = setupNotificationListener(context, ref);

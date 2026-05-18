@@ -1,37 +1,35 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/cache_service.dart';
 import 'package:island/core/services/color_extraction.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/core/services/udid.dart' as udid;
 import 'package:island/misc/connectivity_self_check_screen.dart';
+import 'package:island/misc/about_content.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:island/route.gr.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 @RoutePage()
 class SettingsScreen extends HookConsumerWidget {
@@ -1097,6 +1095,21 @@ class SettingsScreen extends HookConsumerWidget {
                 leading: const Icon(Icons.error, color: Colors.red),
               ),
             ),
+          const Divider(height: 24),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsConnectionStatus'.tr()),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.wifi),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => NetworkStatusSheet(),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -1225,7 +1238,9 @@ class SettingsScreen extends HookConsumerWidget {
             trailing: Switch(
               value: settings.notifyWithHaptic,
               onChanged: (value) {
-                ref.read(appSettingsProvider.notifier).setNotifyWithHaptic(value);
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setNotifyWithHaptic(value);
               },
             ),
           ),
@@ -1523,21 +1538,10 @@ class SettingsScreen extends HookConsumerWidget {
         localizedTitleKey: 'about',
         searchTerms: ['version', 'license', 'developer', 'privacy', 'terms'],
         embedInWide: isWide,
-        wideContent: (context) => const _EmbeddedAboutContent(),
-        children: [
-          ListTile(
-            leading: const Icon(Symbols.info),
-            trailing: const Icon(Symbols.chevron_right),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-            dense: true,
-            title: Text('about'.tr()),
-            onTap: () {
-              context.router.push(const AboutRoute());
-            },
-          ),
-        ],
+        wideContent: (context) => const AboutContent(),
+        children: const [],
       ),
-    );
+      );
 
     Widget buildSettingsList(
       BoxConstraints constraints,
@@ -1635,13 +1639,15 @@ class SettingsScreen extends HookConsumerWidget {
           ),
           // Selected category content
           Flexible(
-            child: SingleChildScrollView(
-              child: _SettingsSection(
-                title: selectedCategory.title,
-                localizedTitleKey: selectedCategory.localizedTitleKey,
-                children: selectedCategory.children,
-              ),
-            ),
+            child: selectedCategory.wideContent != null
+                ? selectedCategory.wideContent!(context)
+                : SingleChildScrollView(
+                    child: _SettingsSection(
+                      title: selectedCategory.title,
+                      localizedTitleKey: selectedCategory.localizedTitleKey,
+                      children: selectedCategory.children,
+                    ),
+                  ),
           ),
         ],
       );
@@ -2008,16 +2014,41 @@ class _StorageSettingsSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isIOS = !kIsWeb && Platform.isIOS;
+    final isDesktop =
+        !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
     final theme = Theme.of(context);
     final diskSpace = useState<DiskSpaceInfo?>(null);
     final flutterCacheSize = useState(0);
     final nativeCacheSize = useState(0);
+    final databaseSize = useState(0);
+    final databasePath = useState<String?>(null);
     final loading = useState(true);
     final clearing = useState(false);
+    final resettingDb = useState(false);
+
+    Future<int> calculateDatabaseSize() async {
+      if (kIsWeb || databasePath.value == null) return 0;
+      try {
+        final dbDir = Directory(databasePath.value!);
+        if (await dbDir.exists()) {
+          return CacheService.getDirectorySize(dbDir);
+        }
+        return 0;
+      } catch (e) {
+        debugPrint('Failed to calculate database size: $e');
+        return 0;
+      }
+    }
 
     useEffect(() {
       CacheService.getDiskSpace().then((space) {
         diskSpace.value = space;
+      });
+      getApplicationSupportDirectory().then((dir) {
+        databasePath.value = '${dir.path}/objectbox';
+        calculateDatabaseSize().then((size) {
+          databaseSize.value = size;
+        });
       });
       CacheService.getFlutterCacheSize().then((size) {
         flutterCacheSize.value = size;
@@ -2057,6 +2088,28 @@ class _StorageSettingsSection extends HookConsumerWidget {
       clearing.value = false;
       if (context.mounted) {
         showSnackBar('settingsCacheCleared'.tr());
+      }
+    }
+
+    Future<void> resetDb() async {
+      resettingDb.value = true;
+      await resetDatabase(ref);
+      databaseSize.value = await calculateDatabaseSize();
+      resettingDb.value = false;
+      if (context.mounted) {
+        showSnackBar('settingsDatabaseResetSuccess'.tr());
+      }
+    }
+
+    Future<void> openDatabaseFolder() async {
+      if (!isDesktop || databasePath.value == null) return;
+
+      try {
+        await OpenFile.open(databasePath.value!);
+      } catch (e) {
+        if (context.mounted) {
+          showErrorAlert(e);
+        }
       }
     }
 
@@ -2232,327 +2285,66 @@ class _StorageSettingsSection extends HookConsumerWidget {
             ],
           ),
         ),
+        if (isDesktop)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'settingsDatabase'.tr(),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Symbols.folder_open, size: 20),
+                  title: Text('settingsOpenDatabaseFolder'.tr()),
+                  subtitle: Text(
+                    databasePath.value ?? 'unknown'.tr(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: openDatabaseFolder,
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Symbols.storage, size: 20),
+                  title: Text('settingsDatabaseSize'.tr()),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        CacheService.formatBytes(databaseSize.value),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      const SizedBox(width: 8),
+                      if (resettingDb.value)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        TextButton(
+                          onPressed: resetDb,
+                          child: Text('settingsDatabaseReset'.tr()),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         const SizedBox(height: 16),
       ],
     );
   }
 }
 
-class _EmbeddedAboutContent extends HookConsumerWidget {
-  const _EmbeddedAboutContent();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final packageInfo = useState<PackageInfo?>(null);
-    final deviceInfo = useState<BaseDeviceInfo?>(null);
-    final deviceUdid = useState<String?>(null);
-    final isLoading = useState(true);
-
-    useEffect(() {
-      PackageInfo.fromPlatform().then((info) {
-        packageInfo.value = info;
-        isLoading.value = false;
-      });
-      DeviceInfoPlugin().deviceInfo.then((info) {
-        deviceInfo.value = info;
-      });
-      udid.getUdid().then((id) {
-        deviceUdid.value = id;
-      });
-      return null;
-    }, []);
-
-    Future<void> launchURL(String url) async {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      }
-    }
-
-    if (isLoading.value) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final info = packageInfo.value!;
-
-    return SingleChildScrollView(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 540),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 24),
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                child: Image.asset(
-                  'assets/icons/icon.webp',
-                  width: 56,
-                  height: 56,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                info.appName,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'aboutScreenVersionInfo'.tr(
-                  args: [info.version, info.buildNumber],
-                ),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodySmall?.color,
-                ),
-              ),
-              const SizedBox(height: 32),
-              _buildSection(
-                context,
-                title: 'aboutScreenAppInfoSectionTitle'.tr(),
-                children: [
-                  _buildInfoItem(
-                    context,
-                    icon: Symbols.info,
-                    label: 'aboutScreenPackageNameLabel'.tr(),
-                    value: info.packageName,
-                  ),
-                  _buildInfoItem(
-                    context,
-                    icon: Symbols.update,
-                    label: 'aboutScreenVersionLabel'.tr(),
-                    value: info.version,
-                  ),
-                  _buildInfoItem(
-                    context,
-                    icon: Symbols.build,
-                    label: 'aboutScreenBuildNumberLabel'.tr(),
-                    value: info.buildNumber,
-                  ),
-                ],
-              ),
-              if (deviceInfo.value != null) ...[
-                const SizedBox(height: 16),
-                _buildSection(
-                  context,
-                  title: 'Device Information',
-                  children: [
-                    FutureBuilder<String>(
-                      future: udid.getDeviceName(),
-                      builder: (context, snapshot) {
-                        final value = snapshot.hasData
-                            ? snapshot.data!
-                            : 'unknown'.tr();
-                        return _buildInfoItem(
-                          context,
-                          icon: Symbols.label,
-                          label: 'aboutDeviceName'.tr(),
-                          value: value,
-                        );
-                      },
-                    ),
-                    _buildInfoItem(
-                      context,
-                      icon: Symbols.fingerprint,
-                      label: 'aboutDeviceIdentifier'.tr(),
-                      value: deviceUdid.value ?? 'N/A',
-                      copyable: true,
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 16),
-              _buildSection(
-                context,
-                title: 'aboutScreenLinksSectionTitle'.tr(),
-                children: [
-                  _buildListTile(
-                    context,
-                    icon: Symbols.privacy_tip,
-                    title: 'aboutScreenPrivacyPolicyTitle'.tr(),
-                    onTap: () =>
-                        launchURL('https://solsynth.dev/terms/privacy-policy'),
-                  ),
-                  _buildListTile(
-                    context,
-                    icon: Symbols.description,
-                    title: 'aboutScreenTermsOfServiceTitle'.tr(),
-                    onTap: () =>
-                        launchURL('https://solsynth.dev/terms/user-agreement'),
-                  ),
-                  _buildListTile(
-                    context,
-                    icon: Symbols.code,
-                    title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
-                    onTap: () {
-                      showLicensePage(
-                        context: context,
-                        applicationName: info.appName,
-                        applicationVersion: 'Version ${info.version}',
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildSection(
-                context,
-                title: 'aboutScreenDeveloperSectionTitle'.tr(),
-                children: [
-                  _buildListTile(
-                    context,
-                    icon: Symbols.email,
-                    title: 'aboutScreenContactUsTitle'.tr(),
-                    subtitle: 'lily@solsynth.dev',
-                    onTap: () => launchURL('mailto:lily@solsynth.dev'),
-                  ),
-                  _buildListTile(
-                    context,
-                    icon: Symbols.copyright,
-                    title: 'aboutScreenLicenseTitle'.tr(),
-                    subtitle: 'aboutScreenLicenseContent'.tr(),
-                    onTap: () => launchURL(
-                      'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
-                    ),
-                  ),
-                  if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
-                    _buildListTile(
-                      context,
-                      icon: Symbols.favorite,
-                      title: 'donate'.tr(),
-                      subtitle: 'donateDescription'.tr(),
-                      onTap: () {
-                        launchUrl(Uri.parse('https://afdian.com/@littlesheep'));
-                      },
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'aboutScreenCopyright'.tr(
-                        args: [DateTime.now().year.toString()],
-                      ),
-                      style: theme.textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const Gap(1),
-                    Text(
-                      'aboutScreenMadeWith'.tr(),
-                      textAlign: TextAlign.center,
-                    ).fontSize(10).opacity(0.8),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Widget _buildSection(
-    BuildContext context, {
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const Divider(height: 1),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildInfoItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-    bool copyable = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).hintColor),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 2),
-                SelectableText(
-                  value,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: copyable ? 1 : null,
-                ),
-              ],
-            ),
-          ),
-          if (value.startsWith('http') || value.contains('@') || copyable)
-            IconButton(
-              icon: const Icon(Symbols.content_copy, size: 16),
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: value));
-                showSnackBar('copiedToClipboard'.tr());
-              },
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: 'copyToClipboardTooltip'.tr(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildListTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    required VoidCallback onTap,
-  }) {
-    final multipleLines = subtitle?.contains('\n') ?? false;
-    return Column(
-      children: [
-        ListTile(
-          leading: Icon(icon).padding(top: multipleLines ? 8 : 0),
-          title: Text(title),
-          subtitle: subtitle != null ? Text(subtitle) : null,
-          isThreeLine: multipleLines,
-          trailing: const Icon(
-            Symbols.chevron_right,
-          ).padding(top: multipleLines ? 8 : 0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          onTap: onTap,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          minLeadingWidth: 24,
-        ),
-      ],
-    );
-  }
-}
 
 String _ipOverrideModeLabel(IpOverrideMode mode) {
   return switch (mode) {
