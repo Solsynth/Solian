@@ -159,7 +159,7 @@ Widget cloudImage() =>
                       ),
                       onPressed: () {
                         if (item is SnCloudFile) {
-                          context.router.push(FileDetailRoute(item: item as SnCloudFile));
+                          context.router.push(FileDetailRoute(id: item.id));
                         }
                       },
                       padding: EdgeInsets.all(4),
@@ -237,7 +237,7 @@ Widget cloudImage() =>
                     TextButton.icon(
                       onPressed: () {
                         if (item is SnCloudFile) {
-                          context.router.push(FileDetailRoute(item: item as SnCloudFile));
+                          context.router.push(FileDetailRoute(id: item.id));
                         }
                       },
                       icon: const Icon(Symbols.info),
@@ -316,7 +316,7 @@ class _EncryptedFileCard extends ConsumerWidget {
               ),
               TextButton.icon(
                 onPressed: () {
-                  context.router.push(FileDetailRoute(item: item));
+                   context.router.push(FileDetailRoute(id: item.id));
                 },
                 icon: const Icon(Symbols.info),
                 label: Text('info').tr(),
@@ -496,7 +496,7 @@ class CloudVideoWidget extends HookConsumerWidget {
         ],
       ),
       onTap: () {
-        context.router.push(FileDetailRoute(item: item));
+         context.router.push(FileDetailRoute(id: item.id));
       },
     );
   }

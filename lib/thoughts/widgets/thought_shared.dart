@@ -1328,7 +1328,7 @@ class ThoughtItem extends StatelessWidget {
             } else if (file is SnCloudFile) {
               context.router.push(
                 FileDetailRoute(
-                  item: file,
+                  id: file.id,
                   heroTag: 'cloud-file-thought-${file.id}',
                 ),
               );
