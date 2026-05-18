@@ -190,6 +190,7 @@ dependencies:
   health: ^13.1.4
   logging: ^1.3.0
   connectivity_plus: ^6.1.5
+  pocketpy: ^0.8.0+2
 
 dev_dependencies:
   flutter_test:
@@ -228,6 +229,7 @@ flutter:
     - assets/images/michan/
     - assets/icons/
     - assets/audio/
+    - assets/scripts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
