@@ -139,9 +139,6 @@ class MarkdownTextContent extends HookConsumerWidget {
     final spoilerRevealed = useState(false);
 
     final spoilerGenerator = SpoilerGenerator(
-      backgroundColor: Theme.of(context).colorScheme.tertiary,
-      foregroundColor: Theme.of(context).colorScheme.onTertiary,
-      outlineColor: Theme.of(context).colorScheme.outline,
       revealed: spoilerRevealed.value,
       onToggle: () => spoilerRevealed.value = !spoilerRevealed.value,
     );
@@ -618,45 +615,31 @@ class HighlightSpanNode extends SpanNode {
 }
 
 class SpoilerGenerator extends SpanNodeGeneratorWithTag {
-  SpoilerGenerator({
-    required Color backgroundColor,
-    required Color foregroundColor,
-    required Color outlineColor,
-    required bool revealed,
-    required VoidCallback onToggle,
-  }) : super(
-         tag: 'spoiler',
-         generator:
-             (
-               markdown.Element element,
-               MarkdownConfig config,
-               WidgetVisitor visitor,
-             ) {
-               return SpoilerSpanNode(
-                 text: element.textContent,
-                 backgroundColor: backgroundColor,
-                 foregroundColor: foregroundColor,
-                 outlineColor: outlineColor,
-                 revealed: revealed,
-                 onToggle: onToggle,
-               );
-             },
-       );
+  SpoilerGenerator({required bool revealed, required VoidCallback onToggle})
+    : super(
+        tag: 'spoiler',
+        generator:
+            (
+              markdown.Element element,
+              MarkdownConfig config,
+              WidgetVisitor visitor,
+            ) {
+              return SpoilerSpanNode(
+                text: element.textContent,
+                revealed: revealed,
+                onToggle: onToggle,
+              );
+            },
+      );
 }
 
 class SpoilerSpanNode extends SpanNode {
   final String text;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final Color outlineColor;
   final bool revealed;
   final VoidCallback onToggle;
 
   SpoilerSpanNode({
     required this.text,
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.outlineColor,
     required this.revealed,
     required this.onToggle,
   });
@@ -664,46 +647,74 @@ class SpoilerSpanNode extends SpanNode {
   @override
   InlineSpan build() {
     return WidgetSpan(
-      child: InkWell(
-        onTap: onToggle,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          decoration: BoxDecoration(
-            color: revealed ? Colors.transparent : backgroundColor,
-            border: revealed ? Border.all(color: outlineColor, width: 1) : null,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: revealed
-              ? Row(
-                  spacing: 6,
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Symbols.visibility, size: 18).padding(top: 1),
-                    Flexible(child: Text(text)),
-                  ],
-                )
-              : Row(
-                  spacing: 6,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Symbols.visibility_off,
-                      color: foregroundColor,
-                      size: 18,
-                    ),
-                    Flexible(
-                      child: Text(
-                        'spoiler',
-                        style: TextStyle(color: foregroundColor),
-                      ).tr(),
-                    ),
-                  ],
+      alignment: PlaceholderAlignment.middle,
+      child: Builder(
+        builder: (context) {
+          final baseStyle = DefaultTextStyle.of(context).style;
+          final spoilerBg = Colors.black;
+          final spoilerFg = Colors.white;
+          final spoilerSize = _measureInlineTextSize(context, text, baseStyle);
+
+          return InkWell(
+            onTap: onToggle,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.08),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
                 ),
-        ),
+              ),
+              child: revealed
+                  ? Text(text, key: const ValueKey('revealed'))
+                  : SizedBox(
+                      width: spoilerSize.width,
+                      height: spoilerSize.height,
+                      child: ColoredBox(
+                        color: spoilerBg,
+                        key: const ValueKey('hidden'),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'spoiler'.tr(),
+                              style: baseStyle.copyWith(
+                                color: spoilerFg,
+                                fontWeight: FontWeight.w600,
+                                fontSize: (baseStyle.fontSize ?? 14) * 0.82,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
+          );
+        },
       ),
     );
   }
+}
+
+Size _measureInlineTextSize(
+  BuildContext context,
+  String text,
+  TextStyle style,
+) {
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+    maxLines: 1,
+  )..layout();
+  return painter.size;
 }
 
 class StickerGenerator extends SpanNodeGeneratorWithTag {
