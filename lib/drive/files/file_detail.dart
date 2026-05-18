@@ -17,17 +17,17 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
 class FileDetailScreen extends HookConsumerWidget {
-  final SnCloudFile item;
+  final String id;
   final String? heroTag;
 
-  const FileDetailScreen({super.key, required this.item, this.heroTag});
+  const FileDetailScreen({super.key, required this.id, this.heroTag});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final serverUrl = ref.watch(serverUrlProvider);
     final isWide = isWideScreen(context);
-    final fileAsync = ref.watch(driveFileInfoProvider(item.id));
-    final currentItem = fileAsync.asData?.value ?? item;
+    final fileAsync = ref.watch(driveFileInfoProvider(id));
+    final currentItem = fileAsync.asData?.value;
 
     // Animation controller for the drawer
     final animationController = useAnimationController(
@@ -41,6 +41,36 @@ class FileDetailScreen extends HookConsumerWidget {
     );
 
     final showDrawer = useState(false);
+
+    // Listen to drawer state changes
+    useEffect(() {
+      void listener() {
+        if (!animationController.isAnimating) {
+          if (animationController.value == 0) {
+            showDrawer.value = false;
+          }
+        }
+      }
+
+      animationController.addListener(listener);
+      return () => animationController.removeListener(listener);
+    }, [animationController]);
+
+    if (fileAsync.hasError) {
+      return AppScaffold(
+        isNoBackground: true,
+        body: Center(child: Text(fileAsync.error.toString())),
+      );
+    }
+
+    if (fileAsync.isLoading || currentItem == null) {
+      return const AppScaffold(
+        isNoBackground: true,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final file = currentItem;
 
     void showInfoSheet() {
       if (isWide) {
@@ -57,24 +87,10 @@ class FileDetailScreen extends HookConsumerWidget {
           useRootNavigator: true,
           context: context,
           isScrollControlled: true,
-          builder: (context) => FileInfoSheet(item: currentItem),
+          builder: (context) => FileInfoSheet(item: file),
         );
       }
     }
-
-    // Listen to drawer state changes
-    useEffect(() {
-      void listener() {
-        if (!animationController.isAnimating) {
-          if (animationController.value == 0) {
-            showDrawer.value = false;
-          }
-        }
-      }
-
-      animationController.addListener(listener);
-      return () => animationController.removeListener(listener);
-    }, [animationController]);
 
     return AppScaffold(
       isNoBackground: true,
@@ -82,16 +98,14 @@ class FileDetailScreen extends HookConsumerWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
-        flexibleSpace: _buildBackground(item, serverUrl),
+        flexibleSpace: _buildBackground(file, serverUrl),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          currentItem.name.isEmpty ? 'File Details' : currentItem.name,
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: _buildAppBarActions(context, ref, showInfoSheet),
+        title: Text(file.name.isEmpty ? 'File Details' : file.name,
+            style: const TextStyle(color: Colors.white)),
+        actions: _buildAppBarActions(context, ref, file, showInfoSheet),
       ),
       body: Container(
         color: Colors.black,
@@ -108,7 +122,7 @@ class FileDetailScreen extends HookConsumerWidget {
                       top: 0,
                       bottom: 0,
                       width: constraints.maxWidth - animation.value * 400,
-                      child: _buildContent(context, ref, serverUrl, currentItem),
+                      child: _buildContent(context, ref, serverUrl, file),
                     ),
                     // Animated drawer panel - overlays
                     if (isWide)
@@ -122,12 +136,12 @@ class FileDetailScreen extends HookConsumerWidget {
                           child: SizedBox(
                             width: 400,
                             child: Material(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainer,
-                                elevation: 8,
-                                child: FileInfoSheet(
-                                item: currentItem,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainer,
+                              elevation: 8,
+                              child: FileInfoSheet(
+                                item: file,
                                 onClose: showInfoSheet,
                               ),
                             ),
@@ -147,6 +161,7 @@ class FileDetailScreen extends HookConsumerWidget {
   List<Widget> _buildAppBarActions(
     BuildContext context,
     WidgetRef ref,
+    SnCloudFile item,
     VoidCallback showInfoSheet,
   ) {
     final actions = <Widget>[];

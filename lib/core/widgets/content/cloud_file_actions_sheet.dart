@@ -97,7 +97,7 @@ class CloudFileActionsSheet extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               if (item is SnCloudFile) {
-                context.router.push(FileDetailRoute(item: item as SnCloudFile));
+                context.router.push(FileDetailRoute(id: item.id));
               }
             },
           ),
