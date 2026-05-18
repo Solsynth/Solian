@@ -110,12 +110,12 @@ sealed class SnRedirectData with _$SnRedirectData {
   );
 
   /// Parsed attachments for single-message redirects.
-  List<SnCloudFile> get resolvedSourceAttachments => map(
+  List<IDisplayableCloudFile> get resolvedSourceAttachments => map(
     singleMessage: (d) {
       final raw = d.sourceAttachments.isNotEmpty
           ? d.sourceAttachments
           : _safeMapList(d.sourceMessage['attachments']);
-      return _parseAttachments(raw);
+      return _parseAttachments(raw, d.sourceCreatedAt);
     },
     historySegment: (_) => const [],
   );
@@ -267,20 +267,23 @@ sealed class SnRedirectData with _$SnRedirectData {
   );
 
   /// Resolved attachments for a message at [index] as [SnCloudFile] list.
-  List<SnCloudFile> historyMessageResolvedAttachments(int index) => map(
-    singleMessage: (_) => const [],
-    historySegment: (d) {
-      if (index < 0 || index >= d.messages.length) return const [];
-      final raw = d.messages[index]['attachments'];
-      final list = raw is List
-          ? raw
-                .whereType<Map>()
-                .map((e) => Map<String, dynamic>.from(e))
-                .toList()
-          : <Map<String, dynamic>>[];
-      return _parseAttachmentThumbnails(list);
-    },
-  );
+  List<IDisplayableCloudFile> historyMessageResolvedAttachments(int index) =>
+      map(
+        singleMessage: (_) => const [],
+        historySegment: (d) {
+          if (index < 0 || index >= d.messages.length) return const [];
+          final msg = d.messages[index];
+          final raw = msg['attachments'];
+          final list = raw is List
+              ? raw
+                    .whereType<Map>()
+                    .map((e) => Map<String, dynamic>.from(e))
+                    .toList()
+              : <Map<String, dynamic>>[];
+          final createdAt = (msg['created_at'] as num?)?.toInt() ?? 0;
+          return _parseAttachmentThumbnails(list, createdAt);
+        },
+      );
 
   /// Picture id of a message sender at [index] (used for ProfilePictureWidget with fileId).
   String? historyMessageSenderPictureId(int index) => map(
@@ -345,7 +348,7 @@ String? _resolveSenderDisplayName({
 }
 
 /// Resolve a generic sender field with fallback chain:
-/// sender_map[senderId] → message['sender']
+/// sender_map[senderId] → sender_map[by account.id] → message['sender']
 String? _resolveSenderField({
   required Map<String, dynamic> senderMap,
   String? senderId,
@@ -358,6 +361,9 @@ String? _resolveSenderField({
     sender = senderMap[senderId] is Map
         ? Map<String, dynamic>.from(senderMap[senderId])
         : null;
+    if (sender == null) {
+      sender = _findSenderByAccountId(senderMap, senderId);
+    }
   }
   sender ??= message['sender'] is Map
       ? Map<String, dynamic>.from(message['sender'])
@@ -376,6 +382,25 @@ String? _resolveSenderField({
   return null;
 }
 
+/// Search sender_map values for a sender whose account.id matches.
+Map<String, dynamic>? _findSenderByAccountId(
+  Map<String, dynamic> senderMap,
+  String accountId,
+) {
+  for (final entry in senderMap.entries) {
+    if (entry.value is Map) {
+      final senderData = Map<String, dynamic>.from(entry.value);
+      final account = senderData['account'] is Map
+          ? Map<String, dynamic>.from(senderData['account'])
+          : null;
+      if (account?['id'] == accountId) {
+        return senderData;
+      }
+    }
+  }
+  return null;
+}
+
 String? _resolveSenderNick({
   required Map<String, dynamic> senderMap,
   String? senderId,
@@ -386,6 +411,7 @@ String? _resolveSenderNick({
     sender = senderMap[senderId] is Map
         ? Map<String, dynamic>.from(senderMap[senderId])
         : null;
+    sender ??= _findSenderByAccountId(senderMap, senderId);
   }
   sender ??= message['sender'] is Map
       ? Map<String, dynamic>.from(message['sender'])
@@ -405,6 +431,7 @@ String? _resolveSenderAccountNick({
     sender = senderMap[senderId] is Map
         ? Map<String, dynamic>.from(senderMap[senderId])
         : null;
+    sender ??= _findSenderByAccountId(senderMap, senderId);
   }
   sender ??= message['sender'] is Map
       ? Map<String, dynamic>.from(message['sender'])
@@ -427,6 +454,7 @@ String? _resolveSenderPictureId({
     sender = senderMap[senderId] is Map
         ? Map<String, dynamic>.from(senderMap[senderId])
         : null;
+    sender ??= _findSenderByAccountId(senderMap, senderId);
   }
   sender ??= message['sender'] is Map
       ? Map<String, dynamic>.from(message['sender'])
@@ -457,6 +485,7 @@ SnCloudFile? _extractProfilePicture({
     sender = senderMap[senderId] is Map
         ? Map<String, dynamic>.from(senderMap[senderId])
         : null;
+    sender ??= _findSenderByAccountId(senderMap, senderId);
   }
   sender ??= message['sender'] is Map
       ? Map<String, dynamic>.from(message['sender'])
@@ -513,33 +542,51 @@ SnCloudFile? _extractPictureMember(Map<String, dynamic> member) {
   }
 }
 
-List<SnCloudFile> _parseAttachments(List<Map<String, dynamic>> raw) {
+/// Parse redirect attachments into SnCloudFile objects.
+/// Redirect snapshots omit created_at/updated_at from attachments, so we
+/// inject them from [messageCreatedAt] before deserializing.
+List<IDisplayableCloudFile> _parseAttachments(
+  List<Map<String, dynamic>> raw,
+  int messageCreatedAt,
+) {
   if (raw.isEmpty) return const [];
   return raw
       .map((e) {
         try {
-          return SnCloudFile.fromJson(e);
-        } catch (_) {
+          final enriched = Map<String, dynamic>.from(e);
+          if (!enriched.containsKey('hash')) enriched['hash'] = '';
+          enriched['created_at'] ??= messageCreatedAt;
+          enriched['updated_at'] ??= messageCreatedAt;
+          return SnCloudFileReference.fromJson(enriched);
+        } catch (err) {
           return null;
         }
       })
-      .whereType<SnCloudFile>()
+      .whereType<SnCloudFileReference>()
       .toList();
 }
 
 /// Parses redirect attachment snapshots into [SnCloudFile] objects.
 /// Redirect attachments may lack standard fields like `created_at`/`updated_at`.
-List<SnCloudFile> _parseAttachmentThumbnails(List<Map<String, dynamic>> raw) {
+/// [messageCreatedAt] is used as a fallback for these required fields.
+List<IDisplayableCloudFile> _parseAttachmentThumbnails(
+  List<Map<String, dynamic>> raw,
+  int messageCreatedAt,
+) {
   if (raw.isEmpty) return const [];
   return raw
       .map((e) {
         try {
-          return SnCloudFile.fromJson(e);
-        } catch (_) {
+          final enriched = Map<String, dynamic>.from(e);
+          if (!enriched.containsKey('hash')) enriched['hash'] = '';
+          enriched['created_at'] ??= messageCreatedAt;
+          enriched['updated_at'] ??= messageCreatedAt;
+          return SnCloudFileReference.fromJson(enriched);
+        } catch (err) {
           return null;
         }
       })
-      .whereType<SnCloudFile>()
+      .whereType<SnCloudFileReference>()
       .toList();
 }
 
@@ -555,6 +602,7 @@ SnAccount? _resolveSnAccount({
     sender = senderMap[senderId] is Map
         ? Map<String, dynamic>.from(senderMap[senderId])
         : null;
+    sender ??= _findSenderByAccountId(senderMap, senderId);
   }
   sender ??= message['sender'] is Map
       ? Map<String, dynamic>.from(message['sender'])
