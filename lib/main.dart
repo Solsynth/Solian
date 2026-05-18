@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
@@ -39,6 +39,10 @@ import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:media_kit/media_kit.dart';
 
+// 注意：不再导入 python_service
+
+final List<LogRecord> _earlyLogs = [];
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -46,17 +50,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main(List<String> args) async {
-  // Initialize logging
+  Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
-    log(
-      [
-        '[${record.time}] [${record.level}] ${record.message}',
-        if (record.error != null) 'Error: ${record.error}',
-        ?record.stackTrace,
-      ].join('\n'),
-      time: record.time,
-      level: record.level.value,
-    );
+    _earlyLogs.add(record);
   });
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -85,7 +81,6 @@ void main(List<String> args) async {
 
   try {
     await EasyLocalization.ensureInitialized();
-    // Disable logs
     EasyLocalization.logger.enableBuildModes = [];
 
     if (kIsWeb || !Platform.isLinux) {
@@ -95,9 +90,6 @@ void main(List<String> args) async {
       FirebaseMessaging.onBackgroundMessage(
         _firebaseMessagingBackgroundHandler,
       );
-      // Although previous if case checked this. Still check is web or not
-      // Otherwise the web platform will broke due to there is no Platform api on the web
-      // Skip crashlytics setup on debug mode to prevent unexpected report to firebase
       if ((kIsWeb || !Platform.isWindows) && !kDebugMode) {
         FlutterError.onError =
             FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -149,12 +141,12 @@ void main(List<String> args) async {
   final prefs = await SharedPreferences.getInstance();
   HttpOverrides.global = createAppHttpOverridesFromPrefs(prefs);
 
+  // 移除 Python 初始化代码
+
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
     await windowManager.ensureInitialized();
 
     const defaultSize = Size(360, 640);
-
-    // Get saved window size from preferences
     final savedSizeString = prefs.getString(kAppWindowSize);
     Size initialSize = defaultSize;
 
@@ -220,6 +212,23 @@ void main(List<String> args) async {
     Logger.root.info("[SplashScreen] Now hiding splash screen...");
   }
 
+  Logger.root.onRecord.listen((record) {
+    developer.log(
+      record.message,
+      time: record.time,
+      level: record.level.value,
+      name: record.loggerName,
+    );
+  });
+  for (final record in _earlyLogs) {
+    developer.log(
+      record.message,
+      time: record.time,
+      level: record.level.value,
+      name: record.loggerName,
+    );
+  }
+
   runApp(
     ProviderScope(
       retry: (retryCount, error) {
@@ -256,8 +265,7 @@ void main(List<String> args) async {
   );
 }
 
-// Router will be provided through Riverpod
-
+// 以下是 IslandApp 等代码保持不变...
 final globalOverlay = GlobalKey<OverlayState>();
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -266,14 +274,11 @@ class IslandApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Make sure it's active
     final _ = ref.read(logsProvider);
 
-    // Theme data and prefs
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
 
-    // Convert string theme mode to ThemeMode enum
     ThemeMode getThemeMode() {
       final themeMode = settings.themeMode ?? 'system';
       switch (themeMode) {
@@ -291,11 +296,9 @@ class IslandApp extends HookConsumerWidget {
       if (notification.data['meta']?['action_uri'] != null) {
         var uri = notification.data['meta']['action_uri'] as String;
         if (uri.startsWith('/')) {
-          // In-app routes
           final router = ref.read(routerProvider);
           router.push(notification.data['meta']['action_uri']);
         } else {
-          // External links
           launchUrlString(uri);
         }
       }
@@ -310,19 +313,16 @@ class IslandApp extends HookConsumerWidget {
         return null;
       }
 
-      // When the app is opened from a terminated state.
       FirebaseMessaging.instance.getInitialMessage().then((message) {
         if (message != null) {
           handleMessage(message);
         }
       });
 
-      // When the app is in the background and opened.
       final onMessageOpenedAppSubscription = FirebaseMessaging
           .onMessageOpenedApp
           .listen(handleMessage);
 
-      // When the app is in the foreground.
       final onMessageSubscription = FirebaseMessaging.onMessage.listen((
         message,
       ) {
