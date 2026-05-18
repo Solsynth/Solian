@@ -156,3 +156,16 @@ class PostCollectionsSheet extends HookConsumerWidget {
     );
   }
 }
+
+Future<void> showPostCollectionsSheet(
+  BuildContext context,
+  SnPost post, {
+  VoidCallback? onChanged,
+}) {
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    builder: (_) => PostCollectionsSheet(post: post, onChanged: onChanged),
+  );
+}
