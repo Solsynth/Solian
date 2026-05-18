@@ -12,7 +12,6 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/database.dart';
-import 'package:island/core/debug_sheet.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -1545,7 +1544,7 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.update,
         title: 'Update',
         localizedTitleKey: 'settingsUpdate',
-        searchTerms: ['release', 'version', 'debug', 'force update'],
+        searchTerms: ['release', 'version', 'force update', 'cleanup'],
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
@@ -1598,17 +1597,18 @@ class SettingsScreen extends HookConsumerWidget {
           ),
           ListTile(
             minLeadingWidth: 48,
-            title: Text('settingsOpenDebugSheet').tr(),
-            subtitle: Text('settingsOpenDebugSheetHelper').tr(),
+            title: Text('settingsCleanPreviousUpdates').tr(),
+            subtitle: Text('settingsCleanPreviousUpdatesHelper').tr(),
             contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.bug_report),
+            leading: const Icon(Symbols.cleaning_services),
             trailing: const Icon(Symbols.chevron_right),
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                useRootNavigator: true,
-                builder: (context) => const DebugSheet(),
+            onTap: () async {
+              final cleaned = await UpdateService().cleanupPreviousUpdateArtifacts();
+              if (!context.mounted) return;
+              showSnackBar(
+                cleaned == 0
+                    ? 'settingsCleanPreviousUpdatesNone'.tr()
+                    : 'settingsCleanPreviousUpdatesDone'.tr(args: ['$cleaned']),
               );
             },
           ),

@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_update/azhon_app_update.dart';
+import 'package:flutter_app_update/result_model.dart';
 import 'package:flutter_app_update/update_model.dart';
 import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:logging/logging.dart';
@@ -115,6 +116,32 @@ class _ParsedVersion implements Comparable<_ParsedVersion> {
 }
 
 const bool kEnableBuiltInUpdate = true;
+
+Future<void> _cleanupFile(String? filePath) async {
+  if (filePath == null || filePath.isEmpty) return;
+
+  try {
+    final file = File(filePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  } catch (e) {
+    Logger.root.warning('[Update] Failed to delete file "$filePath": $e');
+  }
+}
+
+Future<void> _cleanupDirectory(String? dirPath) async {
+  if (dirPath == null || dirPath.isEmpty) return;
+
+  try {
+    final dir = Directory(dirPath);
+    if (await dir.exists()) {
+      await dir.delete(recursive: true);
+    }
+  } catch (e) {
+    Logger.root.warning('[Update] Failed to delete directory "$dirPath": $e');
+  }
+}
 
 class UpdateService {
   UpdateService({Dio? dio, this.useProxy = false})
@@ -270,6 +297,73 @@ class UpdateService {
     return 'https://fs.solsynth.dev/d/public/r2/solian/build-output-windows-installer.zip';
   }
 
+  bool _isAndroidUpdateApk(String fileName) {
+    return fileName.startsWith('solian-update-') && fileName.endsWith('.apk');
+  }
+
+  bool _isWindowsUpdateZip(String fileName) {
+    return fileName.startsWith('solian-installer-') && fileName.endsWith('.zip');
+  }
+
+  bool _isWindowsExtractDir(String fileName) {
+    return fileName.startsWith('solian-installer-');
+  }
+
+  Future<int> cleanupPreviousUpdateArtifacts() async {
+    final tempDir = await getTemporaryDirectory();
+    var deleted = 0;
+
+    for (final entity in tempDir.listSync(followLinks: false)) {
+      final fileName = path.basename(entity.path);
+      try {
+        if (entity is File &&
+            (_isAndroidUpdateApk(fileName) || _isWindowsUpdateZip(fileName))) {
+          await entity.delete();
+          deleted++;
+        } else if (entity is Directory && _isWindowsExtractDir(fileName)) {
+          await entity.delete(recursive: true);
+          deleted++;
+        }
+      } catch (e) {
+        Logger.root.warning('[Update] Failed to clean "$fileName": $e');
+      }
+    }
+
+    return deleted;
+  }
+
+  Future<void> installAndroidUpdate(String url, {required String apkName}) async {
+    if (!Platform.isAndroid) return;
+
+    AzhonAppUpdate.dispose();
+    final downloadUrl = useProxy
+        ? 'https://fs.solsynth.dev/d/rainyun02/solian/${Uri.encodeComponent(url.split('/').last)}'
+        : url;
+    final model = UpdateModel(
+      downloadUrl,
+      apkName,
+      'launcher_icon',
+      'https://apps.apple.com/us/app/solian/id6499032345',
+    );
+
+    AzhonAppUpdate.listener((ResultModel result) {
+      if (result.type == ResultType.done) {
+        unawaited(() async {
+          await Future.delayed(const Duration(seconds: 10));
+          await _cleanupFile(result.apk);
+        }());
+      }
+    });
+
+    try {
+      await AzhonAppUpdate.update(model);
+    } catch (e) {
+      Logger.root.warning('[Update] Android update failed to start: $e');
+      AzhonAppUpdate.dispose();
+      rethrow;
+    }
+  }
+
   /// Performs automatic Windows update: download, extract, and install
   Future<void> performAutomaticWindowsUpdate(
     BuildContext context,
@@ -367,9 +461,12 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
   }
 
   Future<void> _startUpdate() async {
+    String? zipPath;
+    String? extractDir;
+
     try {
       // Step 1: Download
-      final zipPath = await _downloadWindowsInstaller(
+      zipPath = await _downloadWindowsInstaller(
         widget.updateUrl,
         onProgress: (received, total) {
           if (total == -1) {
@@ -388,7 +485,7 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
       messageNotifier.value = 'Extracting installer...';
       progressNotifier.value = null; // Indeterminate for extraction
 
-      final extractDir = await _extractWindowsInstaller(zipPath);
+      extractDir = await _extractWindowsInstaller(zipPath);
       if (extractDir == null) {
         _showError('Failed to extract installer');
         return;
@@ -411,16 +508,11 @@ class _WindowsUpdateDialogState extends State<_WindowsUpdateDialog> {
       } else {
         _showError('Failed to run installer');
       }
-
-      // Cleanup
-      try {
-        await File(zipPath).delete();
-        await Directory(extractDir).delete(recursive: true);
-      } catch (e) {
-        Logger.root.severe('[Update] Error cleaning up temporary files: $e');
-      }
     } catch (e) {
       _showError('Update failed: $e');
+    } finally {
+      await _cleanupFile(zipPath);
+      await _cleanupDirectory(extractDir);
     }
   }
 
@@ -620,22 +712,6 @@ class _UpdateSheetState extends State<_UpdateSheet> {
     _useProxy = widget.useProxy;
   }
 
-  Future<void> _installUpdate(String url) async {
-    String downloadUrl = url;
-    if (_useProxy) {
-      final fileName = url.split('/').last;
-      downloadUrl = 'https://fs.solsynth.dev/d/rainyun02/solian/$fileName';
-    }
-
-    UpdateModel model = UpdateModel(
-      downloadUrl,
-      "solian-update-${widget.release.tagName}.apk",
-      "launcher_icon",
-      'https://apps.apple.com/us/app/solian/id6499032345',
-    );
-    AzhonAppUpdate.update(model);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -694,7 +770,11 @@ class _UpdateSheetState extends State<_UpdateSheet> {
                         child: FilledButton.icon(
                           onPressed: () {
                             Logger.root.info(widget.androidUpdateUrl!);
-                            _installUpdate(widget.androidUpdateUrl!);
+                            UpdateService(useProxy: _useProxy).installAndroidUpdate(
+                              widget.androidUpdateUrl!,
+                              apkName:
+                                  'solian-update-${widget.release.tagName}.apk',
+                            );
                           },
                           icon: const Icon(Symbols.update),
                           label: Text('installUpdate'.tr()),
