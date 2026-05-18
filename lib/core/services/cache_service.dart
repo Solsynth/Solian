@@ -56,7 +56,7 @@ class CacheService {
       try {
         final directory = await _getCacheDirectory();
         if (directory == null) return 0;
-        return await _getDirectorySize(directory);
+        return await getDirectorySize(directory);
       } catch (e) {
         Logger.root.warning('Failed to get Flutter cache size', e);
         return 0;
@@ -145,7 +145,7 @@ class CacheService {
     return null;
   }
 
-  static Future<int> _getDirectorySize(Directory dir) async {
+  static Future<int> getDirectorySize(Directory dir) async {
     int size = 0;
     try {
       if (await dir.exists()) {

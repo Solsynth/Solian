@@ -2549,14 +2549,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
-  pocketpy:
-    dependency: "direct main"
-    description:
-      name: pocketpy
-      sha256: a8a3986b1a48bf80089c8c8bf9a28ea64df8b70deb9ad3fb65e0cded46d5914a
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.8"
   pointer_interceptor:
     dependency: transitive
     description:
