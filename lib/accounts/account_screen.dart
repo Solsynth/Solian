@@ -268,12 +268,19 @@ class AccountFeatureWidget extends HookConsumerWidget {
                         context.router.push(const PhysicalPassportRoute());
                       },
                     },
-                  {
-                    'icon': Symbols.people,
-                    'title': 'relationships',
-                    'onTap': () {
-                      context.router.push(const RelationshipRoute());
+                    {
+                      'icon': Symbols.qr_code,
+                      'title': 'qrCode',
+                      'onTap': () {
+                        context.router.push(const AccountQrRoute());
+                      },
                     },
+                    {
+                      'icon': Symbols.people,
+                      'title': 'relationships',
+                      'onTap': () {
+                        context.router.push(const RelationshipRoute());
+                      },
                   },
                   {
                     'icon': Symbols.sticker_rounded,
