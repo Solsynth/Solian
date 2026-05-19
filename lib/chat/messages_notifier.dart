@@ -38,6 +38,7 @@ class MessagesNotifier extends _$MessagesNotifier {
   String? _mlsGroupId;
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
+  final Map<String, SnChatMember> _membersById = {};
   String? _searchQuery;
   bool? _withLinks;
   bool? _withAttachments;
@@ -382,6 +383,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     // Allow building even if identity is null for public rooms
     if (identity != null) {
       _identity = identity;
+      _upsertMember(identity);
     }
 
     Logger.root.info('MessagesNotifier built for room $roomId');
@@ -482,7 +484,99 @@ class MessagesNotifier extends _$MessagesNotifier {
       },
     );
 
-    return _loadInitialMessages(forceRemoteRefresh: false);
+    ref.listen<AsyncValue<SnChatMember?>>(chatRoomIdentityProvider(roomId), (
+      previous,
+      next,
+    ) {
+      next.whenData((member) {
+        if (_upsertMember(member) && ref.mounted) {
+          _emitMessages(_currentMessages);
+        }
+      });
+    });
+
+    return _normalizeMessageMembers(
+      await _loadInitialMessages(forceRemoteRefresh: false),
+    );
+  }
+
+  bool _upsertMember(SnChatMember? member) {
+    if (member == null) return false;
+    final existing = _membersById[member.id];
+    if (existing != null &&
+        !member.updatedAt.isAfter(existing.updatedAt) &&
+        existing == member) {
+      return false;
+    }
+    if (existing != null && existing.updatedAt.isAfter(member.updatedAt)) {
+      return false;
+    }
+    _membersById[member.id] = member;
+    return true;
+  }
+
+  LocalChatMessage _copyWithSender(
+    LocalChatMessage message,
+    SnChatMember? sender,
+  ) {
+    final data = Map<String, dynamic>.from(message.data)..remove('sender');
+    return LocalChatMessage(
+      id: message.id,
+      roomId: message.roomId,
+      senderId: message.senderId,
+      sender: sender,
+      data: data,
+      createdAt: message.createdAt,
+      clientMessageId: message.clientMessageId,
+      nonce: message.nonce,
+      status: message.status,
+      content: message.content,
+      isDeleted: message.isDeleted,
+      updatedAt: message.updatedAt,
+      deletedAt: message.deletedAt,
+      type: message.type,
+      meta: message.meta,
+      membersMentioned: message.membersMentioned,
+      editedAt: message.editedAt,
+      attachments: message.attachments,
+      reactions: message.reactions,
+      repliedMessageId: message.repliedMessageId,
+      forwardedMessageId: message.forwardedMessageId,
+      localAttachments: message.localAttachments,
+    );
+  }
+
+  LocalChatMessage _normalizeMessageMember(LocalChatMessage message) {
+    final incoming = message.sender;
+    if (incoming != null) {
+      final existing = _membersById[incoming.id];
+      final canonical =
+          existing == null || incoming.updatedAt.isAfter(existing.updatedAt)
+          ? incoming
+          : existing;
+      _membersById[incoming.id] = canonical;
+      if (!identical(message.sender, canonical) ||
+          message.data.containsKey('sender')) {
+        return _copyWithSender(message, canonical);
+      }
+      return message;
+    }
+
+    final cached = _membersById[message.senderId];
+    if (cached != null || message.data.containsKey('sender')) {
+      return _copyWithSender(message, cached);
+    }
+    return message;
+  }
+
+  List<LocalChatMessage> _normalizeMessageMembers(
+    Iterable<LocalChatMessage> messages,
+  ) {
+    final list = messages.toList();
+    for (final message in list) {
+      _upsertMember(message.sender);
+    }
+    return list.map(_normalizeMessageMember).toList();
   }
 
   List<LocalChatMessage> _sortMessages(List<LocalChatMessage> messages) {
@@ -498,7 +592,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     _isUpdatingState = true;
     try {
       // Ensure messages are properly sorted and deduplicated
-      final sortedMessages = _sortMessages(messages);
+      final sortedMessages = _sortMessages(_normalizeMessageMembers(messages));
       final uniqueMessages = <LocalChatMessage>[];
       final seenIds = <String>{};
       for (final message in sortedMessages) {
@@ -524,7 +618,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   void _emitMessages(List<LocalChatMessage> messages) {
     if (!ref.mounted) return;
-    state = AsyncValue.data(_filterActiveMessages(_sortMessages(messages)));
+    state = AsyncValue.data(
+      _filterActiveMessages(_sortMessages(_normalizeMessageMembers(messages))),
+    );
   }
 
   void _replaceMessage(String messageId, LocalChatMessage replacement) {
@@ -605,10 +701,12 @@ class MessagesNotifier extends _$MessagesNotifier {
           finalUniqueMessages.add(message);
         }
       }
-      return _filterActiveMessages(finalUniqueMessages);
+      return _filterActiveMessages(
+        _normalizeMessageMembers(finalUniqueMessages),
+      );
     }
 
-    return _filterActiveMessages(uniqueMessages);
+    return _filterActiveMessages(_normalizeMessageMembers(uniqueMessages));
   }
 
   /// Consolidated initialization that handles pagination reset, sync, and initial load

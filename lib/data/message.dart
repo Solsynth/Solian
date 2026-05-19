@@ -52,19 +52,30 @@ class LocalChatMessage {
   });
 
   SnChatMessage toRemoteMessage() {
-    final msgData = Map<String, dynamic>.from(data);
-    if (sender != null) {
-      msgData['sender'] = sender!.toJson();
-    } else {
-      msgData['sender'] = {
-        'id': senderId,
-        'account_id': senderId,
-        'display_name': 'System',
-        'avatar_url': null,
-        'custom_id': null,
-      };
-    }
-    return SnChatMessage.fromJson(msgData);
+    return SnChatMessage(
+      id: id,
+      chatRoomId: roomId,
+      senderId: senderId,
+      sender: sender ?? _fallbackSender(senderId, roomId),
+      type: type,
+      content: content,
+      clientMessageId: clientMessageId,
+      nonce: nonce,
+      meta: meta,
+      membersMentioned: membersMentioned,
+      attachments: attachments
+          .map((e) => SnCloudFileReference.fromJson(e))
+          .toList(),
+      reactions: reactions.map((e) => SnChatReaction.fromJson(e)).toList(),
+      reactionsCount: _intMap(data['reactions_count']),
+      reactionsMade: _boolMap(data['reactions_made']),
+      repliedMessageId: repliedMessageId,
+      forwardedMessageId: forwardedMessageId,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? createdAt,
+      deletedAt: deletedAt,
+      editedAt: editedAt,
+    );
   }
 
   static LocalChatMessage fromRemoteMessage(
@@ -74,7 +85,9 @@ class LocalChatMessage {
     String? nonce,
   }) {
     final jsonData = message.toJson();
-    jsonData['sender'] = message.sender.toJson();
+    jsonData.remove('sender');
+    final reactionsCount = jsonData.remove('reactions_count');
+    final reactionsMade = jsonData.remove('reactions_made');
     if (jsonData['meta'] == null) jsonData['meta'] = <String, dynamic>{};
     if (jsonData['members_mentioned'] == null) {
       jsonData['members_mentioned'] = <String>[];
@@ -86,13 +99,13 @@ class LocalChatMessage {
       jsonData['reactions'] = <Map<String, dynamic>>[];
     }
     // Copy reactions_count and reactions_made from SnChatMessage to data for easy access
-    if (message.reactionsCount.isNotEmpty) {
-      jsonData['reactions_count'] = message.reactionsCount;
+    final msgData = <String, dynamic>{};
+    if (reactionsCount is Map && reactionsCount.isNotEmpty) {
+      msgData['reactions_count'] = reactionsCount;
     }
-    if (message.reactionsMade.isNotEmpty) {
-      jsonData['reactions_made'] = message.reactionsMade;
+    if (reactionsMade is Map && reactionsMade.isNotEmpty) {
+      msgData['reactions_made'] = reactionsMade;
     }
-    final msgData = Map<String, dynamic>.from(jsonData);
     return LocalChatMessage(
       id: message.id,
       roomId: message.chatRoomId,
@@ -118,7 +131,100 @@ class LocalChatMessage {
     );
   }
 
-  String toDataJson() => jsonEncode(data);
+  String toDataJson() {
+    final stored = Map<String, dynamic>.from(data);
+    for (final key in _structuralDataKeys) {
+      stored.remove(key);
+    }
+    return jsonEncode(stored);
+  }
+
+  static const Set<String> _structuralDataKeys = {
+    'id',
+    'chat_room_id',
+    'sender_id',
+    'sender',
+    'type',
+    'content',
+    'client_message_id',
+    'nonce',
+    'meta',
+    'members_mentioned',
+    'edited_at',
+    'attachments',
+    'reactions',
+    'replied_message_id',
+    'forwarded_message_id',
+    'created_at',
+    'updated_at',
+    'deleted_at',
+  };
+
+  static Map<String, int> _intMap(dynamic raw) {
+    if (raw is! Map) return const {};
+    return raw.map(
+      (key, value) => MapEntry(
+        key.toString(),
+        value is int ? value : int.tryParse(value.toString()) ?? 0,
+      ),
+    );
+  }
+
+  static Map<String, bool> _boolMap(dynamic raw) {
+    if (raw is! Map) return const {};
+    return raw.map((key, value) => MapEntry(key.toString(), value == true));
+  }
+
+  static SnChatMember _fallbackSender(String senderId, String roomId) {
+    final now = DateTime.fromMillisecondsSinceEpoch(0);
+    return SnChatMember(
+      id: senderId,
+      chatRoomId: roomId,
+      chatRoom: null,
+      accountId: senderId,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+      account: SnAccount(
+        id: senderId,
+        name: senderId,
+        nick: senderId == 'system' ? 'System' : senderId,
+        language: '',
+        isSuperuser: false,
+        automatedId: null,
+        profile: SnAccountProfile(
+          id: senderId,
+          experience: 0,
+          level: 1,
+          levelingProgress: 0,
+          picture: null,
+          background: null,
+          verification: null,
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: null,
+        ),
+        perkSubscription: null,
+        activatedAt: null,
+        createdAt: now,
+        updatedAt: now,
+        deletedAt: null,
+      ),
+      nick: null,
+      notify: 0,
+      joinedAt: null,
+      breakUntil: null,
+      timeoutUntil: null,
+      lastReadAt: null,
+      status: null,
+      realmNick: null,
+      realmBio: null,
+      realmExperience: null,
+      realmLevel: null,
+      realmLevelingProgress: null,
+      realmLabel: null,
+    );
+  }
 }
 
 enum MessageStatus { pending, sent, failed }
