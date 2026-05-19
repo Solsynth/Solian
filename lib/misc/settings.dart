@@ -1443,6 +1443,23 @@ class SettingsScreen extends HookConsumerWidget {
           ),
           ListTile(
             minLeadingWidth: 48,
+            title: Text('Developer mode').tr(),
+            subtitle: Text('Enable debug tools and developer features'),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.developer_mode),
+            trailing: Switch(
+              value: ref.watch(developerModeProvider),
+              onChanged: kDebugMode
+                  ? null
+                  : (value) {
+                      ref.read(appSettingsProvider.notifier).setDeveloperMode(
+                        value,
+                      );
+                    },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
             title: Text('settingsDefaultScreen').tr(),
             contentPadding: const EdgeInsets.only(left: 24, right: 17),
             leading: const Icon(Symbols.home),

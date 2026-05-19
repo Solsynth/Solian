@@ -181,7 +181,6 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
   late SnChatRoom _room;
   late AnimationController _animController;
   late Animation<double> _expandAnim;
-  late Animation<double> _fadeAnim;
 
   @override
   void initState() {
@@ -199,10 +198,6 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
       parent: _animController,
       curve: Curves.easeOutCubic,
       reverseCurve: Curves.easeInCubic,
-    );
-    _fadeAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInOut,
     );
   }
 
@@ -288,61 +283,56 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
     return Positioned(
       left: _position.dx,
       top: _position.dy,
-      child: FadeTransition(
-        opacity: _fadeAnim.value == 0 ? AlwaysStoppedAnimation(1.0) : _fadeAnim,
-        child: Material(
-          color: Colors.transparent,
-          child: GestureDetector(
-            onPanUpdate: (details) {
-              final screenSize = MediaQuery.of(context).size;
-              const collapsedWidth = 120.0;
-              const collapsedHeight = 80.0;
-              final overlayWidth = _isExpanded ? _size.width : collapsedWidth;
-              final overlayHeight = _isExpanded
-                  ? _size.height
-                  : collapsedHeight;
+      child: Material(
+        color: Colors.transparent,
+        child: GestureDetector(
+          onPanUpdate: (details) {
+            final screenSize = MediaQuery.of(context).size;
+            const collapsedWidth = 120.0;
+            const collapsedHeight = 80.0;
+            final overlayWidth = _isExpanded ? _size.width : collapsedWidth;
+            final overlayHeight = _isExpanded ? _size.height : collapsedHeight;
 
-              setState(() {
-                _position = Offset(
-                  (_position.dx + details.delta.dx).clamp(
-                    0,
-                    screenSize.width - overlayWidth,
-                  ),
-                  (_position.dy + details.delta.dy).clamp(
-                    0,
-                    screenSize.height - overlayHeight,
-                  ),
-                );
-              });
-              ref
-                  .read(_callOverlayStateProvider.notifier)
-                  .updatePosition(details.delta);
+            setState(() {
+              _position = Offset(
+                (_position.dx + details.delta.dx).clamp(
+                  0,
+                  screenSize.width - overlayWidth,
+                ),
+                (_position.dy + details.delta.dy).clamp(
+                  0,
+                  screenSize.height - overlayHeight,
+                ),
+              );
+            });
+            ref
+                .read(_callOverlayStateProvider.notifier)
+                .updatePosition(details.delta);
+          },
+          child: AnimatedBuilder(
+            animation: _expandAnim,
+            builder: (context, child) {
+              if (!isConnected && hasActiveCall) {
+                return _buildJoinPrompt(context, ref, room, theme);
+              }
+
+              if (lastSpeaker == null) {
+                return const SizedBox.shrink();
+              }
+
+              return _buildOverlayContent(
+                context,
+                ref,
+                theme,
+                chatRoomName,
+                duration,
+                participants,
+                lastSpeaker,
+                callNotifier,
+                isMicrophoneEnabled,
+                _room,
+              );
             },
-            child: AnimatedBuilder(
-              animation: _expandAnim,
-              builder: (context, child) {
-                if (!isConnected && hasActiveCall) {
-                  return _buildJoinPrompt(context, ref, room, theme);
-                }
-
-                if (lastSpeaker == null) {
-                  return const SizedBox.shrink();
-                }
-
-                return _buildOverlayContent(
-                  context,
-                  ref,
-                  theme,
-                  chatRoomName,
-                  duration,
-                  participants,
-                  lastSpeaker,
-                  callNotifier,
-                  isMicrophoneEnabled,
-                  _room,
-                );
-              },
-            ),
           ),
         ),
       ),
@@ -382,50 +372,55 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
     final currentHeight =
         collapsedHeight + (_size.height - collapsedHeight) * _expandAnim.value;
 
-    return SizedBox(
-      width: currentWidth,
-      height: currentHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildPanelContainer(
-              context,
-              theme,
-              child: _isExpanded
-                  ? _buildExpandedContent(
-                      context,
-                      ref,
-                      theme,
-                      chatRoomName,
-                      duration,
-                      participants,
-                      lastSpeaker,
-                      callNotifier,
-                      isMicrophoneEnabled,
-                      room,
-                    )
-                  : _buildCollapsedContent(
-                      context,
-                      ref,
-                      theme,
-                      chatRoomName,
-                      duration,
-                      participants,
-                      lastSpeaker,
-                      isMicrophoneEnabled,
-                      callNotifier,
-                    ),
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topLeft,
+      child: SizedBox(
+        width: currentWidth,
+        height: currentHeight,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildPanelContainer(
+                context,
+                theme,
+                child: _isExpanded
+                    ? _buildExpandedContent(
+                        context,
+                        ref,
+                        theme,
+                        chatRoomName,
+                        duration,
+                        participants,
+                        lastSpeaker,
+                        callNotifier,
+                        isMicrophoneEnabled,
+                        room,
+                      )
+                    : _buildCollapsedContent(
+                        context,
+                        ref,
+                        theme,
+                        chatRoomName,
+                        duration,
+                        participants,
+                        lastSpeaker,
+                        isMicrophoneEnabled,
+                        callNotifier,
+                      ),
+              ),
             ),
-          ),
-          if (_isExpanded) ...[
-            Positioned(right: 0, bottom: 0, child: _buildResizeHandle(theme)),
+            if (_isExpanded) ...[
+              Positioned(right: 0, bottom: 0, child: _buildResizeHandle(theme)),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
