@@ -271,7 +271,8 @@ class AppDatabase {
     final entities = query.find();
     query.close();
 
-    final memberEntities = await _loadMemberEntities(
+    final memberEntities = await _loadMemberEntitiesForRoom(
+      roomId,
       entities.map((e) => e.senderId).toSet(),
     );
     final results = <LocalChatMessage>[];
@@ -838,7 +839,7 @@ class AppDatabase {
     try {
       final senderEntity =
           memberEntities?[entity.senderId] ??
-          await _loadMemberEntity(entity.senderId);
+          await _loadMemberEntityForMessage(entity.roomId, entity.senderId);
       if (senderEntity != null) {
         sender = _entityToSnChatMember(senderEntity);
       }
@@ -1050,19 +1051,32 @@ class AppDatabase {
     return entity;
   }
 
-  Future<ChatMemberEntity?> _loadMemberEntity(String id) async {
+  Future<ChatMemberEntity?> _loadMemberEntityForMessage(
+    String roomId,
+    String senderId,
+  ) async {
     final store = await _getStore();
     if (store == null) return null;
-    final query = store
-        .box<ChatMemberEntity>()
-        .query(ChatMemberEntity_.uid.equals(id))
+    final box = store.box<ChatMemberEntity>();
+
+    final uidQuery = box.query(ChatMemberEntity_.uid.equals(senderId)).build();
+    final byUid = uidQuery.findFirst();
+    uidQuery.close();
+    if (byUid != null) return byUid;
+
+    final accountQuery = box
+        .query(
+          ChatMemberEntity_.chatRoomId.equals(roomId) &
+              ChatMemberEntity_.accountId.equals(senderId),
+        )
         .build();
-    final entity = query.findFirst();
-    query.close();
-    return entity;
+    final byAccount = accountQuery.findFirst();
+    accountQuery.close();
+    return byAccount;
   }
 
-  Future<Map<String, ChatMemberEntity>> _loadMemberEntities(
+  Future<Map<String, ChatMemberEntity>> _loadMemberEntitiesForRoom(
+    String roomId,
     Set<String> ids,
   ) async {
     if (ids.isEmpty) return const {};
@@ -1070,11 +1084,18 @@ class AppDatabase {
     if (store == null) return const {};
     final box = store.box<ChatMemberEntity>();
     final members = <String, ChatMemberEntity>{};
-    for (final id in ids) {
-      final query = box.query(ChatMemberEntity_.uid.equals(id)).build();
-      final entity = query.findFirst();
-      query.close();
-      if (entity != null) members[id] = entity;
+    final query = box
+        .query(ChatMemberEntity_.chatRoomId.equals(roomId))
+        .build();
+    final roomMembers = query.find();
+    query.close();
+    for (final entity in roomMembers) {
+      if (ids.contains(entity.uid)) {
+        members[entity.uid] = entity;
+      }
+      if (ids.contains(entity.accountId)) {
+        members[entity.accountId] = entity;
+      }
     }
     return members;
   }
