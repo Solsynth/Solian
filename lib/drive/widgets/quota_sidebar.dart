@@ -15,6 +15,7 @@ class QuotaSidebarWidget extends StatelessWidget {
   final SnFilePool? selectedPool;
   final ValueChanged<SnFilePool?>? onPoolSelected;
   final VoidCallback? onViewDetails;
+  final bool showPoolFilter;
 
   const QuotaSidebarWidget({
     super.key,
@@ -24,6 +25,7 @@ class QuotaSidebarWidget extends StatelessWidget {
     this.selectedPool,
     this.onPoolSelected,
     this.onViewDetails,
+    this.showPoolFilter = true,
   });
 
   @override
@@ -76,7 +78,7 @@ class QuotaSidebarWidget extends StatelessWidget {
           const Gap(24),
 
           // Pool Filter Section
-          if (pools != null && pools!.isNotEmpty) ...[
+          if (showPoolFilter && pools != null && pools!.isNotEmpty) ...[
             Row(
               children: [
                 Icon(
