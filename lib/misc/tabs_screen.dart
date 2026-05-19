@@ -25,9 +25,7 @@ class TabsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AutoTabsRouter.tabBar(
-      physics: const NeverScrollableScrollPhysics(),
-      scrollDirection: isWideScreen(context) ? Axis.vertical : Axis.horizontal,
+    return AutoTabsRouter(
       routes: [
         DashboardRoute(),
         ExploreRoute(),
@@ -40,11 +38,47 @@ class TabsScreen extends StatelessWidget {
         CreatorHubRoute(),
         DeveloperHubRoute(),
       ],
-      builder: (context, child, _) {
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      transitionBuilder: _buildTabTransition,
+      builder: (context, child) {
         return _TabsScreenContent(child: child);
       },
     );
   }
+}
+
+Widget _buildTabTransition(
+  BuildContext context,
+  Widget child,
+  Animation<double> animation,
+) {
+  final tabsRouter = AutoTabsRouter.of(context);
+  final theme = Theme.of(context);
+  final previousIndex = tabsRouter.previousIndex ?? tabsRouter.activeIndex;
+  final isForward = tabsRouter.activeIndex >= previousIndex;
+  final isWide = isWideScreen(context);
+
+  final offset = isWide
+      ? Offset(0, isForward ? 0.06 : -0.06)
+      : Offset(isForward ? 0.08 : -0.08, 0);
+
+  final position = Tween<Offset>(
+    begin: offset,
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+  final opacity = CurvedAnimation(
+    parent: animation,
+    curve: Curves.easeOutCubic,
+  );
+
+  return ColoredBox(
+    color: theme.colorScheme.surface,
+    child: FadeTransition(
+      opacity: opacity,
+      child: SlideTransition(position: position, child: child),
+    ),
+  );
 }
 
 class _TabsScreenContent extends ConsumerStatefulWidget {
