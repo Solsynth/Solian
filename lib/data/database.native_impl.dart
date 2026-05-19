@@ -69,8 +69,39 @@ class AppDatabase {
   }
 
   Future<void> close() async {
-    final store = await _getStore();
+    if (_storeFuture == null) return;
+    final store = await _storeFuture;
     store?.close();
+    _storeFuture = null;
+  }
+
+  Future<Map<String, int>> getDatabaseStats() async {
+    if (_isWeb) {
+      return {
+        'messages': 0,
+        'chatRooms': 0,
+        'chatMembers': 0,
+        'realms': 0,
+        'postDrafts': _webDraftStore.length,
+      };
+    }
+    final store = await _getStore();
+    if (store == null) {
+      return {
+        'messages': 0,
+        'chatRooms': 0,
+        'chatMembers': 0,
+        'realms': 0,
+        'postDrafts': 0,
+      };
+    }
+    return {
+      'messages': store.box<ChatMessageEntity>().count(),
+      'chatRooms': store.box<ChatRoomEntity>().count(),
+      'chatMembers': store.box<ChatMemberEntity>().count(),
+      'realms': store.box<RealmEntity>().count(),
+      'postDrafts': store.box<PostDraftEntity>().count(),
+    };
   }
 
   Future<void> reset() async {
@@ -79,18 +110,49 @@ class AppDatabase {
       return;
     }
     final store = await _getStore();
-    if (store == null) return;
-    store.box<ChatMessageEntity>().removeAll();
-    store.box<ChatRoomEntity>().removeAll();
-    store.box<ChatMemberEntity>().removeAll();
-    store.box<RealmEntity>().removeAll();
-    store.box<PostDraftEntity>().removeAll();
+    if (store != null) {
+      store.box<ChatMessageEntity>().removeAll();
+      store.box<ChatRoomEntity>().removeAll();
+      store.box<ChatMemberEntity>().removeAll();
+      store.box<RealmEntity>().removeAll();
+      store.box<PostDraftEntity>().removeAll();
+      store.close();
+    }
+    _storeFuture = null;
     _chatMemberCache.clear();
     _nativeKvStore.clear();
     _nativeKvLoaded = false;
     final kvFile = await _nativeKvFile();
     if (kvFile != null && await kvFile.exists()) {
       await kvFile.delete();
+    }
+
+    if (_directoryPathFuture != null) {
+      final directoryPath = await _directoryPathFuture;
+      if (directoryPath != null) {
+        await _deleteDirectoryContents(Directory(directoryPath));
+      }
+    }
+    final fallbackDir = Directory(
+      '${Directory.systemTemp.path}/island_objectbox',
+    );
+    if (await fallbackDir.exists()) {
+      await _deleteDirectoryContents(fallbackDir);
+    }
+  }
+
+  Future<void> _deleteDirectoryContents(Directory dir) async {
+    try {
+      if (!await dir.exists()) return;
+      await for (final entity in dir.list(followLinks: false)) {
+        try {
+          await entity.delete(recursive: true);
+        } catch (_) {
+          // Best-effort: ignore individual file deletion errors (e.g. locks).
+        }
+      }
+    } catch (_) {
+      // Best-effort: directory may be inaccessible.
     }
   }
 
