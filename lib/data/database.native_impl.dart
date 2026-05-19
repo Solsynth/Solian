@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:island/data/message.dart';
 import 'package:island/data/objectbox/entities.dart';
 import 'package:island/objectbox.g.dart';
+import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class AppDatabase {
@@ -842,8 +843,19 @@ class AppDatabase {
           await _loadMemberEntityForMessage(entity.roomId, entity.senderId);
       if (senderEntity != null) {
         sender = _entityToSnChatMember(senderEntity);
+      } else {
+        Logger.root.warning(
+          'Chat sender hydration fallback for message ${entity.uid} in room ${entity.roomId}: '
+          'no member matched senderId/accountId "${entity.senderId}"',
+        );
       }
-    } catch (_) {}
+    } catch (err, stackTrace) {
+      Logger.root.warning(
+        'Chat sender hydration failed for message ${entity.uid} in room ${entity.roomId}',
+        err,
+        stackTrace,
+      );
+    }
 
     sender = _mergeSenderSnapshot(sender, senderSnapshot);
 
@@ -997,7 +1009,7 @@ class AppDatabase {
       id: entity.uid,
       chatRoomId: entity.chatRoomId,
       accountId: entity.accountId,
-      account: SnAccount.fromJson(_decodeMap(entity.accountJson)),
+      account: _decodeAccount(entity.accountJson),
       nick: entity.nick,
       notify: entity.notify,
       joinedAt: _fromMs(entity.joinedAtMs),
@@ -1098,6 +1110,58 @@ class AppDatabase {
       }
     }
     return members;
+  }
+
+  SnAccount _decodeAccount(String data) {
+    final account = _decodeMap(data);
+    final normalized = Map<String, dynamic>.from(account);
+
+    normalized['badges'] =
+        (normalized['badges'] is List ? normalized['badges'] as List : const [])
+            .whereType<Map>()
+            .map(
+              (badge) => _normalizeBadgeJson(
+                Map<String, dynamic>.from(badge),
+                accountId: normalized['id']?.toString(),
+              ),
+            )
+            .toList();
+
+    normalized['contacts'] =
+        (normalized['contacts'] is List
+                ? normalized['contacts'] as List
+                : const [])
+            .whereType<Map>()
+            .map((contact) => Map<String, dynamic>.from(contact))
+            .toList();
+
+    if (normalized['profile'] is Map) {
+      final profile = Map<String, dynamic>.from(normalized['profile'] as Map);
+      final activeBadge = profile['active_badge'];
+      if (activeBadge is Map) {
+        profile['active_badge'] = _normalizeBadgeJson(
+          Map<String, dynamic>.from(activeBadge),
+          accountId: normalized['id']?.toString(),
+        );
+      }
+      normalized['profile'] = profile;
+    }
+
+    return SnAccount.fromJson(normalized);
+  }
+
+  Map<String, dynamic> _normalizeBadgeJson(
+    Map<String, dynamic> badge, {
+    String? accountId,
+  }) {
+    final normalized = Map<String, dynamic>.from(badge);
+    normalized['meta'] = normalized['meta'] is Map
+        ? Map<String, dynamic>.from(normalized['meta'] as Map)
+        : <String, dynamic>{};
+    if (accountId != null && accountId.isNotEmpty) {
+      normalized['account_id'] = normalized['account_id'] ?? accountId;
+    }
+    return normalized;
   }
 
   // ---------------------------------------------------------------------------
@@ -1456,6 +1520,9 @@ class AppDatabase {
   }
 
   SnChatMember _unknownSender(String senderId, String roomId) {
+    Logger.root.warning(
+      'Using unknown chat sender fallback for room $roomId, senderId=$senderId',
+    );
     return SnChatMember(
       id: 'unknown',
       chatRoomId: roomId,
