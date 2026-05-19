@@ -195,6 +195,7 @@ class ResponsiveSidebar extends HookConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) {
         if (drawerBuilder != null) {
           return drawerBuilder!(sheetContext);
