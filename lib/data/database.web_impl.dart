@@ -16,6 +16,16 @@ class AppDatabase {
     _webKvStore.clear();
   }
 
+  Future<Map<String, int>> getDatabaseStats() async {
+    return {
+      'messages': 0,
+      'chatRooms': 0,
+      'chatMembers': 0,
+      'realms': 0,
+      'postDrafts': _webDraftStore.length,
+    };
+  }
+
   Future<T> transaction<T>(Future<T> Function() action) async => action();
 
   Future<int> getLatestMessageTimestamp() async => 0;

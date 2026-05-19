@@ -2889,6 +2889,15 @@
   "settingsDatabaseReset": "Reset Database",
   "settingsDatabaseResetConfirm": "Are you sure you want to reset the database? This will delete all local data and require a full resync.",
   "settingsDatabaseResetSuccess": "Database reset successfully",
+  "settingsDatabaseResetSheetTitle": "Reset Database",
+  "settingsDatabaseResetSheetDescription": "The following local data will be permanently deleted. A full resync will be required afterwards.",
+  "settingsDatabaseResetStatMessages": "Chat messages",
+  "settingsDatabaseResetStatChatRooms": "Chat rooms",
+  "settingsDatabaseResetStatChatMembers": "Chat members",
+  "settingsDatabaseResetStatRealms": "Realms",
+  "settingsDatabaseResetStatPostDrafts": "Post drafts",
+  "settingsDatabaseResetConfirmAction": "Reset",
+  "settingsDatabaseResetHoldToConfirm": "Hold to reset",
   "settingsOpenDatabaseFolder": "Open Database Folder",
   "goals": "Goals",
   "goal": "Goal",
@@ -3176,6 +3185,7 @@
   "storageOverview": "Storage Overview",
   "storage": "Storage",
   "used": "Used",
+  "quotaUsageTooltip": "That's quota. It will be affected by the pool's costMultiplier.",
   "total": "Total",
   "totalSize": "Total Size",
   "poolUsage": "Pool Usage",
@@ -3323,5 +3333,7 @@
   "settingsExportChat": "Export Chat",
   "settingsExportJsonDesc": "Full message data with metadata",
   "settingsExportCsvDesc": "Simple spreadsheet format",
-  "settingsExportSaved": "Export saved to downloads"
+  "settingsExportSaved": "Export saved to downloads",
+  "usageOverview": "Usage Overview",
+  "usedQuota": "Used Quota"
 }

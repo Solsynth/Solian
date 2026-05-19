@@ -18,10 +18,10 @@ import 'package:island/shared/widgets/responsive_sidebar.dart';
 import 'package:island/drive/widgets/file_list_view.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/drive/file_permissions.dart';
-import 'package:island/accounts/usage_overview.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:island/drive/widgets/usage_overview.dart';
 
 @RoutePage()
 class FileListScreen extends HookConsumerWidget {
@@ -197,10 +197,10 @@ class FileListScreen extends HookConsumerWidget {
           IconButton(
             icon: const Icon(Symbols.storage),
             onPressed: () {
-            if (showSidebar.value) {
-              showSidebar.value = false;
-              ref.read(driveInspectorFileProvider.notifier).setFile(null);
-            } else {
+              if (showSidebar.value) {
+                showSidebar.value = false;
+                ref.read(driveInspectorFileProvider.notifier).setFile(null);
+              } else {
                 showSidebar.value = true;
               }
             },
@@ -390,7 +390,8 @@ class FileListScreen extends HookConsumerWidget {
                   }
                 }
               },
-              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
             ),
           ),
           actions: [
@@ -405,7 +406,9 @@ class FileListScreen extends HookConsumerWidget {
                       if (!formKey.currentState!.validate()) return;
                       setState(() => isCreating = true);
                       try {
-                        final driveApi = ref.read(solarNetworkClientProvider).drive;
+                        final driveApi = ref
+                            .read(solarNetworkClientProvider)
+                            .drive;
                         final uploader = ref.read(driveFileUploaderProvider);
                         final parentId = await uploader.resolveParentIdFromPath(
                           path: currentPath,

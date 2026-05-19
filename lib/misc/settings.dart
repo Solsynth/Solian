@@ -71,10 +71,9 @@ class SettingsScreen extends HookConsumerWidget {
     final docBasepath = useState<String?>(null);
     final latestReleaseRefreshNonce = useState(0);
     final latestRelease = useFuture(
-      useMemoized(
-        () => UpdateService().fetchLatestRelease(),
-        [latestReleaseRefreshNonce.value],
-      ),
+      useMemoized(() => UpdateService().fetchLatestRelease(), [
+        latestReleaseRefreshNonce.value,
+      ]),
     );
 
     useEffect(() {
@@ -1100,7 +1099,7 @@ class SettingsScreen extends HookConsumerWidget {
                 minLeadingWidth: 48,
                 title: Text('settingsDefaultPool').tr(),
                 subtitle: Text('Error: $err'),
-                leading: const Icon(Icons.error, color: Colors.red),
+                leading: const Icon(Symbols.error, color: Colors.red),
               ),
             ),
           const Divider(height: 24),
@@ -1354,7 +1353,7 @@ class SettingsScreen extends HookConsumerWidget {
           ),
           ListTile(
             title: Text('settingsTtsTest').tr(),
-            trailing: const Icon(Icons.play_arrow),
+            trailing: const Icon(Symbols.play_arrow),
             onTap: () async {
               final tts = FlutterTts();
               await tts.setVolume(settings.ttsVolume);
@@ -1603,7 +1602,8 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.cleaning_services),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () async {
-              final cleaned = await UpdateService().cleanupPreviousUpdateArtifacts();
+              final cleaned = await UpdateService()
+                  .cleanupPreviousUpdateArtifacts();
               if (!context.mounted) return;
               showSnackBar(
                 cleaned == 0
@@ -1626,7 +1626,7 @@ class SettingsScreen extends HookConsumerWidget {
         wideContent: (context) => const AboutContent(),
         children: const [],
       ),
-      );
+    );
 
     Widget buildSettingsList(
       BoxConstraints constraints,
@@ -2177,6 +2177,17 @@ class _StorageSettingsSection extends HookConsumerWidget {
     }
 
     Future<void> resetDb() async {
+      final db = ref.read(databaseProvider);
+      final stats = await db.getDatabaseStats();
+      if (!context.mounted) return;
+      final confirmed = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (sheetContext) =>
+            _DatabaseResetSheet(stats: stats, sizeBytes: databaseSize.value),
+      );
+      if (confirmed != true) return;
       resettingDb.value = true;
       await resetDatabase(ref);
       databaseSize.value = await calculateDatabaseSize();
@@ -2430,7 +2441,6 @@ class _StorageSettingsSection extends HookConsumerWidget {
   }
 }
 
-
 String _ipOverrideModeLabel(IpOverrideMode mode) {
   return switch (mode) {
     IpOverrideMode.complete => 'settingsIpOverrideModeComplete'.tr(),
@@ -2497,6 +2507,184 @@ class _IpOverrideModeSheet extends StatelessWidget {
               domains.isEmpty
                   ? 'settingsIpOverrideDomainsHelper'.tr()
                   : domains.join('\n'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DatabaseResetSheet extends StatelessWidget {
+  final Map<String, int> stats;
+  final int sizeBytes;
+
+  const _DatabaseResetSheet({required this.stats, required this.sizeBytes});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final entries = <(IconData, String, int)>[
+      (
+        Symbols.chat,
+        'settingsDatabaseResetStatMessages'.tr(),
+        stats['messages'] ?? 0,
+      ),
+      (
+        Symbols.forum,
+        'settingsDatabaseResetStatChatRooms'.tr(),
+        stats['chatRooms'] ?? 0,
+      ),
+      (
+        Symbols.group,
+        'settingsDatabaseResetStatChatMembers'.tr(),
+        stats['chatMembers'] ?? 0,
+      ),
+      (
+        Symbols.public,
+        'settingsDatabaseResetStatRealms'.tr(),
+        stats['realms'] ?? 0,
+      ),
+      (
+        Symbols.draft,
+        'settingsDatabaseResetStatPostDrafts'.tr(),
+        stats['postDrafts'] ?? 0,
+      ),
+    ];
+
+    return SheetScaffold(
+      titleText: 'settingsDatabaseResetSheetTitle'.tr(),
+      heightFactor: 0.75,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.errorContainer.withOpacity(0.55),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: theme.colorScheme.error.withOpacity(0.15),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.errorContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Symbols.warning_rounded,
+                      fill: 1,
+                      size: 22,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'settingsDatabaseResetSheetDescription'.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        height: 1.25,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Card(
+              elevation: 0,
+              color: theme.colorScheme.surfaceContainerLow,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < entries.length; i++) ...[
+                    ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 2,
+                      ),
+                      leading: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(entries[i].$1, size: 18),
+                      ),
+                      title: Text(entries[i].$2),
+                      trailing: Text(
+                        entries[i].$3.toString(),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.storage, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text('settingsDatabaseSize'.tr())),
+                          Text(
+                            CacheService.formatBytes(sizeBytes),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              'settingsDatabaseResetConfirm'.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ).padding(horizontal: 16),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(
+                    MaterialLocalizations.of(context).cancelButtonLabel,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _LongPressConfirmButton(
+                  label: 'settingsDatabaseResetHoldToConfirm'.tr(),
+                  icon: Symbols.delete_forever,
+                  onCompleted: () => Navigator.pop(context, true),
+                ),
+              ],
             ),
           ],
         ),
@@ -2690,4 +2878,136 @@ void _showIpOverrideEntriesEditor(BuildContext context, WidgetRef ref) {
       );
     },
   );
+}
+
+class _LongPressConfirmButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onCompleted;
+
+  const _LongPressConfirmButton({
+    required this.label,
+    required this.icon,
+    required this.onCompleted,
+  });
+
+  @override
+  State<_LongPressConfirmButton> createState() =>
+      _LongPressConfirmButtonState();
+}
+
+class _LongPressConfirmButtonState extends State<_LongPressConfirmButton>
+    with SingleTickerProviderStateMixin {
+  static const _holdDuration = Duration(milliseconds: 1200);
+
+  late final AnimationController _controller;
+  bool _completed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: _holdDuration)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed && !_completed) {
+          _completed = true;
+          widget.onCompleted();
+        }
+      });
+  }
+
+  void _startHold() {
+    if (_controller.isAnimating || _completed) return;
+    _controller.forward(from: 0);
+  }
+
+  void _cancelHold() {
+    if (_controller.isCompleted || _completed) return;
+    _controller.stop();
+    _controller.reset();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Listener(
+      onPointerDown: (_) => _startHold(),
+      onPointerUp: (_) => _cancelHold(),
+      onPointerCancel: (_) => _cancelHold(),
+      behavior: HitTestBehavior.opaque,
+      child: GestureDetector(
+        onLongPress: () {},
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final isHolding = _controller.value > 0;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: scheme.errorContainer,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Opacity(
+                      opacity: 0,
+                      child: _content(scheme, isHolding: false),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: _controller.value,
+                        child: Container(color: scheme.error),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      alignment: Alignment.center,
+                      child: _content(scheme, isHolding: isHolding),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _content(ColorScheme scheme, {required bool isHolding}) {
+    final color = isHolding ? scheme.onError : scheme.onErrorContainer;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(widget.icon, size: 18, color: color),
+        const SizedBox(width: 6),
+        Text(
+          widget.label,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
 }
