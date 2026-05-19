@@ -115,6 +115,7 @@ class AppRouter extends RootStackRouter {
             AutoRoute(page: AccountUpdateProfileRoute.page, path: 'me/update'),
             AutoRoute(page: LevelingRoute.page, path: 'me/leveling'),
             AutoRoute(page: AccountSettingsRoute.page, path: 'me/settings'),
+            AutoRoute(page: AccountQrRoute.page, path: 'me/qr'),
             AutoRoute(page: BadgesRoute.page, path: 'me/badges'),
             AutoRoute(page: ProgressRoute.page, path: 'me/progress'),
             AutoRoute(page: MeetRoute.page, path: 'me/meet'),
