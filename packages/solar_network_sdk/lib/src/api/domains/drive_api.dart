@@ -75,9 +75,9 @@ class DriveApi extends BaseApi {
 
   /// Returns the full [SnCloudFile] object.
   Future<SnCloudFile> getFileInfo(String fileId) {
-    return get<SnCloudFile>(
+    return get(
       '$_basePath/files/$fileId/info',
-    ).then((r) => SnCloudFile.fromJson(r.data as Map<String, dynamic>));
+    ).then((r) => SnCloudFile.fromJson(r.data));
   }
 
   /// Returns all cloud files sharing the same underlying storage object.
@@ -140,9 +140,7 @@ class DriveApi extends BaseApi {
   ) async {
     await put(
       '$_basePath/files/$fileId/permissions',
-      data: {
-        'items': items.map((item) => item.toJson()).toList(),
-      },
+      data: {'items': items.map((item) => item.toJson()).toList()},
     );
   }
 

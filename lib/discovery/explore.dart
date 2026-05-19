@@ -1479,7 +1479,10 @@ class _TimelineModeDropdown extends StatelessWidget {
               child: Text('exploreModePersonalized'.tr()),
             ),
             DropdownMenuItem(value: 'top', child: Text('exploreModeTop'.tr())),
-            DropdownMenuItem(value: 'latest', child: Text('exploreModeLatest'.tr())),
+            DropdownMenuItem(
+              value: 'latest',
+              child: Text('exploreModeLatest'.tr()),
+            ),
           ],
         ),
       ),
@@ -2208,9 +2211,8 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                     textScale: post.type == 1 ? 1.1 : 1.0,
                                     translatedText: translatedText.value,
                                     isTranslating: translating.value,
-                                    onTranslate: () => translatePost(
-                                      post.content ?? '',
-                                    ),
+                                    onTranslate: () =>
+                                        translatePost(post.content ?? ''),
                                     showTranslateButton: false,
                                   ),
                                 ),
@@ -2225,6 +2227,18 @@ class _TimelineDetailPane extends HookConsumerWidget {
                                     8,
                                   ),
                                   child: PostRealmBadge(realm: post.realm!),
+                                ),
+                              ),
+                            if (post.publisherCollections.isNotEmpty)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    24,
+                                    post.realm != null ? 0 : 8,
+                                    24,
+                                    8,
+                                  ),
+                                  child: PostCollectionNavigation(post: post),
                                 ),
                               ),
                             DefaultTabController(
