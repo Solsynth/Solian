@@ -47,16 +47,16 @@ class ArticleResponsiveSidebar extends HookConsumerWidget {
         width: sidebarWidth,
       ),
       // Custom drawer for narrow screens that includes the close handler
-      drawerWidget: Drawer(
-        width: sidebarWidth,
-        child: ArticleSidebarPanelWidget(
-          attachmentsContent: attachmentsContent,
-          settingsContent: settingsContent,
-          onClose: () {
-            showSidebar.value = false;
-          },
-          isWide: false,
+      drawerBuilder: (sheetContext) => SafeArea(
+        child: Drawer(
           width: sidebarWidth,
+          child: ArticleSidebarPanelWidget(
+            attachmentsContent: attachmentsContent,
+            settingsContent: settingsContent,
+            onClose: () => Navigator.of(sheetContext).pop(),
+            isWide: false,
+            width: sidebarWidth,
+          ),
         ),
       ),
     );
