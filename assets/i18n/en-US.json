@@ -3335,5 +3335,6 @@
   "settingsExportCsvDesc": "Simple spreadsheet format",
   "settingsExportSaved": "Export saved to downloads",
   "usageOverview": "Usage Overview",
-  "usedQuota": "Used Quota"
+  "usedQuota": "Used Quota",
+  "seedColor": "Seed Color"
 }

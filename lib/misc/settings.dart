@@ -206,8 +206,8 @@ class SettingsScreen extends HookConsumerWidget {
             ),
           ),
           ListTile(
-            title: Text('Seed Color').tr(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            title: Text('seedColor').tr(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
             trailing: GestureDetector(
               onTap: () {
                 showDialog(
@@ -218,7 +218,7 @@ class SettingsScreen extends HookConsumerWidget {
                         : Colors.indigo;
 
                     return AlertDialog(
-                      title: Text('Seed Color').tr(),
+                      title: Text('seedColor').tr(),
                       content: SingleChildScrollView(
                         child: ColorPicker(
                           paletteType: PaletteType.hsv,
@@ -269,212 +269,220 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-            child: Text(
-              'settingsCustomColors'.tr(),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
+          ExpansionTile(
+            title: Text('settingsCustomColors'.tr()),
+            tilePadding: const EdgeInsets.fromLTRB(24, 0, 26, 0),
+            children: [
+              _ColorPickerTile(
+                titleKey: 'settingsColorPrimary',
+                color: settings.customColors?.primary != null
+                    ? Color(settings.customColors!.primary!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(current.copyWith(primary: color?.value));
+                },
               ),
-            ),
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorPrimary',
-            color: settings.customColors?.primary != null
-                ? Color(settings.customColors!.primary!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(primary: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorOnPrimary',
-            color: settings.customColors?.onPrimary != null
-                ? Color(settings.customColors!.onPrimary!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(onPrimary: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorPrimaryContainer',
-            color: settings.customColors?.primaryContainer != null
-                ? Color(settings.customColors!.primaryContainer!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(
-                    current.copyWith(primaryContainer: color?.value),
-                  );
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorSecondary',
-            color: settings.customColors?.secondary != null
-                ? Color(settings.customColors!.secondary!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(secondary: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorOnSecondary',
-            color: settings.customColors?.onSecondary != null
-                ? Color(settings.customColors!.onSecondary!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(onSecondary: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorSecondaryContainer',
-            color: settings.customColors?.secondaryContainer != null
-                ? Color(settings.customColors!.secondaryContainer!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(
-                    current.copyWith(secondaryContainer: color?.value),
-                  );
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorTertiary',
-            color: settings.customColors?.tertiary != null
-                ? Color(settings.customColors!.tertiary!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(tertiary: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorOnTertiary',
-            color: settings.customColors?.onTertiary != null
-                ? Color(settings.customColors!.onTertiary!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(onTertiary: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorTertiaryContainer',
-            color: settings.customColors?.tertiaryContainer != null
-                ? Color(settings.customColors!.tertiaryContainer!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(
-                    current.copyWith(tertiaryContainer: color?.value),
-                  );
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorSurface',
-            color: settings.customColors?.surface != null
-                ? Color(settings.customColors!.surface!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(surface: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorSurfaceContainerHighest',
-            color: settings.customColors?.surfaceContainerHighest != null
-                ? Color(settings.customColors!.surfaceContainerHighest!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(
-                    current.copyWith(surfaceContainerHighest: color?.value),
-                  );
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorBackground',
-            color: settings.customColors?.background != null
-                ? Color(settings.customColors!.background!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(background: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorOutline',
-            color: settings.customColors?.outline != null
-                ? Color(settings.customColors!.outline!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(outline: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorShadow',
-            color: settings.customColors?.shadow != null
-                ? Color(settings.customColors!.shadow!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(shadow: color?.value));
-            },
-          ),
-          _ColorPickerTile(
-            titleKey: 'settingsColorError',
-            color: settings.customColors?.error != null
-                ? Color(settings.customColors!.error!)
-                : null,
-            onColorChanged: (color) {
-              final current = settings.customColors ?? ThemeColors();
-              ref
-                  .read(appSettingsProvider.notifier)
-                  .setCustomColors(current.copyWith(error: color?.value));
-            },
-          ),
-          ListTile(
-            title: Text('settingsResetCustomColors'.tr()),
-            trailing: const Icon(Symbols.restart_alt).padding(right: 2),
-            contentPadding: EdgeInsets.symmetric(horizontal: 20),
-            onTap: () {
-              ref.read(appSettingsProvider.notifier).setCustomColors(null);
-              showSnackBar('settingsApplied'.tr());
-            },
+              _ColorPickerTile(
+                titleKey: 'settingsColorOnPrimary',
+                color: settings.customColors?.onPrimary != null
+                    ? Color(settings.customColors!.onPrimary!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(onPrimary: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorPrimaryContainer',
+                color: settings.customColors?.primaryContainer != null
+                    ? Color(settings.customColors!.primaryContainer!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(primaryContainer: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorSecondary',
+                color: settings.customColors?.secondary != null
+                    ? Color(settings.customColors!.secondary!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(secondary: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorOnSecondary',
+                color: settings.customColors?.onSecondary != null
+                    ? Color(settings.customColors!.onSecondary!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(onSecondary: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorSecondaryContainer',
+                color: settings.customColors?.secondaryContainer != null
+                    ? Color(settings.customColors!.secondaryContainer!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(secondaryContainer: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorTertiary',
+                color: settings.customColors?.tertiary != null
+                    ? Color(settings.customColors!.tertiary!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(tertiary: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorOnTertiary',
+                color: settings.customColors?.onTertiary != null
+                    ? Color(settings.customColors!.onTertiary!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(onTertiary: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorTertiaryContainer',
+                color: settings.customColors?.tertiaryContainer != null
+                    ? Color(settings.customColors!.tertiaryContainer!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(tertiaryContainer: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorSurface',
+                color: settings.customColors?.surface != null
+                    ? Color(settings.customColors!.surface!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(current.copyWith(surface: color?.value));
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorSurfaceContainerHighest',
+                color: settings.customColors?.surfaceContainerHighest != null
+                    ? Color(settings.customColors!.surfaceContainerHighest!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(surfaceContainerHighest: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorBackground',
+                color: settings.customColors?.background != null
+                    ? Color(settings.customColors!.background!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(
+                        current.copyWith(background: color?.value),
+                      );
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorOutline',
+                color: settings.customColors?.outline != null
+                    ? Color(settings.customColors!.outline!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(current.copyWith(outline: color?.value));
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorShadow',
+                color: settings.customColors?.shadow != null
+                    ? Color(settings.customColors!.shadow!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(current.copyWith(shadow: color?.value));
+                },
+              ),
+              _ColorPickerTile(
+                titleKey: 'settingsColorError',
+                color: settings.customColors?.error != null
+                    ? Color(settings.customColors!.error!)
+                    : null,
+                onColorChanged: (color) {
+                  final current = settings.customColors ?? ThemeColors();
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setCustomColors(current.copyWith(error: color?.value));
+                },
+              ),
+              ListTile(
+                title: Text('settingsResetCustomColors'.tr()),
+                trailing: const Icon(Symbols.restart_alt).padding(right: 2),
+                contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                onTap: () {
+                  ref.read(appSettingsProvider.notifier).setCustomColors(null);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ],
           ),
           ListTile(
             isThreeLine: true,
@@ -1452,9 +1460,9 @@ class SettingsScreen extends HookConsumerWidget {
               onChanged: kDebugMode
                   ? null
                   : (value) {
-                      ref.read(appSettingsProvider.notifier).setDeveloperMode(
-                        value,
-                      );
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .setDeveloperMode(value);
                     },
             ),
           ),
@@ -1934,7 +1942,7 @@ class _ColorPickerTile extends StatelessWidget {
     final title = titleKey.tr();
     return ListTile(
       title: Text(title),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
       trailing: GestureDetector(
         onTap: () {
           showDialog(
