@@ -18,6 +18,11 @@ class UsageOverviewWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (usage == null) return const SizedBox.shrink();
     final nonNullUsage = usage!;
+    final totalUsageBytes = nonNullUsage['total_usage_bytes'] as int? ?? 0;
+    final totalFileCount = nonNullUsage['total_file_count'] as int? ?? 0;
+    final totalQuota = nonNullUsage['total_quota'] as int? ?? 0;
+    final usedQuota = nonNullUsage['used_quota'] as num? ?? 0;
+    final quotaUsageRatio = totalQuota > 0 ? usedQuota / totalQuota : 0.0;
     return Column(
       children: [
         Column(
@@ -27,34 +32,31 @@ class UsageOverviewWidget extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     'All Uploads',
-                    formatFileSize(nonNullUsage['total_usage_bytes'] as int),
+                    formatFileSize(totalUsageBytes),
                   ),
                 ),
                 Expanded(
                   child: _buildStatCard(
-                    'All Files',
-                    '${nonNullUsage['total_file_count']}',
+                    'Used Quota',
+                    formatFileSize((usedQuota * 1024 * 1024).round()),
                   ),
                 ),
               ],
             ),
             Row(
               children: [
+                Expanded(child: _buildStatCard('All Files', '$totalFileCount')),
                 Expanded(
                   child: _buildStatCard(
                     'Quota',
-                    formatFileSize(
-                      (nonNullUsage['total_quota'] as int) * 1024 * 1024,
-                    ),
+                    formatFileSize(totalQuota * 1024 * 1024),
                   ),
                 ),
                 Expanded(
                   child: _buildStatCard(
-                    'Used Quota',
-                    '${((nonNullUsage['used_quota'] as num) / (nonNullUsage['total_quota'] as num) * 100).toStringAsFixed(2)}%',
-                    progress:
-                        (nonNullUsage['used_quota'] as num) /
-                        (nonNullUsage['total_quota'] as num),
+                    'Quota Usage',
+                    '${(quotaUsageRatio * 100).toStringAsFixed(2)}%',
+                    progress: quotaUsageRatio,
                   ),
                 ),
               ],
@@ -103,7 +105,7 @@ class UsageOverviewWidget extends StatelessWidget {
   }
 
   PieChartData _buildPoolChartData(Map<String, dynamic> usage) {
-    final pools = usage['pool_usages'] as List<dynamic>;
+    final pools = usage['pool_usages'] as List<dynamic>? ?? [];
     final colors = [
       Colors.blue,
       Colors.green,
@@ -112,24 +114,24 @@ class UsageOverviewWidget extends StatelessWidget {
       Colors.purple,
     ];
     return PieChartData(
-      sections:
-          pools.asMap().entries.map((entry) {
-            final pool = entry.value as Map<String, dynamic>;
-            final title = pool['pool_name'] as String;
-            final truncatedTitle =
-                title.length > 8 ? '${title.substring(0, 8)}...' : title;
-            return PieChartSectionData(
-              value: (pool['usage_bytes'] as num).toDouble(),
-              title: truncatedTitle,
-              color: colors[entry.key % colors.length],
-              radius: 60,
-              titleStyle: const TextStyle(
-                fontSize: 12,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          }).toList(),
+      sections: pools.asMap().entries.map((entry) {
+        final pool = entry.value as Map<String, dynamic>;
+        final title = pool['pool_name'] as String;
+        final truncatedTitle = title.length > 8
+            ? '${title.substring(0, 8)}...'
+            : title;
+        return PieChartSectionData(
+          value: (pool['usage_bytes'] as num).toDouble(),
+          title: truncatedTitle,
+          color: colors[entry.key % colors.length],
+          radius: 60,
+          titleStyle: const TextStyle(
+            fontSize: 12,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+      }).toList(),
     );
   }
 
