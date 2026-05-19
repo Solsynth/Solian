@@ -570,7 +570,11 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<List<FileListItem>> currentVisibleItems,
     Widget footer,
   ) {
-    currentVisibleItems.value = items;
+    if (currentVisibleItems.value != items) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        currentVisibleItems.value = items;
+      });
+    }
     return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
@@ -975,7 +979,11 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<List<FileListItem>> currentVisibleItems,
     Widget footer,
   ) {
-    currentVisibleItems.value = items;
+    if (currentVisibleItems.value != items) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        currentVisibleItems.value = items;
+      });
+    }
     return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
