@@ -274,7 +274,10 @@ class IslandApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _ = ref.read(logsProvider);
+    final isDeveloperMode = ref.watch(developerModeProvider);
+    if (isDeveloperMode) {
+      ref.read(logsProvider);
+    }
 
     final theme = ref.watch(themeProvider);
     final settings = ref.watch(appSettingsProvider);
