@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/pods/chat_room_state.dart';
 import 'package:island/chat/widgets/message_item_wrapper.dart';
+import 'package:island/chat/widgets/online_avatar_badge.dart';
 import 'package:island/core/config.dart';
 import 'package:island/data/message.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -464,9 +465,13 @@ class _StickyBubbleMessageGroupState extends State<_StickyBubbleMessageGroup> {
             child: ChatRoomMemberRegion(
               roomId: widget.roomId,
               member: widget.sender,
-              child: ProfilePictureWidget(
-                file: widget.sender.account.profile.picture,
-                radius: widget.avatarSize / 2,
+              child: OnlineAvatarBadge(
+                roomId: widget.roomId,
+                accountId: widget.sender.accountId,
+                child: ProfilePictureWidget(
+                  file: widget.sender.account.profile.picture,
+                  radius: widget.avatarSize / 2,
+                ),
               ),
             ),
           ),
