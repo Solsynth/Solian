@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/experimental/mutation.dart';
+import 'package:island/core/config.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island/core/log_file.dart';
@@ -66,19 +67,37 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
   Timer? _debounceTimer;
   final List<LogEntry> _pendingEntries = [];
   List<LogEntry> _currentLogs = [];
-  late final LogFileWriter _fileWriter;
+  LogFileWriter? _fileWriter;
 
   static const _debounceWhenActive = Duration(milliseconds: 100);
   static const _debounceWhenIdle = Duration(milliseconds: 1000);
 
   @override
   List<LogEntry> build() {
+    final isDeveloperMode = ref.watch(developerModeProvider);
+    if (!isDeveloperMode) {
+      _subscription?.cancel();
+      _subscription = null;
+      _debounceTimer?.cancel();
+      _debounceTimer = null;
+      _pendingEntries.clear();
+      _currentLogs = [];
+      return const [];
+    }
+
+    _subscription?.cancel();
+    _subscription = null;
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+    _pendingEntries.clear();
+    _currentLogs = [];
+
     _fileWriter = createLogFileWriter();
 
     ref.onDispose(() {
       _subscription?.cancel();
       _debounceTimer?.cancel();
-      _fileWriter.close();
+      _fileWriter?.close();
     });
 
     _subscription = Logger.root.onRecord.listen((record) {
@@ -89,7 +108,7 @@ class LogsNotifier extends Notifier<List<LogEntry>> {
         error: record.error,
         stackTrace: record.stackTrace,
       );
-      _fileWriter.write(entry.toFileLine());
+      _fileWriter?.write(entry.toFileLine());
       _pendingEntries.add(entry);
       _scheduleFlush();
     });

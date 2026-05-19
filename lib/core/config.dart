@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -52,6 +53,7 @@ const kAppLinkCollapseMode = 'app_link_collapse_mode';
 const kAppThemeMode = 'app_theme_mode';
 const kAppDisableAnimation = 'app_disable_animation';
 const kAppGroupedChatList = 'app_grouped_chat_list';
+const kAppDeveloperMode = 'app_developer_mode';
 const kFeaturedPostsCollapsedId =
     'featured_posts_collapsed_id'; // Key for storing the ID of the collapsed featured post
 const kAppFirstLaunchAt = 'app_first_launch_at';
@@ -86,6 +88,12 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 final serverUrlProvider = Provider<String>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return prefs.getString(kNetworkServerStoreKey) ?? kNetworkServerDefault;
+});
+
+final developerModeProvider = Provider<bool>((ref) {
+  if (kDebugMode) return true;
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return prefs.getBool(kAppDeveloperMode) ?? false;
 });
 
 @freezed
@@ -582,6 +590,11 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppGroupedChatList, value);
     state = state.copyWith(groupedChatList: value);
+  }
+
+  void setDeveloperMode(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDeveloperMode, value);
   }
 
   void setFirstLaunchAt(String? value) {

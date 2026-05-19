@@ -95,6 +95,13 @@ class OverlayScaffold extends ConsumerStatefulWidget {
   final double collapsedHeight;
   final Size minSize;
   final Size maxSize;
+  final bool visible;
+  final bool animateOnMount;
+  final Duration animationDuration;
+  final Curve animationCurve;
+  final Curve exitAnimationCurve;
+  final VoidCallback? onRequestFocus;
+  final VoidCallback? onExitComplete;
 
   const OverlayScaffold({
     super.key,
@@ -112,6 +119,13 @@ class OverlayScaffold extends ConsumerStatefulWidget {
     this.collapsedHeight = 140,
     this.minSize = const Size(280, 300),
     this.maxSize = const Size(600, 800),
+    this.visible = true,
+    this.animateOnMount = true,
+    this.animationDuration = const Duration(milliseconds: 280),
+    this.animationCurve = Curves.easeOutCubic,
+    this.exitAnimationCurve = Curves.easeInCubic,
+    this.onRequestFocus,
+    this.onExitComplete,
   });
 
   @override
@@ -119,13 +133,17 @@ class OverlayScaffold extends ConsumerStatefulWidget {
 }
 
 class _OverlayScaffoldState extends ConsumerState<OverlayScaffold>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late Offset _position;
   late Size _size;
   late bool _isCollapsed;
-  late AnimationController _animController;
+  late AnimationController _collapseController;
+  late AnimationController _presenceController;
   late Animation<double> _expandAnim;
-  late Animation<double> _fadeAnim;
+  late Animation<double> _presenceFadeAnim;
+  late Animation<Offset> _presenceSlideAnim;
+  late Animation<double> _presenceScaleAnim;
+  bool _hasRequestedExitCallback = false;
 
   @override
   void initState() {
@@ -136,35 +154,92 @@ class _OverlayScaffoldState extends ConsumerState<OverlayScaffold>
     );
     _size = widget.initialSize;
     _isCollapsed = widget.initialCollapsed;
-    _animController = AnimationController(
-      duration: const Duration(milliseconds: 280),
+    _collapseController = AnimationController(
+      duration: widget.animationDuration,
       vsync: this,
       value: _isCollapsed ? 0.0 : 1.0,
     );
+    _presenceController = AnimationController(
+      duration: widget.animationDuration,
+      reverseDuration: widget.animationDuration,
+      vsync: this,
+      value: widget.animateOnMount && widget.visible
+          ? 0.0
+          : (widget.visible ? 1.0 : 0.0),
+    );
     _expandAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
+      parent: _collapseController,
+      curve: widget.animationCurve,
+      reverseCurve: widget.exitAnimationCurve,
     );
-    _fadeAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInOut,
+    _presenceFadeAnim = CurvedAnimation(
+      parent: _presenceController,
+      curve: widget.animationCurve,
+      reverseCurve: widget.exitAnimationCurve,
     );
+    _presenceSlideAnim =
+        Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _presenceController,
+            curve: widget.animationCurve,
+            reverseCurve: widget.exitAnimationCurve,
+          ),
+        );
+    _presenceScaleAnim = Tween<double>(begin: 0.96, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _presenceController,
+        curve: widget.animationCurve,
+        reverseCurve: widget.exitAnimationCurve,
+      ),
+    );
+    _presenceController.addStatusListener((status) {
+      if (status == AnimationStatus.dismissed &&
+          !widget.visible &&
+          !_hasRequestedExitCallback) {
+        _hasRequestedExitCallback = true;
+        widget.onExitComplete?.call();
+      }
+    });
+    if (widget.animateOnMount && widget.visible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _presenceController.forward();
+        }
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant OverlayScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.visible != widget.visible) {
+      _hasRequestedExitCallback = false;
+      if (widget.visible) {
+        _presenceController.forward();
+      } else {
+        _presenceController.reverse();
+      }
+    }
   }
 
   @override
   void dispose() {
-    _animController.dispose();
+    _collapseController.dispose();
+    _presenceController.dispose();
     super.dispose();
   }
 
   void _toggleCollapsed() {
     setState(() => _isCollapsed = !_isCollapsed);
     if (_isCollapsed) {
-      _animController.reverse();
+      _collapseController.reverse();
     } else {
-      _animController.forward();
+      _collapseController.forward();
     }
+  }
+
+  void _requestFocus() {
+    widget.onRequestFocus?.call();
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
@@ -202,6 +277,11 @@ class _OverlayScaffoldState extends ConsumerState<OverlayScaffold>
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.visible &&
+        _presenceController.status == AnimationStatus.dismissed) {
+      return const SizedBox.shrink();
+    }
+
     final theme = Theme.of(context);
 
     final currentWidth =
@@ -211,37 +291,58 @@ class _OverlayScaffoldState extends ConsumerState<OverlayScaffold>
         widget.collapsedHeight +
         (_size.height - widget.collapsedHeight) * _expandAnim.value;
 
-    return Positioned(
+    return AnimatedPositioned(
+      duration: widget.animationDuration,
+      curve: widget.animationCurve,
       left: _position.dx,
       top: _position.dy,
       child: FadeTransition(
-        opacity: _fadeAnim.value == 0 ? AlwaysStoppedAnimation(1.0) : _fadeAnim,
-        child: Material(
-          color: Colors.transparent,
-          child: GestureDetector(
-            onPanUpdate: _onPanUpdate,
-            onTap: widget.minimizable && _isCollapsed ? _toggleCollapsed : null,
-            child: SizedBox(
-              width: currentWidth,
-              height: currentHeight,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: _buildPanelContainer(context),
-                  ),
-                  if (widget.resizable && !_isCollapsed) ...[
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: _buildResizeHandle(theme),
+        opacity: _presenceFadeAnim,
+        child: SlideTransition(
+          position: _presenceSlideAnim,
+          child: ScaleTransition(
+            scale: _presenceScaleAnim,
+            child: IgnorePointer(
+              ignoring: _presenceController.status != AnimationStatus.completed,
+              child: Material(
+                color: Colors.transparent,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onPanStart: (_) => _requestFocus(),
+                  onPanUpdate: _onPanUpdate,
+                  onTapDown: (_) => _requestFocus(),
+                  onTap: widget.minimizable && _isCollapsed
+                      ? _toggleCollapsed
+                      : null,
+                  child: AnimatedSize(
+                    duration: widget.animationDuration,
+                    curve: widget.animationCurve,
+                    alignment: Alignment.topLeft,
+                    child: SizedBox(
+                      width: currentWidth,
+                      height: currentHeight,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: _buildPanelContainer(context),
+                          ),
+                          if (widget.resizable && !_isCollapsed) ...[
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: _buildResizeHandle(theme),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ],
-                ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -349,6 +450,7 @@ class _OverlayScaffoldState extends ConsumerState<OverlayScaffold>
 
   Widget _buildResizeHandle(ThemeData theme) {
     return GestureDetector(
+      onPanStart: (_) => _requestFocus(),
       onPanUpdate: _onResizeUpdate,
       child: Container(
         width: 24,

@@ -23,6 +23,7 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/shared/widgets/app_startup_splash.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/task_overlay.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -417,6 +418,7 @@ class AppWrapper extends HookConsumerWidget {
                             ),
                           ),
                         ),
+                      const TaskOverlay(),
                       const FriendStatusToastOverlay(),
                     ],
                   ),

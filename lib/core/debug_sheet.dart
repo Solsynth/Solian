@@ -19,6 +19,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:island/core/config.dart';
+import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
@@ -148,7 +149,11 @@ void hideDebugOverlay() {
   _debugOverlayEntry = null;
 }
 
-void toggleDebugOverlay() {
+void toggleDebugOverlay(WidgetRef ref) {
+  if (!ref.read(developerModeProvider)) {
+    Logger.root.info('[DeveloperMode] Blocked debug overlay toggle');
+    return;
+  }
   if (_debugOverlayEntry != null) {
     hideDebugOverlay();
   } else {
@@ -227,7 +232,6 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
   late bool _isCollapsed;
   late AnimationController _animController;
   late Animation<double> _expandAnim;
-  late Animation<double> _fadeAnim;
 
   @override
   void initState() {
@@ -244,10 +248,6 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
       parent: _animController,
       curve: Curves.easeOutCubic,
       reverseCurve: Curves.easeInCubic,
-    );
-    _fadeAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInOut,
     );
   }
 
@@ -281,34 +281,34 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
     return Positioned(
       left: _position.dx,
       top: _position.dy,
-      child: FadeTransition(
-        opacity: _fadeAnim.value == 0 ? AlwaysStoppedAnimation(1.0) : _fadeAnim,
-        child: Material(
-          color: Colors.transparent,
-          child: GestureDetector(
-            onPanUpdate: (details) {
-              final screenSize = MediaQuery.of(context).size;
-              final overlayWidth = _isCollapsed ? collapsedWidth : _size.width;
-              final overlayHeight = _isCollapsed
-                  ? collapsedHeight
-                  : _size.height;
+      child: Material(
+        color: Colors.transparent,
+        child: GestureDetector(
+          onPanUpdate: (details) {
+            final screenSize = MediaQuery.of(context).size;
+            final overlayWidth = _isCollapsed ? collapsedWidth : _size.width;
+            final overlayHeight = _isCollapsed ? collapsedHeight : _size.height;
 
-              setState(() {
-                _position = Offset(
-                  (_position.dx + details.delta.dx).clamp(
-                    0,
-                    screenSize.width - overlayWidth,
-                  ),
-                  (_position.dy + details.delta.dy).clamp(
-                    0,
-                    screenSize.height - overlayHeight,
-                  ),
-                );
-              });
-              ref
-                  .read(_debugOverlayStateProvider.notifier)
-                  .updatePosition(details.delta);
-            },
+            setState(() {
+              _position = Offset(
+                (_position.dx + details.delta.dx).clamp(
+                  0,
+                  screenSize.width - overlayWidth,
+                ),
+                (_position.dy + details.delta.dy).clamp(
+                  0,
+                  screenSize.height - overlayHeight,
+                ),
+              );
+            });
+            ref
+                .read(_debugOverlayStateProvider.notifier)
+                .updatePosition(details.delta);
+          },
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 280),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topLeft,
             child: SizedBox(
               width: currentWidth,
               height: currentHeight,

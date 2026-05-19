@@ -4,8 +4,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/pods/call.dart';
 import 'package:island/chat/pods/call_participants.dart';
+import 'package:island/chat/widgets/call_screen.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/route.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -93,13 +95,16 @@ class AudioCallButton extends HookConsumerWidget {
     final callNotifier = ref.read(callProvider.notifier);
     final isLoading = useState(false);
     final apiClient = ref.watch(apiClientProvider);
+    final router = ref.read(routerProvider);
+
+    Future<void> openCallScreen() async {
+      await router.pushWidget(CallScreen(room: room));
+    }
 
     Future<void> handleJoin() async {
       isLoading.value = true;
       try {
-        // Just join the room, the overlay will handle the UI
-        await callNotifier.joinRoom(room);
-        ref.invalidate(activeCallParticipantCountProvider(room.id));
+        await openCallScreen();
       } catch (e) {
         showErrorAlert(e);
       } finally {
@@ -159,7 +164,7 @@ class AudioCallButton extends HookConsumerWidget {
         onPressed: () async {
           isLoading.value = true;
           try {
-            await callNotifier.joinRoom(room);
+            await openCallScreen();
           } catch (e) {
             showErrorAlert(e);
           } finally {
