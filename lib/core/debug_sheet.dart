@@ -10,6 +10,7 @@ import 'package:island/core/database.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/update_service.dart';
+import 'package:island/drive/drive_service.dart';
 import 'package:island/e2ee/mls_engine.dart';
 import 'package:island/e2ee/mls_storage.dart';
 import 'package:island/e2ee/mls_client.dart';
@@ -623,6 +624,15 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           },
         ),
         _DebugItem(
+          icon: Symbols.storage,
+          title: 'Test drive quota sheet',
+          onTap: () async {
+            await ref
+                .read(driveFileUploaderProvider)
+                .showQuotaExceededSheetPreview();
+          },
+        ),
+        _DebugItem(
           icon: Symbols.chat_bubble,
           title: 'Test snackbar',
           onTap: () {
@@ -1215,6 +1225,18 @@ class DebugSheet extends HookConsumerWidget {
                   'This is a test info message for debugging purposes.',
                   'Test Alert',
                 );
+              },
+            ),
+            ListTile(
+              minTileHeight: 48,
+              leading: const Icon(Symbols.storage),
+              trailing: const Icon(Symbols.chevron_right),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              title: const Text('Test drive quota sheet'),
+              onTap: () async {
+                await ref
+                    .read(driveFileUploaderProvider)
+                    .showQuotaExceededSheetPreview();
               },
             ),
             ListTile(
