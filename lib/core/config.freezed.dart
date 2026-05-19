@@ -13,7 +13,7 @@ part of 'config.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$IpOverride {
+mixin _$IpOverride implements DiagnosticableTreeMixin {
 
  String get ip; int? get port;
 /// Create a copy of IpOverride
@@ -25,6 +25,12 @@ $IpOverrideCopyWith<IpOverride> get copyWith => _$IpOverrideCopyWithImpl<IpOverr
   /// Serializes this IpOverride to a JSON map.
   Map<String, dynamic> toJson();
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'IpOverride'))
+    ..add(DiagnosticsProperty('ip', ip))..add(DiagnosticsProperty('port', port));
+}
 
 @override
 bool operator ==(Object other) {
@@ -36,7 +42,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,ip,port);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'IpOverride(ip: $ip, port: $port)';
 }
 
@@ -203,7 +209,7 @@ return $default(_that.ip,_that.port);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _IpOverride implements IpOverride {
+class _IpOverride with DiagnosticableTreeMixin implements IpOverride {
   const _IpOverride({required this.ip, this.port});
   factory _IpOverride.fromJson(Map<String, dynamic> json) => _$IpOverrideFromJson(json);
 
@@ -220,6 +226,12 @@ _$IpOverrideCopyWith<_IpOverride> get copyWith => __$IpOverrideCopyWithImpl<_IpO
 Map<String, dynamic> toJson() {
   return _$IpOverrideToJson(this, );
 }
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'IpOverride'))
+    ..add(DiagnosticsProperty('ip', ip))..add(DiagnosticsProperty('port', port));
+}
 
 @override
 bool operator ==(Object other) {
@@ -231,7 +243,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,ip,port);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'IpOverride(ip: $ip, port: $port)';
 }
 
@@ -273,7 +285,7 @@ as int?,
 
 
 /// @nodoc
-mixin _$IpOverrideSettings {
+mixin _$IpOverrideSettings implements DiagnosticableTreeMixin {
 
  bool get enabled; List<IpOverride> get overrides;
 /// Create a copy of IpOverrideSettings
@@ -285,6 +297,12 @@ $IpOverrideSettingsCopyWith<IpOverrideSettings> get copyWith => _$IpOverrideSett
   /// Serializes this IpOverrideSettings to a JSON map.
   Map<String, dynamic> toJson();
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'IpOverrideSettings'))
+    ..add(DiagnosticsProperty('enabled', enabled))..add(DiagnosticsProperty('overrides', overrides));
+}
 
 @override
 bool operator ==(Object other) {
@@ -296,7 +314,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(overrides));
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'IpOverrideSettings(enabled: $enabled, overrides: $overrides)';
 }
 
@@ -463,7 +481,7 @@ return $default(_that.enabled,_that.overrides);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _IpOverrideSettings implements IpOverrideSettings {
+class _IpOverrideSettings with DiagnosticableTreeMixin implements IpOverrideSettings {
   const _IpOverrideSettings({required this.enabled, required final  List<IpOverride> overrides}): _overrides = overrides;
   factory _IpOverrideSettings.fromJson(Map<String, dynamic> json) => _$IpOverrideSettingsFromJson(json);
 
@@ -486,6 +504,12 @@ _$IpOverrideSettingsCopyWith<_IpOverrideSettings> get copyWith => __$IpOverrideS
 Map<String, dynamic> toJson() {
   return _$IpOverrideSettingsToJson(this, );
 }
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'IpOverrideSettings'))
+    ..add(DiagnosticsProperty('enabled', enabled))..add(DiagnosticsProperty('overrides', overrides));
+}
 
 @override
 bool operator ==(Object other) {
@@ -497,7 +521,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(_overrides));
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'IpOverrideSettings(enabled: $enabled, overrides: $overrides)';
 }
 
@@ -539,7 +563,7 @@ as List<IpOverride>,
 
 
 /// @nodoc
-mixin _$ThemeColors {
+mixin _$ThemeColors implements DiagnosticableTreeMixin {
 
  int? get primary; int? get onPrimary; int? get primaryContainer; int? get secondary; int? get onSecondary; int? get secondaryContainer; int? get tertiary; int? get onTertiary; int? get tertiaryContainer; int? get surface; int? get surfaceContainerHighest; int? get background; int? get outline; int? get shadow; int? get error;
 /// Create a copy of ThemeColors
@@ -551,6 +575,12 @@ $ThemeColorsCopyWith<ThemeColors> get copyWith => _$ThemeColorsCopyWithImpl<Them
   /// Serializes this ThemeColors to a JSON map.
   Map<String, dynamic> toJson();
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'ThemeColors'))
+    ..add(DiagnosticsProperty('primary', primary))..add(DiagnosticsProperty('onPrimary', onPrimary))..add(DiagnosticsProperty('primaryContainer', primaryContainer))..add(DiagnosticsProperty('secondary', secondary))..add(DiagnosticsProperty('onSecondary', onSecondary))..add(DiagnosticsProperty('secondaryContainer', secondaryContainer))..add(DiagnosticsProperty('tertiary', tertiary))..add(DiagnosticsProperty('onTertiary', onTertiary))..add(DiagnosticsProperty('tertiaryContainer', tertiaryContainer))..add(DiagnosticsProperty('surface', surface))..add(DiagnosticsProperty('surfaceContainerHighest', surfaceContainerHighest))..add(DiagnosticsProperty('background', background))..add(DiagnosticsProperty('outline', outline))..add(DiagnosticsProperty('shadow', shadow))..add(DiagnosticsProperty('error', error));
+}
 
 @override
 bool operator ==(Object other) {
@@ -562,7 +592,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,primary,onPrimary,primaryContainer,secondary,onSecondary,secondaryContainer,tertiary,onTertiary,tertiaryContainer,surface,surfaceContainerHighest,background,outline,shadow,error);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'ThemeColors(primary: $primary, onPrimary: $onPrimary, primaryContainer: $primaryContainer, secondary: $secondary, onSecondary: $onSecondary, secondaryContainer: $secondaryContainer, tertiary: $tertiary, onTertiary: $onTertiary, tertiaryContainer: $tertiaryContainer, surface: $surface, surfaceContainerHighest: $surfaceContainerHighest, background: $background, outline: $outline, shadow: $shadow, error: $error)';
 }
 
@@ -742,7 +772,7 @@ return $default(_that.primary,_that.onPrimary,_that.primaryContainer,_that.secon
 /// @nodoc
 @JsonSerializable()
 
-class _ThemeColors implements ThemeColors {
+class _ThemeColors with DiagnosticableTreeMixin implements ThemeColors {
    _ThemeColors({this.primary, this.onPrimary, this.primaryContainer, this.secondary, this.onSecondary, this.secondaryContainer, this.tertiary, this.onTertiary, this.tertiaryContainer, this.surface, this.surfaceContainerHighest, this.background, this.outline, this.shadow, this.error});
   factory _ThemeColors.fromJson(Map<String, dynamic> json) => _$ThemeColorsFromJson(json);
 
@@ -772,6 +802,12 @@ _$ThemeColorsCopyWith<_ThemeColors> get copyWith => __$ThemeColorsCopyWithImpl<_
 Map<String, dynamic> toJson() {
   return _$ThemeColorsToJson(this, );
 }
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'ThemeColors'))
+    ..add(DiagnosticsProperty('primary', primary))..add(DiagnosticsProperty('onPrimary', onPrimary))..add(DiagnosticsProperty('primaryContainer', primaryContainer))..add(DiagnosticsProperty('secondary', secondary))..add(DiagnosticsProperty('onSecondary', onSecondary))..add(DiagnosticsProperty('secondaryContainer', secondaryContainer))..add(DiagnosticsProperty('tertiary', tertiary))..add(DiagnosticsProperty('onTertiary', onTertiary))..add(DiagnosticsProperty('tertiaryContainer', tertiaryContainer))..add(DiagnosticsProperty('surface', surface))..add(DiagnosticsProperty('surfaceContainerHighest', surfaceContainerHighest))..add(DiagnosticsProperty('background', background))..add(DiagnosticsProperty('outline', outline))..add(DiagnosticsProperty('shadow', shadow))..add(DiagnosticsProperty('error', error));
+}
 
 @override
 bool operator ==(Object other) {
@@ -783,7 +819,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,primary,onPrimary,primaryContainer,secondary,onSecondary,secondaryContainer,tertiary,onTertiary,tertiaryContainer,surface,surfaceContainerHighest,background,outline,shadow,error);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'ThemeColors(primary: $primary, onPrimary: $onPrimary, primaryContainer: $primaryContainer, secondary: $secondary, onSecondary: $onSecondary, secondaryContainer: $secondaryContainer, tertiary: $tertiary, onTertiary: $onTertiary, tertiaryContainer: $tertiaryContainer, surface: $surface, surfaceContainerHighest: $surfaceContainerHighest, background: $background, outline: $outline, shadow: $shadow, error: $error)';
 }
 
@@ -838,7 +874,7 @@ as int?,
 
 
 /// @nodoc
-mixin _$DashboardConfig {
+mixin _$DashboardConfig implements DiagnosticableTreeMixin {
 
  List<String> get verticalLayouts; List<String> get horizontalLayouts; bool get showSearchBar; bool get showClockAndCountdown;
 /// Create a copy of DashboardConfig
@@ -850,6 +886,12 @@ $DashboardConfigCopyWith<DashboardConfig> get copyWith => _$DashboardConfigCopyW
   /// Serializes this DashboardConfig to a JSON map.
   Map<String, dynamic> toJson();
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'DashboardConfig'))
+    ..add(DiagnosticsProperty('verticalLayouts', verticalLayouts))..add(DiagnosticsProperty('horizontalLayouts', horizontalLayouts))..add(DiagnosticsProperty('showSearchBar', showSearchBar))..add(DiagnosticsProperty('showClockAndCountdown', showClockAndCountdown));
+}
 
 @override
 bool operator ==(Object other) {
@@ -861,7 +903,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(verticalLayouts),const DeepCollectionEquality().hash(horizontalLayouts),showSearchBar,showClockAndCountdown);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'DashboardConfig(verticalLayouts: $verticalLayouts, horizontalLayouts: $horizontalLayouts, showSearchBar: $showSearchBar, showClockAndCountdown: $showClockAndCountdown)';
 }
 
@@ -1030,7 +1072,7 @@ return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBa
 /// @nodoc
 @JsonSerializable()
 
-class _DashboardConfig implements DashboardConfig {
+class _DashboardConfig with DiagnosticableTreeMixin implements DashboardConfig {
    _DashboardConfig({required final  List<String> verticalLayouts, required final  List<String> horizontalLayouts, required this.showSearchBar, required this.showClockAndCountdown}): _verticalLayouts = verticalLayouts,_horizontalLayouts = horizontalLayouts;
   factory _DashboardConfig.fromJson(Map<String, dynamic> json) => _$DashboardConfigFromJson(json);
 
@@ -1061,6 +1103,12 @@ _$DashboardConfigCopyWith<_DashboardConfig> get copyWith => __$DashboardConfigCo
 Map<String, dynamic> toJson() {
   return _$DashboardConfigToJson(this, );
 }
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'DashboardConfig'))
+    ..add(DiagnosticsProperty('verticalLayouts', verticalLayouts))..add(DiagnosticsProperty('horizontalLayouts', horizontalLayouts))..add(DiagnosticsProperty('showSearchBar', showSearchBar))..add(DiagnosticsProperty('showClockAndCountdown', showClockAndCountdown));
+}
 
 @override
 bool operator ==(Object other) {
@@ -1072,7 +1120,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_verticalLayouts),const DeepCollectionEquality().hash(_horizontalLayouts),showSearchBar,showClockAndCountdown);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'DashboardConfig(verticalLayouts: $verticalLayouts, horizontalLayouts: $horizontalLayouts, showSearchBar: $showSearchBar, showClockAndCountdown: $showClockAndCountdown)';
 }
 
@@ -1116,7 +1164,7 @@ as bool,
 
 
 /// @nodoc
-mixin _$ExploreSettings {
+mixin _$ExploreSettings implements DiagnosticableTreeMixin {
 
  String get mode; bool get aggressiveMode; List<String> get selectedPublisherNames; List<String> get selectedCategoryIds; List<String> get selectedTagIds;
 /// Create a copy of ExploreSettings
@@ -1128,6 +1176,12 @@ $ExploreSettingsCopyWith<ExploreSettings> get copyWith => _$ExploreSettingsCopyW
   /// Serializes this ExploreSettings to a JSON map.
   Map<String, dynamic> toJson();
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'ExploreSettings'))
+    ..add(DiagnosticsProperty('mode', mode))..add(DiagnosticsProperty('aggressiveMode', aggressiveMode))..add(DiagnosticsProperty('selectedPublisherNames', selectedPublisherNames))..add(DiagnosticsProperty('selectedCategoryIds', selectedCategoryIds))..add(DiagnosticsProperty('selectedTagIds', selectedTagIds));
+}
 
 @override
 bool operator ==(Object other) {
@@ -1139,7 +1193,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,mode,aggressiveMode,const DeepCollectionEquality().hash(selectedPublisherNames),const DeepCollectionEquality().hash(selectedCategoryIds),const DeepCollectionEquality().hash(selectedTagIds));
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'ExploreSettings(mode: $mode, aggressiveMode: $aggressiveMode, selectedPublisherNames: $selectedPublisherNames, selectedCategoryIds: $selectedCategoryIds, selectedTagIds: $selectedTagIds)';
 }
 
@@ -1309,7 +1363,7 @@ return $default(_that.mode,_that.aggressiveMode,_that.selectedPublisherNames,_th
 /// @nodoc
 @JsonSerializable()
 
-class _ExploreSettings implements ExploreSettings {
+class _ExploreSettings with DiagnosticableTreeMixin implements ExploreSettings {
   const _ExploreSettings({this.mode = 'personalized', this.aggressiveMode = true, final  List<String> selectedPublisherNames = const <String>[], final  List<String> selectedCategoryIds = const <String>[], final  List<String> selectedTagIds = const <String>[]}): _selectedPublisherNames = selectedPublisherNames,_selectedCategoryIds = selectedCategoryIds,_selectedTagIds = selectedTagIds;
   factory _ExploreSettings.fromJson(Map<String, dynamic> json) => _$ExploreSettingsFromJson(json);
 
@@ -1347,6 +1401,12 @@ _$ExploreSettingsCopyWith<_ExploreSettings> get copyWith => __$ExploreSettingsCo
 Map<String, dynamic> toJson() {
   return _$ExploreSettingsToJson(this, );
 }
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'ExploreSettings'))
+    ..add(DiagnosticsProperty('mode', mode))..add(DiagnosticsProperty('aggressiveMode', aggressiveMode))..add(DiagnosticsProperty('selectedPublisherNames', selectedPublisherNames))..add(DiagnosticsProperty('selectedCategoryIds', selectedCategoryIds))..add(DiagnosticsProperty('selectedTagIds', selectedTagIds));
+}
 
 @override
 bool operator ==(Object other) {
@@ -1358,7 +1418,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,mode,aggressiveMode,const DeepCollectionEquality().hash(_selectedPublisherNames),const DeepCollectionEquality().hash(_selectedCategoryIds),const DeepCollectionEquality().hash(_selectedTagIds));
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'ExploreSettings(mode: $mode, aggressiveMode: $aggressiveMode, selectedPublisherNames: $selectedPublisherNames, selectedCategoryIds: $selectedCategoryIds, selectedTagIds: $selectedTagIds)';
 }
 
@@ -1402,7 +1462,7 @@ as List<String>,
 }
 
 /// @nodoc
-mixin _$AppSettings {
+mixin _$AppSettings implements DiagnosticableTreeMixin {
 
  bool get dataSavingMode; bool get soundEffects; bool get festivalFeatures; bool get enterToSend; bool get appBarTransparent; bool get showBackgroundImage; bool get notifyWithHaptic; bool get enableTts; String? get ttsVoice; double get ttsSpeechRate; double get ttsPitch; double get ttsVolume; String get ttsLanguage; String? get customFonts; int? get appColorScheme;// The color stored via the int type
  ThemeColors? get customColors; Size? get windowSize;// The window size for desktop platforms
@@ -1416,6 +1476,12 @@ mixin _$AppSettings {
 $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppSettings>(this as AppSettings, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AppSettings'))
+    ..add(DiagnosticsProperty('dataSavingMode', dataSavingMode))..add(DiagnosticsProperty('soundEffects', soundEffects))..add(DiagnosticsProperty('festivalFeatures', festivalFeatures))..add(DiagnosticsProperty('enterToSend', enterToSend))..add(DiagnosticsProperty('appBarTransparent', appBarTransparent))..add(DiagnosticsProperty('showBackgroundImage', showBackgroundImage))..add(DiagnosticsProperty('notifyWithHaptic', notifyWithHaptic))..add(DiagnosticsProperty('enableTts', enableTts))..add(DiagnosticsProperty('ttsVoice', ttsVoice))..add(DiagnosticsProperty('ttsSpeechRate', ttsSpeechRate))..add(DiagnosticsProperty('ttsPitch', ttsPitch))..add(DiagnosticsProperty('ttsVolume', ttsVolume))..add(DiagnosticsProperty('ttsLanguage', ttsLanguage))..add(DiagnosticsProperty('customFonts', customFonts))..add(DiagnosticsProperty('appColorScheme', appColorScheme))..add(DiagnosticsProperty('customColors', customColors))..add(DiagnosticsProperty('windowSize', windowSize))..add(DiagnosticsProperty('windowOpacity', windowOpacity))..add(DiagnosticsProperty('cardTransparency', cardTransparency))..add(DiagnosticsProperty('defaultPoolId', defaultPoolId))..add(DiagnosticsProperty('messageDisplayStyle', messageDisplayStyle))..add(DiagnosticsProperty('attachmentsListStyle', attachmentsListStyle))..add(DiagnosticsProperty('linkCollapseMode', linkCollapseMode))..add(DiagnosticsProperty('themeMode', themeMode))..add(DiagnosticsProperty('disableAnimation', disableAnimation))..add(DiagnosticsProperty('groupedChatList', groupedChatList))..add(DiagnosticsProperty('firstLaunchAt', firstLaunchAt))..add(DiagnosticsProperty('askedReview', askedReview))..add(DiagnosticsProperty('dashSearchEngine', dashSearchEngine))..add(DiagnosticsProperty('defaultScreen', defaultScreen))..add(DiagnosticsProperty('realmDisplayMode', realmDisplayMode))..add(DiagnosticsProperty('chatEventMessageMode', chatEventMessageMode))..add(DiagnosticsProperty('showChatSystemMessages', showChatSystemMessages))..add(DiagnosticsProperty('dashboardConfig', dashboardConfig))..add(DiagnosticsProperty('exploreSettings', exploreSettings))..add(DiagnosticsProperty('mediaProxyEnabled', mediaProxyEnabled))..add(DiagnosticsProperty('friendStatusDesktopNotification', friendStatusDesktopNotification));
+}
 
 @override
 bool operator ==(Object other) {
@@ -1427,7 +1493,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,enableTts,ttsVoice,ttsSpeechRate,ttsPitch,ttsVolume,ttsLanguage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,attachmentsListStyle,linkCollapseMode,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,realmDisplayMode,chatEventMessageMode,showChatSystemMessages,dashboardConfig,exploreSettings,mediaProxyEnabled,friendStatusDesktopNotification]);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, enableTts: $enableTts, ttsVoice: $ttsVoice, ttsSpeechRate: $ttsSpeechRate, ttsPitch: $ttsPitch, ttsVolume: $ttsVolume, ttsLanguage: $ttsLanguage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, attachmentsListStyle: $attachmentsListStyle, linkCollapseMode: $linkCollapseMode, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, realmDisplayMode: $realmDisplayMode, chatEventMessageMode: $chatEventMessageMode, showChatSystemMessages: $showChatSystemMessages, dashboardConfig: $dashboardConfig, exploreSettings: $exploreSettings, mediaProxyEnabled: $mediaProxyEnabled, friendStatusDesktopNotification: $friendStatusDesktopNotification)';
 }
 
@@ -1662,7 +1728,7 @@ return $default(_that.dataSavingMode,_that.soundEffects,_that.festivalFeatures,_
 /// @nodoc
 
 
-class _AppSettings implements AppSettings {
+class _AppSettings with DiagnosticableTreeMixin implements AppSettings {
   const _AppSettings({required this.dataSavingMode, required this.soundEffects, required this.festivalFeatures, required this.enterToSend, required this.appBarTransparent, required this.showBackgroundImage, required this.notifyWithHaptic, required this.enableTts, required this.ttsVoice, required this.ttsSpeechRate, required this.ttsPitch, required this.ttsVolume, required this.ttsLanguage, required this.customFonts, required this.appColorScheme, required this.customColors, required this.windowSize, required this.windowOpacity, required this.cardTransparency, required this.defaultPoolId, required this.messageDisplayStyle, required this.attachmentsListStyle, required this.linkCollapseMode, required this.themeMode, required this.disableAnimation, required this.groupedChatList, required this.firstLaunchAt, required this.askedReview, required this.dashSearchEngine, required this.defaultScreen, required this.realmDisplayMode, required this.chatEventMessageMode, required this.showChatSystemMessages, required this.dashboardConfig, required this.exploreSettings, required this.mediaProxyEnabled, required this.friendStatusDesktopNotification});
   
 
@@ -1715,6 +1781,12 @@ class _AppSettings implements AppSettings {
 _$AppSettingsCopyWith<_AppSettings> get copyWith => __$AppSettingsCopyWithImpl<_AppSettings>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AppSettings'))
+    ..add(DiagnosticsProperty('dataSavingMode', dataSavingMode))..add(DiagnosticsProperty('soundEffects', soundEffects))..add(DiagnosticsProperty('festivalFeatures', festivalFeatures))..add(DiagnosticsProperty('enterToSend', enterToSend))..add(DiagnosticsProperty('appBarTransparent', appBarTransparent))..add(DiagnosticsProperty('showBackgroundImage', showBackgroundImage))..add(DiagnosticsProperty('notifyWithHaptic', notifyWithHaptic))..add(DiagnosticsProperty('enableTts', enableTts))..add(DiagnosticsProperty('ttsVoice', ttsVoice))..add(DiagnosticsProperty('ttsSpeechRate', ttsSpeechRate))..add(DiagnosticsProperty('ttsPitch', ttsPitch))..add(DiagnosticsProperty('ttsVolume', ttsVolume))..add(DiagnosticsProperty('ttsLanguage', ttsLanguage))..add(DiagnosticsProperty('customFonts', customFonts))..add(DiagnosticsProperty('appColorScheme', appColorScheme))..add(DiagnosticsProperty('customColors', customColors))..add(DiagnosticsProperty('windowSize', windowSize))..add(DiagnosticsProperty('windowOpacity', windowOpacity))..add(DiagnosticsProperty('cardTransparency', cardTransparency))..add(DiagnosticsProperty('defaultPoolId', defaultPoolId))..add(DiagnosticsProperty('messageDisplayStyle', messageDisplayStyle))..add(DiagnosticsProperty('attachmentsListStyle', attachmentsListStyle))..add(DiagnosticsProperty('linkCollapseMode', linkCollapseMode))..add(DiagnosticsProperty('themeMode', themeMode))..add(DiagnosticsProperty('disableAnimation', disableAnimation))..add(DiagnosticsProperty('groupedChatList', groupedChatList))..add(DiagnosticsProperty('firstLaunchAt', firstLaunchAt))..add(DiagnosticsProperty('askedReview', askedReview))..add(DiagnosticsProperty('dashSearchEngine', dashSearchEngine))..add(DiagnosticsProperty('defaultScreen', defaultScreen))..add(DiagnosticsProperty('realmDisplayMode', realmDisplayMode))..add(DiagnosticsProperty('chatEventMessageMode', chatEventMessageMode))..add(DiagnosticsProperty('showChatSystemMessages', showChatSystemMessages))..add(DiagnosticsProperty('dashboardConfig', dashboardConfig))..add(DiagnosticsProperty('exploreSettings', exploreSettings))..add(DiagnosticsProperty('mediaProxyEnabled', mediaProxyEnabled))..add(DiagnosticsProperty('friendStatusDesktopNotification', friendStatusDesktopNotification));
+}
 
 @override
 bool operator ==(Object other) {
@@ -1726,7 +1798,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hashAll([runtimeType,dataSavingMode,soundEffects,festivalFeatures,enterToSend,appBarTransparent,showBackgroundImage,notifyWithHaptic,enableTts,ttsVoice,ttsSpeechRate,ttsPitch,ttsVolume,ttsLanguage,customFonts,appColorScheme,customColors,windowSize,windowOpacity,cardTransparency,defaultPoolId,messageDisplayStyle,attachmentsListStyle,linkCollapseMode,themeMode,disableAnimation,groupedChatList,firstLaunchAt,askedReview,dashSearchEngine,defaultScreen,realmDisplayMode,chatEventMessageMode,showChatSystemMessages,dashboardConfig,exploreSettings,mediaProxyEnabled,friendStatusDesktopNotification]);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AppSettings(dataSavingMode: $dataSavingMode, soundEffects: $soundEffects, festivalFeatures: $festivalFeatures, enterToSend: $enterToSend, appBarTransparent: $appBarTransparent, showBackgroundImage: $showBackgroundImage, notifyWithHaptic: $notifyWithHaptic, enableTts: $enableTts, ttsVoice: $ttsVoice, ttsSpeechRate: $ttsSpeechRate, ttsPitch: $ttsPitch, ttsVolume: $ttsVolume, ttsLanguage: $ttsLanguage, customFonts: $customFonts, appColorScheme: $appColorScheme, customColors: $customColors, windowSize: $windowSize, windowOpacity: $windowOpacity, cardTransparency: $cardTransparency, defaultPoolId: $defaultPoolId, messageDisplayStyle: $messageDisplayStyle, attachmentsListStyle: $attachmentsListStyle, linkCollapseMode: $linkCollapseMode, themeMode: $themeMode, disableAnimation: $disableAnimation, groupedChatList: $groupedChatList, firstLaunchAt: $firstLaunchAt, askedReview: $askedReview, dashSearchEngine: $dashSearchEngine, defaultScreen: $defaultScreen, realmDisplayMode: $realmDisplayMode, chatEventMessageMode: $chatEventMessageMode, showChatSystemMessages: $showChatSystemMessages, dashboardConfig: $dashboardConfig, exploreSettings: $exploreSettings, mediaProxyEnabled: $mediaProxyEnabled, friendStatusDesktopNotification: $friendStatusDesktopNotification)';
 }
 
