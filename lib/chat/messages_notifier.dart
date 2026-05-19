@@ -502,7 +502,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   bool _upsertMember(SnChatMember? member) {
     if (member == null) return false;
-    final existing = _membersById[member.id];
+    final existing = _membersById[member.id] ?? _membersById[member.accountId];
     if (existing != null &&
         !member.updatedAt.isAfter(existing.updatedAt) &&
         existing == member) {
@@ -512,6 +512,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       return false;
     }
     _membersById[member.id] = member;
+    _membersById[member.accountId] = member;
     return true;
   }
 
@@ -555,6 +556,7 @@ class MessagesNotifier extends _$MessagesNotifier {
           ? incoming
           : existing;
       _membersById[incoming.id] = canonical;
+      _membersById[incoming.accountId] = canonical;
       if (!identical(message.sender, canonical) ||
           message.data.containsKey('sender')) {
         return _copyWithSender(message, canonical);

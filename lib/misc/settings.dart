@@ -599,12 +599,15 @@ class SettingsScreen extends HookConsumerWidget {
     categories.add(
       _SettingCategory(
         icon: Symbols.chat,
-        title: 'Messages',
-        localizedTitleKey: 'settingsCategoryMessages',
+        title: 'Chat',
+        localizedTitleKey: 'settingsCategoryChat',
         searchTerms: [
           'message style',
           'attachments',
           'link collapse',
+          'enter to send',
+          'grouped chat list',
+          'chat event messages',
           'sound effects',
           'festival features',
           'haptic feedback',
@@ -740,6 +743,143 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsEnterToSend').tr(),
+            subtitle: isDesktop
+                ? Text('settingsEnterToSendDesktopHint').tr().fontSize(12)
+                : null,
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.send),
+            trailing: Switch(
+              value: settings.enterToSend,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setEnterToSend(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsGroupedChatList').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.chat),
+            trailing: Switch(
+              value: settings.groupedChatList,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setGroupedChatList(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: const Text('settingsShowChatEventMessages').tr(),
+            subtitle: const Text('ShowChatEventsMessagesHelper').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.info),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton2<String>(
+                isExpanded: true,
+                items: [
+                  DropdownItem<String>(
+                    value: kChatEventMessageModeVerbose,
+                    child: Text('settingsChatEventMessageModeVerbose').tr(),
+                  ),
+                  DropdownItem<String>(
+                    value: kChatEventMessageModeImportant,
+                    child: Text('settingsChatEventMessageModeImportant').tr(),
+                  ),
+                  DropdownItem<String>(
+                    value: kChatEventMessageModeNone,
+                    child: Text('settingsChatEventMessageModeNone').tr(),
+                  ),
+                ],
+                valueListenable: ValueNotifier<String>(
+                  settings.chatEventMessageMode,
+                ),
+                onChanged: (value) {
+                  if (value == null) return;
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setChatEventMessageMode(value);
+                },
+                buttonStyleData: const ButtonStyleData(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 40,
+                  width: 140,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+            child: Text(
+              'settingsCategoryNotifications'.tr(),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsSoundEffects').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.volume_up),
+            trailing: Switch(
+              value: settings.soundEffects,
+              onChanged: (value) {
+                ref.read(appSettingsProvider.notifier).setSoundEffects(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsFestivalFeatures').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.celebration),
+            trailing: Switch(
+              value: settings.festivalFeatures,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setFeativalFeatures(value);
+              },
+            ),
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsNotifyWithHaptic').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.vibration),
+            trailing: Switch(
+              value: settings.notifyWithHaptic,
+              onChanged: (value) {
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .setNotifyWithHaptic(value);
+              },
+            ),
+          ),
+          if (isDesktop)
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsFriendStatusDesktopNotification').tr(),
+              subtitle: Text(
+                'settingsFriendStatusDesktopNotificationHelper'.tr(),
+              ).fontSize(12),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.notifications_active),
+              trailing: Switch(
+                value: settings.friendStatusDesktopNotification,
+                onChanged: (value) {
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .setFriendStatusDesktopNotification(value);
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -1125,158 +1265,6 @@ class SettingsScreen extends HookConsumerWidget {
               );
             },
           ),
-        ],
-      ),
-    );
-
-    categories.add(
-      _SettingCategory(
-        icon: Symbols.send,
-        title: 'Chat',
-        localizedTitleKey: 'settingsCategoryChat',
-        searchTerms: [
-          'enter to send',
-          'grouped chat list',
-          'chat event messages',
-        ],
-        children: [
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsEnterToSend').tr(),
-            subtitle: isDesktop
-                ? Text('settingsEnterToSendDesktopHint').tr().fontSize(12)
-                : null,
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.send),
-            trailing: Switch(
-              value: settings.enterToSend,
-              onChanged: (value) {
-                ref.read(appSettingsProvider.notifier).setEnterToSend(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsGroupedChatList').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.chat),
-            trailing: Switch(
-              value: settings.groupedChatList,
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setGroupedChatList(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: const Text('settingsShowChatEventMessages').tr(),
-            subtitle: const Text('ShowChatEventsMessagesHelper').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.info),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton2<String>(
-                isExpanded: true,
-                items: [
-                  DropdownItem<String>(
-                    value: kChatEventMessageModeVerbose,
-                    child: Text('settingsChatEventMessageModeVerbose').tr(),
-                  ),
-                  DropdownItem<String>(
-                    value: kChatEventMessageModeImportant,
-                    child: Text('settingsChatEventMessageModeImportant').tr(),
-                  ),
-                  DropdownItem<String>(
-                    value: kChatEventMessageModeNone,
-                    child: Text('settingsChatEventMessageModeNone').tr(),
-                  ),
-                ],
-                valueListenable: ValueNotifier<String>(
-                  settings.chatEventMessageMode,
-                ),
-                onChanged: (value) {
-                  if (value == null) return;
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .setChatEventMessageMode(value);
-                },
-                buttonStyleData: const ButtonStyleData(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                  height: 40,
-                  width: 140,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-            child: Text(
-              'settingsCategoryNotifications'.tr(),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsSoundEffects').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.volume_up),
-            trailing: Switch(
-              value: settings.soundEffects,
-              onChanged: (value) {
-                ref.read(appSettingsProvider.notifier).setSoundEffects(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsFestivalFeatures').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.celebration),
-            trailing: Switch(
-              value: settings.festivalFeatures,
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setFeativalFeatures(value);
-              },
-            ),
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsNotifyWithHaptic').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.vibration),
-            trailing: Switch(
-              value: settings.notifyWithHaptic,
-              onChanged: (value) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .setNotifyWithHaptic(value);
-              },
-            ),
-          ),
-          if (isDesktop)
-            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsFriendStatusDesktopNotification').tr(),
-              subtitle: Text(
-                'settingsFriendStatusDesktopNotificationHelper'.tr(),
-              ).fontSize(12),
-              contentPadding: const EdgeInsets.only(left: 24, right: 17),
-              leading: const Icon(Symbols.notifications_active),
-              trailing: Switch(
-                value: settings.friendStatusDesktopNotification,
-                onChanged: (value) {
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .setFriendStatusDesktopNotification(value);
-                },
-              ),
-            ),
         ],
       ),
     );
