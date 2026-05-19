@@ -10,12 +10,12 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/chat/e2ee_message_display.dart';
 import 'package:island/chat/models/redirect_data.dart';
-import 'package:island/chat/pods/chat_online_count.dart';
 import 'package:island/chat/widgets/message_content.dart';
 import 'package:island/chat/widgets/chat_message_reaction_sheet.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/message_indicators.dart';
 import 'package:island/chat/widgets/message_sender_info.dart';
+import 'package:island/chat/widgets/online_avatar_badge.dart';
 import 'package:island/chat/messages_notifier.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
@@ -1220,52 +1220,6 @@ class MessageReactionChips extends HookConsumerWidget {
   }
 }
 
-class _OnlineAvatarBadge extends HookConsumerWidget {
-  final String roomId;
-  final String accountId;
-  final Widget child;
-
-  const _OnlineAvatarBadge({
-    required this.roomId,
-    required this.accountId,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final onlineStatus = ref.watch(chatOnlineCountProvider(roomId));
-    final isOnlineInRoom =
-        onlineStatus.value?.onlineAccounts.any(
-          (account) => account.id == accountId,
-        ) ??
-        false;
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        child,
-        if (isOnlineInRoom)
-          Positioned(
-            right: -1,
-            bottom: -1,
-            child: Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.surface,
-                  width: 2,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
 class MessageItemDisplayBubble extends HookConsumerWidget {
   static const double _avatarRadius = 16;
   static const double _avatarSize = _avatarRadius * 2;
@@ -1313,9 +1267,9 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
     final avatar = ChatRoomMemberRegion(
       roomId: message.roomId,
       member: sender,
-      child: _OnlineAvatarBadge(
+      child: OnlineAvatarBadge(
         roomId: message.roomId,
-        accountId: sender.account.id,
+        accountId: sender.accountId,
         child: ProfilePictureWidget(
           file: sender.account.profile.picture,
           radius: _avatarRadius,
@@ -1636,9 +1590,9 @@ class MessageItemDisplayIRC extends HookConsumerWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _OnlineAvatarBadge(
+                OnlineAvatarBadge(
                   roomId: message.roomId,
-                  accountId: sender.account.id,
+                  accountId: sender.accountId,
                   child: ProfilePictureWidget(
                     file: sender.account.profile.picture,
                     radius: 8,
@@ -1804,9 +1758,9 @@ class MessageItemDisplayDiscord extends HookConsumerWidget {
                       ChatRoomMemberRegion(
                         roomId: message.roomId,
                         member: sender,
-                        child: _OnlineAvatarBadge(
+                        child: OnlineAvatarBadge(
                           roomId: message.roomId,
-                          accountId: sender.account.id,
+                          accountId: sender.accountId,
                           child: ProfilePictureWidget(
                             file: sender.account.profile.picture,
                             radius: kAvatarRadius,

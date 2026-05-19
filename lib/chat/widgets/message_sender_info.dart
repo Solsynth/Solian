@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
+import 'package:island/chat/widgets/online_avatar_badge.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/realms/widgets/realm_label.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -60,9 +61,13 @@ class MessageSenderInfo extends StatelessWidget {
             ChatRoomMemberRegion(
               roomId: roomId,
               member: s,
-              child: ProfilePictureWidget(
-                file: s.account.profile.picture,
-                radius: 14,
+              child: OnlineAvatarBadge(
+                roomId: roomId,
+                accountId: s.accountId,
+                child: ProfilePictureWidget(
+                  file: s.account.profile.picture,
+                  radius: 14,
+                ),
               ),
             ),
           if (showAvatar) const Gap(4),
@@ -100,9 +105,13 @@ class MessageSenderInfo extends StatelessWidget {
           ChatRoomMemberRegion(
             roomId: roomId,
             member: s,
-            child: ProfilePictureWidget(
-              file: s.account.profile.picture,
-              radius: 14,
+            child: OnlineAvatarBadge(
+              roomId: roomId,
+              accountId: s.accountId,
+              child: ProfilePictureWidget(
+                file: s.account.profile.picture,
+                radius: 14,
+              ),
             ),
           ),
           Expanded(
@@ -165,10 +174,7 @@ class MessageSenderInfo extends StatelessWidget {
             ),
             Text(
               timestamp,
-              style: TextStyle(
-                fontSize: 10,
-                color: textColor.withOpacity(0.7),
-              ),
+              style: TextStyle(fontSize: 10, color: textColor.withOpacity(0.7)),
             ),
           ],
         ),
