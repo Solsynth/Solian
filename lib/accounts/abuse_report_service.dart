@@ -37,6 +37,7 @@ class TicketService {
     required int type,
     int priority = 1,
     List<String>? fileIds,
+    List<String?>? resources,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
     return await client.tickets.createTicket(
@@ -45,6 +46,7 @@ class TicketService {
       type: type,
       priority: priority,
       fileIds: fileIds,
+      resources: resources,
     );
   }
 
@@ -54,6 +56,7 @@ class TicketService {
     String? content,
     int? type,
     int? priority,
+    List<String?>? resources,
   }) async {
     final client = ref.watch(solarNetworkClientProvider);
     return await client.tickets.updateTicket(
@@ -62,6 +65,7 @@ class TicketService {
       content: content,
       type: type,
       priority: priority,
+      resources: resources,
     );
   }
 
