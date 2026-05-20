@@ -86,6 +86,7 @@ sealed class SnWalletSubscription with _$SnWalletSubscription {
     required DateTime begunAt,
     required DateTime? endedAt,
     required String identifier,
+    String? groupIdentifier,
     @Default(true) bool isActive,
     @Default(false) bool isFreeTrial,
     @Default(1) int status,
@@ -98,6 +99,7 @@ sealed class SnWalletSubscription with _$SnWalletSubscription {
     required String accountId,
     required SnAccount? account,
     @Default(true) bool isAvailable,
+    @Default(false) bool isPendingActivation,
     required double? finalPrice,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -269,6 +271,8 @@ sealed class SnSubscriptionGroup with _$SnSubscriptionGroup {
   const factory SnSubscriptionGroup({
     required String groupIdentifier,
     required SnSubscriptionGroupCatalog catalog,
+    SnActiveSubscription? current,
+    SnActiveSubscription? next,
     required List<SnActiveSubscription> subscriptions,
   }) = _SnSubscriptionGroup;
 
