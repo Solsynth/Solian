@@ -569,6 +569,7 @@ _SnNotificationPushSubscription _$SnNotificationPushSubscriptionFromJson(
   accountId: json['account_id'] as String,
   deviceId: json['device_id'] as String,
   deviceToken: json['device_token'] as String,
+  deviceName: json['device_name'] as String?,
   provider: $enumDecode(
     _$SnNotificationPushSubscriptionProviderEnumMap,
     json['provider'],
@@ -588,6 +589,7 @@ Map<String, dynamic> _$SnNotificationPushSubscriptionToJson(
   'account_id': instance.accountId,
   'device_id': instance.deviceId,
   'device_token': instance.deviceToken,
+  'device_name': instance.deviceName,
   'provider':
       _$SnNotificationPushSubscriptionProviderEnumMap[instance.provider]!,
   'is_activated': instance.isActivated,
