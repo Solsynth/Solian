@@ -37,10 +37,6 @@ import 'package:island/chat/widgets/chat_room_screen.dart' as _i22;
 import 'package:island/chat/widgets/chat_room_storage_screen.dart' as _i23;
 import 'package:island/chat/widgets/chat_search_screen.dart' as _i80;
 import 'package:island/creators/screens/hub.dart' as _i27;
-import 'package:island/creators/screens/livestream/livestream_detail.dart'
-    as _i28;
-import 'package:island/creators/screens/livestream/livestream_list.dart'
-    as _i29;
 import 'package:island/creators/screens/poll/poll_list.dart' as _i30;
 import 'package:island/creators/screens/posts/post_collections_manage.dart'
     as _i31;
@@ -70,8 +66,6 @@ import 'package:island/discovery/screens/article_detail.dart' as _i11;
 import 'package:island/discovery/screens/articles.dart' as _i12;
 import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i52;
 import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i53;
-import 'package:island/discovery/screens/livestream_watch.dart' as _i62;
-import 'package:island/discovery/screens/livestreams.dart' as _i8;
 import 'package:island/discovery/search.dart' as _i88;
 import 'package:island/drive/files/file_detail.dart' as _i54;
 import 'package:island/drive/files/file_list.dart' as _i55;
@@ -270,22 +264,6 @@ class ActionLogsRoute extends _i92.PageRouteInfo<void> {
     name,
     builder: (data) {
       return const _i7.ActionLogsScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [_i8.ActiveLivestreamsScreen]
-class ActiveLivestreamsRoute extends _i92.PageRouteInfo<void> {
-  const ActiveLivestreamsRoute({List<_i92.PageRouteInfo>? children})
-    : super(ActiveLivestreamsRoute.name, initialChildren: children);
-
-  static const String name = 'ActiveLivestreamsRoute';
-
-  static _i92.PageInfo page = _i92.PageInfo(
-    name,
-    builder: (data) {
-      return const _i8.ActiveLivestreamsScreen();
     },
   );
 }
@@ -1067,120 +1045,6 @@ class CreatorHubRoute extends _i92.PageRouteInfo<void> {
       return const _i27.CreatorHubScreen();
     },
   );
-}
-
-/// generated route for
-/// [_i28.CreatorLivestreamDetailScreen]
-class CreatorLivestreamDetailRoute
-    extends _i92.PageRouteInfo<CreatorLivestreamDetailRouteArgs> {
-  CreatorLivestreamDetailRoute({
-    _i94.Key? key,
-    required String livestreamId,
-    List<_i92.PageRouteInfo>? children,
-  }) : super(
-         CreatorLivestreamDetailRoute.name,
-         args: CreatorLivestreamDetailRouteArgs(
-           key: key,
-           livestreamId: livestreamId,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'CreatorLivestreamDetailRoute';
-
-  static _i92.PageInfo page = _i92.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<CreatorLivestreamDetailRouteArgs>();
-      return _i28.CreatorLivestreamDetailScreen(
-        key: args.key,
-        livestreamId: args.livestreamId,
-      );
-    },
-  );
-}
-
-class CreatorLivestreamDetailRouteArgs {
-  const CreatorLivestreamDetailRouteArgs({
-    this.key,
-    required this.livestreamId,
-  });
-
-  final _i94.Key? key;
-
-  final String livestreamId;
-
-  @override
-  String toString() {
-    return 'CreatorLivestreamDetailRouteArgs{key: $key, livestreamId: $livestreamId}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! CreatorLivestreamDetailRouteArgs) return false;
-    return key == other.key && livestreamId == other.livestreamId;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ livestreamId.hashCode;
-}
-
-/// generated route for
-/// [_i29.CreatorLivestreamListScreen]
-class CreatorLivestreamListRoute
-    extends _i92.PageRouteInfo<CreatorLivestreamListRouteArgs> {
-  CreatorLivestreamListRoute({
-    _i94.Key? key,
-    required String pubName,
-    List<_i92.PageRouteInfo>? children,
-  }) : super(
-         CreatorLivestreamListRoute.name,
-         args: CreatorLivestreamListRouteArgs(key: key, pubName: pubName),
-         rawPathParams: {'pubName': pubName},
-         initialChildren: children,
-       );
-
-  static const String name = 'CreatorLivestreamListRoute';
-
-  static _i92.PageInfo page = _i92.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<CreatorLivestreamListRouteArgs>(
-        orElse: () => CreatorLivestreamListRouteArgs(
-          pubName: pathParams.getString('pubName'),
-        ),
-      );
-      return _i29.CreatorLivestreamListScreen(
-        key: args.key,
-        pubName: args.pubName,
-      );
-    },
-  );
-}
-
-class CreatorLivestreamListRouteArgs {
-  const CreatorLivestreamListRouteArgs({this.key, required this.pubName});
-
-  final _i94.Key? key;
-
-  final String pubName;
-
-  @override
-  String toString() {
-    return 'CreatorLivestreamListRouteArgs{key: $key, pubName: $pubName}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! CreatorLivestreamListRouteArgs) return false;
-    return key == other.key && pubName == other.pubName;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ pubName.hashCode;
 }
 
 /// generated route for
@@ -2902,62 +2766,6 @@ class LevelingRoute extends _i92.PageRouteInfo<void> {
       return const _i61.LevelingScreen();
     },
   );
-}
-
-/// generated route for
-/// [_i62.LivestreamWatchScreen]
-class LivestreamWatchRoute
-    extends _i92.PageRouteInfo<LivestreamWatchRouteArgs> {
-  LivestreamWatchRoute({
-    _i94.Key? key,
-    required String livestreamId,
-    List<_i92.PageRouteInfo>? children,
-  }) : super(
-         LivestreamWatchRoute.name,
-         args: LivestreamWatchRouteArgs(key: key, livestreamId: livestreamId),
-         rawPathParams: {'id': livestreamId},
-         initialChildren: children,
-       );
-
-  static const String name = 'LivestreamWatchRoute';
-
-  static _i92.PageInfo page = _i92.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<LivestreamWatchRouteArgs>(
-        orElse: () =>
-            LivestreamWatchRouteArgs(livestreamId: pathParams.getString('id')),
-      );
-      return _i62.LivestreamWatchScreen(
-        key: args.key,
-        livestreamId: args.livestreamId,
-      );
-    },
-  );
-}
-
-class LivestreamWatchRouteArgs {
-  const LivestreamWatchRouteArgs({this.key, required this.livestreamId});
-
-  final _i94.Key? key;
-
-  final String livestreamId;
-
-  @override
-  String toString() {
-    return 'LivestreamWatchRouteArgs{key: $key, livestreamId: $livestreamId}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! LivestreamWatchRouteArgs) return false;
-    return key == other.key && livestreamId == other.livestreamId;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ livestreamId.hashCode;
 }
 
 /// generated route for

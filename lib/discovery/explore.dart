@@ -12,7 +12,6 @@ import 'package:island/posts/widgets/compose/compose_sidebar.dart';
 import 'package:island/posts/widgets/compose/filters/post_subscription_filter.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/translate.dart';
-import 'package:island/livestreams/livestream.dart';
 import 'package:island/posts/widgets/compose/post_item.dart';
 import 'package:island/posts/screens/post_detail.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
@@ -20,7 +19,6 @@ import 'package:island/posts/widgets/compose/post_quick_reply.dart';
 import 'package:island/posts/widgets/compose/post_replies.dart';
 import 'package:island/posts/widgets/publishers/publisher_card.dart';
 import 'package:island/discovery/models/webfeed.dart';
-import 'package:island/discovery/screens/livestreams.dart';
 import 'package:island/posts/posts_pod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/responsive.dart';
@@ -46,22 +44,6 @@ import 'package:island/core/config.dart';
 @RoutePage()
 class ExploreScreen extends HookConsumerWidget {
   const ExploreScreen({super.key});
-
-  static final publisherActiveLivestreamProvider = FutureProvider.family
-      .autoDispose<SnLiveStream?, String>((ref, publisherId) async {
-        final client = ref.watch(solarNetworkClientProvider);
-        final response = await client.livestreams.getActiveLivestreams(
-          offset: 0,
-          take: 20,
-        );
-        for (final stream in response.items) {
-          if (stream.publisherId == publisherId &&
-              stream.status == SnLiveStreamStatus.active) {
-            return stream;
-          }
-        }
-        return null;
-      });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -468,19 +450,6 @@ class ExploreScreen extends HookConsumerWidget {
                     ),
                   ),
                   PopupMenuItem(
-                    value: _ExploreAction.livestreams,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Symbols.live_tv,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        const Gap(12),
-                        Text('livestreams').tr(),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
                     value: _ExploreAction.categories,
                     child: Row(
                       children: [
@@ -524,13 +493,6 @@ class ExploreScreen extends HookConsumerWidget {
                   switch (value) {
                     case _ExploreAction.articles:
                       context.router.push(const ArticleStandRoute());
-                      break;
-                    case _ExploreAction.livestreams:
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ActiveLivestreamsScreen(),
-                        ),
-                      );
                       break;
                     case _ExploreAction.categories:
                       context.router.push(PostCategoriesListRoute());
@@ -759,38 +721,6 @@ class ExploreScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildLiveStreamsOnTop(
-    BuildContext context,
-    WidgetRef ref,
-    List<String> selectedPublishers,
-  ) {
-    final subsAsync = ref.watch(publishersSubscriptionsLiveProvider);
-    return subsAsync.when(
-      data: (subs) {
-        final selectedSubs = subs.where((item) {
-          final pub = item.subscription.publisher;
-          return selectedPublishers.contains(pub.name);
-        }).toList();
-        if (selectedSubs.isEmpty) {
-          return const SliverToBoxAdapter(child: SizedBox.shrink());
-        }
-        return SliverToBoxAdapter(
-          child: Column(
-            children: [
-              for (final item in selectedSubs)
-                _SelectedPublisherLiveStreamEmbed(
-                  publisher: item.subscription.publisher,
-                  isLive: item.isLive,
-                ),
-            ],
-          ),
-        );
-      },
-      loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-      error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
-    );
-  }
-
   Widget _buildNarrowBodySliver(
     BuildContext context,
     WidgetRef ref,
@@ -842,7 +772,6 @@ class ExploreScreen extends HookConsumerWidget {
             isWide: false,
           ),
           if (usePostList) ...[
-            _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
             _buildPostList(
               context,
               ref,
@@ -956,7 +885,6 @@ class ExploreScreen extends HookConsumerWidget {
               isWide: true,
             ),
             if (usePostList) ...[
-              _buildLiveStreamsOnTop(context, ref, selectedPublishers.value),
               _buildPostList(
                 context,
                 ref,
@@ -1204,16 +1132,6 @@ class _ExploreFilterToolbar extends StatelessWidget {
                       ),
                     ),
                     PopupMenuItem(
-                      value: _ExploreAction.livestreams,
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.live_tv),
-                          const Gap(12),
-                          Text('livestreams').tr(),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
                       value: _ExploreAction.categories,
                       child: Row(
                         children: [
@@ -1251,13 +1169,6 @@ class _ExploreFilterToolbar extends StatelessWidget {
                         break;
                       case _ExploreAction.search:
                         context.router.push(UniversalSearchRoute());
-                        break;
-                      case _ExploreAction.livestreams:
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ActiveLivestreamsScreen(),
-                          ),
-                        );
                         break;
                       case _ExploreAction.categories:
                         context.router.push(PostCategoriesListRoute());
@@ -1390,14 +1301,7 @@ class _FilterToggleButton extends StatelessWidget {
   }
 }
 
-enum _ExploreAction {
-  articles,
-  search,
-  livestreams,
-  categories,
-  shuffle,
-  footprints,
-}
+enum _ExploreAction { articles, search, categories, shuffle, footprints }
 
 class _RankingToolbar extends StatelessWidget {
   final String currentMode;
@@ -1486,68 +1390,6 @@ class _TimelineModeDropdown extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _SelectedPublisherLiveStreamEmbed extends ConsumerWidget {
-  final SnPublisher publisher;
-  final bool isLive;
-
-  const _SelectedPublisherLiveStreamEmbed({
-    required this.publisher,
-    required this.isLive,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profileCard = Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-      ),
-      child: ListTile(
-        dense: true,
-        leading: ProfilePictureWidget(file: publisher.picture, radius: 16),
-        title: Text(publisher.nick),
-        subtitle: Text('@${publisher.name}'),
-        trailing: FilledButton.tonal(
-          onPressed: () {
-            context.router.push(PublisherProfileRoute(name: publisher.name));
-          },
-          child: Text('open').tr(),
-        ),
-      ),
-    );
-
-    if (!isLive) {
-      return profileCard;
-    }
-
-    final streamAsync = ref.watch(
-      ExploreScreen.publisherActiveLivestreamProvider(publisher.id),
-    );
-    return Column(
-      children: [
-        streamAsync.when(
-          data: (stream) {
-            if (stream == null) return profileCard;
-            return Column(
-              children: [
-                profileCard,
-                const Divider(height: 1),
-                LivestreamEmbedWidget(
-                  livestreamId: stream.id,
-                  margin: EdgeInsets.zero,
-                ),
-              ],
-            );
-          },
-          loading: () => profileCard,
-          error: (_, _) => profileCard,
-        ),
-        const Divider(height: 1),
-      ],
     );
   }
 }

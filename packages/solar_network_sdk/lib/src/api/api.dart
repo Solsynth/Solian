@@ -12,7 +12,6 @@ export 'domains/thoughts_api.dart';
 export 'domains/e2ee_api.dart';
 export 'domains/drive_api.dart';
 export 'domains/stickers_api.dart';
-export 'domains/livestreams_api.dart';
 export 'domains/notifications_api.dart';
 export 'domains/tickets_api.dart';
 export 'domains/polls_api.dart';

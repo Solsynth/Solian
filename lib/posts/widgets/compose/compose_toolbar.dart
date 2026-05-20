@@ -117,10 +117,6 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.pickFund(ref, state, context);
     }
 
-    void pickLivestream() {
-      ComposeLogic.pickLivestream(ref, state, context);
-    }
-
     void pickFitness() {
       showModalBottomSheet(
         context: context,
@@ -245,25 +241,6 @@ class ComposeToolbar extends HookConsumerWidget {
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
                                     state.fundId.value != null
-                                        ? colorScheme.primary.withOpacity(0.15)
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          // Livestream button with visual state when a livestream is linked
-                          ListenableBuilder(
-                            listenable: state.liveStreamId,
-                            builder: (context, _) {
-                              return IconButton(
-                                onPressed: pickLivestream,
-                                icon: const Icon(Symbols.live_tv),
-                                tooltip: 'Livestream',
-                                color: colorScheme.primary,
-                                style: ButtonStyle(
-                                  backgroundColor: WidgetStatePropertyAll(
-                                    state.liveStreamId.value != null
                                         ? colorScheme.primary.withOpacity(0.15)
                                         : null,
                                   ),

@@ -7,7 +7,6 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
-import 'package:island/livestreams/livestream.dart';
 import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
 import 'package:island/core/widgets/embeds/link.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';
@@ -153,16 +152,6 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
                   ? const Text('Fund envelope was unavailable...')
                   : FundEnvelopeWidget(
                       fundId: embedData['id'],
-                      margin: EdgeInsets.symmetric(
-                        horizontal: widget.renderingPadding.horizontal,
-                        vertical: 8,
-                      ),
-                    ),
-            'livestream' =>
-              embedData['id'] == null
-                  ? const Text('Livestream was unavailable...')
-                  : _LivestreamPreviewCard(
-                      livestreamId: embedData['id'],
                       margin: EdgeInsets.symmetric(
                         horizontal: widget.renderingPadding.horizontal,
                         vertical: 8,
@@ -685,161 +674,6 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
       return '${hours}h ${minutes}m';
     }
     return '${minutes}m';
-  }
-}
-
-class _LivestreamPreviewCard extends ConsumerWidget {
-  final String livestreamId;
-  final EdgeInsets margin;
-
-  const _LivestreamPreviewCard({
-    required this.livestreamId,
-    required this.margin,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(livestreamDetailProvider(livestreamId));
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: margin,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => context.router.push(LivestreamWatchRoute(livestreamId: livestreamId)),
-        child: detailAsync.when(
-          data: (stream) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (stream.thumbnail?.id != null)
-                        CloudImageWidget(
-                          fileId: stream.thumbnail!.id,
-                          fit: BoxFit.cover,
-                        )
-                      else
-                        Container(
-                          color: theme.colorScheme.surfaceContainerHigh,
-                          child: Center(
-                            child: Icon(
-                              Symbols.live_tv,
-                              size: 48,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.6),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 8,
-                        left: 8,
-                        right: 8,
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: stream.status == SnLiveStreamStatus.active
-                                    ? Colors.red
-                                    : theme.colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (stream.status == SnLiveStreamStatus.active) ...[
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const Gap(4),
-                                  ],
-                                  Text(
-                                    stream.status == SnLiveStreamStatus.active
-                                        ? 'live'.tr()
-                                        : 'ended'.tr(),
-                                    style: TextStyle(
-                                      color: stream.status == SnLiveStreamStatus.active
-                                          ? Colors.white
-                                          : theme.colorScheme.onSurfaceVariant,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      stream.title ?? 'untitledLivestream'.tr(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (stream.description?.isNotEmpty ?? false) ...[
-                      const Gap(4),
-                      Text(
-                        stream.description!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-          loading: () => Padding(
-            padding: const EdgeInsets.all(24),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          error: (_, _) => Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text('livestreamUnavailable'.tr()),
-          ),
-        ),
-      ),
-    );
   }
 }
 
@@ -1706,8 +1540,10 @@ class _FitnessDetailSheet extends ConsumerWidget {
   }
 }
 
-final meetDetailProvider =
-    FutureProvider.autoDispose.family<SnMeet, String>((ref, meetId) async {
+final meetDetailProvider = FutureProvider.autoDispose.family<SnMeet, String>((
+  ref,
+  meetId,
+) async {
   final service = ref.watch(meetServiceProvider);
   return service.getMeet(meetId);
 });
@@ -1763,11 +1599,8 @@ void _showLocationDetailSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (context) => _LocationDetailSheet(
-      name: name,
-      address: address,
-      wkt: wkt,
-    ),
+    builder: (context) =>
+        _LocationDetailSheet(name: name, address: address, wkt: wkt),
   );
 }
 
@@ -1785,8 +1618,9 @@ class _LocationDetailSheet extends StatelessWidget {
 
     LatLng? point;
     if (wkt != null) {
-      final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)')
-          .firstMatch(wkt!);
+      final match = RegExp(
+        r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)',
+      ).firstMatch(wkt!);
       if (match != null) {
         final lon = double.tryParse(match.group(1)!);
         final lat = double.tryParse(match.group(2)!);
@@ -2007,19 +1841,21 @@ Future<void> _openLocationInMaps(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
               'openInMaps'.tr(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
-          ...availableMaps.map((map) => ListTile(
-            leading: Icon(
-              Symbols.map,
-              color: Theme.of(context).colorScheme.primary,
+          ...availableMaps.map(
+            (map) => ListTile(
+              leading: Icon(
+                Symbols.map,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: Text(map.mapName),
+              onTap: () => Navigator.pop(context, map),
             ),
-            title: Text(map.mapName),
-            onTap: () => Navigator.pop(context, map),
-          )),
+          ),
         ],
       ),
     ),
@@ -2041,8 +1877,7 @@ class _LocationMapPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     LatLng? point;
-    final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)')
-        .firstMatch(wkt);
+    final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)').firstMatch(wkt);
     if (match != null) {
       final lon = double.tryParse(match.group(1)!);
       final lat = double.tryParse(match.group(2)!);
@@ -2055,9 +1890,7 @@ class _LocationMapPreview extends StatelessWidget {
     return SizedBox(
       height: 160,
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(12),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
         child: FlutterMap(
           options: MapOptions(
             initialCenter: point,
@@ -2068,8 +1901,7 @@ class _LocationMapPreview extends StatelessWidget {
           ),
           children: [
             TileLayer(
-              urlTemplate:
-                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.island.app',
             ),
             MarkerLayer(
@@ -2110,8 +1942,9 @@ class _LocationEmbedContent extends StatelessWidget {
   Widget build(BuildContext context) {
     LatLng? point;
     if (wkt != null) {
-      final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)')
-          .firstMatch(wkt!);
+      final match = RegExp(
+        r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)',
+      ).firstMatch(wkt!);
       if (match != null) {
         final lon = double.tryParse(match.group(1)!);
         final lat = double.tryParse(match.group(2)!);
@@ -2206,10 +2039,7 @@ class _LocationEmbedContent extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Symbols.chevron_right,
-                color: colorScheme.onSurfaceVariant,
-              ),
+              Icon(Symbols.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -2222,10 +2052,7 @@ class _MeetEmbedCard extends ConsumerWidget {
   final String meetId;
   final EdgeInsets margin;
 
-  const _MeetEmbedCard({
-    required this.meetId,
-    required this.margin,
-  });
+  const _MeetEmbedCard({required this.meetId, required this.margin});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2242,8 +2069,9 @@ class _MeetEmbedCard extends ConsumerWidget {
           data: (meet) {
             LatLng? point;
             if (meet.locationWkt != null) {
-              final match = RegExp(r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)')
-                  .firstMatch(meet.locationWkt!);
+              final match = RegExp(
+                r'POINT\s*\(([\d.-]+)\s+([\d.-]+)\)',
+              ).firstMatch(meet.locationWkt!);
               if (match != null) {
                 final lon = double.tryParse(match.group(1)!);
                 final lat = double.tryParse(match.group(2)!);
@@ -2315,9 +2143,8 @@ class _MeetEmbedCard extends ConsumerWidget {
                                 Expanded(
                                   child: Text(
                                     meet.notes ?? 'untitledMeet'.tr(),
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -2348,9 +2175,10 @@ class _MeetEmbedCard extends ConsumerWidget {
                                   Flexible(
                                     child: Text(
                                       meet.locationName!,
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -2396,11 +2224,7 @@ class _MeetEmbedCard extends ConsumerWidget {
   }
 }
 
-void _showMeetDetailSheet(
-  BuildContext context,
-  WidgetRef ref,
-  String meetId,
-) {
+void _showMeetDetailSheet(BuildContext context, WidgetRef ref, String meetId) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
