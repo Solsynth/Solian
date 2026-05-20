@@ -449,6 +449,7 @@ sealed class SnNotificationPushSubscription
     required String accountId,
     required String deviceId,
     required String deviceToken,
+    String? deviceName,
     required SnNotificationPushSubscriptionProvider provider,
     required bool isActivated,
     DateTime? lastUsedAt,
