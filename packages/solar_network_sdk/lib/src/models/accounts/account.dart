@@ -228,7 +228,6 @@ sealed class SnNotification with _$SnNotification {
     @Default('') String subtitle,
     required String content,
     @Default({}) Map<String, dynamic> meta,
-    required int priority,
     required DateTime? viewedAt,
     required String accountId,
   }) = _SnNotification;

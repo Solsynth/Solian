@@ -645,15 +645,12 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
           onTap: () {
             final notification = SnNotification(
               createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-              deletedAt: null,
               id: 'local_${DateTime.now().millisecondsSinceEpoch}',
               topic: 'local',
               title: 'Test Notification',
               subtitle: '',
               content: 'This is a test notification for debugging.',
               meta: const {},
-              priority: 0,
               viewedAt: null,
               accountId: 'local',
             );
@@ -1259,15 +1256,12 @@ class DebugSheet extends HookConsumerWidget {
               onTap: () {
                 final notification = SnNotification(
                   createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                  deletedAt: null,
                   id: 'local_${DateTime.now().millisecondsSinceEpoch}',
                   topic: 'local',
                   title: 'Test Notification',
                   subtitle: '',
                   content: 'This is a test notification for debugging.',
                   meta: const {},
-                  priority: 0,
                   viewedAt: null,
                   accountId: 'local',
                 );

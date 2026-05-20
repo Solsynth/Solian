@@ -428,15 +428,12 @@ void showNotification({
   final ref = ProviderScope.containerOf(context);
   final notification = SnNotification(
     createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
-    deletedAt: null,
     id: 'local_${DateTime.now().millisecondsSinceEpoch}',
     topic: 'local',
     title: title,
     subtitle: subtitle,
     content: content,
     meta: meta,
-    priority: 0,
     viewedAt: null,
     accountId: 'local',
   );
@@ -446,7 +443,10 @@ void showNotification({
 }
 
 Future<void> openExternalLink(Uri url, WidgetRef ref) async {
-  await openExternalLinkWithContainer(url, ProviderScope.containerOf(globalOverlay.currentState!.context));
+  await openExternalLinkWithContainer(
+    url,
+    ProviderScope.containerOf(globalOverlay.currentState!.context),
+  );
 }
 
 Future<void> openExternalLinkWithContainer(
@@ -458,7 +458,11 @@ Future<void> openExternalLinkWithContainer(
     return;
   }
 
-  final context = container.read(routerProvider).navigatorKey.currentState!.context;
+  final context = container
+      .read(routerProvider)
+      .navigatorKey
+      .currentState!
+      .context;
 
   showLoadingModal(context);
   final domainTrustService = container.read(domainTrustServiceProvider);
@@ -467,7 +471,7 @@ Future<void> openExternalLinkWithContainer(
   if (!context.mounted) return;
   hideLoadingModal(context);
 
-   if (result.trustLevel == DomainTrustLevel.verified) {
+  if (result.trustLevel == DomainTrustLevel.verified) {
     await launchUrl(url, mode: LaunchMode.externalApplication);
     return;
   }

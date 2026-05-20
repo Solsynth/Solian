@@ -215,6 +215,76 @@ class _ChatTimeoutBanner extends StatelessWidget {
   }
 }
 
+class _TypingIndicatorDots extends StatefulWidget {
+  const _TypingIndicatorDots();
+
+  @override
+  State<_TypingIndicatorDots> createState() => _TypingIndicatorDotsState();
+}
+
+class _TypingIndicatorDotsState extends State<_TypingIndicatorDots>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _dotProgress(int index) {
+    final offset = index * 0.18;
+    final progress = (_controller.value - offset) % 1.0;
+    if (progress < 0.5) {
+      return Curves.easeOut.transform(progress / 0.5);
+    }
+    return 1 - Curves.easeIn.transform((progress - 0.5) / 0.5);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return SizedBox(
+      width: 32,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(3, (index) {
+              final progress = _dotProgress(index);
+              final size = 4.0 + (progress * 3.0);
+
+              return Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: Color.lerp(
+                    baseColor.withOpacity(0.35),
+                    baseColor,
+                    progress,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _ExpandedSection extends StatefulWidget {
   final TextEditingController messageController;
   final VoidCallback onSendMessage;
@@ -1281,10 +1351,9 @@ class ChatInput extends HookConsumerWidget {
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(
-                                    Symbols.more_horiz,
-                                    size: 16,
-                                  ).padding(horizontal: 8),
+                                  const _TypingIndicatorDots().padding(
+                                    horizontal: 8,
+                                  ),
                                   const Gap(8),
                                   Expanded(
                                     child: Text(
