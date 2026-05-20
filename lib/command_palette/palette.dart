@@ -29,8 +29,10 @@ class CommandPaletteWidget extends HookConsumerWidget {
 
   const CommandPaletteWidget({super.key, required this.onDismiss});
 
-  static List<SpecialAction> _getSpecialActions(WidgetRef ref) {
-    final isDeveloperMode = ref.read(developerModeProvider);
+  static List<SpecialAction> _getSpecialActions(
+    WidgetRef ref,
+    bool isDeveloperMode,
+  ) {
     return [
       SpecialAction(
         name: 'postCompose'.tr(),
@@ -84,6 +86,7 @@ class CommandPaletteWidget extends HookConsumerWidget {
     final searchQuery = useState('');
     final focusedIndex = useState<int?>(null);
     final scrollController = useScrollController();
+    final isDeveloperMode = ref.watch(developerModeProvider);
 
     final animationController = useAnimationController(
       duration: const Duration(milliseconds: 200),
@@ -162,7 +165,7 @@ class CommandPaletteWidget extends HookConsumerWidget {
 
     final filteredSpecialActions = searchQuery.value.isEmpty
         ? <SpecialAction>[]
-        : _getSpecialActions(ref)
+        : _getSpecialActions(ref, isDeveloperMode)
               .where((action) {
                 final query = searchQuery.value.toLowerCase();
                 return action.name.toLowerCase().contains(query) ||
