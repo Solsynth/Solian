@@ -562,7 +562,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
         minLeadingWidth: 48,
         leading: const Icon(Symbols.cell_tower),
         title: Text('notificationSubscriptions').tr(),
-        subtitle: Text('notificationSubscriptionsDescription').tr().fontSize(12),
+        subtitle: Text(
+          'notificationSubscriptionsDescription',
+        ).tr().fontSize(12),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
@@ -1358,7 +1360,9 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
                       top: 2,
                       bottom: 4,
                     ),
-                    title: Text(_getProviderLabel(sub.provider)),
+                    title: Text(
+                      sub.deviceName ?? _getProviderLabel(sub.provider),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -1387,10 +1391,7 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
                       backgroundColor: Theme.of(
                         context,
                       ).colorScheme.primaryContainer,
-                      child: Icon(
-                        _getProviderIcon(sub.provider),
-                        size: 16,
-                      ),
+                      child: Icon(_getProviderIcon(sub.provider), size: 16),
                     ).padding(top: 4),
                     trailing: const Icon(Symbols.chevron_right),
                     onTap: () {
@@ -1502,9 +1503,10 @@ class NotificationSubscriptionDetailSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  NotificationSubscriptionsSheet._getProviderLabel(
-                    subscription.provider,
-                  ),
+                  subscription.deviceName ??
+                      NotificationSubscriptionsSheet._getProviderLabel(
+                        subscription.provider,
+                      ),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 4),
