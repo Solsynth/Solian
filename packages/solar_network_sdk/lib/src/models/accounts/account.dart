@@ -222,8 +222,6 @@ sealed class SnContactMethod with _$SnContactMethod {
 sealed class SnNotification with _$SnNotification {
   const factory SnNotification({
     required DateTime createdAt,
-    required DateTime updatedAt,
-    required DateTime? deletedAt,
     required String id,
     required String topic,
     required String title,
@@ -271,7 +269,9 @@ sealed class SnAccountProfileRef with _$SnAccountProfileRef {
 }
 
 @freezed
-sealed class SnAccountReference with _$SnAccountReference implements IDisplayableAccount {
+sealed class SnAccountReference
+    with _$SnAccountReference
+    implements IDisplayableAccount {
   const SnAccountReference._();
 
   const factory SnAccountReference({

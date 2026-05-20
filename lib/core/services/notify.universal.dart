@@ -20,6 +20,8 @@ import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+import 'udid.dart';
+
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
@@ -258,6 +260,10 @@ Future<void> subscribeUnifiedPushNotification(
 Future<void> _putTokenToRemote(Dio apiClient, String token, int type) async {
   await apiClient.put(
     "/ring/notifications/subscription",
-    data: {"type": type, "device_token": token},
+    data: {
+      "type": type,
+      "device_token": token,
+      "device_name": await getDeviceName(),
+    },
   );
 }
