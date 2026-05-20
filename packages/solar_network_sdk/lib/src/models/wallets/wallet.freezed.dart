@@ -1238,7 +1238,7 @@ $SnWalletCopyWith<$Res>? get payeeWallet {
 /// @nodoc
 mixin _$SnWalletSubscription {
 
- String get id; DateTime get begunAt; DateTime? get endedAt; String get identifier; bool get isActive; bool get isFreeTrial; int get status; String? get paymentMethod; Map<String, dynamic>? get paymentDetails; double? get basePrice; String? get couponId; dynamic get coupon; DateTime? get renewalAt; String get accountId; SnAccount? get account; bool get isAvailable; double? get finalPrice; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
+ String get id; DateTime get begunAt; DateTime? get endedAt; String get identifier; String? get groupIdentifier; bool get isActive; bool get isFreeTrial; int get status; String? get paymentMethod; Map<String, dynamic>? get paymentDetails; double? get basePrice; String? get couponId; dynamic get coupon; DateTime? get renewalAt; String get accountId; SnAccount? get account; bool get isAvailable; bool get isPendingActivation; double? get finalPrice; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;
 /// Create a copy of SnWalletSubscription
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1251,16 +1251,16 @@ $SnWalletSubscriptionCopyWith<SnWalletSubscription> get copyWith => _$SnWalletSu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.begunAt, begunAt) || other.begunAt == begunAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isFreeTrial, isFreeTrial) || other.isFreeTrial == isFreeTrial)&&(identical(other.status, status) || other.status == status)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&const DeepCollectionEquality().equals(other.paymentDetails, paymentDetails)&&(identical(other.basePrice, basePrice) || other.basePrice == basePrice)&&(identical(other.couponId, couponId) || other.couponId == couponId)&&const DeepCollectionEquality().equals(other.coupon, coupon)&&(identical(other.renewalAt, renewalAt) || other.renewalAt == renewalAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.finalPrice, finalPrice) || other.finalPrice == finalPrice)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnWalletSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.begunAt, begunAt) || other.begunAt == begunAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isFreeTrial, isFreeTrial) || other.isFreeTrial == isFreeTrial)&&(identical(other.status, status) || other.status == status)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&const DeepCollectionEquality().equals(other.paymentDetails, paymentDetails)&&(identical(other.basePrice, basePrice) || other.basePrice == basePrice)&&(identical(other.couponId, couponId) || other.couponId == couponId)&&const DeepCollectionEquality().equals(other.coupon, coupon)&&(identical(other.renewalAt, renewalAt) || other.renewalAt == renewalAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.isPendingActivation, isPendingActivation) || other.isPendingActivation == isPendingActivation)&&(identical(other.finalPrice, finalPrice) || other.finalPrice == finalPrice)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,begunAt,endedAt,identifier,isActive,isFreeTrial,status,paymentMethod,const DeepCollectionEquality().hash(paymentDetails),basePrice,couponId,const DeepCollectionEquality().hash(coupon),renewalAt,accountId,account,isAvailable,finalPrice,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,begunAt,endedAt,identifier,groupIdentifier,isActive,isFreeTrial,status,paymentMethod,const DeepCollectionEquality().hash(paymentDetails),basePrice,couponId,const DeepCollectionEquality().hash(coupon),renewalAt,accountId,account,isAvailable,isPendingActivation,finalPrice,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnWalletSubscription(id: $id, begunAt: $begunAt, endedAt: $endedAt, identifier: $identifier, isActive: $isActive, isFreeTrial: $isFreeTrial, status: $status, paymentMethod: $paymentMethod, paymentDetails: $paymentDetails, basePrice: $basePrice, couponId: $couponId, coupon: $coupon, renewalAt: $renewalAt, accountId: $accountId, account: $account, isAvailable: $isAvailable, finalPrice: $finalPrice, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnWalletSubscription(id: $id, begunAt: $begunAt, endedAt: $endedAt, identifier: $identifier, groupIdentifier: $groupIdentifier, isActive: $isActive, isFreeTrial: $isFreeTrial, status: $status, paymentMethod: $paymentMethod, paymentDetails: $paymentDetails, basePrice: $basePrice, couponId: $couponId, coupon: $coupon, renewalAt: $renewalAt, accountId: $accountId, account: $account, isAvailable: $isAvailable, isPendingActivation: $isPendingActivation, finalPrice: $finalPrice, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1271,7 +1271,7 @@ abstract mixin class $SnWalletSubscriptionCopyWith<$Res>  {
   factory $SnWalletSubscriptionCopyWith(SnWalletSubscription value, $Res Function(SnWalletSubscription) _then) = _$SnWalletSubscriptionCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime begunAt, DateTime? endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime begunAt, DateTime? endedAt, String identifier, String? groupIdentifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, bool isPendingActivation, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1288,13 +1288,14 @@ class _$SnWalletSubscriptionCopyWithImpl<$Res>
 
 /// Create a copy of SnWalletSubscription
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = freezed,Object? identifier = null,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = freezed,Object? paymentDetails = freezed,Object? basePrice = freezed,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = freezed,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? finalPrice = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = freezed,Object? identifier = null,Object? groupIdentifier = freezed,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = freezed,Object? paymentDetails = freezed,Object? basePrice = freezed,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = freezed,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? isPendingActivation = null,Object? finalPrice = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,begunAt: null == begunAt ? _self.begunAt : begunAt // ignore: cast_nullable_to_non_nullable
 as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
-as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as String,groupIdentifier: freezed == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,isFreeTrial: null == isFreeTrial ? _self.isFreeTrial : isFreeTrial // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,paymentMethod: freezed == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
@@ -1306,6 +1307,7 @@ as dynamic,renewalAt: freezed == renewalAt ? _self.renewalAt : renewalAt // igno
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
+as bool,isPendingActivation: null == isPendingActivation ? _self.isPendingActivation : isPendingActivation // ignore: cast_nullable_to_non_nullable
 as bool,finalPrice: freezed == finalPrice ? _self.finalPrice : finalPrice // ignore: cast_nullable_to_non_nullable
 as double?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -1404,10 +1406,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime begunAt,  DateTime? endedAt,  String identifier,  bool isActive,  bool isFreeTrial,  int status,  String? paymentMethod,  Map<String, dynamic>? paymentDetails,  double? basePrice,  String? couponId,  dynamic coupon,  DateTime? renewalAt,  String accountId,  SnAccount? account,  bool isAvailable,  double? finalPrice,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime begunAt,  DateTime? endedAt,  String identifier,  String? groupIdentifier,  bool isActive,  bool isFreeTrial,  int status,  String? paymentMethod,  Map<String, dynamic>? paymentDetails,  double? basePrice,  String? couponId,  dynamic coupon,  DateTime? renewalAt,  String accountId,  SnAccount? account,  bool isAvailable,  bool isPendingActivation,  double? finalPrice,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnWalletSubscription() when $default != null:
-return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.isActive,_that.isFreeTrial,_that.status,_that.paymentMethod,_that.paymentDetails,_that.basePrice,_that.couponId,_that.coupon,_that.renewalAt,_that.accountId,_that.account,_that.isAvailable,_that.finalPrice,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.groupIdentifier,_that.isActive,_that.isFreeTrial,_that.status,_that.paymentMethod,_that.paymentDetails,_that.basePrice,_that.couponId,_that.coupon,_that.renewalAt,_that.accountId,_that.account,_that.isAvailable,_that.isPendingActivation,_that.finalPrice,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return orElse();
 
 }
@@ -1425,10 +1427,10 @@ return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.isAc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime begunAt,  DateTime? endedAt,  String identifier,  bool isActive,  bool isFreeTrial,  int status,  String? paymentMethod,  Map<String, dynamic>? paymentDetails,  double? basePrice,  String? couponId,  dynamic coupon,  DateTime? renewalAt,  String accountId,  SnAccount? account,  bool isAvailable,  double? finalPrice,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime begunAt,  DateTime? endedAt,  String identifier,  String? groupIdentifier,  bool isActive,  bool isFreeTrial,  int status,  String? paymentMethod,  Map<String, dynamic>? paymentDetails,  double? basePrice,  String? couponId,  dynamic coupon,  DateTime? renewalAt,  String accountId,  SnAccount? account,  bool isAvailable,  bool isPendingActivation,  double? finalPrice,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SnWalletSubscription():
-return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.isActive,_that.isFreeTrial,_that.status,_that.paymentMethod,_that.paymentDetails,_that.basePrice,_that.couponId,_that.coupon,_that.renewalAt,_that.accountId,_that.account,_that.isAvailable,_that.finalPrice,_that.createdAt,_that.updatedAt,_that.deletedAt);}
+return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.groupIdentifier,_that.isActive,_that.isFreeTrial,_that.status,_that.paymentMethod,_that.paymentDetails,_that.basePrice,_that.couponId,_that.coupon,_that.renewalAt,_that.accountId,_that.account,_that.isAvailable,_that.isPendingActivation,_that.finalPrice,_that.createdAt,_that.updatedAt,_that.deletedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1442,10 +1444,10 @@ return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.isAc
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime begunAt,  DateTime? endedAt,  String identifier,  bool isActive,  bool isFreeTrial,  int status,  String? paymentMethod,  Map<String, dynamic>? paymentDetails,  double? basePrice,  String? couponId,  dynamic coupon,  DateTime? renewalAt,  String accountId,  SnAccount? account,  bool isAvailable,  double? finalPrice,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime begunAt,  DateTime? endedAt,  String identifier,  String? groupIdentifier,  bool isActive,  bool isFreeTrial,  int status,  String? paymentMethod,  Map<String, dynamic>? paymentDetails,  double? basePrice,  String? couponId,  dynamic coupon,  DateTime? renewalAt,  String accountId,  SnAccount? account,  bool isAvailable,  bool isPendingActivation,  double? finalPrice,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SnWalletSubscription() when $default != null:
-return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.isActive,_that.isFreeTrial,_that.status,_that.paymentMethod,_that.paymentDetails,_that.basePrice,_that.couponId,_that.coupon,_that.renewalAt,_that.accountId,_that.account,_that.isAvailable,_that.finalPrice,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
+return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.groupIdentifier,_that.isActive,_that.isFreeTrial,_that.status,_that.paymentMethod,_that.paymentDetails,_that.basePrice,_that.couponId,_that.coupon,_that.renewalAt,_that.accountId,_that.account,_that.isAvailable,_that.isPendingActivation,_that.finalPrice,_that.createdAt,_that.updatedAt,_that.deletedAt);case _:
   return null;
 
 }
@@ -1457,13 +1459,14 @@ return $default(_that.id,_that.begunAt,_that.endedAt,_that.identifier,_that.isAc
 @JsonSerializable()
 
 class _SnWalletSubscription implements SnWalletSubscription {
-  const _SnWalletSubscription({required this.id, required this.begunAt, required this.endedAt, required this.identifier, this.isActive = true, this.isFreeTrial = false, this.status = 1, required this.paymentMethod, required final  Map<String, dynamic>? paymentDetails, required this.basePrice, required this.couponId, required this.coupon, required this.renewalAt, required this.accountId, required this.account, this.isAvailable = true, required this.finalPrice, required this.createdAt, required this.updatedAt, required this.deletedAt}): _paymentDetails = paymentDetails;
+  const _SnWalletSubscription({required this.id, required this.begunAt, required this.endedAt, required this.identifier, this.groupIdentifier, this.isActive = true, this.isFreeTrial = false, this.status = 1, required this.paymentMethod, required final  Map<String, dynamic>? paymentDetails, required this.basePrice, required this.couponId, required this.coupon, required this.renewalAt, required this.accountId, required this.account, this.isAvailable = true, this.isPendingActivation = false, required this.finalPrice, required this.createdAt, required this.updatedAt, required this.deletedAt}): _paymentDetails = paymentDetails;
   factory _SnWalletSubscription.fromJson(Map<String, dynamic> json) => _$SnWalletSubscriptionFromJson(json);
 
 @override final  String id;
 @override final  DateTime begunAt;
 @override final  DateTime? endedAt;
 @override final  String identifier;
+@override final  String? groupIdentifier;
 @override@JsonKey() final  bool isActive;
 @override@JsonKey() final  bool isFreeTrial;
 @override@JsonKey() final  int status;
@@ -1484,6 +1487,7 @@ class _SnWalletSubscription implements SnWalletSubscription {
 @override final  String accountId;
 @override final  SnAccount? account;
 @override@JsonKey() final  bool isAvailable;
+@override@JsonKey() final  bool isPendingActivation;
 @override final  double? finalPrice;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -1502,16 +1506,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.begunAt, begunAt) || other.begunAt == begunAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isFreeTrial, isFreeTrial) || other.isFreeTrial == isFreeTrial)&&(identical(other.status, status) || other.status == status)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&const DeepCollectionEquality().equals(other._paymentDetails, _paymentDetails)&&(identical(other.basePrice, basePrice) || other.basePrice == basePrice)&&(identical(other.couponId, couponId) || other.couponId == couponId)&&const DeepCollectionEquality().equals(other.coupon, coupon)&&(identical(other.renewalAt, renewalAt) || other.renewalAt == renewalAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.finalPrice, finalPrice) || other.finalPrice == finalPrice)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnWalletSubscription&&(identical(other.id, id) || other.id == id)&&(identical(other.begunAt, begunAt) || other.begunAt == begunAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.isFreeTrial, isFreeTrial) || other.isFreeTrial == isFreeTrial)&&(identical(other.status, status) || other.status == status)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&const DeepCollectionEquality().equals(other._paymentDetails, _paymentDetails)&&(identical(other.basePrice, basePrice) || other.basePrice == basePrice)&&(identical(other.couponId, couponId) || other.couponId == couponId)&&const DeepCollectionEquality().equals(other.coupon, coupon)&&(identical(other.renewalAt, renewalAt) || other.renewalAt == renewalAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.isPendingActivation, isPendingActivation) || other.isPendingActivation == isPendingActivation)&&(identical(other.finalPrice, finalPrice) || other.finalPrice == finalPrice)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,begunAt,endedAt,identifier,isActive,isFreeTrial,status,paymentMethod,const DeepCollectionEquality().hash(_paymentDetails),basePrice,couponId,const DeepCollectionEquality().hash(coupon),renewalAt,accountId,account,isAvailable,finalPrice,createdAt,updatedAt,deletedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,begunAt,endedAt,identifier,groupIdentifier,isActive,isFreeTrial,status,paymentMethod,const DeepCollectionEquality().hash(_paymentDetails),basePrice,couponId,const DeepCollectionEquality().hash(coupon),renewalAt,accountId,account,isAvailable,isPendingActivation,finalPrice,createdAt,updatedAt,deletedAt]);
 
 @override
 String toString() {
-  return 'SnWalletSubscription(id: $id, begunAt: $begunAt, endedAt: $endedAt, identifier: $identifier, isActive: $isActive, isFreeTrial: $isFreeTrial, status: $status, paymentMethod: $paymentMethod, paymentDetails: $paymentDetails, basePrice: $basePrice, couponId: $couponId, coupon: $coupon, renewalAt: $renewalAt, accountId: $accountId, account: $account, isAvailable: $isAvailable, finalPrice: $finalPrice, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
+  return 'SnWalletSubscription(id: $id, begunAt: $begunAt, endedAt: $endedAt, identifier: $identifier, groupIdentifier: $groupIdentifier, isActive: $isActive, isFreeTrial: $isFreeTrial, status: $status, paymentMethod: $paymentMethod, paymentDetails: $paymentDetails, basePrice: $basePrice, couponId: $couponId, coupon: $coupon, renewalAt: $renewalAt, accountId: $accountId, account: $account, isAvailable: $isAvailable, isPendingActivation: $isPendingActivation, finalPrice: $finalPrice, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt)';
 }
 
 
@@ -1522,7 +1526,7 @@ abstract mixin class _$SnWalletSubscriptionCopyWith<$Res> implements $SnWalletSu
   factory _$SnWalletSubscriptionCopyWith(_SnWalletSubscription value, $Res Function(_SnWalletSubscription) _then) = __$SnWalletSubscriptionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime begunAt, DateTime? endedAt, String identifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
+ String id, DateTime begunAt, DateTime? endedAt, String identifier, String? groupIdentifier, bool isActive, bool isFreeTrial, int status, String? paymentMethod, Map<String, dynamic>? paymentDetails, double? basePrice, String? couponId, dynamic coupon, DateTime? renewalAt, String accountId, SnAccount? account, bool isAvailable, bool isPendingActivation, double? finalPrice, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt
 });
 
 
@@ -1539,13 +1543,14 @@ class __$SnWalletSubscriptionCopyWithImpl<$Res>
 
 /// Create a copy of SnWalletSubscription
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = freezed,Object? identifier = null,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = freezed,Object? paymentDetails = freezed,Object? basePrice = freezed,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = freezed,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? finalPrice = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? begunAt = null,Object? endedAt = freezed,Object? identifier = null,Object? groupIdentifier = freezed,Object? isActive = null,Object? isFreeTrial = null,Object? status = null,Object? paymentMethod = freezed,Object? paymentDetails = freezed,Object? basePrice = freezed,Object? couponId = freezed,Object? coupon = freezed,Object? renewalAt = freezed,Object? accountId = null,Object? account = freezed,Object? isAvailable = null,Object? isPendingActivation = null,Object? finalPrice = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,}) {
   return _then(_SnWalletSubscription(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,begunAt: null == begunAt ? _self.begunAt : begunAt // ignore: cast_nullable_to_non_nullable
 as DateTime,endedAt: freezed == endedAt ? _self.endedAt : endedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
-as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as String,groupIdentifier: freezed == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
+as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,isFreeTrial: null == isFreeTrial ? _self.isFreeTrial : isFreeTrial // ignore: cast_nullable_to_non_nullable
 as bool,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as int,paymentMethod: freezed == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
@@ -1557,6 +1562,7 @@ as dynamic,renewalAt: freezed == renewalAt ? _self.renewalAt : renewalAt // igno
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as SnAccount?,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
+as bool,isPendingActivation: null == isPendingActivation ? _self.isPendingActivation : isPendingActivation // ignore: cast_nullable_to_non_nullable
 as bool,finalPrice: freezed == finalPrice ? _self.finalPrice : finalPrice // ignore: cast_nullable_to_non_nullable
 as double?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -4091,7 +4097,7 @@ as List<String>,
 /// @nodoc
 mixin _$SnSubscriptionGroup {
 
- String get groupIdentifier; SnSubscriptionGroupCatalog get catalog; List<SnActiveSubscription> get subscriptions;
+ String get groupIdentifier; SnSubscriptionGroupCatalog get catalog; SnActiveSubscription? get current; SnActiveSubscription? get next; List<SnActiveSubscription> get subscriptions;
 /// Create a copy of SnSubscriptionGroup
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4104,16 +4110,16 @@ $SnSubscriptionGroupCopyWith<SnSubscriptionGroup> get copyWith => _$SnSubscripti
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionGroup&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&const DeepCollectionEquality().equals(other.subscriptions, subscriptions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnSubscriptionGroup&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&(identical(other.current, current) || other.current == current)&&(identical(other.next, next) || other.next == next)&&const DeepCollectionEquality().equals(other.subscriptions, subscriptions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,groupIdentifier,catalog,const DeepCollectionEquality().hash(subscriptions));
+int get hashCode => Object.hash(runtimeType,groupIdentifier,catalog,current,next,const DeepCollectionEquality().hash(subscriptions));
 
 @override
 String toString() {
-  return 'SnSubscriptionGroup(groupIdentifier: $groupIdentifier, catalog: $catalog, subscriptions: $subscriptions)';
+  return 'SnSubscriptionGroup(groupIdentifier: $groupIdentifier, catalog: $catalog, current: $current, next: $next, subscriptions: $subscriptions)';
 }
 
 
@@ -4124,11 +4130,11 @@ abstract mixin class $SnSubscriptionGroupCopyWith<$Res>  {
   factory $SnSubscriptionGroupCopyWith(SnSubscriptionGroup value, $Res Function(SnSubscriptionGroup) _then) = _$SnSubscriptionGroupCopyWithImpl;
 @useResult
 $Res call({
- String groupIdentifier, SnSubscriptionGroupCatalog catalog, List<SnActiveSubscription> subscriptions
+ String groupIdentifier, SnSubscriptionGroupCatalog catalog, SnActiveSubscription? current, SnActiveSubscription? next, List<SnActiveSubscription> subscriptions
 });
 
 
-$SnSubscriptionGroupCatalogCopyWith<$Res> get catalog;
+$SnSubscriptionGroupCatalogCopyWith<$Res> get catalog;$SnActiveSubscriptionCopyWith<$Res>? get current;$SnActiveSubscriptionCopyWith<$Res>? get next;
 
 }
 /// @nodoc
@@ -4141,11 +4147,13 @@ class _$SnSubscriptionGroupCopyWithImpl<$Res>
 
 /// Create a copy of SnSubscriptionGroup
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? groupIdentifier = null,Object? catalog = null,Object? subscriptions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? groupIdentifier = null,Object? catalog = null,Object? current = freezed,Object? next = freezed,Object? subscriptions = null,}) {
   return _then(_self.copyWith(
 groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
 as String,catalog: null == catalog ? _self.catalog : catalog // ignore: cast_nullable_to_non_nullable
-as SnSubscriptionGroupCatalog,subscriptions: null == subscriptions ? _self.subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionGroupCatalog,current: freezed == current ? _self.current : current // ignore: cast_nullable_to_non_nullable
+as SnActiveSubscription?,next: freezed == next ? _self.next : next // ignore: cast_nullable_to_non_nullable
+as SnActiveSubscription?,subscriptions: null == subscriptions ? _self.subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
 as List<SnActiveSubscription>,
   ));
 }
@@ -4157,6 +4165,30 @@ $SnSubscriptionGroupCatalogCopyWith<$Res> get catalog {
   
   return $SnSubscriptionGroupCatalogCopyWith<$Res>(_self.catalog, (value) {
     return _then(_self.copyWith(catalog: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActiveSubscriptionCopyWith<$Res>? get current {
+    if (_self.current == null) {
+    return null;
+  }
+
+  return $SnActiveSubscriptionCopyWith<$Res>(_self.current!, (value) {
+    return _then(_self.copyWith(current: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActiveSubscriptionCopyWith<$Res>? get next {
+    if (_self.next == null) {
+    return null;
+  }
+
+  return $SnActiveSubscriptionCopyWith<$Res>(_self.next!, (value) {
+    return _then(_self.copyWith(next: value));
   });
 }
 }
@@ -4237,10 +4269,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  List<SnActiveSubscription> subscriptions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  SnActiveSubscription? current,  SnActiveSubscription? next,  List<SnActiveSubscription> subscriptions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnSubscriptionGroup() when $default != null:
-return $default(_that.groupIdentifier,_that.catalog,_that.subscriptions);case _:
+return $default(_that.groupIdentifier,_that.catalog,_that.current,_that.next,_that.subscriptions);case _:
   return orElse();
 
 }
@@ -4258,10 +4290,10 @@ return $default(_that.groupIdentifier,_that.catalog,_that.subscriptions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  List<SnActiveSubscription> subscriptions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  SnActiveSubscription? current,  SnActiveSubscription? next,  List<SnActiveSubscription> subscriptions)  $default,) {final _that = this;
 switch (_that) {
 case _SnSubscriptionGroup():
-return $default(_that.groupIdentifier,_that.catalog,_that.subscriptions);}
+return $default(_that.groupIdentifier,_that.catalog,_that.current,_that.next,_that.subscriptions);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -4275,10 +4307,10 @@ return $default(_that.groupIdentifier,_that.catalog,_that.subscriptions);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  List<SnActiveSubscription> subscriptions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String groupIdentifier,  SnSubscriptionGroupCatalog catalog,  SnActiveSubscription? current,  SnActiveSubscription? next,  List<SnActiveSubscription> subscriptions)?  $default,) {final _that = this;
 switch (_that) {
 case _SnSubscriptionGroup() when $default != null:
-return $default(_that.groupIdentifier,_that.catalog,_that.subscriptions);case _:
+return $default(_that.groupIdentifier,_that.catalog,_that.current,_that.next,_that.subscriptions);case _:
   return null;
 
 }
@@ -4290,11 +4322,13 @@ return $default(_that.groupIdentifier,_that.catalog,_that.subscriptions);case _:
 @JsonSerializable()
 
 class _SnSubscriptionGroup implements SnSubscriptionGroup {
-  const _SnSubscriptionGroup({required this.groupIdentifier, required this.catalog, required final  List<SnActiveSubscription> subscriptions}): _subscriptions = subscriptions;
+  const _SnSubscriptionGroup({required this.groupIdentifier, required this.catalog, this.current, this.next, required final  List<SnActiveSubscription> subscriptions}): _subscriptions = subscriptions;
   factory _SnSubscriptionGroup.fromJson(Map<String, dynamic> json) => _$SnSubscriptionGroupFromJson(json);
 
 @override final  String groupIdentifier;
 @override final  SnSubscriptionGroupCatalog catalog;
+@override final  SnActiveSubscription? current;
+@override final  SnActiveSubscription? next;
  final  List<SnActiveSubscription> _subscriptions;
 @override List<SnActiveSubscription> get subscriptions {
   if (_subscriptions is EqualUnmodifiableListView) return _subscriptions;
@@ -4316,16 +4350,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionGroup&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&const DeepCollectionEquality().equals(other._subscriptions, _subscriptions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnSubscriptionGroup&&(identical(other.groupIdentifier, groupIdentifier) || other.groupIdentifier == groupIdentifier)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&(identical(other.current, current) || other.current == current)&&(identical(other.next, next) || other.next == next)&&const DeepCollectionEquality().equals(other._subscriptions, _subscriptions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,groupIdentifier,catalog,const DeepCollectionEquality().hash(_subscriptions));
+int get hashCode => Object.hash(runtimeType,groupIdentifier,catalog,current,next,const DeepCollectionEquality().hash(_subscriptions));
 
 @override
 String toString() {
-  return 'SnSubscriptionGroup(groupIdentifier: $groupIdentifier, catalog: $catalog, subscriptions: $subscriptions)';
+  return 'SnSubscriptionGroup(groupIdentifier: $groupIdentifier, catalog: $catalog, current: $current, next: $next, subscriptions: $subscriptions)';
 }
 
 
@@ -4336,11 +4370,11 @@ abstract mixin class _$SnSubscriptionGroupCopyWith<$Res> implements $SnSubscript
   factory _$SnSubscriptionGroupCopyWith(_SnSubscriptionGroup value, $Res Function(_SnSubscriptionGroup) _then) = __$SnSubscriptionGroupCopyWithImpl;
 @override @useResult
 $Res call({
- String groupIdentifier, SnSubscriptionGroupCatalog catalog, List<SnActiveSubscription> subscriptions
+ String groupIdentifier, SnSubscriptionGroupCatalog catalog, SnActiveSubscription? current, SnActiveSubscription? next, List<SnActiveSubscription> subscriptions
 });
 
 
-@override $SnSubscriptionGroupCatalogCopyWith<$Res> get catalog;
+@override $SnSubscriptionGroupCatalogCopyWith<$Res> get catalog;@override $SnActiveSubscriptionCopyWith<$Res>? get current;@override $SnActiveSubscriptionCopyWith<$Res>? get next;
 
 }
 /// @nodoc
@@ -4353,11 +4387,13 @@ class __$SnSubscriptionGroupCopyWithImpl<$Res>
 
 /// Create a copy of SnSubscriptionGroup
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? groupIdentifier = null,Object? catalog = null,Object? subscriptions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? groupIdentifier = null,Object? catalog = null,Object? current = freezed,Object? next = freezed,Object? subscriptions = null,}) {
   return _then(_SnSubscriptionGroup(
 groupIdentifier: null == groupIdentifier ? _self.groupIdentifier : groupIdentifier // ignore: cast_nullable_to_non_nullable
 as String,catalog: null == catalog ? _self.catalog : catalog // ignore: cast_nullable_to_non_nullable
-as SnSubscriptionGroupCatalog,subscriptions: null == subscriptions ? _self._subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
+as SnSubscriptionGroupCatalog,current: freezed == current ? _self.current : current // ignore: cast_nullable_to_non_nullable
+as SnActiveSubscription?,next: freezed == next ? _self.next : next // ignore: cast_nullable_to_non_nullable
+as SnActiveSubscription?,subscriptions: null == subscriptions ? _self._subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
 as List<SnActiveSubscription>,
   ));
 }
@@ -4370,6 +4406,30 @@ $SnSubscriptionGroupCatalogCopyWith<$Res> get catalog {
   
   return $SnSubscriptionGroupCatalogCopyWith<$Res>(_self.catalog, (value) {
     return _then(_self.copyWith(catalog: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActiveSubscriptionCopyWith<$Res>? get current {
+    if (_self.current == null) {
+    return null;
+  }
+
+  return $SnActiveSubscriptionCopyWith<$Res>(_self.current!, (value) {
+    return _then(_self.copyWith(current: value));
+  });
+}/// Create a copy of SnSubscriptionGroup
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnActiveSubscriptionCopyWith<$Res>? get next {
+    if (_self.next == null) {
+    return null;
+  }
+
+  return $SnActiveSubscriptionCopyWith<$Res>(_self.next!, (value) {
+    return _then(_self.copyWith(next: value));
   });
 }
 }

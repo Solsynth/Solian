@@ -145,6 +145,7 @@ _SnWalletSubscription _$SnWalletSubscriptionFromJson(
       ? null
       : DateTime.parse(json['ended_at'] as String),
   identifier: json['identifier'] as String,
+  groupIdentifier: json['group_identifier'] as String?,
   isActive: json['is_active'] as bool? ?? true,
   isFreeTrial: json['is_free_trial'] as bool? ?? false,
   status: (json['status'] as num?)?.toInt() ?? 1,
@@ -161,6 +162,7 @@ _SnWalletSubscription _$SnWalletSubscriptionFromJson(
       ? null
       : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
   isAvailable: json['is_available'] as bool? ?? true,
+  isPendingActivation: json['is_pending_activation'] as bool? ?? false,
   finalPrice: (json['final_price'] as num?)?.toDouble(),
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -176,6 +178,7 @@ Map<String, dynamic> _$SnWalletSubscriptionToJson(
   'begun_at': instance.begunAt.toIso8601String(),
   'ended_at': instance.endedAt?.toIso8601String(),
   'identifier': instance.identifier,
+  'group_identifier': instance.groupIdentifier,
   'is_active': instance.isActive,
   'is_free_trial': instance.isFreeTrial,
   'status': instance.status,
@@ -188,6 +191,7 @@ Map<String, dynamic> _$SnWalletSubscriptionToJson(
   'account_id': instance.accountId,
   'account': instance.account?.toJson(),
   'is_available': instance.isAvailable,
+  'is_pending_activation': instance.isPendingActivation,
   'final_price': instance.finalPrice,
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),
@@ -482,6 +486,14 @@ _SnSubscriptionGroup _$SnSubscriptionGroupFromJson(Map<String, dynamic> json) =>
       catalog: SnSubscriptionGroupCatalog.fromJson(
         json['catalog'] as Map<String, dynamic>,
       ),
+      current: json['current'] == null
+          ? null
+          : SnActiveSubscription.fromJson(
+              json['current'] as Map<String, dynamic>,
+            ),
+      next: json['next'] == null
+          ? null
+          : SnActiveSubscription.fromJson(json['next'] as Map<String, dynamic>),
       subscriptions: (json['subscriptions'] as List<dynamic>)
           .map((e) => SnActiveSubscription.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -492,6 +504,8 @@ Map<String, dynamic> _$SnSubscriptionGroupToJson(
 ) => <String, dynamic>{
   'group_identifier': instance.groupIdentifier,
   'catalog': instance.catalog.toJson(),
+  'current': instance.current?.toJson(),
+  'next': instance.next?.toJson(),
   'subscriptions': instance.subscriptions.map((e) => e.toJson()).toList(),
 };
 
