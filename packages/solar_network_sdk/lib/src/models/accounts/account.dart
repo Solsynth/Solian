@@ -226,7 +226,7 @@ sealed class SnNotification with _$SnNotification {
     required String topic,
     required String title,
     @Default('') String subtitle,
-    required String content,
+    @JsonKey(name: 'content') required String body,
     @Default({}) Map<String, dynamic> meta,
     required DateTime? viewedAt,
     required String accountId,

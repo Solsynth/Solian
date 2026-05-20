@@ -114,9 +114,9 @@ class NotificationTile extends StatelessWidget {
             ],
           ).opacity(0.75).padding(bottom: compact ? 2 : 4),
           MarkdownTextContent(
-            content: (compact && notification.content.length > 60)
-                ? '${notification.content.substring(0, 60).replaceAll('\n', ' ')}...'
-                : notification.content,
+            content: (compact && notification.body.length > 60)
+                ? '${notification.body.substring(0, 60).replaceAll('\n', ' ')}...'
+                : notification.body,
             textStyle:
                 (compact
                         ? Theme.of(context).textTheme.bodySmall

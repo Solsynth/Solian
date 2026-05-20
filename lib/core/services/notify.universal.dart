@@ -60,7 +60,7 @@ Future<void> _speakNotification(
   final parts = <String>[];
   if (notification.title.isNotEmpty) parts.add(notification.title);
   if (notification.subtitle.isNotEmpty) parts.add(notification.subtitle);
-  if (notification.content.isNotEmpty) parts.add(notification.content);
+  if (notification.body.isNotEmpty) parts.add(notification.body);
 
   if (parts.isNotEmpty) {
     await tts.speak(parts.join('. '));
@@ -169,7 +169,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
           await flutterLocalNotificationsPlugin.show(
             id: 0,
             title: notification.title,
-            body: notification.content,
+            body: notification.body,
             notificationDetails: notificationDetails,
             payload: notification.meta['action_uri'] as String?,
           );

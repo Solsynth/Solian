@@ -97,9 +97,9 @@ class NotificationItemWidget extends HookConsumerWidget {
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                              if (item.notification.content.isNotEmpty)
+                              if (item.notification.body.isNotEmpty)
                                 Text(
-                                  item.notification.content,
+                                  item.notification.body,
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               if (item.notification.subtitle.isNotEmpty)
