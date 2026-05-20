@@ -427,6 +427,42 @@ class TicketDetailScreen extends HookConsumerWidget {
               }).toList(),
             ),
           ],
+
+          if (ticket.resources.whereType<String>().any((e) => e.trim().isNotEmpty)) ...[
+            const Gap(12),
+            const Divider(),
+            const Gap(8),
+            Text(
+              'Linked resources',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const Gap(8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: ticket.resources
+                  .whereType<String>()
+                  .map((resource) => resource.trim())
+                  .where((resource) => resource.isNotEmpty)
+                  .map((resource) {
+                    return Tooltip(
+                      message: resource,
+                      child: Chip(
+                        avatar: const Icon(Symbols.link, size: 18),
+                        label: Text(
+                          resource.length > 32
+                              ? '${resource.substring(0, 29)}...'
+                              : resource,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    );
+                  })
+                  .toList(),
+            ),
+          ],
         ],
       ),
     );

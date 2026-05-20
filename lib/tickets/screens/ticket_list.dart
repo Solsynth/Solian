@@ -94,7 +94,7 @@ class _TicketListScreenState extends ConsumerState<TicketListScreen> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
-          showAbuseReportSheet(context, resourceIdentifier: 'unidentified');
+          showAbuseReportSheet(context);
         },
       ).padding(bottom: MediaQuery.paddingOf(context).bottom + 8),
       body: FutureBuilder<List<SnTicket>>(
