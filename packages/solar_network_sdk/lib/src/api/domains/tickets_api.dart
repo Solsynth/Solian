@@ -54,12 +54,14 @@ class TicketsApi extends BaseApi {
   /// [type] - The ticket type identifier.
   /// [priority] - Optional priority (0 = low, 1 = medium, 2 = high).
   /// [fileIds] - Optional list of attached file IDs.
+  /// [resources] - Optional list of linked resource identifiers.
   Future<SnTicket> createTicket({
     required String title,
     String? content,
     required int type,
     int? priority,
     List<String>? fileIds,
+    List<String?>? resources,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/tickets',
@@ -69,6 +71,7 @@ class TicketsApi extends BaseApi {
         'type': type,
         'priority': ?priority,
         'file_ids': ?fileIds,
+        'resources': ?resources,
       },
     );
     return SnTicket.fromJson(response.data!);
@@ -81,12 +84,14 @@ class TicketsApi extends BaseApi {
   /// [content] - Optional new ticket content / description.
   /// [type] - Optional new ticket type identifier.
   /// [priority] - Optional new priority.
+  /// [resources] - Optional list of linked resource identifiers.
   Future<SnTicket> updateTicket({
     required String ticketId,
     String? title,
     String? content,
     int? type,
     int? priority,
+    List<String?>? resources,
   }) async {
     final response = await put<Map<String, dynamic>>(
       '$_basePath/tickets/$ticketId',
@@ -95,6 +100,7 @@ class TicketsApi extends BaseApi {
         'content': ?content,
         'type': ?type,
         'priority': ?priority,
+        'resources': ?resources,
       },
     );
     return SnTicket.fromJson(response.data!);

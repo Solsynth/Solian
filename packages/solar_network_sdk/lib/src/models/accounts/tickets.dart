@@ -23,6 +23,7 @@ sealed class SnTicket with _$SnTicket {
     DateTime? deletedAt,
     @Default([]) List<SnTicketMessage> messages,
     @Default([]) List<String> fileIds,
+    @Default([]) List<String?> resources,
   }) = _SnTicket;
 
   factory SnTicket.fromJson(Map<String, dynamic> json) =>
