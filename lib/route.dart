@@ -36,7 +36,10 @@ class AppRouter extends RootStackRouter {
 
     // Other standalone routes
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
-    AutoRoute(page: ChatRoomStorageRoute.page, path: '/settings/chat-room-storage'),
+    AutoRoute(
+      page: ChatRoomStorageRoute.page,
+      path: '/settings/chat-room-storage',
+    ),
     AutoRoute(page: AboutRoute.page, path: '/about'),
     AutoRoute(page: CfIpSpeedTestRoute.page, path: '/cf-ip-speed-test'),
     AutoRoute(page: FileDetailRoute.page, path: '/files/:id'),
@@ -56,10 +59,6 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
     AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
-
-    // Livestream routes
-    AutoRoute(page: ActiveLivestreamsRoute.page, path: '/livestreams'),
-    AutoRoute(page: LivestreamWatchRoute.page, path: '/livestreams/:id'),
 
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
 
@@ -158,10 +157,6 @@ class AppRouter extends RootStackRouter {
             // Default child route -> Creator hub list
             AutoRoute(page: CreatorHubListRoute.page, path: '', initial: true),
             AutoRoute(page: CreatorFeedListRoute.page, path: ':pubName/feeds'),
-            AutoRoute(
-              page: CreatorLivestreamListRoute.page,
-              path: ':pubName/livestreams',
-            ),
             AutoRoute(page: CreatorPostListRoute.page, path: ':pubName/posts'),
             AutoRoute(
               page: CreatorPostCollectionsRoute.page,

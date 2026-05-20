@@ -40,10 +40,6 @@ class NotificationsApi extends BaseApi {
       description: 'Auth verification',
     ),
     SnNotificationTopic(topic: 'invites.realms', description: 'Realm invites'),
-    SnNotificationTopic(
-      topic: 'livestream.started',
-      description: 'Livestream started',
-    ),
   ];
 
   // ==========================================
