@@ -595,6 +595,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   void setDeveloperMode(bool value) {
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.setBool(kAppDeveloperMode, value);
+    ref.invalidate(developerModeProvider);
   }
 
   void setFirstLaunchAt(String? value) {
