@@ -39,7 +39,7 @@ final selectedTabProvider = NotifierProvider<SelectedTabNotifier, int>(
 
 class SelectedTabNotifier extends Notifier<int> {
   @override
-  int build() => 1;
+  int build() => 0;
 
   void setTab(int value) {
     state = value;
@@ -336,43 +336,40 @@ class StellarProgramTab extends HookConsumerWidget {
     final selectedTab = ref.watch(selectedTabProvider);
     final iapProducts = ref.watch(iapProductsProvider);
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
+    final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
 
-    final showAfdianTab =
+    final useAfdianCheckout =
         groupAsync.hasValue &&
         groupAsync.value!.catalog.items.any(
           (c) => c.allowedPaymentMethods.contains('afdian'),
-        );
+        ) &&
+        !supportsIap;
+    final hasExternalCheckout = supportsIap || useAfdianCheckout;
 
     useEffect(() {
-      if (!tabController.indexIsChanging) {
-        final targetIndex = showAfdianTab
-            ? (selectedTab == 2 ? 0 : 1)
-            : (selectedTab == 1 ? 0 : 1);
-        if (tabController.index != targetIndex) {
-          tabController.animateTo(targetIndex);
-        }
+      if (!tabController.indexIsChanging &&
+          tabController.index != selectedTab) {
+        tabController.animateTo(selectedTab);
       }
       return;
-    }, [showAfdianTab, selectedTab]);
+    }, [selectedTab]);
 
     useEffect(() {
       void listener() {
-        final newTab = showAfdianTab
-            ? (tabController.index == 0 ? 2 : 0)
-            : (tabController.index == 0 ? 1 : 0);
+        final newTab = tabController.index;
         if (ref.read(selectedTabProvider) != newTab) {
-          final notifier = ref.read(selectedTabProvider.notifier);
-          Future(() {
-            notifier.setTab(newTab);
-          });
+          ref.read(selectedTabProvider.notifier).setTab(newTab);
         }
       }
 
       tabController.addListener(listener);
       return () => tabController.removeListener(listener);
-    }, [tabController, showAfdianTab]);
+    }, [tabController]);
 
-    if (selectedTab == 1 && iapProducts.isEmpty && groupAsync.hasValue) {
+    if (selectedTab == 0 &&
+        supportsIap &&
+        iapProducts.isEmpty &&
+        groupAsync.hasValue) {
       final group = groupAsync.value!;
       final appleProductIds = group.catalog.items
           .expand((c) => c.providerMappings.appleStore)
@@ -404,9 +401,13 @@ class StellarProgramTab extends HookConsumerWidget {
             stellarSubscription,
             selectedTab,
             iapProducts,
+            useAfdianCheckout,
+            hasExternalCheckout,
           ),
           const Gap(16),
           const StellarBenefitsTable(),
+          const Gap(16),
+          _buildSubscriptionQueueSummary(context, ref),
           const Gap(16),
           _buildGiftingSection(context, ref),
           const Gap(16),
@@ -422,6 +423,8 @@ class StellarProgramTab extends HookConsumerWidget {
     AsyncValue<SnWalletSubscription?> stellarSubscriptionAsync,
     int selectedTab,
     Map<String, String> iapProducts,
+    bool useAfdianCheckout,
+    bool hasExternalCheckout,
   ) {
     return stellarSubscriptionAsync.when(
       data: (membership) => _buildMembershipContent(
@@ -431,37 +434,18 @@ class StellarProgramTab extends HookConsumerWidget {
         membership,
         selectedTab,
         iapProducts,
+        useAfdianCheckout,
+        hasExternalCheckout,
       ),
-      loading: () => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primaryContainer,
-              Theme.of(context).colorScheme.secondaryContainer,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
+      loading: () => _buildSectionCard(
+        context,
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: CircularProgressIndicator()),
         ),
-        child: const Center(child: CircularProgressIndicator()),
       ),
-      error: (error, stack) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primaryContainer,
-              Theme.of(context).colorScheme.secondaryContainer,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
+      error: (error, stack) => _buildSectionCard(
+        context,
         child: Text('Error loading membership: $error'),
       ),
     );
@@ -474,6 +458,8 @@ class StellarProgramTab extends HookConsumerWidget {
     SnWalletSubscription? membership,
     int selectedTab,
     Map<String, String> iapProducts,
+    bool useAfdianCheckout,
+    bool hasExternalCheckout,
   ) {
     final isActive = membership?.isActive ?? false;
     final isWalletSubscription = membership?.paymentMethod == 'solian.wallet';
@@ -483,16 +469,11 @@ class StellarProgramTab extends HookConsumerWidget {
         groupAsync.value!.catalog.items.any(
           (c) => c.allowedPaymentMethods.contains('solian.wallet'),
         );
-    final supportsIap = !kIsWeb && (Platform.isIOS || Platform.isMacOS);
-    final supportsAfdian =
-        groupAsync.hasValue &&
-        groupAsync.value!.catalog.items.any(
-          (c) => c.allowedPaymentMethods.contains('afdian'),
-        );
-    final showAfdianTab = (supportsAfdian && !supportsIap) || kDebugShowAfdian;
+    final group = groupAsync.value;
+    final currentSubscription = group?.current?.subscription ?? membership;
 
     Future<void> membershipCancel() async {
-      if (!isActive || membership == null) return;
+      if (!isActive || currentSubscription == null) return;
 
       final confirm = await showConfirmAlert(
         'membershipCancelHint'.tr(),
@@ -504,10 +485,9 @@ class StellarProgramTab extends HookConsumerWidget {
         showLoadingModal(context);
         final client = ref.watch(apiClientProvider);
         await client.post(
-          '/wallet/subscriptions/${membership.identifier}/cancel',
+          '/wallet/subscriptions/${currentSubscription.id}/cancel',
         );
-        ref.invalidate(accountStellarSubscriptionProvider);
-        ref.read(userInfoProvider.notifier).fetchUser();
+        await _refreshSubscriptionState(ref);
         if (context.mounted) {
           hideLoadingModal(context);
           showSnackBar('membershipCancelSuccess'.tr());
@@ -518,27 +498,60 @@ class StellarProgramTab extends HookConsumerWidget {
       }
     }
 
-    return Card(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return _buildSectionCard(
+      context,
+      color: scheme.surfaceContainerLow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                isActive ? Icons.star_rounded : Icons.star_border_rounded,
-                color: Theme.of(context).colorScheme.primary,
-                size: 24,
-              ),
-              const Gap(8),
               Expanded(
-                child: Text(
-                  'stellarMembership'.tr(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? scheme.primaryContainer
+                            : scheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        isActive
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded,
+                        color: isActive
+                            ? scheme.onPrimaryContainer
+                            : scheme.onSurfaceVariant,
+                        size: 24,
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'stellarMembership'.tr(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
+              IconButton.filledTonal(
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
@@ -561,24 +574,23 @@ class StellarProgramTab extends HookConsumerWidget {
                   );
                 },
                 icon: const Icon(Symbols.help, size: 20),
-                visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                visualDensity: const VisualDensity(
+                  horizontal: -4,
+                  vertical: -4,
+                ),
               ),
             ],
           ),
           const Gap(12),
 
           if (isActive) ...[
-            _buildCurrentMembershipCard(context, membership!),
+            _buildCurrentMembershipCard(context, currentSubscription!),
             const Gap(12),
             if (isWalletSubscription)
               FilledButton.icon(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(
-                    Theme.of(context).colorScheme.error,
-                  ),
-                  foregroundColor: WidgetStateProperty.all(
-                    Theme.of(context).colorScheme.onError,
-                  ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: scheme.errorContainer,
+                  foregroundColor: scheme.onErrorContainer,
                 ),
                 onPressed: membershipCancel,
                 icon: const Icon(Symbols.cancel),
@@ -587,28 +599,29 @@ class StellarProgramTab extends HookConsumerWidget {
             const Gap(12),
           ],
 
-          Text(
-            'chooseYourPlan'.tr(),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          _buildSectionHeader(
+            context,
+            title: 'chooseYourPlan'.tr(),
+            subtitle: 'Every subscription lasts 30 days',
           ),
           const Gap(12),
 
-          if (supportsWallet && (supportsIap || showAfdianTab)) ...[
+          if (supportsWallet && hasExternalCheckout) ...[
             _buildPaymentMethodTabBar(
               context,
               tabController,
               ref,
               selectedTab,
-              showAfdianTab,
+              useAfdianCheckout,
             ),
             const Gap(12),
-          ] else if (showAfdianTab && !supportsWallet) ...[
+          ] else if (hasExternalCheckout && !supportsWallet) ...[
             _buildPaymentMethodTabBar(
               context,
               tabController,
               ref,
               selectedTab,
-              showAfdianTab,
+              useAfdianCheckout,
             ),
             const Gap(12),
           ],
@@ -620,7 +633,8 @@ class StellarProgramTab extends HookConsumerWidget {
             membership,
             selectedTab,
             iapProducts,
-            showAfdianTab,
+            useAfdianCheckout,
+            hasExternalCheckout,
           ),
 
           // Restore Purchase Button
@@ -643,27 +657,47 @@ class StellarProgramTab extends HookConsumerWidget {
               ),
             ).padding(top: 12),
           const Gap(16),
-          // Subscription Duration Notice
-          Text(
-            'Every subscription lasts 30 days',
-            style: TextStyle(fontSize: 12),
-            textAlign: TextAlign.center,
-          ).opacity(0.75),
-
-          // Terms Link
-          InkWell(
-            onTap: () => launchUrlString(
-              'https://solsynth.dev/terms/user-agreement',
-              mode: LaunchMode.externalApplication,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              'termsLink'.tr(),
-              style: TextStyle(fontSize: 12),
-              textAlign: TextAlign.center,
-            ).opacity(0.75),
+            child: Column(
+              children: [
+                Text(
+                  'Every subscription lasts 30 days',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const Gap(8),
+                InkWell(
+                  onTap: () => launchUrlString(
+                    'https://solsynth.dev/terms/user-agreement',
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: Text(
+                      'termsLink'.tr(),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: scheme.primary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
-      ).padding(all: 16),
+      ),
     );
   }
 
@@ -671,42 +705,301 @@ class StellarProgramTab extends HookConsumerWidget {
     BuildContext context,
     SnWalletSubscription membership,
   ) {
+    final theme = Theme.of(context);
     final tierName = _getMembershipTierName(membership.identifier);
     final tierColor = _getMembershipTierColor(context, membership.identifier);
+    final scheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: tierColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: tierColor, width: 1),
+        color: tierColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tierColor.withOpacity(0.32)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.verified, color: tierColor, size: 20),
-          const Gap(8),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: tierColor.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.verified_rounded, color: tierColor, size: 22),
+          ),
+          const Gap(12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'currentMembership'.tr(args: [tierName]),
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: tierColor,
                   ),
                 ),
                 if (membership.endedAt != null)
-                  Text(
-                    'membershipExpires'.tr(
-                      args: [membership.endedAt!.formatSystem()],
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      'membershipExpires'.tr(
+                        args: [membership.endedAt!.formatSystem()],
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  )
+                else
+                  Text('This membership will not expire.'),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required Widget child,
+    Color? color,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(16),
+  }) {
+    return Card(
+      color: color,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(padding: padding, child: child),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const Gap(4),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        ...switch (trailing) {
+          final widget? => [widget],
+          null => const <Widget>[],
+        },
+      ],
+    );
+  }
+
+  Widget _buildStatusChip(
+    BuildContext context, {
+    required String label,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    Widget? avatar,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: foregroundColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (avatar != null) ...[const Gap(6), avatar],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionQueueSection(
+    BuildContext context,
+    WidgetRef ref,
+    SnSubscriptionGroup group,
+  ) {
+    final queuedSubscriptions =
+        group.subscriptions
+            .where(
+              (item) =>
+                  item.subscription.isPendingActivation ||
+                  !item.subscription.isAvailable ||
+                  item.subscription.begunAt.isAfter(DateTime.now()),
+            )
+            .toList()
+          ..sort(
+            (a, b) => a.subscription.begunAt.compareTo(b.subscription.begunAt),
+          );
+
+    if (queuedSubscriptions.isEmpty) return const SizedBox.shrink();
+
+    return _buildSectionCard(
+      context,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      padding: EdgeInsets.zero,
+      child: ListTile(
+        leading: Icon(
+          Icons.schedule,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        title: Text(
+          'subscriptionRecordsTitle'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          'subscriptionRecordsSubtitle'.tr(
+            args: [queuedSubscriptions.length.toString()],
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => _showSubscriptionQueueSheet(
+          context,
+          ref,
+          group,
+          queuedSubscriptions,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionQueueSummary(BuildContext context, WidgetRef ref) {
+    final groupAsync = ref.watch(accountSubscriptionGroupProvider);
+
+    return groupAsync.when(
+      data: (group) {
+        if (group == null) return const SizedBox.shrink();
+        return _buildSubscriptionQueueSection(context, ref, group);
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
+    );
+  }
+
+  Future<void> _showSubscriptionQueueSheet(
+    BuildContext context,
+    WidgetRef ref,
+    SnSubscriptionGroup group,
+    List<SnActiveSubscription> queuedSubscriptions,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => SheetScaffold(
+        titleText: 'subscriptionRecordsSheetTitle'.tr(),
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: queuedSubscriptions.length,
+          itemBuilder: (context, index) => _buildQueuedSubscriptionItem(
+            context,
+            ref,
+            group,
+            queuedSubscriptions[index],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQueuedSubscriptionItem(
+    BuildContext context,
+    WidgetRef ref,
+    SnSubscriptionGroup group,
+    SnActiveSubscription item,
+  ) {
+    final subscription = item.subscription;
+    final isPending =
+        subscription.isPendingActivation ||
+        subscription.begunAt.isAfter(DateTime.now());
+
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  item.definition.displayName,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              if (isPending)
+                _buildStatusChip(
+                  context,
+                  label: 'subscriptionRecordPendingActivation'.tr(),
+                  backgroundColor: scheme.secondaryContainer,
+                  foregroundColor: scheme.onSecondaryContainer,
+                ),
+            ],
+          ),
+          const Gap(4),
+          Text(
+            'Starts ${subscription.begunAt.formatSystem()}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (subscription.endedAt != null)
+            Text(
+              'Ends ${subscription.endedAt!.formatSystem()}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          const Gap(8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.tonal(
+              onPressed: isPending
+                  ? () => _switchSubscription(
+                      context,
+                      ref,
+                      group.groupIdentifier,
+                      subscription.id,
+                    )
+                  : null,
+              child: Text('switchNow'.tr()),
             ),
           ),
         ],
@@ -719,35 +1012,29 @@ class StellarProgramTab extends HookConsumerWidget {
     TabController controller,
     WidgetRef ref,
     int selectedTab,
-    bool showAfdianTab,
+    bool useAfdianCheckout,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: TabBar(
-        controller: controller,
-        tabs: showAfdianTab
-            ? [Tab(text: 'afdian'.tr()), Tab(text: 'walletExchange'.tr())]
-            : [Tab(text: 'appleIap'.tr()), Tab(text: 'walletExchange'.tr())],
-        labelColor: Theme.of(context).colorScheme.onPrimary,
-        unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-        indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
-        onTap: (index) {
-          if (showAfdianTab) {
-            ref.read(selectedTabProvider.notifier).setTab(index == 0 ? 2 : 0);
-          } else {
-            ref.read(selectedTabProvider.notifier).setTab(index == 0 ? 1 : 0);
-          }
-        },
-        labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-      ),
+    final items = useAfdianCheckout
+        ? <ButtonSegment<int>>[
+            ButtonSegment<int>(value: 0, label: Text('afdian'.tr())),
+            ButtonSegment<int>(value: 1, label: Text('walletExchange'.tr())),
+          ]
+        : <ButtonSegment<int>>[
+            ButtonSegment<int>(value: 0, label: Text('appleIap'.tr())),
+            ButtonSegment<int>(value: 1, label: Text('walletExchange'.tr())),
+          ];
+
+    return SegmentedButton<int>(
+      segments: items,
+      selected: {selectedTab},
+      showSelectedIcon: false,
+      onSelectionChanged: (selection) {
+        final value = selection.first;
+        ref.read(selectedTabProvider.notifier).setTab(value);
+        if (controller.index != value) {
+          controller.animateTo(value);
+        }
+      },
     );
   }
 
@@ -758,7 +1045,8 @@ class StellarProgramTab extends HookConsumerWidget {
     SnWalletSubscription? currentMembership,
     int selectedTab,
     Map<String, String> iapProducts,
-    bool showAfdianTab,
+    bool useAfdianCheckout,
+    bool hasExternalCheckout,
   ) {
     final groupAsync = ref.watch(accountSubscriptionGroupProvider);
 
@@ -768,9 +1056,9 @@ class StellarProgramTab extends HookConsumerWidget {
           return Center(child: Text('noTiersAvailable'.tr()));
         }
 
-        final effectiveMethod = showAfdianTab
-            ? (tabController.index == 0 ? 2 : 0)
-            : (tabController.index == 0 ? 1 : 0);
+        final effectiveMethod = selectedTab == 0
+            ? (hasExternalCheckout ? (useAfdianCheckout ? 2 : 1) : 0)
+            : 0;
 
         final tiers = group.catalog.items.where((tier) {
           if (effectiveMethod == 0) {
@@ -793,7 +1081,7 @@ class StellarProgramTab extends HookConsumerWidget {
           tiers: tiers,
           currentMembership: currentMembership,
           selectedTab: selectedTab,
-          showAfdianTab: showAfdianTab,
+          showAfdianTab: useAfdianCheckout,
           tabController: tabController,
           iapProducts: iapProducts,
           onPurchase: (tier, method) =>
@@ -914,8 +1202,7 @@ class StellarProgramTab extends HookConsumerWidget {
 
       await subscription.cancel();
 
-      ref.invalidate(accountStellarSubscriptionProvider);
-      ref.read(userInfoProvider.notifier).fetchUser();
+      await _refreshSubscriptionState(ref);
 
       if (context.mounted) {
         hideLoadingModal(context);
@@ -937,9 +1224,9 @@ class StellarProgramTab extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     SnSubscriptionCatalog tier,
-    int selectedTab,
+    int method,
   ) async {
-    if (selectedTab == 1) {
+    if (method == 1) {
       final appleStoreProductIds = tier.providerMappings.appleStore;
       if (appleStoreProductIds.isNotEmpty) {
         await _purchaseWithIap(context, ref, tier, appleStoreProductIds.first);
@@ -947,7 +1234,7 @@ class StellarProgramTab extends HookConsumerWidget {
       }
     }
 
-    if (selectedTab == 2) {
+    if (method == 2) {
       await _purchaseWithAfdian(context, ref, tier);
       return;
     }
@@ -1002,8 +1289,7 @@ class StellarProgramTab extends HookConsumerWidget {
         showSnackBar('坐与放宽，我们正在处理您的购买...');
         await Future.delayed(const Duration(seconds: 2));
         // Invalidate subscription to refresh status
-        ref.invalidate(accountStellarSubscriptionProvider);
-        ref.read(userInfoProvider.notifier).fetchUser();
+        await _refreshSubscriptionState(ref);
         if (context.mounted) {
           showSnackBar('membershipPurchaseSuccess'.tr());
         }
@@ -1035,7 +1321,10 @@ class StellarProgramTab extends HookConsumerWidget {
         options: Options(headers: {'X-Noop': true}),
       );
       final subscription = SnWalletSubscription.fromJson(resp.data);
-      if (subscription.status == 1) return;
+      if (subscription.status == 1) {
+        await _refreshSubscriptionState(ref);
+        return;
+      }
       final orderResp = await client.post(
         '/wallet/subscriptions/${subscription.identifier}/order',
       );
@@ -1054,8 +1343,7 @@ class StellarProgramTab extends HookConsumerWidget {
 
       if (paidOrder != null) {
         await Future.delayed(const Duration(seconds: 1));
-        ref.invalidate(accountStellarSubscriptionProvider);
-        ref.read(userInfoProvider.notifier).fetchUser();
+        await _refreshSubscriptionState(ref);
         if (context.mounted) {
           showSnackBar('membershipPurchaseSuccess'.tr());
         }
@@ -1105,11 +1393,43 @@ class StellarProgramTab extends HookConsumerWidget {
     }
   }
 
+  Future<void> _refreshSubscriptionState(WidgetRef ref) async {
+    ref.invalidate(accountSubscriptionGroupProvider);
+    ref.invalidate(accountStellarSubscriptionProvider);
+    await ref.read(userInfoProvider.notifier).fetchUser();
+  }
+
+  Future<void> _switchSubscription(
+    BuildContext context,
+    WidgetRef ref,
+    String groupIdentifier,
+    String subscriptionId,
+  ) async {
+    try {
+      showLoadingModal(context);
+      final client = ref.read(apiClientProvider);
+      await client.post(
+        '/wallet/subscriptions/groups/$groupIdentifier/activate',
+        data: {'subscription_id': subscriptionId},
+      );
+      await _refreshSubscriptionState(ref);
+      if (context.mounted) {
+        hideLoadingModal(context);
+        showSnackBar('Subscription switched successfully');
+      }
+    } catch (err) {
+      if (context.mounted) hideLoadingModal(context);
+      showErrorAlert(err);
+    }
+  }
+
   Widget _buildGiftingSection(BuildContext context, WidgetRef ref) {
     final sentGifts = ref.watch(accountSentGiftsProvider());
     final receivedGifts = ref.watch(accountReceivedGiftsProvider());
 
-    return Card(
+    return _buildSectionCard(
+      context,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1123,39 +1443,29 @@ class StellarProgramTab extends HookConsumerWidget {
               const Gap(8),
               Text(
                 'giftSubscriptions'.tr(),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
           const Gap(12),
 
-          // Purchase Gift Section
-          Text(
-            'purchaseAGift'.tr(),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
+          _buildSectionHeader(context, title: 'purchaseAGift'.tr()),
           const Gap(8),
           _buildGiftPurchaseOptions(context, ref),
           const Gap(16),
 
-          // Redeem Gift Section
-          Text(
-            'redeemAGift'.tr(),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
+          _buildSectionHeader(context, title: 'redeemAGift'.tr()),
           const Gap(8),
           _buildGiftRedeemSection(context, ref),
           const Gap(16),
 
-          // Gift History
-          Text(
-            'giftHistory'.tr(),
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
+          _buildSectionHeader(context, title: 'giftHistory'.tr()),
           const Gap(8),
           _buildGiftHistory(context, ref, sentGifts, receivedGifts),
         ],
-      ).padding(all: 16),
+      ),
     );
   }
 
@@ -1167,8 +1477,11 @@ class StellarProgramTab extends HookConsumerWidget {
         if (group == null) {
           return Center(child: Text('noTiersAvailable'.tr()));
         }
-        final tiers = group.catalog.items.toList()
-          ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
+        final tiers =
+            group.catalog.items
+                .where((a) => a.allowedPaymentMethods.contains('gift'))
+                .toList()
+              ..sort((a, b) => a.perkLevel.compareTo(b.perkLevel));
 
         if (tiers.isEmpty) {
           return Center(child: Text('noTiersAvailable'.tr()));
@@ -1180,24 +1493,18 @@ class StellarProgramTab extends HookConsumerWidget {
 
           tierWidgets.add(
             Container(
-              margin: const EdgeInsets.only(bottom: 8),
+              margin: const EdgeInsets.only(bottom: 12),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () =>
                       _showPurchaseGiftDialog(context, ref, tier.identifier),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.outline.withOpacity(0.2),
-                        width: 1,
-                      ),
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
@@ -1259,13 +1566,10 @@ class StellarProgramTab extends HookConsumerWidget {
     final codeController = useTextEditingController();
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1367,15 +1671,14 @@ class StellarProgramTab extends HookConsumerWidget {
     final statusColor = _getGiftStatusColor(context, gift.status);
     final canCancel = isSent && (gift.status == 0 || gift.status == 1);
 
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1401,63 +1704,57 @@ class StellarProgramTab extends HookConsumerWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  spacing: 6,
-                  children: [
-                    Text(
-                      statusText,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (gift.status == 2 && gift.redeemer != null)
-                      AccountPfcRegion(
+              _buildStatusChip(
+                context,
+                label: statusText,
+                backgroundColor: statusColor.withOpacity(0.12),
+                foregroundColor: statusColor,
+                avatar: gift.status == 2 && gift.redeemer != null
+                    ? AccountPfcRegion(
                         uname: gift.redeemer!.name,
                         child: ProfilePictureWidget(
                           file: gift.redeemer!.profile.picture,
                           radius: 8,
                         ),
-                      ),
-                  ],
-                ),
+                      )
+                    : null,
               ),
             ],
           ),
-          const Gap(4),
-          Text(
-            '${'subscriptionLabel'.tr()} ${_getMembershipTierName(gift.subscriptionIdentifier)}',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          if (gift.recipient != null && isSent) ...[
-            const Gap(4),
-            Text(
-              '${'toLabel'.tr()} ${gift.recipient!.name}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-          if (gift.gifter != null && !isSent) ...[
-            const Gap(4),
-            Text(
-              '${'fromLabel'.tr()} ${gift.gifter!.name}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-          if (gift.message != null && gift.message!.isNotEmpty) ...[
-            const Gap(4),
-            Text(
-              '${'messageLabel'.tr()} ${gift.message}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
           const Gap(8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildMetadataChip(
+                context,
+                icon: Icons.workspace_premium_outlined,
+                label: _getMembershipTierName(gift.subscriptionIdentifier),
+              ),
+              if (gift.recipient != null && isSent)
+                _buildMetadataChip(
+                  context,
+                  icon: Icons.north_east_rounded,
+                  label: gift.recipient!.name,
+                ),
+              if (gift.gifter != null && !isSent)
+                _buildMetadataChip(
+                  context,
+                  icon: Icons.south_west_rounded,
+                  label: gift.gifter!.name,
+                ),
+            ],
+          ),
+          if (gift.message != null && gift.message!.isNotEmpty) ...[
+            const Gap(10),
+            Text(
+              gift.message!,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ],
+          const Gap(12),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             spacing: 8,
@@ -1490,6 +1787,36 @@ class StellarProgramTab extends HookConsumerWidget {
                 ),
               ],
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadataChip(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: scheme.onSurfaceVariant),
+          const Gap(6),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -1564,10 +1891,10 @@ class StellarProgramTab extends HookConsumerWidget {
         '/wallet/subscriptions/gifts/purchase',
         data: {
           'subscription_identifier': subscriptionId,
-          'recipient_id': ?recipientId,
+          'recipient_id': recipientId,
           'payment_method': 'solian.wallet',
           'payment_details': {'currency': 'golds'},
-          'message': ?message,
+          'message': message,
           'gift_duration_days': 30,
           'subscription_duration_days': 30,
         },
@@ -1735,8 +2062,7 @@ class StellarProgramTab extends HookConsumerWidget {
       }
 
       ref.invalidate(accountReceivedGiftsProvider);
-      ref.invalidate(accountStellarSubscriptionProvider);
-      ref.read(userInfoProvider.notifier).fetchUser();
+      await _refreshSubscriptionState(ref);
     } catch (err) {
       if (context.mounted) hideLoadingModal(context);
       showErrorAlert(err);
@@ -1884,9 +2210,9 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
         widget.currentMembership?.identifier == tier.identifier;
     final tierColor = _parseColor(tier.displayConfig?.color);
 
-    final effectiveMethod = widget.showAfdianTab
-        ? (widget.tabController.index == 0 ? 2 : 0)
-        : (widget.tabController.index == 0 ? 1 : 0);
+    final effectiveMethod = widget.selectedTab == 0
+        ? (widget.showAfdianTab ? 2 : 1)
+        : 0;
 
     String priceDisplay;
     if (effectiveMethod == 1 && tier.providerMappings.appleStore.isNotEmpty) {
@@ -1909,20 +2235,20 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Material(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         elevation: 2,
         child: InkWell(
           onTap: isCurrentTier
               ? null
               : () => widget.onPurchase(tier, effectiveMethod),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isCurrentTier
                   ? tierColor.withOpacity(0.08)
                   : Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isCurrentTier
                     ? tierColor
@@ -1983,7 +2309,7 @@ class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: tierColor,
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     'membershipCurrentBadge'.tr(),
