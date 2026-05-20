@@ -233,6 +233,10 @@ class RealtimeMessageHandler {
     // Handle reaction events
     if (type == 'messages.reaction.added' ||
         type == 'messages.reaction.removed') {
+      if (event.appliedInBackground) {
+        await _handleReactionAppliedInBackground(event.message);
+        return;
+      }
       await _handleReactionEvent(event.message);
       return;
     }
@@ -246,6 +250,19 @@ class RealtimeMessageHandler {
       } else {
         await _handleUpdateMessage(event.message);
       }
+    }
+  }
+
+  Future<void> _handleReactionAppliedInBackground(
+    SnChatMessage remoteMessage,
+  ) async {
+    final targetId = remoteMessage.meta['message_id']?.toString();
+    if (targetId == null || targetId.isEmpty) return;
+
+    _messageCache.remove(targetId);
+    final updated = await _repository.getLocalMessage(targetId);
+    if (updated != null) {
+      onMessageUpdate?.call(updated);
     }
   }
 
@@ -276,8 +293,9 @@ class RealtimeMessageHandler {
               (remoteMessage.type == 'messages.reaction.removed' &&
                   reactionsMade[symbol] != true));
       if (!alreadyAppliedLocally) {
-        final delta =
-            remoteMessage.type == 'messages.reaction.removed' ? -1 : 1;
+        final delta = remoteMessage.type == 'messages.reaction.removed'
+            ? -1
+            : 1;
         final nextCount = (reactionsCount[symbol] ?? 0) + delta;
         if (nextCount > 0) {
           reactionsCount[symbol] = nextCount;

@@ -302,10 +302,26 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             mergedMeta.addAll(message.meta);
             mergedMeta.remove('message_id');
 
-            final updatedRemote = existingRemote.copyWith(
-              meta: mergedMeta,
-              editedAt: message.createdAt,
-            );
+            final updatePayload = LocalChatMessage.fromRemoteMessage(
+              message,
+              MessageStatus.sent,
+            ).toRemoteMessage();
+
+            final isLinkUpdate = message.type == 'messages.update.links';
+            final updatedRemote = isLinkUpdate
+                ? existingRemote.copyWith(
+                    meta: mergedMeta,
+                    editedAt: message.createdAt,
+                  )
+                : existingRemote.copyWith(
+                    content: updatePayload.content,
+                    attachments: updatePayload.attachments,
+                    membersMentioned: updatePayload.membersMentioned,
+                    repliedMessageId: updatePayload.repliedMessageId,
+                    forwardedMessageId: updatePayload.forwardedMessageId,
+                    meta: mergedMeta,
+                    editedAt: message.createdAt,
+                  );
 
             final updatedMessage = LocalChatMessage.fromRemoteMessage(
               updatedRemote,
