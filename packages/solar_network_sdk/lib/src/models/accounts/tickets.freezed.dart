@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SnTicket {
 
- String get id; String get title; String? get content; int get type; int get status; int get priority; String get creatorId; SnAccount get creator; String? get assigneeId; SnAccount? get assignee; DateTime? get resolvedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnTicketMessage> get messages; List<String> get fileIds;
+ String get id; String get title; String? get content; int get type; int get status; int get priority; String get creatorId; SnAccount get creator; String? get assigneeId; SnAccount? get assignee; DateTime? get resolvedAt; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; List<SnTicketMessage> get messages; List<String> get fileIds; List<String?> get resources;
 /// Create a copy of SnTicket
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SnTicketCopyWith<SnTicket> get copyWith => _$SnTicketCopyWithImpl<SnTicket>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.content, content) || other.content == content)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.creatorId, creatorId) || other.creatorId == creatorId)&&(identical(other.creator, creator) || other.creator == creator)&&(identical(other.assigneeId, assigneeId) || other.assigneeId == assigneeId)&&(identical(other.assignee, assignee) || other.assignee == assignee)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.messages, messages)&&const DeepCollectionEquality().equals(other.fileIds, fileIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.content, content) || other.content == content)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.creatorId, creatorId) || other.creatorId == creatorId)&&(identical(other.creator, creator) || other.creator == creator)&&(identical(other.assigneeId, assigneeId) || other.assigneeId == assigneeId)&&(identical(other.assignee, assignee) || other.assignee == assignee)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.messages, messages)&&const DeepCollectionEquality().equals(other.fileIds, fileIds)&&const DeepCollectionEquality().equals(other.resources, resources));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,content,type,status,priority,creatorId,creator,assigneeId,assignee,resolvedAt,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(messages),const DeepCollectionEquality().hash(fileIds));
+int get hashCode => Object.hash(runtimeType,id,title,content,type,status,priority,creatorId,creator,assigneeId,assignee,resolvedAt,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(messages),const DeepCollectionEquality().hash(fileIds),const DeepCollectionEquality().hash(resources));
 
 @override
 String toString() {
-  return 'SnTicket(id: $id, title: $title, content: $content, type: $type, status: $status, priority: $priority, creatorId: $creatorId, creator: $creator, assigneeId: $assigneeId, assignee: $assignee, resolvedAt: $resolvedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, messages: $messages, fileIds: $fileIds)';
+  return 'SnTicket(id: $id, title: $title, content: $content, type: $type, status: $status, priority: $priority, creatorId: $creatorId, creator: $creator, assigneeId: $assigneeId, assignee: $assignee, resolvedAt: $resolvedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, messages: $messages, fileIds: $fileIds, resources: $resources)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SnTicketCopyWith<$Res>  {
   factory $SnTicketCopyWith(SnTicket value, $Res Function(SnTicket) _then) = _$SnTicketCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String? content, int type, int status, int priority, String creatorId, SnAccount creator, String? assigneeId, SnAccount? assignee, DateTime? resolvedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnTicketMessage> messages, List<String> fileIds
+ String id, String title, String? content, int type, int status, int priority, String creatorId, SnAccount creator, String? assigneeId, SnAccount? assignee, DateTime? resolvedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnTicketMessage> messages, List<String> fileIds, List<String?> resources
 });
 
 
@@ -65,7 +65,7 @@ class _$SnTicketCopyWithImpl<$Res>
 
 /// Create a copy of SnTicket
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? content = freezed,Object? type = null,Object? status = null,Object? priority = null,Object? creatorId = null,Object? creator = null,Object? assigneeId = freezed,Object? assignee = freezed,Object? resolvedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? messages = null,Object? fileIds = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? content = freezed,Object? type = null,Object? status = null,Object? priority = null,Object? creatorId = null,Object? creator = null,Object? assigneeId = freezed,Object? assignee = freezed,Object? resolvedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? messages = null,Object? fileIds = null,Object? resources = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -83,7 +83,8 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
 as List<SnTicketMessage>,fileIds: null == fileIds ? _self.fileIds : fileIds // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,resources: null == resources ? _self.resources : resources // ignore: cast_nullable_to_non_nullable
+as List<String?>,
   ));
 }
 /// Create a copy of SnTicket
@@ -186,10 +187,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? content,  int type,  int status,  int priority,  String creatorId,  SnAccount creator,  String? assigneeId,  SnAccount? assignee,  DateTime? resolvedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnTicketMessage> messages,  List<String> fileIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? content,  int type,  int status,  int priority,  String creatorId,  SnAccount creator,  String? assigneeId,  SnAccount? assignee,  DateTime? resolvedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnTicketMessage> messages,  List<String> fileIds,  List<String?> resources)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnTicket() when $default != null:
-return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that.priority,_that.creatorId,_that.creator,_that.assigneeId,_that.assignee,_that.resolvedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.messages,_that.fileIds);case _:
+return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that.priority,_that.creatorId,_that.creator,_that.assigneeId,_that.assignee,_that.resolvedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.messages,_that.fileIds,_that.resources);case _:
   return orElse();
 
 }
@@ -207,10 +208,10 @@ return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? content,  int type,  int status,  int priority,  String creatorId,  SnAccount creator,  String? assigneeId,  SnAccount? assignee,  DateTime? resolvedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnTicketMessage> messages,  List<String> fileIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? content,  int type,  int status,  int priority,  String creatorId,  SnAccount creator,  String? assigneeId,  SnAccount? assignee,  DateTime? resolvedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnTicketMessage> messages,  List<String> fileIds,  List<String?> resources)  $default,) {final _that = this;
 switch (_that) {
 case _SnTicket():
-return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that.priority,_that.creatorId,_that.creator,_that.assigneeId,_that.assignee,_that.resolvedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.messages,_that.fileIds);}
+return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that.priority,_that.creatorId,_that.creator,_that.assigneeId,_that.assignee,_that.resolvedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.messages,_that.fileIds,_that.resources);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -224,10 +225,10 @@ return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? content,  int type,  int status,  int priority,  String creatorId,  SnAccount creator,  String? assigneeId,  SnAccount? assignee,  DateTime? resolvedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnTicketMessage> messages,  List<String> fileIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? content,  int type,  int status,  int priority,  String creatorId,  SnAccount creator,  String? assigneeId,  SnAccount? assignee,  DateTime? resolvedAt,  DateTime createdAt,  DateTime updatedAt,  DateTime? deletedAt,  List<SnTicketMessage> messages,  List<String> fileIds,  List<String?> resources)?  $default,) {final _that = this;
 switch (_that) {
 case _SnTicket() when $default != null:
-return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that.priority,_that.creatorId,_that.creator,_that.assigneeId,_that.assignee,_that.resolvedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.messages,_that.fileIds);case _:
+return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that.priority,_that.creatorId,_that.creator,_that.assigneeId,_that.assignee,_that.resolvedAt,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.messages,_that.fileIds,_that.resources);case _:
   return null;
 
 }
@@ -239,7 +240,7 @@ return $default(_that.id,_that.title,_that.content,_that.type,_that.status,_that
 @JsonSerializable()
 
 class _SnTicket implements SnTicket {
-  const _SnTicket({required this.id, required this.title, this.content, required this.type, required this.status, required this.priority, required this.creatorId, required this.creator, this.assigneeId, this.assignee, this.resolvedAt, required this.createdAt, required this.updatedAt, this.deletedAt, final  List<SnTicketMessage> messages = const [], final  List<String> fileIds = const []}): _messages = messages,_fileIds = fileIds;
+  const _SnTicket({required this.id, required this.title, this.content, required this.type, required this.status, required this.priority, required this.creatorId, required this.creator, this.assigneeId, this.assignee, this.resolvedAt, required this.createdAt, required this.updatedAt, this.deletedAt, final  List<SnTicketMessage> messages = const [], final  List<String> fileIds = const [], final  List<String?> resources = const []}): _messages = messages,_fileIds = fileIds,_resources = resources;
   factory _SnTicket.fromJson(Map<String, dynamic> json) => _$SnTicketFromJson(json);
 
 @override final  String id;
@@ -270,6 +271,13 @@ class _SnTicket implements SnTicket {
   return EqualUnmodifiableListView(_fileIds);
 }
 
+ final  List<String?> _resources;
+@override@JsonKey() List<String?> get resources {
+  if (_resources is EqualUnmodifiableListView) return _resources;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_resources);
+}
+
 
 /// Create a copy of SnTicket
 /// with the given fields replaced by the non-null parameter values.
@@ -284,16 +292,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.content, content) || other.content == content)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.creatorId, creatorId) || other.creatorId == creatorId)&&(identical(other.creator, creator) || other.creator == creator)&&(identical(other.assigneeId, assigneeId) || other.assigneeId == assigneeId)&&(identical(other.assignee, assignee) || other.assignee == assignee)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._messages, _messages)&&const DeepCollectionEquality().equals(other._fileIds, _fileIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnTicket&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.content, content) || other.content == content)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.creatorId, creatorId) || other.creatorId == creatorId)&&(identical(other.creator, creator) || other.creator == creator)&&(identical(other.assigneeId, assigneeId) || other.assigneeId == assigneeId)&&(identical(other.assignee, assignee) || other.assignee == assignee)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._messages, _messages)&&const DeepCollectionEquality().equals(other._fileIds, _fileIds)&&const DeepCollectionEquality().equals(other._resources, _resources));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,content,type,status,priority,creatorId,creator,assigneeId,assignee,resolvedAt,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_messages),const DeepCollectionEquality().hash(_fileIds));
+int get hashCode => Object.hash(runtimeType,id,title,content,type,status,priority,creatorId,creator,assigneeId,assignee,resolvedAt,createdAt,updatedAt,deletedAt,const DeepCollectionEquality().hash(_messages),const DeepCollectionEquality().hash(_fileIds),const DeepCollectionEquality().hash(_resources));
 
 @override
 String toString() {
-  return 'SnTicket(id: $id, title: $title, content: $content, type: $type, status: $status, priority: $priority, creatorId: $creatorId, creator: $creator, assigneeId: $assigneeId, assignee: $assignee, resolvedAt: $resolvedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, messages: $messages, fileIds: $fileIds)';
+  return 'SnTicket(id: $id, title: $title, content: $content, type: $type, status: $status, priority: $priority, creatorId: $creatorId, creator: $creator, assigneeId: $assigneeId, assignee: $assignee, resolvedAt: $resolvedAt, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, messages: $messages, fileIds: $fileIds, resources: $resources)';
 }
 
 
@@ -304,7 +312,7 @@ abstract mixin class _$SnTicketCopyWith<$Res> implements $SnTicketCopyWith<$Res>
   factory _$SnTicketCopyWith(_SnTicket value, $Res Function(_SnTicket) _then) = __$SnTicketCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String? content, int type, int status, int priority, String creatorId, SnAccount creator, String? assigneeId, SnAccount? assignee, DateTime? resolvedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnTicketMessage> messages, List<String> fileIds
+ String id, String title, String? content, int type, int status, int priority, String creatorId, SnAccount creator, String? assigneeId, SnAccount? assignee, DateTime? resolvedAt, DateTime createdAt, DateTime updatedAt, DateTime? deletedAt, List<SnTicketMessage> messages, List<String> fileIds, List<String?> resources
 });
 
 
@@ -321,7 +329,7 @@ class __$SnTicketCopyWithImpl<$Res>
 
 /// Create a copy of SnTicket
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? content = freezed,Object? type = null,Object? status = null,Object? priority = null,Object? creatorId = null,Object? creator = null,Object? assigneeId = freezed,Object? assignee = freezed,Object? resolvedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? messages = null,Object? fileIds = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? content = freezed,Object? type = null,Object? status = null,Object? priority = null,Object? creatorId = null,Object? creator = null,Object? assigneeId = freezed,Object? assignee = freezed,Object? resolvedAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? deletedAt = freezed,Object? messages = null,Object? fileIds = null,Object? resources = null,}) {
   return _then(_SnTicket(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -339,7 +347,8 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
 as List<SnTicketMessage>,fileIds: null == fileIds ? _self._fileIds : fileIds // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,resources: null == resources ? _self._resources : resources // ignore: cast_nullable_to_non_nullable
+as List<String?>,
   ));
 }
 
