@@ -432,7 +432,7 @@ void showNotification({
     topic: 'local',
     title: title,
     subtitle: subtitle,
-    content: content,
+    body: content,
     meta: meta,
     viewedAt: null,
     accountId: 'local',

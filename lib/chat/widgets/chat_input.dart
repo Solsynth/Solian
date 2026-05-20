@@ -743,6 +743,11 @@ class _AttachmentsExpandedTab extends StatelessWidget {
               const minCardWidth = 112.0;
               const gap = 8.0;
               const horizontalPadding = 24.0;
+              const actionAreaHeight = 64.0;
+              const actionTopPadding = 10.0;
+              const actionBottomPadding = 8.0;
+              const actionCardHeight =
+                  actionAreaHeight - actionTopPadding - actionBottomPadding;
               final availableWidth = constraints.maxWidth - horizontalPadding;
               final sharedWidth =
                   (availableWidth - gap * (actions.length - 1)) /
@@ -751,6 +756,7 @@ class _AttachmentsExpandedTab extends StatelessWidget {
 
               Widget buildAction(_AttachmentAction action) => SizedBox(
                 width: shouldShareWidth ? sharedWidth : minCardWidth,
+                height: actionCardHeight,
                 child: InkWell(
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                   onTap: action.onTap,
@@ -784,7 +790,12 @@ class _AttachmentsExpandedTab extends StatelessWidget {
 
               if (shouldShareWidth) {
                 return Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                  padding: const EdgeInsets.fromLTRB(
+                    12,
+                    actionTopPadding,
+                    12,
+                    actionBottomPadding,
+                  ),
                   child: Row(
                     children: [
                       for (var i = 0; i < actions.length; i++) ...[
@@ -797,7 +808,12 @@ class _AttachmentsExpandedTab extends StatelessWidget {
               }
 
               return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(12, 2, 12, 0),
+                padding: const EdgeInsets.fromLTRB(
+                  12,
+                  actionTopPadding,
+                  12,
+                  actionBottomPadding,
+                ),
                 scrollDirection: Axis.horizontal,
                 itemCount: actions.length,
                 separatorBuilder: (_, _) => const Gap(gap),

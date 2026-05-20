@@ -68,9 +68,9 @@ class NotificationCard extends HookConsumerWidget {
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        if (notification.content.isNotEmpty)
+                        if (notification.body.isNotEmpty)
                           Text(
-                            notification.content,
+                            notification.body,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         if (notification.subtitle.isNotEmpty)

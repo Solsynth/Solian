@@ -111,7 +111,9 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
     final currentPath = useState('/');
 
     useEffect(() {
-      ref.read(indexedCloudFileListProvider.notifier).setPath(currentPath.value);
+      ref
+          .read(indexedCloudFileListProvider.notifier)
+          .setPath(currentPath.value);
       return null;
     }, [currentPath.value]);
 
@@ -189,8 +191,7 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
                           subtitle: Text(formatFileSize(fileItem.file.size)),
                           onTap: () => onSelected(fileItem.file),
                         ),
-                        if (index != data.length - 1)
-                          const Divider(height: 1),
+                        if (index != data.length - 1) const Divider(height: 1),
                       ],
                     ),
                     folder: (folderItem) => Column(
@@ -211,11 +212,11 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
                                 : '${currentPath.value}/${folderItem.file.name}';
                           },
                         ),
-                        if (index != data.length - 1)
-                          const Divider(height: 1),
+                        if (index != data.length - 1) const Divider(height: 1),
                       ],
                     ),
-                    unindexedFile: (unindexedFileItem) => const SizedBox.shrink(),
+                    unindexedFile: (unindexedFileItem) =>
+                        const SizedBox.shrink(),
                   );
                 },
               ),
@@ -279,10 +280,7 @@ class _CloudFileLinkTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final meta = file.fileMeta;
-    final ratio = meta['ratio'] is num
-        ? (meta['ratio'] as num).toDouble()
-        : 1.0;
+    final ratio = file.ratio ?? 1.0;
     final itemType = file.mimeType.split('/').first;
 
     final previewWidget = switch (itemType) {
