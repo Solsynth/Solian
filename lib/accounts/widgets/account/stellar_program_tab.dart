@@ -14,6 +14,7 @@ import 'package:island/accounts/widgets/account/restore_purchase_sheet.dart';
 import 'package:island/accounts/widgets/account/stellar_benefits_table.dart';
 import 'package:island/core/network.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -2123,17 +2124,40 @@ class _MembershipTierCarousel extends StatefulWidget {
 class _MembershipTierCarouselState extends State<_MembershipTierCarousel> {
   late PageController _pageController;
   int _currentPage = 0;
+  double _viewportFraction = 0.72;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.72);
+    _pageController = PageController(viewportFraction: _viewportFraction);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncViewportFraction();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _syncViewportFraction() {
+    final nextFraction = isWideScreen(context) ? 0.72 : 0.9;
+    if (nextFraction == _viewportFraction) return;
+
+    final currentPage = _pageController.hasClients
+        ? (_pageController.page?.round() ?? _currentPage)
+        : _currentPage;
+
+    _pageController.dispose();
+    _viewportFraction = nextFraction;
+    _pageController = PageController(
+      viewportFraction: _viewportFraction,
+      initialPage: currentPage,
+    );
   }
 
   static final _defaultColor = Color(0xFF2196F3);
