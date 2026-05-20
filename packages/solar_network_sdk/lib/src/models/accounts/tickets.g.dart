@@ -35,6 +35,11 @@ _SnTicket _$SnTicketFromJson(Map<String, dynamic> json) => _SnTicket(
   fileIds:
       (json['file_ids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
+  resources:
+      (json['resources'] as List<dynamic>?)
+          ?.map((e) => e as String?)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$SnTicketToJson(_SnTicket instance) => <String, dynamic>{
@@ -54,6 +59,7 @@ Map<String, dynamic> _$SnTicketToJson(_SnTicket instance) => <String, dynamic>{
   'deleted_at': instance.deletedAt?.toIso8601String(),
   'messages': instance.messages.map((e) => e.toJson()).toList(),
   'file_ids': instance.fileIds,
+  'resources': instance.resources,
 };
 
 _SnTicketMessage _$SnTicketMessageFromJson(Map<String, dynamic> json) =>
