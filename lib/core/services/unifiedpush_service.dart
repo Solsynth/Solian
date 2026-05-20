@@ -15,6 +15,8 @@ import 'package:unifiedpush_storage_interface/keys_storage.dart';
 import 'package:unifiedpush_storage_interface/registrations_storage.dart';
 import 'package:unifiedpush_storage_interface/storage.dart';
 
+import 'udid.dart';
+
 const kUnifiedPushInstance = 'island-main';
 const kUnifiedPushDbusName = 'dev.solsynth.solian';
 
@@ -80,6 +82,7 @@ Future<String> registerUnifiedPush(Dio apiClient) async {
     data: {
       'type': PushNotificationProvider.unifiedpush.remoteType,
       'device_token': endpoint.url,
+      "device_name": await getDeviceName(),
     },
   );
   return endpoint.url;

@@ -279,10 +279,6 @@ Map<String, dynamic> _$SnContactMethodToJson(_SnContactMethod instance) =>
 _SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
     _SnNotification(
       createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      deletedAt: json['deleted_at'] == null
-          ? null
-          : DateTime.parse(json['deleted_at'] as String),
       id: json['id'] as String,
       topic: json['topic'] as String,
       title: json['title'] as String,
@@ -299,8 +295,6 @@ _SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SnNotificationToJson(_SnNotification instance) =>
     <String, dynamic>{
       'created_at': instance.createdAt.toIso8601String(),
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'deleted_at': instance.deletedAt?.toIso8601String(),
       'id': instance.id,
       'topic': instance.topic,
       'title': instance.title,
