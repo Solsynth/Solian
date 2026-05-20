@@ -59,7 +59,7 @@ Future<void> _speakNotification(
   final parts = <String>[];
   if (notification.title.isNotEmpty) parts.add(notification.title);
   if (notification.subtitle.isNotEmpty) parts.add(notification.subtitle);
-  if (notification.content.isNotEmpty) parts.add(notification.content);
+  if (notification.body.isNotEmpty) parts.add(notification.body);
 
   if (parts.isNotEmpty) {
     await tts.speak(parts.join('. '));
@@ -148,7 +148,7 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             notification.title,
             [
               notification.subtitle,
-              notification.content,
+              notification.body,
             ].where((e) => e.isNotEmpty).join('\n'),
             group: notification.topic,
             image: imagePath,
