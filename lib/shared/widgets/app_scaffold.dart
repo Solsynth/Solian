@@ -14,7 +14,6 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
-import 'package:island/livestreams/livestream_overlay.dart';
 import 'package:island/notifications/notification_overlay.dart';
 import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -207,7 +206,6 @@ class WindowScaffold extends HookConsumerWidget {
             ),
             _WebSocketIndicator(),
             const NotificationOverlay(),
-            const LivestreamFloatingOverlay(),
             if (showPalette.value)
               CommandPaletteWidget(onDismiss: () => showPalette.value = false),
           ],
@@ -221,7 +219,6 @@ class WindowScaffold extends HookConsumerWidget {
         Positioned.fill(child: child),
         _WebSocketIndicator(),
         const NotificationOverlay(),
-        const LivestreamFloatingOverlay(),
         if (showPalette.value)
           CommandPaletteWidget(onDismiss: () => showPalette.value = false),
       ],

@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:island/core/config.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
-import 'package:island/posts/widgets/compose/compose_livestream.dart';
 import 'package:island/posts/widgets/compose/compose_location_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_meet_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_poll.dart';
@@ -51,8 +50,6 @@ class ComposeState {
   final ValueNotifier<String?> pollId;
   // Linked fund id for this compose session (nullable)
   final ValueNotifier<String?> fundId;
-  // Linked livestream id for this compose session (nullable)
-  final ValueNotifier<String?> liveStreamId;
   // Linked fitness reference for this compose session (nullable)
   final ValueNotifier<String?> fitnessReference;
   // Linked location embed fields (nullable)
@@ -87,7 +84,6 @@ class ComposeState {
     this.postType = 0,
     String? pollId,
     String? fundId,
-    String? liveStreamId,
     String? fitnessReference,
     String? locationName,
     String? locationAddress,
@@ -97,7 +93,6 @@ class ComposeState {
     List<String>? collectionIds,
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
-       liveStreamId = ValueNotifier<String?>(liveStreamId),
        fitnessReference = ValueNotifier<String?>(fitnessReference),
        locationName = ValueNotifier<String?>(locationName),
        locationAddress = ValueNotifier<String?>(locationAddress),
@@ -144,7 +139,6 @@ class ComposeLogic {
     // Extract embed IDs from original post embeds
     String? pollId;
     String? fundId;
-    String? liveStreamId;
     String? fitnessReference;
     String? locationName;
     String? locationAddress;
@@ -160,12 +154,6 @@ class ComposeLogic {
       try {
         final fundEmbed = embeds.firstWhere((e) => e['type'] == 'fund');
         fundId = fundEmbed['id'];
-      } catch (_) {}
-      try {
-        final livestreamEmbed = embeds.firstWhere(
-          (e) => e['type'] == 'livestream',
-        );
-        liveStreamId = livestreamEmbed['id'];
       } catch (_) {}
       try {
         final fitnessEmbed = embeds.firstWhere(
@@ -235,7 +223,6 @@ class ComposeLogic {
       postType: postType,
       pollId: pollId,
       fundId: fundId,
-      liveStreamId: liveStreamId,
       fitnessReference: fitnessReference,
       locationName: locationName,
       locationAddress: locationAddress,
@@ -276,9 +263,7 @@ class ComposeLogic {
       cloudDraftId: draft.draftedAt != null ? draft.id : null,
       postType: postType,
       pollId: null,
-      // initialize without fund by default
       fundId: null,
-      liveStreamId: null,
       thumbnailId: thumbnailId,
       collectionIds: collectionIds,
     );
@@ -359,8 +344,6 @@ class ComposeLogic {
         {'type': 'poll', 'id': state.pollId.value},
       if (state.fundId.value != null)
         {'type': 'fund', 'id': state.fundId.value},
-      if (state.liveStreamId.value != null)
-        {'type': 'livestream', 'id': state.liveStreamId.value},
       if (state.fitnessReference.value != null)
         ..._parseFitnessReference(state.fitnessReference.value!),
       if (state.locationName.value != null ||
@@ -477,8 +460,6 @@ class ComposeLogic {
       if (state.realm.value != null) 'realm_id': state.realm.value?.id,
       if (state.pollId.value != null) 'poll_id': state.pollId.value,
       if (state.fundId.value != null) 'fund_id': state.fundId.value,
-      if (state.liveStreamId.value != null)
-        'live_stream_id': state.liveStreamId.value,
       if (state.fitnessReference.value != null)
         'fitness_reference': state.fitnessReference.value,
       if (state.locationName.value != null ||
@@ -833,31 +814,6 @@ class ComposeLogic {
     state.fundId.value = fund.id;
   }
 
-  static Future<void> pickLivestream(
-    WidgetRef ref,
-    ComposeState state,
-    BuildContext context,
-  ) async {
-    if (state.liveStreamId.value != null) {
-      state.liveStreamId.value = null;
-      return;
-    }
-
-    final publisher = state.currentPublisher.value;
-    if (publisher == null) return;
-
-    final livestream = await showModalBottomSheet<SnLiveStream>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      builder: (context) => ComposeLivestreamSheet(pub: publisher),
-    );
-
-    if (livestream != null) {
-      state.liveStreamId.value = livestream.id;
-    }
-  }
-
   static void setFitnessReference(ComposeState state, String? reference) {
     state.fitnessReference.value = reference;
   }
@@ -958,12 +914,6 @@ class ComposeLogic {
       final isNewPost = originalPost == null;
       final endpoint =
           '/sphere${isNewPost ? '/posts' : '/posts/${originalPost.id}'}';
-      final hadOriginalLivestreamEmbed =
-          !isNewPost &&
-          (originalPost.meta?['embeds'] as List<dynamic>?)?.any(
-                (e) => e is Map<String, dynamic> && e['type'] == 'livestream',
-              ) ==
-              true;
 
       // Create request payload
       final payload = {
@@ -986,8 +936,6 @@ class ComposeLogic {
         if (state.realm.value != null) 'realm_id': state.realm.value?.id,
         if (state.pollId.value != null) 'poll_id': state.pollId.value,
         if (state.fundId.value != null) 'fund_id': state.fundId.value,
-        if (state.liveStreamId.value != null || hadOriginalLivestreamEmbed)
-          'live_stream_id': state.liveStreamId.value,
         if (state.fitnessReference.value != null)
           'fitness_reference': state.fitnessReference.value,
         if (state.locationName.value != null ||
@@ -1188,7 +1136,6 @@ class ComposeLogic {
     state.embedView.dispose();
     state.pollId.dispose();
     state.fundId.dispose();
-    state.liveStreamId.dispose();
     state.fitnessReference.dispose();
     state.locationName.dispose();
     state.locationAddress.dispose();

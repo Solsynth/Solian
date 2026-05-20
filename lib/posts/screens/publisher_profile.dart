@@ -10,7 +10,6 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/badge.dart';
 import 'package:island/accounts/widgets/account/handle_chip.dart';
 import 'package:island/accounts/widgets/account/status.dart';
-import 'package:island/livestreams/livestream.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/pods/post_list.dart';
 import 'package:island/core/network.dart';
@@ -151,7 +150,6 @@ class _PinnedPostsPageView extends HookConsumerWidget {
 class _PublisherBasisWidget extends HookWidget {
   final SnPublisher data;
   final AsyncValue<SnPublisherSubscriptionStatus?> subStatus;
-  final AsyncValue<SnLiveStream?> liveStatus;
   final AsyncValue<SnPublisherRatingOverview?> ratingOverview;
   final ValueNotifier<bool> subscribing;
   final VoidCallback subscribe;
@@ -161,7 +159,6 @@ class _PublisherBasisWidget extends HookWidget {
   const _PublisherBasisWidget({
     required this.data,
     required this.subStatus,
-    required this.liveStatus,
     required this.ratingOverview,
     required this.subscribing,
     required this.subscribe,
@@ -353,55 +350,6 @@ class _PublisherBasisWidget extends HookWidget {
                           ),
                         );
                       },
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const SizedBox.shrink(),
-                    ),
-                    liveStatus.when(
-                      data: (stream) => stream == null
-                          ? const SizedBox.shrink()
-                          : InkWell(
-                              borderRadius: BorderRadius.circular(999),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        _PublisherLivestreamWatchScreen(
-                                          stream: stream,
-                                        ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.errorContainer,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: 4,
-                                  children: [
-                                    Icon(
-                                      Symbols.circle,
-                                      fill: 1,
-                                      size: 10,
-                                      color: theme.colorScheme.error,
-                                    ),
-                                    Text(
-                                      'LIVE',
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            color: theme.colorScheme.error,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
                       loading: () => const SizedBox.shrink(),
                       error: (_, _) => const SizedBox.shrink(),
                     ),
@@ -712,31 +660,6 @@ class _PublisherVerificationWidget extends StatelessWidget {
   }
 }
 
-class _PublisherLivestreamWatchScreen extends StatelessWidget {
-  final SnLiveStream stream;
-
-  const _PublisherLivestreamWatchScreen({required this.stream});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      isNoBackground: false,
-      appBar: AppBar(title: Text(stream.title ?? 'untitledLivestream'.tr())),
-      body: ListView(
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: LivestreamEmbedWidget(
-              livestreamId: stream.id,
-              margin: const EdgeInsets.all(12),
-            ),
-          ).center(),
-        ],
-      ),
-    );
-  }
-}
-
 class _PublisherHeatmapWidget extends StatelessWidget {
   final AsyncValue<SnHeatmap?> heatmap;
   final bool forceDense;
@@ -843,28 +766,6 @@ Future<SnPublisherRatingOverview?> publisherRatingOverview(
   }
 }
 
-final publisherActiveLivestreamProvider = FutureProvider.family
-    .autoDispose<SnLiveStream?, String>((ref, publisherId) async {
-      final client = ref.watch(solarNetworkClientProvider);
-      final resp = await client.dio.get(
-        '/sphere/livestreams/publisher/$publisherId',
-        queryParameters: {'limit': 50, 'offset': 0},
-      );
-      final data = resp.data;
-      final list = switch (data) {
-        List value => value,
-        Map value when value['items'] is List => value['items'] as List,
-        _ => const <dynamic>[],
-      };
-      for (final item in list.whereType<Map>()) {
-        final stream = SnLiveStream.fromJson(Map<String, dynamic>.from(item));
-        if (stream.status == SnLiveStreamStatus.active) {
-          return stream;
-        }
-      }
-      return null;
-    });
-
 @RoutePage()
 class PublisherProfileScreen extends HookConsumerWidget {
   final String name;
@@ -949,9 +850,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
 
     return publisher.when(
       data: (data) {
-        final liveStatus = ref.watch(
-          publisherActiveLivestreamProvider(data.id),
-        );
         return AppScaffold(
           isNoBackground: false,
           appBar: AppBar(leading: AutoLeadingButton(), title: Text(data.nick)),
@@ -1002,7 +900,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
                               _PublisherBasisWidget(
                                 data: data,
                                 subStatus: subStatus,
-                                liveStatus: liveStatus,
                                 ratingOverview: ratingOverview,
                                 subscribing: subscribing,
                                 subscribe: subscribe,
@@ -1040,7 +937,6 @@ class PublisherProfileScreen extends HookConsumerWidget {
                       child: _PublisherBasisWidget(
                         data: data,
                         subStatus: subStatus,
-                        liveStatus: liveStatus,
                         ratingOverview: ratingOverview,
                         subscribing: subscribing,
                         subscribe: subscribe,

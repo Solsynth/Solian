@@ -40,9 +40,6 @@ export 'src/models/drive/file_pool.dart';
 export 'src/models/drive/folder.dart';
 export 'src/models/drive/file_permission.dart';
 
-// Live models
-export 'src/models/live/livestream.dart';
-
 // Posts models
 export 'src/models/posts/embed.dart';
 export 'src/models/posts/heatmap.dart';
