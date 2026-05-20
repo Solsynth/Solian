@@ -2241,7 +2241,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SnNotification {
 
- DateTime get createdAt; String get id; String get topic; String get title; String get subtitle; String get content; Map<String, dynamic> get meta; DateTime? get viewedAt; String get accountId;
+ DateTime get createdAt; String get id; String get topic; String get title; String get subtitle;@JsonKey(name: 'content') String get body; Map<String, dynamic> get meta; DateTime? get viewedAt; String get accountId;
 /// Create a copy of SnNotification
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2254,16 +2254,16 @@ $SnNotificationCopyWith<SnNotification> get copyWith => _$SnNotificationCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotification&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnNotification&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.body, body) || other.body == body)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,id,topic,title,subtitle,content,const DeepCollectionEquality().hash(meta),viewedAt,accountId);
+int get hashCode => Object.hash(runtimeType,createdAt,id,topic,title,subtitle,body,const DeepCollectionEquality().hash(meta),viewedAt,accountId);
 
 @override
 String toString() {
-  return 'SnNotification(createdAt: $createdAt, id: $id, topic: $topic, title: $title, subtitle: $subtitle, content: $content, meta: $meta, viewedAt: $viewedAt, accountId: $accountId)';
+  return 'SnNotification(createdAt: $createdAt, id: $id, topic: $topic, title: $title, subtitle: $subtitle, body: $body, meta: $meta, viewedAt: $viewedAt, accountId: $accountId)';
 }
 
 
@@ -2274,7 +2274,7 @@ abstract mixin class $SnNotificationCopyWith<$Res>  {
   factory $SnNotificationCopyWith(SnNotification value, $Res Function(SnNotification) _then) = _$SnNotificationCopyWithImpl;
 @useResult
 $Res call({
- DateTime createdAt, String id, String topic, String title, String subtitle, String content, Map<String, dynamic> meta, DateTime? viewedAt, String accountId
+ DateTime createdAt, String id, String topic, String title, String subtitle,@JsonKey(name: 'content') String body, Map<String, dynamic> meta, DateTime? viewedAt, String accountId
 });
 
 
@@ -2291,14 +2291,14 @@ class _$SnNotificationCopyWithImpl<$Res>
 
 /// Create a copy of SnNotification
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? id = null,Object? topic = null,Object? title = null,Object? subtitle = null,Object? content = null,Object? meta = null,Object? viewedAt = freezed,Object? accountId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = null,Object? id = null,Object? topic = null,Object? title = null,Object? subtitle = null,Object? body = null,Object? meta = null,Object? viewedAt = freezed,Object? accountId = null,}) {
   return _then(_self.copyWith(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,subtitle: null == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
-as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,viewedAt: freezed == viewedAt ? _self.viewedAt : viewedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -2384,10 +2384,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  String id,  String topic,  String title,  String subtitle,  String content,  Map<String, dynamic> meta,  DateTime? viewedAt,  String accountId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime createdAt,  String id,  String topic,  String title,  String subtitle, @JsonKey(name: 'content')  String body,  Map<String, dynamic> meta,  DateTime? viewedAt,  String accountId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnNotification() when $default != null:
-return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,_that.content,_that.meta,_that.viewedAt,_that.accountId);case _:
+return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,_that.body,_that.meta,_that.viewedAt,_that.accountId);case _:
   return orElse();
 
 }
@@ -2405,10 +2405,10 @@ return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  String id,  String topic,  String title,  String subtitle,  String content,  Map<String, dynamic> meta,  DateTime? viewedAt,  String accountId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime createdAt,  String id,  String topic,  String title,  String subtitle, @JsonKey(name: 'content')  String body,  Map<String, dynamic> meta,  DateTime? viewedAt,  String accountId)  $default,) {final _that = this;
 switch (_that) {
 case _SnNotification():
-return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,_that.content,_that.meta,_that.viewedAt,_that.accountId);}
+return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,_that.body,_that.meta,_that.viewedAt,_that.accountId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -2422,10 +2422,10 @@ return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  String id,  String topic,  String title,  String subtitle,  String content,  Map<String, dynamic> meta,  DateTime? viewedAt,  String accountId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime createdAt,  String id,  String topic,  String title,  String subtitle, @JsonKey(name: 'content')  String body,  Map<String, dynamic> meta,  DateTime? viewedAt,  String accountId)?  $default,) {final _that = this;
 switch (_that) {
 case _SnNotification() when $default != null:
-return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,_that.content,_that.meta,_that.viewedAt,_that.accountId);case _:
+return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,_that.body,_that.meta,_that.viewedAt,_that.accountId);case _:
   return null;
 
 }
@@ -2437,7 +2437,7 @@ return $default(_that.createdAt,_that.id,_that.topic,_that.title,_that.subtitle,
 @JsonSerializable()
 
 class _SnNotification implements SnNotification {
-  const _SnNotification({required this.createdAt, required this.id, required this.topic, required this.title, this.subtitle = '', required this.content, final  Map<String, dynamic> meta = const {}, required this.viewedAt, required this.accountId}): _meta = meta;
+  const _SnNotification({required this.createdAt, required this.id, required this.topic, required this.title, this.subtitle = '', @JsonKey(name: 'content') required this.body, final  Map<String, dynamic> meta = const {}, required this.viewedAt, required this.accountId}): _meta = meta;
   factory _SnNotification.fromJson(Map<String, dynamic> json) => _$SnNotificationFromJson(json);
 
 @override final  DateTime createdAt;
@@ -2445,7 +2445,7 @@ class _SnNotification implements SnNotification {
 @override final  String topic;
 @override final  String title;
 @override@JsonKey() final  String subtitle;
-@override final  String content;
+@override@JsonKey(name: 'content') final  String body;
  final  Map<String, dynamic> _meta;
 @override@JsonKey() Map<String, dynamic> get meta {
   if (_meta is EqualUnmodifiableMapView) return _meta;
@@ -2469,16 +2469,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotification&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnNotification&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.id, id) || other.id == id)&&(identical(other.topic, topic) || other.topic == topic)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.body, body) || other.body == body)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.viewedAt, viewedAt) || other.viewedAt == viewedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,id,topic,title,subtitle,content,const DeepCollectionEquality().hash(_meta),viewedAt,accountId);
+int get hashCode => Object.hash(runtimeType,createdAt,id,topic,title,subtitle,body,const DeepCollectionEquality().hash(_meta),viewedAt,accountId);
 
 @override
 String toString() {
-  return 'SnNotification(createdAt: $createdAt, id: $id, topic: $topic, title: $title, subtitle: $subtitle, content: $content, meta: $meta, viewedAt: $viewedAt, accountId: $accountId)';
+  return 'SnNotification(createdAt: $createdAt, id: $id, topic: $topic, title: $title, subtitle: $subtitle, body: $body, meta: $meta, viewedAt: $viewedAt, accountId: $accountId)';
 }
 
 
@@ -2489,7 +2489,7 @@ abstract mixin class _$SnNotificationCopyWith<$Res> implements $SnNotificationCo
   factory _$SnNotificationCopyWith(_SnNotification value, $Res Function(_SnNotification) _then) = __$SnNotificationCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime createdAt, String id, String topic, String title, String subtitle, String content, Map<String, dynamic> meta, DateTime? viewedAt, String accountId
+ DateTime createdAt, String id, String topic, String title, String subtitle,@JsonKey(name: 'content') String body, Map<String, dynamic> meta, DateTime? viewedAt, String accountId
 });
 
 
@@ -2506,14 +2506,14 @@ class __$SnNotificationCopyWithImpl<$Res>
 
 /// Create a copy of SnNotification
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? id = null,Object? topic = null,Object? title = null,Object? subtitle = null,Object? content = null,Object? meta = null,Object? viewedAt = freezed,Object? accountId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = null,Object? id = null,Object? topic = null,Object? title = null,Object? subtitle = null,Object? body = null,Object? meta = null,Object? viewedAt = freezed,Object? accountId = null,}) {
   return _then(_SnNotification(
 createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,topic: null == topic ? _self.topic : topic // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,subtitle: null == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
-as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
 as String,meta: null == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,viewedAt: freezed == viewedAt ? _self.viewedAt : viewedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable

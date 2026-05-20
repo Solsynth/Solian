@@ -283,7 +283,7 @@ _SnNotification _$SnNotificationFromJson(Map<String, dynamic> json) =>
       topic: json['topic'] as String,
       title: json['title'] as String,
       subtitle: json['subtitle'] as String? ?? '',
-      content: json['content'] as String,
+      body: json['content'] as String,
       meta: json['meta'] as Map<String, dynamic>? ?? const {},
       viewedAt: json['viewed_at'] == null
           ? null
@@ -298,7 +298,7 @@ Map<String, dynamic> _$SnNotificationToJson(_SnNotification instance) =>
       'topic': instance.topic,
       'title': instance.title,
       'subtitle': instance.subtitle,
-      'content': instance.content,
+      'content': instance.body,
       'meta': instance.meta,
       'viewed_at': instance.viewedAt?.toIso8601String(),
       'account_id': instance.accountId,
