@@ -12,7 +12,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 const _kScreenshotMainAttachmentMaxHeight = 220.0;
-const _kScreenshotVisibleMainAttachments = 2;
+const _kScreenshotVisibleMainAttachments = 3;
 
 class PostItemScreenshot extends ConsumerWidget {
   final SnPost item;
@@ -34,7 +34,6 @@ class PostItemScreenshot extends ConsumerWidget {
   Widget _buildScreenshotAttachments(
     BuildContext context,
     List<IDisplayableCloudFile> attachments, {
-    required double maxHeight,
     required int maxVisible,
     required EdgeInsets padding,
   }) {
@@ -49,25 +48,19 @@ class PostItemScreenshot extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...visibleAttachments.asMap().entries.map((entry) {
-            final index = entry.key;
             final file = entry.value;
-            final itemHeight = visibleAttachments.length == 1
-                ? maxHeight
-                : (maxHeight - ((visibleAttachments.length - 1) * 8)) /
-                      visibleAttachments.length;
 
             return Padding(
               padding: EdgeInsets.only(
-                bottom: index == visibleAttachments.length - 1 ? 0 : 8,
+                bottom: entry.key == visibleAttachments.length - 1 ? 0 : 8,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: itemHeight,
+                child: AspectRatio(
+                  aspectRatio: file.ratio?.toDouble() ?? 1,
                   child: CloudFileWidget(
                     item: file,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                     useInternalGate: false,
                   ),
                 ),
@@ -266,7 +259,6 @@ class PostItemScreenshot extends ConsumerWidget {
             _buildScreenshotAttachments(
               context,
               item.attachments,
-              maxHeight: _kScreenshotMainAttachmentMaxHeight,
               maxVisible: _kScreenshotVisibleMainAttachments,
               padding: EdgeInsets.only(
                 left: renderingPadding.horizontal,

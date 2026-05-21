@@ -40,6 +40,67 @@ String _convertContentToMarkdown(SnPost post) {
   return post.content ?? '';
 }
 
+IDisplayableCloudFile? _getThumbnailAttachment(SnPost post) {
+  final thumbnailId = post.meta?['thumbnail'] as String?;
+  if (thumbnailId == null) return null;
+  try {
+    return post.attachments.firstWhere((a) => a.id == thumbnailId);
+  } catch (_) {
+    return null;
+  }
+}
+
+Widget _buildArticlePreviewCard(BuildContext context, SnPost post) {
+  final thumbnail = _getThumbnailAttachment(post);
+
+  return Container(
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      border: Border.all(
+        color: Theme.of(context).dividerColor.withOpacity(0.5),
+      ),
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (thumbnail != null)
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            child: CloudFileWidget(item: thumbnail),
+          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Badge(
+                label: const Text('postArticle').tr(),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                textColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
+            const Gap(4),
+            if (post.title?.isNotEmpty ?? false)
+              Text(
+                post.title!,
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            if (post.description?.isNotEmpty ?? false)
+              Text(
+                post.description!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+          ],
+        ).padding(horizontal: 16, vertical: 12),
+      ],
+    ),
+  ).padding(top: 4);
+}
+
 class RepliesState {
   final List<ThreadedReplyNode> flatNodes;
   final Map<String, List<ThreadedReplyNode>> childrenByParentId;
@@ -912,6 +973,8 @@ class ReferencedPostWidget extends HookConsumerWidget {
     final isCollapsed = useState(false);
 
     Widget buildContent() {
+      final articlePost = referencePost;
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1006,18 +1069,6 @@ class ReferencedPostWidget extends HookConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Content
-                          if (referencePost.content?.isNotEmpty ?? false)
-                            MarkdownTextContent(
-                              content: _convertContentToMarkdown(referencePost),
-                              textStyle: const TextStyle(fontSize: 14),
-                              isSelectable: false,
-                              linesMargin: referencePost.type == 0
-                                  ? const EdgeInsets.only(bottom: 4)
-                                  : null,
-                              attachments: referencePost.attachments,
-                              noMentionChip: referencePost.fediverseUri != null,
-                            ).padding(top: 8),
                           if (referencePost.title?.isNotEmpty ?? false)
                             Text(
                               referencePost.title!,
@@ -1039,38 +1090,35 @@ class ReferencedPostWidget extends HookConsumerWidget {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ).padding(bottom: 4),
-                          if (referencePost.isTruncated)
-                            const PostTruncateHint(
-                              isCompact: true,
-                              margin: EdgeInsets.only(top: 4, bottom: 4),
-                            ),
-                          // Attachments indicator
-                          if (referencePost.attachments.isNotEmpty &&
-                              referencePost.type != 1)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Symbols.attach_file,
-                                  size: 12,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.secondary,
+                          if (articlePost != null && articlePost.type == 1)
+                            _buildArticlePreviewCard(context, articlePost)
+                          else ...[
+                            if (referencePost.content?.isNotEmpty ?? false)
+                              MarkdownTextContent(
+                                content: _convertContentToMarkdown(
+                                  referencePost,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'postHasAttachments'.plural(
-                                    referencePost.attachments.length,
-                                  ),
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.secondary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ).padding(top: 4),
+                                textStyle: const TextStyle(fontSize: 14),
+                                isSelectable: false,
+                                linesMargin: referencePost.type == 0
+                                    ? const EdgeInsets.only(bottom: 4)
+                                    : null,
+                                attachments: referencePost.attachments,
+                                noMentionChip: referencePost.fediverseUri != null,
+                              ).padding(top: 4),
+                            if (referencePost.isTruncated)
+                              const PostTruncateHint(
+                                isCompact: true,
+                                margin: EdgeInsets.only(top: 4, bottom: 4),
+                              ),
+                            if (referencePost.attachments.isNotEmpty)
+                              CloudFileList(
+                                files: referencePost.attachments,
+                                padding: const EdgeInsets.only(top: 8),
+                                maxHeight: 240,
+                                disableZoomIn: true,
+                              ),
+                          ],
                         ],
                       ),
                     ),
@@ -1594,15 +1642,7 @@ class PostBody extends ConsumerWidget {
       );
     }
 
-    IDisplayableCloudFile? getThumbnailAttachment() {
-      final thumbnailId = item.meta?['thumbnail'] as String?;
-      if (thumbnailId == null) return null;
-      try {
-        return item.attachments.firstWhere((a) => a.id == thumbnailId);
-      } catch (_) {
-        return null;
-      }
-    }
+    final thumbnailAttachment = _getThumbnailAttachment(item);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1625,12 +1665,12 @@ class PostBody extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (getThumbnailAttachment() != null)
+                if (thumbnailAttachment != null)
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(8),
                     ),
-                    child: CloudFileWidget(item: getThumbnailAttachment()!),
+                    child: CloudFileWidget(item: thumbnailAttachment),
                   ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
