@@ -11,6 +11,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_saver
   file_selector_windows
   firebase_core
+  flutter_blue_plus_winrt
   flutter_inappwebview_windows
   flutter_secure_storage_windows
   flutter_timezone
@@ -35,7 +36,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   super_native_extensions
   tray_manager
   url_launcher_windows
-  webcrypto
   window_manager
   windows_notification
 )

@@ -78,13 +78,13 @@ dependencies:
   image_picker_android: ^0.8.13+17
   super_context_menu: ^0.9.1
   modal_bottom_sheet: ^3.0.0
-  firebase_messaging: ^16.2.0
-  firebase_core: ^4.7.0
+  firebase_messaging: ^16.2.2
+  firebase_core: ^4.9.0
   web_socket_channel: ^3.0.3
   # https://github.com/timmaffett/material_symbols_icons/issues/46
   material_symbols_icons: 4.2906.0
-  objectbox: ^5.3.1
-  objectbox_flutter_libs: ^5.3.1
+  objectbox: ^5.3.2
+  objectbox_flutter_libs: ^5.3.2
   path: ^1.9.1
   open_file: ^3.5.11
   collection: ^1.19.1
@@ -119,7 +119,7 @@ dependencies:
   flutter_svg: ^2.3.0
   native_exif: ^0.8.0
   local_auth: ^3.0.1
-  flutter_secure_storage: ^10.1.0
+  flutter_secure_storage: ^10.2.0
   openmls: ^1.3.0
   flutter_math_fork: ^0.7.4
   flutter_nfc_kit: ^3.6.2
@@ -130,15 +130,15 @@ dependencies:
   html2md: ^1.3.2
   flutter_typeahead: ^5.2.0
   waveform_flutter: ^1.2.0
-  flutter_app_update: ^3.2.2
+  flutter_app_update: ^3.2.3
   archive: ^4.0.9
-  process_run: ^1.3.2
-  firebase_crashlytics: ^5.2.0
-  firebase_analytics: ^12.3.0
+  process_run: ^1.3.3+1
+  firebase_crashlytics: ^5.2.2
+  firebase_analytics: ^12.4.1
   material_color_utilities: ^0.13.0
   screenshot: ^3.0.0
   flutter_card_swiper: ^7.2.0
-  file_saver: ^0.3.1
+  file_saver: ^0.4.0
   tray_manager: ^0.5.2
   flutter_webrtc: ^1.2.1
   flutter_local_notifications: ^21.0.0
@@ -161,7 +161,7 @@ dependencies:
   pointycastle: ^4.0.0
   desktop_drop: ^0.7.1
   flutter_animate: ^4.5.2
-  flutter_blue_plus: ^2.3.2
+  flutter_blue_plus: ^2.3.3
   bluetooth_low_energy: ^6.2.1
   flutter_map: ^8.3.0
   geolocator: ^14.0.2
@@ -175,7 +175,7 @@ dependencies:
   permission_handler: ^12.0.1
   hotkey_manager: ^0.2.3
   shake: ^3.0.0
-  in_app_review: ^2.0.11
+  in_app_review: ^2.0.12
   snow_fall_animation: ^0.0.1+3
   video_thumbnail: ^0.5.6
   just_audio: ^0.10.5
@@ -205,7 +205,7 @@ dev_dependencies:
   freezed: ^3.2.5
   json_serializable: ^6.13.0
   riverpod_generator: ^4.0.3
-  objectbox_generator: ^5.3.1
+  objectbox_generator: ^5.3.2
   flutter_launcher_icons: ^0.14.4
   auto_route_generator: ^10.4.0
 
