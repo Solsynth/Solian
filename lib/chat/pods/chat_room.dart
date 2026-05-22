@@ -465,6 +465,46 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     await db.saveMessageWithSender(deletedMessage);
   }
 
+  Future<void> _applyMessageUpdateToTarget(
+    AppDatabase db,
+    SnChatMessage message,
+  ) async {
+    final targetId = message.meta['message_id']?.toString() ?? message.id;
+    final existingMsg = await _fetchMessageFromDb(
+      db,
+      targetId,
+      message.chatRoomId,
+    );
+
+    if (existingMsg == null) return;
+
+    final existingRemote = existingMsg.toRemoteMessage();
+    final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
+    mergedMeta.addAll(message.meta);
+    mergedMeta.remove('message_id');
+
+    final updatePayload = LocalChatMessage.fromRemoteMessage(
+      message,
+      MessageStatus.sent,
+    ).toRemoteMessage();
+
+    final updatedRemote = message.type == 'messages.update.links'
+        ? existingRemote.copyWith(meta: mergedMeta, editedAt: message.createdAt)
+        : existingRemote.copyWith(
+            content: updatePayload.content,
+            attachments: updatePayload.attachments,
+            membersMentioned: updatePayload.membersMentioned,
+            repliedMessageId: updatePayload.repliedMessageId,
+            forwardedMessageId: updatePayload.forwardedMessageId,
+            meta: mergedMeta,
+            editedAt: message.createdAt,
+          );
+
+    await db.saveMessageWithSender(
+      LocalChatMessage.fromRemoteMessage(updatedRemote, existingMsg.status),
+    );
+  }
+
   Map<String, int> _extractReactionsCount(LocalChatMessage message) {
     final raw = message.data['reactions_count'];
     if (raw is! Map) return {};
@@ -590,6 +630,8 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final snapshot = _extractReactionSnapshot(packet);
     final reactionsCount = snapshot ?? _extractReactionsCount(targetMessage);
     final reactionsMade = _extractReactionsMade(targetMessage);
+    final isCurrentUserReaction =
+        currentUserId != null && packet.sender.accountId == currentUserId;
 
     if (packet.type == 'messages.reaction.added') {
       final symbol =
@@ -601,7 +643,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       if (snapshot == null) {
         reactionsCount[symbol] = (reactionsCount[symbol] ?? 0) + 1;
       }
-      if (currentUserId != null && packet.senderId == currentUserId) {
+      if (isCurrentUserReaction) {
         reactionsMade[symbol] = true;
       }
     } else if (packet.type == 'messages.reaction.removed') {
@@ -619,7 +661,7 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           reactionsCount.remove(symbol);
         }
       }
-      if (currentUserId != null && packet.senderId == currentUserId) {
+      if (isCurrentUserReaction) {
         reactionsMade.remove(symbol);
       }
     }
@@ -851,8 +893,19 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
           // Save normal messages in one write transaction to avoid UI jank.
           final normalMessages = <LocalChatMessage>[];
+          final updateMessages = <SnChatMessage>[];
+          final deleteMessages = <SnChatMessage>[];
           final reactionMessages = <SnChatMessage>[];
           for (final msg in messages) {
+            if (msg.type == 'messages.update' ||
+                msg.type == 'messages.update.links') {
+              updateMessages.add(msg);
+              continue;
+            }
+            if (msg.type == 'messages.delete') {
+              deleteMessages.add(msg);
+              continue;
+            }
             if (msg.type == 'messages.reaction.added' ||
                 msg.type == 'messages.reaction.removed') {
               reactionMessages.add(msg);
@@ -888,24 +941,53 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             }
           }
 
+          for (final msg in updateMessages) {
+            try {
+              await db.saveMessageWithSender(
+                LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+              );
+              await _applyMessageUpdateToTarget(db, msg);
+              updatedRoomIds.add(msg.chatRoomId);
+              roundSynced += 1;
+              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
+              if (createdAtMs > roundMaxSeenTimestamp) {
+                roundMaxSeenTimestamp = createdAtMs;
+              }
+            } catch (e) {
+              Logger.root.info('Error applying message update from sync: $e');
+            }
+          }
+
+          for (final msg in deleteMessages) {
+            try {
+              await db.saveMessageWithSender(
+                LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
+              );
+              final targetId = msg.meta['message_id']?.toString() ?? msg.id;
+              await _markMessageAsDeleted(db, targetId, msg.chatRoomId);
+              updatedRoomIds.add(msg.chatRoomId);
+              roundSynced += 1;
+              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
+              if (createdAtMs > roundMaxSeenTimestamp) {
+                roundMaxSeenTimestamp = createdAtMs;
+              }
+            } catch (e) {
+              Logger.root.info('Error applying message delete from sync: $e');
+            }
+          }
+
           for (final msg in reactionMessages) {
             try {
-              final targetId = msg.meta['message_id']?.toString();
-              final existed = targetId == null || targetId.isEmpty
-                  ? null
-                  : await db.getMessageById(targetId);
-              if (existed == null) {
-                await _applyReactionUpdate(
-                  db,
-                  msg,
-                  currentUserId: currentUserId,
-                );
-              }
+              await _applyReactionUpdate(db, msg, currentUserId: currentUserId);
               await db.saveMessageWithSender(
                 LocalChatMessage.fromRemoteMessage(msg, MessageStatus.sent),
               );
               updatedRoomIds.add(msg.chatRoomId);
               roundSynced += 1;
+              final createdAtMs = msg.createdAt.millisecondsSinceEpoch;
+              if (createdAtMs > roundMaxSeenTimestamp) {
+                roundMaxSeenTimestamp = createdAtMs;
+              }
             } catch (e) {
               Logger.root.info('Error saving reaction from global sync: $e');
             }
