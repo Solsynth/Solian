@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:island/core/config.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -76,9 +77,7 @@ ThemeData createAppTheme(Brightness brightness, AppSettings settings) {
       outline: customColors.outline != null
           ? Color(customColors.outline!)
           : null,
-      shadow: customColors.shadow != null
-          ? Color(customColors.shadow!)
-          : null,
+      shadow: customColors.shadow != null ? Color(customColors.shadow!) : null,
       error: customColors.error != null ? Color(customColors.error!) : null,
     );
   }
