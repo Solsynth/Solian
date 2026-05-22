@@ -149,7 +149,7 @@ class UniversalVideoState extends ConsumerState<UniversalVideo> {
       aspectRatio: widget.aspectRatio != 1 ? widget.aspectRatio : null,
       fit: BoxFit.contain,
       controls: isMobile ? MaterialVideoControls : MaterialDesktopVideoControls,
-      fill: Colors.transparent,
+      fill: const Color.fromARGB(0, 0, 0, 0),
       filterQuality: FilterQuality.high,
     );
 
