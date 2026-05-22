@@ -24,7 +24,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   super_native_extensions
   tray_manager
   url_launcher_linux
-  webcrypto
   window_manager
 )
 

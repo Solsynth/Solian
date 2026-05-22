@@ -54,6 +54,7 @@ Widget _buildArticlePreviewCard(BuildContext context, SnPost post) {
   final thumbnail = _getThumbnailAttachment(post);
 
   return Container(
+    padding: const EdgeInsets.only(top: 4),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surfaceContainerHigh,
       border: Border.all(
@@ -85,9 +86,9 @@ Widget _buildArticlePreviewCard(BuildContext context, SnPost post) {
             if (post.title?.isNotEmpty ?? false)
               Text(
                 post.title!,
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
               ),
             if (post.description?.isNotEmpty ?? false)
               Text(
@@ -98,7 +99,7 @@ Widget _buildArticlePreviewCard(BuildContext context, SnPost post) {
         ).padding(horizontal: 16, vertical: 12),
       ],
     ),
-  ).padding(top: 4);
+  );
 }
 
 class RepliesState {
@@ -1104,7 +1105,8 @@ class ReferencedPostWidget extends HookConsumerWidget {
                                     ? const EdgeInsets.only(bottom: 4)
                                     : null,
                                 attachments: referencePost.attachments,
-                                noMentionChip: referencePost.fediverseUri != null,
+                                noMentionChip:
+                                    referencePost.fediverseUri != null,
                               ).padding(top: 4),
                             if (referencePost.isTruncated)
                               const PostTruncateHint(
