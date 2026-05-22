@@ -281,8 +281,9 @@ class RealtimeMessageHandler {
         madeSnapshot ?? _extractExistingReactionsMade(existing);
     final symbol = _extractReactionSymbol(remoteMessage);
     final currentUserId = _ref.read(userInfoProvider).value?.id;
+    final reactionSenderAccountId = remoteMessage.sender.accountId;
     final isCurrentUserReaction =
-        currentUserId != null && remoteMessage.senderId == currentUserId;
+        currentUserId != null && reactionSenderAccountId == currentUserId;
 
     if (countSnapshot == null) {
       if (symbol == null || symbol.isEmpty) return;
