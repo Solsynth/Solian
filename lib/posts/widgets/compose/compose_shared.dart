@@ -732,7 +732,11 @@ class ComposeLogic {
     final attachment = state.attachments.value[index];
     if (attachment.isOnCloud && !attachment.isLink) {
       final client = ref.watch(solarNetworkClientProvider);
-      await client.drive.deleteFile(attachment.data.id);
+      try {
+        await client.drive.deleteFile(attachment.data.id);
+      } catch (e) {
+        // Silently fail, we will attempt to delete the cloud file again on upload if it still exists
+      }
     }
     final clone = List.of(state.attachments.value);
     clone.removeAt(index);

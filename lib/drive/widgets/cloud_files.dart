@@ -11,6 +11,7 @@ import 'package:island/core/services/time.dart';
 import 'package:island/core/utils/format.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/route.gr.dart';
+import 'package:island/shared/widgets/content/audio.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:island/core/widgets/content/profile_decoration.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -47,32 +48,34 @@ class CloudFileWidget extends HookConsumerWidget {
 
     final meta = item.fileMeta as Map;
     final rawE2eeMeta = meta['e2ee'];
-    final e2eeMeta = rawE2eeMeta is Map ? Map<String, dynamic>.from(rawE2eeMeta) : <String, dynamic>{};
+    final e2eeMeta = rawE2eeMeta is Map
+        ? Map<String, dynamic>.from(rawE2eeMeta)
+        : <String, dynamic>{};
     final isEncrypted = e2eeMeta['scheme']?.toString().isNotEmpty == true;
     final e2eeScheme = e2eeMeta['scheme']?.toString();
     final blurHash = noBlurhash ? null : item.blurhash;
     var ratio = item.ratio ?? 1.0;
     if (ratio == 0) ratio = 1.0;
 
-Widget cloudImage() =>
+    Widget cloudImage() =>
         UniversalImage(uri: uri, blurHash: blurHash, fit: fit);
-    Widget cloudVideo() {
-      if (item is SnCloudFile) {
-        return CloudVideoWidget(item: item as SnCloudFile);
-      }
-      return const SizedBox();
-    }
+    Widget cloudVideo() => CloudVideoWidget(item: item);
+
+    Widget cloudAudio() => UniversalAudio(uri: uri, filename: item.name);
 
     Widget dataPlaceHolder(IconData icon) => _DataSavingPlaceholder(
-          icon: icon,
-          onTap: () {
-            unlocked.value = true;
-          },
-        );
+      icon: icon,
+      onTap: () {
+        unlocked.value = true;
+      },
+    );
 
     if (isEncrypted) {
       if (item is SnCloudFile) {
-        return _EncryptedFileCard(item: item as SnCloudFile, scheme: e2eeScheme);
+        return _EncryptedFileCard(
+          item: item as SnCloudFile,
+          scheme: e2eeScheme,
+        );
       }
       return const SizedBox();
     }
@@ -189,11 +192,11 @@ Widget cloudImage() =>
             : cloudVideo(),
       ),
       'audio' => () {
-          if (item is SnCloudFile) {
-            return AudioFileContent(item: item as SnCloudFile, uri: uri);
-          }
-          return const SizedBox();
-        }(),
+        if (useInternalGate && dataSaving && !unlocked.value) {
+          return dataPlaceHolder(Symbols.audio_file);
+        }
+        return cloudAudio();
+      }(),
       _ => Builder(
         builder: (context) {
           return Container(
@@ -316,7 +319,7 @@ class _EncryptedFileCard extends ConsumerWidget {
               ),
               TextButton.icon(
                 onPressed: () {
-                   context.router.push(FileDetailRoute(id: item.id));
+                  context.router.push(FileDetailRoute(id: item.id));
                 },
                 icon: const Icon(Symbols.info),
                 label: Text('info').tr(),
@@ -363,25 +366,59 @@ class _DataSavingPlaceholder extends StatelessWidget {
 }
 
 class CloudVideoWidget extends HookConsumerWidget {
-  final SnCloudFile item;
+  final IDisplayableCloudFile item;
   const CloudVideoWidget({super.key, required this.item});
+
+  Duration? _parseDuration(Map<String, dynamic> formatMeta) {
+    final rawDuration = formatMeta['duration'];
+    final seconds = rawDuration is num
+        ? rawDuration.toDouble()
+        : double.tryParse(rawDuration?.toString() ?? '');
+    if (seconds == null || seconds <= 0) return null;
+    return Duration(milliseconds: (seconds * 1000).round());
+  }
+
+  String? _formatBitrate(Map<String, dynamic> formatMeta) {
+    final rawBitrate = formatMeta['bit_rate'];
+    final bitrate = rawBitrate is num
+        ? rawBitrate.toInt()
+        : int.tryParse(rawBitrate?.toString() ?? '');
+    if (bitrate == null || bitrate <= 0) return null;
+    return '${(bitrate / 1000).round()} Kbps';
+  }
+
+  String? _formatResolution(Map<String, dynamic> rootMeta) {
+    final width = rootMeta['width'];
+    final height = rootMeta['height'];
+    final parsedWidth = width is num
+        ? width.toInt()
+        : int.tryParse(width?.toString() ?? '');
+    final parsedHeight = height is num
+        ? height.toInt()
+        : int.tryParse(height?.toString() ?? '');
+    if (parsedWidth == null ||
+        parsedHeight == null ||
+        parsedWidth <= 0 ||
+        parsedHeight <= 0) {
+      return null;
+    }
+    return '$parsedWidth×$parsedHeight';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (DriveE2eeFileEnvelope.isEncryptedFile(item)) {
-      return _EncryptedFileCard(
-        item: item,
-        scheme: ((item.fileMeta as Map)['e2ee'] is Map)
-            ? ((item.fileMeta as Map)['e2ee'] as Map)['scheme']?.toString()
-            : null,
-      );
-    }
-
     final serverUrl = ref.watch(serverUrlProvider);
-    final uri = '$serverUrl/drive/files/${item.id}';
-
-    var ratio = item.ratio ?? 1.0;
-    if (ratio == 0) ratio = 1.0;
+    final uri = item.storageUrl ?? '$serverUrl/drive/files/${item.id}';
+    final rootMeta = Map<String, dynamic>.from(item.fileMeta as Map);
+    final mediaMeta = rootMeta['media'] is Map
+        ? Map<String, dynamic>.from(rootMeta['media'] as Map)
+        : <String, dynamic>{};
+    final formatMeta = mediaMeta['format'] is Map
+        ? Map<String, dynamic>.from(mediaMeta['format'] as Map)
+        : <String, dynamic>{};
+    final duration = _parseDuration(formatMeta);
+    final bitrate = _formatBitrate(formatMeta);
+    final resolution = _formatResolution(rootMeta);
 
     return GestureDetector(
       child: Stack(
@@ -437,13 +474,9 @@ class CloudVideoWidget extends HookConsumerWidget {
                 Wrap(
                   spacing: 8,
                   children: [
-                    if (item.fileMeta['duration'] != null)
+                    if (resolution != null)
                       Text(
-                        Duration(
-                          milliseconds:
-                              ((item.fileMeta['duration'] as num) * 1000)
-                                  .toInt(),
-                        ).formatDuration(),
+                        resolution,
                         style: TextStyle(
                           color: Colors.white,
                           shadows: [
@@ -456,9 +489,9 @@ class CloudVideoWidget extends HookConsumerWidget {
                           ],
                         ),
                       ),
-                    if (item.fileMeta['bit_rate'] != null)
+                    if (duration != null)
                       Text(
-                        '${int.parse(item.fileMeta['bit_rate'] as String) ~/ 1000} Kbps',
+                        duration.formatDuration(),
                         style: TextStyle(
                           color: Colors.white,
                           shadows: [
@@ -471,6 +504,8 @@ class CloudVideoWidget extends HookConsumerWidget {
                           ],
                         ),
                       ),
+                    if (bitrate != null)
+                      Text(bitrate, style: _videoMetaStyle()),
                   ],
                 ),
                 Text(
@@ -496,10 +531,22 @@ class CloudVideoWidget extends HookConsumerWidget {
         ],
       ),
       onTap: () {
-         context.router.push(FileDetailRoute(id: item.id));
+        context.router.push(FileDetailRoute(id: item.id));
       },
     );
   }
+
+  TextStyle _videoMetaStyle() => const TextStyle(
+    color: Colors.white,
+    shadows: [
+      BoxShadow(
+        color: Colors.black54,
+        offset: Offset(1, 1),
+        spreadRadius: 8,
+        blurRadius: 8,
+      ),
+    ],
+  );
 }
 
 class CloudImageWidget extends ConsumerWidget {

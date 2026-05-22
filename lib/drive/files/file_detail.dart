@@ -92,69 +92,72 @@ class FileDetailScreen extends HookConsumerWidget {
       }
     }
 
-    return AppScaffold(
-      isNoBackground: true,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        flexibleSpace: _buildBackground(file, serverUrl),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(file.name.isEmpty ? 'File Details' : file.name,
-            style: const TextStyle(color: Colors.white)),
-        actions: _buildAppBarActions(context, ref, file, showInfoSheet),
-      ),
-      body: Container(
-        color: Colors.black,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return AnimatedBuilder(
-              animation: animation,
-              builder: (context, child) {
-                return Stack(
-                  children: [
-                    // Main content area - resizes with animation
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: constraints.maxWidth - animation.value * 400,
-                      child: _buildContent(context, ref, serverUrl, file),
-                    ),
-                    // Animated drawer panel - overlays
-                    if (isWide)
+    return Stack(
+      children: [
+        _buildBackground(file, serverUrl),
+        AppScaffold(
+          isNoBackground: true,
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text(
+              file.name.isEmpty ? 'File Details' : file.name,
+              style: const TextStyle(color: Colors.white),
+            ),
+            actions: _buildAppBarActions(context, ref, file, showInfoSheet),
+          ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return AnimatedBuilder(
+                animation: animation,
+                builder: (context, child) {
+                  return Stack(
+                    children: [
+                      // Main content area - resizes with animation
                       Positioned(
-                        right: 0,
+                        left: 0,
                         top: 0,
                         bottom: 0,
-                        width: 400,
-                        child: Transform.translate(
-                          offset: Offset((1 - animation.value) * 400, 0),
-                          child: SizedBox(
-                            width: 400,
-                            child: Material(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainer,
-                              elevation: 8,
-                              child: FileInfoSheet(
-                                item: file,
-                                onClose: showInfoSheet,
+                        width: constraints.maxWidth - animation.value * 400,
+                        child: _buildContent(context, ref, serverUrl, file),
+                      ),
+                      // Animated drawer panel - overlays
+                      if (isWide)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 400,
+                          child: Transform.translate(
+                            offset: Offset((1 - animation.value) * 400, 0),
+                            child: SizedBox(
+                              width: 400,
+                              child: Material(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainer,
+                                elevation: 8,
+                                child: FileInfoSheet(
+                                  item: file,
+                                  onClose: showInfoSheet,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                );
-              },
-            );
-          },
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 
