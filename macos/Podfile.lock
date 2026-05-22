@@ -1,6 +1,4 @@
 PODS:
-  - file_saver (0.0.1):
-    - FlutterMacOS
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
     - OrderedSet (~> 6.0.3)
@@ -24,10 +22,10 @@ PODS:
     - FlutterMacOS
   - media_kit_video (0.0.1):
     - FlutterMacOS
-  - ObjectBox (5.3.0-beta.4)
+  - ObjectBox (5.3.0)
   - objectbox_flutter_libs (0.0.1):
     - FlutterMacOS
-    - ObjectBox (= 5.3.0-beta.4)
+    - ObjectBox (= 5.3.0)
   - OrderedSet (6.0.3)
   - pro_image_editor (12.0.8):
     - FlutterMacOS
@@ -41,13 +39,9 @@ PODS:
     - FlutterMacOS
   - ua_client_hints (1.7.0):
     - FlutterMacOS
-  - webcrypto (0.1.1):
-    - Flutter
-    - FlutterMacOS
   - WebRTC-SDK (137.7151.04)
 
 DEPENDENCIES:
-  - file_saver (from `Flutter/ephemeral/.symlinks/plugins/file_saver/macos`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_tts (from `Flutter/ephemeral/.symlinks/plugins/flutter_tts/macos`)
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
@@ -64,7 +58,6 @@ DEPENDENCIES:
   - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
   - ua_client_hints (from `Flutter/ephemeral/.symlinks/plugins/ua_client_hints/macos`)
-  - webcrypto (from `Flutter/ephemeral/.symlinks/plugins/webcrypto/darwin`)
 
 SPEC REPOS:
   trunk:
@@ -74,8 +67,6 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
-  file_saver:
-    :path: Flutter/ephemeral/.symlinks/plugins/file_saver/macos
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_tts:
@@ -108,11 +99,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/tray_manager/macos
   ua_client_hints:
     :path: Flutter/ephemeral/.symlinks/plugins/ua_client_hints/macos
-  webcrypto:
-    :path: Flutter/ephemeral/.symlinks/plugins/webcrypto/darwin
 
 SPEC CHECKSUMS:
-  file_saver: e35bd97de451dde55ff8c38862ed7ad0f3418d0f
   flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   flutter_tts: ae915565cc6948444b513acc8ee021993281e027
   flutter_webrtc: 718eae22a371cd94e5d56aa4f301443ebc5bb737
@@ -123,8 +111,8 @@ SPEC CHECKSUMS:
   livekit_client: 3df5a1787d64010ca56c4002959d9e47c03ba3fb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
-  ObjectBox: eccb95ea2054c39d81dfa2d4ccc5f1e31187228a
-  objectbox_flutter_libs: 3adf97321750a5e89c199bda09d3c0ce659022d8
+  ObjectBox: 2aae8ad350012cb53c6e7848064307cf68617f73
+  objectbox_flutter_libs: c6ec3df598aa194da1cdf929fc9640bbc8f58be1
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   pro_image_editor: e4f2ca0bcf5d755d81620d531b00e0906ccaa0ae
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
@@ -132,7 +120,6 @@ SPEC CHECKSUMS:
   super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
   tray_manager: a104b5c81b578d83f3c3d0f40a997c8b10810166
   ua_client_hints: bb84da85d9d5d605d40598b3c1ae3bfd2598e201
-  webcrypto: a5f5eb3e375cf0a99993e207e97cdcab5c94ce2e
   WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 
 PODFILE CHECKSUM: bac2186806ea901d391c664c7bfc8ccce0ee7cb7
