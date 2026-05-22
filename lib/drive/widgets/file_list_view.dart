@@ -911,7 +911,7 @@ class FileListView extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                if (actions != null) ...actions,
+                ...?actions,
               ],
             ).padding(horizontal: 16, vertical: 4),
           ],

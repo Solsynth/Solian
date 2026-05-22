@@ -11,7 +11,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-const _kScreenshotMainAttachmentMaxHeight = 220.0;
 const _kScreenshotVisibleMainAttachments = 3;
 
 class PostItemScreenshot extends ConsumerWidget {

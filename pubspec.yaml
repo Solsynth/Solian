@@ -81,8 +81,7 @@ dependencies:
   firebase_messaging: ^16.2.2
   firebase_core: ^4.9.0
   web_socket_channel: ^3.0.3
-  # https://github.com/timmaffett/material_symbols_icons/issues/46
-  material_symbols_icons: 4.2906.0
+  material_symbols_icons: ^4.2928.1
   objectbox: ^5.3.2
   objectbox_flutter_libs: ^5.3.2
   path: ^1.9.1
@@ -101,6 +100,7 @@ dependencies:
   flutter_native_splash: ^2.4.7
   photo_view: ^0.15.0
   gal: ^2.3.2
+
   dismissible_page: ^1.0.2
   super_sliver_list: ^0.4.1
   livekit_client: ^2.5.4
