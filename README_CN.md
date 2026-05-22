@@ -160,6 +160,31 @@ Solar Network 的后端服务位于：
 - [建议新功能](https://github.com/Solsynth/HyperNet.Surface/discussions)
 - [参与应用翻译](https://crowdin.com/project/solian)
 
+## 许可协议
+
+本项目采用 GNU Affero 通用公共许可证 v3.0（AGPL-3.0）授权。
+如果您部署 DysonNetwork 实例、分支 Island 项目，或重新分发本软件的修改版本，则必须遵守 AGPL-3.0 许可条款，包括：
+
+- 包含原始许可协议的副本
+- 保留现有的版权声明和署名
+- 明确说明您所做的任何修改
+- 向通过网络与服务交互的用户提供相应的源代码（包括提供 API）
+
+在适用情况下，必须保留归属于 LittleSheep、Solsynth 以及本仓库贡献者的原始作者身份和版权归属。
+
+请注意，AGPL-3.0 许可仅适用于软件源代码。某些资产、徽标、图标、品牌材料和商标可能单独授权，并不自动受相同条款约束。
+
+第三方部署、分支及衍生服务不得冒充或自称是 Solsynth 运营的官方 Solar Network 服务。
+未经 Solsynth 事先许可，不得将“Solar Network”、“Solian”名称、相关徽标及相关品牌标识用于推广、宣传或标识第三方部署。
+出于描述或兼容性目的，允许提及底层的 DysonNetwork 软件或 Island 项目。
+
+同时，如果你的分支项目的目的是第三方 Solar Network 客户端，请阅读并同意 [Solar Network 开发者协议](https://solsynth.dev/zh/legal/solar-network-dev/)
+
+参见：
+
+- [LICENSE.txt](./LICENSE.txt)
+- [assets/LICENSE.md](./assets/icons/LICENSE.md)（如适用）
+
 ---
 
 <p align="center">
