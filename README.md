@@ -158,6 +158,35 @@ We welcome contributions! Please read our [Code of Conduct](./CODE_OF_CONDUCT.md
 - [Suggest features](https://github.com/Solsynth/HyperNet.Surface/discussions)
 - [Translate the app](https://crowdin.com/project/solian)
 
+## Licensing
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+
+If you deploy an instance of DysonNetwork, fork the Island project, or redistribute modified versions of this software, you must comply with the AGPL-3.0 license terms, including:
+
+- Including a copy of the original license
+- Preserving existing copyright notices and attribution
+- Clearly stating any modifications you made
+- Providing corresponding source code to users interacting with the service over a network
+
+Original authorship and copyright attribution to LittleSheep, Solsynth, and this repository’s contributors must be retained where applicable.
+
+Please note that the AGPL-3.0 license applies to the software source code only. Certain assets, logos, icons, branding materials, and trademarks may be licensed separately and are not automatically covered under the same terms.
+
+Third-party deployments, forks, and derivative services must not impersonate or present themselves as the official Solar Network service operated by Solsynth.
+
+The names “Solar Network”, “Solian”, related logos, and associated branding may not be used to market, advertise, or identify third-party deployments without prior permission from Solsynth.
+
+References to the underlying DysonNetwork software or the Island project for descriptive or compatibility purposes are permitted.
+
+Besides, if your fork project is an 3rd party client of the Solar Network,
+make sure you've read and understand the [Solar Network Developer Agreement](https://solsynth.dev/en/legal/solar-network-dev/)
+
+See:
+
+- [LICENSE.txt](./LICENSE.txt)
+- [assets/LICENSE.md](./assets/icons/LICENSE.md) (if applicable)
+
 ---
 
 <p align="center">
