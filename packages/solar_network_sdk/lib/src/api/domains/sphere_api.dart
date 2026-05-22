@@ -285,7 +285,7 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/posts',
-      data: {'content': content, if (metadata != null) ...metadata},
+      data: {'content': content, ...?metadata},
     );
     return SnPost.fromJson(response.data!);
   }
@@ -566,7 +566,7 @@ class SphereApi extends BaseApi {
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/publishers',
-      data: {'name': name, if (metadata != null) ...metadata},
+      data: {'name': name, ...?metadata},
     );
     return SnPublisher.fromJson(response.data!);
   }
