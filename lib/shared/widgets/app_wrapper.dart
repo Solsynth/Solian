@@ -15,6 +15,7 @@ import 'package:island/accounts/progression_ws.dart';
 import 'package:island/accounts/pods/friend_status_listener.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/core/services/deeplink_service.dart';
+import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/notifications/notification.dart';
 import 'package:island/posts/widgets/compose/compose_dialog.dart';
@@ -75,6 +76,11 @@ class AppWrapper extends HookConsumerWidget {
 
     useEffect(() {
       ref.read(friendStatusListenerProvider);
+      return null;
+    }, []);
+
+    useEffect(() {
+      ref.read(desktopPresenceProvider);
       return null;
     }, []);
 
