@@ -171,7 +171,7 @@ class FileInfoSheet extends ConsumerWidget {
               ),
               ListTile(
                 leading: const Icon(Symbols.folder_copy),
-                title: const Text('children'),
+                title: const Text('children').tr(),
                 subtitle: Text(childrenCount.toString()),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12),
               ),

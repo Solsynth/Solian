@@ -1638,6 +1638,25 @@
   "restricted": "Restricted",
   "saveToGallery": "Save to Gallery",
   "downloadAndSaveToDevice": "Download and save to your device",
+  "selectDownloadFolder": "Select download folder",
+  "savingImage": "Saving image...",
+  "downloadingFile": "Downloading file...",
+  "downloadingFiles": {
+    "one": "Downloading {} file...",
+    "other": "Downloading {} files..."
+  },
+  "fileSaved": "File saved",
+  "fileSavedToDownloads": "File saved to downloads",
+  "imageSaved": "Image saved",
+  "imageSavedToGallery": "Image saved to gallery",
+  "downloadedFiles": {
+    "one": "Downloaded {} file",
+    "other": "Downloaded {} files"
+  },
+  "downloadedFilesFailed": {
+    "one": "Downloaded {} file, {} failed",
+    "other": "Downloaded {} files, {} failed"
+  },
   "shareFileLink": "Share the file link",
   "viewFileDetails": "View file details and metadata",
   "openFileInWebBrowser": "Open file in web browser",
