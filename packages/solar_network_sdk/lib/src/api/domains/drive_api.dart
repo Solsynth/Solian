@@ -145,11 +145,8 @@ class DriveApi extends BaseApi {
   }
 
   /// Permanently deletes a file. Owner only.
-  Future<SnCloudFile> deleteFile(String fileId) async {
-    final response = await delete<Map<String, dynamic>>(
-      '$_basePath/files/$fileId',
-    );
-    return SnCloudFile.fromJson(response.data!);
+  Future<void> deleteFile(String fileId) async {
+    await delete<Map<String, dynamic>>('$_basePath/files/$fileId');
   }
 
   /// Deletes multiple files at once. Owner only.

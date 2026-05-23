@@ -7,9 +7,11 @@ import 'package:convert/convert.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
@@ -20,13 +22,13 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:mime/mime.dart';
 import 'package:native_exif/native_exif.dart';
-import 'package:path/path.dart' show extension;
 import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:path/path.dart' show extension, join;
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'drive_service.g.dart';
@@ -1510,7 +1512,7 @@ class FileUploader {
   }
 
   /// Permanently deletes a file. Owner only.
-  Future<SnCloudFile> deleteFile(String fileId) {
+  Future<void> deleteFile(String fileId) {
     return _driveApi.deleteFile(fileId);
   }
 
@@ -1611,63 +1613,211 @@ class FileDownloadService {
     return null;
   }
 
-  Future<String> _downloadToTemp(SnCloudFile item, String extName) async {
+  Future<({String filePath, int bytes})> _downloadToTemp(
+    SnCloudFile item,
+    String extName, {
+    void Function(int received, int total)? onProgress,
+  }) async {
     final cachedPath = await _getCachedOriginalFile(item);
-    if (cachedPath != null) {
-      final tempDir = await getTemporaryDirectory();
-      final filePath = '${tempDir.path}/${item.id}.$extName';
-      await File(cachedPath).copy(filePath);
-      await _tryDecryptDownloadedFile(filePath, item);
-      return filePath;
-    }
-
     final tempDir = await getTemporaryDirectory();
     final filePath = '${tempDir.path}/${item.id}.$extName';
+
+    if (cachedPath != null) {
+      await File(cachedPath).copy(filePath);
+      final cachedBytes = await File(filePath).length();
+      onProgress?.call(cachedBytes, cachedBytes);
+      await _tryDecryptDownloadedFile(filePath, item);
+      final bytes = await File(filePath).length();
+      return (filePath: filePath, bytes: bytes);
+    }
 
     await _driveApi.downloadFile(
       fileId: item.id,
       savePath: filePath,
       original: true,
+      onReceiveProgress: onProgress,
     );
     await _tryDecryptDownloadedFile(filePath, item);
+    final bytes = await File(filePath).length();
 
+    return (filePath: filePath, bytes: bytes);
+  }
+
+  bool get _isDesktop =>
+      !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+
+  Future<String?> _resolveDownloadDirectory({
+    required bool useDownloadsFolder,
+  }) async {
+    if (_isDesktop && useDownloadsFolder) {
+      final downloadsDir = await getDownloadsDirectory();
+      if (downloadsDir != null) {
+        return downloadsDir.path;
+      }
+    }
+
+    if (_isDesktop) {
+      return FilePicker.getDirectoryPath(
+        dialogTitle: 'selectDownloadFolder'.tr(),
+      );
+    }
+
+    return null;
+  }
+
+  Future<String> _saveTempFileToDirectory(
+    String tempFilePath,
+    SnCloudFile item,
+    String extName, {
+    required String directoryPath,
+  }) async {
+    final filePath = join(directoryPath, _getFileName(item, extName));
+    await File(tempFilePath).copy(filePath);
     return filePath;
   }
 
-  Future<void> saveToGallery(SnCloudFile item) async {
+  Future<String?> _persistDownloadedFile(
+    SnCloudFile item,
+    String tempFilePath,
+    String extName, {
+    required bool useDownloadsFolder,
+  }) async {
+    if (_isDesktop) {
+      final directory = await _resolveDownloadDirectory(
+        useDownloadsFolder: useDownloadsFolder,
+      );
+      if (directory == null) return null;
+      return _saveTempFileToDirectory(
+        tempFilePath,
+        item,
+        extName,
+        directoryPath: directory,
+      );
+    }
+
+    await FileSaver.instance.saveFile(
+      name: _getFileName(item, extName),
+      file: File(tempFilePath),
+    );
+    return null;
+  }
+
+  Future<void> saveToGallery(
+    SnCloudFile item, {
+    bool useDownloadsFolder = false,
+  }) async {
     try {
-      showSnackBar('Saving image...');
+      showSnackBar('savingImage'.tr());
 
       final extName = _getFileExtension(item);
-      final filePath = await _downloadToTemp(item, extName);
+      final downloaded = await _downloadToTemp(item, extName);
 
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        await Gal.putImage(filePath, album: 'Solar Network');
-        showSnackBar('Image saved to gallery');
+        await Gal.putImage(downloaded.filePath, album: 'Solar Network');
+        showSnackBar('imageSavedToGallery'.tr());
       } else {
-        await FileSaver.instance.saveFile(
-          name: _getFileName(item, extName),
-          file: File(filePath),
+        final savedPath = await _persistDownloadedFile(
+          item,
+          downloaded.filePath,
+          extName,
+          useDownloadsFolder: useDownloadsFolder,
         );
-        showSnackBar('Image saved to downloads');
+        if (savedPath != null) {
+          showSnackBar('imageSaved'.tr());
+        }
       }
     } catch (e) {
       showErrorAlert(e);
     }
   }
 
-  Future<void> downloadFile(SnCloudFile item) async {
+  Future<void> downloadFile(
+    SnCloudFile item, {
+    bool useDownloadsFolder = false,
+  }) async {
+    await downloadWithProgress(item, useDownloadsFolder: useDownloadsFolder);
+  }
+
+  Future<void> downloadFiles(
+    List<SnCloudFile> items, {
+    bool useDownloadsFolder = false,
+  }) async {
+    if (items.isEmpty) return;
+
     try {
-      showSnackBar('Downloading file...');
-
-      final extName = _getFileExtension(item);
-      final filePath = await _downloadToTemp(item, extName);
-
-      await FileSaver.instance.saveFile(
-        name: _getFileName(item, extName),
-        file: File(filePath),
+      final directoryPath = await _resolveDownloadDirectory(
+        useDownloadsFolder: useDownloadsFolder,
       );
-      showSnackBar('File saved to downloads');
+      if (_isDesktop && directoryPath == null) {
+        return;
+      }
+
+      showSnackBar('downloadingFiles'.plural(items.length));
+
+      final taskNotifier = ref.read(uploadTasksProvider.notifier);
+      var completed = 0;
+      var failed = 0;
+
+      for (final item in items) {
+        final taskId = taskNotifier.addLocalDownloadTask(item);
+        try {
+          final extName = _getFileExtension(item);
+          final downloaded = await _downloadToTemp(
+            item,
+            extName,
+            onProgress: (received, total) {
+              if (total > 0) {
+                taskNotifier.updateDownloadProgress(taskId, received, total);
+                taskNotifier.updateTransmissionProgress(
+                  taskId,
+                  received / total,
+                );
+              }
+            },
+          );
+
+          if (_isDesktop) {
+            await _saveTempFileToDirectory(
+              downloaded.filePath,
+              item,
+              extName,
+              directoryPath: directoryPath!,
+            );
+          } else {
+            await FileSaver.instance.saveFile(
+              name: _getFileName(item, extName),
+              file: File(downloaded.filePath),
+            );
+          }
+          taskNotifier.updateDownloadProgress(
+            taskId,
+            downloaded.bytes,
+            downloaded.bytes,
+          );
+          taskNotifier.updateTaskStatus(taskId, DriveTaskStatus.completed);
+          completed++;
+        } catch (e) {
+          failed++;
+          taskNotifier.updateTaskStatus(
+            taskId,
+            DriveTaskStatus.failed,
+            errorMessage: e.toString(),
+          );
+        }
+      }
+
+      if (failed > 0) {
+        showSnackBar(
+          'downloadedFilesFailed'.plural(
+            completed,
+            args: [completed.toString(), failed.toString()],
+          ),
+        );
+      } else {
+        showSnackBar(
+          'downloadedFiles'.plural(completed, args: [completed.toString()]),
+        );
+      }
     } catch (e) {
       showErrorAlert(e);
     }
@@ -1675,44 +1825,63 @@ class FileDownloadService {
 
   Future<void> downloadWithProgress(
     SnCloudFile item, {
+    bool useDownloadsFolder = false,
     void Function(int received, int total)? onProgress,
   }) async {
     final taskNotifier = ref.read(uploadTasksProvider.notifier);
-    final taskId = taskNotifier.addLocalDownloadTask(item);
+    String? taskId;
 
     try {
-      showSnackBar('Downloading file...');
-
       final extName = _getFileExtension(item);
-      final tempDir = await getTemporaryDirectory();
-      final filePath = '${tempDir.path}/${item.id}.$extName';
+      final directoryPath = await _resolveDownloadDirectory(
+        useDownloadsFolder: useDownloadsFolder,
+      );
+      if (_isDesktop && directoryPath == null) {
+        return;
+      }
 
-      await _driveApi.downloadFile(
-        fileId: item.id,
-        savePath: filePath,
-        original: true,
-        onReceiveProgress: (count, total) {
+      taskId = taskNotifier.addLocalDownloadTask(item);
+      showSnackBar('downloadingFile'.tr());
+      final downloaded = await _downloadToTemp(
+        item,
+        extName,
+        onProgress: (count, total) {
           onProgress?.call(count, total);
-          if (total > 0) {
+          if (total > 0 && taskId != null) {
             taskNotifier.updateDownloadProgress(taskId, count, total);
             taskNotifier.updateTransmissionProgress(taskId, count / total);
           }
         },
       );
-      await _tryDecryptDownloadedFile(filePath, item);
 
-      await FileSaver.instance.saveFile(
-        name: _getFileName(item, extName),
-        file: File(filePath),
+      if (_isDesktop) {
+        await _saveTempFileToDirectory(
+          downloaded.filePath,
+          item,
+          extName,
+          directoryPath: directoryPath!,
+        );
+      } else {
+        await FileSaver.instance.saveFile(
+          name: _getFileName(item, extName),
+          file: File(downloaded.filePath),
+        );
+      }
+      taskNotifier.updateDownloadProgress(
+        taskId,
+        downloaded.bytes,
+        downloaded.bytes,
       );
       taskNotifier.updateTaskStatus(taskId, DriveTaskStatus.completed);
-      showSnackBar('File saved to downloads');
+      showSnackBar(_isDesktop ? 'fileSaved'.tr() : 'fileSavedToDownloads'.tr());
     } catch (e) {
-      taskNotifier.updateTaskStatus(
-        taskId,
-        DriveTaskStatus.failed,
-        errorMessage: e.toString(),
-      );
+      if (taskId != null) {
+        taskNotifier.updateTaskStatus(
+          taskId,
+          DriveTaskStatus.failed,
+          errorMessage: e.toString(),
+        );
+      }
       showErrorAlert(e);
     }
   }

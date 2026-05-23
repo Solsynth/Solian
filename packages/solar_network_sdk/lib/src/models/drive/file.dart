@@ -128,6 +128,7 @@ sealed class SnCloudFile with _$SnCloudFile implements IDisplayableCloudFile {
     @Default([]) List<int> sensitiveMarks,
     @Default({}) Map<String, dynamic> fileMeta,
     @Default({}) Map<String, dynamic> userMeta,
+    @Default([]) List<SnCloudFile> children,
     @JsonKey(name: 'children_count') @Default(0) int childrenCount,
     @JsonKey(name: 'permission_status')
     required SnFilePermissionStatus? permissionStatus,

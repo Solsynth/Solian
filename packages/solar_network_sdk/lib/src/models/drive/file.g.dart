@@ -121,6 +121,11 @@ _SnCloudFile _$SnCloudFileFromJson(Map<String, dynamic> json) => _SnCloudFile(
       const [],
   fileMeta: json['file_meta'] as Map<String, dynamic>? ?? const {},
   userMeta: json['user_meta'] as Map<String, dynamic>? ?? const {},
+  children:
+      (json['children'] as List<dynamic>?)
+          ?.map((e) => SnCloudFile.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   childrenCount: (json['children_count'] as num?)?.toInt() ?? 0,
   permissionStatus: json['permission_status'] == null
       ? null
@@ -161,6 +166,7 @@ Map<String, dynamic> _$SnCloudFileToJson(_SnCloudFile instance) =>
       'sensitive_marks': instance.sensitiveMarks,
       'file_meta': instance.fileMeta,
       'user_meta': instance.userMeta,
+      'children': instance.children.map((e) => e.toJson()).toList(),
       'children_count': instance.childrenCount,
       'permission_status': instance.permissionStatus?.toJson(),
       'uploaded_at': instance.uploadedAt?.toIso8601String(),

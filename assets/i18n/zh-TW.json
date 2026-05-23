@@ -1487,6 +1487,25 @@
   "fileInfoTitle": "檔案資訊",
   "saveToGallery": "儲存到相簿",
   "downloadAndSaveToDevice": "下載並儲存到裝置",
+  "selectDownloadFolder": "選擇下載資料夾",
+  "savingImage": "正在儲存圖片...",
+  "downloadingFile": "正在下載檔案...",
+  "downloadingFiles": {
+    "one": "正在下載 {} 個檔案...",
+    "other": "正在下載 {} 個檔案..."
+  },
+  "fileSaved": "檔案已儲存",
+  "fileSavedToDownloads": "檔案已儲存到下載資料夾",
+  "imageSaved": "圖片已儲存",
+  "imageSavedToGallery": "圖片已儲存到相簿",
+  "downloadedFiles": {
+    "one": "已下載 {} 個檔案",
+    "other": "已下載 {} 個檔案"
+  },
+  "downloadedFilesFailed": {
+    "one": "已下載 {} 個檔案，{} 個失敗",
+    "other": "已下載 {} 個檔案，{} 個失敗"
+  },
   "shareFileLink": "分享檔案連結",
   "viewFileDetails": "檢視檔案詳情和後設資料",
   "openFileInWebBrowser": "在瀏覽器中開啟檔案",
