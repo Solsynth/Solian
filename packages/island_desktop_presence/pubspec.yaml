@@ -1,5 +1,5 @@
 name: island_desktop_presence
-description: "Adapter for desktop presence plugins, providing a unified interface for Linux, macOS, and Windows."
+description: "Desktop integration package for idle presence and local RPC transport on Linux, macOS, and Windows."
 version: 0.0.1
 publish_to: none
 homepage:

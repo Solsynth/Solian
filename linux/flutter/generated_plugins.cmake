@@ -11,7 +11,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_linux
   flutter_timezone
   flutter_webrtc
-  hotkey_manager_linux
   irondash_engine_context
   island_desktop_presence
   livekit_client

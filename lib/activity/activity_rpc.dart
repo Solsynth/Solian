@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
+import 'package:island_desktop_presence/activity_rpc_transport.dart';
 import 'package:logging/logging.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,9 +15,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-// Conditional imports for IPC server - use web stubs on web platform
-import 'ipc_server.dart' if (dart.library.html) 'ipc_server.web.dart';
 
 part 'activity_rpc.g.dart';
 

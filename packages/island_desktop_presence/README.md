@@ -1,13 +1,17 @@
 # island_desktop_presence
 
-Desktop presence plugin for Flutter.
+Desktop integration package for Flutter.
 
 This package is responsible for OS-level presence detection only:
 
 - idle time detection
 - active/idle transitions
 
-It does not handle:
+It also exposes a desktop RPC transport helper for local Discord-style IPC
+servers, so the app can keep protocol and business logic in Dart while moving
+the transport dependency out of the main app package.
+
+The presence API does not handle:
 
 - WebSocket sync
 - account state
@@ -42,6 +46,24 @@ class IslandDesktopPresence {
   Future<void> stopMonitoring();
 }
 ```
+
+## Activity RPC transport
+
+The package also exports:
+
+```dart
+import 'package:island_desktop_presence/activity_rpc_transport.dart';
+```
+
+This surface provides:
+
+- `IpcServer`
+- `IpcSocketWrapper`
+- `IpcPacket`
+- `MultiPlatformIpcServer`
+
+Use it when the app wants to host a local Discord-compatible IPC transport while
+keeping message handling and server sync in Dart.
 
 ## Basic usage
 
