@@ -13,6 +13,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_webrtc
   hotkey_manager_linux
   irondash_engine_context
+  island_desktop_presence
   livekit_client
   media_kit_libs_linux
   media_kit_video

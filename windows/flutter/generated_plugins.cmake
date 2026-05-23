@@ -21,6 +21,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   geolocator_windows
   hotkey_manager_windows
   irondash_engine_context
+  island_desktop_presence
   livekit_client
   local_auth_windows
   media_kit_libs_windows_video

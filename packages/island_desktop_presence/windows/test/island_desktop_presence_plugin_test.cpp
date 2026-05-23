@@ -22,21 +22,18 @@ using flutter::MethodResultFunctions;
 
 }  // namespace
 
-TEST(IslandDesktopPresencePlugin, GetPlatformVersion) {
+TEST(IslandDesktopPresencePlugin, GetIdleTime) {
   IslandDesktopPresencePlugin plugin;
-  // Save the reply value from the success callback.
-  std::string result_string;
+  int64_t result_value = -1;
   plugin.HandleMethodCall(
-      MethodCall("getPlatformVersion", std::make_unique<EncodableValue>()),
+      MethodCall("getIdleTime", std::make_unique<EncodableValue>()),
       std::make_unique<MethodResultFunctions<>>(
-          [&result_string](const EncodableValue* result) {
-            result_string = std::get<std::string>(*result);
+          [&result_value](const EncodableValue* result) {
+            result_value = static_cast<int64_t>(std::get<int64_t>(*result));
           },
           nullptr, nullptr));
 
-  // Since the exact string varies by host, just ensure that it's a string
-  // with the expected format.
-  EXPECT_TRUE(result_string.rfind("Windows ", 0) == 0);
+  EXPECT_GE(result_value, 0);
 }
 
 }  // namespace test

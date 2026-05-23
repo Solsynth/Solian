@@ -29,6 +29,7 @@ import hotkey_manager_macos
 import in_app_purchase_storekit
 import in_app_review
 import irondash_engine_context
+import island_desktop_presence
 import just_audio
 import livekit_client
 import local_auth_darwin
@@ -81,6 +82,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   InAppPurchasePlugin.register(with: registry.registrar(forPlugin: "InAppPurchasePlugin"))
   InAppReviewPlugin.register(with: registry.registrar(forPlugin: "InAppReviewPlugin"))
   IrondashEngineContextPlugin.register(with: registry.registrar(forPlugin: "IrondashEngineContextPlugin"))
+  IslandDesktopPresencePlugin.register(with: registry.registrar(forPlugin: "IslandDesktopPresencePlugin"))
   JustAudioPlugin.register(with: registry.registrar(forPlugin: "JustAudioPlugin"))
   LiveKitPlugin.register(with: registry.registrar(forPlugin: "LiveKitPlugin"))
   LocalAuthPlugin.register(with: registry.registrar(forPlugin: "LocalAuthPlugin"))

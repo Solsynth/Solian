@@ -24,6 +24,7 @@
 #include <geolocator_windows/geolocator_windows.h>
 #include <hotkey_manager_windows/hotkey_manager_windows_plugin_c_api.h>
 #include <irondash_engine_context/irondash_engine_context_plugin_c_api.h>
+#include <island_desktop_presence/island_desktop_presence_plugin_c_api.h>
 #include <livekit_client/live_kit_plugin.h>
 #include <local_auth_windows/local_auth_plugin.h>
 #include <media_kit_libs_windows_video/media_kit_libs_windows_video_plugin_c_api.h>
@@ -80,6 +81,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("HotkeyManagerWindowsPluginCApi"));
   IrondashEngineContextPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("IrondashEngineContextPluginCApi"));
+  IslandDesktopPresencePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("IslandDesktopPresencePluginCApi"));
   LiveKitPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("LiveKitPlugin"));
   LocalAuthPluginRegisterWithRegistrar(
