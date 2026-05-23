@@ -721,22 +721,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.7.0"
-  firebase_crashlytics:
-    dependency: "direct main"
-    description:
-      name: firebase_crashlytics
-      sha256: "9935ea36aaae0dfc789b80a1981fd70c6c7e9956791e9e7c2210ab83f9c963bd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.2"
-  firebase_crashlytics_platform_interface:
-    dependency: transitive
-    description:
-      name: firebase_crashlytics_platform_interface
-      sha256: ade20d7d86698ded596bf16ab0e7060ef1dae9258ab6705536a39ae047ccef59
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.8.22"
   firebase_messaging:
     dependency: "direct main"
     description:
@@ -3005,6 +2989,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  sentry:
+    dependency: transitive
+    description:
+      name: sentry
+      sha256: "599701ca0693a74da361bc780b0752e1abc98226cf5095f6b069648116c896bb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.14.2"
+  sentry_flutter:
+    dependency: "direct main"
+    description:
+      name: sentry_flutter
+      sha256: "5ba2cf40646a77d113b37a07bd69f61bb3ec8a73cbabe5537b05a7c89d2656f8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.14.2"
   shake:
     dependency: "direct main"
     description:
