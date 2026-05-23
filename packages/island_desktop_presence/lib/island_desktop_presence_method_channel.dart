@@ -11,14 +11,28 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
   @visibleForTesting
   final eventChannel = const EventChannel('island_desktop_presence/events');
 
+  @visibleForTesting
+  final externalNowPlayingChannel = const EventChannel(
+    'island_desktop_presence/external_now_playing',
+  );
+
   Stream<PresenceEvent>? _events;
+  Stream<ExternalNowPlayingEvent>? _externalNowPlayingEvents;
 
   @override
   Stream<PresenceEvent> get events {
     return _events ??= eventChannel
         .receiveBroadcastStream()
         .map(_decodeEvent)
-        .distinct(_sameEvent);
+        .distinct(_samePresenceEvent);
+  }
+
+  @override
+  Stream<ExternalNowPlayingEvent> get externalNowPlayingEvents {
+    return _externalNowPlayingEvents ??= externalNowPlayingChannel
+        .receiveBroadcastStream()
+        .map(_decodeExternalNowPlayingEvent)
+        .distinct(_sameExternalNowPlayingEvent);
   }
 
   @override
@@ -43,6 +57,28 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
   @override
   Future<void> stopMonitoring() {
     return methodChannel.invokeMethod<void>('stopMonitoring');
+  }
+
+  @override
+  Future<void> startExternalNowPlayingMonitoring({
+    required Duration pollInterval,
+    String? executablePath,
+  }) {
+    final arguments = <String, Object>{
+      'pollIntervalMilliseconds': pollInterval.inMilliseconds,
+    };
+    if (executablePath != null && executablePath.isNotEmpty) {
+      arguments['executablePath'] = executablePath;
+    }
+    return methodChannel.invokeMethod<void>(
+      'startExternalNowPlayingMonitoring',
+      arguments,
+    );
+  }
+
+  @override
+  Future<void> stopExternalNowPlayingMonitoring() {
+    return methodChannel.invokeMethod<void>('stopExternalNowPlayingMonitoring');
   }
 
   PresenceEvent _decodeEvent(dynamic event) {
@@ -78,6 +114,48 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
     );
   }
 
+  ExternalNowPlayingEvent _decodeExternalNowPlayingEvent(dynamic event) {
+    if (event is! Map<Object?, Object?>) {
+      throw PlatformException(
+        code: 'invalid_now_playing_event',
+        message: 'External now playing event payload must be a map.',
+      );
+    }
+
+    final rawSource = event['source'];
+    final rawState = event['state'];
+    if (rawSource is! String || rawState is! String) {
+      throw PlatformException(
+        code: 'invalid_now_playing_event',
+        message: 'External now playing event is missing source or state.',
+      );
+    }
+
+    return ExternalNowPlayingEvent(
+      source: _decodeExternalSource(rawSource),
+      state: _decodeExternalState(rawState),
+      sourceAppName: event['source_app_name'] as String?,
+      sourceBundleIdentifier: event['source_bundle_identifier'] as String?,
+      title: event['title'] as String?,
+      artist: event['artist'] as String?,
+      album: event['album'] as String?,
+      duration: _decodeOptionalDuration(event['duration_seconds']),
+      position: _decodeOptionalDuration(event['position_seconds']),
+    );
+  }
+
+  Duration? _decodeOptionalDuration(Object? rawValue) {
+    return switch (rawValue) {
+      null => null,
+      int value => Duration(milliseconds: (value * 1000)),
+      double value => Duration(milliseconds: (value * 1000).round()),
+      _ => throw PlatformException(
+        code: 'invalid_now_playing_duration',
+        message: 'External now playing duration fields must be numeric.',
+      ),
+    };
+  }
+
   PresenceState _decodeState(String state) {
     return switch (state) {
       'active' => PresenceState.active,
@@ -89,7 +167,38 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
     };
   }
 
-  bool _sameEvent(PresenceEvent previous, PresenceEvent next) {
+  ExternalNowPlayingSource _decodeExternalSource(String source) {
+    return switch (source) {
+      'music' => ExternalNowPlayingSource.music,
+      'spotify' => ExternalNowPlayingSource.spotify,
+      'other' => ExternalNowPlayingSource.other,
+      _ => throw PlatformException(
+        code: 'invalid_now_playing_source',
+        message: 'Unsupported external now playing source: $source',
+      ),
+    };
+  }
+
+  ExternalNowPlayingState _decodeExternalState(String state) {
+    return switch (state) {
+      'playing' => ExternalNowPlayingState.playing,
+      'paused' => ExternalNowPlayingState.paused,
+      'stopped' => ExternalNowPlayingState.stopped,
+      _ => throw PlatformException(
+        code: 'invalid_now_playing_state',
+        message: 'Unsupported external now playing state: $state',
+      ),
+    };
+  }
+
+  bool _samePresenceEvent(PresenceEvent previous, PresenceEvent next) {
     return previous.state == next.state && previous.idleTime == next.idleTime;
+  }
+
+  bool _sameExternalNowPlayingEvent(
+    ExternalNowPlayingEvent previous,
+    ExternalNowPlayingEvent next,
+  ) {
+    return previous == next;
   }
 }

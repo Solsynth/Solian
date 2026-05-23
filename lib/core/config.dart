@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -79,6 +80,8 @@ const kAppIpOverrideEnabled = 'app_ip_override_enabled';
 const kAppIpOverrideList = 'app_ip_override_list';
 const kAppIpOverrideMode = 'app_ip_override_mode';
 const kAppIpOverrideDomains = 'app_ip_override_domains';
+const kAppMacosNowPlayingCliPath = 'app_macos_now_playing_cli_path';
+const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
 // Will be overrided by the ProviderScope
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -98,10 +101,7 @@ final developerModeProvider = Provider<bool>((ref) {
 
 @freezed
 sealed class IpOverride with _$IpOverride {
-  const factory IpOverride({
-    required String ip,
-    int? port,
-  }) = _IpOverride;
+  const factory IpOverride({required String ip, int? port}) = _IpOverride;
 
   factory IpOverride.fromJson(Map<String, dynamic> json) =>
       _$IpOverrideFromJson(json);
@@ -201,6 +201,89 @@ final ipOverrideDomainSuffixProvider = Provider<String?>((ref) {
   } catch (_) {}
   return null;
 });
+
+enum DesktopNowPlayingCliAvailability { unsupported, installed, missing }
+
+class DesktopNowPlayingCliStatus {
+  const DesktopNowPlayingCliStatus({
+    required this.availability,
+    required this.path,
+  });
+
+  final DesktopNowPlayingCliAvailability availability;
+  final String? path;
+
+  bool get isSupported =>
+      availability != DesktopNowPlayingCliAvailability.unsupported;
+
+  bool get isInstalled =>
+      availability == DesktopNowPlayingCliAvailability.installed;
+}
+
+class DesktopNowPlayingCliPathNotifier extends Notifier<String?> {
+  @override
+  String? build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    if (kIsWeb || !Platform.isMacOS) {
+      return null;
+    }
+    final stored = prefs.getString(kAppMacosNowPlayingCliPath);
+    if (stored == null || stored.trim().isEmpty) {
+      return kMacosNowPlayingCliDefaultPath;
+    }
+    return stored.trim();
+  }
+
+  void setPath(String? value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (kIsWeb || !Platform.isMacOS) {
+      state = null;
+      return;
+    }
+
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      prefs.remove(kAppMacosNowPlayingCliPath);
+      state = kMacosNowPlayingCliDefaultPath;
+      return;
+    }
+
+    prefs.setString(kAppMacosNowPlayingCliPath, normalized);
+    state = normalized;
+  }
+}
+
+final desktopNowPlayingCliPathProvider =
+    NotifierProvider<DesktopNowPlayingCliPathNotifier, String?>(
+      DesktopNowPlayingCliPathNotifier.new,
+    );
+
+final desktopNowPlayingCliStatusProvider =
+    FutureProvider<DesktopNowPlayingCliStatus>((ref) async {
+      final path = ref.watch(desktopNowPlayingCliPathProvider);
+      if (kIsWeb || !Platform.isMacOS || path == null) {
+        return const DesktopNowPlayingCliStatus(
+          availability: DesktopNowPlayingCliAvailability.unsupported,
+          path: null,
+        );
+      }
+
+      final file = File(path);
+      if (!await file.exists()) {
+        return DesktopNowPlayingCliStatus(
+          availability: DesktopNowPlayingCliAvailability.missing,
+          path: path,
+        );
+      }
+
+      final check = await Process.run('/bin/test', ['-x', path]);
+      return DesktopNowPlayingCliStatus(
+        availability: check.exitCode == 0
+            ? DesktopNowPlayingCliAvailability.installed
+            : DesktopNowPlayingCliAvailability.missing,
+        path: path,
+      );
+    });
 
 @freezed
 sealed class ThemeColors with _$ThemeColors {
@@ -701,7 +784,10 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   void setIpOverrideDomains(List<String> domains) {
     final prefs = ref.read(sharedPreferencesProvider);
-    final cleaned = domains.map((domain) => domain.trim()).where((domain) => domain.isNotEmpty).toList();
+    final cleaned = domains
+        .map((domain) => domain.trim())
+        .where((domain) => domain.isNotEmpty)
+        .toList();
     if (cleaned.isEmpty) {
       prefs.remove(kAppIpOverrideDomains);
     } else {

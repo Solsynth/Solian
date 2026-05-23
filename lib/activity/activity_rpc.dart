@@ -109,7 +109,7 @@ class ActivityRpcServer {
     }
 
     // Start IPC server
-    final shouldStartIpc = !Platform.isMacOS && !kIsWeb;
+    final shouldStartIpc = !kIsWeb;
     if (shouldStartIpc) {
       try {
         _ipcServer = MultiPlatformIpcServer();
@@ -131,7 +131,7 @@ class ActivityRpcServer {
         Logger.root.info('[$kRpcLogPrefix] IPC server error: $e');
       }
     } else {
-      Logger.root.info('IPC server disabled on macOS or web');
+      Logger.root.info('IPC server disabled on web');
     }
   }
 

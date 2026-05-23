@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_desktop_presence/island_desktop_presence.dart';
 import 'package:logging/logging.dart';
@@ -17,6 +18,17 @@ final desktopPresenceProvider = Provider<DesktopPresenceService?>((ref) {
   }
 
   final service = DesktopPresenceService(ref);
+  service.start();
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+final desktopNowPlayingProvider = Provider<DesktopNowPlayingService?>((ref) {
+  if (kIsWeb || !Platform.isMacOS) {
+    return null;
+  }
+
+  final service = DesktopNowPlayingService(ref);
   service.start();
   ref.onDispose(service.dispose);
   return service;
@@ -127,6 +139,78 @@ class DesktopPresenceService {
     } catch (error, stackTrace) {
       Logger.root.warning(
         '[DesktopPresence] Failed to stop idle monitoring',
+        error,
+        stackTrace,
+      );
+    }
+  }
+}
+
+class DesktopNowPlayingService {
+  DesktopNowPlayingService(this._ref);
+
+  static const Duration _pollInterval = Duration(seconds: 2);
+
+  final Ref _ref;
+  final IslandDesktopPresence _presence = IslandDesktopPresence();
+
+  StreamSubscription<ExternalNowPlayingEvent>? _subscription;
+  bool _started = false;
+
+  Future<void> start() async {
+    if (_started) {
+      return;
+    }
+    _started = true;
+
+    _subscription = _presence.externalNowPlayingEvents.listen(
+      _handleEvent,
+      onError: (Object error, StackTrace stackTrace) {
+        Logger.root.severe(
+          '[DesktopNowPlaying] Event stream failed',
+          error,
+          stackTrace,
+        );
+      },
+    );
+
+    try {
+      final executablePath = _ref.read(desktopNowPlayingCliPathProvider);
+      Logger.root.info('[DesktopNowPlaying] Starting macOS monitoring');
+      await _presence.startExternalNowPlayingMonitoring(
+        pollInterval: _pollInterval,
+        executablePath: executablePath,
+      );
+    } catch (error, stackTrace) {
+      Logger.root.severe(
+        '[DesktopNowPlaying] Failed to start monitoring',
+        error,
+        stackTrace,
+      );
+    }
+  }
+
+  void _handleEvent(ExternalNowPlayingEvent event) {
+    Logger.root.info(
+      '[DesktopNowPlaying] source=${event.source.name} '
+      'app=${event.sourceAppName ?? ""} '
+      'bundle=${event.sourceBundleIdentifier ?? ""} '
+      'state=${event.state.name} '
+      'title=${event.title ?? ""} '
+      'artist=${event.artist ?? ""} '
+      'album=${event.album ?? ""}',
+    );
+  }
+
+  Future<void> dispose() async {
+    await _subscription?.cancel();
+    _subscription = null;
+    _started = false;
+    try {
+      await _presence.stopExternalNowPlayingMonitoring();
+    } catch (error, stackTrace) {
+      Logger.root.warning(
+        '[DesktopNowPlaying] Failed to stop monitoring',
         error,
         stackTrace,
       );
