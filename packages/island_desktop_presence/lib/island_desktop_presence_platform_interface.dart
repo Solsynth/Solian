@@ -22,6 +22,12 @@ abstract class IslandDesktopPresencePlatform extends PlatformInterface {
     throw UnimplementedError('events has not been implemented.');
   }
 
+  Stream<ExternalNowPlayingEvent> get externalNowPlayingEvents {
+    throw UnimplementedError(
+      'externalNowPlayingEvents has not been implemented.',
+    );
+  }
+
   Future<Duration> getIdleTime() {
     throw UnimplementedError('getIdleTime() has not been implemented.');
   }
@@ -32,5 +38,20 @@ abstract class IslandDesktopPresencePlatform extends PlatformInterface {
 
   Future<void> stopMonitoring() {
     throw UnimplementedError('stopMonitoring() has not been implemented.');
+  }
+
+  Future<void> startExternalNowPlayingMonitoring({
+    required Duration pollInterval,
+    String? executablePath,
+  }) {
+    throw UnimplementedError(
+      'startExternalNowPlayingMonitoring() has not been implemented.',
+    );
+  }
+
+  Future<void> stopExternalNowPlayingMonitoring() {
+    throw UnimplementedError(
+      'stopExternalNowPlayingMonitoring() has not been implemented.',
+    );
   }
 }
