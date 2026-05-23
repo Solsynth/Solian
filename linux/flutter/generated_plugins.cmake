@@ -21,6 +21,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   pasteboard
   record_linux
   screen_retriever_linux
+  sentry_flutter
   super_native_extensions
   tray_manager
   url_launcher_linux

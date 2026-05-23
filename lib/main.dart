@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -38,10 +37,12 @@ import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 // 注意：不再导入 python_service
 
 final List<LogRecord> _earlyLogs = [];
+const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -79,190 +80,197 @@ void main(List<String> args) async {
     Logger.root.info("[SplashScreen] Desktop window manager is ready!");
   }
 
-  try {
-    await EasyLocalization.ensureInitialized();
-    EasyLocalization.logger.enableBuildModes = [];
+  Future<void> appRunner() async {
+    try {
+      await EasyLocalization.ensureInitialized();
+      EasyLocalization.logger.enableBuildModes = [];
 
-    if (kIsWeb || !Platform.isLinux) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler,
-      );
-      if ((kIsWeb || !Platform.isWindows) && !kDebugMode) {
-        FlutterError.onError =
-            FirebaseCrashlytics.instance.recordFlutterFatalError;
-        PlatformDispatcher.instance.onError = (error, stack) {
-          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-          return true;
-        };
-      }
-    }
-
-    Logger.root.info("[SplashScreen] Firebase is ready!");
-  } catch (err) {
-    showErrorAlert(err);
-  }
-
-  try {
-    Logger.root.info("[SplashScreen] Loading timezone database...");
-    await initializeTzdb();
-    Logger.root.info("[SplashScreen] Time zone database was loaded!");
-  } catch (err) {
-    Logger.root.severe(
-      "[SplashScreen] Failed to load timezone database...",
-      err,
-    );
-  }
-
-  try {
-    Logger.root.info("[Analytics] Initializing Analytics service...");
-    final analyticsService = AnalyticsService();
-    analyticsService.initialize();
-  } catch (err) {
-    Logger.root.severe(
-      "[Analytics] Failed to initialize Analytics service...",
-      err,
-    );
-  }
-
-  try {
-    Logger.root.info("[LocationSearch] Initializing LocationSearch service...");
-    await LocationSearchService.instance.initialize();
-    Logger.root.info("[LocationSearch] LocationSearch service is ready!");
-  } catch (err) {
-    Logger.root.severe(
-      "[LocationSearch] Failed to initialize LocationSearch service...",
-      err,
-    );
-  }
-
-  final prefs = await SharedPreferences.getInstance();
-  HttpOverrides.global = createAppHttpOverridesFromPrefs(prefs);
-
-  // 移除 Python 初始化代码
-
-  if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
-    await windowManager.ensureInitialized();
-
-    const defaultSize = Size(360, 640);
-    final savedSizeString = prefs.getString(kAppWindowSize);
-    Size initialSize = defaultSize;
-
-    if (savedSizeString != null) {
-      try {
-        final parts = savedSizeString.split(',');
-        if (parts.length == 2) {
-          final width = double.parse(parts[0]);
-          final height = double.parse(parts[1]);
-          initialSize = Size(width, height);
-        }
-      } catch (e) {
-        Logger.root.severe(
-          "[SplashScreen] Failed to parse saved window size",
-          e,
+      if (kIsWeb || !Platform.isLinux) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
         );
-        initialSize = defaultSize;
+        FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler,
+        );
       }
+
+      Logger.root.info("[SplashScreen] Firebase is ready!");
+    } catch (err) {
+      showErrorAlert(err);
     }
 
-    WindowOptions windowOptions = WindowOptions(
-      size: initialSize,
-      center: true,
-      backgroundColor: Colors.transparent,
-      skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.hidden,
-      windowButtonVisibility: true,
-    );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      final env = Platform.environment;
-      final isWayland = env.containsKey('WAYLAND_DISPLAY');
+    try {
+      Logger.root.info("[SplashScreen] Loading timezone database...");
+      await initializeTzdb();
+      Logger.root.info("[SplashScreen] Time zone database was loaded!");
+    } catch (err) {
+      Logger.root.severe(
+        "[SplashScreen] Failed to load timezone database...",
+        err,
+      );
+    }
 
-      if (isWayland) {
+    try {
+      Logger.root.info("[Analytics] Initializing Analytics service...");
+      final analyticsService = AnalyticsService();
+      analyticsService.initialize();
+    } catch (err) {
+      Logger.root.severe(
+        "[Analytics] Failed to initialize Analytics service...",
+        err,
+      );
+    }
+
+    try {
+      Logger.root.info(
+        "[LocationSearch] Initializing LocationSearch service...",
+      );
+      await LocationSearchService.instance.initialize();
+      Logger.root.info("[LocationSearch] LocationSearch service is ready!");
+    } catch (err) {
+      Logger.root.severe(
+        "[LocationSearch] Failed to initialize LocationSearch service...",
+        err,
+      );
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    HttpOverrides.global = createAppHttpOverridesFromPrefs(prefs);
+
+    // 移除 Python 初始化代码
+
+    if (!kIsWeb &&
+        (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+      await windowManager.ensureInitialized();
+
+      const defaultSize = Size(360, 640);
+      final savedSizeString = prefs.getString(kAppWindowSize);
+      Size initialSize = defaultSize;
+
+      if (savedSizeString != null) {
         try {
-          await windowManager.setAsFrameless();
+          final parts = savedSizeString.split(',');
+          if (parts.length == 2) {
+            final width = double.parse(parts[0]);
+            final height = double.parse(parts[1]);
+            initialSize = Size(width, height);
+          }
         } catch (e) {
-          debugPrint('[Wayland] setAsFrameless failed: $e');
+          Logger.root.severe(
+            "[SplashScreen] Failed to parse saved window size",
+            e,
+          );
+          initialSize = defaultSize;
         }
       }
-      await windowManager.setMinimumSize(defaultSize);
-      await windowManager.show();
-      await windowManager.focus();
-      final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
-      await windowManager.setOpacity(opacity);
-      Logger.root.info(
-        "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
-        "${isWayland ? " (Wayland frameless fix applied)" : ""}",
+
+      WindowOptions windowOptions = WindowOptions(
+        size: initialSize,
+        center: true,
+        backgroundColor: Colors.transparent,
+        skipTaskbar: false,
+        titleBarStyle: TitleBarStyle.hidden,
+        windowButtonVisibility: true,
+      );
+      windowManager.waitUntilReadyToShow(windowOptions, () async {
+        final env = Platform.environment;
+        final isWayland = env.containsKey('WAYLAND_DISPLAY');
+
+        if (isWayland) {
+          try {
+            await windowManager.setAsFrameless();
+          } catch (e) {
+            debugPrint('[Wayland] setAsFrameless failed: $e');
+          }
+        }
+        await windowManager.setMinimumSize(defaultSize);
+        await windowManager.show();
+        await windowManager.focus();
+        final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
+        await windowManager.setOpacity(opacity);
+        Logger.root.info(
+          "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
+          "${isWayland ? " (Wayland frameless fix applied)" : ""}",
+        );
+      });
+    }
+
+    if (!kIsWeb && Platform.isAndroid) {
+      final ImagePickerPlatform imagePickerImplementation =
+          ImagePickerPlatform.instance;
+      if (imagePickerImplementation is ImagePickerAndroid) {
+        imagePickerImplementation.useAndroidPhotoPicker = true;
+      }
+      Logger.root.info("[SplashScreen] Android image picker is ready!");
+    }
+
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      FlutterNativeSplash.remove();
+      Logger.root.info("[SplashScreen] Now hiding splash screen...");
+    }
+
+    Logger.root.onRecord.listen((record) {
+      developer.log(
+        record.message,
+        time: record.time,
+        level: record.level.value,
+        name: record.loggerName,
       );
     });
-  }
-
-  if (!kIsWeb && Platform.isAndroid) {
-    final ImagePickerPlatform imagePickerImplementation =
-        ImagePickerPlatform.instance;
-    if (imagePickerImplementation is ImagePickerAndroid) {
-      imagePickerImplementation.useAndroidPhotoPicker = true;
+    for (final record in _earlyLogs) {
+      developer.log(
+        record.message,
+        time: record.time,
+        level: record.level.value,
+        name: record.loggerName,
+      );
     }
-    Logger.root.info("[SplashScreen] Android image picker is ready!");
-  }
 
-  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-    FlutterNativeSplash.remove();
-    Logger.root.info("[SplashScreen] Now hiding splash screen...");
-  }
-
-  Logger.root.onRecord.listen((record) {
-    developer.log(
-      record.message,
-      time: record.time,
-      level: record.level.value,
-      name: record.loggerName,
-    );
-  });
-  for (final record in _earlyLogs) {
-    developer.log(
-      record.message,
-      time: record.time,
-      level: record.level.value,
-      name: record.loggerName,
-    );
-  }
-
-  runApp(
-    ProviderScope(
-      retry: (retryCount, error) {
-        if (retryCount > 3) return null;
-        if (error is DioException) {
-          if (error.response?.statusCode == 401) return null;
-          if (error.response?.statusCode == 403) return null;
-          if (error.response?.statusCode == 404) return null;
-          if (error.response?.statusCode == 500) return null;
-        }
-        return const Duration(milliseconds: 300);
-      },
-      observers: [ProviderLogger()],
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-      child: EasyLocalization(
-          supportedLocales: [
-            Locale('en', 'US'),
-            Locale('zh', 'CN'),
-            Locale('zh', 'TW'),
-            Locale('zh', 'OG'),
-            Locale('ja', 'JP'),
-            Locale('ko', 'KR'),
-            Locale('es', 'ES'),
-          ],
-          path: 'assets/i18n',
-          fallbackLocale: Locale('en', 'US'),
-          useFallbackTranslations: true,
-          child: IslandApp(),
+    runApp(
+      ProviderScope(
+        retry: (retryCount, error) {
+          if (retryCount > 3) return null;
+          if (error is DioException) {
+            if (error.response?.statusCode == 401) return null;
+            if (error.response?.statusCode == 403) return null;
+            if (error.response?.statusCode == 404) return null;
+            if (error.response?.statusCode == 500) return null;
+          }
+          return const Duration(milliseconds: 300);
+        },
+        observers: [ProviderLogger()],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: EasyLocalization(
+            supportedLocales: [
+              Locale('en', 'US'),
+              Locale('zh', 'CN'),
+              Locale('zh', 'TW'),
+              Locale('zh', 'OG'),
+              Locale('ja', 'JP'),
+              Locale('ko', 'KR'),
+              Locale('es', 'ES'),
+            ],
+            path: 'assets/i18n',
+            fallbackLocale: Locale('en', 'US'),
+            useFallbackTranslations: true,
+            child: IslandApp(),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
+
+  if (_sentryDsn.isNotEmpty) {
+    await SentryFlutter.init((options) {
+      options.dsn = _sentryDsn;
+      options.sendDefaultPii = false;
+    }, appRunner: appRunner);
+    return;
+  }
+
+  await appRunner();
 }
 
 // 以下是 IslandApp 等代码保持不变...
