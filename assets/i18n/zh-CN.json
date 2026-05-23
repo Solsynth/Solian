@@ -1537,6 +1537,25 @@
   "fileInfoTitle": "文件信息",
   "saveToGallery": "保存到相册",
   "downloadAndSaveToDevice": "下载并保存到设备",
+  "selectDownloadFolder": "选择下载文件夹",
+  "savingImage": "正在保存图片...",
+  "downloadingFile": "正在下载文件...",
+  "downloadingFiles": {
+    "one": "正在下载 {} 个文件...",
+    "other": "正在下载 {} 个文件..."
+  },
+  "fileSaved": "文件已保存",
+  "fileSavedToDownloads": "文件已保存到下载文件夹",
+  "imageSaved": "图片已保存",
+  "imageSavedToGallery": "图片已保存到相册",
+  "downloadedFiles": {
+    "one": "已下载 {} 个文件",
+    "other": "已下载 {} 个文件"
+  },
+  "downloadedFilesFailed": {
+    "one": "已下载 {} 个文件，{} 个失败",
+    "other": "已下载 {} 个文件，{} 个失败"
+  },
   "shareFileLink": "分享文件链接",
   "viewFileDetails": "查看文件详情和元数据",
   "openFileInWebBrowser": "在浏览器中打开文件",

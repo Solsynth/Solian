@@ -5,9 +5,11 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_list.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
@@ -18,6 +20,8 @@ import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
+import 'package:island/shared/widgets/content/image.dart';
+import 'package:island/core/services/time.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -71,12 +75,84 @@ class FileListView extends HookConsumerWidget {
     final unindexedNotifier = ref.read(unindexedFileListProvider.notifier);
     final cloudNotifier = ref.read(indexedCloudFileListProvider.notifier);
     final recycled = useState<bool>(false);
-    final isSelectionMode = useState<bool>(false);
     final selectedFileIds = useState<Set<String>>({});
     final currentVisibleItems = useState<List<FileListItem>>([]);
+    final expandedFileIds = useState<Set<String>>({});
+    final treeChildrenCache = useState<Map<String, List<SnCloudFile>>>({});
+    final loadingTreeChildren = useState<Set<String>>({});
     final order = useState<String?>('date');
     final orderDesc = useState<bool>(true);
     final queryDebounceTimer = useRef<Timer?>(null);
+
+    Iterable<SnCloudFile> flattenCloudChildren(List<SnCloudFile> files) sync* {
+      for (final file in files) {
+        yield file;
+        final children = treeChildrenCache.value[file.id] ?? file.children;
+        yield* flattenCloudChildren(children);
+      }
+    }
+
+    Iterable<SnCloudFile> flattenFiles(List<FileListItem> items) sync* {
+      for (final item in items) {
+        switch (item) {
+          case FileItem(:final file):
+            yield file;
+            yield* flattenCloudChildren(
+              treeChildrenCache.value[file.id] ?? file.children,
+            );
+          case FolderItem(:final file):
+            yield file;
+            yield* flattenCloudChildren(
+              treeChildrenCache.value[file.id] ?? file.children,
+            );
+          case UnindexedFileItem(:final file):
+            yield file;
+            yield* flattenCloudChildren(
+              treeChildrenCache.value[file.id] ?? file.children,
+            );
+        }
+      }
+    }
+
+    List<SnCloudFile> getSelectedFiles() {
+      return flattenFiles(
+        currentVisibleItems.value,
+      ).where((file) => selectedFileIds.value.contains(file.id)).toList();
+    }
+
+    Future<void> ensureTreeChildrenLoaded(SnCloudFile file) async {
+      if (file.isFolder || file.childrenCount <= 0) return;
+      if (treeChildrenCache.value.containsKey(file.id)) return;
+      if (loadingTreeChildren.value.contains(file.id)) return;
+      if (file.children.isNotEmpty) {
+        treeChildrenCache.value = {
+          ...treeChildrenCache.value,
+          file.id: file.children,
+        };
+        return;
+      }
+
+      loadingTreeChildren.value = Set<String>.from(loadingTreeChildren.value)
+        ..add(file.id);
+      try {
+        final driveApi = ref.read(solarNetworkClientProvider).drive;
+        final result = await driveApi.listFolderChildren(
+          file.id,
+          poolId: selectedPool.value?.id,
+        );
+        if (result.items.isNotEmpty) {
+          treeChildrenCache.value = {
+            ...treeChildrenCache.value,
+            file.id: result.items,
+          };
+        }
+      } catch (_) {
+        // Keep the node visible even if hydration fails.
+      } finally {
+        loadingTreeChildren.value = Set<String>.from(loadingTreeChildren.value)
+          ..remove(file.id);
+      }
+    }
 
     useEffect(() {
       if (mode.value == FileListMode.unindexed) {
@@ -112,8 +188,12 @@ class FileListView extends HookConsumerWidget {
 
     final isRefreshing = ref.watch(
       mode.value == FileListMode.normal
-          ? indexedCloudFileListProvider.select((value) => value.isLoading)
-          : unindexedFileListProvider.select((value) => value.isLoading),
+          ? indexedCloudFileListProvider.select(
+              (value) => value.isLoading || value.isReloading,
+            )
+          : unindexedFileListProvider.select(
+              (value) => value.isLoading || value.isReloading,
+            ),
     );
 
     final bodyWidget = switch (mode.value) {
@@ -131,6 +211,10 @@ class FileListView extends HookConsumerWidget {
                 viewMode,
                 isSelectionMode,
                 selectedFileIds,
+                expandedFileIds,
+                treeChildrenCache.value,
+                loadingTreeChildren.value,
+                ensureTreeChildrenLoaded,
                 currentVisibleItems,
                 footer,
               ),
@@ -152,6 +236,10 @@ class FileListView extends HookConsumerWidget {
                 viewMode,
                 isSelectionMode,
                 selectedFileIds,
+                expandedFileIds,
+                treeChildrenCache.value,
+                loadingTreeChildren.value,
+                ensureTreeChildrenLoaded,
                 currentVisibleItems,
                 footer,
               ),
@@ -493,6 +581,25 @@ class FileListView extends HookConsumerWidget {
                               : 'selectAll'.tr(),
                         ),
                       ),
+                      const Gap(12),
+                      OutlinedButton.icon(
+                        icon: const Icon(Symbols.download),
+                        label: Text('download').tr(),
+                        onPressed: selectedFileIds.value.isNotEmpty
+                            ? () async {
+                                final files = getSelectedFiles();
+                                if (files.isEmpty) return;
+                                await ref
+                                    .read(driveFileDownloaderProvider)
+                                    .downloadFiles(
+                                      files,
+                                      useDownloadsFolder: HardwareKeyboard
+                                          .instance
+                                          .isShiftPressed,
+                                    );
+                              }
+                            : null,
+                      ),
                       const Spacer(),
                       Text(
                         selectedFileIds.value.length == 1
@@ -567,6 +674,10 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<FileListViewMode> currentViewMode,
     ValueNotifier<bool> isSelectionMode,
     ValueNotifier<Set<String>> selectedFileIds,
+    ValueNotifier<Set<String>> expandedFileIds,
+    Map<String, List<SnCloudFile>> treeChildrenCache,
+    Set<String> loadingTreeChildren,
+    Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
     ValueNotifier<List<FileListItem>> currentVisibleItems,
     Widget footer,
   ) {
@@ -632,16 +743,11 @@ class FileListView extends HookConsumerWidget {
               ref,
               context,
               isSelectionMode.value,
-              selectedFileIds.value.contains(fileItem.file.id),
-              () {
-                if (selectedFileIds.value.contains(fileItem.file.id)) {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)
-                    ..remove(fileItem.file.id);
-                } else {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)
-                    ..add(fileItem.file.id);
-                }
-              },
+              selectedFileIds,
+              expandedFileIds,
+              treeChildrenCache,
+              loadingTreeChildren,
+              ensureTreeChildrenLoaded,
             ),
             folder: (folderItem) => InkWell(
               onTap: () {
@@ -795,10 +901,7 @@ class FileListView extends HookConsumerWidget {
     bool isSelected,
     VoidCallback? toggleSelection,
   ) {
-    final meta = file.fileMeta;
-    final ratio = meta['ratio'] is num
-        ? (meta['ratio'] as num).toDouble()
-        : 1.0;
+    final ratio = file.ratio ?? 1.0;
     final itemType = file.mimeType.split('/').first;
     final uri =
         '${ref.read(solarNetworkClientProvider).dio.options.baseUrl}/drive/files/${file.id}';
@@ -976,6 +1079,10 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<FileListViewMode> currentViewMode,
     ValueNotifier<bool> isSelectionMode,
     ValueNotifier<Set<String>> selectedFileIds,
+    ValueNotifier<Set<String>> expandedFileIds,
+    Map<String, List<SnCloudFile>> treeChildrenCache,
+    Set<String> loadingTreeChildren,
+    Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
     ValueNotifier<List<FileListItem>> currentVisibleItems,
     Widget footer,
   ) {
@@ -1054,16 +1161,11 @@ class FileListView extends HookConsumerWidget {
               ref,
               context,
               isSelectionMode.value,
-              selectedFileIds.value.contains(unindexedFileItem.file.id),
-              () {
-                if (selectedFileIds.value.contains(unindexedFileItem.file.id)) {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)
-                    ..remove(unindexedFileItem.file.id);
-                } else {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)
-                    ..add(unindexedFileItem.file.id);
-                }
-              },
+              selectedFileIds,
+              expandedFileIds,
+              treeChildrenCache,
+              loadingTreeChildren,
+              ensureTreeChildrenLoaded,
             ),
           );
         },
@@ -1071,71 +1173,233 @@ class FileListView extends HookConsumerWidget {
     };
   }
 
+  void _toggleId(ValueNotifier<Set<String>> ids, String id) {
+    final next = Set<String>.from(ids.value);
+    if (next.contains(id)) {
+      next.remove(id);
+    } else {
+      next.add(id);
+    }
+    ids.value = next;
+  }
+
+  Widget _buildTreeFileTile({
+    required SnCloudFile file,
+    required BuildContext context,
+    required bool isSelectionMode,
+    required ValueNotifier<Set<String>> selectedFileIds,
+    required ValueNotifier<Set<String>> expandedFileIds,
+    required Map<String, List<SnCloudFile>> treeChildrenCache,
+    required Set<String> loadingTreeChildren,
+    required Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
+    required int depth,
+    required Future<void> Function(SnCloudFile file) onDelete,
+    required VoidCallback onOpen,
+  }) {
+    final theme = Theme.of(context);
+    final isSelected = selectedFileIds.value.contains(file.id);
+    final children = treeChildrenCache[file.id] ?? file.children;
+    final hasTreeChildren =
+        !file.isFolder && (file.childrenCount > 0 || children.isNotEmpty);
+    final isExpanded = expandedFileIds.value.contains(file.id);
+    final isLoadingChildren = loadingTreeChildren.contains(file.id);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: () {
+            if (isSelectionMode) {
+              _toggleId(selectedFileIds, file.id);
+            } else {
+              onOpen();
+            }
+          },
+          onLongPress: () => onInspectFile(file),
+          onSecondaryTap: () => onInspectFile(file),
+          child: Padding(
+            padding: EdgeInsets.only(left: depth * 18.0),
+            child: ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 0,
+              ),
+              minLeadingWidth: isSelectionMode ? 74 : 62,
+              leading: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (hasTreeChildren)
+                    SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints.tightFor(
+                          width: 32,
+                          height: 32,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        iconSize: 18,
+                        icon: Icon(
+                          isExpanded
+                              ? Symbols.expand_more
+                              : Symbols.chevron_right,
+                        ),
+                        onPressed: () async {
+                          if (!isExpanded) {
+                            await ensureTreeChildrenLoaded(file);
+                          }
+                          _toggleId(expandedFileIds, file.id);
+                        },
+                      ),
+                    ).padding(right: 4),
+                  if (!hasTreeChildren)
+                    const SizedBox(width: 32 + 4, height: 32),
+                  if (isSelectionMode)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Checkbox(
+                        value: isSelected,
+                        onChanged: (value) =>
+                            _toggleId(selectedFileIds, file.id),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: _FileListLeadingPreview(file: file),
+                  ),
+                ],
+              ),
+              title: file.name.isEmpty
+                  ? Text('untitled').tr().italic()
+                  : Text(
+                      file.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+              subtitle: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 6,
+                children: [
+                  const Icon(Symbols.insert_drive_file, size: 12),
+                  Text(
+                    formatFileSize(file.size),
+                    style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                  ),
+                  const SizedBox.shrink(),
+                  const Icon(Symbols.calendar_today, size: 12),
+                  Text(
+                    file.createdAt.formatSystem(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                  ),
+                  const SizedBox.shrink(),
+                  if (file.applicationType != null)
+                    ...([
+                      const Icon(Symbols.calendar_today, size: 12),
+                      Text(
+                        file.applicationType!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                      ),
+                    ]),
+                ],
+              ).opacity(0.85).padding(top: 2, bottom: 4),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Symbols.delete),
+                    onPressed: () async {
+                      final confirmed = await showConfirmAlert(
+                        'confirmDeleteFile'.tr(),
+                        'deleteFile'.tr(),
+                        isDanger: true,
+                      );
+                      if (!confirmed) return;
+
+                      if (context.mounted) {
+                        showLoadingModal(context);
+                      }
+                      try {
+                        await onDelete(file);
+                      } catch (e) {
+                        showSnackBar('failedToDeleteFile'.tr());
+                      } finally {
+                        if (context.mounted) {
+                          hideLoadingModal(context);
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (hasTreeChildren && isExpanded)
+          if (isLoadingChildren && children.isEmpty)
+            Padding(
+              padding: EdgeInsets.only(left: depth * 18.0 + 46),
+              child: const LinearProgressIndicator(minHeight: 2),
+            )
+          else
+            ...children.map(
+              (child) => _buildTreeFileTile(
+                file: child,
+                context: context,
+                isSelectionMode: isSelectionMode,
+                selectedFileIds: selectedFileIds,
+                expandedFileIds: expandedFileIds,
+                treeChildrenCache: treeChildrenCache,
+                loadingTreeChildren: loadingTreeChildren,
+                ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
+                depth: depth + 1,
+                onDelete: onDelete,
+                onOpen: onOpen,
+              ),
+            ),
+      ],
+    );
+  }
+
   Widget _buildIndexedListTile(
     FileItem fileItem,
     WidgetRef ref,
     BuildContext context,
     bool isSelectionMode,
-    bool isSelected,
-    VoidCallback toggleSelection,
+    ValueNotifier<Set<String>> selectedFileIds,
+    ValueNotifier<Set<String>> expandedFileIds,
+    Map<String, List<SnCloudFile>> treeChildrenCache,
+    Set<String> loadingTreeChildren,
+    Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
   ) {
     final file = fileItem.file;
-    return ListTile(
-      leading: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isSelectionMode)
-            Checkbox(
-              value: isSelected,
-              onChanged: (value) => toggleSelection(),
-            ),
-          ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            child: SizedBox(
-              height: 48,
-              width: 48,
-              child: getFileIcon(file, size: 24),
-            ),
-          ),
-        ],
-      ),
-      title: file.name.isEmpty
-          ? Text('untitled').tr().italic()
-          : Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(formatFileSize(file.size)),
-      onTap: () {
-        if (isSelectionMode) {
-          toggleSelection();
-        } else {
-          context.router.push(FileDetailRoute(id: file.id));
-        }
+    return _buildTreeFileTile(
+      file: file,
+      context: context,
+      isSelectionMode: isSelectionMode,
+      selectedFileIds: selectedFileIds,
+      expandedFileIds: expandedFileIds,
+      treeChildrenCache: treeChildrenCache,
+      loadingTreeChildren: loadingTreeChildren,
+      ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
+      depth: 0,
+      onDelete: (file) async {
+        final uploader = ref.read(driveFileUploaderProvider);
+        await uploader.deleteFile(file.id);
+        ref.invalidate(indexedCloudFileListProvider);
       },
-      trailing: IconButton(
-        icon: const Icon(Symbols.delete),
-        onPressed: () async {
-          final confirmed = await showConfirmAlert(
-            'confirmDeleteFile'.tr(),
-            'deleteFile'.tr(),
-            isDanger: true,
-          );
-          if (!confirmed) return;
-
-          if (context.mounted) {
-            showLoadingModal(context);
-          }
-          try {
-            final uploader = ref.read(driveFileUploaderProvider);
-            await uploader.deleteFile(fileItem.file.id);
-            ref.invalidate(indexedCloudFileListProvider);
-          } catch (e) {
-            showSnackBar('failedToDeleteFile'.tr());
-          } finally {
-            if (context.mounted) {
-              hideLoadingModal(context);
-            }
-          }
-        },
-      ),
+      onOpen: () => context.router.push(FileDetailRoute(id: file.id)),
     );
   }
 
@@ -1144,66 +1408,29 @@ class FileListView extends HookConsumerWidget {
     WidgetRef ref,
     BuildContext context,
     bool isSelectionMode,
-    bool isSelected,
-    VoidCallback toggleSelection,
+    ValueNotifier<Set<String>> selectedFileIds,
+    ValueNotifier<Set<String>> expandedFileIds,
+    Map<String, List<SnCloudFile>> treeChildrenCache,
+    Set<String> loadingTreeChildren,
+    Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
   ) {
     final file = unindexedFileItem.file;
-    return ListTile(
-      leading: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isSelectionMode)
-            Checkbox(
-              value: isSelected,
-              onChanged: (value) => toggleSelection(),
-            ),
-          ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            child: SizedBox(
-              height: 48,
-              width: 48,
-              child: getFileIcon(file, size: 24),
-            ),
-          ),
-        ],
-      ),
-      title: file.name.isEmpty
-          ? Text('untitled').tr().italic()
-          : Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(formatFileSize(file.size)),
-      onTap: () {
-        if (isSelectionMode) {
-          toggleSelection();
-        } else {
-          context.router.push(FileDetailRoute(id: file.id));
-        }
+    return _buildTreeFileTile(
+      file: file,
+      context: context,
+      isSelectionMode: isSelectionMode,
+      selectedFileIds: selectedFileIds,
+      expandedFileIds: expandedFileIds,
+      treeChildrenCache: treeChildrenCache,
+      loadingTreeChildren: loadingTreeChildren,
+      ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
+      depth: 0,
+      onDelete: (file) async {
+        final uploader = ref.read(driveFileUploaderProvider);
+        await uploader.deleteFile(file.id);
+        ref.invalidate(unindexedFileListProvider);
       },
-      trailing: IconButton(
-        icon: const Icon(Symbols.delete),
-        onPressed: () async {
-          final confirmed = await showConfirmAlert(
-            'confirmDeleteFile'.tr(),
-            'deleteFile'.tr(),
-            isDanger: true,
-          );
-          if (!confirmed) return;
-
-          if (context.mounted) {
-            showLoadingModal(context);
-          }
-          try {
-            final uploader = ref.read(driveFileUploaderProvider);
-            await uploader.deleteFile(file.id);
-            ref.invalidate(unindexedFileListProvider);
-          } catch (e) {
-            showSnackBar('failedToDeleteFile'.tr());
-          } finally {
-            if (context.mounted) {
-              hideLoadingModal(context);
-            }
-          }
-        },
-      ),
+      onOpen: () => context.router.push(FileDetailRoute(id: file.id)),
     );
   }
 
@@ -1476,18 +1703,81 @@ class FileListView extends HookConsumerWidget {
               ],
             ),
             selected: false,
-            onSelected: (selected) {
+            onSelected: (selected) async {
               if (selected) {
                 if (mode.value == FileListMode.unindexed) {
-                  ref.invalidate(unindexedFileListProvider);
+                  await ref.read(unindexedFileListProvider.notifier).refresh();
                 } else {
-                  cloudNotifier.setPath(currentPath.value);
+                  await ref
+                      .read(indexedCloudFileListProvider.notifier)
+                      .refresh();
                 }
               }
             },
           ),
         ],
       ),
+    );
+  }
+}
+
+class _FileListLeadingPreview extends HookConsumerWidget {
+  final SnCloudFile file;
+
+  const _FileListLeadingPreview({required this.file});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final kind = file.mimeType.split('/').firstOrNull;
+
+    Widget preview = Container(
+      color: colorScheme.surfaceContainerHighest,
+      child: Center(child: getFileIcon(file, size: 20, tinyPreview: false)),
+    );
+
+    if (kind == 'image') {
+      preview = CloudImageWidget(file: file, fit: BoxFit.cover, aspectRatio: 1);
+    } else if (kind == 'video') {
+      final serverUrl = ref.watch(serverUrlProvider);
+      final uri = file.storageUrl ?? '$serverUrl/drive/files/${file.id}';
+      preview = Stack(
+        fit: StackFit.expand,
+        children: [
+          UniversalImage(
+            uri: '$uri?thumbnail=true',
+            fit: BoxFit.cover,
+            width: 52,
+            height: 52,
+          ),
+          Container(color: Colors.black12),
+          const Center(
+            child: Icon(
+              Symbols.play_arrow,
+              size: 18,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: Colors.black54,
+                  blurRadius: 8,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.7)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ClipRRect(borderRadius: BorderRadius.circular(10), child: preview),
     );
   }
 }

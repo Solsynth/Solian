@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/widgets/content/file_viewer_contents.dart';
@@ -313,7 +314,11 @@ class _EncryptedFileCard extends ConsumerWidget {
               TextButton.icon(
                 onPressed: () => ref
                     .read(driveFileDownloaderProvider)
-                    .downloadWithProgress(item),
+                    .downloadWithProgress(
+                      item,
+                      useDownloadsFolder:
+                          HardwareKeyboard.instance.isShiftPressed,
+                    ),
                 icon: const Icon(Symbols.download),
                 label: Text('download').tr(),
               ),
