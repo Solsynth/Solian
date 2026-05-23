@@ -18,8 +18,12 @@ class MockIslandDesktopPresencePlatform
         const ExternalNowPlayingEvent(
           source: ExternalNowPlayingSource.music,
           state: ExternalNowPlayingState.playing,
+          sourceBundleIdentifier: 'com.apple.Music',
+          uniqueIdentifier: '6766820661',
           title: 'Song',
           artist: 'Artist',
+          titleUrl: 'https://music.apple.com/us/song/song/6766820661',
+          artworkUrl: 'https://island.test/artwork-small.jpg',
         ),
       );
 

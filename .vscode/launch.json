@@ -1,0 +1,151 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Island",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "Island (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Island (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "island_desktop_presence",
+            "cwd": "packages/island_desktop_presence",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "island_desktop_presence (profile mode)",
+            "cwd": "packages/island_desktop_presence",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "island_desktop_presence (release mode)",
+            "cwd": "packages/island_desktop_presence",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "solar_network_sdk",
+            "cwd": "packages/solar_network_sdk",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example",
+            "cwd": "packages/solar_network_sdk/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "packages/solar_network_sdk/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "packages/solar_network_sdk/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "firebase_analytics-12.4.1",
+            "cwd": "build/ios/SourcePackages/firebase_analytics-12.4.1",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "firebase_analytics-12.4.1 (profile mode)",
+            "cwd": "build/ios/SourcePackages/firebase_analytics-12.4.1",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "firebase_analytics-12.4.1 (release mode)",
+            "cwd": "build/ios/SourcePackages/firebase_analytics-12.4.1",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "firebase_messaging-16.2.2",
+            "cwd": "build/ios/SourcePackages/firebase_messaging-16.2.2",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "firebase_messaging-16.2.2 (profile mode)",
+            "cwd": "build/ios/SourcePackages/firebase_messaging-16.2.2",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "firebase_messaging-16.2.2 (release mode)",
+            "cwd": "build/ios/SourcePackages/firebase_messaging-16.2.2",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "firebase_analytics-12.4.1",
+            "cwd": "build/macos/SourcePackages/firebase_analytics-12.4.1",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "firebase_analytics-12.4.1 (profile mode)",
+            "cwd": "build/macos/SourcePackages/firebase_analytics-12.4.1",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "firebase_analytics-12.4.1 (release mode)",
+            "cwd": "build/macos/SourcePackages/firebase_analytics-12.4.1",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "firebase_messaging-16.2.2",
+            "cwd": "build/macos/SourcePackages/firebase_messaging-16.2.2",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "firebase_messaging-16.2.2 (profile mode)",
+            "cwd": "build/macos/SourcePackages/firebase_messaging-16.2.2",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "firebase_messaging-16.2.2 (release mode)",
+            "cwd": "build/macos/SourcePackages/firebase_messaging-16.2.2",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
