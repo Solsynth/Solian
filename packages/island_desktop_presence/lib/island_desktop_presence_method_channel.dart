@@ -136,11 +136,17 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
       state: _decodeExternalState(rawState),
       sourceAppName: event['source_app_name'] as String?,
       sourceBundleIdentifier: event['source_bundle_identifier'] as String?,
+      uniqueIdentifier: event['unique_identifier'] as String?,
       title: event['title'] as String?,
       artist: event['artist'] as String?,
       album: event['album'] as String?,
       duration: _decodeOptionalDuration(event['duration_seconds']),
       position: _decodeOptionalDuration(event['position_seconds']),
+      titleUrl: event['title_url'] as String?,
+      subtitleUrl: event['subtitle_url'] as String?,
+      artworkUrl: event['artwork_url'] as String?,
+      artworkUrlLarge: event['artwork_url_large'] as String?,
+      catalogId: event['catalog_id'] as String?,
     );
   }
 

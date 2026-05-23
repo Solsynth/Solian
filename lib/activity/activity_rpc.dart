@@ -523,8 +523,6 @@ Future<List<SnPresenceActivity>> presenceActivities(
   Ref ref,
   String uname,
 ) async {
-  ref.keepAlive();
-
   final apiClient = ref.watch(apiClientProvider);
   final response = await apiClient.get('/passport/activities/$uname');
   final data = response.data as List<dynamic>;

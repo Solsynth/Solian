@@ -33,22 +33,34 @@ class ExternalNowPlayingEvent {
     required this.state,
     this.sourceAppName,
     this.sourceBundleIdentifier,
+    this.uniqueIdentifier,
     this.title,
     this.artist,
     this.album,
     this.duration,
     this.position,
+    this.titleUrl,
+    this.subtitleUrl,
+    this.artworkUrl,
+    this.artworkUrlLarge,
+    this.catalogId,
   });
 
   final ExternalNowPlayingSource source;
   final ExternalNowPlayingState state;
   final String? sourceAppName;
   final String? sourceBundleIdentifier;
+  final String? uniqueIdentifier;
   final String? title;
   final String? artist;
   final String? album;
   final Duration? duration;
   final Duration? position;
+  final String? titleUrl;
+  final String? subtitleUrl;
+  final String? artworkUrl;
+  final String? artworkUrlLarge;
+  final String? catalogId;
 
   @override
   bool operator ==(Object other) {
@@ -61,11 +73,17 @@ class ExternalNowPlayingEvent {
         other.state == state &&
         other.sourceAppName == sourceAppName &&
         other.sourceBundleIdentifier == sourceBundleIdentifier &&
+        other.uniqueIdentifier == uniqueIdentifier &&
         other.title == title &&
         other.artist == artist &&
         other.album == album &&
         other.duration == duration &&
-        other.position == position;
+        other.position == position &&
+        other.titleUrl == titleUrl &&
+        other.subtitleUrl == subtitleUrl &&
+        other.artworkUrl == artworkUrl &&
+        other.artworkUrlLarge == artworkUrlLarge &&
+        other.catalogId == catalogId;
   }
 
   @override
@@ -74,11 +92,17 @@ class ExternalNowPlayingEvent {
     state,
     sourceAppName,
     sourceBundleIdentifier,
+    uniqueIdentifier,
     title,
     artist,
     album,
     duration,
     position,
+    titleUrl,
+    subtitleUrl,
+    artworkUrl,
+    artworkUrlLarge,
+    catalogId,
   );
 }
 

@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "island_desktop_presence",
     platforms: [
-        .macOS("10.15")
+        .macOS("12.0")
     ],
     products: [
         .library(name: "island-desktop-presence", targets: ["island_desktop_presence"])
