@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/log_recorder.dart';
 import 'package:island/core/services/analytics_service.dart';
@@ -76,7 +75,6 @@ void main(List<String> args) async {
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     Logger.root.info("[SplashScreen] Initializing desktop window manager...");
     await protocolHandler.register('solian');
-    await hotKeyManager.unregisterAll();
     Logger.root.info("[SplashScreen] Desktop window manager is ready!");
   }
 

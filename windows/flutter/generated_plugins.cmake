@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   bluetooth_low_energy_windows
   connectivity_plus
-  dart_ipc
   desktop_drop
   disk_space_2
   file_saver
@@ -19,7 +18,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_webrtc
   gal
   geolocator_windows
-  hotkey_manager_windows
   irondash_engine_context
   island_desktop_presence
   livekit_client

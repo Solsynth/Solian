@@ -8,10 +8,6 @@ PODS:
     - FlutterMacOS
     - WebRTC-SDK (= 137.7151.04)
   - FlutterMacOS (1.0.0)
-  - HotKey (0.2.1)
-  - hotkey_manager_macos (0.0.1):
-    - FlutterMacOS
-    - HotKey
   - irondash_engine_context (0.0.1):
     - FlutterMacOS
   - livekit_client (2.5.4):
@@ -46,7 +42,6 @@ DEPENDENCIES:
   - flutter_tts (from `Flutter/ephemeral/.symlinks/plugins/flutter_tts/macos`)
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - hotkey_manager_macos (from `Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos`)
   - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
@@ -61,7 +56,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - HotKey
     - ObjectBox
     - OrderedSet
     - WebRTC-SDK
@@ -75,8 +69,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
-  hotkey_manager_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/hotkey_manager_macos/macos
   irondash_engine_context:
     :path: Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos
   livekit_client:
@@ -105,8 +97,6 @@ SPEC CHECKSUMS:
   flutter_tts: ae915565cc6948444b513acc8ee021993281e027
   flutter_webrtc: 718eae22a371cd94e5d56aa4f301443ebc5bb737
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  HotKey: 400beb7caa29054ea8d864c96f5ba7e5b4852277
-  hotkey_manager_macos: a4317849af96d2430fa89944d3c58977ca089fbe
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
   livekit_client: 3df5a1787d64010ca56c4002959d9e47c03ba3fb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
