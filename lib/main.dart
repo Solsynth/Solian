@@ -266,6 +266,8 @@ void main(List<String> args) async {
     await SentryFlutter.init((options) {
       options.dsn = _sentryDsn;
       options.sendDefaultPii = false;
+      options.tracesSampleRate = 0.01;
+      options.enableAutoSessionTracking = false;
     }, appRunner: appRunner);
     return;
   }
