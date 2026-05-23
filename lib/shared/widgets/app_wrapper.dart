@@ -85,6 +85,11 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
+      ref.read(desktopNowPlayingProvider);
+      return null;
+    }, []);
+
+    useEffect(() {
       bool triedOpen = false;
       if (!hasConnectivity && !networkStateShowing.value && !triedOpen) {
         networkStateShowing.value = true;

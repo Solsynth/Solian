@@ -1030,7 +1030,14 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.link,
         title: 'Connection',
         localizedTitleKey: 'settingsCategoryConnection',
-        searchTerms: ['server url', 'media proxy', 'default pool'],
+        searchTerms: [
+          'server url',
+          'media proxy',
+          'default pool',
+          'nowplaying-cli',
+          'macos now playing',
+          'desktop media status',
+        ],
         children: [
           ListTile(
             isThreeLine: true,
@@ -1086,6 +1093,40 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
+          if (!kIsWeb && Platform.isMacOS)
+            Builder(
+              builder: (context) {
+                final status = ref.watch(desktopNowPlayingCliStatusProvider);
+                return ListTile(
+                  minLeadingWidth: 48,
+                  title: const Text('macOS nowplaying-cli'),
+                  subtitle: Text(
+                    status.when(
+                      data: (value) {
+                        final path = value.path ?? '(not configured)';
+                        final label = switch (value.availability) {
+                          DesktopNowPlayingCliAvailability.installed =>
+                            'Installed',
+                          DesktopNowPlayingCliAvailability.missing =>
+                            'Missing or not executable',
+                          DesktopNowPlayingCliAvailability.unsupported =>
+                            'Unsupported',
+                        };
+                        return '$label\n$path';
+                      },
+                      loading: () => 'Checking availability...',
+                      error: (error, _) => 'Failed to check: $error',
+                    ),
+                  ).fontSize(12),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  leading: const Icon(Symbols.music_note),
+                  trailing: const Icon(Symbols.chevron_right),
+                  isThreeLine: true,
+                  onTap: () =>
+                      _showDesktopNowPlayingCliPathEditor(context, ref),
+                );
+              },
+            ),
           Builder(
             builder: (context) {
               final ipOverrideMode = ref.watch(ipOverrideModeProvider);
@@ -2907,6 +2948,50 @@ class _LongPressConfirmButton extends StatefulWidget {
   @override
   State<_LongPressConfirmButton> createState() =>
       _LongPressConfirmButtonState();
+}
+
+Future<void> _showDesktopNowPlayingCliPathEditor(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final controller = TextEditingController(
+    text: ref.read(desktopNowPlayingCliPathProvider) ?? '',
+  );
+
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('macOS nowplaying-cli path'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: kMacosNowPlayingCliDefaultPath,
+            border: const OutlineInputBorder(),
+            helperText:
+                'Leave empty to use the default Homebrew path on this Mac.',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text('cancel').tr(),
+          ),
+          TextButton(
+            onPressed: () {
+              ref
+                  .read(desktopNowPlayingCliPathProvider.notifier)
+                  .setPath(controller.text);
+              ref.invalidate(desktopNowPlayingCliStatusProvider);
+              Navigator.of(dialogContext).pop();
+            },
+            child: Text('confirm').tr(),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class _LongPressConfirmButtonState extends State<_LongPressConfirmButton>

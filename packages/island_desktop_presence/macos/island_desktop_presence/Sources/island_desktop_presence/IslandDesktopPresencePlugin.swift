@@ -1,32 +1,209 @@
 import ApplicationServices
 import Cocoa
+import Darwin
 import FlutterMacOS
 
-public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
+private let defaultNowPlayingCliPath = "/opt/homebrew/bin/nowplaying-cli"
+private let rpcSocketBasePath = "/tmp/discord-ipc-"
+
+private struct ExternalNowPlayingSnapshot: Equatable {
+  enum Source: String {
+    case music
+    case spotify
+    case other
+  }
+
+  enum State: String {
+    case playing
+    case paused
+    case stopped
+  }
+
+  let source: Source
+  let state: State
+  let sourceAppName: String?
+  let sourceBundleIdentifier: String?
+  let title: String?
+  let artist: String?
+  let album: String?
+  let durationSeconds: Double?
+  let positionSeconds: Double?
+
+  var payload: [String: Any] {
+    var result: [String: Any] = [
+      "source": source.rawValue,
+      "state": state.rawValue,
+    ]
+    if let sourceAppName {
+      result["source_app_name"] = sourceAppName
+    }
+    if let sourceBundleIdentifier {
+      result["source_bundle_identifier"] = sourceBundleIdentifier
+    }
+    if let title {
+      result["title"] = title
+    }
+    if let artist {
+      result["artist"] = artist
+    }
+    if let album {
+      result["album"] = album
+    }
+    if let durationSeconds {
+      result["duration_seconds"] = durationSeconds
+    }
+    if let positionSeconds {
+      result["position_seconds"] = positionSeconds
+    }
+    return result
+  }
+}
+
+private final class RpcConnection {
+  init(connectionId: String, fileDescriptor: Int32) {
+    self.connectionId = connectionId
+    self.fileDescriptor = fileDescriptor
+  }
+
+  let connectionId: String
+  let fileDescriptor: Int32
+  var buffer = Data()
+}
+
+private final class PresenceStreamHandler: NSObject, FlutterStreamHandler {
+  weak var plugin: IslandDesktopPresencePlugin?
+
+  init(plugin: IslandDesktopPresencePlugin) {
+    self.plugin = plugin
+  }
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
+    -> FlutterError?
+  {
+    plugin?.presenceEventSink = events
+    if let pending = plugin?.pendingPresenceEvent {
+      events(pending)
+      plugin?.pendingPresenceEvent = nil
+    }
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    plugin?.presenceEventSink = nil
+    return nil
+  }
+}
+
+private final class ExternalNowPlayingStreamHandler: NSObject, FlutterStreamHandler {
+  weak var plugin: IslandDesktopPresencePlugin?
+
+  init(plugin: IslandDesktopPresencePlugin) {
+    self.plugin = plugin
+  }
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
+    -> FlutterError?
+  {
+    plugin?.externalNowPlayingSink = events
+    if let pending = plugin?.pendingExternalNowPlayingEvent {
+      events(pending)
+      plugin?.pendingExternalNowPlayingEvent = nil
+    }
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    plugin?.externalNowPlayingSink = nil
+    return nil
+  }
+}
+
+private final class RpcStreamHandler: NSObject, FlutterStreamHandler {
+  weak var plugin: IslandDesktopPresencePlugin?
+
+  init(plugin: IslandDesktopPresencePlugin) {
+    self.plugin = plugin
+  }
+
+  func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
+    -> FlutterError?
+  {
+    plugin?.rpcEventSink = events
+    let pendingEvents = plugin?.pendingRpcEvents ?? []
+    for event in pendingEvents {
+      events(event)
+    }
+    plugin?.pendingRpcEvents.removeAll()
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    plugin?.rpcEventSink = nil
+    return nil
+  }
+}
+
+public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   private enum State: String {
     case active
     case idle
   }
 
-  private var eventSink: FlutterEventSink?
-  private var timer: Timer?
+  fileprivate var presenceEventSink: FlutterEventSink?
+  private var presenceTimer: Timer?
   private var idleThresholdMilliseconds = 300_000
   private var lastEmittedState: State?
-  private var pendingEvent: [String: Any]?
+  fileprivate var pendingPresenceEvent: [String: Any]?
+
+  fileprivate var externalNowPlayingSink: FlutterEventSink?
+  private var externalNowPlayingTimer: Timer?
+  private var externalNowPlayingPollInterval = 2.0
+  private var externalNowPlayingExecutablePath = defaultNowPlayingCliPath
+  private var externalNowPlayingPollInFlight = false
+  private var didLogMissingNowPlayingCli = false
+  private var lastExternalNowPlayingSnapshot: ExternalNowPlayingSnapshot?
+  fileprivate var pendingExternalNowPlayingEvent: [String: Any]?
+
+  fileprivate var rpcEventSink: FlutterEventSink?
+  fileprivate var pendingRpcEvents: [[String: Any]] = []
+  private let rpcLock = NSLock()
+  private var rpcRunning = false
+  private var rpcListenerFileDescriptor: Int32 = -1
+  private var rpcSocketPath: String?
+  private var nextRpcConnectionId: UInt64 = 1
+  private var rpcConnections: [String: RpcConnection] = [:]
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let methodChannel = FlutterMethodChannel(
       name: "island_desktop_presence",
       binaryMessenger: registrar.messenger
     )
-    let eventChannel = FlutterEventChannel(
+    let presenceEventChannel = FlutterEventChannel(
       name: "island_desktop_presence/events",
+      binaryMessenger: registrar.messenger
+    )
+    let externalNowPlayingChannel = FlutterEventChannel(
+      name: "island_desktop_presence/external_now_playing",
+      binaryMessenger: registrar.messenger
+    )
+    let rpcEventChannel = FlutterEventChannel(
+      name: "island_desktop_presence/rpc_events",
       binaryMessenger: registrar.messenger
     )
 
     let instance = IslandDesktopPresencePlugin()
     registrar.addMethodCallDelegate(instance, channel: methodChannel)
-    eventChannel.setStreamHandler(instance)
+    presenceEventChannel.setStreamHandler(PresenceStreamHandler(plugin: instance))
+    externalNowPlayingChannel.setStreamHandler(
+      ExternalNowPlayingStreamHandler(plugin: instance)
+    )
+    rpcEventChannel.setStreamHandler(RpcStreamHandler(plugin: instance))
+  }
+
+  deinit {
+    stopRpcTransport()
+    stopPresenceTimer()
+    stopExternalNowPlayingTimer()
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -50,48 +227,124 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin, FlutterStream
       }
 
       idleThresholdMilliseconds = thresholdMilliseconds
-      startTimer()
+      startPresenceTimer()
       emitCurrentState(force: true)
       result(nil)
     case "stopMonitoring":
-      stopTimer()
+      stopPresenceTimer()
       result(nil)
+    case "startExternalNowPlayingMonitoring":
+      guard
+        let arguments = call.arguments as? [String: Any],
+        let pollIntervalMilliseconds = arguments["pollIntervalMilliseconds"] as? Int,
+        pollIntervalMilliseconds > 0
+      else {
+        result(
+          FlutterError(
+            code: "invalid_arguments",
+            message: "pollIntervalMilliseconds must be a positive integer.",
+            details: nil
+          )
+        )
+        return
+      }
+
+      externalNowPlayingPollInterval = Double(pollIntervalMilliseconds) / 1000.0
+      let executablePath = normalizeExternalString(arguments["executablePath"] as? String)
+      externalNowPlayingExecutablePath = executablePath ?? defaultNowPlayingCliPath
+      didLogMissingNowPlayingCli = false
+      NSLog(
+        "[IslandDesktopPresence] Starting external now playing monitoring via nowplaying-cli path=%@ interval=%.3fs",
+        externalNowPlayingExecutablePath,
+        externalNowPlayingPollInterval
+      )
+      startExternalNowPlayingTimer()
+      requestExternalNowPlayingSnapshot(force: true)
+      result(nil)
+    case "stopExternalNowPlayingMonitoring":
+      NSLog("[IslandDesktopPresence] Stopping external now playing monitoring")
+      stopExternalNowPlayingTimer()
+      result(nil)
+    case "startRpcTransport":
+      if let errorMessage = startRpcTransport() {
+        result(
+          FlutterError(
+            code: "rpc_transport_unavailable",
+            message: errorMessage,
+            details: nil
+          )
+        )
+      } else {
+        result(nil)
+      }
+    case "stopRpcTransport":
+      stopRpcTransport()
+      result(nil)
+    case "sendRpcPacket":
+      guard
+        let arguments = call.arguments as? [String: Any],
+        let connectionId = arguments["connectionId"] as? String,
+        let packetType = arguments["packetType"] as? Int,
+        let dataJson = arguments["dataJson"] as? String
+      else {
+        result(
+          FlutterError(
+            code: "invalid_arguments",
+            message: "sendRpcPacket requires connectionId, packetType and dataJson.",
+            details: nil
+          )
+        )
+        return
+      }
+
+      if let errorMessage = sendRpcPacket(
+        connectionId: connectionId,
+        packetType: Int32(packetType),
+        dataJson: dataJson
+      ) {
+        result(FlutterError(code: "rpc_send_failed", message: errorMessage, details: nil))
+      } else {
+        result(nil)
+      }
+    case "closeRpcConnection":
+      guard
+        let arguments = call.arguments as? [String: Any],
+        let connectionId = arguments["connectionId"] as? String
+      else {
+        result(
+          FlutterError(
+            code: "invalid_arguments",
+            message: "closeRpcConnection requires connectionId.",
+            details: nil
+          )
+        )
+        return
+      }
+
+      if let errorMessage = closeRpcConnection(connectionId: connectionId) {
+        result(FlutterError(code: "rpc_close_failed", message: errorMessage, details: nil))
+      } else {
+        result(nil)
+      }
     default:
       result(FlutterMethodNotImplemented)
     }
   }
 
-  public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
-    -> FlutterError?
-  {
-    eventSink = events
-    if let pendingEvent {
-      events(pendingEvent)
-      self.pendingEvent = nil
-    }
-    return nil
-  }
-
-  public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    eventSink = nil
-    return nil
-  }
-
-  private func startTimer() {
-    stopTimer(resetState: false)
-
-    timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
+  private func startPresenceTimer() {
+    stopPresenceTimer(resetState: false)
+    presenceTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
       self?.emitCurrentState(force: false)
     }
-    RunLoop.main.add(timer!, forMode: .common)
+    RunLoop.main.add(presenceTimer!, forMode: .common)
   }
 
-  private func stopTimer(resetState: Bool = true) {
-    timer?.invalidate()
-    timer = nil
+  private func stopPresenceTimer(resetState: Bool = true) {
+    presenceTimer?.invalidate()
+    presenceTimer = nil
     if resetState {
       lastEmittedState = nil
-      pendingEvent = nil
+      pendingPresenceEvent = nil
     }
   }
 
@@ -109,10 +362,10 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin, FlutterStream
       "idle_seconds": idleMilliseconds / 1000,
     ]
 
-    if let eventSink {
-      eventSink(event)
+    if let presenceEventSink {
+      presenceEventSink(event)
     } else {
-      pendingEvent = event
+      pendingPresenceEvent = event
     }
   }
 
@@ -122,5 +375,578 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin, FlutterStream
       eventType: .null
     )
     return max(0, Int((seconds * 1000.0).rounded()))
+  }
+
+  private func startExternalNowPlayingTimer() {
+    stopExternalNowPlayingTimer(resetState: false)
+    externalNowPlayingTimer = Timer.scheduledTimer(
+      withTimeInterval: externalNowPlayingPollInterval,
+      repeats: true
+    ) { [weak self] _ in
+      self?.requestExternalNowPlayingSnapshot(force: false)
+    }
+    RunLoop.main.add(externalNowPlayingTimer!, forMode: .common)
+  }
+
+  private func stopExternalNowPlayingTimer(resetState: Bool = true) {
+    externalNowPlayingTimer?.invalidate()
+    externalNowPlayingTimer = nil
+    externalNowPlayingPollInFlight = false
+    if resetState {
+      lastExternalNowPlayingSnapshot = nil
+      pendingExternalNowPlayingEvent = nil
+      didLogMissingNowPlayingCli = false
+    }
+  }
+
+  private func requestExternalNowPlayingSnapshot(force: Bool) {
+    if externalNowPlayingPollInFlight {
+      return
+    }
+
+    let executablePath = externalNowPlayingExecutablePath
+    externalNowPlayingPollInFlight = true
+    DispatchQueue.global(qos: .utility).async { [weak self] in
+      guard let self else {
+        return
+      }
+      let snapshot = self.readExternalNowPlayingSnapshot(executablePath: executablePath)
+      DispatchQueue.main.async { [weak self] in
+        guard let self else {
+          return
+        }
+        self.externalNowPlayingPollInFlight = false
+        self.handleExternalNowPlayingSnapshot(snapshot, force: force)
+      }
+    }
+  }
+
+  private func handleExternalNowPlayingSnapshot(
+    _ snapshot: ExternalNowPlayingSnapshot?,
+    force: Bool
+  ) {
+    if let snapshot {
+      emitExternalNowPlaying(snapshot, force: force)
+      return
+    }
+
+    guard let lastSnapshot = lastExternalNowPlayingSnapshot else {
+      NSLog("[IslandDesktopPresence] External now playing poll found no active source")
+      return
+    }
+
+    let stoppedSnapshot = ExternalNowPlayingSnapshot(
+      source: lastSnapshot.source,
+      state: .stopped,
+      sourceAppName: lastSnapshot.sourceAppName,
+      sourceBundleIdentifier: lastSnapshot.sourceBundleIdentifier,
+      title: nil,
+      artist: nil,
+      album: nil,
+      durationSeconds: nil,
+      positionSeconds: nil
+    )
+    emitExternalNowPlaying(stoppedSnapshot, force: force)
+  }
+
+  private func emitExternalNowPlaying(
+    _ snapshot: ExternalNowPlayingSnapshot,
+    force: Bool
+  ) {
+    if !force, lastExternalNowPlayingSnapshot == snapshot {
+      return
+    }
+
+    lastExternalNowPlayingSnapshot = snapshot
+    let event = snapshot.payload
+    NSLog(
+      "[IslandDesktopPresence] External now playing read: source=%@ app=%@ state=%@ title=%@ artist=%@ album=%@",
+      snapshot.source.rawValue,
+      snapshot.sourceAppName ?? "",
+      snapshot.state.rawValue,
+      snapshot.title ?? "",
+      snapshot.artist ?? "",
+      snapshot.album ?? ""
+    )
+    if let externalNowPlayingSink {
+      externalNowPlayingSink(event)
+    } else {
+      pendingExternalNowPlayingEvent = event
+    }
+  }
+
+  private func readExternalNowPlayingSnapshot(
+    executablePath: String
+  ) -> ExternalNowPlayingSnapshot? {
+    guard FileManager.default.isExecutableFile(atPath: executablePath) else {
+      if !didLogMissingNowPlayingCli {
+        NSLog("[IslandDesktopPresence] nowplaying-cli is unavailable at %@", executablePath)
+        didLogMissingNowPlayingCli = true
+      }
+      return nil
+    }
+
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: executablePath)
+    process.arguments = [
+      "get",
+      "--json",
+      "title",
+      "artist",
+      "album",
+      "duration",
+      "elapsedTime",
+      "playbackRate",
+      "bundleIdentifier",
+    ]
+
+    let outputPipe = Pipe()
+    let errorPipe = Pipe()
+    process.standardOutput = outputPipe
+    process.standardError = errorPipe
+
+    do {
+      try process.run()
+      process.waitUntilExit()
+    } catch {
+      NSLog(
+        "[IslandDesktopPresence] Failed to launch nowplaying-cli at %@: %@",
+        executablePath,
+        String(describing: error)
+      )
+      return nil
+    }
+
+    let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+    let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+    if process.terminationStatus != 0 {
+      let stderr = String(data: errorData, encoding: .utf8) ?? ""
+      NSLog(
+        "[IslandDesktopPresence] nowplaying-cli exited with status %d: %@",
+        process.terminationStatus,
+        stderr
+      )
+      return nil
+    }
+
+    guard !outputData.isEmpty else {
+      return nil
+    }
+
+    let decoded: Any
+    do {
+      decoded = try JSONSerialization.jsonObject(with: outputData)
+    } catch {
+      let rawOutput = String(data: outputData, encoding: .utf8) ?? ""
+      NSLog(
+        "[IslandDesktopPresence] Failed to decode nowplaying-cli output: %@ raw=%@",
+        String(describing: error),
+        rawOutput
+      )
+      return nil
+    }
+
+    guard let payload = decoded as? [String: Any] else {
+      return nil
+    }
+
+    let bundleIdentifier = normalizeExternalString(payload["bundleIdentifier"] as? String)
+    let title = normalizeExternalString(payload["title"] as? String)
+    let artist = normalizeExternalString(payload["artist"] as? String)
+    let album = normalizeExternalString(payload["album"] as? String)
+    let playbackRate = numericValue(payload["playbackRate"])
+    let durationSeconds = numericValue(payload["duration"])
+    let positionSeconds = numericValue(payload["elapsedTime"])
+
+    if bundleIdentifier == nil, title == nil, artist == nil, album == nil {
+      return nil
+    }
+
+    return ExternalNowPlayingSnapshot(
+      source: mapExternalSource(bundleIdentifier: bundleIdentifier),
+      state: playbackRate > 0 ? .playing : .paused,
+      sourceAppName: resolveApplicationName(bundleIdentifier: bundleIdentifier),
+      sourceBundleIdentifier: bundleIdentifier,
+      title: title,
+      artist: artist,
+      album: album,
+      durationSeconds: durationSeconds > 0 ? durationSeconds : nil,
+      positionSeconds: positionSeconds >= 0 ? positionSeconds : nil
+    )
+  }
+
+  private func startRpcTransport() -> String? {
+    rpcLock.lock()
+    if rpcRunning {
+      rpcLock.unlock()
+      return nil
+    }
+    rpcLock.unlock()
+
+    guard let socketPath = findAvailableRpcSocketPath() else {
+      return "No available Discord IPC socket path found."
+    }
+
+    let listenerFd = Darwin.socket(AF_UNIX, SOCK_STREAM, 0)
+    if listenerFd < 0 {
+      return "Failed to create RPC socket."
+    }
+
+    Darwin.unlink(socketPath)
+    let bindResult = withSockaddrUn(path: socketPath) { address, length in
+      Darwin.bind(listenerFd, address, length)
+    }
+    if bindResult != 0 {
+      Darwin.close(listenerFd)
+      return "Failed to bind RPC socket."
+    }
+
+    if Darwin.listen(listenerFd, 8) != 0 {
+      Darwin.close(listenerFd)
+      Darwin.unlink(socketPath)
+      return "Failed to listen on RPC socket."
+    }
+
+    rpcLock.lock()
+    rpcRunning = true
+    rpcListenerFileDescriptor = listenerFd
+    rpcSocketPath = socketPath
+    rpcLock.unlock()
+
+    NSLog("[IslandDesktopPresence] RPC transport listening at %@", socketPath)
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      self?.acceptRpcConnections()
+    }
+    return nil
+  }
+
+  private func stopRpcTransport() {
+    let listenerFd: Int32
+    let socketPath: String?
+    let connections: [RpcConnection]
+
+    rpcLock.lock()
+    if !rpcRunning {
+      rpcLock.unlock()
+      return
+    }
+    rpcRunning = false
+    listenerFd = rpcListenerFileDescriptor
+    rpcListenerFileDescriptor = -1
+    socketPath = rpcSocketPath
+    rpcSocketPath = nil
+    connections = Array(rpcConnections.values)
+    rpcConnections.removeAll()
+    rpcLock.unlock()
+
+    if listenerFd >= 0 {
+      Darwin.shutdown(listenerFd, SHUT_RDWR)
+      Darwin.close(listenerFd)
+    }
+
+    for connection in connections {
+      Darwin.shutdown(connection.fileDescriptor, SHUT_RDWR)
+      Darwin.close(connection.fileDescriptor)
+    }
+
+    if let socketPath {
+      Darwin.unlink(socketPath)
+    }
+  }
+
+  private func acceptRpcConnections() {
+    while isRpcRunning() {
+      let listenerFd = currentRpcListenerFileDescriptor()
+      if listenerFd < 0 {
+        return
+      }
+
+      let clientFd = Darwin.accept(listenerFd, nil, nil)
+      if clientFd < 0 {
+        if !isRpcRunning() {
+          return
+        }
+        if errno == EINTR {
+          continue
+        }
+        emitRpcError("Failed to accept RPC socket connection.")
+        continue
+      }
+
+      let connection = createRpcConnection(fileDescriptor: clientFd)
+      emitRpcConnected(connection.connectionId)
+      DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        self?.readRpcConnection(connection)
+      }
+    }
+  }
+
+  private func readRpcConnection(_ connection: RpcConnection) {
+    var readBuffer = [UInt8](repeating: 0, count: 4096)
+    while isRpcRunning() {
+      let bytesRead = Darwin.recv(
+        connection.fileDescriptor,
+        &readBuffer,
+        readBuffer.count,
+        0
+      )
+      if bytesRead <= 0 {
+        break
+      }
+
+      connection.buffer.append(readBuffer, count: bytesRead)
+      processRpcPackets(for: connection)
+    }
+
+    removeRpcConnection(connectionId: connection.connectionId)
+    Darwin.shutdown(connection.fileDescriptor, SHUT_RDWR)
+    Darwin.close(connection.fileDescriptor)
+    emitRpcClosed(connection.connectionId)
+  }
+
+  private func processRpcPackets(for connection: RpcConnection) {
+    while connection.buffer.count >= 8 {
+      let packetType = connection.buffer.withUnsafeBytes { rawBuffer -> Int32 in
+        let value = rawBuffer.load(fromByteOffset: 0, as: Int32.self)
+        return Int32(littleEndian: value)
+      }
+      let payloadLength = connection.buffer.withUnsafeBytes { rawBuffer -> Int32 in
+        let value = rawBuffer.load(fromByteOffset: 4, as: Int32.self)
+        return Int32(littleEndian: value)
+      }
+
+      let totalLength = 8 + Int(payloadLength)
+      if payloadLength < 0 || connection.buffer.count < totalLength {
+        return
+      }
+
+      let payloadData = connection.buffer.subdata(in: 8..<totalLength)
+      connection.buffer.removeSubrange(0..<totalLength)
+
+      guard let dataJson = String(data: payloadData, encoding: .utf8) else {
+        emitRpcError("Received RPC packet with invalid UTF-8 payload.")
+        continue
+      }
+      emitRpcPacket(connection.connectionId, packetType: packetType, dataJson: dataJson)
+    }
+  }
+
+  private func sendRpcPacket(
+    connectionId: String,
+    packetType: Int32,
+    dataJson: String
+  ) -> String? {
+    guard let connection = rpcConnection(connectionId: connectionId) else {
+      return "Unknown RPC connection."
+    }
+
+    let packet = encodeRpcPacket(packetType: packetType, dataJson: dataJson)
+    let writeResult = packet.withUnsafeBytes { rawBuffer -> Int in
+      guard let baseAddress = rawBuffer.baseAddress else {
+        return -1
+      }
+      return Darwin.send(connection.fileDescriptor, baseAddress, rawBuffer.count, 0)
+    }
+
+    if writeResult < 0 {
+      return "Failed to write RPC packet."
+    }
+
+    if packetType == 2 {
+      Darwin.shutdown(connection.fileDescriptor, SHUT_RDWR)
+      Darwin.close(connection.fileDescriptor)
+    }
+
+    return nil
+  }
+
+  private func closeRpcConnection(connectionId: String) -> String? {
+    guard let connection = rpcConnection(connectionId: connectionId) else {
+      return "Unknown RPC connection."
+    }
+
+    Darwin.shutdown(connection.fileDescriptor, SHUT_RDWR)
+    Darwin.close(connection.fileDescriptor)
+    return nil
+  }
+
+  private func emitRpcConnected(_ connectionId: String) {
+    queueRpcEvent([
+      "event": "connected",
+      "connection_id": connectionId,
+    ])
+  }
+
+  private func emitRpcPacket(_ connectionId: String, packetType: Int32, dataJson: String) {
+    queueRpcEvent([
+      "event": "packet",
+      "connection_id": connectionId,
+      "packet_type": Int(packetType),
+      "data_json": dataJson,
+    ])
+  }
+
+  private func emitRpcClosed(_ connectionId: String) {
+    queueRpcEvent([
+      "event": "closed",
+      "connection_id": connectionId,
+    ])
+  }
+
+  private func emitRpcError(_ message: String) {
+    NSLog("[IslandDesktopPresence] RPC transport error: %@", message)
+    queueRpcEvent([
+      "event": "error",
+      "message": message,
+    ])
+  }
+
+  private func queueRpcEvent(_ event: [String: Any]) {
+    DispatchQueue.main.async { [weak self] in
+      guard let self else {
+        return
+      }
+      if let rpcEventSink {
+        rpcEventSink(event)
+      } else {
+        pendingRpcEvents.append(event)
+      }
+    }
+  }
+
+  private func findAvailableRpcSocketPath() -> String? {
+    for index in 0..<10 {
+      let candidate = "\(rpcSocketBasePath)\(index)"
+      let clientFd = Darwin.socket(AF_UNIX, SOCK_STREAM, 0)
+      if clientFd >= 0 {
+        let connectResult = withSockaddrUn(path: candidate) { address, length in
+          Darwin.connect(clientFd, address, length)
+        }
+        Darwin.close(clientFd)
+        if connectResult == 0 {
+          continue
+        }
+      }
+      Darwin.unlink(candidate)
+      return candidate
+    }
+    return nil
+  }
+
+  private func withSockaddrUn(
+    path: String,
+    _ body: (UnsafePointer<sockaddr>, socklen_t) -> Int32
+  ) -> Int32 {
+    var address = sockaddr_un()
+    address.sun_family = sa_family_t(AF_UNIX)
+    let maxLength = MemoryLayout.size(ofValue: address.sun_path)
+    let pathBytes = path.utf8CString
+    if pathBytes.count > maxLength {
+      return -1
+    }
+
+    withUnsafeMutableBytes(of: &address.sun_path) { buffer in
+      guard let baseAddress = buffer.baseAddress else {
+        return
+      }
+      let destination = baseAddress.assumingMemoryBound(to: CChar.self)
+      destination.initialize(repeating: 0, count: maxLength)
+      _ = pathBytes.withUnsafeBufferPointer { source in
+        strncpy(destination, source.baseAddress, maxLength - 1)
+      }
+    }
+
+    let length = socklen_t(MemoryLayout.size(ofValue: address))
+    return withUnsafePointer(to: &address) { pointer in
+      pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) { addressPointer in
+        body(addressPointer, length)
+      }
+    }
+  }
+
+  private func createRpcConnection(fileDescriptor: Int32) -> RpcConnection {
+    rpcLock.lock()
+    let connectionId = String(nextRpcConnectionId)
+    nextRpcConnectionId += 1
+    let connection = RpcConnection(connectionId: connectionId, fileDescriptor: fileDescriptor)
+    rpcConnections[connectionId] = connection
+    rpcLock.unlock()
+    return connection
+  }
+
+  private func removeRpcConnection(connectionId: String) {
+    rpcLock.lock()
+    rpcConnections.removeValue(forKey: connectionId)
+    rpcLock.unlock()
+  }
+
+  private func rpcConnection(connectionId: String) -> RpcConnection? {
+    rpcLock.lock()
+    let connection = rpcConnections[connectionId]
+    rpcLock.unlock()
+    return connection
+  }
+
+  private func isRpcRunning() -> Bool {
+    rpcLock.lock()
+    let running = rpcRunning
+    rpcLock.unlock()
+    return running
+  }
+
+  private func currentRpcListenerFileDescriptor() -> Int32 {
+    rpcLock.lock()
+    let fileDescriptor = rpcListenerFileDescriptor
+    rpcLock.unlock()
+    return fileDescriptor
+  }
+
+  private func encodeRpcPacket(packetType: Int32, dataJson: String) -> Data {
+    let payloadData = Data(dataJson.utf8)
+    var encoded = Data(capacity: 8 + payloadData.count)
+    var packetTypeLittleEndian = packetType.littleEndian
+    var payloadLengthLittleEndian = Int32(payloadData.count).littleEndian
+    withUnsafeBytes(of: &packetTypeLittleEndian) { encoded.append(contentsOf: $0) }
+    withUnsafeBytes(of: &payloadLengthLittleEndian) { encoded.append(contentsOf: $0) }
+    encoded.append(payloadData)
+    return encoded
+  }
+
+  private func resolveApplicationName(bundleIdentifier: String?) -> String? {
+    guard let bundleIdentifier else {
+      return nil
+    }
+    return NSRunningApplication.runningApplications(
+      withBundleIdentifier: bundleIdentifier
+    ).first?.localizedName
+  }
+
+  private func numericValue(_ value: Any?) -> Double {
+    switch value {
+    case let number as NSNumber:
+      return number.doubleValue
+    case let string as String:
+      return Double(string) ?? 0
+    default:
+      return 0
+    }
+  }
+
+  private func normalizeExternalString(_ value: String?) -> String? {
+    guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+      return nil
+    }
+    return trimmed.isEmpty ? nil : trimmed
+  }
+
+  private func mapExternalSource(bundleIdentifier: String?) -> ExternalNowPlayingSnapshot.Source {
+    switch bundleIdentifier {
+    case "com.apple.Music":
+      return .music
+    case "com.spotify.client":
+      return .spotify
+    default:
+      return .other
+    }
   }
 }

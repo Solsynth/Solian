@@ -13,6 +13,17 @@ class MockIslandDesktopPresencePlatform
   );
 
   @override
+  Stream<ExternalNowPlayingEvent> get externalNowPlayingEvents =>
+      Stream<ExternalNowPlayingEvent>.value(
+        const ExternalNowPlayingEvent(
+          source: ExternalNowPlayingSource.music,
+          state: ExternalNowPlayingState.playing,
+          title: 'Song',
+          artist: 'Artist',
+        ),
+      );
+
+  @override
   Future<Duration> getIdleTime() =>
       Future<Duration>.value(const Duration(seconds: 42));
 
@@ -21,6 +32,15 @@ class MockIslandDesktopPresencePlatform
 
   @override
   Future<void> stopMonitoring() async {}
+
+  @override
+  Future<void> startExternalNowPlayingMonitoring({
+    required Duration pollInterval,
+    String? executablePath,
+  }) async {}
+
+  @override
+  Future<void> stopExternalNowPlayingMonitoring() async {}
 }
 
 void main() {
@@ -49,6 +69,30 @@ void main() {
         isA<PresenceEvent>()
             .having((event) => event.state, 'state', PresenceState.active)
             .having((event) => event.idleTime, 'idleTime', Duration.zero),
+      ),
+    );
+  });
+
+  test('delegates external now playing stream', () async {
+    final plugin = IslandDesktopPresence();
+    IslandDesktopPresencePlatform.instance =
+        MockIslandDesktopPresencePlatform();
+
+    await expectLater(
+      plugin.externalNowPlayingEvents,
+      emits(
+        isA<ExternalNowPlayingEvent>()
+            .having(
+              (event) => event.source,
+              'source',
+              ExternalNowPlayingSource.music,
+            )
+            .having(
+              (event) => event.state,
+              'state',
+              ExternalNowPlayingState.playing,
+            )
+            .having((event) => event.title, 'title', 'Song'),
       ),
     );
   });

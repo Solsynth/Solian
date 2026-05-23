@@ -897,7 +897,7 @@ class _MessageTextSelectionView extends HookConsumerWidget {
                               constraints: const BoxConstraints(maxWidth: 860),
                               child: MarkdownTextContent(
                                 content: text,
-                                isSelectable: kTextSelectable,
+                                isSelectable: true,
                                 textStyle: TextStyle(
                                   fontSize: 20,
                                   height: 1.6,

@@ -28,6 +28,9 @@ void main() {
   final platform = MethodChannelIslandDesktopPresence();
   const methodChannel = MethodChannel('island_desktop_presence');
   const eventChannel = EventChannel('island_desktop_presence/events');
+  const externalNowPlayingChannel = EventChannel(
+    'island_desktop_presence/external_now_playing',
+  );
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
@@ -42,6 +45,8 @@ void main() {
           return 42000;
         case 'startMonitoring':
         case 'stopMonitoring':
+        case 'startExternalNowPlayingMonitoring':
+        case 'stopExternalNowPlayingMonitoring':
           return null;
         default:
           throw PlatformException(code: 'unimplemented');
@@ -52,6 +57,7 @@ void main() {
   tearDown(() {
     messenger.setMockMethodCallHandler(methodChannel, null);
     messenger.setMockStreamHandler(eventChannel, null);
+    messenger.setMockStreamHandler(externalNowPlayingChannel, null);
   });
 
   test('getIdleTime decodes milliseconds', () async {
@@ -73,6 +79,27 @@ void main() {
 
     expect(methodCalls, hasLength(1));
     expect(methodCalls.single.method, 'stopMonitoring');
+  });
+
+  test('startExternalNowPlayingMonitoring forwards poll interval', () async {
+    await platform.startExternalNowPlayingMonitoring(
+      pollInterval: const Duration(seconds: 2),
+      executablePath: '/opt/homebrew/bin/nowplaying-cli',
+    );
+
+    expect(methodCalls, hasLength(1));
+    expect(methodCalls.single.method, 'startExternalNowPlayingMonitoring');
+    expect(methodCalls.single.arguments, <String, Object>{
+      'pollIntervalMilliseconds': 2000,
+      'executablePath': '/opt/homebrew/bin/nowplaying-cli',
+    });
+  });
+
+  test('stopExternalNowPlayingMonitoring invokes native method', () async {
+    await platform.stopExternalNowPlayingMonitoring();
+
+    expect(methodCalls, hasLength(1));
+    expect(methodCalls.single.method, 'stopExternalNowPlayingMonitoring');
   });
 
   test('events decode payloads and suppress duplicate events', () async {
@@ -98,4 +125,62 @@ void main() {
       ),
     ]);
   });
+
+  test(
+    'external now playing events decode payloads and suppress duplicates',
+    () async {
+      messenger.setMockStreamHandler(
+        externalNowPlayingChannel,
+        _MockPresenceStreamHandler(<Object?>[
+          <String, Object>{
+            'source': 'music',
+            'state': 'playing',
+            'title': 'Track',
+            'artist': 'Artist',
+            'album': 'Album',
+            'duration_seconds': 180.0,
+            'position_seconds': 12.5,
+          },
+          <String, Object>{
+            'source': 'music',
+            'state': 'playing',
+            'title': 'Track',
+            'artist': 'Artist',
+            'album': 'Album',
+            'duration_seconds': 180.0,
+            'position_seconds': 12.5,
+          },
+          <String, Object>{
+            'source': 'music',
+            'state': 'paused',
+            'title': 'Track',
+            'artist': 'Artist',
+          },
+        ]),
+      );
+
+      final events = <ExternalNowPlayingEvent>[];
+      final subscription = platform.externalNowPlayingEvents.listen(events.add);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await subscription.cancel();
+
+      expect(events, <ExternalNowPlayingEvent>[
+        const ExternalNowPlayingEvent(
+          source: ExternalNowPlayingSource.music,
+          state: ExternalNowPlayingState.playing,
+          title: 'Track',
+          artist: 'Artist',
+          album: 'Album',
+          duration: Duration(seconds: 180),
+          position: Duration(milliseconds: 12500),
+        ),
+        const ExternalNowPlayingEvent(
+          source: ExternalNowPlayingSource.music,
+          state: ExternalNowPlayingState.paused,
+          title: 'Track',
+          artist: 'Artist',
+        ),
+      ]);
+    },
+  );
 }
