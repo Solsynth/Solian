@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:island/command_palette/palette.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -85,25 +84,9 @@ class WindowScaffold extends HookConsumerWidget {
     );
     useEffect(() => subscription.cancel, [subscription]);
 
-    final cmpHotKey = HotKey(
-      identifier: 'open_command_pattle',
-      key: PhysicalKeyboardKey.tab,
-      modifiers: [HotKeyModifier.shift],
-      scope: HotKeyScope.inapp,
-    );
-
     useEffect(() {
-      if (kIsWeb) return null;
-
-      hotKeyManager.register(
-        cmpHotKey,
-        keyDownHandler: (_) {
-          showPalette.value = true;
-        },
-      );
-
       ShakeDetector? detactor;
-      if (!kIsWeb && (Platform.isIOS && Platform.isAndroid)) {
+      if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
         detactor = ShakeDetector.autoStart(
           onPhoneShake: (_) {
             showPalette.value = true;
@@ -112,117 +95,136 @@ class WindowScaffold extends HookConsumerWidget {
       }
 
       return () {
-        hotKeyManager.unregister(cmpHotKey);
         detactor?.stopListening();
       };
     }, []);
 
-    if (!kIsWeb &&
-        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      return Material(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Column(
-              children: [
-                DragToMoveArea(
-                  child: Platform.isMacOS
-                      ? Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            const SizedBox(height: 32),
-                            Text(
-                              'Solar Network',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Row(
+    final builtWidget = Focus(
+      focusNode: keyboardFocusNode,
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent &&
+            event.physicalKey == PhysicalKeyboardKey.tab &&
+            HardwareKeyboard.instance.isShiftPressed) {
+          showPalette.value = true;
+          return KeyEventResult.handled;
+        }
+
+        return KeyEventResult.ignored;
+      },
+      child:
+          !kIsWeb &&
+              (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+          ? Material(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Column(
+                    children: [
+                      DragToMoveArea(
+                        child: Platform.isMacOS
+                            ? Stack(
+                                alignment: Alignment.center,
                                 children: [
-                                  Image.asset(
-                                    Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? 'assets/icons/icon-dark.webp'
-                                        : 'assets/icons/icon.webp',
-                                    width: 20,
-                                    height: 20,
-                                  ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(height: 32),
                                   Text(
                                     'Solar Network',
-                                    textAlign: TextAlign.start,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                    ),
                                   ),
                                 ],
-                              ).padding(horizontal: 12, vertical: 5),
-                            ),
-                            IconButton(
-                              icon: Icon(Symbols.minimize),
-                              onPressed: () => windowManager.minimize(),
-                              iconSize: 16,
-                              padding: EdgeInsets.all(8),
-                              constraints: BoxConstraints(),
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                isMaximized.value
-                                    ? Symbols.fullscreen_exit
-                                    : Symbols.fullscreen,
+                              )
+                            : Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Image.asset(
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? 'assets/icons/icon-dark.webp'
+                                              : 'assets/icons/icon.webp',
+                                          width: 20,
+                                          height: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Solar Network',
+                                          textAlign: TextAlign.start,
+                                        ),
+                                      ],
+                                    ).padding(horizontal: 12, vertical: 5),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Symbols.minimize),
+                                    onPressed: () => windowManager.minimize(),
+                                    iconSize: 16,
+                                    padding: EdgeInsets.all(8),
+                                    constraints: BoxConstraints(),
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      isMaximized.value
+                                          ? Symbols.fullscreen_exit
+                                          : Symbols.fullscreen,
+                                    ),
+                                    onPressed: () async {
+                                      if (await windowManager.isMaximized()) {
+                                        windowManager.restore();
+                                      } else {
+                                        windowManager.maximize();
+                                      }
+                                    },
+                                    iconSize: 16,
+                                    padding: EdgeInsets.all(8),
+                                    constraints: BoxConstraints(),
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Symbols.close),
+                                    onPressed: () => windowManager.hide(),
+                                    iconSize: 16,
+                                    padding: EdgeInsets.all(8),
+                                    constraints: BoxConstraints(),
+                                    color: Theme.of(context).iconTheme.color,
+                                  ),
+                                ],
                               ),
-                              onPressed: () async {
-                                if (await windowManager.isMaximized()) {
-                                  windowManager.restore();
-                                } else {
-                                  windowManager.maximize();
-                                }
-                              },
-                              iconSize: 16,
-                              padding: EdgeInsets.all(8),
-                              constraints: BoxConstraints(),
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                            IconButton(
-                              icon: Icon(Symbols.close),
-                              onPressed: () => windowManager.hide(),
-                              iconSize: 16,
-                              padding: EdgeInsets.all(8),
-                              constraints: BoxConstraints(),
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                          ],
-                        ),
-                ),
-                Expanded(child: child),
+                      ),
+                      Expanded(child: child),
+                    ],
+                  ),
+                  _WebSocketIndicator(),
+                  const NotificationOverlay(),
+                  if (showPalette.value)
+                    CommandPaletteWidget(
+                      onDismiss: () => showPalette.value = false,
+                    ),
+                ],
+              ),
+            )
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(child: child),
+                _WebSocketIndicator(),
+                const NotificationOverlay(),
+                if (showPalette.value)
+                  CommandPaletteWidget(
+                    onDismiss: () => showPalette.value = false,
+                  ),
               ],
             ),
-            _WebSocketIndicator(),
-            const NotificationOverlay(),
-            if (showPalette.value)
-              CommandPaletteWidget(onDismiss: () => showPalette.value = false),
-          ],
-        ),
-      );
-    }
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Positioned.fill(child: child),
-        _WebSocketIndicator(),
-        const NotificationOverlay(),
-        if (showPalette.value)
-          CommandPaletteWidget(onDismiss: () => showPalette.value = false),
-      ],
     );
+
+    return builtWidget;
   }
 }
 
