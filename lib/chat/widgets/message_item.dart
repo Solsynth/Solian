@@ -1369,6 +1369,9 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
                 child: header,
               ),
             _StickyAvatarMessageRow(
+              key: ValueKey(
+                'sticky-avatar-${message.clientMessageId ?? message.id}',
+              ),
               showAvatar: showAvatar && showBubbleAvatar,
               avatar: avatar,
               child: Row(
@@ -1417,6 +1420,7 @@ class _StickyAvatarMessageRow extends StatefulWidget {
   final Widget child;
 
   const _StickyAvatarMessageRow({
+    super.key,
     required this.showAvatar,
     required this.avatar,
     required this.child,

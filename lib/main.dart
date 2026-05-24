@@ -367,6 +367,7 @@ class IslandApp extends HookConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
+      title: 'Solar Network',
       scaffoldMessengerKey: globalScaffoldMessengerKey,
       color: Colors.transparent,
       theme: theme.light,
