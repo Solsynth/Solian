@@ -14,35 +14,38 @@ class TokenInfo extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            if (thought.modelName != null) ...[
-              const Icon(Symbols.neurology, size: 16),
-              const Gap(4),
-              Text(
-                '${thought.modelName}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (thought.modelName != null) ...[
+                const Icon(Symbols.neurology, size: 16),
+                const Gap(4),
+                Text(
+                  '${thought.modelName}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              const Gap(16),
-            ],
-            if (thought.tokenCount != null) ...[
-              const Icon(Symbols.token, size: 16),
-              const Gap(4),
-              Text(
-                '${thought.tokenCount} tokens',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                const Gap(16),
+              ],
+              if (thought.tokenCount != null) ...[
+                const Icon(Symbols.token, size: 16),
+                const Gap(4),
+                Text(
+                  '${thought.tokenCount} tokens',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
