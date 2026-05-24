@@ -103,8 +103,8 @@ class DriveApi extends BaseApi {
   /// Updates the file's display name. Owner only.
   Future<SnCloudFile> updateFileName(String fileId, String newName) async {
     final response = await patch<Map<String, dynamic>>(
-      '$_basePath/files/$fileId/name',
-      data: newName,
+      '$_basePath/files/$fileId',
+      data: {'name': newName},
     );
     return SnCloudFile.fromJson(response.data!);
   }
@@ -170,6 +170,8 @@ class DriveApi extends BaseApi {
     String? order,
     bool orderDesc = true,
     String? poolId,
+    String? usage,
+    String? applicationType,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/files/root/children',
@@ -180,6 +182,8 @@ class DriveApi extends BaseApi {
         'order': ?order,
         'orderDesc': orderDesc,
         'pool': ?poolId,
+        'usage': ?usage,
+        'application_type': ?applicationType,
       },
     );
     final totalCount = getTotalCount(response.headers);
@@ -196,6 +200,8 @@ class DriveApi extends BaseApi {
     String? order,
     bool orderDesc = true,
     String? poolId,
+    String? usage,
+    String? applicationType,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/files/$parentId/children',
@@ -206,6 +212,8 @@ class DriveApi extends BaseApi {
         'order': ?order,
         'orderDesc': orderDesc,
         'pool': ?poolId,
+        'usage': ?usage,
+        'application_type': ?applicationType,
       },
     );
     final totalCount = getTotalCount(response.headers);
@@ -254,6 +262,8 @@ class DriveApi extends BaseApi {
     String? query,
     String? order,
     bool orderDesc = true,
+    String? usage,
+    String? applicationType,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/files/unindexed',
@@ -265,6 +275,8 @@ class DriveApi extends BaseApi {
         'query': ?query,
         'order': ?order,
         'orderDesc': orderDesc,
+        'usage': ?usage,
+        'application_type': ?applicationType,
       },
     );
     final totalCount = getTotalCount(response.headers);
@@ -281,6 +293,8 @@ class DriveApi extends BaseApi {
     String? query,
     String? order,
     bool orderDesc = true,
+    String? usage,
+    String? applicationType,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/files/me',
@@ -292,6 +306,8 @@ class DriveApi extends BaseApi {
         'query': ?query,
         'order': ?order,
         'orderDesc': orderDesc,
+        'usage': ?usage,
+        'application_type': ?applicationType,
       },
     );
     final totalCount = getTotalCount(response.headers);
