@@ -154,11 +154,12 @@ class DesktopNowPlayingService {
 
   static const Duration _pollInterval = Duration(seconds: 2);
   static const int _leaseMinutes = 5;
-  static const String _manualId = 'desktop:now_playing';
+  static const String _manualIdPrefix = 'desktop:now_playing';
 
   final Ref _ref;
   final IslandDesktopPresence _presence = IslandDesktopPresence();
 
+  String? _manualId;
   StreamSubscription<ExternalNowPlayingEvent>? _subscription;
   Timer? _renewalTimer;
   Map<String, dynamic>? _currentActivityData;
@@ -263,6 +264,10 @@ class DesktopNowPlayingService {
     final artworkUrl = event.artworkUrl;
     final artworkUrlLarge = event.artworkUrlLarge ?? artworkUrl;
 
+    _manualId = event.uniqueIdentifier != null || event.catalogId != null
+        ? '$_manualIdPrefix:${event.uniqueIdentifier ?? event.catalogId}'
+        : '$_manualIdPrefix:${_hashTitle(title)}';
+
     return <String, dynamic>{
       'type': 2,
       'manual_id': _manualId,
@@ -292,6 +297,15 @@ class DesktopNowPlayingService {
       },
       'lease_minutes': _leaseMinutes,
     };
+  }
+
+  String _hashTitle(String title) {
+    const int prime = 31;
+    int hash = 0;
+    for (final codeUnit in title.codeUnits) {
+      hash = (hash * prime + codeUnit) & 0xffffffff;
+    }
+    return hash.toRadixString(16).padLeft(8, '0');
   }
 
   void _startRenewal() {
