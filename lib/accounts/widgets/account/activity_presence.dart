@@ -110,85 +110,46 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
   }
 
   List<Widget> _buildImages(WidgetRef ref, SnPresenceActivity activity) {
-    final List<Widget> images = [];
-
-    if (activity.largeImage != null) {
-      if (activity.largeImage!.startsWith('discord:')) {
-        final key = activity.largeImage!.substring('discord:'.length);
-        final urlAsync = ref.watch(discordAssetsUrlProvider(activity, key));
-        images.add(
-          urlAsync.when(
-            data: (url) => url != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      width: 64,
-                      height: 64,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            loading: () => const SizedBox(
-              width: 64,
-              height: 64,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            error: (error, stack) => const SizedBox.shrink(),
-          ),
-        );
-      } else {
-        images.add(
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: UniversalImage(
-              uri: activity.largeImage!,
-              width: 64,
-              height: 64,
-            ),
-          ),
-        );
-      }
+    final imageUri = activity.largeImage ?? activity.smallImage;
+    if (imageUri == null) {
+      return const [];
     }
 
-    if (activity.smallImage != null) {
-      if (activity.smallImage!.startsWith('discord:')) {
-        final key = activity.smallImage!.substring('discord:'.length);
-        final urlAsync = ref.watch(discordAssetsUrlProvider(activity, key));
-        images.add(
-          urlAsync.when(
-            data: (url) => url != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      width: 32,
-                      height: 32,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            loading: () => const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            error: (error, stack) => const SizedBox.shrink(),
+    if (imageUri.startsWith('discord:')) {
+      final key = imageUri.substring('discord:'.length);
+      final urlAsync = ref.watch(discordAssetsUrlProvider(activity, key));
+      return [
+        urlAsync.when(
+          data: (url) => url != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    imageUrl: url,
+                    width: 64,
+                    height: 64,
+                  ),
+                )
+              : const SizedBox.shrink(),
+          loading: () => const SizedBox(
+            width: 64,
+            height: 64,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
-        );
-      } else {
-        images.add(
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: UniversalImage(
-              uri: activity.smallImage!,
-              width: 32,
-              height: 32,
-            ),
-          ),
-        );
-      }
+          error: (error, stack) => const SizedBox.shrink(),
+        ),
+      ];
     }
 
-    return images;
+    return [
+      ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: UniversalImage(
+          uri: imageUri,
+          width: 64,
+          height: 64,
+        ),
+      ),
+    ];
   }
 
   Widget buildSteamCompactImage({required SnPresenceActivity activity}) {
@@ -307,9 +268,9 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            (activity.subtitle?.isEmpty ?? true)
+                            (activity.title?.isEmpty ?? true)
                                 ? 'unknown'.tr()
-                                : activity.subtitle!,
+                                : activity.title!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.bodySmall,
@@ -490,13 +451,13 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
                                   spacing: 2,
                                   children: [
                                     Flexible(
-                                      child: Text(
-                                        (activity.subtitle?.isEmpty ?? true)
-                                            ? 'unknown'.tr()
-                                            : activity.subtitle!,
-                                        style: textTheme.bodyMedium,
-                                      ),
-                                    ),
+                                       child: Text(
+                                         (activity.title?.isEmpty ?? true)
+                                             ? 'unknown'.tr()
+                                             : activity.title!,
+                                         style: textTheme.bodyMedium,
+                                       ),
+                                     ),
                                     if (activity.titleUrl != null &&
                                         activity.titleUrl!.isNotEmpty)
                                       IconButton(

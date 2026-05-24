@@ -11,6 +11,7 @@ import 'package:island/posts/widgets/compose/compose_shared.dart';
 import 'package:island/realms/screens/realms.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/shared/widgets/typeahead_enter_handler.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -55,7 +56,8 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     final postCategories = ref.watch(postCategoriesProvider);
     final userRealms = ref.watch(realmsJoinedProvider);
     final publisherName = state.currentPublisher.value?.name;
-    final publisherCollections = publisherName != null && publisherName.isNotEmpty
+    final publisherCollections =
+        publisherName != null && publisherName.isNotEmpty
         ? ref.watch(publisherCollectionsProvider(publisherName))
         : null;
 
@@ -82,6 +84,10 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     }
 
     final tagInputController = useTextEditingController();
+    final tagSuggestionsController = useMemoized(
+      () => SuggestionsController<SnPostTag>(),
+      [],
+    );
 
     return SheetScaffold(
       heightFactor: 0.6,
@@ -179,20 +185,29 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                   // Tag input with autocomplete
                   TypeAheadField<SnPostTag>(
                     controller: tagInputController,
+                    suggestionsController: tagSuggestionsController,
                     builder: (context, controller, focusNode) {
-                      return TextField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          hintText: 'addTag'.tr(),
-                          border: InputBorder.none,
-                          isCollapsed: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onSubmitted: (value) {
+                      return TypeAheadEnterHandler<SnPostTag>(
+                        suggestionsController: tagSuggestionsController,
+                        onEnter: () {
+                          final value = controller.text;
                           state.tags.value = [...state.tags.value, value];
                           controller.clear();
                         },
+                        child: TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            hintText: 'addTag'.tr(),
+                            border: InputBorder.none,
+                            isCollapsed: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onSubmitted: (value) {
+                            state.tags.value = [...state.tags.value, value];
+                            controller.clear();
+                          },
+                        ),
                       );
                     },
                     suggestionsCallback: (pattern) =>
@@ -334,57 +349,66 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                   ),
                 ),
                 hint: Text('collections'.tr(), style: TextStyle(fontSize: 15)),
-                items: (publisherCollections.value ?? <SnPostCollection>[]).map((
-                  item,
-                ) {
-                  return DropdownItem(
-                    value: item,
-                    enabled: false,
-                    child: StatefulBuilder(
-                      builder: (context, menuSetState) {
-                        final isSelected = currentCollectionIds.contains(item.id);
-                        return InkWell(
-                          onTap: () {
-                            isSelected
-                                ? state.collectionIds.value = state.collectionIds.value
-                                      .where((e) => e != item.id)
-                                      .toList()
-                                : state.collectionIds.value = [
-                                    ...state.collectionIds.value,
-                                    item.id,
-                                  ];
-                            menuSetState(() {});
-                          },
-                          child: Container(
-                            height: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Row(
-                              children: [
-                                if (isSelected)
-                                  const Icon(Icons.check_box_outlined)
-                                else
-                                  const Icon(Icons.check_box_outline_blank),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Text(
-                                    item.name?.isNotEmpty == true ? item.name! : item.slug,
-                                    style: const TextStyle(fontSize: 14),
+                items: (publisherCollections.value ?? <SnPostCollection>[]).map(
+                  (item) {
+                    return DropdownItem(
+                      value: item,
+                      enabled: false,
+                      child: StatefulBuilder(
+                        builder: (context, menuSetState) {
+                          final isSelected = currentCollectionIds.contains(
+                            item.id,
+                          );
+                          return InkWell(
+                            onTap: () {
+                              isSelected
+                                  ? state.collectionIds.value = state
+                                        .collectionIds
+                                        .value
+                                        .where((e) => e != item.id)
+                                        .toList()
+                                  : state.collectionIds.value = [
+                                      ...state.collectionIds.value,
+                                      item.id,
+                                    ];
+                              menuSetState(() {});
+                            },
+                            child: Container(
+                              height: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (isSelected)
+                                    const Icon(Icons.check_box_outlined)
+                                  else
+                                    const Icon(Icons.check_box_outline_blank),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      item.name?.isNotEmpty == true
+                                          ? item.name!
+                                          : item.slug,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }).toList(),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ).toList(),
                 valueListenable: ValueNotifier(
                   currentCollectionIds.isEmpty
                       ? null
                       : (publisherCollections.value ?? []).firstWhere(
                           (c) => c.id == currentCollectionIds.last,
-                          orElse: () => (publisherCollections.value ?? []).first,
+                          orElse: () =>
+                              (publisherCollections.value ?? []).first,
                         ),
                 ),
                 onChanged: (_) {},
@@ -405,7 +429,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                                 return Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,
@@ -417,7 +443,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                                         ? collection.name!
                                         : collection.slug,
                                     style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimary,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -552,7 +580,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                   ),
                 );
                 if (currentRealm != null &&
-                    !(userRealms.value ?? []).any((r) => r.id == currentRealm.id)) {
+                    !(userRealms.value ?? []).any(
+                      (r) => r.id == currentRealm.id,
+                    )) {
                   items.add(
                     Row(
                       children: [
