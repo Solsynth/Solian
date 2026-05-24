@@ -163,6 +163,7 @@ class DesktopNowPlayingService {
   String? _manualId;
   StreamSubscription<ExternalNowPlayingEvent>? _subscription;
   Timer? _renewalTimer;
+  Timer? _tokenSyncTimer;
   Map<String, dynamic>? _currentActivityData;
   String? _currentActivityFingerprint;
   String? _currentActivityManualId;
@@ -188,6 +189,8 @@ class DesktopNowPlayingService {
     try {
       final executablePath = _ref.read(desktopNowPlayingCliPathProvider);
       Logger.root.info('[DesktopNowPlaying] Starting macOS monitoring');
+      await _syncAuthToken();
+      _startTokenSync();
       await _presence.startExternalNowPlayingMonitoring(
         pollInterval: _pollInterval,
         executablePath: executablePath,
@@ -222,7 +225,7 @@ class DesktopNowPlayingService {
       return;
     }
 
-    final activityData = await _buildActivityData(event);
+    final activityData = _buildActivityData(event);
     if (activityData == null) {
       await _clearNowPlayingActivity();
       return;
@@ -270,9 +273,7 @@ class DesktopNowPlayingService {
     }
   }
 
-  Future<Map<String, dynamic>?> _buildActivityData(
-    ExternalNowPlayingEvent event,
-  ) async {
+  Map<String, dynamic>? _buildActivityData(ExternalNowPlayingEvent event) {
     final title = event.title;
     if (title == null || title.isEmpty) {
       return null;
@@ -282,8 +283,8 @@ class DesktopNowPlayingService {
     final subtitleUrl = event.artist == null || event.artist!.isEmpty
         ? null
         : event.subtitleUrl;
-    final artworkUrl = event.artworkUrl;
-    final artworkUrlLarge = event.artworkUrlLarge ?? artworkUrl;
+    final artworkReference =
+        event.artworkHash ?? event.artworkUrlLarge ?? event.artworkUrl;
     final reuseFixedManualId = _ref.read(
       desktopNowPlayingReuseFixedManualIdProvider,
     );
@@ -302,8 +303,8 @@ class DesktopNowPlayingService {
       'caption': event.album,
       'title_url': titleUrl,
       'subtitle_url': subtitleUrl,
-      'small_image': artworkUrl,
-      'large_image': artworkUrlLarge,
+      'small_image': artworkReference,
+      'large_image': artworkReference,
       'meta': <String, dynamic>{
         'source': event.source.name,
         'source_app_name': event.sourceAppName,
@@ -312,8 +313,9 @@ class DesktopNowPlayingService {
         'catalog_id': event.catalogId,
         'title_url': titleUrl,
         'subtitle_url': subtitleUrl,
-        'artwork_url': artworkUrl,
-        'artwork_url_large': artworkUrlLarge,
+        'artwork_url': event.artworkUrl,
+        'artwork_url_large': event.artworkUrlLarge,
+        'artwork_hash': event.artworkHash,
         'duration_seconds': event.duration?.inMilliseconds != null
             ? event.duration!.inMilliseconds / 1000.0
             : null,
@@ -323,6 +325,28 @@ class DesktopNowPlayingService {
       },
       'lease_minutes': _leaseMinutes,
     };
+  }
+
+  Future<void> _syncAuthToken() async {
+    try {
+      final token = await getValidAuthToken(_ref);
+      final serverURL = _ref.read(serverUrlProvider);
+      await _presence.setAuthToken(token: token, serverURL: serverURL);
+    } catch (error, stackTrace) {
+      Logger.root.warning(
+        '[DesktopNowPlaying] Failed to sync auth token',
+        error,
+        stackTrace,
+      );
+    }
+  }
+
+  void _startTokenSync() {
+    _tokenSyncTimer?.cancel();
+    _tokenSyncTimer = Timer.periodic(
+      const Duration(minutes: 4),
+      (_) => _syncAuthToken(),
+    );
   }
 
   String _hashTitle(String title) {
@@ -403,6 +427,8 @@ class DesktopNowPlayingService {
   Future<void> dispose() async {
     await _subscription?.cancel();
     _subscription = null;
+    _tokenSyncTimer?.cancel();
+    _tokenSyncTimer = null;
     await _clearNowPlayingActivity();
     _started = false;
     try {

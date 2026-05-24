@@ -1,5 +1,6 @@
 import ApplicationServices
 import Cocoa
+import CryptoKit
 import Darwin
 import FlutterMacOS
 import MusicKit
@@ -41,7 +42,45 @@ private struct ExternalNowPlayingSnapshot: Equatable {
   let subtitleURL: String?
   let artworkURL: String?
   let artworkURLLarge: String?
+  let artworkHash: String?
+  let artworkData: String?
   let catalogID: String?
+
+  static func == (lhs: ExternalNowPlayingSnapshot, rhs: ExternalNowPlayingSnapshot) -> Bool {
+    lhs.source == rhs.source &&
+      lhs.state == rhs.state &&
+      lhs.sourceAppName == rhs.sourceAppName &&
+      lhs.sourceBundleIdentifier == rhs.sourceBundleIdentifier &&
+      lhs.uniqueIdentifier == rhs.uniqueIdentifier &&
+      lhs.title == rhs.title &&
+      lhs.artist == rhs.artist &&
+      lhs.album == rhs.album &&
+      lhs.durationSeconds == rhs.durationSeconds &&
+      lhs.positionSeconds == rhs.positionSeconds &&
+      lhs.titleURL == rhs.titleURL &&
+      lhs.subtitleURL == rhs.subtitleURL &&
+      lhs.artworkURL == rhs.artworkURL &&
+      lhs.artworkURLLarge == rhs.artworkURLLarge &&
+      lhs.catalogID == rhs.catalogID
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(source)
+    hasher.combine(state)
+    hasher.combine(sourceAppName)
+    hasher.combine(sourceBundleIdentifier)
+    hasher.combine(uniqueIdentifier)
+    hasher.combine(title)
+    hasher.combine(artist)
+    hasher.combine(album)
+    hasher.combine(durationSeconds)
+    hasher.combine(positionSeconds)
+    hasher.combine(titleURL)
+    hasher.combine(subtitleURL)
+    hasher.combine(artworkURL)
+    hasher.combine(artworkURLLarge)
+    hasher.combine(catalogID)
+  }
 
   var payload: [String: Any] {
     var result: [String: Any] = [
@@ -84,6 +123,9 @@ private struct ExternalNowPlayingSnapshot: Equatable {
     if let artworkURLLarge {
       result["artwork_url_large"] = artworkURLLarge
     }
+    if let artworkHash {
+      result["artwork_hash"] = artworkHash
+    }
     if let catalogID {
       result["catalog_id"] = catalogID
     }
@@ -110,6 +152,8 @@ private struct ExternalNowPlayingSnapshot: Equatable {
       subtitleURL: metadata.subtitleURL,
       artworkURL: metadata.artworkURL,
       artworkURLLarge: metadata.artworkURLLarge,
+      artworkHash: artworkHash,
+      artworkData: artworkData,
       catalogID: metadata.catalogID
     )
   }
@@ -266,6 +310,9 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   fileprivate var pendingExternalNowPlayingEvent: [String: Any]?
   private var appleMusicMetadataCache: [String: AppleMusicMetadata] = [:]
   private var appleMusicMetadataMisses: Set<String> = []
+  private var authToken: String?
+  private var serverURL: String?
+  private var artworkHashCache: Set<String> = []
 
   fileprivate var rpcEventSink: FlutterEventSink?
   fileprivate var pendingRpcEvents: [[String: Any]] = []
@@ -335,6 +382,17 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       result(nil)
     case "stopMonitoring":
       stopPresenceTimer()
+      result(nil)
+    case "setAuthToken":
+      if let arguments = call.arguments as? [String: Any],
+        let token = arguments["token"] as? String
+      {
+        authToken = token
+        serverURL = arguments["serverURL"] as? String
+      } else {
+        authToken = nil
+        serverURL = nil
+      }
       result(nil)
     case "startExternalNowPlayingMonitoring":
       guard
@@ -530,13 +588,122 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   private func enrichExternalNowPlayingSnapshot(
     _ snapshot: ExternalNowPlayingSnapshot?
   ) async -> ExternalNowPlayingSnapshot? {
-#if DEBUG
-    return snapshot
-#else
     guard let snapshot else {
       return nil
     }
 
+    let withArtwork = await ensureArtworkUploaded(snapshot)
+    if #available(macOS 12.0, *) {
+      return await enrichAppleMusicMetadata(withArtwork)
+    }
+    return withArtwork
+  }
+
+  private func ensureArtworkUploaded(
+    _ snapshot: ExternalNowPlayingSnapshot
+  ) async -> ExternalNowPlayingSnapshot {
+    guard let artworkHash = snapshot.artworkHash,
+      let token = authToken
+    else {
+      return snapshot
+    }
+
+    if artworkHashCache.contains(artworkHash) {
+      return snapshot
+    }
+
+    let exists = await checkArtworkExists(hash: artworkHash, token: token)
+    if exists {
+      artworkHashCache.insert(artworkHash)
+      return snapshot
+    }
+
+    let uploaded = await uploadArtworkIfNeeded(snapshot: snapshot, token: token)
+    if uploaded {
+      artworkHashCache.insert(artworkHash)
+    }
+    return snapshot
+  }
+
+  private func checkArtworkExists(hash: String, token: String) async -> Bool {
+    guard let base = serverURL, let url = URL(string: "\(base)/passport/presence/artworks/\(hash)") else {
+      return false
+    }
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.timeoutInterval = 5
+
+    do {
+      let (_, response) = try await URLSession.shared.data(for: request)
+      if let httpResponse = response as? HTTPURLResponse {
+        return httpResponse.statusCode == 200
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+
+  private func uploadArtworkIfNeeded(
+    snapshot: ExternalNowPlayingSnapshot,
+    token: String
+  ) async -> Bool {
+    guard let artworkDataString = snapshot.artworkData,
+      let imageData = Data(base64Encoded: artworkDataString)
+    else {
+      return false
+    }
+
+    guard let base = serverURL, let url = URL(string: "\(base)/passport/presence/artworks") else {
+      return false
+    }
+
+    let boundary = UUID().uuidString
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue(
+      "multipart/form-data; boundary=\(boundary)",
+      forHTTPHeaderField: "Content-Type"
+    )
+    request.timeoutInterval = 10
+
+    var body = Data()
+    body.append("--\(boundary)\r\n".data(using: .utf8)!)
+    body.append(
+      "Content-Disposition: form-data; name=\"file\"; filename=\"now-playing.png\"\r\n".data(
+        using: .utf8
+      )!
+    )
+    body.append("Content-Type: image/png\r\n\r\n".data(using: .utf8)!)
+    body.append(imageData)
+    body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+    request.httpBody = body
+
+    do {
+      let (_, response) = try await URLSession.shared.data(for: request)
+      if let httpResponse = response as? HTTPURLResponse {
+        return httpResponse.statusCode >= 200 && httpResponse.statusCode < 300
+      }
+      return false
+    } catch {
+      NSLog(
+        "[IslandDesktopPresence] Failed to upload artwork: %@",
+        String(describing: error)
+      )
+      return false
+    }
+  }
+
+  @available(macOS 12.0, *)
+  private func enrichAppleMusicMetadata(
+    _ snapshot: ExternalNowPlayingSnapshot
+  ) async -> ExternalNowPlayingSnapshot {
+#if DEBUG
+    return snapshot
+#else
     guard snapshot.source == .music,
       snapshot.sourceBundleIdentifier == "com.apple.Music"
     else {
@@ -720,6 +887,8 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       subtitleURL: lastSnapshot.subtitleURL,
       artworkURL: lastSnapshot.artworkURL,
       artworkURLLarge: lastSnapshot.artworkURLLarge,
+      artworkHash: lastSnapshot.artworkHash,
+      artworkData: lastSnapshot.artworkData,
       catalogID: lastSnapshot.catalogID
     )
     emitExternalNowPlaying(stoppedSnapshot, force: force)
@@ -776,6 +945,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       "bundleIdentifier",
       "clientBundleIdentifier",
       "uniqueIdentifier",
+      "artworkData",
     ]
 
     let outputPipe = Pipe()
@@ -837,12 +1007,22 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     let uniqueIdentifier = normalizeExternalString(
       payload["uniqueIdentifier"] as? String
     )
+    let artworkData = normalizeExternalString(payload["artworkData"] as? String)
     let playbackRate = numericValue(payload["playbackRate"])
     let durationSeconds = numericValue(payload["duration"])
     let positionSeconds = numericValue(payload["elapsedTime"])
 
     if bundleIdentifier == nil, title == nil, artist == nil, album == nil {
       return nil
+    }
+
+    let artworkHash: String? = artworkData.flatMap { data in
+      guard let imageData = Data(base64Encoded: data) else {
+        return nil
+      }
+      let digest = SHA256.hash(data: imageData)
+      let hashHex = digest.map { String(format: "%02x", $0) }.joined()
+      return "sha256:\(hashHex)"
     }
 
     return ExternalNowPlayingSnapshot(
@@ -860,6 +1040,8 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       subtitleURL: nil,
       artworkURL: nil,
       artworkURLLarge: nil,
+      artworkHash: artworkHash,
+      artworkData: artworkData,
       catalogID: nil
     )
   }

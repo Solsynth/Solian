@@ -81,6 +81,14 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
     return methodChannel.invokeMethod<void>('stopExternalNowPlayingMonitoring');
   }
 
+  @override
+  Future<void> setAuthToken({String? token, String? serverURL}) {
+    return methodChannel.invokeMethod<void>('setAuthToken', <String, Object?>{
+      'token': token,
+      'serverURL': serverURL,
+    });
+  }
+
   PresenceEvent _decodeEvent(dynamic event) {
     if (event is! Map<Object?, Object?>) {
       throw PlatformException(
@@ -146,6 +154,7 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
       subtitleUrl: event['subtitle_url'] as String?,
       artworkUrl: event['artwork_url'] as String?,
       artworkUrlLarge: event['artwork_url_large'] as String?,
+      artworkHash: event['artwork_hash'] as String?,
       catalogId: event['catalog_id'] as String?,
     );
   }

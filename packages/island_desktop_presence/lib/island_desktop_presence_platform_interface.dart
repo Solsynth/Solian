@@ -54,4 +54,8 @@ abstract class IslandDesktopPresencePlatform extends PlatformInterface {
       'stopExternalNowPlayingMonitoring() has not been implemented.',
     );
   }
+
+  Future<void> setAuthToken({String? token, String? serverURL}) {
+    throw UnimplementedError('setAuthToken() has not been implemented.');
+  }
 }
