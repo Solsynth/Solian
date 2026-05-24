@@ -35,6 +35,7 @@ import "package:pasteboard/pasteboard.dart";
 import "package:path_provider/path_provider.dart";
 import "package:record/record.dart" as rec;
 import "package:island/shared/widgets/alert.dart";
+import "package:island/shared/widgets/typeahead_enter_handler.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:material_symbols_icons/symbols.dart";
 import "package:island/chat/pods/chat_subscribe.dart";
@@ -978,6 +979,10 @@ class ChatInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inputFocusNode = useFocusNode();
+    final suggestionsController = useMemoized(
+      () => SuggestionsController<AutocompleteSuggestion>(),
+      [],
+    );
     final roomIdentity = ref.watch(chatRoomIdentityProvider(chatRoom.id));
     final chatSubscribe = ref.watch(chatSubscribeProvider(chatRoom.id));
     final isExpanded = useState(false);
@@ -1218,11 +1223,12 @@ class ChatInput extends HookConsumerWidget {
       if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
       final isPaste = event.logicalKey == LogicalKeyboardKey.keyV;
-      final isModifierPressed =
+      final isPasteModifierPressed =
           HardwareKeyboard.instance.isMetaPressed ||
           HardwareKeyboard.instance.isControlPressed;
+      final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
 
-      if (isPaste && isModifierPressed) {
+      if (isPaste && isPasteModifierPressed) {
         handlePaste();
         return KeyEventResult.handled;
       }
@@ -1231,7 +1237,7 @@ class ChatInput extends HookConsumerWidget {
       final isEnter = event.logicalKey == LogicalKeyboardKey.enter;
 
       if (isEnter) {
-        if (isModifierPressed) {
+        if (isShiftPressed) {
           insertNewLine();
           return KeyEventResult.handled;
         } else if (enterToSend) {
@@ -2163,62 +2169,83 @@ class ChatInput extends HookConsumerWidget {
                               : TypeAheadField<AutocompleteSuggestion>(
                                   controller: messageController,
                                   focusNode: inputFocusNode,
+                                  suggestionsController: suggestionsController,
                                   builder: (context, controller, focusNode) {
-                                    return TextField(
-                                      focusNode: focusNode,
-                                      controller: controller,
-                                      enabled: canCompose,
-                                      readOnly: !canCompose,
-                                      keyboardType: TextInputType.multiline,
-                                      decoration: InputDecoration(
-                                        hintMaxLines: 1,
-                                        hintText:
-                                            (chatRoom.type == 1 &&
-                                                chatRoom.name == null)
-                                            ? 'chatDirectMessageHint'.tr(
-                                                args: [
-                                                  getValidMembers(
-                                                        chatRoom.members!,
-                                                      )
-                                                      .map(
-                                                        (e) => e.account.nick,
-                                                      )
-                                                      .join(', '),
-                                                ],
-                                              )
-                                            : 'chatMessageHint'.tr(
-                                                args: [chatRoom.name!],
-                                              ),
-                                        border: InputBorder.none,
-                                        isDense: true,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 12,
-                                            ),
-                                        counterText:
-                                            messageController.text.length > 1024
-                                            ? '${messageController.text.length}/4096'
-                                            : null,
-                                      ),
-                                      maxLines: 5,
-                                      minLines: 1,
-                                      onTapOutside: (_) => FocusManager
-                                          .instance
-                                          .primaryFocus
-                                          ?.unfocus(),
-                                      textInputAction: settings.enterToSend
-                                          ? TextInputAction.send
-                                          : null,
-                                      onEditingComplete: () {
-                                        if (settings.enterToSend &&
+                                    return TypeAheadEnterHandler<
+                                      AutocompleteSuggestion
+                                    >(
+                                      suggestionsController:
+                                          suggestionsController,
+                                      onEnter: () {
+                                        final isShiftPressed = HardwareKeyboard
+                                            .instance
+                                            .isShiftPressed;
+                                        if (isShiftPressed) {
+                                          insertNewLine();
+                                        } else if (settings.enterToSend &&
                                             canCompose) {
-                                          inputFocusNode.requestFocus();
+                                          send();
+                                        } else {
+                                          insertNewLine();
                                         }
                                       },
-                                      onSubmitted: settings.enterToSend
-                                          ? (_) => send()
-                                          : null,
+                                      child: TextField(
+                                        focusNode: focusNode,
+                                        controller: controller,
+                                        enabled: canCompose,
+                                        readOnly: !canCompose,
+                                        keyboardType: TextInputType.multiline,
+                                        decoration: InputDecoration(
+                                          hintMaxLines: 1,
+                                          hintText:
+                                              (chatRoom.type == 1 &&
+                                                  chatRoom.name == null)
+                                              ? 'chatDirectMessageHint'.tr(
+                                                  args: [
+                                                    getValidMembers(
+                                                          chatRoom.members!,
+                                                        )
+                                                        .map(
+                                                          (e) => e.account.nick,
+                                                        )
+                                                        .join(', '),
+                                                  ],
+                                                )
+                                              : 'chatMessageHint'.tr(
+                                                  args: [chatRoom.name!],
+                                                ),
+                                          border: InputBorder.none,
+                                          isDense: true,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 12,
+                                              ),
+                                          counterText:
+                                              messageController.text.length >
+                                                  1024
+                                              ? '${messageController.text.length}/4096'
+                                              : null,
+                                        ),
+                                        maxLines: 5,
+                                        minLines: 1,
+                                        onTapOutside: (_) => FocusManager
+                                            .instance
+                                            .primaryFocus
+                                            ?.unfocus(),
+                                        textInputAction: settings.enterToSend
+                                            ? TextInputAction.send
+                                            : null,
+                                        onEditingComplete: () {
+                                          if (settings.enterToSend &&
+                                              canCompose) {
+                                            inputFocusNode.requestFocus();
+                                          }
+                                        },
+                                        onSubmitted: settings.enterToSend
+                                            ? (_) => send()
+                                            : null,
+                                      ),
                                     );
                                   },
                                   suggestionsCallback: (pattern) async {
