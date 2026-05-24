@@ -59,7 +59,7 @@ echo "Hash: $SHA256"
 
 # 5. Upload to S3 using rclone
 echo "☁️ Uploading archive to S3 via rclone..."
-rclone copyto "$ARCHIVE_NAME" "${RCLONE_REMOTE}:${S3_BUCKET}/$ARCHIVE_NAME" --progress
+rclone copyto "$ARCHIVE_NAME" "${RCLONE_REMOTE}:${S3_BUCKET}/$ARCHIVE_NAME" --progress --overwrite
 
 # Get the public S3 URL
 DOWNLOAD_URL="https://raw.solsynth.dev/solian/$ARCHIVE_NAME"
