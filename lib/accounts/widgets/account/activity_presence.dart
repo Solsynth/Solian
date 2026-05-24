@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/activity/activity_rpc.dart';
+import 'package:island/core/config.dart';
 import 'package:island/shared/widgets/content/image.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -109,9 +110,18 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
     super.dispose();
   }
 
+  String _resolveArtworkUrl(WidgetRef ref, String? imageUri) {
+    if (imageUri == null) return '';
+    if (imageUri.startsWith('sha256:')) {
+      final serverURL = ref.read(serverUrlProvider);
+      return '$serverURL/passport/presence/artworks/$imageUri';
+    }
+    return imageUri;
+  }
+
   List<Widget> _buildImages(WidgetRef ref, SnPresenceActivity activity) {
-    final imageUri = activity.largeImage ?? activity.smallImage;
-    if (imageUri == null) {
+    final imageUri = _resolveArtworkUrl(ref, activity.largeImage ?? activity.smallImage);
+    if (imageUri.isEmpty) {
       return const [];
     }
 
@@ -213,8 +223,9 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
   }
 
   Widget _buildCompactImage(SnPresenceActivity activity, WidgetRef ref) {
-    if (activity.largeImage!.startsWith('discord:')) {
-      final key = activity.largeImage!.substring('discord:'.length);
+    final resolvedImage = _resolveArtworkUrl(ref, activity.largeImage);
+    if (resolvedImage.startsWith('discord:')) {
+      final key = resolvedImage.substring('discord:'.length);
       final urlAsync = ref.watch(discordAssetsUrlProvider(activity, key));
       return urlAsync.when(
         data: (url) => url != null
@@ -233,7 +244,7 @@ class _ActivityPresenceWidgetState extends State<ActivityPresenceWidget>
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: UniversalImage(uri: activity.largeImage!, width: 32, height: 32),
+      child: UniversalImage(uri: resolvedImage, width: 32, height: 32),
     );
   }
 

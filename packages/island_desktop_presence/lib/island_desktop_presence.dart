@@ -43,6 +43,7 @@ class ExternalNowPlayingEvent {
     this.subtitleUrl,
     this.artworkUrl,
     this.artworkUrlLarge,
+    this.artworkHash,
     this.catalogId,
   });
 
@@ -60,6 +61,7 @@ class ExternalNowPlayingEvent {
   final String? subtitleUrl;
   final String? artworkUrl;
   final String? artworkUrlLarge;
+  final String? artworkHash;
   final String? catalogId;
 
   @override
@@ -83,6 +85,7 @@ class ExternalNowPlayingEvent {
         other.subtitleUrl == subtitleUrl &&
         other.artworkUrl == artworkUrl &&
         other.artworkUrlLarge == artworkUrlLarge &&
+        other.artworkHash == artworkHash &&
         other.catalogId == catalogId;
   }
 
@@ -102,6 +105,7 @@ class ExternalNowPlayingEvent {
     subtitleUrl,
     artworkUrl,
     artworkUrlLarge,
+    artworkHash,
     catalogId,
   );
 }
@@ -143,5 +147,12 @@ class IslandDesktopPresence {
   Future<void> stopExternalNowPlayingMonitoring() {
     return IslandDesktopPresencePlatform.instance
         .stopExternalNowPlayingMonitoring();
+  }
+
+  Future<void> setAuthToken({String? token, String? serverURL}) {
+    return IslandDesktopPresencePlatform.instance.setAuthToken(
+      token: token,
+      serverURL: serverURL,
+    );
   }
 }

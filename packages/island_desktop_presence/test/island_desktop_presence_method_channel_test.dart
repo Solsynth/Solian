@@ -146,6 +146,7 @@ void main() {
             'subtitle_url': 'https://music.apple.com/us/artist/artist/1234',
             'artwork_url': 'https://island.test/artwork-small.jpg',
             'artwork_url_large': 'https://island.test/artwork-large.jpg',
+            'artwork_hash': 'sha256:abc123',
             'catalog_id': '6766820661',
           },
           <String, Object>{
@@ -162,6 +163,7 @@ void main() {
             'subtitle_url': 'https://music.apple.com/us/artist/artist/1234',
             'artwork_url': 'https://island.test/artwork-small.jpg',
             'artwork_url_large': 'https://island.test/artwork-large.jpg',
+            'artwork_hash': 'sha256:abc123',
             'catalog_id': '6766820661',
           },
           <String, Object>{
@@ -175,6 +177,7 @@ void main() {
             'subtitle_url': 'https://music.apple.com/us/artist/artist/1234',
             'artwork_url': 'https://island.test/artwork-small.jpg',
             'artwork_url_large': 'https://island.test/artwork-large.jpg',
+            'artwork_hash': 'sha256:def456',
             'catalog_id': '6766820661',
           },
         ]),
@@ -200,6 +203,7 @@ void main() {
             subtitleUrl: 'https://music.apple.com/us/artist/artist/1234',
             artworkUrl: 'https://island.test/artwork-small.jpg',
             artworkUrlLarge: 'https://island.test/artwork-large.jpg',
+            artworkHash: 'sha256:abc123',
             catalogId: '6766820661',
           ),
           const ExternalNowPlayingEvent(
@@ -213,6 +217,7 @@ void main() {
             subtitleUrl: 'https://music.apple.com/us/artist/artist/1234',
             artworkUrl: 'https://island.test/artwork-small.jpg',
             artworkUrlLarge: 'https://island.test/artwork-large.jpg',
+            artworkHash: 'sha256:def456',
             catalogId: '6766820661',
           ),
         ]);

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/accounts/widgets/account/activity_presence.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -221,7 +222,7 @@ class _GroupedTimelineItem {
   _GroupedTimelineItem({required this.items});
 }
 
-class AccountTimelineItem extends StatelessWidget {
+class AccountTimelineItem extends ConsumerWidget {
   final SnAccountTimelineItem item;
   final int duplicateCount;
   final Duration? duration;
@@ -234,7 +235,7 @@ class AccountTimelineItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final createdAt = item.createdAt;
 
@@ -501,7 +502,7 @@ class AccountTimelineItem extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: CachedNetworkImage(
-                          imageUrl: activity.largeImage!,
+                          imageUrl: _resolveArtworkUrl(ref, activity.largeImage!),
                           width: 48,
                           height: 48,
                           fit: BoxFit.cover,
@@ -675,6 +676,14 @@ class AccountTimelineItem extends StatelessWidget {
       default:
         return Symbols.category;
     }
+  }
+
+  String _resolveArtworkUrl(WidgetRef ref, String imageUri) {
+    if (imageUri.startsWith('sha256:')) {
+      final serverURL = ref.read(serverUrlProvider);
+      return '$serverURL/passport/presence/artworks/$imageUri';
+    }
+    return imageUri;
   }
 }
 
