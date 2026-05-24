@@ -1,22 +1,22 @@
 import 'dart:async';
 
-import 'package:auto_route/auto_route.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
 import 'package:island/drive/screens/file_list.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/file_icon_utils.dart';
 import 'package:island/core/utils/format.dart';
-import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
@@ -31,6 +31,7 @@ enum FileListMode { normal, unindexed }
 enum FileListViewMode { list, waterfall }
 
 class FileListView extends HookConsumerWidget {
+  final String tabId;
   final Map<String, dynamic>? usage;
   final Map<String, dynamic>? quota;
   final ValueNotifier<String> currentPath;
@@ -38,12 +39,17 @@ class FileListView extends HookConsumerWidget {
   final VoidCallback onPickAndUpload;
   final VoidCallback onShowCreateFolder;
   final void Function(SnCloudFile file) onInspectFile;
+  final void Function(SnCloudFile file) onOpenFile;
+  final ValueNotifier<Set<String>>? selectedFileIds;
+  final ValueNotifier<Set<String>>? currentVisibleFileIds;
   final ValueNotifier<FileListMode> mode;
   final ValueNotifier<FileListViewMode> viewMode;
   final ValueNotifier<bool> isSelectionMode;
   final ValueNotifier<String?> query;
+  final Future<void> Function(List<XFile> files)? onDropFiles;
 
   const FileListView({
+    required this.tabId,
     required this.usage,
     required this.quota,
     required this.currentPath,
@@ -51,31 +57,45 @@ class FileListView extends HookConsumerWidget {
     required this.onPickAndUpload,
     required this.onShowCreateFolder,
     required this.onInspectFile,
+    required this.onOpenFile,
+    required this.selectedFileIds,
+    required this.currentVisibleFileIds,
     required this.mode,
     required this.viewMode,
     required this.isSelectionMode,
     required this.query,
+    required this.onDropFiles,
     super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dragging = useState(false);
+    final currentPathValue = useValueListenable(currentPath);
+    final modeValue = useValueListenable(mode);
+    final viewModeValue = useValueListenable(viewMode);
+    final queryValue = useValueListenable(query);
 
     useEffect(() {
-      if (mode.value == FileListMode.normal) {
-        final notifier = ref.read(indexedCloudFileListProvider.notifier);
-        notifier.setPath(currentPath.value);
+      if (modeValue == FileListMode.normal) {
+        final notifier = ref.read(
+          indexedCloudFileListFamilyProvider(tabId).notifier,
+        );
+        notifier.setPath(currentPathValue);
       }
       return null;
-    }, [currentPath.value, mode.value]);
+    }, [currentPathValue, modeValue]);
 
     if (usage == null) return const SizedBox.shrink();
 
-    final unindexedNotifier = ref.read(unindexedFileListProvider.notifier);
-    final cloudNotifier = ref.read(indexedCloudFileListProvider.notifier);
+    final unindexedNotifier = ref.read(
+      unindexedFileListFamilyProvider(tabId).notifier,
+    );
+    final cloudNotifier = ref.read(
+      indexedCloudFileListFamilyProvider(tabId).notifier,
+    );
     final recycled = useState<bool>(false);
-    final selectedFileIds = useState<Set<String>>({});
+    final localSelectedFileIds = useState<Set<String>>({});
     final currentVisibleItems = useState<List<FileListItem>>([]);
     final expandedFileIds = useState<Set<String>>({});
     final treeChildrenCache = useState<Map<String, List<SnCloudFile>>>({});
@@ -83,41 +103,63 @@ class FileListView extends HookConsumerWidget {
     final order = useState<String?>('date');
     final orderDesc = useState<bool>(true);
     final queryDebounceTimer = useRef<Timer?>(null);
+    final selectedIdsNotifier = selectedFileIds ?? localSelectedFileIds;
 
-    Iterable<SnCloudFile> flattenCloudChildren(List<SnCloudFile> files) sync* {
-      for (final file in files) {
-        yield file;
-        final children = treeChildrenCache.value[file.id] ?? file.children;
-        yield* flattenCloudChildren(children);
-      }
-    }
+    void syncLoadedChildrenSelection(
+      ValueNotifier<Set<String>> ids,
+      SnCloudFile parent,
+      List<SnCloudFile> children,
+    ) {
+      if (!ids.value.contains(parent.id) || children.isEmpty) return;
 
-    Iterable<SnCloudFile> flattenFiles(List<FileListItem> items) sync* {
-      for (final item in items) {
-        switch (item) {
-          case FileItem(:final file):
-            yield file;
-            yield* flattenCloudChildren(
-              treeChildrenCache.value[file.id] ?? file.children,
-            );
-          case FolderItem(:final file):
-            yield file;
-            yield* flattenCloudChildren(
-              treeChildrenCache.value[file.id] ?? file.children,
-            );
-          case UnindexedFileItem(:final file):
-            yield file;
-            yield* flattenCloudChildren(
-              treeChildrenCache.value[file.id] ?? file.children,
-            );
+      final next = Set<String>.from(ids.value);
+      void addDescendants(Iterable<SnCloudFile> files) {
+        for (final child in files) {
+          next.add(child.id);
+          final nestedChildren =
+              treeChildrenCache.value[child.id] ?? child.children;
+          if (nestedChildren.isNotEmpty) {
+            addDescendants(nestedChildren);
+          }
         }
       }
+
+      addDescendants(children);
+      if (next.length != ids.value.length) {
+        ids.value = next;
+      }
     }
 
-    List<SnCloudFile> getSelectedFiles() {
-      return flattenFiles(
-        currentVisibleItems.value,
-      ).where((file) => selectedFileIds.value.contains(file.id)).toList();
+    void toggleSelectionWithLoadedChildren(
+      ValueNotifier<Set<String>> ids,
+      SnCloudFile file,
+    ) {
+      final next = Set<String>.from(ids.value);
+      final shouldSelect = !next.contains(file.id);
+
+      void updateDescendants(Iterable<SnCloudFile> files) {
+        for (final child in files) {
+          if (shouldSelect) {
+            next.add(child.id);
+          } else {
+            next.remove(child.id);
+          }
+          final nestedChildren =
+              treeChildrenCache.value[child.id] ?? child.children;
+          if (nestedChildren.isNotEmpty) {
+            updateDescendants(nestedChildren);
+          }
+        }
+      }
+
+      if (shouldSelect) {
+        next.add(file.id);
+      } else {
+        next.remove(file.id);
+      }
+
+      updateDescendants(treeChildrenCache.value[file.id] ?? file.children);
+      ids.value = next;
     }
 
     Future<void> ensureTreeChildrenLoaded(SnCloudFile file) async {
@@ -145,6 +187,13 @@ class FileListView extends HookConsumerWidget {
             ...treeChildrenCache.value,
             file.id: result.items,
           };
+          syncLoadedChildrenSelection(selectedIdsNotifier, file, result.items);
+          if (currentVisibleFileIds != null) {
+            currentVisibleFileIds!.value = {
+              ...currentVisibleFileIds!.value,
+              ...result.items.map((item) => item.id),
+            };
+          }
         }
       } catch (_) {
         // Keep the node visible even if hydration fails.
@@ -155,51 +204,51 @@ class FileListView extends HookConsumerWidget {
     }
 
     useEffect(() {
-      if (mode.value == FileListMode.unindexed) {
+      if (modeValue == FileListMode.unindexed) {
         isSelectionMode.value = false;
-        selectedFileIds.value.clear();
+        selectedIdsNotifier.value = <String>{};
       }
       return null;
-    }, [mode.value]);
+    }, [modeValue]);
 
     useEffect(() {
       // Sync pool when mode or selectedPool changes
-      if (mode.value == FileListMode.unindexed) {
+      if (modeValue == FileListMode.unindexed) {
         unindexedNotifier.setPool(selectedPool.value?.id);
       } else {
         cloudNotifier.setPool(selectedPool.value?.id);
       }
       return null;
-    }, [selectedPool.value, mode.value]);
+    }, [selectedPool.value, modeValue]);
 
     useEffect(() {
       // Sync query, order, and orderDesc filters
-      if (mode.value == FileListMode.unindexed) {
-        unindexedNotifier.setQuery(query.value);
+      if (modeValue == FileListMode.unindexed) {
+        unindexedNotifier.setQuery(queryValue);
         unindexedNotifier.setOrder(order.value);
         unindexedNotifier.setOrderDesc(orderDesc.value);
       } else {
-        cloudNotifier.setQuery(query.value);
+        cloudNotifier.setQuery(queryValue);
         cloudNotifier.setOrder(order.value);
         cloudNotifier.setOrderDesc(orderDesc.value);
       }
       return null;
-    }, [query.value, order.value, orderDesc.value, mode.value]);
+    }, [queryValue, order.value, orderDesc.value, modeValue]);
 
     final isRefreshing = ref.watch(
-      mode.value == FileListMode.normal
-          ? indexedCloudFileListProvider.select(
-              (value) => value.isLoading || value.isReloading,
-            )
-          : unindexedFileListProvider.select(
-              (value) => value.isLoading || value.isReloading,
-            ),
+      modeValue == FileListMode.normal
+          ? indexedCloudFileListFamilyProvider(
+              tabId,
+            ).select((value) => value.isLoading || value.isReloading)
+          : unindexedFileListFamilyProvider(
+              tabId,
+            ).select((value) => value.isLoading || value.isReloading),
     );
 
-    final bodyWidget = switch (mode.value) {
+    final bodyWidget = switch (modeValue) {
       FileListMode.unindexed => PaginationWidget(
-        provider: unindexedFileListProvider,
-        notifier: unindexedFileListProvider.notifier,
+        provider: unindexedFileListFamilyProvider(tabId),
+        notifier: unindexedFileListFamilyProvider(tabId).notifier,
         isRefreshable: false,
         isSliver: true,
         contentBuilder: (data, footer) => data.isEmpty
@@ -210,18 +259,19 @@ class FileListView extends HookConsumerWidget {
                 context,
                 viewMode,
                 isSelectionMode,
-                selectedFileIds,
+                selectedIdsNotifier,
                 expandedFileIds,
                 treeChildrenCache.value,
                 loadingTreeChildren.value,
                 ensureTreeChildrenLoaded,
                 currentVisibleItems,
                 footer,
+                toggleSelectionWithLoadedChildren,
               ),
       ),
       _ => PaginationWidget(
-        provider: indexedCloudFileListProvider,
-        notifier: indexedCloudFileListProvider.notifier,
+        provider: indexedCloudFileListFamilyProvider(tabId),
+        notifier: indexedCloudFileListFamilyProvider(tabId).notifier,
         isRefreshable: false,
         isSliver: true,
         contentBuilder: (data, footer) => data.isEmpty
@@ -235,113 +285,45 @@ class FileListView extends HookConsumerWidget {
                 currentPath,
                 viewMode,
                 isSelectionMode,
-                selectedFileIds,
+                selectedIdsNotifier,
                 expandedFileIds,
                 treeChildrenCache.value,
                 loadingTreeChildren.value,
                 ensureTreeChildrenLoaded,
                 currentVisibleItems,
                 footer,
+                toggleSelectionWithLoadedChildren,
               ),
       ),
     };
 
     late Widget pathWidget;
-    if (mode.value == FileListMode.unindexed) {
-      pathWidget = InkWell(
-        onTap: () async {
-          final result = await showMenu<String>(
-            context: context,
-            position: const RelativeRect.fromLTRB(50, 100, 50, 100),
-            items: [
-              PopupMenuItem<String>(
-                value: 'root',
-                child: Row(
-                  children: [
-                    Icon(Symbols.folder),
-                    const Gap(12),
-                    Text('rootDirectory').tr(),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'unindexed',
-                child: Row(
-                  children: [
-                    Icon(Symbols.inventory_2),
-                    const Gap(12),
-                    Text('unindexedFiles').tr(),
-                  ],
-                ),
-              ),
-            ],
-          );
-          if (result == 'root') {
-            mode.value = FileListMode.normal;
-            currentPath.value = '/';
-          }
-          // 'unindexed' does nothing as we're already in unindexed mode
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Symbols.inventory_2, size: 20),
-            const Gap(8),
-            Text(
-              'unindexedFiles',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ).tr(),
-          ],
-        ),
+    if (modeValue == FileListMode.unindexed) {
+      pathWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Symbols.inventory_2, size: 20),
+          const Gap(8),
+          Text(
+            'unindexedFiles',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ).tr(),
+        ],
       );
-    } else if (currentPath.value == '/') {
-      pathWidget = InkWell(
-        onTap: () async {
-          final result = await showMenu<String>(
-            context: context,
-            position: const RelativeRect.fromLTRB(50, 100, 50, 100),
-            items: [
-              PopupMenuItem<String>(
-                value: 'unindexed',
-                child: Row(
-                  children: [
-                    Icon(Symbols.inventory_2),
-                    const Gap(12),
-                    Text('unindexedFiles').tr(),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'root',
-                child: Row(
-                  children: [
-                    Icon(Symbols.folder),
-                    const Gap(12),
-                    Text('rootDirectory').tr(),
-                  ],
-                ),
-              ),
-            ],
-          );
-          if (result == 'unindexed') {
-            mode.value = FileListMode.unindexed;
-          }
-          // 'root' does nothing as we're already at root
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Symbols.folder, size: 20),
-            const Gap(8),
-            Text(
-              'rootDirectory',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ).tr(),
-          ],
-        ),
+    } else if (currentPathValue == '/') {
+      pathWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Symbols.folder, size: 20),
+          const Gap(8),
+          Text(
+            'rootDirectory',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ).tr(),
+        ],
       );
     } else {
-      final pathParts = currentPath.value
+      final pathParts = currentPathValue
           .split('/')
           .where((part) => part.isNotEmpty)
           .toList();
@@ -387,7 +369,11 @@ class FileListView extends HookConsumerWidget {
               onTap: () => currentPath.value = path,
               child: Text(
                 pathParts[i],
-                style: const TextStyle(color: Colors.blue),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
             ),
           );
@@ -403,39 +389,8 @@ class FileListView extends HookConsumerWidget {
     return DropTarget(
       onDragDone: (details) async {
         dragging.value = false;
-        // Handle file upload
-        for (final file in details.files) {
-          final universalFile = UniversalFile(
-            data: file,
-            type: UniversalFileType.file,
-            displayName: file.name,
-          );
-
-          final completer = ref
-              .read(driveFileUploaderProvider)
-              .createCloudFile(
-                fileData: universalFile,
-                path: mode.value == FileListMode.normal
-                    ? currentPath.value
-                    : null,
-                poolId: selectedPool.value?.id,
-                onProgress: (progress, _) {
-                  // Progress is handled by the upload tasks system
-                  if (progress != null) {
-                    debugPrint('Upload progress: ${(progress * 100).toInt()}%');
-                  }
-                },
-              );
-
-          completer.future
-              .then((uploadedFile) {
-                if (uploadedFile != null) {
-                  ref.invalidate(indexedCloudFileListProvider);
-                }
-              })
-              .catchError((error) {
-                showSnackBar('failedToUploadFile'.tr(args: [error]));
-              });
+        if (details.files.isNotEmpty) {
+          await onDropFiles?.call(details.files);
         }
       },
       onDragEntered: (details) {
@@ -478,7 +433,7 @@ class FileListView extends HookConsumerWidget {
                         tooltip: 'waterfallView'.tr(),
                       ),
                     ],
-                    selected: {viewMode.value},
+                    selected: {viewModeValue},
                     onSelectionChanged: (Set<FileListViewMode> newSelection) {
                       viewMode.value = newSelection.first;
                     },
@@ -505,7 +460,7 @@ class FileListView extends HookConsumerWidget {
             ),
             const Gap(8),
 
-            if (mode.value == FileListMode.unindexed && recycled.value)
+            if (modeValue == FileListMode.unindexed && recycled.value)
               _buildClearRecycledButton(ref).padding(horizontal: 8),
             if (isRefreshing)
               const LinearProgressIndicator(
@@ -517,149 +472,11 @@ class FileListView extends HookConsumerWidget {
                   CustomScrollView(
                     slivers: [bodyWidget, const SliverGap(12)],
                   ).padding(
-                    horizontal: viewMode.value == FileListViewMode.waterfall
+                    horizontal: viewModeValue == FileListViewMode.waterfall
                         ? 12
                         : null,
                   ),
             ),
-            if (isSelectionMode.value)
-              Material(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                elevation: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          isSelectionMode.value = false;
-                          selectedFileIds.value.clear();
-                        },
-                        child: Text('cancel').tr(),
-                      ),
-                      const Gap(12),
-                      OutlinedButton(
-                        onPressed: () {
-                          final allIds = currentVisibleItems.value
-                              .expand(
-                                (item) => item.maybeMap(
-                                  file: (f) => [f.file.id],
-                                  unindexedFile: (u) => [u.file.id],
-                                  orElse: () => <String>[],
-                                ),
-                              )
-                              .toSet();
-
-                          if (allIds
-                              .difference(selectedFileIds.value)
-                              .isEmpty) {
-                            // All items are selected, deselect all
-                            selectedFileIds.value.clear();
-                          } else {
-                            // Select all visible items
-                            selectedFileIds.value = allIds;
-                          }
-                        },
-                        child: Text(
-                          currentVisibleItems.value.isEmpty
-                              ? 'selectAll'.tr()
-                              : currentVisibleItems.value
-                                    .expand(
-                                      (item) => item.maybeMap(
-                                        file: (f) => [f.file.id],
-                                        unindexedFile: (u) => [u.file.id],
-                                        orElse: () => <String>[],
-                                      ),
-                                    )
-                                    .toSet()
-                                    .difference(selectedFileIds.value)
-                                    .isEmpty
-                              ? 'deselectAll'.tr()
-                              : 'selectAll'.tr(),
-                        ),
-                      ),
-                      const Gap(12),
-                      OutlinedButton.icon(
-                        icon: const Icon(Symbols.download),
-                        label: Text('download').tr(),
-                        onPressed: selectedFileIds.value.isNotEmpty
-                            ? () async {
-                                final files = getSelectedFiles();
-                                if (files.isEmpty) return;
-                                await ref
-                                    .read(driveFileDownloaderProvider)
-                                    .downloadFiles(
-                                      files,
-                                      useDownloadsFolder: HardwareKeyboard
-                                          .instance
-                                          .isShiftPressed,
-                                    );
-                              }
-                            : null,
-                      ),
-                      const Spacer(),
-                      Text(
-                        selectedFileIds.value.length == 1
-                            ? 'fileSelected'.tr(
-                                args: [selectedFileIds.value.length.toString()],
-                              )
-                            : 'filesSelected'.tr(
-                                args: [selectedFileIds.value.length.toString()],
-                              ),
-                      ),
-                      const Spacer(),
-                      ElevatedButton.icon(
-                        icon: const Icon(Symbols.delete),
-                        label: Text('delete').tr(),
-                        onPressed: selectedFileIds.value.isNotEmpty
-                            ? () async {
-                                final confirmed = await showConfirmAlert(
-                                  'confirmDeleteSelectedFiles'.tr(),
-                                  'deleteSelectedFiles'.tr(),
-                                  isDanger: true,
-                                );
-                                if (!confirmed) return;
-                                if (context.mounted) {
-                                  showLoadingModal(context);
-                                }
-                                try {
-                                  final uploader = ref.read(
-                                    driveFileUploaderProvider,
-                                  );
-                                  final count = await uploader.batchDeleteFiles(
-                                    selectedFileIds.value.toList(),
-                                  );
-                                  selectedFileIds.value.clear();
-                                  isSelectionMode.value = false;
-                                  ref.invalidate(
-                                    mode.value == FileListMode.normal
-                                        ? indexedCloudFileListProvider
-                                        : unindexedFileListProvider,
-                                  );
-                                  showSnackBar(
-                                    'deletedFilesCount'.tr(
-                                      args: [count.toString()],
-                                    ),
-                                  );
-                                } catch (e) {
-                                  showSnackBar(
-                                    'failedToDeleteSelectedFiles'.tr(),
-                                  );
-                                } finally {
-                                  if (context.mounted) {
-                                    hideLoadingModal(context);
-                                  }
-                                }
-                              }
-                            : null,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -680,12 +497,29 @@ class FileListView extends HookConsumerWidget {
     Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
     ValueNotifier<List<FileListItem>> currentVisibleItems,
     Widget footer,
+    void Function(ValueNotifier<Set<String>> ids, SnCloudFile file)
+    toggleSelection,
   ) {
     if (currentVisibleItems.value != items) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         currentVisibleItems.value = items;
+        currentVisibleFileIds?.value = items
+            .expand(
+              (item) => item.maybeMap(
+                file: (fileItem) => [fileItem.file.id],
+                unindexedFile: (fileItem) => [fileItem.file.id],
+                orElse: () => <String>[],
+              ),
+            )
+            .toSet();
       });
     }
+    final showTreeExpansionAffordance = items.any(
+      (item) => item.maybeMap(
+        file: (fileItem) => fileItem.file.childrenCount > 0,
+        orElse: () => false,
+      ),
+    );
     return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
@@ -711,13 +545,7 @@ class FileListView extends HookConsumerWidget {
               isSelectionMode.value,
               selectedFileIds.value.contains(fileItem.file.id),
               () {
-                if (selectedFileIds.value.contains(fileItem.file.id)) {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)
-                    ..remove(fileItem.file.id);
-                } else {
-                  selectedFileIds.value = Set.from(selectedFileIds.value)
-                    ..add(fileItem.file.id);
-                }
+                toggleSelection(selectedFileIds, fileItem.file);
               },
             ),
             folder: (folderItem) =>
@@ -748,6 +576,8 @@ class FileListView extends HookConsumerWidget {
               treeChildrenCache,
               loadingTreeChildren,
               ensureTreeChildrenLoaded,
+              showTreeExpansionAffordance,
+              toggleSelection,
             ),
             folder: (folderItem) => InkWell(
               onTap: () {
@@ -854,53 +684,104 @@ class FileListView extends HookConsumerWidget {
   ) {
     return _buildWaterfallFileTileBase(
       fileItem.file,
-      () => '/files/${fileItem.file.id}',
       ref,
       context,
-      [
-        IconButton(
-          icon: const Icon(Symbols.delete),
-          onPressed: () async {
-            final confirmed = await showConfirmAlert(
-              'confirmDeleteFile'.tr(),
-              'deleteFile'.tr(),
-              isDanger: true,
-            );
-            if (!confirmed) return;
-
-            if (context.mounted) {
-              showLoadingModal(context);
-            }
-            try {
-              final uploader = ref.read(driveFileUploaderProvider);
-              await uploader.deleteFile(fileItem.file.id);
-              ref.invalidate(indexedCloudFileListProvider);
-            } catch (e) {
-              showSnackBar('failedToDeleteFile'.tr());
-            } finally {
-              if (context.mounted) {
-                hideLoadingModal(context);
-              }
-            }
-          },
-        ),
-      ],
+      _buildIndexedFileActions(fileItem.file, ref, context),
       isSelectionMode,
       isSelected,
       toggleSelection,
+      onOpen: () => onOpenFile(fileItem.file),
     );
+  }
+
+  List<Widget> _buildIndexedFileActions(
+    SnCloudFile file,
+    WidgetRef ref,
+    BuildContext context,
+  ) {
+    return [
+      IconButton(
+        tooltip: 'download'.tr(),
+        icon: const Icon(Symbols.download),
+        onPressed: () => ref
+            .read(driveFileDownloaderProvider)
+            .downloadFile(
+              file,
+              useDownloadsFolder: HardwareKeyboard.instance.isShiftPressed,
+            ),
+      ),
+      PopupMenuButton<String>(
+        tooltip: 'more'.tr(),
+        onSelected: (value) async {
+          switch (value) {
+            case 'more':
+              await CloudFileActionsSheet.show(context: context, item: file);
+              break;
+            case 'delete':
+              final confirmed = await showConfirmAlert(
+                'confirmDeleteFile'.tr(),
+                'deleteFile'.tr(),
+                isDanger: true,
+              );
+              if (!confirmed) return;
+
+              if (context.mounted) {
+                showLoadingModal(context);
+              }
+              try {
+                final uploader = ref.read(driveFileUploaderProvider);
+                await uploader.deleteFile(file.id);
+                ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+              } catch (e) {
+                showSnackBar('failedToDeleteFile'.tr());
+              } finally {
+                if (context.mounted) {
+                  hideLoadingModal(context);
+                }
+              }
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'more',
+            child: Row(
+              children: [
+                const Icon(Symbols.more_horiz),
+                const Gap(12),
+                Text('more'.tr()),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                const Icon(Symbols.delete),
+                const Gap(12),
+                Text('delete'.tr()),
+              ],
+            ),
+          ),
+        ],
+        child: const Padding(
+          padding: EdgeInsets.all(8),
+          child: Icon(Symbols.more_horiz),
+        ),
+      ),
+    ];
   }
 
   Widget _buildWaterfallFileTileBase(
     SnCloudFile file,
-    String Function() getRoutePath,
     WidgetRef ref,
     BuildContext context,
     List<Widget>? actions,
     bool isSelectionMode,
     bool isSelected,
-    VoidCallback? toggleSelection,
-  ) {
+    VoidCallback? toggleSelection, {
+    required VoidCallback onOpen,
+  }) {
     final ratio = file.ratio ?? 1.0;
     final itemType = file.mimeType.split('/').first;
     final uri =
@@ -958,7 +839,7 @@ class FileListView extends HookConsumerWidget {
         if (isSelectionMode && toggleSelection != null) {
           toggleSelection();
         } else {
-          context.router.pushPath(getRoutePath());
+          onOpen();
         }
       },
       onLongPress: () => onInspectFile(file),
@@ -966,8 +847,13 @@ class FileListView extends HookConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
+          color: isSelectionMode && isSelected
+              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+              : null,
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            color: isSelectionMode && isSelected
+                ? Theme.of(context).colorScheme.primary.withOpacity(0.45)
+                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
           ),
         ),
         child: Column(
@@ -987,13 +873,7 @@ class FileListView extends HookConsumerWidget {
             ),
             Row(
               children: [
-                if (isSelectionMode)
-                  Checkbox(
-                    value: isSelected,
-                    onChanged: (value) => toggleSelection?.call(),
-                  )
-                else
-                  getFileIcon(file, size: 24, tinyPreview: false),
+                getFileIcon(file, size: 24, tinyPreview: false),
                 const Gap(16),
                 Expanded(
                   child: Column(
@@ -1085,12 +965,29 @@ class FileListView extends HookConsumerWidget {
     Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
     ValueNotifier<List<FileListItem>> currentVisibleItems,
     Widget footer,
+    void Function(ValueNotifier<Set<String>> ids, SnCloudFile file)
+    toggleSelection,
   ) {
     if (currentVisibleItems.value != items) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         currentVisibleItems.value = items;
+        currentVisibleFileIds?.value = items
+            .expand(
+              (item) => item.maybeMap(
+                file: (fileItem) => [fileItem.file.id],
+                unindexedFile: (fileItem) => [fileItem.file.id],
+                orElse: () => <String>[],
+              ),
+            )
+            .toSet();
       });
     }
+    final showTreeExpansionAffordance = items.any(
+      (item) => item.maybeMap(
+        unindexedFile: (fileItem) => fileItem.file.childrenCount > 0,
+        orElse: () => false,
+      ),
+    );
     return switch (currentViewMode.value) {
       // Waterfall mode
       FileListViewMode.waterfall => SliverMasonryGrid(
@@ -1125,15 +1022,7 @@ class FileListView extends HookConsumerWidget {
                   isSelectionMode.value,
                   selectedFileIds.value.contains(unindexedFileItem.file.id),
                   () {
-                    if (selectedFileIds.value.contains(
-                      unindexedFileItem.file.id,
-                    )) {
-                      selectedFileIds.value = Set.from(selectedFileIds.value)
-                        ..remove(unindexedFileItem.file.id);
-                    } else {
-                      selectedFileIds.value = Set.from(selectedFileIds.value)
-                        ..add(unindexedFileItem.file.id);
-                    }
+                    toggleSelection(selectedFileIds, unindexedFileItem.file);
                   },
                 ),
           );
@@ -1166,6 +1055,8 @@ class FileListView extends HookConsumerWidget {
               treeChildrenCache,
               loadingTreeChildren,
               ensureTreeChildrenLoaded,
+              showTreeExpansionAffordance,
+              toggleSelection,
             ),
           );
         },
@@ -1185,6 +1076,7 @@ class FileListView extends HookConsumerWidget {
 
   Widget _buildTreeFileTile({
     required SnCloudFile file,
+    required WidgetRef ref,
     required BuildContext context,
     required bool isSelectionMode,
     required ValueNotifier<Set<String>> selectedFileIds,
@@ -1193,8 +1085,10 @@ class FileListView extends HookConsumerWidget {
     required Set<String> loadingTreeChildren,
     required Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
     required int depth,
-    required Future<void> Function(SnCloudFile file) onDelete,
     required VoidCallback onOpen,
+    required bool showTreeExpansionAffordance,
+    required void Function(ValueNotifier<Set<String>> ids, SnCloudFile file)
+    toggleSelection,
   }) {
     final theme = Theme.of(context);
     final isSelected = selectedFileIds.value.contains(file.id);
@@ -1210,7 +1104,7 @@ class FileListView extends HookConsumerWidget {
         InkWell(
           onTap: () {
             if (isSelectionMode) {
-              _toggleId(selectedFileIds, file.id);
+              toggleSelection(selectedFileIds, file);
             } else {
               onOpen();
             }
@@ -1221,11 +1115,21 @@ class FileListView extends HookConsumerWidget {
             padding: EdgeInsets.only(left: depth * 18.0),
             child: ListTile(
               dense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 0,
+              tileColor: isSelectionMode && isSelected
+                  ? theme.colorScheme.primaryContainer.withOpacity(0.5)
+                  : null,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isSelectionMode && isSelected
+                      ? theme.colorScheme.primary.withOpacity(0.45)
+                      : Colors.transparent,
+                ),
               ),
-              minLeadingWidth: isSelectionMode ? 74 : 62,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 4,
+              ),
               leading: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1254,18 +1158,8 @@ class FileListView extends HookConsumerWidget {
                         },
                       ),
                     ).padding(right: 4),
-                  if (!hasTreeChildren)
+                  if (!hasTreeChildren && showTreeExpansionAffordance)
                     const SizedBox(width: 32 + 4, height: 32),
-                  if (isSelectionMode)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: Checkbox(
-                        value: isSelected,
-                        onChanged: (value) =>
-                            _toggleId(selectedFileIds, file.id),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
                   SizedBox(
                     width: 40,
                     height: 40,
@@ -1302,9 +1196,20 @@ class FileListView extends HookConsumerWidget {
                     style: theme.textTheme.bodySmall?.copyWith(height: 1),
                   ),
                   const SizedBox.shrink(),
+                  if (file.usage != null)
+                    ...([
+                      const Icon(Symbols.category, size: 12),
+                      Text(
+                        file.usage!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                      ),
+                      const SizedBox.shrink(),
+                    ]),
                   if (file.applicationType != null)
                     ...([
-                      const Icon(Symbols.calendar_today, size: 12),
+                      const Icon(Symbols.shape_line, size: 12),
                       Text(
                         file.applicationType!,
                         maxLines: 1,
@@ -1316,32 +1221,7 @@ class FileListView extends HookConsumerWidget {
               ).opacity(0.85).padding(top: 2, bottom: 4),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Symbols.delete),
-                    onPressed: () async {
-                      final confirmed = await showConfirmAlert(
-                        'confirmDeleteFile'.tr(),
-                        'deleteFile'.tr(),
-                        isDanger: true,
-                      );
-                      if (!confirmed) return;
-
-                      if (context.mounted) {
-                        showLoadingModal(context);
-                      }
-                      try {
-                        await onDelete(file);
-                      } catch (e) {
-                        showSnackBar('failedToDeleteFile'.tr());
-                      } finally {
-                        if (context.mounted) {
-                          hideLoadingModal(context);
-                        }
-                      }
-                    },
-                  ),
-                ],
+                children: _buildIndexedFileActions(file, ref, context),
               ),
             ),
           ),
@@ -1356,6 +1236,7 @@ class FileListView extends HookConsumerWidget {
             ...children.map(
               (child) => _buildTreeFileTile(
                 file: child,
+                ref: ref,
                 context: context,
                 isSelectionMode: isSelectionMode,
                 selectedFileIds: selectedFileIds,
@@ -1364,8 +1245,9 @@ class FileListView extends HookConsumerWidget {
                 loadingTreeChildren: loadingTreeChildren,
                 ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
                 depth: depth + 1,
-                onDelete: onDelete,
                 onOpen: onOpen,
+                showTreeExpansionAffordance: showTreeExpansionAffordance,
+                toggleSelection: toggleSelection,
               ),
             ),
       ],
@@ -1382,10 +1264,14 @@ class FileListView extends HookConsumerWidget {
     Map<String, List<SnCloudFile>> treeChildrenCache,
     Set<String> loadingTreeChildren,
     Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
+    bool showTreeExpansionAffordance,
+    void Function(ValueNotifier<Set<String>> ids, SnCloudFile file)
+    toggleSelection,
   ) {
     final file = fileItem.file;
     return _buildTreeFileTile(
       file: file,
+      ref: ref,
       context: context,
       isSelectionMode: isSelectionMode,
       selectedFileIds: selectedFileIds,
@@ -1394,12 +1280,9 @@ class FileListView extends HookConsumerWidget {
       loadingTreeChildren: loadingTreeChildren,
       ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
       depth: 0,
-      onDelete: (file) async {
-        final uploader = ref.read(driveFileUploaderProvider);
-        await uploader.deleteFile(file.id);
-        ref.invalidate(indexedCloudFileListProvider);
-      },
-      onOpen: () => context.router.push(FileDetailRoute(id: file.id)),
+      onOpen: () => onOpenFile(file),
+      showTreeExpansionAffordance: showTreeExpansionAffordance,
+      toggleSelection: toggleSelection,
     );
   }
 
@@ -1413,10 +1296,14 @@ class FileListView extends HookConsumerWidget {
     Map<String, List<SnCloudFile>> treeChildrenCache,
     Set<String> loadingTreeChildren,
     Future<void> Function(SnCloudFile file) ensureTreeChildrenLoaded,
+    bool showTreeExpansionAffordance,
+    void Function(ValueNotifier<Set<String>> ids, SnCloudFile file)
+    toggleSelection,
   ) {
     final file = unindexedFileItem.file;
     return _buildTreeFileTile(
       file: file,
+      ref: ref,
       context: context,
       isSelectionMode: isSelectionMode,
       selectedFileIds: selectedFileIds,
@@ -1425,12 +1312,9 @@ class FileListView extends HookConsumerWidget {
       loadingTreeChildren: loadingTreeChildren,
       ensureTreeChildrenLoaded: ensureTreeChildrenLoaded,
       depth: 0,
-      onDelete: (file) async {
-        final uploader = ref.read(driveFileUploaderProvider);
-        await uploader.deleteFile(file.id);
-        ref.invalidate(unindexedFileListProvider);
-      },
-      onOpen: () => context.router.push(FileDetailRoute(id: file.id)),
+      onOpen: () => onOpenFile(file),
+      showTreeExpansionAffordance: showTreeExpansionAffordance,
+      toggleSelection: toggleSelection,
     );
   }
 
@@ -1444,7 +1328,6 @@ class FileListView extends HookConsumerWidget {
   ) {
     return _buildWaterfallFileTileBase(
       unindexedFileItem.file,
-      () => '/files/${unindexedFileItem.file.id}',
       ref,
       context,
       [
@@ -1464,7 +1347,7 @@ class FileListView extends HookConsumerWidget {
             try {
               final uploader = ref.read(driveFileUploaderProvider);
               await uploader.deleteFile(unindexedFileItem.file.id);
-              ref.invalidate(unindexedFileListProvider);
+              ref.invalidate(unindexedFileListFamilyProvider(tabId));
             } catch (e) {
               showSnackBar('failedToDeleteFile'.tr());
             } finally {
@@ -1478,6 +1361,7 @@ class FileListView extends HookConsumerWidget {
       isSelectionMode,
       isSelected,
       toggleSelection,
+      onOpen: () => onOpenFile(unindexedFileItem.file),
     );
   }
 
@@ -1553,7 +1437,7 @@ class FileListView extends HookConsumerWidget {
                   showSnackBar(
                     'clearedRecycledFilesCount'.tr(args: [count.toString()]),
                   );
-                  ref.invalidate(unindexedFileListProvider);
+                  ref.invalidate(unindexedFileListFamilyProvider(tabId));
                 } catch (e) {
                   showSnackBar('failedToClearRecycledFiles'.tr());
                 } finally {
@@ -1706,10 +1590,12 @@ class FileListView extends HookConsumerWidget {
             onSelected: (selected) async {
               if (selected) {
                 if (mode.value == FileListMode.unindexed) {
-                  await ref.read(unindexedFileListProvider.notifier).refresh();
+                  await ref
+                      .read(unindexedFileListFamilyProvider(tabId).notifier)
+                      .refresh();
                 } else {
                   await ref
-                      .read(indexedCloudFileListProvider.notifier)
+                      .read(indexedCloudFileListFamilyProvider(tabId).notifier)
                       .refresh();
                 }
               }
