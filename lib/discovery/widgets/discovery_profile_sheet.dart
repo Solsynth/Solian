@@ -250,7 +250,7 @@ class _ProfileView extends StatelessWidget {
           if (publishers.isNotEmpty) ...[
             _SectionHeader(
               icon: Symbols.account_circle,
-              title: 'Suggested Publishers',
+              title: 'suggestedPublisher'.tr(),
               count: publishers.length,
             ),
             const Gap(8),
@@ -278,7 +278,7 @@ class _ProfileView extends StatelessWidget {
           if (accounts.isNotEmpty) ...[
             _SectionHeader(
               icon: Symbols.person,
-              title: 'Suggested Accounts',
+              title: 'suggestedPeople'.tr(),
               count: accounts.length,
             ),
             const Gap(8),
@@ -306,7 +306,7 @@ class _ProfileView extends StatelessWidget {
           if (realms.isNotEmpty) ...[
             _SectionHeader(
               icon: Symbols.public,
-              title: 'Suggested Realms',
+              title: 'suggestedRealm'.tr(),
               count: realms.length,
             ),
             const Gap(8),

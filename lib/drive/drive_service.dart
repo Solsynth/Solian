@@ -28,7 +28,7 @@ import 'package:gal/gal.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:path/path.dart' show extension, join;
+import 'package:path/path.dart' show basenameWithoutExtension, extension, join;
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'drive_service.g.dart';
@@ -1562,6 +1562,31 @@ class FileDownloadService {
     return item.name.isEmpty ? '${item.id}.$extName' : item.name;
   }
 
+  Future<String> _resolveUniqueDestinationPath(
+    String directoryPath,
+    String fileName,
+  ) async {
+    final fileExt = extension(fileName);
+    final originalBaseName = fileExt.isEmpty
+        ? fileName
+        : basenameWithoutExtension(fileName);
+    final suffixMatch = RegExp(
+      r'^(.*) \((\d+)\)$',
+    ).firstMatch(originalBaseName);
+    final fileBaseName = suffixMatch?.group(1) ?? originalBaseName;
+    var suffix = int.tryParse(suffixMatch?.group(2) ?? '') ?? 0;
+
+    var candidatePath = join(directoryPath, fileName);
+    while (await File(candidatePath).exists()) {
+      suffix++;
+      final candidateName = fileExt.isEmpty
+          ? '$fileBaseName ($suffix)'
+          : '$fileBaseName ($suffix)$fileExt';
+      candidatePath = join(directoryPath, candidateName);
+    }
+    return candidatePath;
+  }
+
   Future<void> _tryDecryptDownloadedFile(
     String filePath,
     SnCloudFile item,
@@ -1671,7 +1696,10 @@ class FileDownloadService {
     String extName, {
     required String directoryPath,
   }) async {
-    final filePath = join(directoryPath, _getFileName(item, extName));
+    final filePath = await _resolveUniqueDestinationPath(
+      directoryPath,
+      _getFileName(item, extName),
+    );
     await File(tempFilePath).copy(filePath);
     return filePath;
   }
