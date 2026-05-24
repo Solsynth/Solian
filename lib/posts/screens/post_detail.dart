@@ -1705,6 +1705,29 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                               12,
                                             ),
                                           ).padding(vertical: 8),
+                                        if (isTranslating ||
+                                            translatedText != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
+                                            ),
+                                            child: buildPostTranslationSection(
+                                              context: context,
+                                              item: post,
+                                              isTextSelectable: true,
+                                              textScale: post.type == 1
+                                                  ? 1.2
+                                                  : 1.1,
+                                              translatedText: translatedText,
+                                              isTranslating: isTranslating,
+                                              onTranslate: onTranslate == null
+                                                  ? null
+                                                  : () => onTranslate!(
+                                                      post.content!,
+                                                    ),
+                                              showTranslateButton: false,
+                                            ),
+                                          ),
                                         PostReactionList(
                                           padding: EdgeInsets.only(top: 8),
                                           item: post,
@@ -1742,29 +1765,6 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                           onUpdate: onUpdate,
                                           onTranslate: onTranslate,
                                         ).alignment(Alignment.centerLeft),
-                                        if (isTranslating ||
-                                            translatedText != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 8,
-                                            ),
-                                            child: buildPostTranslationSection(
-                                              context: context,
-                                              item: post,
-                                              isTextSelectable: true,
-                                              textScale: post.type == 1
-                                                  ? 1.2
-                                                  : 1.1,
-                                              translatedText: translatedText,
-                                              isTranslating: isTranslating,
-                                              onTranslate: onTranslate == null
-                                                  ? null
-                                                  : () => onTranslate!(
-                                                      post.content!,
-                                                    ),
-                                              showTranslateButton: false,
-                                            ),
-                                          ),
                                         if (post.repliedPostId != null ||
                                             post.forwardedPostId != null)
                                           Padding(
@@ -2292,6 +2292,32 @@ class PostDetailScreen extends HookConsumerWidget {
                                 ),
                               ),
                             ),
+                          if (translatedText.value != null || translating.value)
+                            SliverToBoxAdapter(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: _postDetailMaxWidth,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: buildPostTranslationSection(
+                                      context: context,
+                                      item: postItem,
+                                      isTextSelectable: true,
+                                      textScale: postItem.type == 1 ? 1.2 : 1.1,
+                                      translatedText: translatedText.value,
+                                      isTranslating: translating.value,
+                                      onTranslate: () =>
+                                          translatePost(postItem.content ?? ''),
+                                      showTranslateButton: false,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           SliverToBoxAdapter(
                             child: Center(
                               child: ConstrainedBox(
@@ -2319,32 +2345,6 @@ class PostDetailScreen extends HookConsumerWidget {
                               ),
                             ),
                           ),
-                          if (translatedText.value != null || translating.value)
-                            SliverToBoxAdapter(
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: _postDetailMaxWidth,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: buildPostTranslationSection(
-                                      context: context,
-                                      item: postItem,
-                                      isTextSelectable: true,
-                                      textScale: postItem.type == 1 ? 1.2 : 1.1,
-                                      translatedText: translatedText.value,
-                                      isTranslating: translating.value,
-                                      onTranslate: () =>
-                                          translatePost(postItem.content ?? ''),
-                                      showTranslateButton: false,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           DefaultTabController(
                             length: 4,
                             child: PostInteractionsSlivers(
