@@ -49,9 +49,11 @@ class FunctionCallsSection extends HookWidget {
           collapsedBackgroundColor: Theme.of(
             context,
           ).colorScheme.tertiaryContainer,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
           trailing: SizedBox(
             width: 30, // Specify desired width
