@@ -130,32 +130,26 @@ class RealtimeMessageHandler {
   void _handleWebSocketPacket(WebSocketPacket packet) {
     switch (packet.type) {
       case 'messages.new':
+        // The websocket only emits generic message packets here. Message
+        // mutations such as update/delete/reaction are encoded in the parsed
+        // SnChatMessage.type, not in WebSocketPacket.type.
         final message = _parseMessage(packet.data);
-        if (message != null && message.chatRoomId == _roomId) {
-          _handleNewMessage(message);
-        }
-        break;
+        if (message == null || message.chatRoomId != _roomId) break;
 
-      case 'messages.update':
-      case 'messages.update.links':
-        final message = _parseMessage(packet.data);
-        if (message != null && message.chatRoomId == _roomId) {
-          _handleUpdateMessage(message);
-        }
-        break;
-
-      case 'messages.delete':
-        final message = _parseMessage(packet.data);
-        if (message != null && message.chatRoomId == _roomId) {
-          _handleDeleteMessageEvent(message);
-        }
-        break;
-
-      case 'messages.reaction.added':
-      case 'messages.reaction.removed':
-        final message = _parseMessage(packet.data);
-        if (message != null && message.chatRoomId == _roomId) {
-          _handleReactionEvent(message);
+        switch (message.type) {
+          case 'messages.update':
+          case 'messages.update.links':
+            _handleUpdateMessage(message);
+            break;
+          case 'messages.delete':
+            _handleDeleteMessageEvent(message);
+            break;
+          case 'messages.reaction.added':
+          case 'messages.reaction.removed':
+            _handleReactionEvent(message);
+            break;
+          default:
+            _handleNewMessage(message);
         }
         break;
 
@@ -465,25 +459,6 @@ class RealtimeMessageHandler {
     LocalChatMessage updateEvent,
   ) {
     final updateRemote = updateEvent.toRemoteMessage();
-
-    if (updateEvent.type == 'messages.update.links') {
-      // Merge meta for link updates
-      final mergedMeta = Map<String, dynamic>.of(
-        existing.toRemoteMessage().meta,
-      );
-      mergedMeta.addAll(updateRemote.meta);
-      mergedMeta.remove('message_id');
-
-      return LocalChatMessage.fromRemoteMessage(
-        existing.toRemoteMessage().copyWith(
-          meta: mergedMeta,
-          editedAt: updateEvent.createdAt,
-        ),
-        existing.status,
-      );
-    }
-
-    // Regular update
     final mergedMeta = Map<String, dynamic>.of(existing.toRemoteMessage().meta);
     mergedMeta.addAll(updateRemote.meta);
     mergedMeta.remove('message_id');
