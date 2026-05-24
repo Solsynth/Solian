@@ -579,32 +579,73 @@ class FileListView extends HookConsumerWidget {
               showTreeExpansionAffordance,
               toggleSelection,
             ),
-            folder: (folderItem) => InkWell(
-              onTap: () {
-                final newPath = currentPath.value == '/'
-                    ? '/${folderItem.file.name}'
-                    : '${currentPath.value}/${folderItem.file.name}';
-                currentPath.value = newPath;
-              },
-              onLongPress: () => onInspectFile(folderItem.file),
-              onSecondaryTap: () => onInspectFile(folderItem.file),
-              child: ListTile(
-                leading: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  child: SizedBox(
-                    height: 48,
-                    width: 48,
-                    child: const Icon(Symbols.folder, fill: 1).center(),
+            folder: (folderItem) {
+              final theme = Theme.of(context);
+              return InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  final newPath = currentPath.value == '/'
+                      ? '/${folderItem.file.name}'
+                      : '${currentPath.value}/${folderItem.file.name}';
+                  currentPath.value = newPath;
+                },
+                onLongPress: () => onInspectFile(folderItem.file),
+                onSecondaryTap: () => onInspectFile(folderItem.file),
+                child: ListTile(
+                  dense: true,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 4,
+                  ),
+                  leading: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withOpacity(
+                          0.5,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Symbols.folder,
+                        fill: 1,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    folderItem.file.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  subtitle: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 6,
+                    children: [
+                      const Icon(Symbols.folder, size: 12),
+                      Text(
+                        'folder'.tr(),
+                        style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                      ),
+                      const SizedBox.shrink(),
+                      const Icon(Symbols.folder_copy, size: 12),
+                      Text(
+                        folderItem.file.childrenCount.toString(),
+                        style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                      ),
+                    ],
+                  ).opacity(0.85).padding(top: 2, bottom: 4),
                 ),
-                title: Text(
-                  folderItem.file.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text('folder').tr(),
-              ),
-            ),
+              );
+            },
             unindexedFile: (unindexedFileItem) {
               // Should not happen in normal mode
               return const SizedBox.shrink();
@@ -1473,7 +1514,7 @@ class FileListView extends HookConsumerWidget {
     ObjectRef<Timer?> queryDebounceTimer,
   ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
