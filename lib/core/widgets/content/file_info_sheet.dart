@@ -25,6 +25,7 @@ class FileInfoSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    const tileHorizontalPadding = 18.0;
     final exifData = item.fileMeta['exif'];
     final file = item is SnCloudFile ? item as SnCloudFile : null;
     final permissionStatus = file?.permissionStatus;
@@ -110,7 +111,9 @@ class FileInfoSheet extends ConsumerWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: tileHorizontalPadding,
+              ),
               trailing: IconButton(
                 icon: const Icon(Icons.copy),
                 onPressed: () {
@@ -127,7 +130,9 @@ class FileInfoSheet extends ConsumerWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: tileHorizontalPadding,
+              ),
               trailing: IconButton(
                 icon: const Icon(Icons.copy),
                 onPressed: () {
@@ -141,7 +146,9 @@ class FileInfoSheet extends ConsumerWidget {
                 leading: const Icon(Symbols.launch),
                 title: Text('openInBrowser').tr(),
                 subtitle: Text('https://solian.app/files/${item.id}'),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: tileHorizontalPadding,
+                ),
                 onTap: () {
                   launchUrlString(
                     'https://solian.app/files/${item.id}',
@@ -151,6 +158,24 @@ class FileInfoSheet extends ConsumerWidget {
               ),
             if (file != null) ...[
               const Divider(height: 1),
+              if (file.usage case final usage?)
+                ListTile(
+                  leading: const Icon(Symbols.asterisk),
+                  title: Text('fileUsage').tr(),
+                  subtitle: Text(usage),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: tileHorizontalPadding,
+                  ),
+                ),
+              if (file.applicationType case final applicationType?)
+                ListTile(
+                  leading: const Icon(Symbols.category),
+                  title: Text('applicationType').tr(),
+                  subtitle: Text(applicationType),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: tileHorizontalPadding,
+                  ),
+                ),
               ListTile(
                 leading: const Icon(Symbols.lock),
                 title: Text('permissions').tr(),
@@ -167,13 +192,17 @@ class FileInfoSheet extends ConsumerWidget {
                   onPressed: () => _showPermissionManager(context, ref, file),
                   child: Text('manage').tr(),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: tileHorizontalPadding,
+                ),
               ),
               ListTile(
                 leading: const Icon(Symbols.folder_copy),
                 title: const Text('children').tr(),
                 subtitle: Text(childrenCount.toString()),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: tileHorizontalPadding,
+                ),
               ),
             ],
             if (exifData is Map && exifData.isNotEmpty) ...[
@@ -181,7 +210,9 @@ class FileInfoSheet extends ConsumerWidget {
               Theme(
                 data: theme.copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: tileHorizontalPadding,
+                  ),
                   title: Text(
                     'exifData'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -196,7 +227,7 @@ class FileInfoSheet extends ConsumerWidget {
                           (entry) => ListTile(
                             dense: true,
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
+                              horizontal: tileHorizontalPadding,
                             ),
                             title: Text(
                               entry.key.contains('-')
@@ -231,7 +262,9 @@ class FileInfoSheet extends ConsumerWidget {
               Theme(
                 data: theme.copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: tileHorizontalPadding,
+                  ),
                   title: Text(
                     'fileMetadata'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -246,7 +279,7 @@ class FileInfoSheet extends ConsumerWidget {
                           (entry) => ListTile(
                             dense: true,
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
+                              horizontal: tileHorizontalPadding,
                             ),
                             title: Text(
                               entry.key,
@@ -279,7 +312,9 @@ class FileInfoSheet extends ConsumerWidget {
               Theme(
                 data: theme.copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: tileHorizontalPadding,
+                  ),
                   title: Text(
                     'userMetadata'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -294,7 +329,7 @@ class FileInfoSheet extends ConsumerWidget {
                           (entry) => ListTile(
                             dense: true,
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
+                              horizontal: tileHorizontalPadding,
                             ),
                             title: Text(
                               entry.key,

@@ -1714,13 +1714,10 @@ String _resolveDiscoveryType({
 }
 
 String _resolveDiscoveryTitle(String type, Map<String, dynamic> data) {
-  final customTitle = data['title'];
-  if (customTitle is String && customTitle.isNotEmpty) return customTitle;
-
   return (switch (type) {
-    'realm' => 'discoverRealms',
-    'publisher' => 'discoverPublishers',
-    'account' => 'accounts',
+    'realm' => 'suggestedRealm',
+    'publisher' => 'suggestedPublisher',
+    'account' => 'suggestedPeople',
     'article' => 'discoverWebArticles',
     'post' => 'discoverShuffledPost',
     _ => 'unknown',
