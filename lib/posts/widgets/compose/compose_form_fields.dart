@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/discovery/models/autocomplete_response.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
+import 'package:island/shared/widgets/typeahead_enter_handler.dart';
 import 'package:island/stickers/models/sticker.dart';
 import 'package:island/discovery/discovery_service.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -32,6 +34,18 @@ KeyEventResult _preserveComposeFieldFocus(FocusNode node, KeyEvent event) {
   return KeyEventResult.ignored;
 }
 
+void _insertNewLine(TextEditingController controller) {
+  final text = controller.text;
+  final selection = controller.selection;
+  final start = selection.start >= 0 ? selection.start : text.length;
+  final end = selection.end >= 0 ? selection.end : text.length;
+  final newText = text.replaceRange(start, end, '\n');
+  controller.value = TextEditingValue(
+    text: newText,
+    selection: TextSelection.collapsed(offset: start + 1),
+  );
+}
+
 /// A reusable widget for the form fields in compose screens.
 /// Includes title, description, and content text fields.
 class ComposeFormFields extends HookConsumerWidget {
@@ -51,6 +65,10 @@ class ComposeFormFields extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final suggestionsController = useMemoized(
+      () => SuggestionsController<AutocompleteSuggestion>(),
+      [],
+    );
 
     return Row(
       spacing: 12,
@@ -149,26 +167,32 @@ class ComposeFormFields extends HookConsumerWidget {
                 onKeyEvent: _preserveComposeFieldFocus,
                 child: TypeAheadField<AutocompleteSuggestion>(
                   controller: state.contentController,
+                  suggestionsController: suggestionsController,
                   builder: (context, controller, focusNode) {
-                    return TextField(
-                      focusNode: focusNode,
-                      controller: controller,
-                      enabled: enabled && state.currentPublisher.value != null,
-                      style: theme.textTheme.bodyMedium,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'postContent'.tr(),
-                        isCollapsed: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
+                    return TypeAheadEnterHandler<AutocompleteSuggestion>(
+                      suggestionsController: suggestionsController,
+                      onEnter: () => _insertNewLine(controller),
+                      child: TextField(
+                        focusNode: focusNode,
+                        controller: controller,
+                        enabled:
+                            enabled && state.currentPublisher.value != null,
+                        style: theme.textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'postContent'.tr(),
+                          isCollapsed: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 8,
+                          ),
                         ),
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        maxLines: null,
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                       ),
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      maxLines: null,
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
                     );
                   },
                   suggestionsCallback: (pattern) async {
