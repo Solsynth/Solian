@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -740,6 +742,126 @@ class FileListScreen extends HookConsumerWidget {
     }
   }
 
+  Future<void> _pickAndUploadFolder(
+    WidgetRef ref,
+    String tabId,
+    String currentPath,
+    String? poolId,
+  ) async {
+    try {
+      final folderPath = await FilePicker.getDirectoryPath(
+        dialogTitle: 'uploadFolder'.tr(),
+      );
+      if (folderPath == null || folderPath.isEmpty) return;
+      await _uploadLocalDirectory(ref, tabId, currentPath, poolId, folderPath);
+    } catch (e) {
+      showSnackBar('failedToUploadFolder'.tr(args: [e.toString()]));
+    }
+  }
+
+  Future<void> _ensureDriveDirectoryPath(
+    WidgetRef ref,
+    String drivePath,
+    String? poolId,
+  ) async {
+    final normalizedPath = drivePath.trim();
+    if (normalizedPath.isEmpty || normalizedPath == '/') return;
+
+    final uploader = ref.read(driveFileUploaderProvider);
+    final driveApi = ref.read(solarNetworkClientProvider).drive;
+    final segments = normalizedPath
+        .split('/')
+        .where((segment) => segment.isNotEmpty)
+        .toList();
+
+    var currentPath = '';
+    for (final segment in segments) {
+      final nextPath = '$currentPath/$segment';
+      try {
+        await uploader.resolveParentIdFromPath(path: nextPath, poolId: poolId);
+      } catch (_) {
+        final parentId = currentPath.isEmpty
+            ? null
+            : await uploader.resolveParentIdFromPath(
+                path: currentPath,
+                poolId: poolId,
+              );
+        await driveApi.createFolder(name: segment, parentId: parentId);
+      }
+      currentPath = nextPath;
+    }
+  }
+
+  Future<void> _uploadLocalDirectory(
+    WidgetRef ref,
+    String tabId,
+    String currentPath,
+    String? poolId,
+    String rootDirectoryPath,
+  ) async {
+    final rootDirectory = Directory(rootDirectoryPath);
+    if (!await rootDirectory.exists()) return;
+
+    final entities = await rootDirectory
+        .list(recursive: true, followLinks: false)
+        .toList();
+    final files = entities.whereType<File>().toList();
+    if (files.isEmpty) return;
+
+    final rootName = rootDirectory.uri.pathSegments
+        .where((segment) => segment.isNotEmpty)
+        .lastOrNull;
+    final baseDrivePath = rootName == null || rootName.isEmpty
+        ? currentPath
+        : (currentPath == '/' ? '/$rootName' : '$currentPath/$rootName');
+
+    await _ensureDriveDirectoryPath(ref, baseDrivePath, poolId);
+
+    for (final file in files) {
+      final relativePath = file.path.substring(rootDirectory.path.length);
+      final normalizedRelative = relativePath
+          .replaceAll('\\', '/')
+          .replaceFirst(RegExp(r'^/+'), '');
+      final parts = normalizedRelative
+          .split('/')
+          .where((part) => part.isNotEmpty)
+          .toList();
+      if (parts.isEmpty) continue;
+
+      final fileName = parts.last;
+      final nestedFolders = parts.take(parts.length - 1).toList();
+      final targetPath = nestedFolders.isEmpty
+          ? baseDrivePath
+          : '$baseDrivePath/${nestedFolders.join('/')}';
+
+      await _ensureDriveDirectoryPath(ref, targetPath, poolId);
+
+      final completer = ref
+          .read(driveFileUploaderProvider)
+          .createCloudFile(
+            fileData: UniversalFile(
+              data: XFile(file.path, name: fileName),
+              type: UniversalFileType.file,
+              displayName: fileName,
+            ),
+            path: targetPath,
+            poolId: poolId,
+            onProgress: (progress, _) {
+              if (progress != null) {
+                debugPrint('Upload progress: ${(progress * 100).toInt()}%');
+              }
+            },
+          );
+
+      completer.future.catchError((error) {
+        showSnackBar('failedToUploadFile'.tr(args: [error.toString()]));
+        return null;
+      });
+    }
+
+    ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+  }
+
   Future<void> _uploadDroppedFiles(
     WidgetRef ref,
     String tabId,
@@ -750,6 +872,20 @@ class FileListScreen extends HookConsumerWidget {
     if (files.isEmpty) return;
 
     for (final file in files) {
+      if (!kIsWeb && file.path.isNotEmpty) {
+        final stat = await FileSystemEntity.type(file.path);
+        if (stat == FileSystemEntityType.directory) {
+          await _uploadLocalDirectory(
+            ref,
+            tabId,
+            currentPath,
+            poolId,
+            file.path,
+          );
+          continue;
+        }
+      }
+
       final displayName = file.name.isNotEmpty ? file.name : null;
       final universalFile = UniversalFile(
         data: file,
@@ -978,6 +1114,19 @@ class FileListScreen extends HookConsumerWidget {
               onTap: () {
                 Navigator.of(context).pop();
                 _pickAndUploadFile(
+                  ref,
+                  tabId,
+                  currentPath.value,
+                  selectedPool.value?.id,
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Symbols.drive_folder_upload),
+              title: Text('uploadFolder').tr(),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickAndUploadFolder(
                   ref,
                   tabId,
                   currentPath.value,

@@ -72,66 +72,65 @@ class ImageFileContent extends HookConsumerWidget {
     final showOriginal = useState(false);
     final showExif = useState(hasExifData);
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Listener(
-            onPointerSignal: (pointerSignal) {
-              try {
-                // Handle mouse wheel zoom - cast to dynamic to access scrollDelta
-                final delta =
-                    (pointerSignal as dynamic).scrollDelta.dy as double?;
-                if (delta != null && delta != 0) {
-                  final currentScale = photoViewController.scale ?? 1.0;
-                  // Adjust scale based on scroll direction (invert for natural zoom)
-                  final newScale = delta > 0
-                      ? currentScale * 0.9
-                      : currentScale * 1.1;
-                  // Clamp scale to reasonable bounds
-                  final clampedScale = newScale.clamp(0.1, 10.0);
-                  photoViewController.scale = clampedScale;
+    return LayoutBuilder(
+      builder: (context, constraints) => Stack(
+        children: [
+          Positioned.fill(
+            child: Listener(
+              onPointerSignal: (pointerSignal) {
+                try {
+                  final delta =
+                      (pointerSignal as dynamic).scrollDelta.dy as double?;
+                  if (delta != null && delta != 0) {
+                    final currentScale = photoViewController.scale ?? 1.0;
+                    final newScale = delta > 0
+                        ? currentScale * 0.9
+                        : currentScale * 1.1;
+                    final clampedScale = newScale.clamp(0.1, 10.0);
+                    photoViewController.scale = clampedScale;
+                  }
+                } catch (_) {
+                  // Ignore non-scroll events.
                 }
-              } catch (e) {
-                // Ignore non-scroll events
-              }
-            },
-            child: PhotoView(
-              backgroundDecoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.9),
+              },
+              child: PhotoView(
+                backgroundDecoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.9),
+                ),
+                controller: photoViewController,
+                imageProvider: CloudImageWidget.provider(
+                  file: item,
+                  serverUrl: ref.watch(serverUrlProvider),
+                  original: showOriginal.value,
+                ),
+                customSize: Size(constraints.maxWidth, constraints.maxHeight),
+                basePosition: Alignment.center,
+                filterQuality: FilterQuality.high,
               ),
-              controller: photoViewController,
-              imageProvider: CloudImageWidget.provider(
-                file: item,
-                serverUrl: ref.watch(serverUrlProvider),
-                original: showOriginal.value,
-              ),
-              customSize: MediaQuery.of(context).size,
-              basePosition: Alignment.center,
-              filterQuality: FilterQuality.high,
             ),
           ),
-        ),
-        if (showExif.value)
-          Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 60,
-            left: 16,
-            right: 16,
-            child: ExifInfoOverlay(item: item),
+          if (showExif.value)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 60,
+              left: 16,
+              right: 16,
+              child: ExifInfoOverlay(item: item),
+            ),
+          ImageControlOverlay(
+            photoViewController: photoViewController,
+            rotation: rotation,
+            showOriginal: showOriginal.value,
+            onToggleQuality: () {
+              showOriginal.value = !showOriginal.value;
+            },
+            showExifInfo: showExif.value,
+            onToggleExif: () {
+              showExif.value = !showExif.value;
+            },
+            hasExifData: hasExifData,
           ),
-        ImageControlOverlay(
-          photoViewController: photoViewController,
-          rotation: rotation,
-          showOriginal: showOriginal.value,
-          onToggleQuality: () {
-            showOriginal.value = !showOriginal.value;
-          },
-          showExifInfo: showExif.value,
-          onToggleExif: () {
-            showExif.value = !showExif.value;
-          },
-          hasExifData: hasExifData,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
