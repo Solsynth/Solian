@@ -244,6 +244,9 @@ class RoomMessageList extends HookConsumerWidget {
         final messageContent =
             useStickyGroupedDisplay && groupedMessages.length > 1
             ? _StickyBubbleMessageGroup(
+                key: ValueKey(
+                  'sticky-group-${message.clientMessageId ?? message.id}',
+                ),
                 roomId: roomId,
                 sender: message.toRemoteMessage().sender,
                 avatarSize: useColumnDisplay ? 24 : 32,
@@ -358,6 +361,7 @@ class _StickyBubbleMessageGroup extends StatefulWidget {
   final List<Widget> children;
 
   const _StickyBubbleMessageGroup({
+    super.key,
     required this.roomId,
     required this.sender,
     required this.avatarSize,

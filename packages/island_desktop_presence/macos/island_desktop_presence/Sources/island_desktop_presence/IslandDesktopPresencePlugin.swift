@@ -1212,18 +1212,12 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     }
 
     let packet = encodeRpcPacket(packetType: packetType, dataJson: dataJson)
-    let writeResult = packet.withUnsafeBytes { rawBuffer -> Int in
-      guard let baseAddress = rawBuffer.baseAddress else {
-        return -1
-      }
-      return Darwin.send(connection.fileDescriptor, baseAddress, rawBuffer.count, 0)
-    }
-
-    if writeResult < 0 {
+    guard writeAll(packet, to: connection.fileDescriptor) else {
       return "Failed to write RPC packet."
     }
 
     if packetType == 2 {
+      removeRpcConnection(connectionId: connectionId)
       Darwin.shutdown(connection.fileDescriptor, SHUT_RDWR)
       Darwin.close(connection.fileDescriptor)
     }
@@ -1236,6 +1230,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       return "Unknown RPC connection."
     }
 
+    removeRpcConnection(connectionId: connectionId)
     Darwin.shutdown(connection.fileDescriptor, SHUT_RDWR)
     Darwin.close(connection.fileDescriptor)
     return nil
@@ -1336,6 +1331,17 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   }
 
   private func createRpcConnection(fileDescriptor: Int32) -> RpcConnection {
+    var noSigPipe: Int32 = 1
+    _ = withUnsafePointer(to: &noSigPipe) { valuePointer in
+      Darwin.setsockopt(
+        fileDescriptor,
+        SOL_SOCKET,
+        SO_NOSIGPIPE,
+        valuePointer,
+        socklen_t(MemoryLayout<Int32>.size)
+      )
+    }
+
     rpcLock.lock()
     let connectionId = String(nextRpcConnectionId)
     nextRpcConnectionId += 1
@@ -1381,6 +1387,36 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     withUnsafeBytes(of: &payloadLengthLittleEndian) { encoded.append(contentsOf: $0) }
     encoded.append(payloadData)
     return encoded
+  }
+
+  private func writeAll(_ packet: Data, to fileDescriptor: Int32) -> Bool {
+    var offset = 0
+
+    while offset < packet.count {
+      let bytesWritten = packet.withUnsafeBytes { rawBuffer -> Int in
+        guard let baseAddress = rawBuffer.baseAddress else {
+          return -1
+        }
+
+        let bufferAddress = baseAddress.advanced(by: offset)
+        return Darwin.send(fileDescriptor, bufferAddress, packet.count - offset, 0)
+      }
+
+      if bytesWritten < 0 {
+        if errno == EINTR {
+          continue
+        }
+        return false
+      }
+
+      if bytesWritten == 0 {
+        return false
+      }
+
+      offset += bytesWritten
+    }
+
+    return true
   }
 
   private func resolveApplicationName(bundleIdentifier: String?) -> String? {
