@@ -5,6 +5,7 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -157,6 +158,19 @@ class FileListScreen extends HookConsumerWidget {
         _DriveFileTab(id: id, mode: FileListMode.normal, file: file),
       ];
       activeTabId.value = id;
+    }
+
+    void updateFileTab(SnCloudFile file) {
+      final index = tabs.value.indexWhere((tab) => tab.file?.id == file.id);
+      if (index == -1) return;
+
+      final nextTabs = [...tabs.value];
+      nextTabs[index] = _DriveFileTab(
+        id: nextTabs[index].id,
+        mode: nextTabs[index].mode,
+        file: file,
+      );
+      tabs.value = nextTabs;
     }
 
     void closeTab(String tabId) {
@@ -346,6 +360,7 @@ class FileListScreen extends HookConsumerWidget {
                           .where((part) => part.isNotEmpty)
                           .last;
                     },
+                    onRenameFile: updateFileTab,
                     onSelectTab: (tabId) => activeTabId.value = tabId,
                     onCloseTab: closeTab,
                     onAddIndexedTab: () => createTab(FileListMode.normal),
@@ -981,6 +996,7 @@ class _DriveTabStrip extends StatelessWidget {
   final List<_DriveFileTab> tabs;
   final String? activeTabId;
   final String Function(_DriveFileTab tab) getTabTitle;
+  final ValueChanged<SnCloudFile> onRenameFile;
   final ValueChanged<String> onSelectTab;
   final ValueChanged<String> onCloseTab;
   final VoidCallback onAddIndexedTab;
@@ -990,6 +1006,7 @@ class _DriveTabStrip extends StatelessWidget {
     required this.tabs,
     required this.activeTabId,
     required this.getTabTitle,
+    required this.onRenameFile,
     required this.onSelectTab,
     required this.onCloseTab,
     required this.onAddIndexedTab,
@@ -1018,6 +1035,7 @@ class _DriveTabStrip extends StatelessWidget {
                             ? Symbols.cloud
                             : Symbols.inventory_2,
                         file: tab.file,
+                        onRenameFile: onRenameFile,
                         isSelected: tab.id == activeTabId,
                         onTap: () => onSelectTab(tab.id),
                         onClose: () => onCloseTab(tab.id),
@@ -1079,6 +1097,7 @@ class _DriveTabChip extends StatelessWidget {
   final String title;
   final IconData icon;
   final SnCloudFile? file;
+  final ValueChanged<SnCloudFile> onRenameFile;
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onClose;
@@ -1087,6 +1106,7 @@ class _DriveTabChip extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.file,
+    required this.onRenameFile,
     required this.isSelected,
     required this.onTap,
     required this.onClose,
@@ -1100,86 +1120,64 @@ class _DriveTabChip extends StatelessWidget {
           ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 2, 8, 2),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 18),
-              const Gap(8),
-              Text(title),
-              const Gap(4),
-              if (file != null) ...[
-                Consumer(
-                  builder: (context, ref, _) => IconButton(
+      child: Listener(
+        onPointerDown: (event) {
+          if (event.kind == PointerDeviceKind.mouse &&
+              event.buttons == kMiddleMouseButton) {
+            onClose();
+          }
+        },
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 2, 8, 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 18),
+                const Gap(8),
+                Text(title),
+                const Gap(4),
+                if (file != null) ...[
+                  Consumer(
+                    builder: (context, ref, _) => IconButton(
+                      visualDensity: VisualDensity.compact,
+                      iconSize: 18,
+                      splashRadius: 16,
+                      tooltip: 'download'.tr(),
+                      onPressed: () => ref
+                          .read(driveFileDownloaderProvider)
+                          .downloadFile(
+                            file!,
+                            useDownloadsFolder:
+                                HardwareKeyboard.instance.isShiftPressed,
+                          ),
+                      icon: const Icon(Symbols.download),
+                    ),
+                  ),
+                  IconButton(
                     visualDensity: VisualDensity.compact,
                     iconSize: 18,
                     splashRadius: 16,
-                    tooltip: 'download'.tr(),
-                    onPressed: () => ref
-                        .read(driveFileDownloaderProvider)
-                        .downloadFile(
-                          file!,
-                          useDownloadsFolder:
-                              HardwareKeyboard.instance.isShiftPressed,
-                        ),
-                    icon: const Icon(Symbols.download),
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  tooltip: 'more'.tr(),
-                  onSelected: (value) async {
-                    switch (value) {
-                      case 'more':
-                        await CloudFileActionsSheet.show(
-                          context: context,
-                          item: file!,
-                        );
-                        break;
-                      case 'close':
-                        onClose();
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'more',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.more_horiz),
-                          const Gap(12),
-                          Text('more'.tr()),
-                        ],
-                      ),
+                    tooltip: 'actionSheet'.tr(),
+                    onPressed: () => CloudFileActionsSheet.show(
+                      context: context,
+                      item: file!,
+                      onRenamed: onRenameFile,
                     ),
-                    PopupMenuItem(
-                      value: 'close',
-                      child: Row(
-                        children: [
-                          const Icon(Symbols.close),
-                          const Gap(12),
-                          Text('close'.tr()),
-                        ],
-                      ),
-                    ),
-                  ],
-                  child: const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Icon(Symbols.more_horiz, size: 18),
+                    icon: const Icon(Symbols.more_horiz),
                   ),
-                ),
-              ] else
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  iconSize: 18,
-                  splashRadius: 16,
-                  onPressed: onClose,
-                  icon: const Icon(Symbols.close),
-                ),
-            ],
+                ] else
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 18,
+                    splashRadius: 16,
+                    onPressed: onClose,
+                    icon: const Icon(Symbols.close),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1456,26 +1454,23 @@ class _DriveFileContentTab extends ConsumerWidget {
     final serverUrl = ref.watch(serverUrlProvider);
     final uri = '$serverUrl/drive/files/${file.id}';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onLongPress: () => onInspectFile(file),
-            onSecondaryTap: () => onInspectFile(file),
-            child: switch (file.mimeType.split('/').firstOrNull) {
-              'image' => ImageFileContent(item: file, uri: uri),
-              'video' => VideoFileContent(item: file, uri: uri),
-              'audio' => AudioFileContent(item: file, uri: uri),
-              _ when file.mimeType.startsWith('text/') => TextFileContent(
-                uri: uri,
-              ),
-              _ => GenericFileContent(item: file),
-            },
-          ),
+    return SizedBox.expand(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPress: () => onInspectFile(file),
+        onSecondaryTap: () => onInspectFile(file),
+        child: ClipRect(
+          child: switch (file.mimeType.split('/').firstOrNull) {
+            'image' => ImageFileContent(item: file, uri: uri),
+            'video' => VideoFileContent(item: file, uri: uri),
+            'audio' => AudioFileContent(item: file, uri: uri),
+            _ when file.mimeType.startsWith('text/') => TextFileContent(
+              uri: uri,
+            ),
+            _ => GenericFileContent(item: file),
+          },
         ),
-      ],
+      ),
     );
   }
 }
