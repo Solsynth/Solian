@@ -1135,10 +1135,10 @@ class SettingsScreen extends HookConsumerWidget {
                 );
                 return ListTile(
                   minLeadingWidth: 48,
-                  title: const Text('Reuse fixed now-playing ID'),
-                  subtitle: const Text(
-                    'Reduces track-specific activity churn by reusing one manual id.',
-                  ).fontSize(12),
+                  title: Text('settingsNowPlayingReuseFixedManualId').tr(),
+                  subtitle: Text(
+                    'settingsNowPlayingReuseFixedManualIdHelper',
+                  ).tr().fontSize(12),
                   contentPadding: const EdgeInsets.only(left: 24, right: 17),
                   leading: const Icon(Symbols.music_note),
                   trailing: Switch(
