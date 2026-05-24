@@ -45,13 +45,8 @@ class AccountTimelineList extends ConsumerWidget {
               if (index == groupedItems.length) {
                 if (state.hasMore) {
                   return _TimelineLoadMore(
-                    onVisible: () {
-                      if (!state.isLoading) {
-                        ref
-                            .read(accountTimelineProvider(uname).notifier)
-                            .fetchFurther();
-                      }
-                    },
+                    state: state,
+                    notifier: ref.read(accountTimelineProvider(uname).notifier),
                   );
                 }
                 return const SizedBox.shrink();
@@ -64,12 +59,16 @@ class AccountTimelineList extends ConsumerWidget {
                   child: AccountTimelineItem(
                     item: groupedItem.items.first,
                     duplicateCount: groupedItem.items.length,
+                    duration: groupedItem.duration,
                   ),
                 );
               }
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: AccountTimelineItem(item: groupedItem.items.first),
+                child: AccountTimelineItem(
+                  item: groupedItem.items.first,
+                  duration: groupedItem.duration,
+                ),
               );
             }, childCount: groupedItems.length + 1),
           ),
@@ -99,6 +98,13 @@ class AccountTimelineList extends ConsumerWidget {
       } else {
         currentGroup.items.add(item);
       }
+    }
+
+    final now = DateTime.now();
+    for (var i = 0; i < grouped.length; i++) {
+      final current = grouped[i];
+      final end = i == 0 ? now : grouped[i - 1].items.first.createdAt;
+      current.duration = end.difference(current.items.first.createdAt);
     }
 
     return grouped;
@@ -135,9 +141,10 @@ class AccountTimelineList extends ConsumerWidget {
 }
 
 class _TimelineLoadMore extends StatefulWidget {
-  final VoidCallback onVisible;
+  final PaginationState<SnAccountTimelineItem> state;
+  final AccountTimelineNotifier notifier;
 
-  const _TimelineLoadMore({required this.onVisible});
+  const _TimelineLoadMore({required this.state, required this.notifier});
 
   @override
   State<_TimelineLoadMore> createState() => _TimelineLoadMoreState();
@@ -145,44 +152,85 @@ class _TimelineLoadMore extends StatefulWidget {
 
 class _TimelineLoadMoreState extends State<_TimelineLoadMore> {
   bool _hasTriggered = false;
+  bool _hasBeenVisible = false;
 
   @override
   Widget build(BuildContext context) {
+    final child = _hasBeenVisible
+        ? (widget.state.isLoading)
+              ? Container(
+                  height: 60,
+                  alignment: Alignment.center,
+                  child: ConfuseSpinner(
+                    size: 32,
+                    speed: 3,
+                    text: 'o.O O.o',
+                    fontSize: 16,
+                  ),
+                )
+              : SizedBox(
+                  height: 64,
+                  child: Row(
+                    spacing: 8,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Symbols.close, size: 16, color: Colors.grey),
+                      Text(
+                        'noFurtherData'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+        : Container(
+            height: 60,
+            alignment: Alignment.center,
+            child: ConfuseSpinner(
+              size: 32,
+              speed: 3,
+              text: 'o.O O.o',
+              fontSize: 16,
+            ),
+          );
+
     return VisibilityDetector(
-      key: const ValueKey('timeline-load-more'),
+      key: Key("timeline-load-more-${widget.notifier.hashCode}"),
       onVisibilityChanged: (info) {
+        if (!mounted) return;
+        setState(() => _hasBeenVisible = true);
         if (info.visibleFraction > 0.1 && !_hasTriggered) {
           _hasTriggered = true;
-          widget.onVisible();
+          if (!widget.notifier.fetchedAll &&
+              !widget.state.isLoading &&
+              !widget.state.isReloading) {
+            widget.notifier.fetchFurther();
+          }
         }
       },
-      child: Container(
-        height: 60,
-        alignment: Alignment.center,
-        child: ConfuseSpinner(
-          size: 32,
-          speed: 3,
-          text: 'o.O O.o',
-          fontSize: 16,
-        ),
-      ),
+      child: child,
     );
   }
 }
 
 class _GroupedTimelineItem {
   final List<SnAccountTimelineItem> items;
+  Duration? duration;
+
   _GroupedTimelineItem({required this.items});
 }
 
 class AccountTimelineItem extends StatelessWidget {
   final SnAccountTimelineItem item;
   final int duplicateCount;
+  final Duration? duration;
 
   const AccountTimelineItem({
     super.key,
     required this.item,
     this.duplicateCount = 1,
+    this.duration,
   });
 
   @override
@@ -267,10 +315,14 @@ class AccountTimelineItem extends StatelessWidget {
                     Row(
                       spacing: 6,
                       children: [
-                        Text(
-                          '${createdAt.toLocal().formatRelative(context)} · ${createdAt.toLocal().formatSystem()}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                        Expanded(
+                          child: Text(
+                            '${createdAt.toLocal().formatRelative(context)} · ${createdAt.toLocal().formatSystem()}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (status.appIdentifier != null &&
@@ -293,6 +345,25 @@ class AccountTimelineItem extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                        if (duration != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 2,
+                            children: [
+                              Icon(
+                                Symbols.schedule,
+                                size: 12,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              Text(
+                                duration!.abs().formatDuration(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
                           ),
                       ],
                     ),
@@ -480,6 +551,27 @@ class AccountTimelineItem extends StatelessWidget {
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
+                          if (duration != null) ...[
+                            const Gap(4),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 2,
+                              children: [
+                                Icon(
+                                  Symbols.schedule,
+                                  size: 12,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                Text(
+                                  duration!.abs().formatDuration(),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
