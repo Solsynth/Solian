@@ -1126,31 +1126,7 @@ class ThoughtItem extends StatelessWidget {
 
     final List<StreamItem> items = isStreaming
         ? (streamingItems ?? [])
-        : thought!.parts.map((p) {
-            String type;
-            switch (p.type) {
-              case ThinkingMessagePartType.text:
-                type = 'text';
-                break;
-              case ThinkingMessagePartType.functionCall:
-                type = 'function_call';
-                break;
-              case ThinkingMessagePartType.functionResult:
-                type = 'function_result';
-                break;
-              case ThinkingMessagePartType.reasoning:
-                type = 'reasoning';
-                break;
-            }
-            return StreamItem(
-              type,
-              p.type == ThinkingMessagePartType.text
-                  ? p.text ?? ''
-                  : p.type == ThinkingMessagePartType.reasoning
-                  ? p.reasoning ?? ''
-                  : p.functionCall ?? p.functionResult,
-            );
-          }).toList();
+        : _buildItemsFromThoughtParts();
 
     final isAI =
         isStreaming ||
@@ -1166,17 +1142,6 @@ class ThoughtItem extends StatelessWidget {
 
     final List<Widget> bubbleWidgets = [];
     final List<Widget> backgroundWidgets = [];
-
-    // Extract and add reasoning items first (fixed at top)
-    final reasoningItems = items.where((i) => i.type == 'reasoning').toList();
-    if (reasoningItems.isNotEmpty) {
-      final mergedReasoning = reasoningItems
-          .map((i) => i.data as String)
-          .join();
-      backgroundWidgets.add(
-        ReasoningSection(reasoningChunks: [mergedReasoning]),
-      );
-    }
 
     String currentText = '';
     bool hasOpenText = false;
@@ -1225,8 +1190,16 @@ class ThoughtItem extends StatelessWidget {
             ).convert(item.data.toJson()),
           ),
         );
+      } else if (item.type == 'reasoning') {
+        if (hasOpenText) {
+          bubbleWidgets.add(buildTextRow(currentText));
+          currentText = '';
+          hasOpenText = false;
+        }
+        backgroundWidgets.add(
+          ReasoningSection(reasoningChunks: [item.data as String]),
+        );
       }
-      // Skip reasoning items here since they're already added at the top
       i++;
     }
     if (hasOpenText) {
@@ -1294,6 +1267,39 @@ class ThoughtItem extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<StreamItem> _buildItemsFromThoughtParts() {
+    if (thought == null) return const [];
+
+    final items = <StreamItem>[];
+    for (final part in thought!.parts) {
+      switch (part.type) {
+        case ThinkingMessagePartType.text:
+          if (part.text?.isNotEmpty ?? false) {
+            items.add(StreamItem('text', part.text!));
+          }
+          break;
+        case ThinkingMessagePartType.reasoning:
+          final reasoningText = part.reasoning ?? part.text;
+          if (reasoningText?.isNotEmpty ?? false) {
+            items.add(StreamItem('reasoning', reasoningText!));
+          }
+          break;
+        case ThinkingMessagePartType.functionCall:
+          if (part.functionCall != null) {
+            items.add(StreamItem('function_call', part.functionCall!));
+          }
+          break;
+        case ThinkingMessagePartType.functionResult:
+          if (part.functionResult != null) {
+            items.add(StreamItem('function_result', part.functionResult!));
+          }
+          break;
+      }
+    }
+
+    return items;
   }
 
   Widget buildItemWidget(StreamItem item) {
