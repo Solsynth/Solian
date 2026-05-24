@@ -87,6 +87,10 @@ Note: Fediverse support is currently experimental and limited.
 #### Prerequisites
 
 - [Flutter SDK](https://flutter.dev) installed
+- For Windows development, install [NASM](https://www.nasm.us) (required by `webcrypto` native assets):
+  ```powershell
+  winget install NASM.NASM
+  ```
 - For Linux development, install additional dependencies:
 
 ```bash
