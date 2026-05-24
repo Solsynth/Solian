@@ -4,18 +4,28 @@
 
 #include <flutter/standard_method_codec.h>
 
+#include <chrono>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <thread>
 
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Media.Control.h>
+
+using namespace winrt;
+using namespace winrt::Windows::Media::Control;
+
 namespace {
 constexpr char kMethodChannelName[] = "island_desktop_presence";
 constexpr char kPresenceEventChannelName[] = "island_desktop_presence/events";
+constexpr char kExternalNowPlayingEventChannelName[] =
+    "island_desktop_presence/external_now_playing";
 constexpr char kRpcEventChannelName[] = "island_desktop_presence/rpc_events";
 constexpr char kRpcPipeName[] = R"(\\.\pipe\discord-ipc-0)";
 constexpr UINT_PTR kPollingTimerId = 1;
 constexpr UINT kPollingIntervalMilliseconds = 3000;
+constexpr int kExternalNowPlayingDefaultPollIntervalMilliseconds = 2000;
 constexpr size_t kRpcReadBufferSize = 4096;
 }  // namespace
 
@@ -36,6 +46,11 @@ void IslandDesktopPresencePlugin::RegisterWithRegistrar(
   auto presence_event_channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
           registrar->messenger(), kPresenceEventChannelName,
+          &flutter::StandardMethodCodec::GetInstance());
+
+  auto external_now_playing_event_channel =
+      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+          registrar->messenger(), kExternalNowPlayingEventChannelName,
           &flutter::StandardMethodCodec::GetInstance());
 
   auto rpc_event_channel =
@@ -62,6 +77,19 @@ void IslandDesktopPresencePlugin::RegisterWithRegistrar(
       [plugin_pointer = plugin.get()](const auto* arguments) {
         return plugin_pointer->OnPresenceCancel(arguments);
       }));
+
+  external_now_playing_event_channel->SetStreamHandler(
+      std::make_unique<flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
+          [plugin_pointer = plugin.get()](
+              const auto* arguments,
+              std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&&
+                  events) {
+            return plugin_pointer->OnExternalNowPlayingListen(
+                arguments, std::move(events));
+          },
+          [plugin_pointer = plugin.get()](const auto* arguments) {
+            return plugin_pointer->OnExternalNowPlayingCancel(arguments);
+          }));
 
   rpc_event_channel->SetStreamHandler(std::make_unique<
                                       flutter::StreamHandlerFunctions<
@@ -94,6 +122,7 @@ IslandDesktopPresencePlugin::IslandDesktopPresencePlugin(
 
 IslandDesktopPresencePlugin::~IslandDesktopPresencePlugin() {
   StopRpcTransport();
+  StopExternalNowPlayingMonitoring();
   StopMonitoring();
   if (registrar_ != nullptr && window_proc_id_ != 0) {
     registrar_->UnregisterTopLevelWindowProcDelegate(window_proc_id_);
@@ -153,6 +182,53 @@ void IslandDesktopPresencePlugin::HandleMethodCall(
 
   if (method_call.method_name() == "stopMonitoring") {
     StopMonitoring();
+    result->Success();
+    return;
+  }
+
+  if (method_call.method_name() == "startExternalNowPlayingMonitoring") {
+    const auto* arguments_value = method_call.arguments();
+    if (arguments_value == nullptr) {
+      result->Error("invalid_arguments",
+                    "Expected startExternalNowPlayingMonitoring arguments.");
+      return;
+    }
+
+    const auto* arguments = std::get_if<flutter::EncodableMap>(arguments_value);
+    if (arguments == nullptr) {
+      result->Error("invalid_arguments",
+                    "Expected startExternalNowPlayingMonitoring arguments.");
+      return;
+    }
+
+    int poll_interval_milliseconds =
+        kExternalNowPlayingDefaultPollIntervalMilliseconds;
+    const auto poll_interval_iterator =
+        arguments->find(flutter::EncodableValue("pollIntervalMilliseconds"));
+    if (poll_interval_iterator != arguments->end()) {
+      const auto* poll_interval =
+          std::get_if<int32_t>(&poll_interval_iterator->second);
+      if (poll_interval == nullptr || *poll_interval <= 0) {
+        result->Error("invalid_arguments",
+                      "pollIntervalMilliseconds must be a positive int.");
+        return;
+      }
+      poll_interval_milliseconds = *poll_interval;
+    }
+
+    StartExternalNowPlayingMonitoring(poll_interval_milliseconds);
+    EmitCurrentExternalNowPlaying(true);
+    result->Success();
+    return;
+  }
+
+  if (method_call.method_name() == "stopExternalNowPlayingMonitoring") {
+    StopExternalNowPlayingMonitoring();
+    result->Success();
+    return;
+  }
+
+  if (method_call.method_name() == "setAuthToken") {
     result->Success();
     return;
   }
@@ -296,6 +372,28 @@ IslandDesktopPresencePlugin::OnPresenceCancel(
 }
 
 std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
+IslandDesktopPresencePlugin::OnExternalNowPlayingListen(
+    const flutter::EncodableValue* arguments,
+    std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events) {
+  (void)arguments;
+  external_now_playing_event_sink_ = std::move(events);
+  if (pending_external_now_playing_event_.has_value()) {
+    external_now_playing_event_sink_->Success(
+        flutter::EncodableValue(*pending_external_now_playing_event_));
+    pending_external_now_playing_event_.reset();
+  }
+  return nullptr;
+}
+
+std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
+IslandDesktopPresencePlugin::OnExternalNowPlayingCancel(
+    const flutter::EncodableValue* arguments) {
+  (void)arguments;
+  external_now_playing_event_sink_.reset();
+  return nullptr;
+}
+
+std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
 IslandDesktopPresencePlugin::OnRpcListen(
     const flutter::EncodableValue* arguments,
     std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events) {
@@ -383,6 +481,178 @@ flutter::EncodableMap IslandDesktopPresencePlugin::BuildPresenceEvent(
       {flutter::EncodableValue("idle_seconds"),
        flutter::EncodableValue(static_cast<int32_t>(idle_milliseconds / 1000))},
   };
+}
+
+void IslandDesktopPresencePlugin::StartExternalNowPlayingMonitoring(
+    int poll_interval_milliseconds) {
+  StopExternalNowPlayingMonitoring(false);
+  external_now_playing_poll_interval_milliseconds_ = poll_interval_milliseconds;
+  external_now_playing_running_ = true;
+  external_now_playing_thread_ = std::thread([this]() {
+    winrt::init_apartment(winrt::apartment_type::multi_threaded);
+    while (external_now_playing_running_) {
+      EmitCurrentExternalNowPlaying(false);
+      std::unique_lock<std::mutex> lock(external_now_playing_mutex_);
+      external_now_playing_cv_.wait_for(
+          lock,
+          std::chrono::milliseconds(
+              external_now_playing_poll_interval_milliseconds_),
+          [this]() { return !external_now_playing_running_.load(); });
+    }
+  });
+}
+
+void IslandDesktopPresencePlugin::StopExternalNowPlayingMonitoring(
+    bool reset_state) {
+  if (!external_now_playing_running_) {
+    if (reset_state) {
+      last_emitted_external_now_playing_.reset();
+      pending_external_now_playing_event_.reset();
+    }
+    return;
+  }
+
+  external_now_playing_running_ = false;
+  external_now_playing_cv_.notify_all();
+  if (external_now_playing_thread_.joinable()) {
+    external_now_playing_thread_.join();
+  }
+
+  if (reset_state) {
+    last_emitted_external_now_playing_.reset();
+    pending_external_now_playing_event_.reset();
+  }
+}
+
+void IslandDesktopPresencePlugin::EmitCurrentExternalNowPlaying(bool force) {
+  const auto snapshot = ReadExternalNowPlayingSnapshot();
+  if (!snapshot.has_value()) {
+    return;
+  }
+
+  if (!force && last_emitted_external_now_playing_.has_value() &&
+      last_emitted_external_now_playing_.value().title == snapshot->title &&
+      last_emitted_external_now_playing_.value().artist == snapshot->artist &&
+      last_emitted_external_now_playing_.value().album == snapshot->album &&
+      last_emitted_external_now_playing_.value().state == snapshot->state) {
+    return;
+  }
+
+  last_emitted_external_now_playing_ = snapshot;
+  const auto event = BuildExternalNowPlayingEvent(*snapshot);
+  if (external_now_playing_event_sink_ != nullptr) {
+    external_now_playing_event_sink_->Success(flutter::EncodableValue(event));
+  } else {
+    pending_external_now_playing_event_ = event;
+  }
+}
+
+std::optional<IslandDesktopPresencePlugin::ExternalNowPlayingSnapshot>
+IslandDesktopPresencePlugin::ReadExternalNowPlayingSnapshot() const {
+  try {
+    auto manager =
+        GlobalSystemMediaTransportControlsSessionManager::RequestAsync().get();
+    auto session = manager.GetCurrentSession();
+    if (!session) {
+      return std::nullopt;
+    }
+
+    auto properties = session.TryGetMediaPropertiesAsync().get();
+    auto playback = session.GetPlaybackInfo();
+    auto timeline = session.GetTimelineProperties();
+
+    const auto title = ToUtf8(properties.Title());
+    if (title.empty()) {
+      return std::nullopt;
+    }
+
+    ExternalNowPlayingSnapshot snapshot;
+    snapshot.source = "music";
+
+    const auto playback_status = playback.PlaybackStatus();
+    snapshot.state = playback_status ==
+                             GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing
+                         ? "playing"
+                         : playback_status ==
+                                   GlobalSystemMediaTransportControlsSessionPlaybackStatus::Paused
+                               ? "paused"
+                               : "stopped";
+    snapshot.source_app_name = NormalizeSourceAppId(session.SourceAppUserModelId());
+    snapshot.unique_identifier = NormalizeSourceAppId(session.SourceAppUserModelId());
+    snapshot.title = title;
+
+    const auto artist = ToUtf8(properties.Artist());
+    if (!artist.empty()) {
+      snapshot.artist = artist;
+    }
+
+    const auto album = ToUtf8(properties.AlbumTitle());
+    if (!album.empty()) {
+      snapshot.album = album;
+    }
+
+    const auto duration = timeline.EndTime().count();
+    if (duration > 0) {
+      snapshot.duration_seconds = static_cast<double>(duration) / 10'000'000.0;
+    }
+
+    const auto position = timeline.Position().count();
+    if (position >= 0) {
+      snapshot.position_seconds = static_cast<double>(position) / 10'000'000.0;
+    }
+
+    return snapshot;
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
+flutter::EncodableMap IslandDesktopPresencePlugin::BuildExternalNowPlayingEvent(
+    const ExternalNowPlayingSnapshot& snapshot) const {
+  flutter::EncodableMap event{
+      {flutter::EncodableValue("source"), flutter::EncodableValue(snapshot.source)},
+      {flutter::EncodableValue("state"), flutter::EncodableValue(snapshot.state)},
+  };
+
+  if (snapshot.source_app_name.has_value()) {
+    event[flutter::EncodableValue("source_app_name")] =
+        flutter::EncodableValue(*snapshot.source_app_name);
+  }
+  if (snapshot.unique_identifier.has_value()) {
+    event[flutter::EncodableValue("unique_identifier")] =
+        flutter::EncodableValue(*snapshot.unique_identifier);
+  }
+  if (snapshot.title.has_value()) {
+    event[flutter::EncodableValue("title")] =
+        flutter::EncodableValue(*snapshot.title);
+  }
+  if (snapshot.artist.has_value()) {
+    event[flutter::EncodableValue("artist")] =
+        flutter::EncodableValue(*snapshot.artist);
+  }
+  if (snapshot.album.has_value()) {
+    event[flutter::EncodableValue("album")] =
+        flutter::EncodableValue(*snapshot.album);
+  }
+  if (snapshot.duration_seconds.has_value()) {
+    event[flutter::EncodableValue("duration_seconds")] =
+        flutter::EncodableValue(*snapshot.duration_seconds);
+  }
+  if (snapshot.position_seconds.has_value()) {
+    event[flutter::EncodableValue("position_seconds")] =
+        flutter::EncodableValue(*snapshot.position_seconds);
+  }
+
+  return event;
+}
+
+std::string IslandDesktopPresencePlugin::ToUtf8(const winrt::hstring& value) {
+  return winrt::to_string(value);
+}
+
+std::string IslandDesktopPresencePlugin::NormalizeSourceAppId(
+    const winrt::hstring& value) {
+  return ToUtf8(value);
 }
 
 bool IslandDesktopPresencePlugin::StartRpcTransport(

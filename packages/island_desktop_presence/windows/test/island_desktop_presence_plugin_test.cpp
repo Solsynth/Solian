@@ -36,5 +36,24 @@ TEST(IslandDesktopPresencePlugin, GetIdleTime) {
   EXPECT_GE(result_value, 0);
 }
 
+TEST(IslandDesktopPresencePlugin, StartExternalNowPlayingMonitoring) {
+  IslandDesktopPresencePlugin plugin;
+  bool succeeded = false;
+  plugin.HandleMethodCall(
+      MethodCall(
+          "startExternalNowPlayingMonitoring",
+          std::make_unique<EncodableValue>(EncodableMap{
+              {EncodableValue("pollIntervalMilliseconds"),
+               EncodableValue(2000)},
+          })),
+      std::make_unique<MethodResultFunctions<>>(
+          [&succeeded](const EncodableValue* result) { succeeded = true; },
+          [&succeeded](const std::string& code, const std::string& message,
+                       const EncodableValue* details) {},
+          nullptr));
+
+  EXPECT_TRUE(succeeded);
+}
+
 }  // namespace test
 }  // namespace island_desktop_presence
