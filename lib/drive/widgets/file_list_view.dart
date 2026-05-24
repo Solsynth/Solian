@@ -714,8 +714,14 @@ class FileListView extends HookConsumerWidget {
         tooltip: 'more'.tr(),
         onSelected: (value) async {
           switch (value) {
-            case 'more':
-              await CloudFileActionsSheet.show(context: context, item: file);
+            case 'actions':
+              await CloudFileActionsSheet.show(
+                context: context,
+                item: file,
+                onRenamed: (_) {
+                  ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+                },
+              );
               break;
             case 'delete':
               final confirmed = await showConfirmAlert(
@@ -744,12 +750,12 @@ class FileListView extends HookConsumerWidget {
         },
         itemBuilder: (context) => [
           PopupMenuItem(
-            value: 'more',
+            value: 'actions',
             child: Row(
               children: [
-                const Icon(Symbols.more_horiz),
+                const Icon(Symbols.menu_open),
                 const Gap(12),
-                Text('more'.tr()),
+                Text('actionSheet'.tr()),
               ],
             ),
           ),
