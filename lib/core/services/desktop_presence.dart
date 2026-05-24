@@ -27,7 +27,7 @@ final desktopPresenceProvider = Provider<DesktopPresenceService?>((ref) {
 });
 
 final desktopNowPlayingProvider = Provider<DesktopNowPlayingService?>((ref) {
-  if (kIsWeb || !Platform.isMacOS) {
+  if (kIsWeb || !(Platform.isMacOS || Platform.isWindows)) {
     return null;
   }
 
