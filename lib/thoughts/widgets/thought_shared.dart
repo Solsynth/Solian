@@ -161,43 +161,6 @@ class ThoughtChatInterface extends HookConsumerWidget {
                 },
               ),
             ),
-            if (chatState.currentStatus != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  children: [
-                    Text(
-                      chatState.currentStatus!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
-                    if (chatState.compactSummary != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          chatState.compactSummary!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.secondary,
-                                fontStyle: FontStyle.italic,
-                              ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    if (chatState.archivedCount != null)
-                      Text(
-                        'thoughtCompactArchived'.tr(
-                          args: [chatState.archivedCount.toString()],
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.tertiary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -232,6 +195,16 @@ class ThoughtChatInterface extends HookConsumerWidget {
       ),
     );
   }
+}
+
+class _ThoughtWidgetSections {
+  const _ThoughtWidgetSections({
+    this.bubbleWidgets = const [],
+    this.backgroundWidgets = const [],
+  });
+
+  final List<Widget> bubbleWidgets;
+  final List<Widget> backgroundWidgets;
 }
 
 List<Map<String, String>> _extractProposals(String content) {
@@ -933,8 +906,10 @@ class ThoughtItem extends StatelessWidget {
       return _buildSystemBanner(context);
     }
 
+    final widgetSections = _buildWidgetSections(context);
+
     if (isMichanStyle) {
-      return _buildMichanChatItem(context, isUser);
+      return _buildMichanChatItem(context, isUser, widgetSections);
     }
 
     return Container(
@@ -951,28 +926,37 @@ class ThoughtItem extends StatelessWidget {
           ),
           const Gap(8),
           // Content
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                width: 1,
+          if (widgetSections.bubbleWidgets.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: widgetSections.bubbleWidgets,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 8,
-              children: buildWidgetsList(context),
-            ),
-          ),
+          if (widgetSections.backgroundWidgets.isNotEmpty) ...[
+            const Gap(8),
+            ...widgetSections.backgroundWidgets,
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildMichanChatItem(BuildContext context, bool isUser) {
+  Widget _buildMichanChatItem(
+    BuildContext context,
+    bool isUser,
+    _ThoughtWidgetSections widgetSections,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final bubbleColor = isUser
         ? colorScheme.primaryContainer.withOpacity(0.55)
@@ -981,8 +965,9 @@ class ThoughtItem extends StatelessWidget {
         ? colorScheme.primary.withOpacity(0.18)
         : colorScheme.outline.withOpacity(0.18);
     final bubbleGroups = isUser
-        ? [buildWidgetsList(context)]
-        : _buildMichanSplitMessageWidgets(context).map((widget) => [widget]);
+        ? [widgetSections.bubbleWidgets]
+        : _buildMichanSplitMessageWidgets(widgetSections.bubbleWidgets)
+              .map((widget) => [widget]);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -1009,23 +994,28 @@ class ThoughtItem extends StatelessWidget {
                   ),
                   const Gap(4),
                   for (final group in bubbleGroups) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                    if (group.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: bubbleColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: bubbleBorderColor, width: 1),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 8,
+                          children: group,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: bubbleColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: bubbleBorderColor, width: 1),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 8,
-                        children: group,
-                      ),
-                    ),
-                    const Gap(4),
+                    if (group.isNotEmpty) const Gap(4),
+                  ],
+                  if (widgetSections.backgroundWidgets.isNotEmpty) ...[
+                    const Gap(2),
+                    ...widgetSections.backgroundWidgets,
                   ],
                 ],
               ),
@@ -1036,8 +1026,7 @@ class ThoughtItem extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildMichanSplitMessageWidgets(BuildContext context) {
-    final widgets = buildWidgetsList(context);
+  List<Widget> _buildMichanSplitMessageWidgets(List<Widget> widgets) {
     final splitWidgets = <Widget>[];
 
     for (final widget in widgets) {
@@ -1080,57 +1069,59 @@ class ThoughtItem extends StatelessWidget {
     return splitWidgets;
   }
 
-  List<Widget> buildWidgetsList(BuildContext context) {
+  _ThoughtWidgetSections _buildWidgetSections(BuildContext context) {
     if (!isStreaming &&
         (thought?.parts.any(
               (e) => e.metadata?['compaction_summary'] == true,
             )) ==
             true) {
-      return [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.compress,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  const Gap(4),
-                  Text(
-                    'Context Compacted',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+      return _ThoughtWidgetSections(
+        bubbleWidgets: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.compress,
+                      size: 16,
                       color: Theme.of(context).colorScheme.secondary,
-                      fontWeight: FontWeight.w600,
+                    ),
+                    const Gap(4),
+                    Text(
+                      'Context Compacted',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    '${thought!.parts.firstWhereOrNull((e) => e.metadata?['compaction_archived_count'] != null)?.metadata?['compaction_archived_count']} messages archived',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
+                  ),
+                ),
+                if (thought?.parts.isNotEmpty == true) ...[
+                  const Gap(8),
+                  Text(
+                    thought!.parts.first.text ?? '',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  '${thought!.parts.firstWhereOrNull((e) => e.metadata?['compaction_archived_count'] != null)?.metadata?['compaction_archived_count']} messages archived',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.tertiary,
-                  ),
-                ),
-              ),
-              if (thought?.parts.isNotEmpty == true) ...[
-                const Gap(8),
-                Text(
-                  thought!.parts.first.text ?? '',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-                ),
               ],
-            ],
+            ),
           ),
-        ),
-      ];
+        ],
+      );
     }
 
     final List<StreamItem> items = isStreaming
@@ -1173,7 +1164,8 @@ class ThoughtItem extends StatelessWidget {
           )
         : [];
 
-    final List<Widget> widgets = [];
+    final List<Widget> bubbleWidgets = [];
+    final List<Widget> backgroundWidgets = [];
 
     // Extract and add reasoning items first (fixed at top)
     final reasoningItems = items.where((i) => i.type == 'reasoning').toList();
@@ -1181,7 +1173,9 @@ class ThoughtItem extends StatelessWidget {
       final mergedReasoning = reasoningItems
           .map((i) => i.data as String)
           .join();
-      widgets.add(ReasoningSection(reasoningChunks: [mergedReasoning]));
+      backgroundWidgets.add(
+        ReasoningSection(reasoningChunks: [mergedReasoning]),
+      );
     }
 
     String currentText = '';
@@ -1194,7 +1188,7 @@ class ThoughtItem extends StatelessWidget {
         hasOpenText = true;
       } else if (item.type == 'function_call') {
         if (hasOpenText) {
-          widgets.add(buildTextRow(currentText));
+          bubbleWidgets.add(buildTextRow(currentText));
           currentText = '';
           hasOpenText = false;
         }
@@ -1204,7 +1198,7 @@ class ThoughtItem extends StatelessWidget {
           result = items[i + 1];
           i++; // skip it
         }
-        widgets.add(
+        backgroundWidgets.add(
           FunctionCallsSection(
             isFinish: result != null,
             isStreaming: isStreaming,
@@ -1216,12 +1210,12 @@ class ThoughtItem extends StatelessWidget {
         );
       } else if (item.type == 'function_result') {
         if (hasOpenText) {
-          widgets.add(buildTextRow(currentText));
+          bubbleWidgets.add(buildTextRow(currentText));
           currentText = '';
           hasOpenText = false;
         }
         // orphan result, treat as finished with call
-        widgets.add(
+        backgroundWidgets.add(
           FunctionCallsSection(
             isFinish: true,
             isStreaming: isStreaming,
@@ -1236,21 +1230,21 @@ class ThoughtItem extends StatelessWidget {
       i++;
     }
     if (hasOpenText) {
-      widgets.add(buildTextRow(currentText));
+      bubbleWidgets.add(buildTextRow(currentText));
     }
 
     // Render files from thought parts (not streaming)
     if (!isStreaming && thought != null) {
       for (final part in thought!.parts) {
         if (part.files != null && part.files!.isNotEmpty) {
-          widgets.add(_buildFilesWidget(context, part.files!));
+          bubbleWidgets.add(_buildFilesWidget(context, part.files!));
         }
       }
     }
 
     // Add spinner at the end if streaming
     if (isStreaming) {
-      widgets.add(
+      bubbleWidgets.add(
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -1266,7 +1260,7 @@ class ThoughtItem extends StatelessWidget {
 
     // The proposals and token info at the end
     if (!isStreaming && proposals.isNotEmpty && isAI) {
-      widgets.add(
+      bubbleWidgets.add(
         ProposalsSection(
           proposals: proposals,
           onProposalAction: _handleProposalAction,
@@ -1277,9 +1271,12 @@ class ThoughtItem extends StatelessWidget {
         isAI &&
         thought != null &&
         !thought!.id.startsWith('error-')) {
-      widgets.add(TokenInfo(thought: thought!));
+      backgroundWidgets.add(TokenInfo(thought: thought!));
     }
-    return widgets;
+    return _ThoughtWidgetSections(
+      bubbleWidgets: bubbleWidgets,
+      backgroundWidgets: backgroundWidgets,
+    );
   }
 
   Widget buildTextRow(String text, {bool subdueParentheticalText = false}) {
