@@ -126,6 +126,8 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
   final TextEditingController _messageController = TextEditingController();
   final Map<String, List<double>> _fileUploadProgress = {};
 
+  static const _sectionPadding = EdgeInsets.symmetric(horizontal: 16);
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -418,7 +420,7 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
           if (mounted) {
             Navigator.of(context).pop(); // Close share sheet
             if (shouldView == true) {
-               context.router.push(FileDetailRoute(id: uploadedFiles.first.id));
+              context.router.push(FileDetailRoute(id: uploadedFiles.first.id));
             }
           }
         } else {
@@ -462,6 +464,9 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return SheetScaffold(
       titleText: widget.title ?? 'share'.tr(),
       heightFactor: 0.75,
@@ -478,22 +483,17 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
+                      color: colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(28),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'contentToShare'.tr(),
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         _ContentPreview(content: widget.content),
@@ -502,18 +502,15 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                   ),
                   // Quick actions row (horizontally scrollable)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: _sectionPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'quickActions'.tr(),
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -560,18 +557,15 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
 
                   // Chat section
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: _sectionPadding,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'sendToChat'.tr(),
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         const SizedBox(height: 12),
 
@@ -582,8 +576,21 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                             controller: _messageController,
                             decoration: InputDecoration(
                               hintText: 'addAdditionalMessage'.tr(),
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainerHigh,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(
+                                  color: colorScheme.primary,
+                                ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -631,14 +638,14 @@ class _ShareSheetState extends ConsumerState<ShareSheet> {
                         children: [
                           Text(
                             'uploadingFiles'.tr(),
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: theme.textTheme.bodySmall,
                           ),
                           const SizedBox(height: 4),
                           LinearProgressIndicator(value: averageProgress),
                           const SizedBox(height: 4),
                           Text(
                             '${(averageProgress * 100).toInt()}%',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: theme.textTheme.bodySmall,
                           ),
                         ],
                       );
@@ -667,11 +674,8 @@ class _ChatRoomsList extends ConsumerWidget {
           return Container(
             height: 80,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-              ),
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Center(
               child: Text(
@@ -738,6 +742,8 @@ class _ChatRoomOption extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final userInfo = ref.watch(userInfoProvider);
 
     final validMembers = (room.members ?? [])
@@ -751,63 +757,59 @@ class _ChatRoomOption extends HookConsumerWidget {
             ? validMembers.map((m) => m.account.nick).join(', ')
             : 'unknownChat'.tr());
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 72,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: onTap != null
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+    return Material(
+      color: onTap != null
+          ? colorScheme.surfaceContainerHigh
+          : colorScheme.surfaceContainerHigh.withOpacity(0.6),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: SizedBox(
+          width: 72,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Chat room avatar
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: (isDirect && room.picture == null)
+                      ? SplitAvatarWidget(
+                          files: validMembers
+                              .map((e) => e.account.profile.picture)
+                              .toList(),
+                          radius: 16,
+                        )
+                      : room.picture == null
+                      ? CircleAvatar(
+                          radius: 16,
+                          child: Text(room.name![0].toUpperCase()),
+                        )
+                      : ProfilePictureWidget(file: room.picture, radius: 16),
+                ),
+                const SizedBox(height: 6),
+                // Chat room name
+                Text(
+                  displayName,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: onTap != null
+                        ? colorScheme.onSurface
+                        : colorScheme.onSurfaceVariant.withOpacity(0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Chat room avatar
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: (isDirect && room.picture == null)
-                  ? SplitAvatarWidget(
-                      files: validMembers
-                          .map((e) => e.account.profile.picture)
-                          .toList(),
-                      radius: 16,
-                    )
-                  : room.picture == null
-                  ? CircleAvatar(
-                      radius: 16,
-                      child: Text(room.name![0].toUpperCase()),
-                    )
-                  : ProfilePictureWidget(file: room.picture, radius: 16),
-            ),
-            const SizedBox(height: 4),
-            // Chat room name
-            Text(
-              displayName,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: onTap != null
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withOpacity(0.5),
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
         ),
       ),
     );
@@ -827,49 +829,46 @@ class _CompactShareOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 72,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: onTap != null
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Material(
+      color: onTap != null
+          ? colorScheme.secondaryContainer
+          : colorScheme.surfaceContainerHigh.withOpacity(0.6),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: SizedBox(
+          width: 72,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 24,
+                  color: onTap != null
+                      ? colorScheme.onSecondaryContainer
+                      : colorScheme.onSurfaceVariant.withOpacity(0.6),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  title,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: onTap != null
+                        ? colorScheme.onSecondaryContainer
+                        : colorScheme.onSurfaceVariant.withOpacity(0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: onTap != null
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withOpacity(0.5),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: onTap != null
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withOpacity(0.5),
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
         ),
       ),
     );
@@ -1192,13 +1191,8 @@ class _FilePreview extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withOpacity(0.2),
-                    ),
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
