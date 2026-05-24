@@ -63,6 +63,7 @@ class ConditionalBottomNav extends StatefulWidget {
 class _ConditionalBottomNavState extends State<ConditionalBottomNav>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  late final Animation<double> _sizeAnimation;
   late final Animation<Offset> _slideAnimation;
   bool _isVisible = true;
 
@@ -73,6 +74,10 @@ class _ConditionalBottomNavState extends State<ConditionalBottomNav>
       vsync: this,
       duration: const Duration(milliseconds: 300),
       value: 1.0, // Start fully visible
+    );
+    _sizeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
     );
     _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
         .animate(
@@ -114,9 +119,15 @@ class _ConditionalBottomNavState extends State<ConditionalBottomNav>
       if (mounted) _updateVisibility(shouldShowBottomNav);
     });
 
-    return SlideTransition(
-      position: _slideAnimation,
-      child: ClipRect(child: widget.child),
+    return SizeTransition(
+      sizeFactor: _sizeAnimation,
+      axisAlignment: -1,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: ClipRect(
+          child: IgnorePointer(ignoring: !_isVisible, child: widget.child),
+        ),
+      ),
     );
   }
 }
