@@ -34,6 +34,8 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 
+final RegExp _messageMetaOnlyTagPattern = RegExp(r'<message_meta\b[^>]*\/?>');
+
 class ThoughtChatInterface extends HookConsumerWidget {
   final List<SnThinkingThought>? initialThoughts;
   final String? initialSequenceId;
@@ -1057,13 +1059,19 @@ class ThoughtItem extends StatelessWidget {
           .toList();
 
       if (lines.length <= 1) {
-        splitWidgets.add(buildTextRow(text, subdueParentheticalText: true));
+        final widget = buildTextRow(text, subdueParentheticalText: true);
+        if (widget is! SizedBox) {
+          splitWidgets.add(widget);
+        }
         continue;
       }
 
-      splitWidgets.addAll(
-        lines.map((line) => buildTextRow(line, subdueParentheticalText: true)),
-      );
+      for (final line in lines) {
+        final widget = buildTextRow(line, subdueParentheticalText: true);
+        if (widget is! SizedBox) {
+          splitWidgets.add(widget);
+        }
+      }
     }
 
     return splitWidgets;
@@ -1153,7 +1161,10 @@ class ThoughtItem extends StatelessWidget {
         hasOpenText = true;
       } else if (item.type == 'function_call') {
         if (hasOpenText) {
-          bubbleWidgets.add(buildTextRow(currentText));
+          final textRow = buildTextRow(currentText);
+          if (textRow is! SizedBox) {
+            bubbleWidgets.add(textRow);
+          }
           currentText = '';
           hasOpenText = false;
         }
@@ -1175,7 +1186,10 @@ class ThoughtItem extends StatelessWidget {
         );
       } else if (item.type == 'function_result') {
         if (hasOpenText) {
-          bubbleWidgets.add(buildTextRow(currentText));
+          final textRow = buildTextRow(currentText);
+          if (textRow is! SizedBox) {
+            bubbleWidgets.add(textRow);
+          }
           currentText = '';
           hasOpenText = false;
         }
@@ -1192,7 +1206,10 @@ class ThoughtItem extends StatelessWidget {
         );
       } else if (item.type == 'reasoning') {
         if (hasOpenText) {
-          bubbleWidgets.add(buildTextRow(currentText));
+          final textRow = buildTextRow(currentText);
+          if (textRow is! SizedBox) {
+            bubbleWidgets.add(textRow);
+          }
           currentText = '';
           hasOpenText = false;
         }
@@ -1203,7 +1220,10 @@ class ThoughtItem extends StatelessWidget {
       i++;
     }
     if (hasOpenText) {
-      bubbleWidgets.add(buildTextRow(currentText));
+      final textRow = buildTextRow(currentText);
+      if (textRow is! SizedBox) {
+        bubbleWidgets.add(textRow);
+      }
     }
 
     // Render files from thought parts (not streaming)
@@ -1253,6 +1273,12 @@ class ThoughtItem extends StatelessWidget {
   }
 
   Widget buildTextRow(String text, {bool subdueParentheticalText = false}) {
+    final normalizedText =
+        text.replaceAll(_messageMetaOnlyTagPattern, '').trim();
+    if (normalizedText.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -1260,7 +1286,7 @@ class ThoughtItem extends StatelessWidget {
         Flexible(
           child: ThoughtContent(
             isStreaming: isStreaming,
-            streamingText: text,
+            streamingText: normalizedText,
             thought: thought,
             subdueParentheticalText: subdueParentheticalText,
           ),
