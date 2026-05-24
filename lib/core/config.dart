@@ -81,6 +81,8 @@ const kAppIpOverrideList = 'app_ip_override_list';
 const kAppIpOverrideMode = 'app_ip_override_mode';
 const kAppIpOverrideDomains = 'app_ip_override_domains';
 const kAppMacosNowPlayingCliPath = 'app_macos_now_playing_cli_path';
+const kAppMacosNowPlayingReuseFixedManualId =
+    'app_macos_now_playing_reuse_fixed_manual_id';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
 // Will be overrided by the ProviderScope
@@ -284,6 +286,25 @@ final desktopNowPlayingCliStatusProvider =
         path: path,
       );
     });
+
+class DesktopNowPlayingReuseFixedManualIdNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppMacosNowPlayingReuseFixedManualId) ?? false;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppMacosNowPlayingReuseFixedManualId, value);
+    state = value;
+  }
+}
+
+final desktopNowPlayingReuseFixedManualIdProvider =
+    NotifierProvider<DesktopNowPlayingReuseFixedManualIdNotifier, bool>(
+      DesktopNowPlayingReuseFixedManualIdNotifier.new,
+    );
 
 @freezed
 sealed class ThemeColors with _$ThemeColors {

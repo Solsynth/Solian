@@ -1127,6 +1127,33 @@ class SettingsScreen extends HookConsumerWidget {
                 );
               },
             ),
+          if (!kIsWeb && Platform.isMacOS)
+            Builder(
+              builder: (context) {
+                final reuseFixedManualId = ref.watch(
+                  desktopNowPlayingReuseFixedManualIdProvider,
+                );
+                return ListTile(
+                  minLeadingWidth: 48,
+                  title: const Text('Reuse fixed now-playing ID'),
+                  subtitle: const Text(
+                    'Reduces track-specific activity churn by reusing one manual id.',
+                  ).fontSize(12),
+                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                  leading: const Icon(Symbols.music_note),
+                  trailing: Switch(
+                    value: reuseFixedManualId,
+                    onChanged: (value) {
+                      ref
+                          .read(
+                            desktopNowPlayingReuseFixedManualIdProvider.notifier,
+                          )
+                          .setEnabled(value);
+                    },
+                  ),
+                );
+              },
+            ),
           Builder(
             builder: (context) {
               final ipOverrideMode = ref.watch(ipOverrideModeProvider);
