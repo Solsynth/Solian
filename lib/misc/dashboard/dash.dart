@@ -107,12 +107,11 @@ class DashboardRenderer {
       case 'socialColumn':
         return SizedBox(
           width: 400,
-          child: Column(
-            spacing: 16,
-            children: [
-              FriendsOverviewWidget(),
-              Expanded(child: NotificationsCard()),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              spacing: 16,
+              children: [FriendsOverviewWidget(), NotificationsCard()],
+            ),
           ),
         );
       case 'chatsColumn':

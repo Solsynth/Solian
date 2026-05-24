@@ -24,6 +24,7 @@ class MockIslandDesktopPresencePlatform
           artist: 'Artist',
           titleUrl: 'https://music.apple.com/us/song/song/6766820661',
           artworkUrl: 'https://island.test/artwork-small.jpg',
+          artworkHash: 'sha256:abc123',
         ),
       );
 
@@ -45,6 +46,9 @@ class MockIslandDesktopPresencePlatform
 
   @override
   Future<void> stopExternalNowPlayingMonitoring() async {}
+
+  @override
+  Future<void> setAuthToken({String? token, String? serverURL}) async {}
 }
 
 void main() {
