@@ -31,9 +31,11 @@ class ReasoningSection extends HookWidget {
           collapsedBackgroundColor: Theme.of(
             context,
           ).colorScheme.secondaryContainer,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
