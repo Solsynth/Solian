@@ -253,27 +253,39 @@ class _ThoughtMainContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BillingStatusHandler(
-      statusAsync: statusAsync,
-      onRefreshStatus: onRefreshStatus,
-      child: thoughts.when(
-        data: (thoughtList) => ThoughtChatInterface(
-          initialThoughts: thoughtList,
-          initialSequenceId: sequenceIdFromThoughts,
-          initialTopic: initialTopic,
-          isDisabled: statusAsync.value == false,
-        ),
-        loading: () => hasSelectedSequence
-            ? const Center(child: CircularProgressIndicator())
-            : ThoughtChatInterface(
-                initialTopic: initialTopic,
-                isDisabled: statusAsync.value == false,
-              ),
-        error: (error, _) => ResponseErrorWidget(
-          error: error,
-          onRetry: hasSelectedSequence ? onRetry : () {},
-        ),
+    final content = thoughts.when(
+      data: (thoughtList) => ThoughtChatInterface(
+        initialThoughts: thoughtList,
+        initialSequenceId: sequenceIdFromThoughts,
+        initialTopic: initialTopic,
+        isDisabled: statusAsync.value == false,
       ),
+      loading: () => hasSelectedSequence
+          ? const Center(child: CircularProgressIndicator())
+          : ThoughtChatInterface(
+              initialTopic: initialTopic,
+              isDisabled: statusAsync.value == false,
+            ),
+      error: (error, _) => ResponseErrorWidget(
+        error: error,
+        onRetry: hasSelectedSequence ? onRetry : () {},
+      ),
+    );
+
+    return statusAsync.when(
+      data: (status) => Column(
+        children: [
+          if (!status)
+            BillingStatusHandler(
+              statusAsync: statusAsync,
+              onRefreshStatus: onRefreshStatus,
+              child: const SizedBox.shrink(),
+            ),
+          Expanded(child: content),
+        ],
+      ),
+      loading: () => content,
+      error: (_, _) => content,
     );
   }
 }

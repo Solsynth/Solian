@@ -3,6 +3,16 @@ import 'package:island/shared/widgets/content/markdown.dart';
 import 'package:island/thoughts/widgets/thought_proposal.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+final RegExp _messageMetaTagPattern = RegExp(r'<message_meta\b[^>]*\/?>');
+
+String _stripMessageMetaTags(String content) {
+  return content.replaceAll(_messageMetaTagPattern, '').trim();
+}
+
+String _normalizedThoughtText(String content) {
+  return _stripMessageMetaTags(content).trim();
+}
+
 class ThoughtContent extends StatelessWidget {
   const ThoughtContent({
     super.key,
@@ -25,12 +35,12 @@ class ThoughtContent extends StatelessWidget {
         .where((p) => p.type == ThinkingMessagePartType.text)
         .map((p) => p.text ?? '')
         .join('');
-    return textParts.startsWith('Error:');
+    return _normalizedThoughtText(textParts).startsWith('Error:');
   }
 
   @override
   Widget build(BuildContext context) {
-    final content = streamingText.isNotEmpty
+    final rawContent = streamingText.isNotEmpty
         ? streamingText
         : thought != null
         ? thought!.parts
@@ -38,6 +48,7 @@ class ThoughtContent extends StatelessWidget {
               .map((p) => p.text ?? '')
               .join('')
         : '';
+    final content = _normalizedThoughtText(rawContent);
 
     if (content.isEmpty) return const SizedBox.shrink();
 
