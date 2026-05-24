@@ -8,6 +8,7 @@
 #include <flutter/plugin_registrar_windows.h>
 
 #include <atomic>
+#include <condition_variable>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -15,6 +16,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include <winrt/Windows.Media.Control.h>
 
 namespace island_desktop_presence {
 
@@ -53,6 +56,12 @@ class IslandDesktopPresencePlugin : public flutter::Plugin {
                                           WPARAM wparam,
                                           LPARAM lparam);
   std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
+  OnExternalNowPlayingListen(
+      const flutter::EncodableValue* arguments,
+      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events);
+  std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
+  OnExternalNowPlayingCancel(const flutter::EncodableValue* arguments);
+  std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
   OnPresenceListen(
       const flutter::EncodableValue* arguments,
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events);
@@ -70,6 +79,28 @@ class IslandDesktopPresencePlugin : public flutter::Plugin {
   std::optional<int64_t> GetIdleMilliseconds() const;
   flutter::EncodableMap BuildPresenceEvent(PresenceState state,
                                            int64_t idle_milliseconds) const;
+
+  struct ExternalNowPlayingSnapshot {
+    std::string source;
+    std::string state;
+    std::optional<std::string> source_app_name;
+    std::optional<std::string> source_bundle_identifier;
+    std::optional<std::string> unique_identifier;
+    std::optional<std::string> title;
+    std::optional<std::string> artist;
+    std::optional<std::string> album;
+    std::optional<double> duration_seconds;
+    std::optional<double> position_seconds;
+  };
+
+  void StartExternalNowPlayingMonitoring(int poll_interval_milliseconds);
+  void StopExternalNowPlayingMonitoring(bool reset_state = true);
+  void EmitCurrentExternalNowPlaying(bool force);
+  std::optional<ExternalNowPlayingSnapshot> ReadExternalNowPlayingSnapshot() const;
+  flutter::EncodableMap BuildExternalNowPlayingEvent(
+      const ExternalNowPlayingSnapshot& snapshot) const;
+  static std::string NormalizeSourceAppId(const winrt::hstring& value);
+  static std::string ToUtf8(const winrt::hstring& value);
 
   bool StartRpcTransport(std::string* error_message);
   void StopRpcTransport();
@@ -99,6 +130,16 @@ class IslandDesktopPresencePlugin : public flutter::Plugin {
   std::optional<flutter::EncodableMap> pending_presence_event_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
       presence_event_sink_;
+
+  std::mutex external_now_playing_mutex_;
+  std::condition_variable external_now_playing_cv_;
+  std::atomic_bool external_now_playing_running_ = false;
+  int external_now_playing_poll_interval_milliseconds_ = 2000;
+  std::thread external_now_playing_thread_;
+  std::optional<ExternalNowPlayingSnapshot> last_emitted_external_now_playing_;
+  std::optional<flutter::EncodableMap> pending_external_now_playing_event_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
+      external_now_playing_event_sink_;
 
   std::mutex rpc_mutex_;
   std::atomic_bool rpc_running_ = false;
