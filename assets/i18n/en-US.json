@@ -509,6 +509,8 @@
   "settingsFriendStatusDesktopNotificationHelper": "Get desktop notifications when your friends are online or offline.",
   "settingsCustomFonts": "Custom Fonts",
   "settingsCustomFontsHint": "Custom fonts will be used for all text in the app. Make sure it is installed on your device.",
+  "settingsNowPlayingReuseFixedManualId": "Reuse fixed now-playing ID",
+  "settingsNowPlayingReuseFixedManualIdHelper": "Reduce music activity churn by reusing one manual id.",
   "settingsColorScheme": "Color Scheme",
   "settingsCustomColors": "Custom Colors",
   "settingsColorPrimary": "Primary",
