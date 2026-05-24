@@ -307,21 +307,15 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
               MessageStatus.sent,
             ).toRemoteMessage();
 
-            final isLinkUpdate = message.type == 'messages.update.links';
-            final updatedRemote = isLinkUpdate
-                ? existingRemote.copyWith(
-                    meta: mergedMeta,
-                    editedAt: message.createdAt,
-                  )
-                : existingRemote.copyWith(
-                    content: updatePayload.content,
-                    attachments: updatePayload.attachments,
-                    membersMentioned: updatePayload.membersMentioned,
-                    repliedMessageId: updatePayload.repliedMessageId,
-                    forwardedMessageId: updatePayload.forwardedMessageId,
-                    meta: mergedMeta,
-                    editedAt: message.createdAt,
-                  );
+            final updatedRemote = existingRemote.copyWith(
+              content: updatePayload.content,
+              attachments: updatePayload.attachments,
+              membersMentioned: updatePayload.membersMentioned,
+              repliedMessageId: updatePayload.repliedMessageId,
+              forwardedMessageId: updatePayload.forwardedMessageId,
+              meta: mergedMeta,
+              editedAt: message.createdAt,
+            );
 
             final updatedMessage = LocalChatMessage.fromRemoteMessage(
               updatedRemote,
@@ -488,17 +482,15 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       MessageStatus.sent,
     ).toRemoteMessage();
 
-    final updatedRemote = message.type == 'messages.update.links'
-        ? existingRemote.copyWith(meta: mergedMeta, editedAt: message.createdAt)
-        : existingRemote.copyWith(
-            content: updatePayload.content,
-            attachments: updatePayload.attachments,
-            membersMentioned: updatePayload.membersMentioned,
-            repliedMessageId: updatePayload.repliedMessageId,
-            forwardedMessageId: updatePayload.forwardedMessageId,
-            meta: mergedMeta,
-            editedAt: message.createdAt,
-          );
+    final updatedRemote = existingRemote.copyWith(
+      content: updatePayload.content,
+      attachments: updatePayload.attachments,
+      membersMentioned: updatePayload.membersMentioned,
+      repliedMessageId: updatePayload.repliedMessageId,
+      forwardedMessageId: updatePayload.forwardedMessageId,
+      meta: mergedMeta,
+      editedAt: message.createdAt,
+    );
 
     await db.saveMessageWithSender(
       LocalChatMessage.fromRemoteMessage(updatedRemote, existingMsg.status),
