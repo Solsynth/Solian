@@ -155,6 +155,7 @@ class DesktopNowPlayingService {
   static const Duration _pollInterval = Duration(seconds: 2);
   static const int _leaseMinutes = 5;
   static const String _manualIdPrefix = 'desktop:now_playing';
+  static const String _fixedManualId = 'desktop:now_playing:fixed';
 
   final Ref _ref;
   final IslandDesktopPresence _presence = IslandDesktopPresence();
@@ -164,6 +165,7 @@ class DesktopNowPlayingService {
   Timer? _renewalTimer;
   Map<String, dynamic>? _currentActivityData;
   String? _currentActivityFingerprint;
+  String? _currentActivityManualId;
   bool _started = false;
 
   Future<void> start() async {
@@ -231,12 +233,31 @@ class DesktopNowPlayingService {
       return;
     }
 
+    final manualId = activityData['manual_id'] as String?;
+    if (_currentActivityManualId != null && _currentActivityManualId != manualId) {
+      try {
+        await _ref
+            .read(apiClientProvider)
+            .delete(
+              '/passport/activities',
+              queryParameters: {'manualId': _currentActivityManualId},
+            );
+      } catch (error, stackTrace) {
+        Logger.root.warning(
+          '[DesktopNowPlaying] Failed to clear previous now playing activity',
+          error,
+          stackTrace,
+        );
+      }
+    }
+
     try {
       await _ref
           .read(apiClientProvider)
           .post('/passport/activities', data: activityData);
       _currentActivityData = activityData;
       _currentActivityFingerprint = fingerprint;
+      _currentActivityManualId = manualId;
       _invalidateCurrentUserPresenceActivities();
       _startRenewal();
       Logger.root.info('[DesktopNowPlaying] Published now playing activity');
@@ -263,8 +284,13 @@ class DesktopNowPlayingService {
         : event.subtitleUrl;
     final artworkUrl = event.artworkUrl;
     final artworkUrlLarge = event.artworkUrlLarge ?? artworkUrl;
+    final reuseFixedManualId = _ref.read(
+      desktopNowPlayingReuseFixedManualIdProvider,
+    );
 
-    _manualId = event.uniqueIdentifier != null || event.catalogId != null
+    _manualId = reuseFixedManualId
+        ? _fixedManualId
+        : event.uniqueIdentifier != null || event.catalogId != null
         ? '$_manualIdPrefix:${event.uniqueIdentifier ?? event.catalogId}'
         : '$_manualIdPrefix:${_hashTitle(title)}';
 
@@ -362,6 +388,7 @@ class DesktopNowPlayingService {
     } finally {
       _currentActivityData = null;
       _currentActivityFingerprint = null;
+      _currentActivityManualId = null;
     }
   }
 
