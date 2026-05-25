@@ -200,57 +200,52 @@ class CloudFileWidget extends HookConsumerWidget {
       }(),
       _ => Builder(
         builder: (context) {
-          return Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline,
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
+          return Card(
+            color: Theme.of(context).colorScheme.surfaceContainerLowest,
+            child: Row(
               children: [
-                Icon(
-                  Symbols.insert_drive_file,
-                  size: 48,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                const Gap(8),
-                Text(
-                  item.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Symbols.insert_drive_file,
+                    size: 28,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ).center(),
+                const Gap(16),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      Text(
+                        formatFileSize(item.size),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  formatFileSize(item.size),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const Gap(8),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () {
-                        if (item is SnCloudFile) {
-                          context.router.push(FileDetailRoute(id: item.id));
-                        }
-                      },
-                      icon: const Icon(Symbols.info),
-                      label: Text('info').tr(),
-                    ),
-                  ],
+                IconButton(
+                  icon: const Icon(Symbols.info),
+                  onPressed: () {
+                    if (item is SnCloudFile) {
+                      context.router.push(FileDetailRoute(id: item.id));
+                    }
+                  },
                 ),
               ],
-            ).padding(all: 8),
+            ).padding(horizontal: 16, vertical: 12),
           );
         },
       ),
