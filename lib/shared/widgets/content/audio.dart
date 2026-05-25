@@ -36,61 +36,82 @@ class _UniversalAudioState extends ConsumerState<UniversalAudio> {
   bool _sliderWorking = false;
   Duration _sliderPosition = Duration(seconds: 0);
 
-  void _openAudio() async {
+  Future<void> _initPlayer() async {
     final url = widget.uri;
     MediaKit.ensureInitialized();
 
-    _player = Player();
-    _player!.stream.position.listen((value) {
-      _position = value;
-      if (!_sliderWorking) _sliderPosition = _position;
-      setState(() {});
-    });
-    _player!.stream.buffer.listen((value) {
-      _duartionBuffered = value;
-      setState(() {});
-    });
-    _player!.stream.duration.listen((value) {
-      _duration = value;
-      setState(() {});
-    });
+    final serverUrl = ref.read(serverUrlProvider);
+    final token = ref.read(tokenProvider);
+    final authHeaders = url.startsWith(serverUrl) && token != null
+        ? {'Authorization': 'Bearer ${token.token}'}
+        : null;
 
-    String? uri;
+    String uri;
     final inCacheInfo = await DefaultCacheManager().getFileFromCache(url);
     if (inCacheInfo == null) {
       Logger.root.info('[MediaPlayer] Miss cache: $url');
-      final serverUrl = ref.read(serverUrlProvider);
-      final token = ref.read(tokenProvider);
-      final authHeaders = url.startsWith(serverUrl) && token != null
-          ? {'Authorization': 'Bearer ${token.token}'}
-          : null;
-      DefaultCacheManager().downloadFile(url, authHeaders: authHeaders);
-      uri = url;
+      final result = await DefaultCacheManager().downloadFile(
+        url,
+        authHeaders: authHeaders,
+      );
+      uri = result.file.path;
     } else {
       uri = inCacheInfo.file.path;
       Logger.root.info('[MediaPlayer] Hit cache: $url');
     }
 
-    final serverUrl = ref.read(serverUrlProvider);
-    final token = ref.read(tokenProvider);
+    if (!mounted) return;
+
+    _player = Player();
+    _player!.stream.position.listen((value) {
+      _position = value;
+      if (!_sliderWorking) _sliderPosition = _position;
+      if (mounted) setState(() {});
+    });
+    _player!.stream.buffer.listen((value) {
+      _duartionBuffered = value;
+      if (mounted) setState(() {});
+    });
+    _player!.stream.duration.listen((value) {
+      _duration = value;
+      if (mounted) setState(() {});
+    });
+
     final Map<String, String>? httpHeaders =
         uri.startsWith(serverUrl) && token != null
-        ? {'Authorization': 'Bearer ${token.token}'}
-        : null;
+            ? {'Authorization': 'Bearer ${token.token}'}
+            : null;
 
-    _player!.open(Media(uri, httpHeaders: httpHeaders), play: widget.autoplay);
+    await _player!.open(Media(uri, httpHeaders: httpHeaders),
+        play: widget.autoplay);
+
+    if (mounted) setState(() {});
+  }
+
+  void _disposePlayer() {
+    _player?.dispose();
+    _player = null;
   }
 
   @override
   void initState() {
     super.initState();
-    _openAudio();
+    _initPlayer();
+  }
+
+  @override
+  void didUpdateWidget(UniversalAudio oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.uri != widget.uri) {
+      _disposePlayer();
+      _initPlayer();
+    }
   }
 
   @override
   void dispose() {
+    _disposePlayer();
     super.dispose();
-    _player?.dispose();
   }
 
   @override

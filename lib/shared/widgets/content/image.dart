@@ -97,7 +97,13 @@ class UniversalImage extends HookConsumerWidget {
               _isValidBlurHash(blurHash!))
             BlurHash(hash: blurHash!),
           if (isCached.value == null)
-            Center(child: CircularProgressIndicator())
+            Center(
+              child: SizedBox(
+                width: (width ?? 32).clamp(12, 48),
+                height: (height ?? 32).clamp(12, 48),
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
           else if (isCached.value!)
             CachedNetworkImage(
               imageUrl: uri,
@@ -135,6 +141,7 @@ class UniversalImage extends HookConsumerWidget {
                   child: AnimatedCircularProgressIndicator(
                     value: progress.progress,
                     color: Colors.white.withOpacity(0.5),
+                    strokeWidth: 2,
                   ),
                 );
               },
