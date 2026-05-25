@@ -36,10 +36,22 @@ HOMEBREW_VERSION=$(echo "$FLUTTER_VERSION" | tr '+' ',')
 echo "🚀 Found Flutter version: $FLUTTER_VERSION"
 echo "📦 Homebrew formatted version: $HOMEBREW_VERSION"
 
-# 2. Build the Flutter macOS app
-echo "🔨 Building Flutter macOS app..."
-flutter pub get
-flutter build macos --release
+# Parse --no-build flag
+SKIP_BUILD=false
+for arg in "$@"; do
+  case "$arg" in
+    --no-build) SKIP_BUILD=true ;;
+  esac
+done
+
+# 2. Build the Flutter macOS app (unless --no-build is set)
+if [ "$SKIP_BUILD" = false ]; then
+  echo "🔨 Building Flutter macOS app..."
+  flutter pub get
+  flutter build macos --release
+else
+  echo "⏭️ Skipping build (--no-build flag detected)..."
+fi
 
 # 3. Navigate to build outputs and compress
 echo "🗜️ Packaging .app bundle into .tar.gz..."
@@ -59,7 +71,7 @@ echo "Hash: $SHA256"
 
 # 5. Upload to S3 using rclone
 echo "☁️ Uploading archive to S3 via rclone..."
-rclone copyto "$ARCHIVE_NAME" "${RCLONE_REMOTE}:${S3_BUCKET}/$ARCHIVE_NAME" --progress --overwrite
+rclone copyto "$ARCHIVE_NAME" "${RCLONE_REMOTE}:${S3_BUCKET}/$ARCHIVE_NAME" --progress
 
 # Get the public S3 URL
 DOWNLOAD_URL="https://raw.solsynth.dev/solian/$ARCHIVE_NAME"
@@ -80,7 +92,7 @@ sed -i '' "s|url \".*\"|url \"$DOWNLOAD_URL\"|g" "$CASK_FILE"
 echo "🖥️ Committing and pushing Homebrew Tap updates..."
 cd "$TAP_DIR"
 git add "Casks/$CASK_NAME.rb"
-git commit -m "Update $APP_NAME to v$FLUTTER_VERSION"
+git commit -m ":rocket: Launch $FLUTTER_VERSION"
 git push origin main
 
 # Clean up local archive
