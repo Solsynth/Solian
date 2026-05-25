@@ -2105,5 +2105,6 @@
   "settingsExportChat": "채팅 내보내기",
   "settingsExportJsonDesc": "메타데이터가 포함된 전체 메시지 데이터",
   "settingsExportCsvDesc": "간단한 스프레드시트 형식",
-  "settingsExportSaved": "다운로드 폴더에 저장됨"
+  "settingsExportSaved": "다운로드 폴더에 저장됨",
+  "presenceOngoing": "진행 중"
 }

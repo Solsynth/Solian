@@ -3247,5 +3247,6 @@
   "waterfallView": "Waterfall View",
   "suggestedPublisher": "Suggested Publisher",
   "suggestedRealm": "Suggested Realm",
-  "suggestedPeople": "People you might know"
+  "suggestedPeople": "People you might know",
+  "presenceOngoing": "Ongoing"
 }
