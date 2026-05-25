@@ -381,8 +381,13 @@ class _VoiceMessageContent extends HookConsumerWidget {
   const _VoiceMessageContent({required this.item});
 
   String _formatSeconds(Duration duration) {
-    final seconds = (duration.inMilliseconds / 1000).floor();
-    return '${seconds.clamp(0, 99999)}s';
+    final totalSeconds = (duration.inMilliseconds / 1000).floor().clamp(
+      0,
+      99999,
+    );
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -437,7 +442,7 @@ class _VoiceMessageContent extends HookConsumerWidget {
         final bytes = await file.readAsBytes();
         if (bytes.isEmpty) return;
 
-        const barCount = 56;
+        const barCount = 64;
         final bars = <double>[];
         final window = (bytes.length / barCount).ceil();
         const startOffset = 1024;
@@ -457,7 +462,9 @@ class _VoiceMessageContent extends HookConsumerWidget {
             samples++;
           }
 
-          final normalized = samples == 0 ? 0.12 : (sum / samples) / 128.0;
+          final normalized = samples == 0
+              ? 0.12
+              : math.sqrt((sum / samples) / 128.0);
           bars.add(normalized.clamp(0.12, 1.0));
         }
 
@@ -522,10 +529,10 @@ class _VoiceMessageContent extends HookConsumerWidget {
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 320),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -534,7 +541,7 @@ class _VoiceMessageContent extends HookConsumerWidget {
             visualDensity: VisualDensity.compact,
             icon: Icon(
               isPlaying ? Symbols.pause_circle : Symbols.play_circle,
-              size: 24,
+              size: 22,
             ),
             onPressed: mediaUrl == null || isLoading.value
                 ? null
@@ -556,73 +563,59 @@ class _VoiceMessageContent extends HookConsumerWidget {
                   },
           ),
           Expanded(
-            child: SizedBox(
-              height: 24,
-              child: _VoiceWaveformProgress(
-                bars: waveformBars.value,
-                progress: (shownPosition.inMilliseconds / totalMs).clamp(
-                  0.0,
-                  1.0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 28,
+                  child: _VoiceWaveformProgress(
+                    bars: waveformBars.value,
+                    progress: (shownPosition.inMilliseconds / totalMs).clamp(
+                      0.0,
+                      1.0,
+                    ),
+                    onSeekStart: mediaUrl == null
+                        ? null
+                        : (ratio) {
+                            isScrubbing.value = true;
+                            scrubPosition.value = Duration(
+                              milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                                  .toInt(),
+                            );
+                          },
+                    onSeekUpdate: mediaUrl == null
+                        ? null
+                        : (ratio) {
+                            isScrubbing.value = true;
+                            scrubPosition.value = Duration(
+                              milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                                  .toInt(),
+                            );
+                          },
+                    onSeekEnd: mediaUrl == null
+                        ? null
+                        : () async {
+                            await ensureLoaded();
+                            await player.seek(scrubPosition.value);
+                            isScrubbing.value = false;
+                          },
+                  ),
                 ),
-                onSeekStart: mediaUrl == null
-                    ? null
-                    : (ratio) {
-                        isScrubbing.value = true;
-                        scrubPosition.value = Duration(
-                          milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
-                              .toInt(),
-                        );
-                      },
-                onSeekUpdate: mediaUrl == null
-                    ? null
-                    : (ratio) {
-                        isScrubbing.value = true;
-                        scrubPosition.value = Duration(
-                          milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
-                              .toInt(),
-                        );
-                      },
-                onSeekEnd: mediaUrl == null
-                    ? null
-                    : () async {
-                        await ensureLoaded();
-                        await player.seek(scrubPosition.value);
-                        isScrubbing.value = false;
-                      },
-              ),
+                const Gap(4),
+                Text(
+                  '${_formatSeconds(shownPosition)} / ${_formatSeconds(total)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.robotoMono(
+                    fontSize: 11,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
             ),
           ),
-          const Gap(6),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(scale: animation, child: child),
-              );
-            },
-            child: isPlaying
-                ? Text(
-                    _formatSeconds(shownPosition),
-                    key: const ValueKey('playing-time'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  )
-                : Text(
-                    _formatSeconds(total),
-                    key: const ValueKey('paused-time'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-          ).padding(left: 4, right: 6),
           if (isLoading.value) ...[
             const Gap(6),
             SizedBox(
@@ -661,23 +654,25 @@ class _VoiceWaveformProgress extends StatelessWidget {
     final waveform = bars;
 
     if (waveform == null || waveform.isEmpty) {
-      return LinearProgressIndicator(
-        value: progress.clamp(0.0, 1.0),
-        minHeight: 3,
+      return ClipRRect(
         borderRadius: BorderRadius.circular(999),
-        color: colorScheme.primary,
-        backgroundColor: colorScheme.surfaceContainerHighest,
+        child: LinearProgressIndicator(
+          value: progress.clamp(0.0, 1.0),
+          minHeight: 4,
+          color: colorScheme.primary,
+          backgroundColor: colorScheme.surfaceContainerHighest,
+        ),
       );
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final barCount = waveform.length;
-        const spacing = 1.5;
+        const spacing = 1.0;
         final barWidth =
             ((constraints.maxWidth - (barCount - 1) * spacing) / barCount)
-                .clamp(1.0, 4.0);
-        final activeBars = (progress.clamp(0.0, 1.0) * barCount).floor();
+                .clamp(1.5, 3.2);
+        final playedBars = progress.clamp(0.0, 1.0) * barCount;
 
         double ratioFromDx(double dx) {
           if (constraints.maxWidth <= 0) return 0;
@@ -703,23 +698,33 @@ class _VoiceWaveformProgress extends StatelessWidget {
           onHorizontalDragEnd: onSeekEnd == null
               ? null
               : (_) => unawaited(onSeekEnd!()),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: List.generate(barCount, (index) {
-              final normalized = waveform[index].clamp(0.12, 1.0);
-              final height = 4 + (normalized * 16);
-              return Container(
-                width: barWidth,
-                height: height,
-                margin: EdgeInsets.only(right: index == barCount - 1 ? 0 : 1.5),
-                decoration: BoxDecoration(
-                  color: index < activeBars
-                      ? colorScheme.primary
-                      : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              );
-            }),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: List.generate(barCount, (index) {
+                final normalized = waveform[index].clamp(0.12, 1.0);
+                final height = 5 + (normalized * 15);
+                final fill = (playedBars - index).clamp(0.0, 1.0);
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  curve: Curves.easeOutCubic,
+                  width: barWidth,
+                  height: height,
+                  margin: EdgeInsets.only(
+                    right: index == barCount - 1 ? 0 : spacing,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Color.lerp(
+                      colorScheme.surfaceContainerHighest,
+                      colorScheme.primary,
+                      fill,
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                );
+              }),
+            ),
           ),
         );
       },
