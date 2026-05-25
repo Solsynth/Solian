@@ -1463,6 +1463,9 @@ class FileUploader {
   /// Gets the MIME type of a UniversalFile.
   static String getMimeType(UniversalFile file, {bool useFallback = true}) {
     final data = file.data;
+    if (data is IDisplayableCloudFile) {
+      return data.mimeType;
+    }
     if (data is XFile) {
       final mime = data.mimeType;
       if (mime != null && mime.isNotEmpty) return mime;
