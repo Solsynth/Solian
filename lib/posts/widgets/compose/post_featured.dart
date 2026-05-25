@@ -91,10 +91,14 @@ class PostFeaturedList extends HookConsumerWidget {
       return null;
     }, [featuredPostsAsync]);
 
+    final appSettings = ref.watch(appSettingsProvider);
+
     return ClipRRect(
       borderRadius: const BorderRadius.all(Radius.circular(8)),
       child: Card(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(
+          appSettings.cardTransparency,
+        ),
         margin: EdgeInsets.zero,
         child: Column(
           mainAxisSize: MainAxisSize.min,
