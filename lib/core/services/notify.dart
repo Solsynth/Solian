@@ -60,15 +60,10 @@ Future<void> subscribePushNotification(
     effectiveContext,
     listen: false,
   ).read(sharedPreferencesProvider);
-  final provider = await resolvePushProvider(effectiveContext, prefs);
+  await resolvePushProvider(effectiveContext, prefs);
 
   if (Platform.isWindows) {
     return windows_notify.subscribePushNotification(
-      apiClient,
-      detailedErrors: detailedErrors,
-    );
-  } else if (provider == PushNotificationProvider.unifiedpush) {
-    return universal_notify.subscribeUnifiedPushNotification(
       apiClient,
       detailedErrors: detailedErrors,
     );
