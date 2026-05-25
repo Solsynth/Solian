@@ -185,7 +185,7 @@ dependencies:
   health: ^13.1.4
   logging: ^1.3.0
   connectivity_plus: ^6.1.5
-  sentry_flutter: ^8.14.2
+  sentry_flutter: ^9.20.0
 
 dev_dependencies:
   flutter_test:
