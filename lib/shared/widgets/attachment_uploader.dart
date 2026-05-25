@@ -421,6 +421,8 @@ class _AttachmentUploaderSheetState extends State<AttachmentUploaderSheet> {
       } catch (e) {
         return null;
       }
+    } else if (attachment.data is IDisplayableCloudFile) {
+      return (attachment.data as IDisplayableCloudFile).size;
     } else if (attachment.data is SnCloudFile) {
       return (attachment.data as SnCloudFile).size;
     } else if (attachment.data is List<int>) {
