@@ -93,7 +93,9 @@ class _ConditionalBottomNavState extends State<ConditionalBottomNav>
 
   void _updateVisibility(bool shouldShow) {
     if (shouldShow == _isVisible) return;
-    _isVisible = shouldShow;
+    setState(() {
+      _isVisible = shouldShow;
+    });
     if (shouldShow) {
       _controller.forward();
     } else {
