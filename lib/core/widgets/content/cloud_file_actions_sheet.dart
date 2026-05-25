@@ -17,25 +17,31 @@ class CloudFileActionsSheet extends ConsumerWidget {
   final IDisplayableCloudFile item;
   final VoidCallback? onClose;
   final ValueChanged<SnCloudFile>? onRenamed;
+  final VoidCallback? onRevealParentFolder;
 
   const CloudFileActionsSheet({
     super.key,
     required this.item,
     this.onClose,
     this.onRenamed,
+    this.onRevealParentFolder,
   });
 
   static Future<T?> show<T>({
     required BuildContext context,
     required IDisplayableCloudFile item,
     ValueChanged<SnCloudFile>? onRenamed,
+    VoidCallback? onRevealParentFolder,
   }) {
     return showModalBottomSheet<T>(
       useRootNavigator: true,
       context: context,
       isScrollControlled: true,
-      builder: (context) =>
-          CloudFileActionsSheet(item: item, onRenamed: onRenamed),
+      builder: (context) => CloudFileActionsSheet(
+        item: item,
+        onRenamed: onRenamed,
+        onRevealParentFolder: onRevealParentFolder,
+      ),
     );
   }
 
@@ -90,6 +96,15 @@ class CloudFileActionsSheet extends ConsumerWidget {
               );
             },
           ),
+          if (item is SnCloudFile && onRevealParentFolder != null)
+            _ActionTile(
+              icon: Symbols.folder_open,
+              title: 'revealParentFolder'.tr(),
+              onTap: () {
+                Navigator.pop(context);
+                onRevealParentFolder?.call();
+              },
+            ),
           if (item.storageUrl != null)
             _ActionTile(
               icon: Symbols.open_in_new,

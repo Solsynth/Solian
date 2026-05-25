@@ -162,6 +162,54 @@ class FileListScreen extends HookConsumerWidget {
       activeTabId.value = id;
     }
 
+    void openFolderTab(String path) {
+      final normalizedPath = path.trim().isEmpty ? '/' : path;
+      final existing = tabs.value
+          .where((tab) => tab.file == null && tab.mode == FileListMode.normal)
+          .where((tab) => pathStates[tab.id]?.value == normalizedPath)
+          .firstOrNull;
+      if (existing != null) {
+        activeTabId.value = existing.id;
+        return;
+      }
+
+      final id = DateTime.now().microsecondsSinceEpoch.toString();
+      tabs.value = [
+        ...tabs.value,
+        _DriveFileTab(id: id, mode: FileListMode.normal),
+      ];
+      activeTabId.value = id;
+      pathStates[id] = ValueNotifier(normalizedPath);
+      modeStates[id] = ValueNotifier(FileListMode.normal);
+      poolStates[id] = ValueNotifier(null);
+      viewModeStates[id] = ValueNotifier(FileListViewMode.list);
+      selectionModeStates[id] = ValueNotifier(false);
+      selectedFileIdsStates[id] = ValueNotifier(<String>{});
+      visibleFileIdsStates[id] = ValueNotifier(<String>{});
+      recycledStates[id] = ValueNotifier(false);
+      queryStates[id] = ValueNotifier(null);
+    }
+
+    Future<void> revealParentFolder(SnCloudFile file) async {
+      String? currentParentId = file.parentId;
+      if (currentParentId == null || currentParentId.isEmpty) {
+        openFolderTab('/');
+        return;
+      }
+
+      final segments = <String>[];
+      while (currentParentId != null && currentParentId.isNotEmpty) {
+        final parent = await ref.read(
+          driveFileInfoProvider(currentParentId).future,
+        );
+        segments.add(parent.name);
+        currentParentId = parent.parentId;
+      }
+
+      final path = segments.reversed.join('/');
+      openFolderTab(path.isEmpty ? '/' : '/$path');
+    }
+
     void updateFileTab(SnCloudFile file) {
       final index = tabs.value.indexWhere((tab) => tab.file?.id == file.id);
       if (index == -1) return;
@@ -363,6 +411,7 @@ class FileListScreen extends HookConsumerWidget {
                           .last;
                     },
                     onRenameFile: updateFileTab,
+                    onRevealParentFolder: revealParentFolder,
                     onSelectTab: (tabId) => activeTabId.value = tabId,
                     onCloseTab: closeTab,
                     onAddIndexedTab: () => createTab(FileListMode.normal),
@@ -402,6 +451,7 @@ class FileListScreen extends HookConsumerWidget {
                             quota: quota,
                             currentPath: currentPath,
                             selectedPool: selectedPool,
+                            onOpenFolderInNewTab: openFolderTab,
                             onPickAndUpload: () => _pickAndUploadFile(
                               ref,
                               activeTab.id,
@@ -1146,6 +1196,7 @@ class _DriveTabStrip extends StatelessWidget {
   final String? activeTabId;
   final String Function(_DriveFileTab tab) getTabTitle;
   final ValueChanged<SnCloudFile> onRenameFile;
+  final Future<void> Function(SnCloudFile file) onRevealParentFolder;
   final ValueChanged<String> onSelectTab;
   final ValueChanged<String> onCloseTab;
   final VoidCallback onAddIndexedTab;
@@ -1156,6 +1207,7 @@ class _DriveTabStrip extends StatelessWidget {
     required this.activeTabId,
     required this.getTabTitle,
     required this.onRenameFile,
+    required this.onRevealParentFolder,
     required this.onSelectTab,
     required this.onCloseTab,
     required this.onAddIndexedTab,
@@ -1185,6 +1237,7 @@ class _DriveTabStrip extends StatelessWidget {
                             : Symbols.inventory_2,
                         file: tab.file,
                         onRenameFile: onRenameFile,
+                        onRevealParentFolder: onRevealParentFolder,
                         isSelected: tab.id == activeTabId,
                         onTap: () => onSelectTab(tab.id),
                         onClose: () => onCloseTab(tab.id),
@@ -1247,6 +1300,7 @@ class _DriveTabChip extends StatelessWidget {
   final IconData icon;
   final SnCloudFile? file;
   final ValueChanged<SnCloudFile> onRenameFile;
+  final Future<void> Function(SnCloudFile file) onRevealParentFolder;
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onClose;
@@ -1256,6 +1310,7 @@ class _DriveTabChip extends StatelessWidget {
     required this.icon,
     required this.file,
     required this.onRenameFile,
+    required this.onRevealParentFolder,
     required this.isSelected,
     required this.onTap,
     required this.onClose,
@@ -1314,8 +1369,17 @@ class _DriveTabChip extends StatelessWidget {
                       context: context,
                       item: file!,
                       onRenamed: onRenameFile,
+                      onRevealParentFolder: () => onRevealParentFolder(file!),
                     ),
                     icon: const Icon(Symbols.more_horiz),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 18,
+                    splashRadius: 16,
+                    tooltip: 'close'.tr(),
+                    onPressed: onClose,
+                    icon: const Icon(Symbols.close),
                   ),
                 ] else
                   IconButton(

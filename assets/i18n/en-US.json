@@ -638,6 +638,7 @@
   "settingsKeyboardShortcutCloseDialog": "Close Dialog",
   "close": "Close",
   "actionSheet": "Action Sheet",
+  "revealParentFolder": "Reveal Parent Folder",
   "contactMethod": "Contact Method",
   "contactMethodType": "Contact Type",
   "contactMethodTypeEmail": "Email",
