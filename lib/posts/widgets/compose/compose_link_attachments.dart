@@ -177,43 +177,38 @@ class _IndexedCloudFilesBrowser extends HookConsumerWidget {
                 itemBuilder: (context, index) {
                   if (index == data.length) return footer;
                   return data[index].map(
-                    file: (fileItem) => Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Symbols.description),
-                          title: Text(
-                            fileItem.file.name.isEmpty
-                                ? 'untitled'.tr()
-                                : fileItem.file.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(formatFileSize(fileItem.file.size)),
-                          onTap: () => onSelected(fileItem.file),
-                        ),
-                        if (index != data.length - 1) const Divider(height: 1),
-                      ],
+                    file: (fileItem) => ListTile(
+                      leading: const Icon(Symbols.description),
+                      title: Text(
+                        fileItem.file.name.isEmpty
+                            ? 'untitled'.tr()
+                            : fileItem.file.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(formatFileSize(fileItem.file.size)),
+                      onTap: () => onSelected(fileItem.file),
                     ),
-                    folder: (folderItem) => Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Symbols.folder),
-                          title: Text(
-                            folderItem.file.name.isEmpty
-                                ? 'untitled'.tr()
-                                : folderItem.file.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text('folder'.tr()),
-                          onTap: () {
-                            currentPath.value = currentPath.value == '/'
-                                ? '/${folderItem.file.name}'
-                                : '${currentPath.value}/${folderItem.file.name}';
-                          },
-                        ),
-                        if (index != data.length - 1) const Divider(height: 1),
-                      ],
+                    folder: (folderItem) => ListTile(
+                      leading: const Icon(Symbols.folder),
+                      title: Text(
+                        folderItem.file.name.isEmpty
+                            ? 'untitled'.tr()
+                            : folderItem.file.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text('folder'.tr()),
+                      trailing: IconButton(
+                        icon: const Icon(Symbols.add),
+                        tooltip: 'linkAttachment'.tr(),
+                        onPressed: () => onSelected(folderItem.file),
+                      ),
+                      onTap: () {
+                        currentPath.value = currentPath.value == '/'
+                            ? '/${folderItem.file.name}'
+                            : '${currentPath.value}/${folderItem.file.name}';
+                      },
                     ),
                     unindexedFile: (unindexedFileItem) =>
                         const SizedBox.shrink(),

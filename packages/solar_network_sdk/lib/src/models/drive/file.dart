@@ -90,6 +90,8 @@ abstract interface class IDisplayableCloudFile {
   String? get blurhash;
   List<int> get sensitiveMarks;
   String? get hash;
+  bool get isFolder;
+  int get childrenCount;
 
   double? get ratio {
     if (width != null && height != null && height != 0) {
@@ -215,6 +217,12 @@ sealed class SnCloudFileReference
   String? get blurhash => (blur?.isNotEmpty ?? false)
       ? blur
       : fileMeta['blurhash'] as String? ?? fileMeta['blur'] as String?;
+
+  @override
+  bool get isFolder => mimeType == 'folder/folder';
+
+  @override
+  int get childrenCount => 0;
 
   factory SnCloudFileReference.fromJson(Map<String, dynamic> json) =>
       _$SnCloudFileReferenceFromJson(json);

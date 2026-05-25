@@ -8,9 +8,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
-import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/sensitive.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -318,6 +318,7 @@ class CloudFileList extends HookConsumerWidget {
     if (files.length == 1) {
       final isImage = files.first.mimeType.startsWith('image');
       final isAudio = files.first.mimeType.startsWith('audio');
+      final isFolder = files.first.isFolder;
       final ratio = files.first.ratio as num?;
       final widgetItem = ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -343,7 +344,7 @@ class CloudFileList extends HookConsumerWidget {
         ),
         child: (ratio == null && isImage)
             ? IntrinsicWidth(child: IntrinsicHeight(child: widgetItem))
-            : (ratio == null && isAudio)
+            : (ratio == null && (isAudio || isFolder))
             ? IntrinsicHeight(child: widgetItem)
             : AspectRatio(
                 aspectRatio: ratio?.toDouble() ?? 1,
@@ -836,6 +837,13 @@ class _CloudFileListEntry extends HookConsumerWidget {
           showDataSaving.value = true;
         } else if (lockedByMature) {
           showMature.value = true;
+        } else if (file.isFolder) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) =>
+                FolderContentsSheet(folderId: file.id, folderName: file.name),
+          );
         } else {
           onTap?.call();
         }
