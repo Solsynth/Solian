@@ -217,7 +217,9 @@ class _ChatTimeoutBanner extends StatelessWidget {
 }
 
 class _TypingIndicatorDots extends StatefulWidget {
-  const _TypingIndicatorDots();
+  final bool isUploading;
+
+  const _TypingIndicatorDots({required this.isUploading});
 
   @override
   State<_TypingIndicatorDots> createState() => _TypingIndicatorDotsState();
@@ -243,7 +245,16 @@ class _TypingIndicatorDotsState extends State<_TypingIndicatorDots>
   }
 
   double _dotProgress(int index) {
-    final offset = index * 0.18;
+    final offset = index * 0.14;
+    final progress = (_controller.value - offset) % 1.0;
+    if (progress < 0.55) {
+      return Curves.easeOutCubic.transform(progress / 0.55);
+    }
+    return 1 - Curves.easeInCubic.transform((progress - 0.55) / 0.45);
+  }
+
+  double _dotLift(int index) {
+    final offset = index * 0.16;
     final progress = (_controller.value - offset) % 1.0;
     if (progress < 0.5) {
       return Curves.easeOut.transform(progress / 0.5);
@@ -254,33 +265,140 @@ class _TypingIndicatorDotsState extends State<_TypingIndicatorDots>
   @override
   Widget build(BuildContext context) {
     final baseColor = Theme.of(context).colorScheme.onSurfaceVariant;
+    final activeColor = widget.isUploading
+        ? Theme.of(context).colorScheme.primary
+        : baseColor;
 
     return SizedBox(
-      width: 32,
+      width: 24,
+      height: 14,
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
           return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(3, (index) {
               final progress = _dotProgress(index);
-              final size = 4.0 + (progress * 3.0);
+              final lift = _dotLift(index);
+              final size = widget.isUploading
+                  ? 3.5 + (progress * 2.8)
+                  : 4.0 + (progress * 2.4);
 
-              return Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  color: Color.lerp(
-                    baseColor.withOpacity(0.35),
-                    baseColor,
-                    progress,
+              return Transform.translate(
+                offset: Offset(0, -lift * (widget.isUploading ? 2.2 : 1.6)),
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: index == 1 ? 1.5 : 1),
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                    color: Color.lerp(
+                      activeColor.withOpacity(widget.isUploading ? 0.24 : 0.32),
+                      activeColor,
+                      progress,
+                    ),
+                    shape: BoxShape.circle,
                   ),
-                  shape: BoxShape.circle,
                 ),
               );
             }),
           );
         },
+      ),
+    );
+  }
+}
+
+class _ChatActivityIndicator extends StatelessWidget {
+  final List<ChatActivityStatus> activities;
+
+  const _ChatActivityIndicator({required this.activities});
+
+  @override
+  Widget build(BuildContext context) {
+    final uploadingActivities = activities.where((x) => x.isUploading).toList();
+    final primaryActivities = uploadingActivities.isNotEmpty
+        ? uploadingActivities
+        : activities;
+    final isUploading = uploadingActivities.isNotEmpty;
+    final names = primaryActivities.map((x) => x.senderName).join(', ');
+    final progress = uploadingActivities.isEmpty
+        ? null
+        : uploadingActivities
+                  .map((x) => x.progress ?? 0.0)
+                  .reduce((a, b) => a > b ? a : b)
+              .clamp(0.0, 1.0);
+    final colorScheme = Theme.of(context).colorScheme;
+    final percentage = progress == null ? null : (progress * 100).round();
+
+    return Container(
+      key: ValueKey(
+        'chat-activity-${isUploading ? 'uploading' : 'typing'}-${names.length}-${percentage ?? 0}',
+      ),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _TypingIndicatorDots(isUploading: isUploading).padding(
+                horizontal: 6,
+              ),
+              const Gap(8),
+              Expanded(
+                child: Text(
+                  names,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              if (isUploading) ...[
+                const Gap(8),
+                Text(
+                  '${percentage ?? 0}%',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const Gap(2),
+          Padding(
+            padding: const EdgeInsets.only(left: 38),
+            child: Text(
+              isUploading
+                  ? 'uploadingFiles'.tr()
+                  : 'typingHint'.plural(primaryActivities.length, args: [names]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.15,
+              ),
+            ),
+          ),
+          if (isUploading && progress != null) ...[
+            const Gap(5),
+            Padding(
+              padding: const EdgeInsets.only(left: 38, right: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  minHeight: 3,
+                  value: progress,
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -1364,42 +1482,7 @@ class ChatInput extends HookConsumerWidget {
                             );
                           },
                       child: chatSubscribe.isNotEmpty
-                          ? Container(
-                              key: const ValueKey('typing-indicator'),
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 4,
-                              ),
-                              child: Row(
-                                children: [
-                                  const _TypingIndicatorDots().padding(
-                                    horizontal: 8,
-                                  ),
-                                  const Gap(8),
-                                  Expanded(
-                                    child: Text(
-                                      'typingHint'.plural(
-                                        chatSubscribe.length,
-                                        args: [
-                                          chatSubscribe
-                                              .map(
-                                                (x) =>
-                                                    (x.nick?.isNotEmpty == true)
-                                                    ? x.nick
-                                                    : x.account.nick,
-                                              )
-                                              .join(', '),
-                                        ],
-                                      ),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
+                          ? _ChatActivityIndicator(activities: chatSubscribe)
                           : const SizedBox.shrink(
                               key: ValueKey('typing-indicator-none'),
                             ),

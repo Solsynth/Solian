@@ -469,8 +469,9 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
 
   void sendMessage() {
     final text = messageController.text.trim();
+    final attachments = List<UniversalFile>.of(state.attachments);
     if (text.isEmpty &&
-        state.attachments.isEmpty &&
+        attachments.isEmpty &&
         state.selectedPoll == null &&
         state.selectedFund == null &&
         state.selectedLocationName == null &&
@@ -482,9 +483,10 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
 
     // Read fresh notifier each time to avoid using disposed instance
     final notifier = ref.read(messagesProvider(roomId).notifier);
+    final subscribeNotifier = ref.read(chatSubscribeProvider(roomId).notifier);
     notifier.sendMessage(
       text,
-      state.attachments,
+      attachments,
       poll: state.selectedPoll,
       fund: state.selectedFund,
       locationName: state.selectedLocationName,
@@ -495,11 +497,33 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       forwardingTo: state.messageForwardingTo,
       replyingTo: state.messageReplyingTo,
       onProgress: (messageId, progress) {
-        updateAttachmentProgress(messageId, progress[0]);
+        final overallProgress = _calculateOverallUploadProgress(
+          attachments,
+          progress,
+        );
+        updateAttachmentProgress(messageId, overallProgress);
+        subscribeNotifier.sendUploadingStatus(overallProgress);
       },
     );
 
     clearInput();
+  }
+
+  double _calculateOverallUploadProgress(
+    List<UniversalFile> attachments,
+    Map<int, double?> progress,
+  ) {
+    if (attachments.isEmpty) return 1.0;
+
+    var total = 0.0;
+    for (var i = 0; i < attachments.length; i++) {
+      if (attachments[i].isOnCloud) {
+        total += 1.0;
+        continue;
+      }
+      total += (progress[i] ?? 0.0).clamp(0.0, 1.0);
+    }
+    return (total / attachments.length).clamp(0.0, 1.0);
   }
 
   // ==================== Scroll Actions ====================

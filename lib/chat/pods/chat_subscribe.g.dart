@@ -13,7 +13,7 @@ part of 'chat_subscribe.dart';
 final chatSubscribeProvider = ChatSubscribeNotifierFamily._();
 
 final class ChatSubscribeNotifierProvider
-    extends $NotifierProvider<ChatSubscribeNotifier, List<SnChatMember>> {
+    extends $NotifierProvider<ChatSubscribeNotifier, List<ChatActivityStatus>> {
   ChatSubscribeNotifierProvider._({
     required ChatSubscribeNotifierFamily super.from,
     required String super.argument,
@@ -40,10 +40,10 @@ final class ChatSubscribeNotifierProvider
   ChatSubscribeNotifier create() => ChatSubscribeNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<SnChatMember> value) {
+  Override overrideWithValue(List<ChatActivityStatus> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<List<SnChatMember>>(value),
+      providerOverride: $SyncValueProvider<List<ChatActivityStatus>>(value),
     );
   }
 
@@ -65,9 +65,9 @@ final class ChatSubscribeNotifierFamily extends $Family
     with
         $ClassFamilyOverride<
           ChatSubscribeNotifier,
-          List<SnChatMember>,
-          List<SnChatMember>,
-          List<SnChatMember>,
+          List<ChatActivityStatus>,
+          List<ChatActivityStatus>,
+          List<ChatActivityStatus>,
           String
         > {
   ChatSubscribeNotifierFamily._()
@@ -86,20 +86,22 @@ final class ChatSubscribeNotifierFamily extends $Family
   String toString() => r'chatSubscribeProvider';
 }
 
-abstract class _$ChatSubscribeNotifier extends $Notifier<List<SnChatMember>> {
+abstract class _$ChatSubscribeNotifier
+    extends $Notifier<List<ChatActivityStatus>> {
   late final _$args = ref.$arg as String;
   String get roomId => _$args;
 
-  List<SnChatMember> build(String roomId);
+  List<ChatActivityStatus> build(String roomId);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<List<SnChatMember>, List<SnChatMember>>;
+    final ref =
+        this.ref as $Ref<List<ChatActivityStatus>, List<ChatActivityStatus>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<List<SnChatMember>, List<SnChatMember>>,
-              List<SnChatMember>,
+              AnyNotifier<List<ChatActivityStatus>, List<ChatActivityStatus>>,
+              List<ChatActivityStatus>,
               Object?,
               Object?
             >;
