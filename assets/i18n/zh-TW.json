@@ -2876,5 +2876,6 @@
   "settingsExportChat": "匯出聊天記錄",
   "settingsExportJsonDesc": "包含中繼資料的完整訊息資料",
   "settingsExportCsvDesc": "簡易試算表格式",
-  "settingsExportSaved": "已儲存至下載資料夾"
+  "settingsExportSaved": "已儲存至下載資料夾",
+  "presenceOngoing": "進行中"
 }

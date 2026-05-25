@@ -38,7 +38,28 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:island/accounts/widgets/account/account_pfc.dart';
+import 'package:island/accounts/widgets/account/activity_presence.dart';
+import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/services/time.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
+final friendAccountMapProvider = Provider<Map<String, SnAccount>>((ref) {
+  final friendsAsync = ref.watch(friendsOverviewProvider);
+  final friends = friendsAsync.asData?.value;
+  if (friends == null) return {};
+  return {for (final f in friends) f.account.id: f.account};
+});
+
+String _resolvePresenceArtworkUrl(WidgetRef ref, String imageUri) {
+  if (imageUri.startsWith('sha256:')) {
+    final serverURL = ref.read(serverUrlProvider);
+    return '$serverURL/passport/presence/artworks/$imageUri';
+  }
+  return imageUri;
+}
 
 @RoutePage()
 class ExploreScreen extends HookConsumerWidget {
@@ -2215,6 +2236,13 @@ class _ActivityListView extends HookConsumerWidget {
               resourceIdentifier: item.resourceIdentifier,
             );
             break;
+          case 'presence.friend':
+            final activityJson =
+                (item.data as Map<String, dynamic>)['activity']
+                    as Map<String, dynamic>;
+            final activity = SnPresenceActivity.fromJson(activityJson);
+            itemWidget = _FriendPresenceItem(activity: activity);
+            break;
           default:
             itemWidget = const Placeholder();
         }
@@ -2222,5 +2250,293 @@ class _ActivityListView extends HookConsumerWidget {
         return itemWidget;
       },
     );
+  }
+}
+
+class _FriendPresenceItem extends ConsumerWidget {
+  final SnPresenceActivity activity;
+
+  const _FriendPresenceItem({required this.activity});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final friendMap = ref.watch(friendAccountMapProvider);
+    final account = friendMap[activity.accountId];
+    final isActive = activity.deletedAt == null &&
+        activity.leaseExpiresAt.isAfter(DateTime.now());
+    final isSpotify = activity.manualId == 'spotify';
+    final isSteam = activity.manualId == 'steam';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (account != null)
+            AccountPfcRegion(
+              uname: account.name,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    ProfilePictureWidget(
+                      file: account.profile.picture,
+                      radius: 18,
+                    ),
+                    const Gap(8),
+                    Expanded(
+                      child: Text(
+                        account.nick.isNotEmpty
+                            ? account.nick
+                            : account.name,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      activity.createdAt
+                          .toLocal()
+                          .formatRelative(context),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (account != null)
+            Divider(
+              height: 1,
+              indent: 12,
+              endIndent: 12,
+              color: theme.colorScheme.outline.withOpacity(0.12),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              spacing: 12,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _getActivityColor(activity.type)
+                            .withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        kPresenceActivityIcons[activity.type],
+                        size: 20,
+                        color: _getActivityColor(activity.type),
+                      ),
+                    ),
+                    if (isSpotify)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Symbols.music_note,
+                            size: 10,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    if (isSteam)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1B2838),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Symbols.sports_esports,
+                            size: 10,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (_hasArtwork(activity) && !isSteam)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: _resolvePresenceArtworkUrl(
+                        ref,
+                        activity.largeImage ?? activity.smallImage!,
+                      ),
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        spacing: 6,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              activity.title ?? 'unknown'.tr(),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (activity.titleUrl != null &&
+                              activity.titleUrl!.isNotEmpty)
+                            GestureDetector(
+                              onTap: () =>
+                                  launchUrlString(activity.titleUrl!),
+                              child: Icon(
+                                Symbols.launch_rounded,
+                                size: 14,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (activity.subtitle != null &&
+                          activity.subtitle!.isNotEmpty) ...[
+                        const Gap(2),
+                        Row(
+                          spacing: 4,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                activity.subtitle!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (activity.subtitleUrl != null &&
+                                activity.subtitleUrl!.isNotEmpty)
+                              GestureDetector(
+                                onTap: () => launchUrlString(
+                                  activity.subtitleUrl!,
+                                ),
+                                child: Icon(
+                                  Symbols.launch_rounded,
+                                  size: 14,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                      if (activity.caption != null &&
+                          activity.caption!.isNotEmpty) ...[
+                        const Gap(2),
+                        Text(
+                          activity.caption!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      const Gap(6),
+                      Row(
+                        spacing: 6,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.tertiaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              kPresenceActivityTypes[activity.type],
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color:
+                                    theme.colorScheme.onTertiaryContainer,
+                              ),
+                            ).tr(),
+                          ),
+                          if (isActive)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'presenceOngoing',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme
+                                      .colorScheme.onPrimaryContainer,
+                                ),
+                              ).tr(),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Color _getActivityColor(int type) {
+    switch (type) {
+      case 1:
+        return Colors.purple;
+      case 2:
+        return Colors.green;
+      case 3:
+        return Colors.orange;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  static bool _hasArtwork(SnPresenceActivity activity) {
+    return activity.largeImage != null || activity.smallImage != null;
   }
 }

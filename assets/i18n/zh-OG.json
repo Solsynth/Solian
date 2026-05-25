@@ -1739,5 +1739,6 @@
   "settingsExportChat": "Export Chat",
   "settingsExportJsonDesc": "Full message data with metadata",
   "settingsExportCsvDesc": "Simple spreadsheet format",
-  "settingsExportSaved": "Export saved to downloads"
+  "settingsExportSaved": "Export saved to downloads",
+  "presenceOngoing": "進行中"
 }

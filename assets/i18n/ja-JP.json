@@ -1830,5 +1830,6 @@
   "settingsExportChat": "チャットをエクスポート",
   "settingsExportJsonDesc": "メタデータ付きの完全なメッセージデータ",
   "settingsExportCsvDesc": "シンプルなスプレッドシート形式",
-  "settingsExportSaved": "ダウンロードフォルダに保存されました"
+  "settingsExportSaved": "ダウンロードフォルダに保存されました",
+  "presenceOngoing": "進行中"
 }

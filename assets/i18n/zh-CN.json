@@ -3051,5 +3051,6 @@
   "settingsExportChat": "导出聊天记录",
   "settingsExportJsonDesc": "包含元数据的完整消息数据",
   "settingsExportCsvDesc": "简易电子表格格式",
-  "settingsExportSaved": "已保存到下载文件夹"
+  "settingsExportSaved": "已保存到下载文件夹",
+  "presenceOngoing": "进行中"
 }
