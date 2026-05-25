@@ -61,6 +61,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
 
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
+    AutoRoute(page: PollSubmitRoute.page, path: '/polls/:id'),
 
     // Main tabs shell route
     AutoRoute(
