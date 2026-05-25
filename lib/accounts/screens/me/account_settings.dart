@@ -1430,8 +1430,6 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
         return 'Firebase (FCM)';
       case SnNotificationPushSubscriptionProvider.sop:
         return 'Solar Network Push (SOP)';
-      case SnNotificationPushSubscriptionProvider.unifiedpush:
-        return 'UnifiedPush';
     }
   }
 
@@ -1445,8 +1443,6 @@ class NotificationSubscriptionsSheet extends ConsumerWidget {
         return Symbols.android;
       case SnNotificationPushSubscriptionProvider.sop:
         return Symbols.cloud;
-      case SnNotificationPushSubscriptionProvider.unifiedpush:
-        return Symbols.rss_feed;
     }
   }
 }

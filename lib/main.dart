@@ -34,7 +34,6 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
-import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -57,13 +56,6 @@ void main(List<String> args) async {
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
-
-  await initializeUnifiedPush(args);
-
-  if (!kIsWeb && Platform.isLinux && args.contains('--unifiedpush-bg')) {
-    Logger.root.info('[UnifiedPush] Linux background receiver initialized.');
-    return;
-  }
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     Logger.root.info(
