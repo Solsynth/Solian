@@ -563,54 +563,58 @@ class _VoiceMessageContent extends HookConsumerWidget {
                   },
           ),
           Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                SizedBox(
-                  height: 28,
-                  child: _VoiceWaveformProgress(
-                    bars: waveformBars.value,
-                    progress: (shownPosition.inMilliseconds / totalMs).clamp(
-                      0.0,
-                      1.0,
+                Expanded(
+                  child: SizedBox(
+                    height: 28,
+                    child: _VoiceWaveformProgress(
+                      bars: waveformBars.value,
+                      progress: (shownPosition.inMilliseconds / totalMs).clamp(
+                        0.0,
+                        1.0,
+                      ),
+                      onSeekStart: mediaUrl == null
+                          ? null
+                          : (ratio) {
+                              isScrubbing.value = true;
+                              scrubPosition.value = Duration(
+                                milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                                    .toInt(),
+                              );
+                            },
+                      onSeekUpdate: mediaUrl == null
+                          ? null
+                          : (ratio) {
+                              isScrubbing.value = true;
+                              scrubPosition.value = Duration(
+                                milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
+                                    .toInt(),
+                              );
+                            },
+                      onSeekEnd: mediaUrl == null
+                          ? null
+                          : () async {
+                              await ensureLoaded();
+                              await player.seek(scrubPosition.value);
+                              isScrubbing.value = false;
+                      },
                     ),
-                    onSeekStart: mediaUrl == null
-                        ? null
-                        : (ratio) {
-                            isScrubbing.value = true;
-                            scrubPosition.value = Duration(
-                              milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
-                                  .toInt(),
-                            );
-                          },
-                    onSeekUpdate: mediaUrl == null
-                        ? null
-                        : (ratio) {
-                            isScrubbing.value = true;
-                            scrubPosition.value = Duration(
-                              milliseconds: (ratio.clamp(0.0, 1.0) * totalMs)
-                                  .toInt(),
-                            );
-                          },
-                    onSeekEnd: mediaUrl == null
-                        ? null
-                        : () async {
-                            await ensureLoaded();
-                            await player.seek(scrubPosition.value);
-                            isScrubbing.value = false;
-                          },
                   ),
                 ),
-                const Gap(4),
-                Text(
-                  '${_formatSeconds(shownPosition)} / ${_formatSeconds(total)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.robotoMono(
-                    fontSize: 11,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                const Gap(8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 72),
+                  child: Text(
+                    '${_formatSeconds(shownPosition)} / ${_formatSeconds(total)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ],

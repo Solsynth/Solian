@@ -418,6 +418,7 @@ String _formatVoiceDurationShort(Duration duration) {
 class _VoiceRecordStatus extends StatelessWidget {
   final bool isRecording;
   final bool isCancelArmed;
+  final bool isUploading;
   final Duration duration;
   final Duration maxDuration;
   final Stream<Amplitude> amplitudeStream;
@@ -425,6 +426,7 @@ class _VoiceRecordStatus extends StatelessWidget {
   const _VoiceRecordStatus({
     required this.isRecording,
     required this.isCancelArmed,
+    required this.isUploading,
     required this.duration,
     required this.maxDuration,
     required this.amplitudeStream,
@@ -435,9 +437,14 @@ class _VoiceRecordStatus extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final progress = maxDuration.inMilliseconds <= 0
         ? 0.0
-        : (duration.inMilliseconds / maxDuration.inMilliseconds).clamp(0.0, 1.0);
+        : (duration.inMilliseconds / maxDuration.inMilliseconds).clamp(
+            0.0,
+            1.0,
+          );
     final foregroundColor = isRecording
         ? (isCancelArmed ? colorScheme.onError : colorScheme.onPrimary)
+        : isUploading
+        ? colorScheme.primary
         : colorScheme.onSurface;
 
     return Column(
@@ -451,6 +458,8 @@ class _VoiceRecordStatus extends StatelessWidget {
                     ? (isCancelArmed
                           ? 'Release to cancel'
                           : 'Recording • swipe up to cancel')
+                    : isUploading
+                    ? 'Uploading voice message...'
                     : 'Hold to record voice',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -498,8 +507,10 @@ class _VoiceRecordStatus extends StatelessWidget {
                     return AnimatedBuilder(
                       animation: animation,
                       builder: (context, child) {
-                        final normalized =
-                            (amplitude.current.abs() / 60).clamp(0.16, 1.0);
+                        final normalized = (amplitude.current.abs() / 60).clamp(
+                          0.16,
+                          1.0,
+                        );
                         final height = 4 + (normalized * 10 * animation.value);
                         return Container(
                           width: 2.2,
@@ -513,6 +524,34 @@ class _VoiceRecordStatus extends StatelessWidget {
                       },
                     );
                   },
+                )
+              : isUploading
+              ? Align(
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const Gap(8),
+                      Expanded(
+                        child: Text(
+                          'Sending audio...',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 )
               : Align(
                   alignment: Alignment.centerLeft,
@@ -1235,6 +1274,7 @@ class ChatInput extends HookConsumerWidget {
     final isVoiceMode = useState(false);
     final isRecordingVoice = useState(false);
     final isVoiceCancelArmed = useState(false);
+    final isUploadingVoice = useState(false);
     final recordingDuration = useState(Duration.zero);
     final recordingOrigin = useState<Offset?>(null);
     final recordingPath = useState<String?>(null);
@@ -1282,7 +1322,7 @@ class ChatInput extends HookConsumerWidget {
         showSnackBar('Voice recording is not supported on web yet.');
         return;
       }
-      if (isRecordingVoice.value) return;
+      if (isRecordingVoice.value || isUploadingVoice.value) return;
       if (!await recorder.hasPermission()) {
         showErrorAlert('Microphone permission denied.');
         return;
@@ -1361,6 +1401,7 @@ class ChatInput extends HookConsumerWidget {
       }
 
       try {
+        isUploadingVoice.value = true;
         await messagesNotifier.sendVoiceMessage(
           path,
           durationMs: durationMs,
@@ -1371,6 +1412,7 @@ class ChatInput extends HookConsumerWidget {
       } catch (_) {
         // Error UI already handled by notifier.
       } finally {
+        isUploadingVoice.value = false;
         isVoiceCancelArmed.value = false;
         recordingOrigin.value = null;
         recordingDuration.value = Duration.zero;
@@ -1378,6 +1420,7 @@ class ChatInput extends HookConsumerWidget {
     };
 
     void leaveVoiceMode() {
+      if (isUploadingVoice.value) return;
       if (isRecordingVoice.value) {
         unawaited(finishVoiceRecording(shouldCancel: true));
       }
@@ -2251,7 +2294,7 @@ class ChatInput extends HookConsumerWidget {
                                         key: ValueKey('add'),
                                       ),
                               ),
-                              onPressed: canCompose
+                              onPressed: canCompose && !isUploadingVoice.value
                                   ? () {
                                       if (isVoiceMode.value) {
                                         leaveVoiceMode();
@@ -2268,6 +2311,7 @@ class ChatInput extends HookConsumerWidget {
                               ? GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   onLongPressStart: (details) async {
+                                    if (isUploadingVoice.value) return;
                                     recordingOrigin.value =
                                         details.globalPosition;
                                     await startVoiceRecording();
@@ -2289,7 +2333,11 @@ class ChatInput extends HookConsumerWidget {
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 120),
-                                    height: isRecordingVoice.value ? 82 : 56,
+                                    height:
+                                        isRecordingVoice.value ||
+                                            isUploadingVoice.value
+                                        ? 82
+                                        : 70,
                                     margin: const EdgeInsets.only(top: 2),
                                     decoration: BoxDecoration(
                                       color: isRecordingVoice.value
@@ -2313,6 +2361,7 @@ class ChatInput extends HookConsumerWidget {
                                       child: _VoiceRecordStatus(
                                         isRecording: isRecordingVoice.value,
                                         isCancelArmed: isVoiceCancelArmed.value,
+                                        isUploading: isUploadingVoice.value,
                                         duration: recordingDuration.value,
                                         maxDuration: maxVoiceRecordDuration,
                                         amplitudeStream: amplitudeStream.stream,
