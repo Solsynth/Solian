@@ -38,6 +38,7 @@ class FileListView extends HookConsumerWidget {
   final ValueNotifier<SnFilePool?> selectedPool;
   final VoidCallback onPickAndUpload;
   final VoidCallback onShowCreateFolder;
+  final void Function(String path) onOpenFolderInNewTab;
   final void Function(SnCloudFile file) onInspectFile;
   final void Function(SnCloudFile file) onOpenFile;
   final ValueNotifier<Set<String>>? selectedFileIds;
@@ -56,6 +57,7 @@ class FileListView extends HookConsumerWidget {
     required this.selectedPool,
     required this.onPickAndUpload,
     required this.onShowCreateFolder,
+    required this.onOpenFolderInNewTab,
     required this.onInspectFile,
     required this.onOpenFile,
     required this.selectedFileIds,
@@ -587,7 +589,11 @@ class FileListView extends HookConsumerWidget {
                   final newPath = currentPath.value == '/'
                       ? '/${folderItem.file.name}'
                       : '${currentPath.value}/${folderItem.file.name}';
-                  currentPath.value = newPath;
+                  if (HardwareKeyboard.instance.isShiftPressed) {
+                    onOpenFolderInNewTab(newPath);
+                  } else {
+                    currentPath.value = newPath;
+                  }
                 },
                 onLongPress: () => onInspectFile(folderItem.file),
                 onSecondaryTap: () => onInspectFile(folderItem.file),
@@ -961,7 +967,11 @@ class FileListView extends HookConsumerWidget {
         final newPath = currentPath.value == '/'
             ? '/${folderItem.file.name}'
             : '${currentPath.value}/${folderItem.file.name}';
-        currentPath.value = newPath;
+        if (HardwareKeyboard.instance.isShiftPressed) {
+          onOpenFolderInNewTab(newPath);
+        } else {
+          currentPath.value = newPath;
+        }
       },
       onLongPress: () => onInspectFile(folderItem.file),
       onSecondaryTap: () => onInspectFile(folderItem.file),
