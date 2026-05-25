@@ -302,6 +302,14 @@ class _FriendTile extends ConsumerWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          if (friend.status.isIdleOrOnline)
+            Text(
+              'idle',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: Colors.amber.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ).tr(),
         ],
       ),
     ).center();

@@ -153,6 +153,8 @@ sealed class SnAccountStatus with _$SnAccountStatus {
     required String id,
     required int attitude,
     required bool isOnline,
+    @Default(false) bool isIdle,
+    DateTime? idleSince,
     required bool isCustomized,
     @JsonKey(readValue: _readStatusType, fromJson: _statusTypeFromJson)
     @Default(SnAccountStatusType.defaultType)
@@ -177,6 +179,7 @@ extension SnAccountStatusCompat on SnAccountStatus {
   bool get isInvisible => type == SnAccountStatusType.invisible;
   bool get isNotDisturb => type == SnAccountStatusType.doNotDisturb;
   bool get isBusy => type == SnAccountStatusType.busy;
+  bool get isIdleOrOnline => isOnline && isIdle;
 }
 
 @freezed
