@@ -475,7 +475,7 @@ class FileListView extends HookConsumerWidget {
                     slivers: [bodyWidget, const SliverGap(12)],
                   ).padding(
                     horizontal: viewModeValue == FileListViewMode.waterfall
-                        ? 12
+                        ? 20
                         : null,
                   ),
             ),
