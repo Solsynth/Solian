@@ -399,12 +399,11 @@ class _AuthFactorNewSheetState extends ConsumerState<AuthFactorNewSheet> {
       } else {
         factor = await client.auth.createFactor(
           type: _selectedType,
-          data: {
-            if (_selectedType == 0 || _selectedType == 4)
-              'secret': _selectedType == 4
-                  ? _pinController.text
-                  : _secretController.text,
-          },
+          secret: _selectedType == 4
+              ? _pinController.text
+              : _selectedType == 0
+              ? _secretController.text
+              : null,
         );
       }
 
