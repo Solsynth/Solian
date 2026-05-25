@@ -206,6 +206,18 @@ class AccountStatusWidget extends HookConsumerWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+          if (status.value?.isIdleOrOnline ?? false)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'idle',
+                style: TextStyle(fontSize: 11, color: Colors.amber.shade700),
+              ).tr(),
+            ),
           if (getActivitySubtitle(status.value?.meta) != null)
             Flexible(
               child: Text(
