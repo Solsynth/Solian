@@ -7,7 +7,28 @@ set -e
 APP_NAME="Solian"
 CASK_NAME="solian"
 RCLONE_REMOTE="r2"                # Name of your rclone remote
+
 S3_BUCKET="solsynth-files/solian" # Change to your actual bucket and path
+
+# Load environment variables from .env
+if [ -f ".env" ]; then
+  export $(grep -v '^#' .env | xargs)
+else
+  echo "❌ Error: .env file not found."
+  exit 1
+fi
+
+DEVELOPER_ID="$DEVELOPER_ID"
+APPLE_ID="$APPLE_ID"
+TEAM_ID="$TEAM_ID"
+APP_PASSWORD="$APP_PASSWORD"
+
+# Validate required environment variables
+if [ -z "$DEVELOPER_ID" ] || [ -z "$APPLE_ID" ] || [ -z "$TEAM_ID" ] || [ -z "$APP_PASSWORD" ]; then
+  echo "❌ Error: Missing required environment variables in .env"
+  echo "Required: DEVELOPER_ID, APPLE_ID, TEAM_ID, APP_PASSWORD"
+  exit 1
+fi
 
 # Paths (Assumes homebrew-solian is cloned in the same parent directory)
 FLUTTER_PROJECT_DIR=$(pwd)
@@ -53,7 +74,50 @@ else
   echo "⏭️ Skipping build (--no-build flag detected)..."
 fi
 
-# 3. Navigate to build outputs and compress
+#
+# 3. Sign the app with Developer ID
+APP_PATH="build/macos/Build/Products/Release/${APP_NAME}.app"
+
+echo "🔏 Signing macOS app with Developer ID..."
+codesign --deep --force --verbose \
+  --sign "$DEVELOPER_ID" \
+  --options runtime \
+  "$APP_PATH"
+
+# Verify signature
+
+echo "🔍 Verifying code signature..."
+codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+# Create temporary archive for notarization
+TEMP_ZIP="${CASK_NAME}-notarization.zip"
+
+echo "📦 Creating notarization archive..."
+ditto -c -k --keepParent "$APP_PATH" "$TEMP_ZIP"
+
+# Submit for notarization
+
+echo "📝 Submitting app for notarization..."
+xcrun notarytool submit "$TEMP_ZIP" \
+  --apple-id "$APPLE_ID" \
+  --team-id "$TEAM_ID" \
+  --password "$APP_PASSWORD" \
+  --wait
+
+# Staple notarization ticket
+
+echo "📎 Stapling notarization ticket..."
+xcrun stapler staple "$APP_PATH"
+
+# Final Gatekeeper verification
+
+echo "🛡️ Running Gatekeeper verification..."
+spctl -a -vvv "$APP_PATH"
+
+# Remove temporary notarization archive
+rm "$TEMP_ZIP"
+
+# 4. Navigate to build outputs and compress
 echo "🗜️ Packaging .app bundle into .tar.gz..."
 BUILD_DIR="build/macos/Build/Products/Release"
 # Use the clean version string without forbidden characters for the filename
@@ -64,19 +128,19 @@ cd "$BUILD_DIR"
 tar -czvf "$FLUTTER_PROJECT_DIR/$ARCHIVE_NAME" "${APP_NAME}.app"
 cd "$FLUTTER_PROJECT_DIR"
 
-# 4. Calculate SHA-256 hash
+# 5. Calculate SHA-256 hash
 echo "🔑 Calculating SHA-256 hash..."
 SHA256=$(shasum -a 256 "$ARCHIVE_NAME" | awk '{print $1}')
 echo "Hash: $SHA256"
 
-# 5. Upload to S3 using rclone
+# 6. Upload to S3 using rclone
 echo "☁️ Uploading archive to S3 via rclone..."
 rclone copyto "$ARCHIVE_NAME" "${RCLONE_REMOTE}:${S3_BUCKET}/$ARCHIVE_NAME" --progress
 
 # Get the public S3 URL
 DOWNLOAD_URL="https://raw.solsynth.dev/solian/$ARCHIVE_NAME"
 
-# 6. Update local Homebrew Cask file
+# 7. Update local Homebrew Cask file
 echo "📝 Updating Homebrew Cask file..."
 if [ ! -f "$CASK_FILE" ]; then
   echo "❌ Error: Cask file not found at $CASK_FILE"
@@ -88,7 +152,7 @@ sed -i '' "s|version \".*\"|version \"$HOMEBREW_VERSION\"|g" "$CASK_FILE"
 sed -i '' "s|sha256 \".*\"|sha256 \"$SHA256\"|g" "$CASK_FILE"
 sed -i '' "s|url \".*\"|url \"$DOWNLOAD_URL\"|g" "$CASK_FILE"
 
-# 7. Commit and Push the Tap update
+# 8. Commit and Push the Tap update
 echo "🖥️ Committing and pushing Homebrew Tap updates..."
 cd "$TAP_DIR"
 git add "Casks/$CASK_NAME.rb"
