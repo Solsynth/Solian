@@ -50,3 +50,4 @@ app.*.map.json
 Solian.AppDir
 *.AppImage
 buildtools/sentry.env
+buildtools/.env
