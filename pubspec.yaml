@@ -143,9 +143,6 @@ dependencies:
   tray_manager: ^0.5.2
   flutter_webrtc: ^1.2.1
   flutter_local_notifications: ^21.0.0
-  unifiedpush: ^6.2.0
-  unifiedpush_platform_interface: ^4.0.0
-  unifiedpush_storage_interface: ^1.0.0
   wakelock_plus: ^1.5.2
   slide_countdown: ^2.0.2
   shelf: ^1.4.2
@@ -183,7 +180,6 @@ dependencies:
   in_app_purchase: ^3.2.3
   flutter_tts: ^4.2.5
   pinput: ^6.0.2
-  # https://github.com/djx-y-z/openmls_dart/issues/4
   flutter_rust_bridge: ^2.12.0
   passkeys: ^2.19.0
   health: ^13.1.4
@@ -252,6 +248,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  config:
+    enable-swift-package-manager: false
 
 flutter_launcher_icons:
   android: "launcher_icon"

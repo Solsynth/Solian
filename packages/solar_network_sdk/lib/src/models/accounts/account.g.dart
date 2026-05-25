@@ -602,5 +602,4 @@ const _$SnNotificationPushSubscriptionProviderEnumMap = {
   SnNotificationPushSubscriptionProvider.apple: 0,
   SnNotificationPushSubscriptionProvider.fcm: 1,
   SnNotificationPushSubscriptionProvider.sop: 2,
-  SnNotificationPushSubscriptionProvider.unifiedpush: 3,
 };

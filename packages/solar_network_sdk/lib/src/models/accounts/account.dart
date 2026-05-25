@@ -427,8 +427,7 @@ sealed class SnNotificationTopic with _$SnNotificationTopic {
 enum SnNotificationPushSubscriptionProvider {
   apple(0),
   fcm(1),
-  sop(2),
-  unifiedpush(3);
+  sop(2);
 
   final int value;
   const SnNotificationPushSubscriptionProvider(this.value);

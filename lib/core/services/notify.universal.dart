@@ -12,7 +12,6 @@ import 'package:island/core/audio.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/notification.dart';
 import 'package:island/core/services/push_provider.dart';
-import 'package:island/core/services/unifiedpush_service.dart';
 import 'package:island/route.dart';
 import 'package:island/core/websocket.dart';
 import 'package:logging/logging.dart';
@@ -238,22 +237,6 @@ Future<void> subscribePushNotification(
     );
   } else if (detailedErrors) {
     throw Exception("Failed to get device token for push notifications.");
-  }
-}
-
-Future<void> subscribeUnifiedPushNotification(
-  Dio apiClient, {
-  bool detailedErrors = false,
-}) async {
-  if (kIsWeb || !(Platform.isAndroid || Platform.isLinux)) {
-    return;
-  }
-
-  try {
-    await registerUnifiedPush(apiClient);
-  } catch (err) {
-    if (detailedErrors) rethrow;
-    Logger.root.severe('Failed to register UnifiedPush subscription: $err');
   }
 }
 
