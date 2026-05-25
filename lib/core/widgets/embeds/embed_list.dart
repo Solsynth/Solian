@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:island/core/config.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
-import 'package:island/polls/polls_widgets/poll/poll_submit.dart';
+import 'package:island/route.gr.dart';
+import 'package:island/creators/screens/poll/poll_list.dart';
 import 'package:island/core/widgets/embeds/link.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';
 import 'package:island/accounts/meet_service.dart';
@@ -124,25 +126,13 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
           ),
         ...otherEmbeds.map(
           (embedData) => switch (embedData['type']) {
-            'poll' => Card(
+            'poll' => _PollEmbedCard(
+              pollId: embedData['id']?.toString(),
               margin: EdgeInsets.symmetric(
                 horizontal: widget.renderingPadding.horizontal,
                 vertical: 8,
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: embedData['id'] == null
-                    ? const Text('Poll was unavailable...')
-                    : PollSubmit(
-                        pollId: embedData['id'],
-                        onSubmit: (_) {},
-                        isReadonly: !widget.isInteractive,
-                        isInitiallyExpanded: widget.isFullPost,
-                      ),
-              ),
+              isInteractive: widget.isInteractive,
             ),
             'fund' =>
               embedData['id'] == null
@@ -2041,6 +2031,119 @@ class _LocationEmbedContent extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PollEmbedCard extends ConsumerWidget {
+  final String? pollId;
+  final EdgeInsets margin;
+  final bool isInteractive;
+
+  const _PollEmbedCard({
+    required this.pollId,
+    required this.margin,
+    required this.isInteractive,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (pollId == null) {
+      return Card(
+        margin: margin,
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('Poll was unavailable...'),
+        ),
+      );
+    }
+
+    final pollAsync = ref.watch(pollWithStatsProvider(pollId!));
+
+    return Card(
+      margin: margin,
+      clipBehavior: Clip.antiAlias,
+      child: pollAsync.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (error, _) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Failed to load poll: $error'),
+        ),
+        data: (poll) => InkWell(
+          onTap: isInteractive
+              ? () => context.router.push(
+                    PollSubmitRoute(pollId: pollId!),
+                  )
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (poll.title != null)
+                  Text(
+                    poll.title!,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                if (poll.description != null && poll.description!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      poll.description!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.color
+                            ?.withOpacity(0.7),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${poll.questions.length} question${poll.questions.length == 1 ? '' : 's'}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const Spacer(),
+                      if (poll.userAnswer != null &&
+                          poll.userAnswer!.answer.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Icon(
+                            Icons.check_circle,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      if (isInteractive)
+                        Icon(
+                          Icons.chevron_right,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
