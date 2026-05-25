@@ -233,15 +233,23 @@ class _EmbedLinkWidgetState extends ConsumerState<EmbedLinkWidget> {
                         widget.link.imageUrl!.isNotEmpty &&
                         widget.link.imageUrl != widget.link.faviconUrl &&
                         _isSquare != true)
-                      Container(
-                        width: double.infinity,
-                        constraints: const BoxConstraints(maxHeight: 320),
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        child: UniversalImage(
-                          uri: widget.link.imageUrl!,
-                          fit: BoxFit.cover,
-                          useFallbackImage: false,
-                        ),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final computedHeight =
+                              constraints.maxWidth * 9 / 16;
+                          final imageHeight =
+                              computedHeight > 320 ? 320.0 : computedHeight;
+                          return Container(
+                            width: constraints.maxWidth,
+                            height: imageHeight,
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: UniversalImage(
+                              uri: widget.link.imageUrl!,
+                              fit: BoxFit.cover,
+                              useFallbackImage: false,
+                            ),
+                          );
+                        },
                       ),
                     Padding(
                       padding: const EdgeInsets.all(12),
