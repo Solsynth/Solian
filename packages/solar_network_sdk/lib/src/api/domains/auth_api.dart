@@ -104,11 +104,11 @@ class AuthApi extends BaseApi {
   /// [data] - Additional data for the factor.
   Future<SnAuthFactor> createFactor({
     required int type,
-    required Map<String, dynamic> data,
+    required String? secret,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/factors',
-      data: {'type': type, 'data': data},
+      data: {'type': type, 'secret': secret},
     );
     return SnAuthFactor.fromJson(response.data!);
   }
