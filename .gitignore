@@ -51,3 +51,4 @@ Solian.AppDir
 *.AppImage
 buildtools/sentry.env
 buildtools/.env
+.env

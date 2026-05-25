@@ -6,13 +6,15 @@ set -e
 # --- CONFIGURATION ---
 APP_NAME="Solian"
 CASK_NAME="solian"
-RCLONE_REMOTE="r2"                # Name of your rclone remote
+RCLONE_REMOTE="r2" # Name of your rclone remote
 
 S3_BUCKET="solsynth-files/solian" # Change to your actual bucket and path
 
 # Load environment variables from .env
 if [ -f ".env" ]; then
-  export $(grep -v '^#' .env | xargs)
+  set -a
+  source .env
+  set +a
 else
   echo "❌ Error: .env file not found."
   exit 1
@@ -61,7 +63,7 @@ echo "📦 Homebrew formatted version: $HOMEBREW_VERSION"
 SKIP_BUILD=false
 for arg in "$@"; do
   case "$arg" in
-    --no-build) SKIP_BUILD=true ;;
+  --no-build) SKIP_BUILD=true ;;
   esac
 done
 
