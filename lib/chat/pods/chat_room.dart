@@ -93,6 +93,31 @@ int _parseEncryptionMode(dynamic value) {
   return parsed;
 }
 
+DateTime? _parseWebSocketActivityTimestamp(dynamic value) {
+  if (value is DateTime) return value.toUtc();
+  if (value is String) {
+    final parsed = DateTime.tryParse(value);
+    return parsed?.toUtc();
+  }
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true);
+  }
+  if (value is num) {
+    return DateTime.fromMillisecondsSinceEpoch(value.toInt(), isUtc: true);
+  }
+  return null;
+}
+
+double? _parseWebSocketActivityProgress(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble().clamp(0.0, 1.0);
+  if (value is String) {
+    final parsed = double.tryParse(value);
+    return parsed?.clamp(0.0, 1.0);
+  }
+  return null;
+}
+
 Future<void> _persistRoomEncryptionModeFromJson(
   AppDatabase db,
   Map<String, dynamic> roomJson,
@@ -242,8 +267,20 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
         context: 'ws typing',
       );
       if (sender == null) return;
+      final activityType = pkt.data?['type']?.toString() ?? 'typing';
+      final timestamp = _parseWebSocketActivityTimestamp(
+        pkt.data?['timestamp'] ?? pkt.data?['ts'],
+      );
+      final progress = _parseWebSocketActivityProgress(pkt.data?['progress']);
       eventBus.fire(
-        ChatTypingEvent(roomId: roomId, sender: sender, isTyping: true),
+        ChatTypingEvent(
+          roomId: roomId,
+          sender: sender,
+          isTyping: true,
+          activityType: activityType,
+          progress: progress,
+          timestamp: timestamp,
+        ),
       );
       return;
     }
