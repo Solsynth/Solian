@@ -270,8 +270,8 @@ class _TypingIndicatorDotsState extends State<_TypingIndicatorDots>
         : baseColor;
 
     return SizedBox(
-      width: 24,
-      height: 14,
+      width: 18,
+      height: 12,
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
@@ -281,13 +281,13 @@ class _TypingIndicatorDotsState extends State<_TypingIndicatorDots>
               final progress = _dotProgress(index);
               final lift = _dotLift(index);
               final size = widget.isUploading
-                  ? 3.5 + (progress * 2.8)
-                  : 4.0 + (progress * 2.4);
+                  ? 3.0 + (progress * 2.1)
+                  : 3.4 + (progress * 1.8);
 
               return Transform.translate(
-                offset: Offset(0, -lift * (widget.isUploading ? 2.2 : 1.6)),
+                offset: Offset(0, -lift * (widget.isUploading ? 1.4 : 1.0)),
                 child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: index == 1 ? 1.5 : 1),
+                  margin: const EdgeInsets.symmetric(horizontal: 0.5),
                   width: size,
                   height: size,
                   decoration: BoxDecoration(
@@ -315,91 +315,217 @@ class _ChatActivityIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final uploadingActivities = activities.where((x) => x.isUploading).toList();
-    final primaryActivities = uploadingActivities.isNotEmpty
-        ? uploadingActivities
-        : activities;
-    final isUploading = uploadingActivities.isNotEmpty;
-    final names = primaryActivities.map((x) => x.senderName).join(', ');
-    final progress = uploadingActivities.isEmpty
-        ? null
-        : uploadingActivities
-                  .map((x) => x.progress ?? 0.0)
-                  .reduce((a, b) => a > b ? a : b)
-              .clamp(0.0, 1.0);
-    final colorScheme = Theme.of(context).colorScheme;
-    final percentage = progress == null ? null : (progress * 100).round();
+    final grouped = <String, List<ChatActivityStatus>>{};
+    for (final activity in activities) {
+      grouped.putIfAbsent(activity.activityType, () => []).add(activity);
+    }
+
+    const order = ['typing', 'speaking', 'uploading'];
+    final entries = grouped.entries.toList()
+      ..sort((a, b) {
+        final aIndex = order.indexOf(a.key);
+        final bIndex = order.indexOf(b.key);
+        final normalizedA = aIndex == -1 ? order.length : aIndex;
+        final normalizedB = bIndex == -1 ? order.length : bIndex;
+        return normalizedA.compareTo(normalizedB);
+      });
 
     return Container(
-      key: ValueKey(
-        'chat-activity-${isUploading ? 'uploading' : 'typing'}-${names.length}-${percentage ?? 0}',
-      ),
+      key: ValueKey('chat-activity-${entries.map((e) => e.key).join('-')}'),
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _TypingIndicatorDots(isUploading: isUploading).padding(
-                horizontal: 6,
-              ),
-              const Gap(8),
-              Expanded(
-                child: Text(
-                  names,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
+        children: entries
+            .map(
+              (entry) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child: _ChatActivityLine(
+                  activityType: entry.key,
+                  activities: entry.value,
                 ),
               ),
-              if (isUploading) ...[
-                const Gap(8),
-                Text(
-                  '${percentage ?? 0}%',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.primary,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const Gap(2),
-          Padding(
-            padding: const EdgeInsets.only(left: 38),
-            child: Text(
-              isUploading
-                  ? 'uploadingFiles'.tr()
-                  : 'typingHint'.plural(primaryActivities.length, args: [names]),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                height: 1.15,
-              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _ChatActivityLine extends StatelessWidget {
+  final String activityType;
+  final List<ChatActivityStatus> activities;
+
+  const _ChatActivityLine({
+    required this.activityType,
+    required this.activities,
+  });
+
+  String _buildText() {
+    final names = activities.map((x) => x.senderName).join(', ');
+    final verb = activities.length > 1 ? 'are' : 'is';
+    switch (activityType) {
+      case 'uploading':
+        final progress = activities
+            .map((x) => x.progress ?? 0.0)
+            .fold<double>(0.0, (max, value) => value > max ? value : max);
+        return '$names $verb uploading files (${(progress * 100).toStringAsFixed(1)}%)';
+      case 'speaking':
+        return '$names $verb speaking';
+      case 'typing':
+      default:
+        return '$names $verb typing';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isUploading = activityType == 'uploading';
+
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 2, right: 8),
+          child: _TypingIndicatorDots(isUploading: isUploading),
+        ),
+        Expanded(
+          child: Text(
+            _buildText(),
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: isUploading
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+              fontWeight: isUploading ? FontWeight.w600 : FontWeight.w500,
             ),
           ),
-          if (isUploading && progress != null) ...[
-            const Gap(5),
-            Padding(
-              padding: const EdgeInsets.only(left: 38, right: 8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(2),
-                child: LinearProgressIndicator(
-                  minHeight: 3,
-                  value: progress,
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                  valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+        ),
+      ],
+    );
+  }
+}
+
+String _formatVoiceDurationShort(Duration duration) {
+  final totalSeconds = duration.inSeconds.clamp(0, 5999);
+  final minutes = totalSeconds ~/ 60;
+  final seconds = totalSeconds % 60;
+  return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+}
+
+class _VoiceRecordStatus extends StatelessWidget {
+  final bool isRecording;
+  final bool isCancelArmed;
+  final Duration duration;
+  final Duration maxDuration;
+  final Stream<Amplitude> amplitudeStream;
+
+  const _VoiceRecordStatus({
+    required this.isRecording,
+    required this.isCancelArmed,
+    required this.duration,
+    required this.maxDuration,
+    required this.amplitudeStream,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final progress = maxDuration.inMilliseconds <= 0
+        ? 0.0
+        : (duration.inMilliseconds / maxDuration.inMilliseconds).clamp(0.0, 1.0);
+    final foregroundColor = isRecording
+        ? (isCancelArmed ? colorScheme.onError : colorScheme.onPrimary)
+        : colorScheme.onSurface;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                isRecording
+                    ? (isCancelArmed
+                          ? 'Release to cancel'
+                          : 'Recording • swipe up to cancel')
+                    : 'Hold to record voice',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
+            ),
+            const Gap(10),
+            Text(
+              _formatVoiceDurationShort(duration),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ],
-        ],
-      ),
+        ),
+        const Gap(5),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 4,
+            backgroundColor: isRecording
+                ? foregroundColor.withOpacity(0.18)
+                : colorScheme.surfaceContainerHighest,
+            valueColor: AlwaysStoppedAnimation(
+              isCancelArmed ? colorScheme.onError : foregroundColor,
+            ),
+          ),
+        ),
+        const Gap(5),
+        SizedBox(
+          height: 16,
+          child: isRecording
+              ? AnimatedWaveList(
+                  stream: amplitudeStream,
+                  barBuilder: (animation, amplitude) {
+                    final activeColor = isCancelArmed
+                        ? colorScheme.onError
+                        : colorScheme.onPrimary;
+                    return AnimatedBuilder(
+                      animation: animation,
+                      builder: (context, child) {
+                        final normalized =
+                            (amplitude.current.abs() / 60).clamp(0.16, 1.0);
+                        final height = 4 + (normalized * 10 * animation.value);
+                        return Container(
+                          width: 2.2,
+                          height: height.clamp(4.0, 14.0),
+                          margin: const EdgeInsets.symmetric(horizontal: 0.75),
+                          decoration: BoxDecoration(
+                            color: activeColor.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                )
+              : Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${_formatVoiceDurationShort(duration)} / ${_formatVoiceDurationShort(maxDuration)}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }
@@ -2163,7 +2289,7 @@ class ChatInput extends HookConsumerWidget {
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 120),
-                                    height: isRecordingVoice.value ? 72 : 44,
+                                    height: isRecordingVoice.value ? 82 : 56,
                                     margin: const EdgeInsets.only(top: 2),
                                     decoration: BoxDecoration(
                                       color: isRecordingVoice.value
@@ -2179,72 +2305,17 @@ class ChatInput extends HookConsumerWidget {
                                             ).colorScheme.surfaceContainerHigh,
                                       borderRadius: BorderRadius.circular(24),
                                     ),
-                                    child: Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            isRecordingVoice.value
-                                                ? (isVoiceCancelArmed.value
-                                                      ? 'Release to cancel • ${recordingDuration.value.inSeconds}s'
-                                                      : 'Recording ${recordingDuration.value.inSeconds}s • swipe up to cancel')
-                                                : 'Hold to record voice • max 300s',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  color: isRecordingVoice.value
-                                                      ? Theme.of(
-                                                          context,
-                                                        ).colorScheme.onPrimary
-                                                      : null,
-                                                ),
-                                          ),
-                                          if (isRecordingVoice.value) ...[
-                                            const Gap(4),
-                                            SizedBox(
-                                              height: 16,
-                                              child: AnimatedWaveList(
-                                                stream: amplitudeStream.stream,
-                                                barBuilder: (animation, amplitude) {
-                                                  final baseColor = Theme.of(
-                                                    context,
-                                                  ).colorScheme.onPrimary;
-                                                  return SizeTransition(
-                                                    sizeFactor: animation,
-                                                    child: Container(
-                                                      width: 3,
-                                                      height:
-                                                          (160 /
-                                                              amplitude.current
-                                                                  .abs()
-                                                                  .clamp(
-                                                                    1,
-                                                                    160,
-                                                                  )) *
-                                                          1.6,
-                                                      margin:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 1,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color: baseColor
-                                                            .withOpacity(0.9),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ],
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                      child: _VoiceRecordStatus(
+                                        isRecording: isRecordingVoice.value,
+                                        isCancelArmed: isVoiceCancelArmed.value,
+                                        duration: recordingDuration.value,
+                                        maxDuration: maxVoiceRecordDuration,
+                                        amplitudeStream: amplitudeStream.stream,
                                       ),
                                     ),
                                   ),
