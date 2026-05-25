@@ -1737,5 +1737,6 @@
   "settingsExportChat": "Exportar Chat",
   "settingsExportJsonDesc": "Datos completos del mensaje con metadatos",
   "settingsExportCsvDesc": "Formato simple de hoja de cálculo",
-  "settingsExportSaved": "Exportación guardada en descargas"
+  "settingsExportSaved": "Exportación guardada en descargas",
+  "presenceOngoing": "En curso"
 }
