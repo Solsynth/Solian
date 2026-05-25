@@ -169,6 +169,10 @@ _SnAccountStatus _$SnAccountStatusFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       attitude: (json['attitude'] as num).toInt(),
       isOnline: json['is_online'] as bool,
+      isIdle: json['is_idle'] as bool? ?? false,
+      idleSince: json['idle_since'] == null
+          ? null
+          : DateTime.parse(json['idle_since'] as String),
       isCustomized: json['is_customized'] as bool,
       type: _readStatusType(json, 'type') == null
           ? SnAccountStatusType.defaultType
@@ -194,6 +198,8 @@ Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
       'id': instance.id,
       'attitude': instance.attitude,
       'is_online': instance.isOnline,
+      'is_idle': instance.isIdle,
+      'idle_since': instance.idleSince?.toIso8601String(),
       'is_customized': instance.isCustomized,
       'type': instance.type,
       'label': instance.label,
