@@ -18,6 +18,7 @@ class PollSubmit extends ConsumerStatefulWidget {
     this.showProgress = true,
     this.isReadonly = false,
     this.isInitiallyExpanded = false,
+    this.disableCollapse = false,
   });
 
   final String pollId;
@@ -38,6 +39,9 @@ class PollSubmit extends ConsumerStatefulWidget {
 
   /// Whether the poll should start expanded instead of collapsed.
   final bool isInitiallyExpanded;
+
+  /// When true, the poll cannot be collapsed and always stays expanded.
+  final bool disableCollapse;
 
   @override
   ConsumerState<PollSubmit> createState() => _PollSubmitState();
@@ -77,7 +81,7 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
     _textController.addListener(_controllerListener);
     _answers = Map<String, dynamic>.from(widget.initialAnswers ?? {});
     // Set initial collapse state based on the parameter
-    _isCollapsed = !widget.isInitiallyExpanded;
+    _isCollapsed = widget.disableCollapse ? false : !widget.isInitiallyExpanded;
     if (!widget.isReadonly) {
       // If initial answers are provided, set _isModifying to false initially
       // so the "Modify" button is shown.
@@ -690,19 +694,20 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(
-                _isCollapsed ? Icons.expand_more : Icons.expand_less,
-                size: 20,
+            if (!widget.disableCollapse)
+              IconButton(
+                icon: Icon(
+                  _isCollapsed ? Icons.expand_more : Icons.expand_less,
+                  size: 20,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isCollapsed = !_isCollapsed;
+                  });
+                },
+                visualDensity: VisualDensity.compact,
+                tooltip: _isCollapsed ? 'expandPoll'.tr() : 'collapsePoll'.tr(),
               ),
-              onPressed: () {
-                setState(() {
-                  _isCollapsed = !_isCollapsed;
-                });
-              },
-              visualDensity: VisualDensity.compact,
-              tooltip: _isCollapsed ? 'expandPoll'.tr() : 'collapsePoll'.tr(),
-            ),
           ],
         ),
       ],
@@ -849,7 +854,6 @@ class _PollSubmitState extends ConsumerState<PollSubmit> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildBody(context, poll),
-                        _buildStats(context, _current, poll.stats),
                       ],
                     ),
                   ),

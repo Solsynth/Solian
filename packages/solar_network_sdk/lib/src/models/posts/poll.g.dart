@@ -22,6 +22,9 @@ _SnPollWithStats _$SnPollWithStatsFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['ended_at'] as String),
       publisherId: json['publisher_id'] as String,
+      publisher: json['publisher'] == null
+          ? null
+          : SnPublisher.fromJson(json['publisher'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt: json['deleted_at'] == null
@@ -39,6 +42,7 @@ Map<String, dynamic> _$SnPollWithStatsToJson(_SnPollWithStats instance) =>
       'description': instance.description,
       'ended_at': instance.endedAt?.toIso8601String(),
       'publisher_id': instance.publisherId,
+      'publisher': instance.publisher?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
