@@ -10,6 +10,7 @@
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		194D7D2FB3BC13F8D33D6075 /* Pods_SolianNotificationService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD21906BA8E1F3018AB602EA /* Pods_SolianNotificationService.framework */; };
 		1C5B3220B511A315F18329FB /* Pods_SolianShareExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6052E8533761A848CA9DE751 /* Pods_SolianShareExtension.framework */; };
+		2B148F1445B90FD424EBF824 /* Pods_Solian_Watch_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB2B125BA850D301B064BEA1 /* Pods_Solian_Watch_App.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		7301DB032F08D99C008390F3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7301DB022F08D99C008390F3 /* WidgetKit.framework */; };
@@ -40,6 +41,7 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B87C0E607033790E71B54D73 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6D834CA86410B09796B312B /* Pods_Runner.framework */; };
+		E1A4D40653FC380B9F235391 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6338FB3E26391446D4BE2241 /* Pods_RunnerTests.framework */; };
 		E7A0B456EF7AAA71D1397081 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9AE244813FCDFAA941430393 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -126,15 +128,19 @@
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		192FDACE67D7CB6AED15C634 /* Pods-NotificationService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationService.debug.xcconfig"; path = "Target Support Files/Pods-NotificationService/Pods-NotificationService.debug.xcconfig"; sourceTree = "<group>"; };
 		1C14F71D23E4371602065522 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		1FDC2F0EB25364336E156D25 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		252A83CE6862573BB856ED8E /* Pods-NotificationService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationService.release.xcconfig"; path = "Target Support Files/Pods-NotificationService/Pods-NotificationService.release.xcconfig"; sourceTree = "<group>"; };
 		2D2457F8B2E6EF9C0F935035 /* Pods-NotificationService.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationService.profile.xcconfig"; path = "Target Support Files/Pods-NotificationService/Pods-NotificationService.profile.xcconfig"; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A1C47BD29CC6AC2587D4DBE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		422849BAE5E571CC59D4EC1D /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		467CA7C7FC5B3C159F3FF20F /* Pods-SolianShareExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianShareExtension.release.xcconfig"; path = "Target Support Files/Pods-SolianShareExtension/Pods-SolianShareExtension.release.xcconfig"; sourceTree = "<group>"; };
 		4CFB295EDE21DE5E3877AD8A /* Pods-SolianShareExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianShareExtension.debug.xcconfig"; path = "Target Support Files/Pods-SolianShareExtension/Pods-SolianShareExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		6052E8533761A848CA9DE751 /* Pods_SolianShareExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SolianShareExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6338FB3E26391446D4BE2241 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B83360C53A304A902E19BB3 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		6CC7EE512A4C4758A9233B88 /* Pods-SolianNotificationService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianNotificationService.debug.xcconfig"; path = "Target Support Files/Pods-SolianNotificationService/Pods-SolianNotificationService.debug.xcconfig"; sourceTree = "<group>"; };
 		7301DB012F08D99C008390F3 /* SolianWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SolianWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7301DB022F08D99C008390F3 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -154,6 +160,7 @@
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
+		79C17526E6C18A5F7965D6A3 /* Pods-Solian Watch App.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solian Watch App.profile.xcconfig"; path = "Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App.profile.xcconfig"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		86D60BA96DA647E1B11AA7F0 /* Pods-WatchRunner Watch App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WatchRunner Watch App.debug.xcconfig"; path = "Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App.debug.xcconfig"; sourceTree = "<group>"; };
 		908EA9A0C2824EF706A4AE2F /* Pods-SolianNotificationService.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianNotificationService.profile.xcconfig"; path = "Target Support Files/Pods-SolianNotificationService/Pods-SolianNotificationService.profile.xcconfig"; sourceTree = "<group>"; };
@@ -168,9 +175,12 @@
 		A2EB1DAFDE9B8E6D88BBF7A3 /* Pods-WatchRunner Watch App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WatchRunner Watch App.release.xcconfig"; path = "Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App.release.xcconfig"; sourceTree = "<group>"; };
 		A499FDB2082EB000933AA8C5 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		AA0CA8A3E15DEE023BB27438 /* Pods_NotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA5DD3FCD5DDD3B2C6412804 /* Pods-Solian Watch App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solian Watch App.release.xcconfig"; path = "Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App.release.xcconfig"; sourceTree = "<group>"; };
 		CF045ED276BFB99D9DE3FCAB /* Pods-SolianNotificationService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianNotificationService.release.xcconfig"; path = "Target Support Files/Pods-SolianNotificationService/Pods-SolianNotificationService.release.xcconfig"; sourceTree = "<group>"; };
+		D0ACC926ABE4CB9E70F0812E /* Pods-Solian Watch App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solian Watch App.debug.xcconfig"; path = "Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App.debug.xcconfig"; sourceTree = "<group>"; };
 		DD21906BA8E1F3018AB602EA /* Pods_SolianNotificationService.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SolianNotificationService.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6D834CA86410B09796B312B /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB2B125BA850D301B064BEA1 /* Pods_Solian_Watch_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Solian_Watch_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -268,6 +278,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E1A4D40653FC380B9F235391 /* Pods_RunnerTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,6 +297,7 @@
 			files = (
 				73CA95E82F8019CB00AECCC0 /* KingfisherWebP in Frameworks */,
 				7359B4512F7ED45E002F2C19 /* Kingfisher in Frameworks */,
+				2B148F1445B90FD424EBF824 /* Pods_Solian_Watch_App.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +364,8 @@
 				7301DB042F08D99C008390F3 /* SwiftUI.framework */,
 				6052E8533761A848CA9DE751 /* Pods_SolianShareExtension.framework */,
 				DD21906BA8E1F3018AB602EA /* Pods_SolianNotificationService.framework */,
+				6338FB3E26391446D4BE2241 /* Pods_RunnerTests.framework */,
+				FB2B125BA850D301B064BEA1 /* Pods_Solian_Watch_App.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -374,6 +388,12 @@
 				6CC7EE512A4C4758A9233B88 /* Pods-SolianNotificationService.debug.xcconfig */,
 				CF045ED276BFB99D9DE3FCAB /* Pods-SolianNotificationService.release.xcconfig */,
 				908EA9A0C2824EF706A4AE2F /* Pods-SolianNotificationService.profile.xcconfig */,
+				1FDC2F0EB25364336E156D25 /* Pods-RunnerTests.debug.xcconfig */,
+				422849BAE5E571CC59D4EC1D /* Pods-RunnerTests.release.xcconfig */,
+				6B83360C53A304A902E19BB3 /* Pods-RunnerTests.profile.xcconfig */,
+				D0ACC926ABE4CB9E70F0812E /* Pods-Solian Watch App.debug.xcconfig */,
+				BA5DD3FCD5DDD3B2C6412804 /* Pods-Solian Watch App.release.xcconfig */,
+				79C17526E6C18A5F7965D6A3 /* Pods-Solian Watch App.profile.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -450,6 +470,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 331C8087294A63A400263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */;
 			buildPhases = (
+				E06B87268012C3C290E8A138 /* [CP] Check Pods Manifest.lock */,
 				331C807D294A63A400263BE5 /* Sources */,
 				331C807F294A63A400263BE5 /* Resources */,
 				1DFF8FEBBD0CF5A990600776 /* Frameworks */,
@@ -488,9 +509,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7310A7E32EB10963002C0FD3 /* Build configuration list for PBXNativeTarget "Solian Watch App" */;
 			buildPhases = (
+				8365B463D317143FEFB1EEDF /* [CP] Check Pods Manifest.lock */,
 				7310A7D02EB10962002C0FD3 /* Sources */,
 				7310A7D12EB10962002C0FD3 /* Frameworks */,
 				7310A7D22EB10962002C0FD3 /* Resources */,
+				B54F78429346D5DB15F757A7 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -792,6 +815,28 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		8365B463D317143FEFB1EEDF /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Solian Watch App-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		8C0351B03869BBF493808288 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -840,6 +885,45 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-SolianNotificationService-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B54F78429346D5DB15F757A7 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Solian Watch App/Pods-Solian Watch App-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E06B87268012C3C290E8A138 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-RunnerTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1059,6 +1143,7 @@
 		};
 		331C8088294A63A400263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1FDC2F0EB25364336E156D25 /* Pods-RunnerTests.debug.xcconfig */;
 			buildSettings = {
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1080,6 +1165,7 @@
 		};
 		331C8089294A63A400263BE5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 422849BAE5E571CC59D4EC1D /* Pods-RunnerTests.release.xcconfig */;
 			buildSettings = {
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1099,6 +1185,7 @@
 		};
 		331C808A294A63A400263BE5 /* Profile */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6B83360C53A304A902E19BB3 /* Pods-RunnerTests.profile.xcconfig */;
 			buildSettings = {
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1250,6 +1337,7 @@
 		};
 		7310A7E02EB10963002C0FD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0ACC926ABE4CB9E70F0812E /* Pods-Solian Watch App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = AppIcon;
@@ -1300,6 +1388,7 @@
 		};
 		7310A7E12EB10963002C0FD3 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = BA5DD3FCD5DDD3B2C6412804 /* Pods-Solian Watch App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = AppIcon;
@@ -1348,6 +1437,7 @@
 		};
 		7310A7E22EB10963002C0FD3 /* Profile */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 79C17526E6C18A5F7965D6A3 /* Pods-Solian Watch App.profile.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = AppIcon;
