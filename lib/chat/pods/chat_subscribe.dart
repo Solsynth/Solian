@@ -29,16 +29,21 @@ class CurrentSubscribedChatIdNotifier extends Notifier<String?> {
 @riverpod
 class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
   static const Duration _subscribeRefreshInterval = Duration(minutes: 4);
+  static const Duration _activityTtl = Duration(seconds: 6);
+  static const Duration _typingSendCooldown = Duration(milliseconds: 850);
+  static const Duration _uploadProgressThrottle = Duration(seconds: 1);
   late SnChatRoom _chatRoom;
   late SnChatMember _chatIdentity;
 
-  final List<SnChatMember> _typingStatuses = [];
+  final Map<String, ChatActivityStatus> _activityStatuses = {};
   Timer? _typingCleanupTimer;
   Timer? _typingCooldownTimer;
   Timer? _periodicSubscribeTimer;
   Function? _sendMessage;
 
   StreamSubscription<ChatTypingEvent>? _typingSub;
+  DateTime? _lastUploadStatusSentAt;
+  double? _lastUploadStatusSentProgress;
 
   bool get _isDesktop =>
       !kIsWeb &&
@@ -109,8 +114,46 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     _typingSub?.cancel();
   }
 
+  List<ChatActivityStatus> _currentActivities() {
+    final activities = _activityStatuses.values.toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return activities;
+  }
+
+  void _emitActivityState() {
+    if (ref.mounted) state = _currentActivities();
+  }
+
+  bool _isStaleActivity(DateTime timestamp) {
+    final now = DateTime.now().toUtc();
+    return now.difference(timestamp).abs() > _activityTtl;
+  }
+
+  int _roundedUploadProgress(double progress) => (progress * 100).round();
+
+  void _sendActivityPacket({
+    required String activityType,
+    double? progress,
+    required String context,
+  }) {
+    final now = DateTime.now().toUtc();
+    _sendPacket(
+      WebSocketPacket(
+        type: 'messages.typing',
+        data: {
+          'chat_room_id': roomId,
+          'ts': now.millisecondsSinceEpoch,
+          'type': activityType,
+          ...?progress == null ? null : {'progress': progress},
+        },
+        endpoint: 'messager',
+      ),
+      context: context,
+    );
+  }
+
   @override
-  List<SnChatMember> build(String roomId) {
+  List<ChatActivityStatus> build(String roomId) {
     final chatRoomAsync = ref.watch(chatRoomProvider(roomId));
     final chatIdentityAsync = ref.watch(chatRoomIdentityProvider(roomId));
     ref.watch(messagesProvider(roomId));
@@ -147,35 +190,31 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     _typingSub = eventBus.on<ChatTypingEvent>().listen((event) {
       if (event.roomId != _chatRoom.id) return;
       if (event.sender.id == _chatIdentity.id) return;
+      final timestamp = (event.timestamp ?? DateTime.now()).toUtc();
+      if (_isStaleActivity(timestamp)) return;
 
-      // Check if the sender is already in the typing list
-      final existingIndex = _typingStatuses.indexWhere(
-        (member) => member.id == event.sender.id,
-      );
-      if (existingIndex >= 0) {
-        // Update the existing entry with new timestamp
-        _typingStatuses[existingIndex] = event.sender.copyWith(
-          lastTyped: DateTime.now(),
-        );
-      } else {
-        // Add new typing status
-        _typingStatuses.add(event.sender.copyWith(lastTyped: DateTime.now()));
+      final previous = _activityStatuses[event.sender.id];
+      if (previous != null && timestamp.isBefore(previous.timestamp)) {
+        return;
       }
-      if (ref.mounted) state = List.of(_typingStatuses);
+
+      _activityStatuses[event.sender.id] = ChatActivityStatus(
+        sender: event.sender,
+        timestamp: timestamp,
+        activityType: event.activityType,
+        progress: event.progress,
+      );
+      _emitActivityState();
     });
 
     // Set up typing status cleanup timer
     _typingCleanupTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (_typingStatuses.isNotEmpty) {
-        // Remove typing statuses older than 5 seconds
-        final now = DateTime.now();
-        _typingStatuses.removeWhere((member) {
-          final lastTyped =
-              member.lastTyped ??
-              DateTime.now().subtract(const Duration(milliseconds: 1350));
-          return now.difference(lastTyped).inSeconds > 5;
-        });
-        if (ref.mounted) state = List.of(_typingStatuses);
+      if (_activityStatuses.isNotEmpty) {
+        final now = DateTime.now().toUtc();
+        _activityStatuses.removeWhere(
+          (_, status) => now.difference(status.timestamp) > _activityTtl,
+        );
+        _emitActivityState();
       }
     });
 
@@ -249,7 +288,7 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
       }
     });
 
-    return _typingStatuses;
+    return _currentActivities();
   }
 
   void sendReadReceipt() {
@@ -268,17 +307,63 @@ class ChatSubscribeNotifier extends _$ChatSubscribeNotifier {
     // Don't send if we're already in a cooldown period
     if (_typingCooldownTimer != null) return;
 
-    _sendPacket(
-      WebSocketPacket(
-        type: 'messages.typing',
-        data: {'chat_room_id': roomId},
-        endpoint: 'messager',
-      ),
-      context: 'typing-status',
-    );
+    _sendActivityPacket(activityType: 'typing', context: 'typing-status');
 
-    _typingCooldownTimer = Timer(const Duration(milliseconds: 850), () {
+    _typingCooldownTimer = Timer(_typingSendCooldown, () {
       _typingCooldownTimer = null;
     });
   }
+
+  void sendUploadingStatus(double progress, {bool force = false}) {
+    final clamped = progress.clamp(0.0, 1.0);
+    final now = DateTime.now().toUtc();
+    final isComplete = clamped >= 1.0;
+    final sameBucket =
+        _lastUploadStatusSentProgress != null &&
+        _roundedUploadProgress(_lastUploadStatusSentProgress!) ==
+            _roundedUploadProgress(clamped);
+    final withinThrottle =
+        _lastUploadStatusSentAt != null &&
+        now.difference(_lastUploadStatusSentAt!) < _uploadProgressThrottle;
+
+    if (!force && sameBucket) return;
+    if (!force && withinThrottle && !isComplete) return;
+    if (!force &&
+        _lastUploadStatusSentProgress != null &&
+        clamped < _lastUploadStatusSentProgress!) {
+      return;
+    }
+
+    _sendActivityPacket(
+      activityType: 'uploading',
+      progress: clamped,
+      context: 'uploading-status',
+    );
+    _lastUploadStatusSentAt = now;
+    _lastUploadStatusSentProgress = clamped;
+
+    if (isComplete) {
+      _lastUploadStatusSentAt = null;
+      _lastUploadStatusSentProgress = null;
+    }
+  }
+}
+
+class ChatActivityStatus {
+  final SnChatMember sender;
+  final DateTime timestamp;
+  final String activityType;
+  final double? progress;
+
+  const ChatActivityStatus({
+    required this.sender,
+    required this.timestamp,
+    required this.activityType,
+    required this.progress,
+  });
+
+  String get senderName =>
+      (sender.nick?.isNotEmpty == true) ? sender.nick! : sender.account.nick;
+
+  bool get isUploading => activityType == 'uploading';
 }

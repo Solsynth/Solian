@@ -79,11 +79,17 @@ class ChatTypingEvent {
   final String roomId;
   final SnChatMember sender;
   final bool isTyping;
+  final String activityType;
+  final double? progress;
+  final DateTime? timestamp;
 
   const ChatTypingEvent({
     required this.roomId,
     required this.sender,
     required this.isTyping,
+    this.activityType = 'typing',
+    this.progress,
+    this.timestamp,
   });
 }
 
