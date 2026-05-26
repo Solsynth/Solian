@@ -43,6 +43,7 @@ abstract class IslandDesktopPresencePlatform extends PlatformInterface {
   Future<void> startExternalNowPlayingMonitoring({
     required Duration pollInterval,
     String? executablePath,
+    bool disableAppleMusicIntegration = false,
   }) {
     throw UnimplementedError(
       'startExternalNowPlayingMonitoring() has not been implemented.',
