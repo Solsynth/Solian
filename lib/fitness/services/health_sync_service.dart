@@ -160,6 +160,8 @@ class HealthSyncService {
   static const _keyLastSyncMetrics = 'health_sync_last_metrics';
   static const _keySyncEnabled = 'health_sync_enabled';
 
+  bool get _isSupportedPlatform => Platform.isIOS;
+
   HealthSyncService({required Health health, required FitnessApi fitnessApi, required SharedPreferences prefs})
     : _health = health,
       _fitnessApi = fitnessApi,
@@ -182,6 +184,7 @@ class HealthSyncService {
   }
 
   Future<bool> requestPermissions() async {
+    if (!_isSupportedPlatform) return false;
     await _health.configure();
     final types = await getAvailableTypes();
     return await _health.requestAuthorization(types.toList());
@@ -198,6 +201,7 @@ class HealthSyncService {
   }
 
   Future<bool> hasNewDataSince(DateTime since) async {
+    if (!_isSupportedPlatform) return false;
     final now = DateTime.now();
 
     if (since.isAfter(now.subtract(const Duration(hours: 1)))) {
@@ -235,6 +239,7 @@ class HealthSyncService {
   }
 
   Future<List<HealthRecord>> fetchAllRecords({DateTime? startDate, DateTime? endDate}) async {
+    if (!_isSupportedPlatform) return [];
     final records = <HealthRecord>[];
     final start = startDate ?? DateTime.now().subtract(const Duration(days: 30));
     final end = endDate ?? DateTime.now();

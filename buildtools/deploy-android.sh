@@ -27,16 +27,38 @@ fi
 
 echo "Found Flutter version: $FLUTTER_VERSION"
 
-# 2. Build the Flutter Android APK
-echo "Building Flutter Android APK..."
-flutter pub get
-flutter build apk --release
+# Parse flags
+SKIP_BUILD=false
+SKIP_PATCH=false
+for arg in "$@"; do
+  case "$arg" in
+  --no-build) SKIP_BUILD=true ;;
+  --no-patch) SKIP_PATCH=true ;;
+  esac
+done
 
-# 3. Upload APK to S3 using rclone (keep original filename)
-APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
-APK_NAME="app-release.apk"
+# 2. Build the Flutter Android APK (unless --no-build is set)
+if [ "$SKIP_BUILD" = false ]; then
+  echo "Building Flutter Android APK..."
+  if [ "$SKIP_PATCH" = false ]; then
+    ./buildtools/patch-android-gradle-cfg.sh
+  else
+    echo "Skipping gradle patch (--no-patch flag detected)..."
+  fi
+  flutter pub get
+  ./buildtools/flutter-with-sentry.sh build apk --release --split-per-abi
+else
+  echo "Skipping build (--no-build flag detected)..."
+fi
 
-echo "Uploading APK to S3 via rclone..."
-rclone copyto "$APK_PATH" "${RCLONE_REMOTE}:${S3_BUCKET}/$APK_NAME" --progress --overwrite
+# 3. Upload split APKs to S3 using rclone
+APK_DIR="build/app/outputs/flutter-apk"
+echo "Uploading split APKs to S3 via rclone..."
+for apk in "$APK_DIR"/app-*-release.apk; do
+  [ -f "$apk" ] || continue
+  apk_name=$(basename "$apk")
+  echo "  Uploading $apk_name..."
+  rclone copyto "$apk" "${RCLONE_REMOTE}:${S3_BUCKET}/$apk_name" --progress
+done
 
-echo "Done! APK uploaded to ${S3_BUCKET}/${APK_NAME}"
+echo "Done! Split APKs uploaded to ${S3_BUCKET}/"
