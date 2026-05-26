@@ -83,6 +83,8 @@ const kAppIpOverrideDomains = 'app_ip_override_domains';
 const kAppMacosNowPlayingCliPath = 'app_macos_now_playing_cli_path';
 const kAppMacosNowPlayingReuseFixedManualId =
     'app_macos_now_playing_reuse_fixed_manual_id';
+const kAppMacosNowPlayingDisableAppleMusic =
+    'app_macos_now_playing_disable_apple_music';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
 // Will be overrided by the ProviderScope
@@ -304,6 +306,25 @@ class DesktopNowPlayingReuseFixedManualIdNotifier extends Notifier<bool> {
 final desktopNowPlayingReuseFixedManualIdProvider =
     NotifierProvider<DesktopNowPlayingReuseFixedManualIdNotifier, bool>(
       DesktopNowPlayingReuseFixedManualIdNotifier.new,
+    );
+
+class DesktopNowPlayingDisableAppleMusicNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppMacosNowPlayingDisableAppleMusic) ?? false;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppMacosNowPlayingDisableAppleMusic, value);
+    state = value;
+  }
+}
+
+final desktopNowPlayingDisableAppleMusicProvider =
+    NotifierProvider<DesktopNowPlayingDisableAppleMusicNotifier, bool>(
+      DesktopNowPlayingDisableAppleMusicNotifier.new,
     );
 
 @freezed

@@ -308,6 +308,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   private var didLogMissingNowPlayingCli = false
   private var lastExternalNowPlayingSnapshot: ExternalNowPlayingSnapshot?
   fileprivate var pendingExternalNowPlayingEvent: [String: Any]?
+  private var disableAppleMusicIntegration = false
   private var appleMusicMetadataCache: [String: AppleMusicMetadata] = [:]
   private var appleMusicMetadataMisses: Set<String> = []
   private var authToken: String?
@@ -413,11 +414,14 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       externalNowPlayingPollInterval = Double(pollIntervalMilliseconds) / 1000.0
       let executablePath = normalizeExternalString(arguments["executablePath"] as? String)
       externalNowPlayingExecutablePath = executablePath ?? defaultNowPlayingCliPath
+      disableAppleMusicIntegration =
+        (arguments["disableAppleMusicIntegration"] as? Bool) ?? false
       didLogMissingNowPlayingCli = false
       NSLog(
-        "[IslandDesktopPresence] Starting external now playing monitoring via nowplaying-cli path=%@ interval=%.3fs",
+        "[IslandDesktopPresence] Starting external now playing monitoring via nowplaying-cli path=%@ interval=%.3fs disableAppleMusic=%@",
         externalNowPlayingExecutablePath,
-        externalNowPlayingPollInterval
+        externalNowPlayingPollInterval,
+        disableAppleMusicIntegration ? "true" : "false"
       )
       startExternalNowPlayingTimer()
       requestExternalNowPlayingSnapshot(force: true)
@@ -593,6 +597,9 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     }
 
     let withArtwork = await ensureArtworkUploaded(snapshot)
+    if disableAppleMusicIntegration {
+      return withArtwork
+    }
     if #available(macOS 12.0, *) {
       return await enrichAppleMusicMetadata(withArtwork)
     }
