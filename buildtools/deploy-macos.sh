@@ -71,7 +71,7 @@ done
 if [ "$SKIP_BUILD" = false ]; then
   echo "🔨 Building Flutter macOS app..."
   flutter pub get
-  flutter build macos --release
+  ./buildtools/flutter-with-sentry.sh build macos --release
 else
   echo "⏭️ Skipping build (--no-build flag detected)..."
 fi

@@ -15,9 +15,12 @@ class HealthService {
 
   final Health _health = Health();
 
+  bool get _isSupportedPlatform => Platform.isIOS;
+
   bool _isConfigured = false;
 
   Future<void> initialize() async {
+    if (!_isSupportedPlatform) return;
     if (_isConfigured) return;
 
     _health.configure();
@@ -25,6 +28,7 @@ class HealthService {
   }
 
   Future<bool> requestPermissions() async {
+    if (!_isSupportedPlatform) return false;
     await initialize();
 
     await Permission.activityRecognition.request();
@@ -39,6 +43,7 @@ class HealthService {
   }
 
   Future<bool> isAuthorized() async {
+    if (!_isSupportedPlatform) return false;
     await initialize();
     final types = _getDataTypes();
     return await _health.hasPermissions(types) ?? false;
@@ -96,6 +101,7 @@ class HealthService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    if (!_isSupportedPlatform) return [];
     await initialize();
 
     final types = [HealthDataType.WORKOUT];
@@ -111,6 +117,7 @@ class HealthService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    if (!_isSupportedPlatform) return [];
     await initialize();
 
     final types = [HealthDataType.WEIGHT, HealthDataType.BODY_MASS_INDEX];
@@ -126,6 +133,7 @@ class HealthService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    if (!_isSupportedPlatform) return [];
     await initialize();
 
     final types = [HealthDataType.STEPS];
@@ -141,6 +149,7 @@ class HealthService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    if (!_isSupportedPlatform) return [];
     await initialize();
 
     final types = [HealthDataType.HEART_RATE];
@@ -156,6 +165,7 @@ class HealthService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    if (!_isSupportedPlatform) return [];
     await initialize();
 
     final types = [HealthDataType.SLEEP_ASLEEP, HealthDataType.SLEEP_AWAKE];
@@ -173,6 +183,7 @@ class HealthService {
     String? title,
     HealthWorkoutActivityType activityType = HealthWorkoutActivityType.OTHER,
   }) async {
+    if (!_isSupportedPlatform) return false;
     await initialize();
 
     return _health.writeWorkoutData(
@@ -190,6 +201,7 @@ class HealthService {
     required DateTime endTime,
     HealthDataUnit? unit,
   }) async {
+    if (!_isSupportedPlatform) return false;
     await initialize();
 
     return _health.writeHealthData(
