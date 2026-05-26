@@ -122,9 +122,7 @@ rm "$TEMP_ZIP"
 # 4. Navigate to build outputs and compress
 echo "🗜️ Packaging .app bundle into .tar.gz..."
 BUILD_DIR="build/macos/Build/Products/Release"
-# Use the clean version string without forbidden characters for the filename
-FILE_SAFE_VERSION=$(echo "$FLUTTER_VERSION" | tr '+' '-')
-ARCHIVE_NAME="${CASK_NAME}-macos-${FILE_SAFE_VERSION}.tar.gz"
+ARCHIVE_NAME="${CASK_NAME}-macos.tar.gz"
 
 cd "$BUILD_DIR"
 tar -czvf "$FLUTTER_PROJECT_DIR/$ARCHIVE_NAME" "${APP_NAME}.app"
@@ -159,7 +157,7 @@ echo "🖥️ Committing and pushing Homebrew Tap updates..."
 cd "$TAP_DIR"
 git add "Casks/$CASK_NAME.rb"
 git commit -m ":rocket: Launch $FLUTTER_VERSION"
-git push origin main
+git push
 
 # Clean up local archive
 rm "$FLUTTER_PROJECT_DIR/$ARCHIVE_NAME"
