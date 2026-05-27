@@ -33,6 +33,31 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
+DateTime _chatRoomActivityAt(
+  SnChatRoom room,
+  Map<String, SnChatSummary> summaries,
+) {
+  return summaries[room.id]?.lastMessage?.createdAt ?? room.updatedAt;
+}
+
+List<SnChatRoom> _sortChatRoomsByActivity(
+  Iterable<SnChatRoom> rooms,
+  Map<String, SnChatSummary> summaries,
+) {
+  return rooms.toList()..sort((a, b) {
+    final activityComparison = _chatRoomActivityAt(
+      b,
+      summaries,
+    ).compareTo(_chatRoomActivityAt(a, summaries));
+    if (activityComparison != 0) return activityComparison;
+
+    final createdComparison = b.createdAt.compareTo(a.createdAt);
+    if (createdComparison != 0) return createdComparison;
+
+    return a.id.compareTo(b.id);
+  });
+}
+
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
   final TabController tabController;
@@ -62,8 +87,14 @@ class ChatListBodyWidget extends HookConsumerWidget {
         Expanded(
           child: chats.when(
             data: (items) {
+              final summariesData =
+                  summaries.whenData((data) => data).value ?? {};
+              final sortedItems = useMemoized(
+                () => _sortChatRoomsByActivity(items, summariesData),
+                [items, summariesData],
+              );
               final filteredItems = useMemoized(
-                () => items
+                () => sortedItems
                     .where(
                       (item) =>
                           selectedTabValue == 0 ||
@@ -71,7 +102,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                           (selectedTabValue == 2 && item.type != 1),
                     )
                     .toList(),
-                [items, selectedTabValue],
+                [sortedItems, selectedTabValue],
               );
               final pinnedItems = useMemoized(
                 () => filteredItems.where((item) => item.isPinned).toList(),
@@ -186,9 +217,6 @@ class ChatListBodyWidget extends HookConsumerWidget {
                       Expanded(
                         child: Builder(
                           builder: (context) {
-                            final summariesData =
-                                summaries.whenData((data) => data).value ?? {};
-
                             if (settings.groupedChatList &&
                                 selectedTabValue == 0) {
                               // Group by realm (include both pinned and unpinned)
@@ -710,7 +738,9 @@ class _CollapsedChatListBody extends HookConsumerWidget {
     return chats.when(
       data: (items) {
         final selectedTabValue = selectedTab.value;
-        final filteredItems = items
+        final summariesData = summaries.whenData((data) => data).value ?? {};
+        final sortedItems = _sortChatRoomsByActivity(items, summariesData);
+        final filteredItems = sortedItems
             .where(
               (item) =>
                   selectedTabValue == 0 ||
@@ -718,7 +748,6 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                   (selectedTabValue == 2 && item.type != 1),
             )
             .toList();
-        final summariesData = summaries.whenData((data) => data).value ?? {};
 
         final avatarTiles = <Widget>[];
         if (settings.groupedChatList && selectedTabValue == 0) {
