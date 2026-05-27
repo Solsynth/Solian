@@ -270,7 +270,7 @@ class _TypingIndicatorDotsState extends State<_TypingIndicatorDots>
         : baseColor;
 
     return SizedBox(
-      width: 18,
+      width: 28,
       height: 12,
       child: AnimatedBuilder(
         animation: _controller,
@@ -287,7 +287,7 @@ class _TypingIndicatorDotsState extends State<_TypingIndicatorDots>
               return Transform.translate(
                 offset: Offset(0, -lift * (widget.isUploading ? 1.4 : 1.0)),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
                   width: size,
                   height: size,
                   decoration: BoxDecoration(
@@ -544,10 +544,11 @@ class _VoiceRecordStatus extends StatelessWidget {
                           'Sending audio...',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ),
                     ],
