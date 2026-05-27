@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:gap/gap.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/relationship_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
 import 'package:island/chat/widgets/online_avatar_badge.dart';
@@ -9,7 +11,7 @@ import 'package:island/realms/widgets/realm_label.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-class MessageSenderInfo extends StatelessWidget {
+class MessageSenderInfo extends HookConsumerWidget {
   final String roomId;
   final SnChatMember? sender;
   final DateTime createdAt;
@@ -34,7 +36,7 @@ class MessageSenderInfo extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (sender == null) {
       return const SizedBox.shrink();
     }
@@ -44,6 +46,19 @@ class MessageSenderInfo extends StatelessWidget {
     }
 
     final s = sender!;
+
+    // Get relationship alias
+    final aliasAsync = ref.watch(relationshipAliasProvider(s.accountId));
+    final alias = aliasAsync.hasValue ? aliasAsync.value : null;
+
+    // Priority: chat nick > realm nick > relationship alias > account nick
+    final displayName = (s.nick?.isNotEmpty == true)
+        ? s.nick!
+        : (s.realmNick?.isNotEmpty == true)
+            ? s.realmNick!
+            : (alias != null && alias.isNotEmpty)
+                ? alias
+                : s.account.nick;
 
     final timestamp = DateTime.now().difference(createdAt).inDays > 365
         ? DateFormat('yyyy/MM/dd HH:mm').format(createdAt.toLocal())
@@ -74,11 +89,7 @@ class MessageSenderInfo extends StatelessWidget {
           Row(
             children: [
               AccountName(
-                textOverride: (s.nick?.isNotEmpty == true)
-                    ? s.nick
-                    : (s.realmNick?.isNotEmpty == true)
-                    ? s.realmNick
-                    : s.account.nick,
+                textOverride: displayName,
                 account: s.account,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: textColor,
@@ -121,11 +132,7 @@ class MessageSenderInfo extends StatelessWidget {
                 Row(
                   children: [
                     AccountName(
-                      textOverride: (s.nick?.isNotEmpty == true)
-                          ? s.nick
-                          : (s.realmNick?.isNotEmpty == true)
-                          ? s.realmNick
-                          : s.account.nick,
+                      textOverride: displayName,
                       account: s.account,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: textColor,
@@ -160,11 +167,7 @@ class MessageSenderInfo extends StatelessWidget {
             Row(
               children: [
                 AccountName(
-                  textOverride: (s.nick?.isNotEmpty == true)
-                      ? s.nick
-                      : (s.realmNick?.isNotEmpty == true)
-                      ? s.realmNick
-                      : s.account.nick,
+                  textOverride: displayName,
                   account: s.account,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

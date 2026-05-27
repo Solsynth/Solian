@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/relationship_pod.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/chat/widgets/chat_room_widgets.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -44,7 +45,18 @@ class ChatRoomListTile extends HookConsumerWidget {
     String titleText;
     if (isDirect && room.name == null) {
       if (room.members?.isNotEmpty ?? false) {
-        titleText = validMembers.map((e) => e.account.nick).join(', ');
+        // Look up relationship aliases for each member
+        final memberNames = <String>[];
+        for (final member in validMembers) {
+          final aliasAsync = ref.watch(
+            relationshipAliasProvider(member.accountId),
+          );
+          final alias = aliasAsync.hasValue ? aliasAsync.value : null;
+          memberNames.add(
+            (alias != null && alias.isNotEmpty) ? alias : member.account.nick,
+          );
+        }
+        titleText = memberNames.join(', ');
       } else {
         titleText = 'Direct Message';
       }
