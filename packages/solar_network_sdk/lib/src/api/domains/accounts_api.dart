@@ -7,6 +7,7 @@ import 'package:solar_network_sdk/src/models/accounts/relationship.dart';
 import 'package:solar_network_sdk/src/models/accounts/progression.dart';
 import 'package:solar_network_sdk/src/models/accounts/fortune.dart';
 import 'package:solar_network_sdk/src/models/accounts/action_log.dart';
+import 'package:solar_network_sdk/src/models/accounts/affiliation.dart';
 import 'package:solar_network_sdk/src/models/accounts/abuse_report.dart';
 import 'package:solar_network_sdk/src/models/accounts/abuse_report_type.dart';
 import 'package:solar_network_sdk/src/models/activity/activity.dart';
@@ -704,6 +705,91 @@ class AccountsApi extends BaseApi {
       items: parseList(response, SnAccountTimelineItem.fromJson),
       totalCount: totalCount,
     );
+  }
+
+  // ==========================================
+  // Affiliation spell endpoints
+  // ==========================================
+
+  /// Creates a new affiliation spell.
+  ///
+  /// [spell] - Optional custom spell word. If null, a random 8-char string is generated.
+  Future<SnAffiliationSpell> createAffiliationSpell({String? spell}) async {
+    final response = await post<Map<String, dynamic>>(
+      '$_basePath/affiliations',
+      data: {if (spell != null) 'spell': spell},
+    );
+    return SnAffiliationSpell.fromJson(response.data!);
+  }
+
+  /// Lists the current user's affiliation spells.
+  ///
+  /// [order] - Sort order: 'date' or 'usage'.
+  /// [desc] - Whether to sort descending.
+  /// [take] - Number of items to take.
+  /// [offset] - Pagination offset.
+  Future<PaginatedResult<SnAffiliationSpell>> listAffiliationSpells({
+    String order = 'date',
+    bool desc = false,
+    int take = 20,
+    int offset = 0,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/affiliations',
+      queryParameters: {
+        'order': order,
+        'desc': desc,
+        'take': take,
+        'offset': offset,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    return PaginatedResult(
+      items: parseList(response, SnAffiliationSpell.fromJson),
+      totalCount: totalCount,
+    );
+  }
+
+  /// Gets an affiliation spell by ID.
+  ///
+  /// [id] - The spell ID.
+  Future<SnAffiliationSpell> getAffiliationSpell(String id) async {
+    final response = await get<Map<String, dynamic>>('$_basePath/affiliations/$id');
+    return SnAffiliationSpell.fromJson(response.data!);
+  }
+
+  /// Lists results for an affiliation spell.
+  ///
+  /// [id] - The spell ID.
+  /// [desc] - Whether to sort descending.
+  /// [take] - Number of items to take.
+  /// [offset] - Pagination offset.
+  Future<PaginatedResult<SnAffiliationResult>> listAffiliationResults(
+    String id, {
+    bool desc = false,
+    int take = 20,
+    int offset = 0,
+  }) async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/affiliations/$id/results',
+      queryParameters: {
+        'desc': desc,
+        'take': take,
+        'offset': offset,
+      },
+    );
+    final totalCount = getTotalCount(response.headers);
+    return PaginatedResult(
+      items: parseList(response, SnAffiliationResult.fromJson),
+      totalCount: totalCount,
+    );
+  }
+
+  /// Deletes an affiliation spell.
+  ///
+  /// [id] - The spell ID.
+  Future<void> deleteAffiliationSpell(String id) async {
+    await delete('$_basePath/affiliations/$id');
   }
 
   // ==========================================
