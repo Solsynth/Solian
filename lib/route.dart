@@ -141,6 +141,11 @@ class AppRouter extends RootStackRouter {
             ),
             AutoRoute(page: HealthSyncRoute.page, path: 'fitness/sync'),
             AutoRoute(page: PunishmentsRoute.page, path: 'me/punishments'),
+            AutoRoute(page: AffiliationRoute.page, path: 'me/affiliations'),
+            AutoRoute(
+              page: AffiliationDetailRoute.page,
+              path: 'me/affiliations/:id',
+            ),
           ],
         ),
 
