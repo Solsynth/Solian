@@ -17,6 +17,8 @@ sealed class SnRelationship with _$SnRelationship {
     required SnAccount? related,
     required DateTime? expiredAt,
     required int status,
+    String? alias,
+    int? degradeToStatus,
   }) = _SnRelationship;
 
   factory SnRelationship.fromJson(Map<String, dynamic> json) =>
