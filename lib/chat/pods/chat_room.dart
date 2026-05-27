@@ -10,6 +10,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/e2ee/e2ee.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -1140,6 +1141,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       );
       final body = resp.data as Map<String, dynamic>;
       final rawChanges = (body['changes'] as List?) ?? const [];
+      final rawSummaries = (body['summaries'] as List?) ?? const [];
       final currentTimestampRaw =
           body['current_timestamp'] ?? body['currentTimestamp'];
       final currentTimestamp = _parseSyncTimestamp(currentTimestampRaw);
@@ -1147,6 +1149,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       final roomsById = {
         for (final room in await db.getAllChatRooms()) room.id: room,
       };
+      final removedRoomIds = <String>{};
 
       for (final rawChange in rawChanges.whereType<Map>()) {
         final change = Map<String, dynamic>.from(rawChange);
@@ -1156,6 +1159,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
 
         if (roomId != null && changeType == 'removed') {
           roomsById.remove(roomId);
+          removedRoomIds.add(roomId);
           continue;
         }
 
@@ -1181,6 +1185,9 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       }
 
       await db.saveChatRooms(roomsById.values.toList(), override: true);
+      ref
+          .read(chatSummaryProvider.notifier)
+          .applySyncedSummaries(rawSummaries, removedRoomIds: removedRoomIds);
       await prefs.setInt(
         _chatRoomSyncCursorStoreKey,
         currentTimestamp.millisecondsSinceEpoch,

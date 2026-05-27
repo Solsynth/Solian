@@ -58,6 +58,10 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
   void clear() async {
     state = AsyncData(0);
   }
+
+  void setCount(int count) {
+    state = AsyncData(math.max(count, 0));
+  }
 }
 
 @Riverpod(keepAlive: true)
@@ -121,6 +125,20 @@ class ChatSummary extends _$ChatSummary {
     }
   }
 
+  SnChatSummary? _tryParseSummary(dynamic data) {
+    if (data is! Map) return null;
+    try {
+      final json = Map<String, dynamic>.from(data);
+      final last = _tryParseChatMessage(json['last_message']);
+      if (last != null) {
+        json['last_message'] = last.toJson();
+      }
+      return SnChatSummary.fromJson(json);
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Future<Map<String, SnChatSummary>> build() async {
     final client = ref.watch(apiClientProvider);
@@ -128,14 +146,11 @@ class ChatSummary extends _$ChatSummary {
 
     final Map<String, dynamic> data = resp.data;
     final summaries = data.map((key, value) {
-      final json = value is Map<String, dynamic>
-          ? Map<String, dynamic>.from(value)
-          : <String, dynamic>{};
-      final last = _tryParseChatMessage(json['last_message']);
-      if (last != null) {
-        json['last_message'] = last.toJson();
-      }
-      return MapEntry(key, SnChatSummary.fromJson(json));
+      return MapEntry(
+        key,
+        _tryParseSummary(value) ??
+            const SnChatSummary(unreadCount: 0, lastMessage: null),
+      );
     });
 
     final ws = ref.watch(websocketProvider);
@@ -157,6 +172,40 @@ class ChatSummary extends _$ChatSummary {
     });
 
     return summaries;
+  }
+
+  void applySyncedSummaries(
+    List<dynamic> rawSummaries, {
+    Set<String> removedRoomIds = const {},
+  }) {
+    final updates = <String, SnChatSummary>{};
+
+    for (final raw in rawSummaries.whereType<Map>()) {
+      final json = Map<String, dynamic>.from(raw);
+      final roomId = json['room_id']?.toString() ?? json['roomId']?.toString();
+      if (roomId == null || roomId.isEmpty) continue;
+
+      final summary = _tryParseSummary(json);
+      if (summary == null) continue;
+      updates[roomId] = summary;
+    }
+
+    if (updates.isEmpty && removedRoomIds.isEmpty) return;
+
+    final current = state.maybeWhen(
+      data: (value) => value,
+      orElse: () => const <String, SnChatSummary>{},
+    );
+    final next = Map<String, SnChatSummary>.from(current)
+      ..removeWhere((key, _) => removedRoomIds.contains(key))
+      ..addAll(updates);
+
+    state = AsyncData(next);
+    ref
+        .read(chatUnreadCountProvider.notifier)
+        .setCount(
+          next.values.fold<int>(0, (sum, item) => sum + item.unreadCount),
+        );
   }
 
   Future<void> clearUnreadCount(String chatId) async {
