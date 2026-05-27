@@ -268,19 +268,19 @@ class AccountFeatureWidget extends HookConsumerWidget {
                         context.router.push(const PhysicalPassportRoute());
                       },
                     },
-                    {
-                      'icon': Symbols.qr_code,
-                      'title': 'qrCode',
-                      'onTap': () {
-                        context.router.push(const AccountQrRoute());
-                      },
+                  {
+                    'icon': Symbols.qr_code,
+                    'title': 'qrCode',
+                    'onTap': () {
+                      context.router.push(const AccountQrRoute());
                     },
-                    {
-                      'icon': Symbols.people,
-                      'title': 'relationships',
-                      'onTap': () {
-                        context.router.push(const RelationshipRoute());
-                      },
+                  },
+                  {
+                    'icon': Symbols.people,
+                    'title': 'relationships',
+                    'onTap': () {
+                      context.router.push(const RelationshipRoute());
+                    },
                   },
                   {
                     'icon': Symbols.sticker_rounded,
@@ -297,7 +297,14 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     },
                   },
                   {
-                    'icon': Symbols.confirmation_number,
+                    'icon': Symbols.auto_fix_high,
+                    'title': 'affiliations',
+                    'onTap': () {
+                      context.router.push(const AffiliationRoute());
+                    },
+                  },
+                  {
+                    'icon': Symbols.report,
                     'title': 'tickets',
                     'onTap': () {
                       context.router.push(const TicketListRoute());
