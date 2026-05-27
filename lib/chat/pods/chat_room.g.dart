@@ -84,7 +84,7 @@ final class ChatRoomJoinedNotifierProvider
 }
 
 String _$chatRoomJoinedNotifierHash() =>
-    r'4d631c4c0cc0dfd81d6f9eb9f3689cc2dc8d9192';
+    r'0dabae6b51ac4fb06463bf0d188956aa462ee5f5';
 
 abstract class _$ChatRoomJoinedNotifier
     extends $StreamNotifier<List<SnChatRoom>> {

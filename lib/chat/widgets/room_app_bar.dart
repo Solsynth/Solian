@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/relationship_pod.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -26,9 +27,23 @@ class RoomAppBar extends ConsumerWidget {
       userInfo.value?.id,
     );
     final isDirect = room.type == 1;
-    final title = (isDirect && room.name == null)
-        ? validMembers.map((e) => e.account.nick).join(', ')
-        : room.name!;
+    String title;
+    if (isDirect && room.name == null) {
+      // Look up relationship aliases for each member
+      final memberNames = <String>[];
+      for (final member in validMembers) {
+        final aliasAsync = ref.watch(
+          relationshipAliasProvider(member.accountId),
+        );
+        final alias = aliasAsync.hasValue ? aliasAsync.value : null;
+        memberNames.add(
+          (alias != null && alias.isNotEmpty) ? alias : member.account.nick,
+        );
+      }
+      title = memberNames.join(', ');
+    } else {
+      title = room.name!;
+    }
     final subtitle = _buildSubtitle(context, room, validMembers, onlineStatus);
 
     return Row(
