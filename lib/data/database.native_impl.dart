@@ -83,6 +83,7 @@ class AppDatabase {
         'chatRooms': 0,
         'chatMembers': 0,
         'realms': 0,
+        'relationships': 0,
         'postDrafts': _webDraftStore.length,
       };
     }
@@ -93,6 +94,7 @@ class AppDatabase {
         'chatRooms': 0,
         'chatMembers': 0,
         'realms': 0,
+        'relationships': 0,
         'postDrafts': 0,
       };
     }
@@ -101,6 +103,7 @@ class AppDatabase {
       'chatRooms': store.box<ChatRoomEntity>().count(),
       'chatMembers': store.box<ChatMemberEntity>().count(),
       'realms': store.box<RealmEntity>().count(),
+      'relationships': store.box<RelationshipEntity>().count(),
       'postDrafts': store.box<PostDraftEntity>().count(),
     };
   }
@@ -116,6 +119,7 @@ class AppDatabase {
       store.box<ChatRoomEntity>().removeAll();
       store.box<ChatMemberEntity>().removeAll();
       store.box<RealmEntity>().removeAll();
+      store.box<RelationshipEntity>().removeAll();
       store.box<PostDraftEntity>().removeAll();
       store.close();
     }
@@ -751,6 +755,204 @@ class AppDatabase {
     query.close();
     if (entity == null) return null;
     return _entityToSnPost(entity);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Relationships
+  // ---------------------------------------------------------------------------
+
+  Future<List<SnRelationship>> getAllRelationships() async {
+    if (_isWeb) return const [];
+    final store = await _getStore();
+    if (store == null) return const [];
+    final entities = store.box<RelationshipEntity>().getAll()
+      ..sort((a, b) => b.updatedAtMs.compareTo(a.updatedAtMs));
+    return entities.map(_entityToSnRelationship).toList();
+  }
+
+  Future<SnRelationship?> getRelationshipById(String id) async {
+    if (_isWeb) return null;
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<RelationshipEntity>()
+        .query(RelationshipEntity_.uid.equals(id))
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity == null) return null;
+    return _entityToSnRelationship(entity);
+  }
+
+  Future<SnRelationship?> getRelationshipByAccounts(
+    String accountId,
+    String relatedId,
+  ) async {
+    if (_isWeb) return null;
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<RelationshipEntity>()
+        .query(
+          RelationshipEntity_.accountId.equals(accountId) &
+              RelationshipEntity_.relatedId.equals(relatedId),
+        )
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity == null) return null;
+    return _entityToSnRelationship(entity);
+  }
+
+  Future<void> saveRelationships(List<SnRelationship> relationships) async {
+    if (_isWeb || relationships.isEmpty) return;
+    final store = await _getStore();
+    if (store == null) return;
+    final box = store.box<RelationshipEntity>();
+    for (final rel in relationships) {
+      final uid = '${rel.accountId}:${rel.relatedId}';
+      final query = box.query(RelationshipEntity_.uid.equals(uid)).build();
+      final existing = query.findFirst();
+      query.close();
+      box.put(_snRelationshipToEntity(rel, existing: existing));
+    }
+  }
+
+  Future<void> deleteRelationship(String accountId, String relatedId) async {
+    if (_isWeb) return;
+    final store = await _getStore();
+    if (store == null) return;
+    final box = store.box<RelationshipEntity>();
+    final query = box
+        .query(
+          RelationshipEntity_.accountId.equals(accountId) &
+              RelationshipEntity_.relatedId.equals(relatedId),
+        )
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity != null) box.remove(entity.obxId);
+  }
+
+  Future<List<String>> getBlockedAccountIds(String accountId) async {
+    if (_isWeb) return const [];
+    final store = await _getStore();
+    if (store == null) return const [];
+    final query = store
+        .box<RelationshipEntity>()
+        .query(
+          RelationshipEntity_.accountId.equals(accountId) &
+              RelationshipEntity_.status.equals(-100),
+        )
+        .build();
+    final entities = query.find();
+    query.close();
+    return entities.map((e) => e.relatedId).toList();
+  }
+
+  Future<List<String>> getMutedAccountIds(String accountId) async {
+    if (_isWeb) return const [];
+    final store = await _getStore();
+    if (store == null) return const [];
+    final query = store
+        .box<RelationshipEntity>()
+        .query(
+          RelationshipEntity_.accountId.equals(accountId) &
+              RelationshipEntity_.status.equals(-50),
+        )
+        .build();
+    final entities = query.find();
+    query.close();
+    return entities.map((e) => e.relatedId).toList();
+  }
+
+  Future<List<String>> getCloseFriendAccountIds(String accountId) async {
+    if (_isWeb) return const [];
+    final store = await _getStore();
+    if (store == null) return const [];
+    final query = store
+        .box<RelationshipEntity>()
+        .query(
+          RelationshipEntity_.accountId.equals(accountId) &
+              RelationshipEntity_.status.equals(200),
+        )
+        .build();
+    final entities = query.find();
+    query.close();
+    return entities.map((e) => e.relatedId).toList();
+  }
+
+  Future<Map<String, int>> getRelationshipStats() async {
+    if (_isWeb) {
+      return {'relationships': 0};
+    }
+    final store = await _getStore();
+    if (store == null) {
+      return {'relationships': 0};
+    }
+    return {'relationships': store.box<RelationshipEntity>().count()};
+  }
+
+  // ---------------------------------------------------------------------------
+  // Entity adapters: RelationshipEntity <-> SnRelationship
+  // ---------------------------------------------------------------------------
+
+  SnRelationship _entityToSnRelationship(RelationshipEntity entity) {
+    return SnRelationship(
+      accountId: entity.accountId,
+      account: entity.accountJson != null
+          ? _decodeAccount(entity.accountJson!)
+          : null,
+      relatedId: entity.relatedId,
+      related: entity.relatedJson != null
+          ? _decodeAccount(entity.relatedJson!)
+          : null,
+      status: entity.status,
+      expiredAt: _fromMs(entity.expiredAtMs),
+      alias: entity.alias,
+      degradeToStatus: entity.degradeToStatus,
+      createdAt: _fromMs(entity.createdAtMs),
+      updatedAt: _fromMs(entity.updatedAtMs),
+      deletedAt: _fromMs(entity.deletedAtMs),
+    );
+  }
+
+  RelationshipEntity _snRelationshipToEntity(
+    SnRelationship relationship, {
+    RelationshipEntity? existing,
+  }) {
+    final uid = '${relationship.accountId}:${relationship.relatedId}';
+    final entity =
+        existing ??
+        RelationshipEntity(
+          uid: uid,
+          accountId: relationship.accountId,
+          relatedId: relationship.relatedId,
+          status: relationship.status,
+          createdAtMs: (relationship.createdAt ?? DateTime.now())
+              .millisecondsSinceEpoch,
+          updatedAtMs: (relationship.updatedAt ?? DateTime.now())
+              .millisecondsSinceEpoch,
+        );
+    entity.uid = uid;
+    entity.accountId = relationship.accountId;
+    entity.relatedId = relationship.relatedId;
+    entity.status = relationship.status;
+    entity.expiredAtMs = _toMs(relationship.expiredAt);
+    entity.degradeToStatus = relationship.degradeToStatus;
+    entity.alias = relationship.alias;
+    entity.accountJson = relationship.account != null
+        ? jsonEncode(_compactAccountJson(relationship.account!))
+        : null;
+    entity.relatedJson = relationship.related != null
+        ? jsonEncode(_compactAccountJson(relationship.related!))
+        : null;
+    entity.createdAtMs =
+        (relationship.createdAt ?? DateTime.now()).millisecondsSinceEpoch;
+    entity.updatedAtMs =
+        (relationship.updatedAt ?? DateTime.now()).millisecondsSinceEpoch;
+    entity.deletedAtMs = _toMs(relationship.deletedAt);
+    return entity;
   }
 
   // ---------------------------------------------------------------------------

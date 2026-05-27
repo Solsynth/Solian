@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 mixin _$SnRelationship {
 
  DateTime? get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String get accountId;// Usually the account was not included in the response
- SnAccount? get account; String get relatedId; SnAccount? get related; DateTime? get expiredAt; int get status;
+ SnAccount? get account; String get relatedId; SnAccount? get related; DateTime? get expiredAt; int get status; String? get alias; int? get degradeToStatus;
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $SnRelationshipCopyWith<SnRelationship> get copyWith => _$SnRelationshipCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRelationship&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.relatedId, relatedId) || other.relatedId == relatedId)&&(identical(other.related, related) || other.related == related)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnRelationship&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.relatedId, relatedId) || other.relatedId == relatedId)&&(identical(other.related, related) || other.related == related)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.alias, alias) || other.alias == alias)&&(identical(other.degradeToStatus, degradeToStatus) || other.degradeToStatus == degradeToStatus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,accountId,account,relatedId,related,expiredAt,status);
+int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,accountId,account,relatedId,related,expiredAt,status,alias,degradeToStatus);
 
 @override
 String toString() {
-  return 'SnRelationship(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, accountId: $accountId, account: $account, relatedId: $relatedId, related: $related, expiredAt: $expiredAt, status: $status)';
+  return 'SnRelationship(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, accountId: $accountId, account: $account, relatedId: $relatedId, related: $related, expiredAt: $expiredAt, status: $status, alias: $alias, degradeToStatus: $degradeToStatus)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $SnRelationshipCopyWith<$Res>  {
   factory $SnRelationshipCopyWith(SnRelationship value, $Res Function(SnRelationship) _then) = _$SnRelationshipCopyWithImpl;
 @useResult
 $Res call({
- DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount? account, String relatedId, SnAccount? related, DateTime? expiredAt, int status
+ DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount? account, String relatedId, SnAccount? related, DateTime? expiredAt, int status, String? alias, int? degradeToStatus
 });
 
 
@@ -66,7 +66,7 @@ class _$SnRelationshipCopyWithImpl<$Res>
 
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = freezed,Object? relatedId = null,Object? related = freezed,Object? expiredAt = freezed,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = freezed,Object? relatedId = null,Object? related = freezed,Object? expiredAt = freezed,Object? status = null,Object? alias = freezed,Object? degradeToStatus = freezed,}) {
   return _then(_self.copyWith(
 createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -77,7 +77,9 @@ as SnAccount?,relatedId: null == relatedId ? _self.relatedId : relatedId // igno
 as String,related: freezed == related ? _self.related : related // ignore: cast_nullable_to_non_nullable
 as SnAccount?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int,
+as int,alias: freezed == alias ? _self.alias : alias // ignore: cast_nullable_to_non_nullable
+as String?,degradeToStatus: freezed == degradeToStatus ? _self.degradeToStatus : degradeToStatus // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of SnRelationship
@@ -183,10 +185,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status,  String? alias,  int? degradeToStatus)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnRelationship() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status,_that.alias,_that.degradeToStatus);case _:
   return orElse();
 
 }
@@ -204,10 +206,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status,  String? alias,  int? degradeToStatus)  $default,) {final _that = this;
 switch (_that) {
 case _SnRelationship():
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status);}
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status,_that.alias,_that.degradeToStatus);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -221,10 +223,10 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime? createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String accountId,  SnAccount? account,  String relatedId,  SnAccount? related,  DateTime? expiredAt,  int status,  String? alias,  int? degradeToStatus)?  $default,) {final _that = this;
 switch (_that) {
 case _SnRelationship() when $default != null:
-return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status);case _:
+return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,_that.account,_that.relatedId,_that.related,_that.expiredAt,_that.status,_that.alias,_that.degradeToStatus);case _:
   return null;
 
 }
@@ -236,7 +238,7 @@ return $default(_that.createdAt,_that.updatedAt,_that.deletedAt,_that.accountId,
 @JsonSerializable()
 
 class _SnRelationship implements SnRelationship {
-  const _SnRelationship({required this.createdAt, required this.updatedAt, required this.deletedAt, required this.accountId, required this.account, required this.relatedId, required this.related, required this.expiredAt, required this.status});
+  const _SnRelationship({required this.createdAt, required this.updatedAt, required this.deletedAt, required this.accountId, required this.account, required this.relatedId, required this.related, required this.expiredAt, required this.status, this.alias, this.degradeToStatus});
   factory _SnRelationship.fromJson(Map<String, dynamic> json) => _$SnRelationshipFromJson(json);
 
 @override final  DateTime? createdAt;
@@ -249,6 +251,8 @@ class _SnRelationship implements SnRelationship {
 @override final  SnAccount? related;
 @override final  DateTime? expiredAt;
 @override final  int status;
+@override final  String? alias;
+@override final  int? degradeToStatus;
 
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
@@ -263,16 +267,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRelationship&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.relatedId, relatedId) || other.relatedId == relatedId)&&(identical(other.related, related) || other.related == related)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnRelationship&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.account, account) || other.account == account)&&(identical(other.relatedId, relatedId) || other.relatedId == relatedId)&&(identical(other.related, related) || other.related == related)&&(identical(other.expiredAt, expiredAt) || other.expiredAt == expiredAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.alias, alias) || other.alias == alias)&&(identical(other.degradeToStatus, degradeToStatus) || other.degradeToStatus == degradeToStatus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,accountId,account,relatedId,related,expiredAt,status);
+int get hashCode => Object.hash(runtimeType,createdAt,updatedAt,deletedAt,accountId,account,relatedId,related,expiredAt,status,alias,degradeToStatus);
 
 @override
 String toString() {
-  return 'SnRelationship(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, accountId: $accountId, account: $account, relatedId: $relatedId, related: $related, expiredAt: $expiredAt, status: $status)';
+  return 'SnRelationship(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, accountId: $accountId, account: $account, relatedId: $relatedId, related: $related, expiredAt: $expiredAt, status: $status, alias: $alias, degradeToStatus: $degradeToStatus)';
 }
 
 
@@ -283,7 +287,7 @@ abstract mixin class _$SnRelationshipCopyWith<$Res> implements $SnRelationshipCo
   factory _$SnRelationshipCopyWith(_SnRelationship value, $Res Function(_SnRelationship) _then) = __$SnRelationshipCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount? account, String relatedId, SnAccount? related, DateTime? expiredAt, int status
+ DateTime? createdAt, DateTime? updatedAt, DateTime? deletedAt, String accountId, SnAccount? account, String relatedId, SnAccount? related, DateTime? expiredAt, int status, String? alias, int? degradeToStatus
 });
 
 
@@ -300,7 +304,7 @@ class __$SnRelationshipCopyWithImpl<$Res>
 
 /// Create a copy of SnRelationship
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = freezed,Object? relatedId = null,Object? related = freezed,Object? expiredAt = freezed,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? createdAt = freezed,Object? updatedAt = freezed,Object? deletedAt = freezed,Object? accountId = null,Object? account = freezed,Object? relatedId = null,Object? related = freezed,Object? expiredAt = freezed,Object? status = null,Object? alias = freezed,Object? degradeToStatus = freezed,}) {
   return _then(_SnRelationship(
 createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -311,7 +315,9 @@ as SnAccount?,relatedId: null == relatedId ? _self.relatedId : relatedId // igno
 as String,related: freezed == related ? _self.related : related // ignore: cast_nullable_to_non_nullable
 as SnAccount?,expiredAt: freezed == expiredAt ? _self.expiredAt : expiredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as int,
+as int,alias: freezed == alias ? _self.alias : alias // ignore: cast_nullable_to_non_nullable
+as String?,degradeToStatus: freezed == degradeToStatus ? _self.degradeToStatus : degradeToStatus // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

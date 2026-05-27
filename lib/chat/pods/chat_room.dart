@@ -63,6 +63,7 @@ class FlashingMessagesNotifier extends Notifier<Map<String, int>> {
 }
 
 const String _chatSyncCursorStoreKey = 'chat_messages_sync_cursor_ms';
+const String _chatRoomSyncCursorStoreKey = 'chat_rooms_sync_cursor_ms';
 const String _chatRoomEncryptionModePrefix = 'chat_room_encryption_mode_';
 
 String _chatRoomEncryptionModeStoreKey(String roomId) =>
@@ -135,6 +136,20 @@ Future<int> _getLatestMessageTimestamp(AppDatabase db) async {
     Logger.root.info('Error getting latest message timestamp: $e');
   }
   return 0;
+}
+
+DateTime _parseSyncTimestamp(dynamic value) {
+  if (value is DateTime) return value.toUtc();
+  if (value is String) {
+    return DateTime.tryParse(value)?.toUtc() ?? DateTime.now().toUtc();
+  }
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value, isUtc: true);
+  }
+  if (value is num) {
+    return DateTime.fromMillisecondsSinceEpoch(value.toInt(), isUtc: true);
+  }
+  return DateTime.now().toUtc();
 }
 
 /// Global chat sync notifier that syncs messages from all chat rooms
@@ -1088,71 +1103,108 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 @riverpod
 class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
   @override
-  Future<List<SnChatRoom>> build() async {
+  Stream<List<SnChatRoom>> build() async* {
     final db = ref.watch(databaseProvider);
+    final prefs = ref.watch(sharedPreferencesProvider);
 
-    try {
+    Future<List<SnChatRoom>> loadLocalRooms() async {
       final localRooms = await db.getAllChatRooms();
       final localRealms = await db.getAllRealms();
-      if (localRooms.isNotEmpty) {
-        final roomsWithDetails = await Future.wait(
-          localRooms.map((room) async {
-            final encryptionModeRaw = await db.getSecret(
-              _chatRoomEncryptionModeStoreKey(room.id),
-            );
-            final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
-            final members = await db.getMembersByRoomId(room.id);
-            final realm = localRealms
-                .where((e) => e.id == room.realmId)
-                .firstOrNull;
-            return room.copyWith(
-              encryptionMode: encryptionMode,
-              members: members,
-              realm: realm,
-            );
-          }),
-        );
-
-        // Always fetch remote chat rooms to check for new ones
-        try {
-          final client = ref.watch(apiClientProvider);
-          final resp = await client.get('/messager/chat');
-          final rawRooms = (resp.data as List).whereType<Map>().toList();
-          for (final roomJson in rawRooms) {
-            await _persistRoomEncryptionModeFromJson(
-              db,
-              Map<String, dynamic>.from(roomJson),
-            );
-          }
-          final rooms = rawRooms
-              .map((e) => SnChatRoom.fromJson(Map<String, dynamic>.from(e)))
-              .cast<SnChatRoom>()
-              .toList();
-          await db.saveChatRooms(rooms, override: true);
-          return rooms;
-        } catch (_) {
-          // If remote fetch fails, return local rooms
-          return roomsWithDetails;
-        }
-      }
-    } catch (_) {}
-
-    // Fallback to API
-    final client = ref.watch(apiClientProvider);
-    final resp = await client.get('/messager/chat');
-    final rawRooms = (resp.data as List).whereType<Map>().toList();
-    for (final roomJson in rawRooms) {
-      await _persistRoomEncryptionModeFromJson(
-        db,
-        Map<String, dynamic>.from(roomJson),
+      return Future.wait(
+        localRooms.map((room) async {
+          final encryptionModeRaw = await db.getSecret(
+            _chatRoomEncryptionModeStoreKey(room.id),
+          );
+          final encryptionMode = int.tryParse(encryptionModeRaw ?? '') ?? 0;
+          final members = await db.getMembersByRoomId(room.id);
+          final realm = localRealms
+              .where((e) => e.id == room.realmId)
+              .firstOrNull;
+          return room.copyWith(
+            encryptionMode: encryptionMode,
+            members: members,
+            realm: realm,
+          );
+        }),
       );
     }
-    final rooms = rawRooms
-        .map((e) => SnChatRoom.fromJson(Map<String, dynamic>.from(e)))
-        .cast<SnChatRoom>()
-        .toList();
-    await db.saveChatRooms(rooms, override: true);
-    return rooms;
+
+    Future<void> syncRemoteRooms(List<SnChatRoom> localRooms) async {
+      final client = ref.read(apiClientProvider);
+      final savedCursor = prefs.getInt(_chatRoomSyncCursorStoreKey) ?? 0;
+      final syncCursor = localRooms.isEmpty ? 0 : savedCursor;
+
+      final resp = await client.post(
+        '/messager/chat/rooms/sync',
+        data: {'last_sync_timestamp': syncCursor},
+      );
+      final body = resp.data as Map<String, dynamic>;
+      final rawChanges = (body['changes'] as List?) ?? const [];
+      final currentTimestampRaw =
+          body['current_timestamp'] ?? body['currentTimestamp'];
+      final currentTimestamp = _parseSyncTimestamp(currentTimestampRaw);
+
+      final roomsById = {
+        for (final room in await db.getAllChatRooms()) room.id: room,
+      };
+
+      for (final rawChange in rawChanges.whereType<Map>()) {
+        final change = Map<String, dynamic>.from(rawChange);
+        final roomId =
+            change['room_id']?.toString() ?? change['roomId']?.toString();
+        final changeType = change['type']?.toString();
+
+        if (roomId != null && changeType == 'removed') {
+          roomsById.remove(roomId);
+          continue;
+        }
+
+        final rawRoom = change['room'];
+        if (rawRoom is Map) {
+          final roomJson = Map<String, dynamic>.from(rawRoom);
+          await _persistRoomEncryptionModeFromJson(db, roomJson);
+          roomsById[SnChatRoom.fromJson(roomJson).id] = SnChatRoom.fromJson(
+            roomJson,
+          );
+        }
+
+        final rawMember = change['member'];
+        if (rawMember is Map) {
+          try {
+            await db.saveMember(
+              SnChatMember.fromJson(Map<String, dynamic>.from(rawMember)),
+            );
+          } catch (e) {
+            Logger.root.info('Skipping invalid synced chat member: $e');
+          }
+        }
+      }
+
+      await db.saveChatRooms(roomsById.values.toList(), override: true);
+      await prefs.setInt(
+        _chatRoomSyncCursorStoreKey,
+        currentTimestamp.millisecondsSinceEpoch,
+      );
+    }
+
+    final localRooms = await loadLocalRooms();
+    yield localRooms;
+
+    try {
+      await syncRemoteRooms(localRooms);
+      final syncedRooms = await loadLocalRooms();
+      yield syncedRooms;
+    } catch (e, stackTrace) {
+      if (localRooms.isEmpty) {
+        Logger.root.info('Error loading synced chat rooms', e, stackTrace);
+        rethrow;
+      }
+      Logger.root.info(
+        'Using local chat rooms after sync failed',
+        e,
+        stackTrace,
+      );
+    }
   }
 }
 
