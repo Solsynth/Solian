@@ -280,11 +280,11 @@ PODS:
   - SDWebImage/Core (5.21.7)
   - sensors_plus (0.0.1):
     - Flutter
-  - Sentry/HybridSDK (8.46.0)
-  - sentry_flutter (8.14.2):
+  - Sentry/HybridSDK (8.58.2)
+  - sentry_flutter (9.20.0):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.46.0)
+    - Sentry/HybridSDK (= 8.58.2)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -592,8 +592,8 @@ SPEC CHECKSUMS:
   record_ios: 980fd386a97a35987d0fce3dfda4b26a38c90f4c
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
-  Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
-  sentry_flutter: 27892878729f42701297c628eb90e7c6529f3684
+  Sentry: de29b881e83bd91cf99a927f82f1fd86bfb39db2
+  sentry_flutter: cbb414ef141b64f901bc1ba32daa871349510ce4
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171

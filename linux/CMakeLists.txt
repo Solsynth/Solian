@@ -70,6 +70,9 @@ set_target_properties(${BINARY_NAME}
 )
 
 
+# Disable CURL transport for sentry-native (avoids AsynchDNS requirement).
+set(SENTRY_TRANSPORT_CURL OFF CACHE BOOL "" FORCE)
+
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
