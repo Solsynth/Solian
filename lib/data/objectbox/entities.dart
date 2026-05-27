@@ -186,6 +186,47 @@ class ChatMessageEntity {
 }
 
 @Entity()
+class RelationshipEntity {
+  RelationshipEntity({
+    this.obxId = 0,
+    required this.uid,
+    required this.accountId,
+    required this.relatedId,
+    required this.status,
+    this.expiredAtMs,
+    this.degradeToStatus,
+    this.alias,
+    this.accountJson,
+    this.relatedJson,
+    required this.createdAtMs,
+    required this.updatedAtMs,
+    this.deletedAtMs,
+  });
+
+  @Id()
+  int obxId;
+
+  @Unique()
+  String uid;
+
+  @Index()
+  String accountId;
+
+  @Index()
+  String relatedId;
+
+  int status;
+  int? expiredAtMs;
+  int? degradeToStatus;
+  String? alias;
+  String? accountJson;
+  String? relatedJson;
+  int createdAtMs;
+  int updatedAtMs;
+  int? deletedAtMs;
+}
+
+@Entity()
 class PostDraftEntity {
   PostDraftEntity({
     this.obxId = 0,

@@ -150,4 +150,65 @@ class AppDatabase {
   Future<Map<String, String>> getAllSecrets() async {
     return Map<String, String>.from(_webKvStore);
   }
+
+  // ---------------------------------------------------------------------------
+  // Relationships
+  // ---------------------------------------------------------------------------
+
+  final Map<String, SnRelationship> _webRelationshipStore = {};
+
+  Future<List<SnRelationship>> getAllRelationships() async {
+    return _webRelationshipStore.values.toList()
+      ..sort((a, b) =>
+          (b.updatedAt ?? DateTime(0)).compareTo(a.updatedAt ?? DateTime(0)));
+  }
+
+  Future<SnRelationship?> getRelationshipById(String id) async {
+    return _webRelationshipStore[id];
+  }
+
+  Future<SnRelationship?> getRelationshipByAccounts(
+    String accountId,
+    String relatedId,
+  ) async {
+    final uid = '$accountId:$relatedId';
+    return _webRelationshipStore[uid];
+  }
+
+  Future<void> saveRelationships(List<SnRelationship> relationships) async {
+    for (final rel in relationships) {
+      final uid = '${rel.accountId}:${rel.relatedId}';
+      _webRelationshipStore[uid] = rel;
+    }
+  }
+
+  Future<void> deleteRelationship(String accountId, String relatedId) async {
+    final uid = '$accountId:$relatedId';
+    _webRelationshipStore.remove(uid);
+  }
+
+  Future<List<String>> getBlockedAccountIds(String accountId) async {
+    return _webRelationshipStore.values
+        .where((r) => r.accountId == accountId && r.status <= -100)
+        .map((r) => r.relatedId)
+        .toList();
+  }
+
+  Future<List<String>> getMutedAccountIds(String accountId) async {
+    return _webRelationshipStore.values
+        .where((r) => r.accountId == accountId && r.status == -50)
+        .map((r) => r.relatedId)
+        .toList();
+  }
+
+  Future<List<String>> getCloseFriendAccountIds(String accountId) async {
+    return _webRelationshipStore.values
+        .where((r) => r.accountId == accountId && r.status >= 200)
+        .map((r) => r.relatedId)
+        .toList();
+  }
+
+  Future<Map<String, int>> getRelationshipStats() async {
+    return {'relationships': _webRelationshipStore.length};
+  }
 }
