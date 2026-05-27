@@ -29,6 +29,8 @@ _SnRelationship _$SnRelationshipFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['expired_at'] as String),
       status: (json['status'] as num).toInt(),
+      alias: json['alias'] as String?,
+      degradeToStatus: (json['degrade_to_status'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$SnRelationshipToJson(_SnRelationship instance) =>
@@ -42,4 +44,6 @@ Map<String, dynamic> _$SnRelationshipToJson(_SnRelationship instance) =>
       'related': instance.related?.toJson(),
       'expired_at': instance.expiredAt?.toIso8601String(),
       'status': instance.status,
+      'alias': instance.alias,
+      'degrade_to_status': instance.degradeToStatus,
     };

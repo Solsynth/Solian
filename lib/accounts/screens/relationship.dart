@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/database.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/drive/widgets/cloud_files.dart';
@@ -41,6 +42,29 @@ class RelationshipListNotifier
     with AsyncPaginationController<SnRelationship> {
   @override
   FutureOr<PaginationState<SnRelationship>> build() async {
+    final db = ref.read(databaseProvider);
+
+    // Load from local cache first
+    try {
+      final localRelationships = await db.getAllRelationships();
+      if (localRelationships.isNotEmpty) {
+        // Show local data immediately, then sync with API in background
+        _syncWithApiInBackground(db);
+
+        return PaginationState(
+          items: localRelationships,
+          isLoading: false,
+          isReloading: false,
+          totalCount: localRelationships.length,
+          hasMore: true, // Assume more until we know from API
+          cursor: localRelationships.length.toString(),
+        );
+      }
+    } catch (_) {
+      // If local cache fails, fall through to API
+    }
+
+    // Fallback to API if no local data
     final items = await fetch();
     return PaginationState(
       items: items,
@@ -52,8 +76,43 @@ class RelationshipListNotifier
     );
   }
 
+  Future<void> _syncWithApiInBackground(dynamic db) async {
+    try {
+      final client = ref.read(apiClientProvider);
+      final response = await client.get(
+        '/passport/relationships',
+        queryParameters: {'offset': '0', 'take': '100'},
+      );
+
+      final List<SnRelationship> items = (response.data as List)
+          .map((e) => SnRelationship.fromJson(e as Map<String, dynamic>))
+          .cast<SnRelationship>()
+          .toList();
+
+      // Save to local cache
+      await db.saveRelationships(items);
+
+      // Update state with fresh data
+      final total =
+          int.tryParse(response.headers['x-total']?.first ?? '') ?? 0;
+      state = AsyncData(
+        PaginationState(
+          items: items,
+          isLoading: false,
+          isReloading: false,
+          totalCount: total,
+          hasMore: items.length < total,
+          cursor: items.length.toString(),
+        ),
+      );
+    } catch (_) {
+      // Background sync failed, keep showing local data
+    }
+  }
+
   @override
   Future<List<SnRelationship>> fetch() async {
+    final db = ref.read(databaseProvider);
     final client = ref.read(apiClientProvider);
     final take = 20;
 
@@ -69,6 +128,9 @@ class RelationshipListNotifier
 
     totalCount = int.tryParse(response.headers['x-total']?.first ?? '') ?? 0;
 
+    // Save to local cache
+    await db.saveRelationships(items);
+
     return items;
   }
 }
@@ -83,7 +145,11 @@ class RelationshipListTile extends StatelessWidget {
   final String? currentUserId;
   final bool showRelatedAccount;
   final Function(SnRelationship, int)? onUpdateStatus;
+  final Function(SnRelationship, int, String?, int?)? onBlockWithExpiry;
+  final Function(SnRelationship, String?)? onMuteWithExpiry;
   final Function(SnRelationship)? onDelete;
+  final Function(SnRelationship)? onToggleCloseFriend;
+  final Function(SnRelationship, String?)? onUpdateAlias;
 
   const RelationshipListTile({
     super.key,
@@ -96,7 +162,11 @@ class RelationshipListTile extends StatelessWidget {
     required this.currentUserId,
     this.showRelatedAccount = false,
     this.onUpdateStatus,
+    this.onBlockWithExpiry,
+    this.onMuteWithExpiry,
     this.onDelete,
+    this.onToggleCloseFriend,
+    this.onUpdateAlias,
   });
 
   @override
@@ -120,11 +190,23 @@ class RelationshipListTile extends StatelessWidget {
         spacing: 6,
         children: [
           Flexible(child: Text(account.nick)),
-          if (relationship.status >= 100) // Friend
+          if (relationship.status >= 200) // Close Friend
+            Badge(
+              label: Text('relationshipStatusCloseFriend').tr(),
+              backgroundColor: Theme.of(context).colorScheme.tertiary,
+              textColor: Theme.of(context).colorScheme.onTertiary,
+            )
+          else if (relationship.status >= 100) // Friend
             Badge(
               label: Text('relationshipStatusFriend').tr(),
               backgroundColor: Theme.of(context).colorScheme.primary,
               textColor: Theme.of(context).colorScheme.onPrimary,
+            )
+          else if (relationship.status == -50) // Muted
+            Badge(
+              label: Text('relationshipStatusMuted').tr(),
+              backgroundColor: Theme.of(context).colorScheme.outline,
+              textColor: Theme.of(context).colorScheme.surface,
             )
           else if (relationship.status <= -100) // Blocked
             Badge(
@@ -156,7 +238,11 @@ class RelationshipListTile extends StatelessWidget {
             ),
         ],
       ),
-      subtitle: Text('@${account.name}'),
+      subtitle: Text(
+        relationship.alias != null && relationship.alias!.isNotEmpty
+            ? '${relationship.alias!} (@${account.name})'
+            : '@${account.name}',
+      ),
       trailing: showActions
           ? Row(
               mainAxisSize: MainAxisSize.min,
@@ -179,14 +265,33 @@ class RelationshipListTile extends StatelessWidget {
                     onPressed: submitting ? null : onCancel,
                     icon: const Icon(Symbols.close),
                   ),
-                if (isEstablished && onUpdateStatus != null)
+                if (isEstablished && (onUpdateStatus != null || onBlockWithExpiry != null || onMuteWithExpiry != null || onDelete != null || onToggleCloseFriend != null))
                   PopupMenuButton(
                     padding: EdgeInsets.zero,
                     icon: const Icon(Symbols.more_vert),
                     itemBuilder: (context) => [
-                      if (relationship.status >= 100) // If friend
+                      if (relationship.status >= 100 && onToggleCloseFriend != null)
                         PopupMenuItem(
-                          onTap: () => onUpdateStatus?.call(relationship, -100),
+                          onTap: () => onToggleCloseFriend?.call(relationship),
+                          child: Row(
+                            children: [
+                              Icon(
+                                relationship.status >= 200
+                                    ? Symbols.star
+                                    : Symbols.star_outline,
+                              ),
+                              const Gap(12),
+                              Text(
+                                relationship.status >= 200
+                                    ? 'removeCloseFriend'.tr()
+                                    : 'addCloseFriend'.tr(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (relationship.status >= 100 && onBlockWithExpiry != null)
+                        PopupMenuItem(
+                          onTap: () => _showBlockExpirySheet(context, relationship),
                           child: Row(
                             children: [
                               const Icon(Symbols.block),
@@ -195,7 +300,18 @@ class RelationshipListTile extends StatelessWidget {
                             ],
                           ),
                         )
-                      else if (relationship.status <= -100) // If blocked
+                      else if (relationship.status == -50 && onBlockWithExpiry != null)
+                        PopupMenuItem(
+                          onTap: () => _showBlockExpirySheet(context, relationship),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.block),
+                              const Gap(12),
+                              Text('blockUser').tr(),
+                            ],
+                          ),
+                        )
+                      else if (relationship.status <= -100 && onUpdateStatus != null)
                         PopupMenuItem(
                           onTap: () => onUpdateStatus?.call(relationship, 100),
                           child: Row(
@@ -203,6 +319,39 @@ class RelationshipListTile extends StatelessWidget {
                               const Icon(Symbols.person_add),
                               const Gap(12),
                               Text('unblockUser').tr(),
+                            ],
+                          ),
+                        ),
+                      if (relationship.status >= 100 && onMuteWithExpiry != null)
+                        PopupMenuItem(
+                          onTap: () => _showMuteExpirySheet(context, relationship),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.volume_off),
+                              const Gap(12),
+                              Text('muteUser').tr(),
+                            ],
+                          ),
+                        )
+                      else if (relationship.status == -50 && onMuteWithExpiry != null)
+                        PopupMenuItem(
+                          onTap: () => onMuteWithExpiry?.call(relationship, null),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.volume_up),
+                              const Gap(12),
+                              Text('unmuteUser').tr(),
+                            ],
+                          ),
+                        ),
+                      if (onUpdateAlias != null)
+                        PopupMenuItem(
+                          onTap: () => _showAliasEditor(context, relationship),
+                          child: Row(
+                            children: [
+                              const Icon(Symbols.edit),
+                              const Gap(12),
+                              Text('setAlias').tr(),
                             ],
                           ),
                         ),
@@ -222,6 +371,160 @@ class RelationshipListTile extends StatelessWidget {
               ],
             )
           : null,
+    );
+  }
+
+  void _showBlockExpirySheet(
+    BuildContext context,
+    SnRelationship relationship,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => _ExpiryDurationSheet(
+        title: 'blockUser'.tr(),
+        onDurationSelected: (expiresIn, degradeTo) {
+          onBlockWithExpiry?.call(relationship, -100, expiresIn, degradeTo);
+        },
+      ),
+    );
+  }
+
+  void _showMuteExpirySheet(
+    BuildContext context,
+    SnRelationship relationship,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => _ExpiryDurationSheet(
+        title: 'muteUser'.tr(),
+        showDegradeOption: false,
+        onDurationSelected: (expiresIn, degradeTo) {
+          onMuteWithExpiry?.call(relationship, expiresIn);
+        },
+      ),
+    );
+  }
+
+  void _showAliasEditor(
+    BuildContext context,
+    SnRelationship relationship,
+  ) {
+    final controller = TextEditingController(text: relationship.alias ?? '');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('setAlias'.tr()),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'aliasHint'.tr(),
+            labelText: 'alias'.tr(),
+          ),
+          maxLength: 128,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('cancel'.tr()),
+          ),
+          if (relationship.alias != null && relationship.alias!.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                onUpdateAlias?.call(relationship, null);
+              },
+              child: Text('clearAlias'.tr()),
+            ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              final alias = controller.text.trim();
+              onUpdateAlias?.call(relationship, alias.isEmpty ? null : alias);
+            },
+            child: Text('save'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExpiryDurationSheet extends StatelessWidget {
+  final String title;
+  final bool showDegradeOption;
+  final Function(String? expiresIn, int? degradeTo) onDurationSelected;
+
+  const _ExpiryDurationSheet({
+    required this.title,
+    this.showDegradeOption = true,
+    required this.onDurationSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Symbols.schedule),
+            title: Text('30 minutes'),
+            onTap: () {
+              Navigator.pop(context);
+              onDurationSelected('30m', showDegradeOption ? -50 : null);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Symbols.schedule),
+            title: Text('1 hour'),
+            onTap: () {
+              Navigator.pop(context);
+              onDurationSelected('1h', showDegradeOption ? -50 : null);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Symbols.schedule),
+            title: Text('24 hours'),
+            onTap: () {
+              Navigator.pop(context);
+              onDurationSelected('24h', showDegradeOption ? -50 : null);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Symbols.schedule),
+            title: Text('7 days'),
+            onTap: () {
+              Navigator.pop(context);
+              onDurationSelected('7d', showDegradeOption ? -50 : null);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Symbols.schedule),
+            title: Text('30 days'),
+            onTap: () {
+              Navigator.pop(context);
+              onDurationSelected('30d', showDegradeOption ? -50 : null);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Symbols.all_inclusive),
+            title: Text('permanent'.tr()),
+            onTap: () {
+              Navigator.pop(context);
+              onDurationSelected(null, null);
+            },
+          ),
+          const Gap(8),
+        ],
+      ),
     );
   }
 }
@@ -290,6 +593,86 @@ class RelationshipScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> blockWithExpiry(
+      SnRelationship relationship,
+      int status,
+      String? expiresIn,
+      int? degradeTo,
+    ) async {
+      try {
+        final client = ref.read(apiClientProvider);
+        final data = <String, dynamic>{};
+        if (expiresIn != null) data['expires_in'] = expiresIn;
+        if (degradeTo != null) data['degrade_to'] = degradeTo;
+        await client.post(
+          '/passport/relationships/${relationship.relatedId}/block',
+          data: data.isNotEmpty ? data : null,
+        );
+        relationshipNotifier.refresh();
+        showSnackBar('userBlocked'.tr());
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> muteWithExpiry(
+      SnRelationship relationship,
+      String? expiresIn,
+    ) async {
+      try {
+        final client = ref.read(apiClientProvider);
+        final data = <String, dynamic>{};
+        if (expiresIn != null) data['expires_in'] = expiresIn;
+        await client.post(
+          '/passport/relationships/${relationship.relatedId}/mute',
+          data: data.isNotEmpty ? data : null,
+        );
+        relationshipNotifier.refresh();
+        showSnackBar('userMuted'.tr());
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> toggleCloseFriend(SnRelationship relationship) async {
+      try {
+        final client = ref.read(apiClientProvider);
+        if (relationship.status >= 200) {
+          await client.delete(
+            '/passport/relationships/${relationship.relatedId}/close-friend',
+          );
+          showSnackBar('closeFriendRemoved'.tr());
+        } else {
+          await client.post(
+            '/passport/relationships/${relationship.relatedId}/close-friend',
+          );
+          showSnackBar('closeFriendAdded'.tr());
+        }
+        relationshipNotifier.refresh();
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
+    Future<void> updateAlias(
+      SnRelationship relationship,
+      String? alias,
+    ) async {
+      try {
+        final client = ref.read(apiClientProvider);
+        await client.patch(
+          '/passport/relationships/${relationship.relatedId}/alias',
+          data: {'alias': alias},
+        );
+        relationshipNotifier.refresh();
+        showSnackBar(
+          alias != null ? 'aliasUpdated'.tr() : 'aliasCleared'.tr(),
+        );
+      } catch (err) {
+        showErrorAlert(err);
+      }
+    }
+
     final user = ref.watch(userInfoProvider);
     final requests = ref.watch(friendRequestProvider);
 
@@ -336,7 +719,11 @@ class RelationshipScreen extends HookConsumerWidget {
                   currentUserId: user.value?.id,
                   showRelatedAccount: true,
                   onUpdateStatus: updateRelationship,
+                  onBlockWithExpiry: blockWithExpiry,
+                  onMuteWithExpiry: muteWithExpiry,
                   onDelete: deleteRelationship,
+                  onToggleCloseFriend: toggleCloseFriend,
+                  onUpdateAlias: updateAlias,
                 );
               },
             ),
