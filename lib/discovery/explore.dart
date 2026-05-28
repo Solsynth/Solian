@@ -39,6 +39,7 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:island/posts/widgets/compose/post_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/activity_presence.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
@@ -2261,42 +2262,82 @@ class _FriendPresenceItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final userInfo = ref.watch(userInfoProvider);
+    final currentUser = userInfo.value;
     final friendMap = ref.watch(friendAccountMapProvider);
-    final account = friendMap[activity.accountId];
-    final isActive = activity.deletedAt == null &&
+    final account = currentUser?.id == activity.accountId
+        ? currentUser
+        : friendMap[activity.accountId];
+    final isActive =
+        activity.deletedAt == null &&
         activity.leaseExpiresAt.isAfter(DateTime.now());
     final isSpotify = activity.manualId == 'spotify';
     final isSteam = activity.manualId == 'steam';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        spacing: 10,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (account != null)
-            AccountPfcRegion(
-              uname: account.name,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+          _buildAvatarStack(theme, account, isSpotify, isSteam),
+          if (_hasArtwork(activity) && !isSteam)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: _resolvePresenceArtworkUrl(
+                  ref,
+                  activity.largeImage ?? activity.smallImage!,
                 ),
-                child: Row(
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+              ),
+            ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (account != null) ...[
+                  Row(
+                    children: [
+                      Flexible(
+                        child: AccountName(
+                          account: account,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          hideOverlay: true,
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        '·',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                            0.5,
+                          ),
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        activity.createdAt.toLocal().formatRelative(context),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                            0.7,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                Row(
+                  spacing: 6,
                   children: [
-                    ProfilePictureWidget(
-                      file: account.profile.picture,
-                      radius: 18,
-                    ),
-                    const Gap(8),
-                    Expanded(
+                    Flexible(
                       child: Text(
-                        account.nick.isNotEmpty
-                            ? account.nick
-                            : account.name,
+                        activity.title ?? 'unknown'.tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
@@ -2304,222 +2345,192 @@ class _FriendPresenceItem extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
-                      activity.createdAt
-                          .toLocal()
-                          .formatRelative(context),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          if (account != null)
-            Divider(
-              height: 1,
-              indent: 12,
-              endIndent: 12,
-              color: theme.colorScheme.outline.withOpacity(0.12),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _getActivityColor(activity.type)
-                            .withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        kPresenceActivityIcons[activity.type],
-                        size: 20,
-                        color: _getActivityColor(activity.type),
-                      ),
-                    ),
-                    if (isSpotify)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Symbols.music_note,
-                            size: 10,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    if (isSteam)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF1B2838),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Symbols.sports_esports,
-                            size: 10,
-                            color: Colors.white,
-                          ),
+                    if (activity.titleUrl != null &&
+                        activity.titleUrl!.isNotEmpty)
+                      GestureDetector(
+                        onTap: () => launchUrlString(activity.titleUrl!),
+                        child: Icon(
+                          Symbols.launch_rounded,
+                          size: 14,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                   ],
                 ),
-                if (_hasArtwork(activity) && !isSteam)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: _resolvePresenceArtworkUrl(
-                        ref,
-                        activity.largeImage ?? activity.smallImage!,
-                      ),
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                if (activity.subtitle != null &&
+                    activity.subtitle!.isNotEmpty) ...[
+                  const Gap(2),
+                  Row(
+                    spacing: 4,
                     children: [
-                      Row(
-                        spacing: 6,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              activity.title ?? 'unknown'.tr(),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (activity.titleUrl != null &&
-                              activity.titleUrl!.isNotEmpty)
-                            GestureDetector(
-                              onTap: () =>
-                                  launchUrlString(activity.titleUrl!),
-                              child: Icon(
-                                Symbols.launch_rounded,
-                                size: 14,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                        ],
-                      ),
-                      if (activity.subtitle != null &&
-                          activity.subtitle!.isNotEmpty) ...[
-                        const Gap(2),
-                        Row(
-                          spacing: 4,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                activity.subtitle!,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (activity.subtitleUrl != null &&
-                                activity.subtitleUrl!.isNotEmpty)
-                              GestureDetector(
-                                onTap: () => launchUrlString(
-                                  activity.subtitleUrl!,
-                                ),
-                                child: Icon(
-                                  Symbols.launch_rounded,
-                                  size: 14,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                      if (activity.caption != null &&
-                          activity.caption!.isNotEmpty) ...[
-                        const Gap(2),
-                        Text(
-                          activity.caption!,
+                      Flexible(
+                        child: Text(
+                          activity.subtitle!,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
-                            fontStyle: FontStyle.italic,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                      const Gap(6),
-                      Row(
-                        spacing: 6,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.tertiaryContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              kPresenceActivityTypes[activity.type],
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color:
-                                    theme.colorScheme.onTertiaryContainer,
-                              ),
-                            ).tr(),
-                          ),
-                          if (isActive)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                'presenceOngoing',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme
-                                      .colorScheme.onPrimaryContainer,
-                                ),
-                              ).tr(),
-                            ),
-                        ],
                       ),
+                      if (activity.subtitleUrl != null &&
+                          activity.subtitleUrl!.isNotEmpty)
+                        GestureDetector(
+                          onTap: () => launchUrlString(activity.subtitleUrl!),
+                          child: Icon(
+                            Symbols.launch_rounded,
+                            size: 14,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                     ],
                   ),
+                ],
+                if (activity.caption != null &&
+                    activity.caption!.isNotEmpty) ...[
+                  const Gap(2),
+                  Text(
+                    activity.caption!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const Gap(6),
+                Row(
+                  spacing: 6,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        kPresenceActivityTypes[activity.type],
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onTertiaryContainer,
+                        ),
+                      ).tr(),
+                    ),
+                    if (isActive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'presenceOngoing',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ).tr(),
+                      ),
+                  ],
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+
+    if (account != null) {
+      return AccountPfcRegion(uname: account.name, child: content);
+    }
+    return content;
+  }
+
+  Widget _buildAvatarStack(
+    ThemeData theme,
+    SnAccount? account,
+    bool isSpotify,
+    bool isSteam,
+  ) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (account != null)
+          ProfilePictureWidget(file: account.profile.picture, radius: 18)
+        else
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: _getActivityColor(activity.type).withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              kPresenceActivityIcons[activity.type],
+              size: 18,
+              color: _getActivityColor(activity.type),
+            ),
+          ),
+        Positioned(
+          right: -4,
+          bottom: -4,
+          child: Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: _getActivityColor(activity.type),
+              shape: BoxShape.circle,
+              border: Border.all(color: theme.colorScheme.surface, width: 2),
+            ),
+            child: Icon(
+              kPresenceActivityIcons[activity.type],
+              size: 10,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        if (isSpotify)
+          Positioned(
+            right: -6,
+            top: -2,
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: const BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Symbols.music_note,
+                size: 8,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        if (isSteam)
+          Positioned(
+            right: -6,
+            top: -2,
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1B2838),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Symbols.sports_esports,
+                size: 8,
+                color: Colors.white,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
