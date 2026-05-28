@@ -1436,20 +1436,72 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                   ),
                 ),
                 const Gap(24),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 12,
-                  runSpacing: 12,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    FilledButton.icon(
-                      onPressed: onOpenIndexed,
-                      icon: const Icon(Symbols.cloud),
-                      label: Text('driveIndexedEntryLabel').tr(),
+                    SizedBox(
+                      width: 180,
+                      height: 80,
+                      child: InkWell(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(12)),
+                        onTap: onOpenIndexed,
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          color: colorScheme.surfaceContainer,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Symbols.cloud,
+                                    size: 24, color: colorScheme.primary),
+                                const Gap(8),
+                                Text(
+                                  'driveIndexedEntryLabel'.tr(),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    OutlinedButton.icon(
-                      onPressed: onOpenUnindexed,
-                      icon: const Icon(Symbols.inventory_2),
-                      label: Text('driveUnindexedEntryLabel').tr(),
+                    const Gap(12),
+                    SizedBox(
+                      width: 180,
+                      height: 80,
+                      child: InkWell(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(12)),
+                        onTap: onOpenUnindexed,
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          color: colorScheme.surfaceContainer,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Symbols.inventory_2,
+                                    size: 24, color: colorScheme.primary),
+                                const Gap(8),
+                                Text(
+                                  'driveUnindexedEntryLabel'.tr(),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
