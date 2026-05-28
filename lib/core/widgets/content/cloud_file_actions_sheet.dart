@@ -75,6 +75,7 @@ class CloudFileActionsSheet extends ConsumerWidget {
                   rootContext,
                   uploader,
                   item as SnCloudFile,
+                  onRenamed,
                 );
               },
             ),
@@ -144,10 +145,22 @@ class CloudFileActionsSheet extends ConsumerWidget {
     );
   }
 
-  Future<void> _showRenameSheet(
+  static Future<void> showRenameSheet({
+    required BuildContext context,
+    required SnCloudFile file,
+    required ValueChanged<SnCloudFile>? onRenamed,
+  }) async {
+    final uploader = ProviderScope.containerOf(context).read(driveFileUploaderProvider);
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
+    if (!rootContext.mounted) return;
+    await _showRenameSheet(rootContext, uploader, file, onRenamed);
+  }
+
+  static Future<void> _showRenameSheet(
     BuildContext context,
     FileUploader uploader,
     SnCloudFile file,
+    ValueChanged<SnCloudFile>? onRenamed,
   ) async {
     final nameController = TextEditingController(text: file.name);
     String? errorMessage;

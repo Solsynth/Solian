@@ -11,6 +11,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
+import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/drive/screens/file_list.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/drive_service.dart';
@@ -634,15 +635,16 @@ class FileListView extends HookConsumerWidget {
                   ),
                   subtitle: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 6,
                     children: [
                       const Icon(Symbols.folder, size: 12),
+                      const Gap(4),
                       Text(
                         'folder'.tr(),
                         style: theme.textTheme.bodySmall?.copyWith(height: 1),
                       ),
-                      const SizedBox.shrink(),
+                      const Gap(8),
                       const Icon(Symbols.folder_copy, size: 12),
+                      const Gap(4),
                       Text(
                         folderItem.file.childrenCount.toString(),
                         style: theme.textTheme.bodySmall?.copyWith(height: 1),
@@ -760,14 +762,32 @@ class FileListView extends HookConsumerWidget {
       PopupMenuButton<String>(
         tooltip: 'more'.tr(),
         onSelected: (value) async {
+          final uploader = ref.read(driveFileUploaderProvider);
           switch (value) {
-            case 'actions':
-              await CloudFileActionsSheet.show(
+            case 'rename':
+              await CloudFileActionsSheet.showRenameSheet(
                 context: context,
-                item: file,
+                file: file,
                 onRenamed: (_) {
                   ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
                 },
+              );
+              break;
+            case 'share':
+              // TODO: implement share
+              break;
+            case 'copyLink':
+              Clipboard.setData(
+                ClipboardData(text: file.storageUrl ?? file.id),
+              );
+              showSnackBar('linkCopied'.tr());
+              break;
+            case 'info':
+              showModalBottomSheet(
+                useRootNavigator: true,
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => FileInfoSheet(item: file),
               );
               break;
             case 'delete':
@@ -782,7 +802,6 @@ class FileListView extends HookConsumerWidget {
                 showLoadingModal(context);
               }
               try {
-                final uploader = ref.read(driveFileUploaderProvider);
                 await uploader.deleteFile(file.id);
                 ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
               } catch (e) {
@@ -793,26 +812,81 @@ class FileListView extends HookConsumerWidget {
                 }
               }
               break;
+            case 'more':
+              await CloudFileActionsSheet.show(
+                context: context,
+                item: file,
+                onRenamed: (_) {
+                  ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+                },
+              );
+              break;
           }
         },
         itemBuilder: (context) => [
           PopupMenuItem(
-            value: 'actions',
+            value: 'rename',
             child: Row(
               children: [
-                const Icon(Symbols.menu_open),
+                const Icon(Symbols.edit, size: 20),
                 const Gap(12),
-                Text('actionSheet'.tr()),
+                Text('rename'.tr()),
               ],
             ),
           ),
           PopupMenuItem(
+            value: 'share',
+            child: Row(
+              children: [
+                const Icon(Symbols.share, size: 20),
+                const Gap(12),
+                Text('share'.tr()),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'copyLink',
+            child: Row(
+              children: [
+                const Icon(Symbols.content_copy, size: 20),
+                const Gap(12),
+                Text('copyLink'.tr()),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'info',
+            child: Row(
+              children: [
+                const Icon(Symbols.info, size: 20),
+                const Gap(12),
+                Text('fileInfoTitle'.tr()),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
             value: 'delete',
             child: Row(
               children: [
-                const Icon(Symbols.delete),
+                Icon(Symbols.delete,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.error),
                 const Gap(12),
-                Text('delete'.tr()),
+                Text('delete'.tr(),
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error)),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: 'more',
+            child: Row(
+              children: [
+                const Icon(Symbols.menu_open, size: 20),
+                const Gap(12),
+                Text('more'.tr()),
               ],
             ),
           ),
@@ -1237,43 +1311,50 @@ class FileListView extends HookConsumerWidget {
                     ),
               subtitle: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 6,
                 children: [
                   const Icon(Symbols.insert_drive_file, size: 12),
+                  const Gap(4),
                   Text(
                     formatFileSize(file.size),
                     style: theme.textTheme.bodySmall?.copyWith(height: 1),
                   ),
-                  const SizedBox.shrink(),
+                  const Gap(8),
                   const Icon(Symbols.calendar_today, size: 12),
-                  Text(
-                    file.createdAt.formatSystem(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                  const Gap(4),
+                  Flexible(
+                    child: Text(
+                      file.createdAt.formatSystem(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(height: 1),
+                    ),
                   ),
-                  const SizedBox.shrink(),
-                  if (file.usage != null)
-                    ...([
-                      const Icon(Symbols.category, size: 12),
-                      Text(
+                  if (file.usage != null) ...[
+                    const Gap(8),
+                    const Icon(Symbols.category, size: 12),
+                    const Gap(4),
+                    Flexible(
+                      child: Text(
                         file.usage!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(height: 1),
                       ),
-                      const SizedBox.shrink(),
-                    ]),
-                  if (file.applicationType != null)
-                    ...([
-                      const Icon(Symbols.shape_line, size: 12),
-                      Text(
+                    ),
+                  ],
+                  if (file.applicationType != null) ...[
+                    const Gap(8),
+                    const Icon(Symbols.shape_line, size: 12),
+                    const Gap(4),
+                    Flexible(
+                      child: Text(
                         file.applicationType!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(height: 1),
                       ),
-                    ]),
+                    ),
+                  ],
                 ],
               ).opacity(0.85).padding(top: 2, bottom: 4),
               trailing: Row(
