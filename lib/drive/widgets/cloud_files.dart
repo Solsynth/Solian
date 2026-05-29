@@ -857,6 +857,7 @@ class CloudFileTile extends ConsumerWidget {
   final bool isWaterfall;
 
   const CloudFileTile({
+    super.key,
     required this.file,
     required this.onTap,
     this.isWaterfall = false,
@@ -1090,7 +1091,11 @@ class FolderContentsSheet extends HookConsumerWidget {
   final String folderId;
   final String folderName;
 
-  const FolderContentsSheet({required this.folderId, required this.folderName});
+  const FolderContentsSheet({
+    super.key,
+    required this.folderId,
+    required this.folderName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

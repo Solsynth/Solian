@@ -100,10 +100,6 @@ class DesktopPresenceService {
       return;
     }
 
-    if (!isIdle && _lastSentIdle == null) {
-      return;
-    }
-
     final isConnected = _ref
         .read(websocketStateProvider)
         .maybeWhen(connected: () => true, orElse: () => false);
@@ -326,8 +322,8 @@ class DesktopNowPlayingService {
     return <String, dynamic>{
       'type': 'Music',
       'manual_id': _manualId,
-      if (providerKey case final provider?) 'provider': provider,
-      if (referenceId case final reference?) 'reference_id': reference,
+      'provider': ?providerKey,
+      'reference_id': ?referenceId,
       if (queryableTerms.isNotEmpty) 'queryable_terms': queryableTerms,
       'title': title,
       'subtitle': event.artist,
@@ -393,8 +389,8 @@ class DesktopNowPlayingService {
     required String? sourceBundleIdentifier,
   }) {
     final terms = <String?>[
-      if (providerKey case final provider?) provider,
-      if (referenceId case final reference?) reference,
+      ?providerKey,
+      ?referenceId,
       _normalizeQueryableTerm(title),
       _normalizeQueryableTerm(artist),
       _normalizeQueryableTerm(album),

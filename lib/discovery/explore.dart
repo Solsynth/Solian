@@ -2337,7 +2337,7 @@ class _FriendPresenceItem extends ConsumerWidget {
     final friendMap = ref.watch(friendAccountMapProvider);
     final account = currentUser?.id == activity.accountId
         ? currentUser
-        : friendMap[activity.accountId];
+        : (friendMap[activity.accountId] ?? activity.account);
     final isActive =
         (rawActivity['is_active'] as bool?) ??
         (activity.deletedAt == null &&
@@ -2640,7 +2640,7 @@ class _FriendStatusItem extends ConsumerWidget {
     final friendMap = ref.watch(friendAccountMapProvider);
     final account = currentUser?.id == status.accountId
         ? currentUser
-        : friendMap[status.accountId];
+        : (friendMap[status.accountId] ?? status.account);
     final displayLabel = getStatusDisplayLabel(context, status);
     final displaySymbol = getStatusDisplaySymbol(status);
     final indicatorColor = getStatusIndicatorColor(status);
