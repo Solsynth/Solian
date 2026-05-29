@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart' hide Response;
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_desktop_presence/activity_rpc_transport.dart';
@@ -295,12 +296,14 @@ class ServerState {
   final List<String> activities;
   final String? currentActivityManualId;
   final Map<String, dynamic>? currentActivityData;
+  final List<Map<String, dynamic>> recentPackets;
 
   ServerState({
     required this.status,
     this.activities = const [],
     this.currentActivityManualId,
     this.currentActivityData,
+    this.recentPackets = const [],
   });
 
   ServerState copyWith({
@@ -308,6 +311,7 @@ class ServerState {
     List<String>? activities,
     String? currentActivityManualId,
     Map<String, dynamic>? currentActivityData,
+    List<Map<String, dynamic>>? recentPackets,
   }) {
     return ServerState(
       status: status ?? this.status,
@@ -315,6 +319,7 @@ class ServerState {
       currentActivityManualId:
           currentActivityManualId ?? this.currentActivityManualId,
       currentActivityData: currentActivityData ?? this.currentActivityData,
+      recentPackets: recentPackets ?? this.recentPackets,
     );
   }
 }
@@ -323,17 +328,35 @@ class ServerStateNotifier extends Notifier<ServerState> {
   late final ActivityRpcServer server;
   late final Dio apiClient;
   Timer? _renewalTimer;
+  static const int _maxRecentPackets = 50;
 
   @override
   ServerState build() {
     apiClient = ref.watch(apiClientProvider);
+    final enabled = ref.watch(desktopRpcServerEnabledProvider);
     server = ActivityRpcServer({});
     _setupHandlers();
     ref.onDispose(() {
       _stopRenewal();
       server.stop();
     });
-    return ServerState(status: 'Server not started');
+    if (enabled) {
+      _startServer();
+    }
+    return ServerState(status: enabled ? 'Starting...' : 'Disabled');
+  }
+
+  Future<void> _startServer() async {
+    if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+      try {
+        await server.start();
+        state = state.copyWith(status: 'Server running');
+      } catch (e) {
+        state = state.copyWith(status: 'Server failed: $e');
+      }
+    } else {
+      state = state.copyWith(status: 'Server disabled on mobile/web');
+    }
   }
 
   void _setupHandlers() {
@@ -343,6 +366,12 @@ class ServerStateNotifier extends Notifier<ServerState> {
             ? socket.clientId
             : (socket as IpcSocketWrapper).clientId;
         updateStatus('Client connected (ID: $clientId)');
+        _addPacket({
+          'direction': 'incoming',
+          'type': 'connection',
+          'client_id': clientId,
+          'timestamp': DateTime.now().toIso8601String(),
+        });
         socket.send({
           'cmd': 'DISPATCH',
           'data': {
@@ -363,8 +392,22 @@ class ServerStateNotifier extends Notifier<ServerState> {
           'evt': 'READY',
           'nonce': '12345',
         });
+        _addPacket({
+          'direction': 'outgoing',
+          'type': 'DISPATCH',
+          'evt': 'READY',
+          'timestamp': DateTime.now().toIso8601String(),
+        });
       },
       'message': (socket, dynamic data) async {
+        _addPacket({
+          'direction': 'incoming',
+          'type': data['cmd'] ?? 'unknown',
+          if (data['nonce'] != null) 'nonce': data['nonce'],
+          if (data['args'] != null) 'args': data['args'],
+          'timestamp': DateTime.now().toIso8601String(),
+        });
+
         if (data['cmd'] == 'SET_ACTIVITY') {
           final activity = data['args']['activity'];
           final appId = 'rpc:${socket.clientId}';
@@ -378,12 +421,11 @@ class ServerStateNotifier extends Notifier<ServerState> {
           }
 
           addActivity('Activity: ${activity['details'] ?? 'Untitled'}');
-          // https://discord.com/developers/docs/topics/rpc#setactivity-set-activity-argument-structure
           final type = switch (activity['type']) {
-            0 => 1, // Discord Playing -> Playing
-            2 => 2, // Discord Music -> Listening
-            3 => 2, // Discord Watching -> Listening
-            _ => 1, // Discord Competing (or null) -> Playing
+            0 => 1,
+            2 => 2,
+            3 => 2,
+            _ => 1,
           };
           final title = activity['name'] ?? activity['assets']?['small_text'];
           final subtitle =
@@ -422,25 +464,63 @@ class ServerStateNotifier extends Notifier<ServerState> {
             'evt': null,
             'nonce': data['nonce'],
           });
+          _addPacket({
+            'direction': 'outgoing',
+            'type': 'SET_ACTIVITY',
+            'nonce': data['nonce'],
+            'timestamp': DateTime.now().toIso8601String(),
+          });
         }
       },
       'close': (socket) async {
+        final clientId = socket is _WsSocketWrapper
+            ? socket.clientId
+            : (socket as IpcSocketWrapper).clientId;
+        final appId = 'rpc:$clientId';
+
+        _addPacket({
+          'direction': 'internal',
+          'type': 'disconnect',
+          'client_id': clientId,
+          'timestamp': DateTime.now().toIso8601String(),
+        });
         updateStatus('Client disconnected');
+
         final currentId = currentActivityManualId;
-        try {
-          await apiClient.delete(
-            '/passport/activities',
-            queryParameters: {'manualId': currentId},
-          );
-          setCurrentActivity(null, null);
-        } catch (e) {
-          Logger.root.info('Failed to unset remote activity status: $e');
+        if (currentId != null && currentId == appId) {
+          try {
+            await apiClient.delete(
+              '/passport/activities',
+              queryParameters: {'manualId': currentId},
+            );
+            setCurrentActivity(null, null);
+          } catch (e) {
+            Logger.root.info('Failed to unset remote activity status: $e');
+          }
         }
       },
     });
   }
 
   String? get currentActivityManualId => state.currentActivityManualId;
+
+  void _addPacket(Map<String, dynamic> packet) {
+    final packets = [...state.recentPackets, packet];
+    if (packets.length > _maxRecentPackets) {
+      packets.removeAt(0);
+    }
+    state = state.copyWith(recentPackets: packets);
+  }
+
+  void clearPackets() {
+    state = state.copyWith(recentPackets: []);
+  }
+
+  Future<void> toggleServer(bool enabled) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDesktopRpcServerEnabled, enabled);
+    ref.invalidate(desktopRpcServerEnabledProvider);
+  }
 
   Future<void> start() async {
     if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
