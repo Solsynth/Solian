@@ -22,6 +22,7 @@ import 'package:island/core/services/color_extraction.dart';
 import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/update_service.dart';
+import 'package:island/activity/activity_rpc.dart';
 import 'package:island/misc/connectivity_self_check_screen.dart';
 import 'package:island/misc/about_content.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -883,7 +884,7 @@ class SettingsScreen extends HookConsumerWidget {
                       .setFriendStatusDesktopNotification(value);
                 },
               ),
-          ),
+            ),
         ],
       ),
     );
@@ -1011,7 +1012,8 @@ class SettingsScreen extends HookConsumerWidget {
                       onChanged: (value) {
                         ref
                             .read(
-                              desktopNowPlayingReuseFixedManualIdProvider.notifier,
+                              desktopNowPlayingReuseFixedManualIdProvider
+                                  .notifier,
                             )
                             .setEnabled(value);
                       },
@@ -1037,7 +1039,8 @@ class SettingsScreen extends HookConsumerWidget {
                       onChanged: (value) {
                         ref
                             .read(
-                              desktopNowPlayingDisableAppleMusicProvider.notifier,
+                              desktopNowPlayingDisableAppleMusicProvider
+                                  .notifier,
                             )
                             .setEnabled(value);
                       },
@@ -1047,6 +1050,32 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ],
             _DesktopNowPlayingPreview(),
+            const Divider(height: 24),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: Text(
+                'settingsRpcServer'.tr(),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsDesktopRpcServerEnabled').tr(),
+              subtitle: Text('settingsDesktopRpcServerEnabledHelper').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.dns),
+              trailing: Switch(
+                value: ref.watch(desktopRpcServerEnabledProvider),
+                onChanged: (value) {
+                  ref.read(rpcServerStateProvider.notifier).toggleServer(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ),
+            _DesktopRpcServerPreview(),
           ],
         ),
       );
@@ -1198,11 +1227,7 @@ class SettingsScreen extends HookConsumerWidget {
         icon: Symbols.link,
         title: 'Connection',
         localizedTitleKey: 'settingsCategoryConnection',
-        searchTerms: [
-          'server url',
-          'media proxy',
-          'default pool',
-        ],
+        searchTerms: ['server url', 'media proxy', 'default pool'],
         children: [
           ListTile(
             isThreeLine: true,
@@ -3256,12 +3281,15 @@ class _DesktopIdleStatusPreview extends HookConsumerWidget {
 
     useEffect(() {
       void fetchIdleTime() {
-        IslandDesktopPresence().getIdleTime().then((duration) {
-          idleTime.value = duration;
-          loading.value = false;
-        }).catchError((_) {
-          loading.value = false;
-        });
+        IslandDesktopPresence()
+            .getIdleTime()
+            .then((duration) {
+              idleTime.value = duration;
+              loading.value = false;
+            })
+            .catchError((_) {
+              loading.value = false;
+            });
       }
 
       fetchIdleTime();
@@ -3344,8 +3372,8 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                 event.state == ExternalNowPlayingState.playing
                     ? 'settingsNowPlayingPreviewPlaying'.tr()
                     : event.state == ExternalNowPlayingState.paused
-                        ? 'settingsNowPlayingPreviewPaused'.tr()
-                        : 'settingsNowPlayingPreviewStopped'.tr(),
+                    ? 'settingsNowPlayingPreviewPaused'.tr()
+                    : 'settingsNowPlayingPreviewStopped'.tr(),
               ),
             ),
             if (event.title != null) ...[
@@ -3368,9 +3396,9 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                               width: 64,
                               height: 64,
                               decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(Symbols.music_note, size: 32),
@@ -3384,9 +3412,7 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                         children: [
                           Text(
                             'settingsNowPlayingPreviewTrack'.tr(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
+                            style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
@@ -3404,10 +3430,11 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                           if (event.album != null)
                             Text(
                               event.album!,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                         ],
@@ -3437,13 +3464,11 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                       Expanded(
                         child: Text(
                           state.lastError!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onErrorContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
                               ),
                         ),
                       ),
@@ -3462,18 +3487,18 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withOpacity(0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: SelectableText(
-                        const JsonEncoder.withIndent('  ')
-                            .convert(activityData),
+                        const JsonEncoder.withIndent(
+                          '  ',
+                        ).convert(activityData),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                            ),
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
                   ),
@@ -3501,6 +3526,228 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
         leading: const Icon(Symbols.error),
         subtitle: Text('settingsNowPlayingPreviewError'.tr()),
       ),
+    );
+  }
+}
+
+class _DesktopRpcServerPreview extends HookConsumerWidget {
+  const _DesktopRpcServerPreview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(desktopRpcServerEnabledProvider);
+    if (!enabled) {
+      return const SizedBox.shrink();
+    }
+
+    final serverState = ref.watch(rpcServerStateProvider);
+    final showPackets = useState(false);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          minLeadingWidth: 48,
+          title: Text('settingsRpcServerStatus'.tr()),
+          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          leading: Icon(
+            serverState.status == 'Server running'
+                ? Symbols.check_circle
+                : Symbols.info,
+            color: serverState.status == 'Server running'
+                ? Theme.of(context).colorScheme.primary
+                : null,
+          ),
+          subtitle: Text(serverState.status),
+        ),
+        if (serverState.currentActivityData != null) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'settingsRpcServerCurrentActivity'.tr(),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(
+                    const JsonEncoder.withIndent(
+                      '  ',
+                    ).convert(serverState.currentActivityData),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        ListTile(
+          minLeadingWidth: 48,
+          title: Text('settingsRpcServerPackets'.tr()),
+          subtitle: Text(
+            'settingsRpcServerPacketsHelper'.tr(
+              args: [serverState.recentPackets.length.toString()],
+            ),
+          ),
+          contentPadding: const EdgeInsets.only(left: 24, right: 17),
+          leading: const Icon(Symbols.swap_horiz),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (serverState.recentPackets.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Symbols.delete_sweep),
+                  tooltip: 'settingsRpcServerClearPackets'.tr(),
+                  onPressed: () {
+                    ref.read(rpcServerStateProvider.notifier).clearPackets();
+                  },
+                ),
+              IconButton(
+                icon: Icon(
+                  showPackets.value ? Symbols.expand_less : Symbols.expand_more,
+                ),
+                onPressed: () {
+                  showPackets.value = !showPackets.value;
+                },
+              ),
+            ],
+          ),
+        ),
+        if (showPackets.value) ...[
+          if (serverState.recentPackets.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: Text(
+                'settingsRpcServerNoPackets'.tr(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            )
+          else
+            Container(
+              margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              constraints: const BoxConstraints(maxHeight: 300),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: serverState.recentPackets.length,
+                padding: EdgeInsets.symmetric(vertical: 8),
+                reverse: true,
+                itemBuilder: (context, index) {
+                  final packet =
+                      serverState.recentPackets[serverState
+                              .recentPackets
+                              .length -
+                          1 -
+                          index];
+                  final direction = packet['direction'] as String? ?? 'unknown';
+                  final type = packet['type'] as String? ?? 'unknown';
+                  final timestamp = packet['timestamp'] as String?;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          direction == 'incoming'
+                              ? Symbols.arrow_downward
+                              : direction == 'outgoing'
+                              ? Symbols.arrow_upward
+                              : Symbols.circle,
+                          size: 14,
+                          color: direction == 'incoming'
+                              ? Theme.of(context).colorScheme.primary
+                              : direction == 'outgoing'
+                              ? Theme.of(context).colorScheme.tertiary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                type,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              if (timestamp != null)
+                                Text(
+                                  timestamp.substring(11, timestamp.length - 4),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        fontSize: 10,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Symbols.code, size: 14),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 24,
+                            minHeight: 24,
+                          ),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text(type),
+                                content: SingleChildScrollView(
+                                  child: SelectableText(
+                                    const JsonEncoder.withIndent(
+                                      '  ',
+                                    ).convert(packet),
+                                    style: const TextStyle(
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('close'.tr()),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ],
     );
   }
 }
