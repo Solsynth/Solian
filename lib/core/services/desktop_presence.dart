@@ -12,11 +12,36 @@ import 'package:island/core/websocket.dart';
 import 'package:island_desktop_presence/island_desktop_presence.dart';
 import 'package:logging/logging.dart';
 
+class NowPlayingState {
+  const NowPlayingState({
+    this.event,
+    this.activityData,
+    this.isPublishing = false,
+    this.lastError,
+  });
+
+  final ExternalNowPlayingEvent? event;
+  final Map<String, dynamic>? activityData;
+  final bool isPublishing;
+  final String? lastError;
+
+  String? get title => event?.title;
+  String? get artist => event?.artist;
+  String? get album => event?.album;
+  ExternalNowPlayingState? get playbackState => event?.state;
+  ExternalNowPlayingSource? get source => event?.source;
+}
+
 final desktopPresenceProvider = Provider<DesktopPresenceService?>((ref) {
   if (kIsWeb) {
     return null;
   }
   if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+    return null;
+  }
+
+  final enabled = ref.watch(desktopIdleStatusEnabledProvider);
+  if (!enabled) {
     return null;
   }
 
@@ -31,10 +56,23 @@ final desktopNowPlayingProvider = Provider<DesktopNowPlayingService?>((ref) {
     return null;
   }
 
+  final enabled = ref.watch(desktopNowPlayingEnabledProvider);
+  if (!enabled) {
+    return null;
+  }
+
   final service = DesktopNowPlayingService(ref);
   service.start();
   ref.onDispose(service.dispose);
   return service;
+});
+
+final desktopNowPlayingStateProvider = StreamProvider<NowPlayingState?>((ref) {
+  final service = ref.watch(desktopNowPlayingProvider);
+  if (service == null) {
+    return const Stream.empty();
+  }
+  return service.stateStream;
 });
 
 class DesktopPresenceService {
@@ -167,6 +205,14 @@ class DesktopNowPlayingService {
   String? _currentActivityManualId;
   bool _started = false;
 
+  ExternalNowPlayingEvent? _lastEvent;
+  String? _lastError;
+  final _stateController = StreamController<NowPlayingState>.broadcast();
+
+  ExternalNowPlayingEvent? get lastEvent => _lastEvent;
+  Map<String, dynamic>? get currentActivityData => _currentActivityData;
+  Stream<NowPlayingState> get stateStream => _stateController.stream;
+
   Future<void> start() async {
     if (_started) {
       return;
@@ -186,12 +232,14 @@ class DesktopNowPlayingService {
 
     try {
       final executablePath = _ref.read(desktopNowPlayingCliPathProvider);
+      final disableAppleMusic = _ref.read(desktopNowPlayingDisableAppleMusicProvider);
       Logger.root.info('[DesktopNowPlaying] Starting macOS monitoring');
       await _syncAuthToken();
       _startTokenSync();
       await _presence.startExternalNowPlayingMonitoring(
         pollInterval: _pollInterval,
         executablePath: executablePath,
+        disableAppleMusicIntegration: disableAppleMusic,
       );
     } catch (error, stackTrace) {
       Logger.root.severe(
@@ -215,7 +263,17 @@ class DesktopNowPlayingService {
       'album=${event.album ?? ""}',
     );
 
+    _lastEvent = event;
+    _emitState();
     unawaited(_syncNowPlayingActivity(event));
+  }
+
+  void _emitState() {
+    _stateController.add(NowPlayingState(
+      event: _lastEvent,
+      activityData: _currentActivityData,
+      lastError: _lastError,
+    ));
   }
 
   Future<void> _syncNowPlayingActivity(ExternalNowPlayingEvent event) async {
@@ -274,10 +332,14 @@ class DesktopNowPlayingService {
       _currentActivityData = activityData;
       _currentActivityFingerprint = fingerprint;
       _currentActivityManualId = manualId;
+      _lastError = null;
       _invalidateCurrentUserPresenceActivities();
       _startRenewal();
+      _emitState();
       Logger.root.info('[DesktopNowPlaying] Published now playing activity');
     } catch (error, stackTrace) {
+      _lastError = error.toString();
+      _emitState();
       Logger.root.warning(
         '[DesktopNowPlaying] Failed to publish now playing activity',
         error,
@@ -320,7 +382,7 @@ class DesktopNowPlayingService {
         : '$_manualIdPrefix:${_hashTitle(title)}';
 
     return <String, dynamic>{
-      'type': 'Music',
+      'type': 2, // 0=unknown, 1=gaming, 2=music, 3=workout
       'manual_id': _manualId,
       'provider': ?providerKey,
       'reference_id': ?referenceId,
@@ -520,6 +582,7 @@ class DesktopNowPlayingService {
       _currentActivityData = null;
       _currentActivityFingerprint = null;
       _currentActivityManualId = null;
+      _emitState();
     }
   }
 
@@ -538,6 +601,7 @@ class DesktopNowPlayingService {
     _tokenSyncTimer = null;
     _cancelPauseClear();
     await _clearNowPlayingActivity();
+    await _stateController.close();
     _started = false;
     try {
       await _presence.stopExternalNowPlayingMonitoring();

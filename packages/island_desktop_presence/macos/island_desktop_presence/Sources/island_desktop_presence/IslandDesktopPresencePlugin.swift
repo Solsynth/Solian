@@ -3,6 +3,7 @@ import Cocoa
 import CryptoKit
 import Darwin
 import FlutterMacOS
+import MediaPlayer
 
 private let defaultNowPlayingCliPath = "/opt/homebrew/bin/nowplaying-cli"
 private let rpcSocketBasePath = "/tmp/discord-ipc-"
@@ -250,6 +251,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   private var externalNowPlayingTimer: Timer?
   private var externalNowPlayingPollInterval = 2.0
   private var externalNowPlayingExecutablePath = defaultNowPlayingCliPath
+  private var externalNowPlayingDisableAppleMusic = false
   private var externalNowPlayingPollInFlight = false
   private var didLogMissingNowPlayingCli = false
   private var lastExternalNowPlayingSnapshot: ExternalNowPlayingSnapshot?
@@ -357,11 +359,13 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       externalNowPlayingPollInterval = Double(pollIntervalMilliseconds) / 1000.0
       let executablePath = normalizeExternalString(arguments["executablePath"] as? String)
       externalNowPlayingExecutablePath = executablePath ?? defaultNowPlayingCliPath
+      externalNowPlayingDisableAppleMusic = arguments["disableAppleMusicIntegration"] as? Bool ?? false
       didLogMissingNowPlayingCli = false
       NSLog(
-        "[IslandDesktopPresence] Starting external now playing monitoring via nowplaying-cli path=%@ interval=%.3fs",
+        "[IslandDesktopPresence] Starting external now playing monitoring via nowplaying-cli path=%@ interval=%.3fs disableAppleMusic=%@",
         externalNowPlayingExecutablePath,
-        externalNowPlayingPollInterval
+        externalNowPlayingPollInterval,
+        externalNowPlayingDisableAppleMusic ? "true" : "false"
       )
       startExternalNowPlayingTimer()
       requestExternalNowPlayingSnapshot(force: true)
@@ -515,7 +519,10 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       guard let self else {
         return
       }
-      let snapshot = self.readExternalNowPlayingSnapshot(executablePath: executablePath)
+      var snapshot = self.readExternalNowPlayingSnapshot(executablePath: executablePath)
+      if let raw = snapshot {
+        snapshot = self.enhanceWithMediaPlayerData(raw)
+      }
       Task { [weak self] in
         guard let self else {
           return
@@ -823,6 +830,62 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       artworkHash: artworkHash,
       artworkData: artworkData,
       catalogID: nil
+    )
+  }
+
+  private func enhanceWithMediaPlayerData(
+    _ snapshot: ExternalNowPlayingSnapshot
+  ) -> ExternalNowPlayingSnapshot {
+    guard snapshot.source == .music, !externalNowPlayingDisableAppleMusic else {
+      return snapshot
+    }
+
+    let nowPlaying = MPNowPlayingInfoCenter.default().nowPlayingInfo
+    guard let info = nowPlaying else {
+      return snapshot
+    }
+
+    let catalogID = info[MPMediaItemPropertyPersistentID] as? NSNumber
+    let artwork = info[MPMediaItemPropertyArtwork] as? MPMediaItemArtwork
+
+    var artworkURL: String?
+    var artworkURLLarge: String?
+
+    if let artwork {
+      let smallImage = artwork.image(at: CGSize(width: 100, height: 100))
+      let largeImage = artwork.image(at: CGSize(width: 600, height: 600))
+
+      if let smallData = smallImage?.tiffRepresentation {
+        let hash = SHA256.hash(data: smallData)
+        artworkURL = "sha256:\(hash.map { String(format: "%02x", $0) }.joined())"
+      }
+      if let largeData = largeImage?.tiffRepresentation {
+        let hash = SHA256.hash(data: largeData)
+        artworkURLLarge = "sha256:\(hash.map { String(format: "%02x", $0) }.joined())"
+      }
+    }
+
+    return ExternalNowPlayingSnapshot(
+      source: snapshot.source,
+      state: snapshot.state,
+      providerKey: snapshot.providerKey,
+      providerReferenceID: catalogID?.stringValue ?? snapshot.providerReferenceID,
+      sourceAppName: snapshot.sourceAppName,
+      sourceBundleIdentifier: snapshot.sourceBundleIdentifier,
+      uniqueIdentifier: snapshot.uniqueIdentifier,
+      title: snapshot.title,
+      artist: snapshot.artist,
+      album: snapshot.album,
+      playbackRate: snapshot.playbackRate,
+      durationSeconds: snapshot.durationSeconds,
+      positionSeconds: snapshot.positionSeconds,
+      titleURL: snapshot.titleURL,
+      subtitleURL: snapshot.subtitleURL,
+      artworkURL: artworkURL ?? snapshot.artworkURL,
+      artworkURLLarge: artworkURLLarge ?? snapshot.artworkURLLarge,
+      artworkHash: snapshot.artworkHash,
+      artworkData: snapshot.artworkData,
+      catalogID: catalogID?.stringValue ?? snapshot.catalogID
     )
   }
 

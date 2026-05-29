@@ -85,6 +85,8 @@ const kAppMacosNowPlayingReuseFixedManualId =
     'app_macos_now_playing_reuse_fixed_manual_id';
 const kAppMacosNowPlayingDisableAppleMusic =
     'app_macos_now_playing_disable_apple_music';
+const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
+const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
 // Will be overrided by the ProviderScope
@@ -325,6 +327,44 @@ class DesktopNowPlayingDisableAppleMusicNotifier extends Notifier<bool> {
 final desktopNowPlayingDisableAppleMusicProvider =
     NotifierProvider<DesktopNowPlayingDisableAppleMusicNotifier, bool>(
       DesktopNowPlayingDisableAppleMusicNotifier.new,
+    );
+
+class DesktopIdleStatusEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppDesktopIdleStatusEnabled) ?? true;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDesktopIdleStatusEnabled, value);
+    state = value;
+  }
+}
+
+final desktopIdleStatusEnabledProvider =
+    NotifierProvider<DesktopIdleStatusEnabledNotifier, bool>(
+      DesktopIdleStatusEnabledNotifier.new,
+    );
+
+class DesktopNowPlayingEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppDesktopNowPlayingEnabled) ?? true;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDesktopNowPlayingEnabled, value);
+    state = value;
+  }
+}
+
+final desktopNowPlayingEnabledProvider =
+    NotifierProvider<DesktopNowPlayingEnabledNotifier, bool>(
+      DesktopNowPlayingEnabledNotifier.new,
     );
 
 @freezed
