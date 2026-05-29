@@ -87,6 +87,7 @@ const kAppMacosNowPlayingDisableAppleMusic =
     'app_macos_now_playing_disable_apple_music';
 const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
 const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
+const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
 const kMacosNowPlayingCliDefaultPath = '/opt/homebrew/bin/nowplaying-cli';
 
 // Will be overrided by the ProviderScope
@@ -365,6 +366,25 @@ class DesktopNowPlayingEnabledNotifier extends Notifier<bool> {
 final desktopNowPlayingEnabledProvider =
     NotifierProvider<DesktopNowPlayingEnabledNotifier, bool>(
       DesktopNowPlayingEnabledNotifier.new,
+    );
+
+class DesktopRpcServerEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getBool(kAppDesktopRpcServerEnabled) ?? true;
+  }
+
+  void setEnabled(bool value) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(kAppDesktopRpcServerEnabled, value);
+    state = value;
+  }
+}
+
+final desktopRpcServerEnabledProvider =
+    NotifierProvider<DesktopRpcServerEnabledNotifier, bool>(
+      DesktopRpcServerEnabledNotifier.new,
     );
 
 @freezed
