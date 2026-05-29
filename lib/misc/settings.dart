@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -17,6 +19,7 @@ import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/services/cache_service.dart';
 import 'package:island/core/services/color_extraction.dart';
+import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/core/services/update_service.dart';
 import 'package:island/misc/connectivity_self_check_screen.dart';
@@ -24,6 +27,7 @@ import 'package:island/misc/about_content.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island_desktop_presence/island_desktop_presence.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
@@ -879,10 +883,174 @@ class SettingsScreen extends HookConsumerWidget {
                       .setFriendStatusDesktopNotification(value);
                 },
               ),
-            ),
+          ),
         ],
       ),
     );
+
+    if (isDesktop) {
+      categories.add(
+        _SettingCategory(
+          icon: Symbols.desktop_windows,
+          title: 'Desktop Presence',
+          localizedTitleKey: 'settingsCategoryDesktopPresence',
+          searchTerms: [
+            'idle status',
+            'now playing',
+            'desktop presence',
+            'activity status',
+            'music status',
+            'media status',
+            'disable presence',
+            'turn off presence',
+          ],
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: Text(
+                'settingsIdleStatus'.tr(),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsDesktopIdleStatusEnabled').tr(),
+              subtitle: Text('settingsDesktopIdleStatusEnabledHelper').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.schedule),
+              trailing: Switch(
+                value: ref.watch(desktopIdleStatusEnabledProvider),
+                onChanged: (value) {
+                  ref
+                      .read(desktopIdleStatusEnabledProvider.notifier)
+                      .setEnabled(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ),
+            _DesktopIdleStatusPreview(),
+            const Divider(height: 24),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: Text(
+                'settingsNowPlaying'.tr(),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsDesktopNowPlayingEnabled').tr(),
+              subtitle: Text('settingsDesktopNowPlayingEnabledHelper').tr(),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.music_note),
+              trailing: Switch(
+                value: ref.watch(desktopNowPlayingEnabledProvider),
+                onChanged: (value) {
+                  ref
+                      .read(desktopNowPlayingEnabledProvider.notifier)
+                      .setEnabled(value);
+                  showSnackBar('settingsApplied'.tr());
+                },
+              ),
+            ),
+            if (Platform.isMacOS) ...[
+              Builder(
+                builder: (context) {
+                  final status = ref.watch(desktopNowPlayingCliStatusProvider);
+                  return ListTile(
+                    minLeadingWidth: 48,
+                    title: const Text('macOS nowplaying-cli'),
+                    subtitle: Text(
+                      status.when(
+                        data: (value) {
+                          final path = value.path ?? '(not configured)';
+                          final label = switch (value.availability) {
+                            DesktopNowPlayingCliAvailability.installed =>
+                              'Installed',
+                            DesktopNowPlayingCliAvailability.missing =>
+                              'Missing or not executable',
+                            DesktopNowPlayingCliAvailability.unsupported =>
+                              'Unsupported',
+                          };
+                          return '$label\n$path';
+                        },
+                        loading: () => 'Checking availability...',
+                        error: (error, _) => 'Failed to check: $error',
+                      ),
+                    ).fontSize(12),
+                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                    leading: const Icon(Symbols.music_note),
+                    trailing: const Icon(Symbols.chevron_right),
+                    isThreeLine: true,
+                    onTap: () =>
+                        _showDesktopNowPlayingCliPathEditor(context, ref),
+                  );
+                },
+              ),
+              Builder(
+                builder: (context) {
+                  final reuseFixedManualId = ref.watch(
+                    desktopNowPlayingReuseFixedManualIdProvider,
+                  );
+                  return ListTile(
+                    minLeadingWidth: 48,
+                    title: Text('settingsNowPlayingReuseFixedManualId').tr(),
+                    subtitle: Text(
+                      'settingsNowPlayingReuseFixedManualIdHelper',
+                    ).tr().fontSize(12),
+                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                    leading: const Icon(Symbols.music_note),
+                    trailing: Switch(
+                      value: reuseFixedManualId,
+                      onChanged: (value) {
+                        ref
+                            .read(
+                              desktopNowPlayingReuseFixedManualIdProvider.notifier,
+                            )
+                            .setEnabled(value);
+                      },
+                    ),
+                  );
+                },
+              ),
+              Builder(
+                builder: (context) {
+                  final disableAppleMusic = ref.watch(
+                    desktopNowPlayingDisableAppleMusicProvider,
+                  );
+                  return ListTile(
+                    minLeadingWidth: 48,
+                    title: Text('settingsNowPlayingDisableAppleMusic').tr(),
+                    subtitle: Text(
+                      'settingsNowPlayingDisableAppleMusicHelper',
+                    ).tr().fontSize(12),
+                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
+                    leading: const Icon(Symbols.music_off),
+                    trailing: Switch(
+                      value: disableAppleMusic,
+                      onChanged: (value) {
+                        ref
+                            .read(
+                              desktopNowPlayingDisableAppleMusicProvider.notifier,
+                            )
+                            .setEnabled(value);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
+            _DesktopNowPlayingPreview(),
+          ],
+        ),
+      );
+    }
 
     categories.add(
       _SettingCategory(
@@ -1034,9 +1202,6 @@ class SettingsScreen extends HookConsumerWidget {
           'server url',
           'media proxy',
           'default pool',
-          'nowplaying-cli',
-          'macos now playing',
-          'desktop media status',
         ],
         children: [
           ListTile(
@@ -1093,67 +1258,6 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
-          if (!kIsWeb && Platform.isMacOS)
-            Builder(
-              builder: (context) {
-                final status = ref.watch(desktopNowPlayingCliStatusProvider);
-                return ListTile(
-                  minLeadingWidth: 48,
-                  title: const Text('macOS nowplaying-cli'),
-                  subtitle: Text(
-                    status.when(
-                      data: (value) {
-                        final path = value.path ?? '(not configured)';
-                        final label = switch (value.availability) {
-                          DesktopNowPlayingCliAvailability.installed =>
-                            'Installed',
-                          DesktopNowPlayingCliAvailability.missing =>
-                            'Missing or not executable',
-                          DesktopNowPlayingCliAvailability.unsupported =>
-                            'Unsupported',
-                        };
-                        return '$label\n$path';
-                      },
-                      loading: () => 'Checking availability...',
-                      error: (error, _) => 'Failed to check: $error',
-                    ),
-                  ).fontSize(12),
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                  leading: const Icon(Symbols.music_note),
-                  trailing: const Icon(Symbols.chevron_right),
-                  isThreeLine: true,
-                  onTap: () =>
-                      _showDesktopNowPlayingCliPathEditor(context, ref),
-                );
-              },
-            ),
-          if (!kIsWeb && Platform.isMacOS)
-            Builder(
-              builder: (context) {
-                final reuseFixedManualId = ref.watch(
-                  desktopNowPlayingReuseFixedManualIdProvider,
-                );
-                return ListTile(
-                  minLeadingWidth: 48,
-                  title: Text('settingsNowPlayingReuseFixedManualId').tr(),
-                  subtitle: Text(
-                    'settingsNowPlayingReuseFixedManualIdHelper',
-                  ).tr().fontSize(12),
-                  contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                  leading: const Icon(Symbols.music_note),
-                  trailing: Switch(
-                    value: reuseFixedManualId,
-                    onChanged: (value) {
-                      ref
-                          .read(
-                            desktopNowPlayingReuseFixedManualIdProvider.notifier,
-                          )
-                          .setEnabled(value);
-                    },
-                  ),
-                );
-              },
-            ),
           Builder(
             builder: (context) {
               final ipOverrideMode = ref.watch(ipOverrideModeProvider);
@@ -3133,6 +3237,270 @@ class _LongPressConfirmButtonState extends State<_LongPressConfirmButton>
           ),
         ),
       ],
+    );
+  }
+}
+
+class _DesktopIdleStatusPreview extends HookConsumerWidget {
+  const _DesktopIdleStatusPreview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(desktopIdleStatusEnabledProvider);
+    if (!enabled) {
+      return const SizedBox.shrink();
+    }
+
+    final idleTime = useState<Duration?>(null);
+    final loading = useState(true);
+
+    useEffect(() {
+      void fetchIdleTime() {
+        IslandDesktopPresence().getIdleTime().then((duration) {
+          idleTime.value = duration;
+          loading.value = false;
+        }).catchError((_) {
+          loading.value = false;
+        });
+      }
+
+      fetchIdleTime();
+      final timer = Timer.periodic(const Duration(seconds: 5), (_) {
+        fetchIdleTime();
+      });
+      return timer.cancel;
+    }, []);
+
+    return ListTile(
+      minLeadingWidth: 48,
+      title: Text('settingsDesktopIdleStatusPreview'.tr()),
+      contentPadding: const EdgeInsets.only(left: 24, right: 17),
+      leading: const Icon(Symbols.preview),
+      subtitle: loading.value
+          ? Text('settingsDesktopIdleStatusPreviewLoading'.tr())
+          : Text(
+              idleTime.value != null
+                  ? 'settingsDesktopIdleStatusPreviewValue'.tr(
+                      args: [
+                        idleTime.value!.inMinutes.toString(),
+                        (idleTime.value!.inSeconds % 60).toString(),
+                      ],
+                    )
+                  : 'settingsDesktopIdleStatusPreviewUnavailable'.tr(),
+            ),
+    );
+  }
+}
+
+class _DesktopNowPlayingPreview extends HookConsumerWidget {
+  const _DesktopNowPlayingPreview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(desktopNowPlayingEnabledProvider);
+    if (!enabled) {
+      return const SizedBox.shrink();
+    }
+
+    final nowPlayingState = ref.watch(desktopNowPlayingStateProvider);
+    final serverUrl = ref.watch(serverUrlProvider);
+
+    String resolveArtworkUrl(String? imageUri) {
+      if (imageUri == null) return '';
+      if (imageUri.startsWith('sha256:')) {
+        return '$serverUrl/passport/presence/artworks/$imageUri';
+      }
+      return imageUri;
+    }
+
+    return nowPlayingState.when(
+      data: (state) {
+        if (state == null || state.event == null) {
+          return ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsNowPlayingPreview'.tr()),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.music_off),
+            subtitle: Text('settingsNowPlayingPreviewEmpty'.tr()),
+          );
+        }
+
+        final event = state.event!;
+        final activityData = state.activityData;
+        final artworkUrl = resolveArtworkUrl(
+          activityData?['large_image'] as String? ??
+              activityData?['small_image'] as String?,
+        );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              minLeadingWidth: 48,
+              title: Text('settingsNowPlayingPreview'.tr()),
+              contentPadding: const EdgeInsets.only(left: 24, right: 17),
+              leading: const Icon(Symbols.music_note),
+              subtitle: Text(
+                event.state == ExternalNowPlayingState.playing
+                    ? 'settingsNowPlayingPreviewPlaying'.tr()
+                    : event.state == ExternalNowPlayingState.paused
+                        ? 'settingsNowPlayingPreviewPaused'.tr()
+                        : 'settingsNowPlayingPreviewStopped'.tr(),
+              ),
+            ),
+            if (event.title != null) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (artworkUrl.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            artworkUrl,
+                            width: 64,
+                            height: 64,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Symbols.music_note, size: 32),
+                            ),
+                          ),
+                        ),
+                      ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'settingsNowPlayingPreviewTrack'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            event.title ?? '',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          if (event.artist != null)
+                            Text(
+                              event.artist!,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          if (event.album != null)
+                            Text(
+                              event.album!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (state.lastError != null) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Symbols.error,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          state.lastError!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            if (activityData != null) ...[
+              ExpansionTile(
+                title: Text('settingsNowPlayingPreviewPayload'.tr()),
+                tilePadding: const EdgeInsets.fromLTRB(24, 0, 26, 0),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SelectableText(
+                        const JsonEncoder.withIndent('  ')
+                            .convert(activityData),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        );
+      },
+      loading: () => ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsNowPlayingPreview'.tr()),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        subtitle: Text('loading'.tr()),
+      ),
+      error: (_, __) => ListTile(
+        minLeadingWidth: 48,
+        title: Text('settingsNowPlayingPreview'.tr()),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        leading: const Icon(Symbols.error),
+        subtitle: Text('settingsNowPlayingPreviewError'.tr()),
+      ),
     );
   }
 }
