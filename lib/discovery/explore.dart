@@ -43,6 +43,7 @@ import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/activity_presence.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
+import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/time.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -60,6 +61,58 @@ String _resolvePresenceArtworkUrl(WidgetRef ref, String imageUri) {
     return '$serverURL/passport/presence/artworks/$imageUri';
   }
   return imageUri;
+}
+
+Map<String, dynamic> _asStringKeyedMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  if (value is Map) {
+    return value.map((key, value) => MapEntry(key.toString(), value));
+  }
+  return const <String, dynamic>{};
+}
+
+Map<String, dynamic> _normalizePresenceActivityJson(Map<String, dynamic> json) {
+  final normalized = Map<String, dynamic>.from(json);
+  normalized['type'] = switch (normalized['type']) {
+    final int value => value,
+    final String value => switch (value) {
+      'Gaming' => 1,
+      'Music' => 2,
+      'Workout' => 3,
+      _ => 0,
+    },
+    final num value => value.toInt(),
+    _ => 0,
+  };
+  return normalized;
+}
+
+Map<String, dynamic> _normalizeStatusJson(Map<String, dynamic> json) {
+  final normalized = Map<String, dynamic>.from(json);
+  normalized['attitude'] = switch (normalized['attitude']) {
+    final int value => value,
+    final String value => switch (value) {
+      'Positive' => 0,
+      'Negative' => 2,
+      _ => 1,
+    },
+    final num value => value.toInt(),
+    _ => 1,
+  };
+  normalized['type'] = switch (normalized['type']) {
+    final int value => value,
+    final String value => switch (value) {
+      'Busy' => SnAccountStatusType.busy,
+      'DoNotDisturb' => SnAccountStatusType.doNotDisturb,
+      'Invisible' => SnAccountStatusType.invisible,
+      _ => SnAccountStatusType.defaultType,
+    },
+    final num value => value.toInt(),
+    _ => SnAccountStatusType.defaultType,
+  };
+  return normalized;
 }
 
 @RoutePage()
@@ -2238,11 +2291,24 @@ class _ActivityListView extends HookConsumerWidget {
             );
             break;
           case 'presence.friend':
-            final activityJson =
-                (item.data as Map<String, dynamic>)['activity']
-                    as Map<String, dynamic>;
+            final activityJson = _normalizePresenceActivityJson(
+              _asStringKeyedMap(_asStringKeyedMap(item.data)['activity']),
+            );
             final activity = SnPresenceActivity.fromJson(activityJson);
-            itemWidget = _FriendPresenceItem(activity: activity);
+            itemWidget = _FriendPresenceItem(
+              activity: activity,
+              rawActivity: activityJson,
+            );
+            break;
+          case 'status.friend':
+            final statusJson = _normalizeStatusJson(
+              _asStringKeyedMap(_asStringKeyedMap(item.data)['status']),
+            );
+            final status = SnAccountStatus.fromJson(statusJson);
+            itemWidget = _FriendStatusItem(
+              status: status,
+              createdAt: item.createdAt,
+            );
             break;
           default:
             itemWidget = const Placeholder();
@@ -2256,8 +2322,12 @@ class _ActivityListView extends HookConsumerWidget {
 
 class _FriendPresenceItem extends ConsumerWidget {
   final SnPresenceActivity activity;
+  final Map<String, dynamic> rawActivity;
 
-  const _FriendPresenceItem({required this.activity});
+  const _FriendPresenceItem({
+    required this.activity,
+    required this.rawActivity,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2269,10 +2339,14 @@ class _FriendPresenceItem extends ConsumerWidget {
         ? currentUser
         : friendMap[activity.accountId];
     final isActive =
-        activity.deletedAt == null &&
-        activity.leaseExpiresAt.isAfter(DateTime.now());
-    final isSpotify = activity.manualId == 'spotify';
-    final isSteam = activity.manualId == 'steam';
+        (rawActivity['is_active'] as bool?) ??
+        (activity.deletedAt == null &&
+            activity.leaseExpiresAt.isAfter(DateTime.now()));
+    final providerKey =
+        (rawActivity['provider'] as String?) ??
+        (activity.meta?['provider']?.toString());
+    final isSpotify = providerKey == 'spotify';
+    final isSteam = providerKey == 'steam';
 
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -2549,5 +2623,193 @@ class _FriendPresenceItem extends ConsumerWidget {
 
   static bool _hasArtwork(SnPresenceActivity activity) {
     return activity.largeImage != null || activity.smallImage != null;
+  }
+}
+
+class _FriendStatusItem extends ConsumerWidget {
+  final SnAccountStatus status;
+  final DateTime createdAt;
+
+  const _FriendStatusItem({required this.status, required this.createdAt});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final userInfo = ref.watch(userInfoProvider);
+    final currentUser = userInfo.value;
+    final friendMap = ref.watch(friendAccountMapProvider);
+    final account = currentUser?.id == status.accountId
+        ? currentUser
+        : friendMap[status.accountId];
+    final displayLabel = getStatusDisplayLabel(context, status);
+    final displaySymbol = getStatusDisplaySymbol(status);
+    final indicatorColor = getStatusIndicatorColor(status);
+    final indicatorIcon = getStatusIndicatorIcon(status);
+    final indicatorFill = getStatusIndicatorFill(status);
+
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        spacing: 10,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (account != null)
+                ProfilePictureWidget(file: account.profile.picture, radius: 18)
+              else
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: indicatorColor.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    indicatorIcon,
+                    size: 18,
+                    color: indicatorColor,
+                    fill: indicatorFill,
+                  ),
+                ),
+              Positioned(
+                right: -4,
+                bottom: -4,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: indicatorColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.surface,
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    indicatorIcon,
+                    size: 10,
+                    color: Colors.white,
+                    fill: indicatorFill,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (account != null) ...[
+                  Row(
+                    children: [
+                      Flexible(
+                        child: AccountName(
+                          account: account,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          hideOverlay: true,
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        '·',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                            0.5,
+                          ),
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        createdAt.toLocal().formatRelative(context),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                            0.7,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                Row(
+                  spacing: 6,
+                  children: [
+                    if (displaySymbol != null)
+                      Text(displaySymbol, style: const TextStyle(fontSize: 16)),
+                    Flexible(
+                      child: Text(
+                        displayLabel,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(2),
+                Text(
+                  getStatusTypeLabel(context, status),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Gap(6),
+                Row(
+                  spacing: 6,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        status.isOnline ? 'online'.tr() : 'offline'.tr(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                    if (status.isAutomated)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.tertiaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'bot',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                          ),
+                        ).tr(),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (account != null) {
+      return AccountPfcRegion(uname: account.name, child: content);
+    }
+    return content;
   }
 }

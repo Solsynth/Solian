@@ -22,6 +22,7 @@ class MockIslandDesktopPresencePlatform
           uniqueIdentifier: '6766820661',
           title: 'Song',
           artist: 'Artist',
+          playbackRate: 1.0,
           titleUrl: 'https://music.apple.com/us/song/song/6766820661',
           artworkUrl: 'https://island.test/artwork-small.jpg',
           artworkHash: 'sha256:abc123',

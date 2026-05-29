@@ -3,7 +3,6 @@ import Cocoa
 import CryptoKit
 import Darwin
 import FlutterMacOS
-import MusicKit
 
 private let defaultNowPlayingCliPath = "/opt/homebrew/bin/nowplaying-cli"
 private let rpcSocketBasePath = "/tmp/discord-ipc-"
@@ -30,12 +29,15 @@ private struct ExternalNowPlayingSnapshot: Equatable {
 
   let source: Source
   let state: State
+  let providerKey: String?
+  let providerReferenceID: String?
   let sourceAppName: String?
   let sourceBundleIdentifier: String?
   let uniqueIdentifier: String?
   let title: String?
   let artist: String?
   let album: String?
+  let playbackRate: Double?
   let durationSeconds: Double?
   let positionSeconds: Double?
   let titleURL: String?
@@ -47,14 +49,17 @@ private struct ExternalNowPlayingSnapshot: Equatable {
   let catalogID: String?
 
   static func == (lhs: ExternalNowPlayingSnapshot, rhs: ExternalNowPlayingSnapshot) -> Bool {
-    lhs.source == rhs.source &&
+      lhs.source == rhs.source &&
       lhs.state == rhs.state &&
+      lhs.providerKey == rhs.providerKey &&
+      lhs.providerReferenceID == rhs.providerReferenceID &&
       lhs.sourceAppName == rhs.sourceAppName &&
       lhs.sourceBundleIdentifier == rhs.sourceBundleIdentifier &&
       lhs.uniqueIdentifier == rhs.uniqueIdentifier &&
       lhs.title == rhs.title &&
       lhs.artist == rhs.artist &&
       lhs.album == rhs.album &&
+      lhs.playbackRate == rhs.playbackRate &&
       lhs.durationSeconds == rhs.durationSeconds &&
       lhs.positionSeconds == rhs.positionSeconds &&
       lhs.titleURL == rhs.titleURL &&
@@ -67,12 +72,15 @@ private struct ExternalNowPlayingSnapshot: Equatable {
   func hash(into hasher: inout Hasher) {
     hasher.combine(source)
     hasher.combine(state)
+    hasher.combine(providerKey)
+    hasher.combine(providerReferenceID)
     hasher.combine(sourceAppName)
     hasher.combine(sourceBundleIdentifier)
     hasher.combine(uniqueIdentifier)
     hasher.combine(title)
     hasher.combine(artist)
     hasher.combine(album)
+    hasher.combine(playbackRate)
     hasher.combine(durationSeconds)
     hasher.combine(positionSeconds)
     hasher.combine(titleURL)
@@ -87,6 +95,12 @@ private struct ExternalNowPlayingSnapshot: Equatable {
       "source": source.rawValue,
       "state": state.rawValue,
     ]
+    if let providerKey {
+      result["provider_key"] = providerKey
+    }
+    if let providerReferenceID {
+      result["provider_reference_id"] = providerReferenceID
+    }
     if let sourceAppName {
       result["source_app_name"] = sourceAppName
     }
@@ -104,6 +118,9 @@ private struct ExternalNowPlayingSnapshot: Equatable {
     }
     if let album {
       result["album"] = album
+    }
+    if let playbackRate {
+      result["playback_rate"] = playbackRate
     }
     if let durationSeconds {
       result["duration_seconds"] = durationSeconds
@@ -130,77 +147,6 @@ private struct ExternalNowPlayingSnapshot: Equatable {
       result["catalog_id"] = catalogID
     }
     return result
-  }
-
-  func withAppleMusicMetadata(_ metadata: AppleMusicMetadata?) -> ExternalNowPlayingSnapshot {
-    guard let metadata else {
-      return self
-    }
-
-    return ExternalNowPlayingSnapshot(
-      source: source,
-      state: state,
-      sourceAppName: sourceAppName,
-      sourceBundleIdentifier: sourceBundleIdentifier,
-      uniqueIdentifier: uniqueIdentifier,
-      title: title,
-      artist: artist,
-      album: album,
-      durationSeconds: durationSeconds,
-      positionSeconds: positionSeconds,
-      titleURL: metadata.titleURL,
-      subtitleURL: metadata.subtitleURL,
-      artworkURL: metadata.artworkURL,
-      artworkURLLarge: metadata.artworkURLLarge,
-      artworkHash: artworkHash,
-      artworkData: artworkData,
-      catalogID: metadata.catalogID
-    )
-  }
-}
-
-private struct AppleMusicMetadata {
-  let titleURL: String?
-  let subtitleURL: String?
-  let artworkURL: String?
-  let artworkURLLarge: String?
-  let catalogID: String?
-
-  var isEmpty: Bool {
-    titleURL == nil &&
-      subtitleURL == nil &&
-      artworkURL == nil &&
-      artworkURLLarge == nil &&
-      catalogID == nil
-  }
-}
-
-@available(macOS 12.0, *)
-private extension AppleMusicMetadata {
-  static func from(song: Song) -> AppleMusicMetadata? {
-    let titleURL = normalizeNonEmptyString(song.url?.absoluteString)
-    let subtitleURL = normalizeNonEmptyString(song.artistURL?.absoluteString)
-    let artworkURL = normalizeNonEmptyString(
-      song.artwork?.url(width: 600, height: 600)?.absoluteString
-    )
-    let artworkURLLarge = normalizeNonEmptyString(
-      song.artwork?.url(width: 1200, height: 1200)?.absoluteString
-    )
-    let catalogID = normalizeNonEmptyString(song.id.rawValue)
-
-    let metadata = AppleMusicMetadata(
-      titleURL: titleURL,
-      subtitleURL: subtitleURL,
-      artworkURL: artworkURL,
-      artworkURLLarge: artworkURLLarge,
-      catalogID: catalogID
-    )
-
-    if metadata.isEmpty {
-      return nil
-    }
-
-    return metadata
   }
 }
 
@@ -308,9 +254,6 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   private var didLogMissingNowPlayingCli = false
   private var lastExternalNowPlayingSnapshot: ExternalNowPlayingSnapshot?
   fileprivate var pendingExternalNowPlayingEvent: [String: Any]?
-  private var disableAppleMusicIntegration = false
-  private var appleMusicMetadataCache: [String: AppleMusicMetadata] = [:]
-  private var appleMusicMetadataMisses: Set<String> = []
   private var authToken: String?
   private var serverURL: String?
   private var artworkHashCache: Set<String> = []
@@ -414,14 +357,11 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       externalNowPlayingPollInterval = Double(pollIntervalMilliseconds) / 1000.0
       let executablePath = normalizeExternalString(arguments["executablePath"] as? String)
       externalNowPlayingExecutablePath = executablePath ?? defaultNowPlayingCliPath
-      disableAppleMusicIntegration =
-        (arguments["disableAppleMusicIntegration"] as? Bool) ?? false
       didLogMissingNowPlayingCli = false
       NSLog(
-        "[IslandDesktopPresence] Starting external now playing monitoring via nowplaying-cli path=%@ interval=%.3fs disableAppleMusic=%@",
+        "[IslandDesktopPresence] Starting external now playing monitoring via nowplaying-cli path=%@ interval=%.3fs",
         externalNowPlayingExecutablePath,
-        externalNowPlayingPollInterval,
-        disableAppleMusicIntegration ? "true" : "false"
+        externalNowPlayingPollInterval
       )
       startExternalNowPlayingTimer()
       requestExternalNowPlayingSnapshot(force: true)
@@ -580,30 +520,13 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
         guard let self else {
           return
         }
-        let enrichedSnapshot = await self.enrichExternalNowPlayingSnapshot(snapshot)
+        let uploadedSnapshot = await snapshot.map { await self.ensureArtworkUploaded($0) }
         await MainActor.run {
           self.externalNowPlayingPollInFlight = false
-          self.handleExternalNowPlayingSnapshot(enrichedSnapshot, force: force)
+          self.handleExternalNowPlayingSnapshot(uploadedSnapshot, force: force)
         }
       }
     }
-  }
-
-  private func enrichExternalNowPlayingSnapshot(
-    _ snapshot: ExternalNowPlayingSnapshot?
-  ) async -> ExternalNowPlayingSnapshot? {
-    guard let snapshot else {
-      return nil
-    }
-
-    let withArtwork = await ensureArtworkUploaded(snapshot)
-    if disableAppleMusicIntegration {
-      return withArtwork
-    }
-    if #available(macOS 12.0, *) {
-      return await enrichAppleMusicMetadata(withArtwork)
-    }
-    return withArtwork
   }
 
   private func ensureArtworkUploaded(
@@ -704,167 +627,6 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     }
   }
 
-  @available(macOS 12.0, *)
-  private func enrichAppleMusicMetadata(
-    _ snapshot: ExternalNowPlayingSnapshot
-  ) async -> ExternalNowPlayingSnapshot {
-#if DEBUG
-    return snapshot
-#else
-    guard snapshot.source == .music,
-      snapshot.sourceBundleIdentifier == "com.apple.Music"
-    else {
-      return snapshot
-    }
-
-    guard #available(macOS 12.0, *) else {
-      return snapshot
-    }
-
-    return await enrichAppleMusicSnapshot(snapshot)
-#endif
-  }
-
-  @available(macOS 12.0, *)
-  private func enrichAppleMusicSnapshot(
-    _ snapshot: ExternalNowPlayingSnapshot
-  ) async -> ExternalNowPlayingSnapshot {
-    if let catalogID = normalizeAppleMusicCatalogID(snapshot.uniqueIdentifier) {
-      return await enrichAppleMusicSnapshot(snapshot, catalogID: catalogID)
-    }
-
-    return await enrichAppleMusicSnapshotBySearch(snapshot)
-  }
-
-  @available(macOS 12.0, *)
-  private func enrichAppleMusicSnapshot(
-    _ snapshot: ExternalNowPlayingSnapshot,
-    catalogID: String
-  ) async -> ExternalNowPlayingSnapshot {
-    if let cachedMetadata = appleMusicMetadataCache[catalogID] {
-      return snapshot.withAppleMusicMetadata(cachedMetadata)
-    }
-    if appleMusicMetadataMisses.contains(catalogID) {
-      return snapshot
-    }
-
-    do {
-      let authorizationStatus = MusicAuthorization.currentStatus
-      switch authorizationStatus {
-      case .authorized:
-        break
-      case .notDetermined:
-        let requestedStatus = await MusicAuthorization.request()
-        guard requestedStatus == .authorized else {
-          NSLog(
-            "[IslandDesktopPresence] MusicKit authorization unavailable: %@",
-            String(describing: requestedStatus)
-          )
-          return snapshot
-        }
-      default:
-        NSLog(
-          "[IslandDesktopPresence] MusicKit authorization unavailable: %@",
-          String(describing: authorizationStatus)
-        )
-        return snapshot
-      }
-
-      let request = MusicCatalogResourceRequest<Song>(
-        matching: \SongFilter.id,
-        equalTo: MusicItemID(catalogID)
-      )
-      let response = try await request.response()
-      guard let song = response.items.first,
-        let metadata = AppleMusicMetadata.from(song: song)
-      else {
-        appleMusicMetadataMisses.insert(catalogID)
-        return snapshot
-      }
-
-      appleMusicMetadataCache[catalogID] = metadata
-      appleMusicMetadataMisses.remove(catalogID)
-      return snapshot.withAppleMusicMetadata(metadata)
-    } catch {
-      NSLog(
-        "[IslandDesktopPresence] Failed to enrich Apple Music metadata for %@: %@",
-        catalogID,
-        String(describing: error)
-      )
-      return snapshot
-    }
-  }
-
-  @available(macOS 12.0, *)
-  private func enrichAppleMusicSnapshotBySearch(
-    _ snapshot: ExternalNowPlayingSnapshot
-  ) async -> ExternalNowPlayingSnapshot {
-    let searchKey = appleMusicSearchCacheKey(snapshot: snapshot)
-    if let cachedMetadata = appleMusicMetadataCache[searchKey] {
-      return snapshot.withAppleMusicMetadata(cachedMetadata)
-    }
-    if appleMusicMetadataMisses.contains(searchKey) {
-      return snapshot
-    }
-
-    guard let title = normalizeExternalString(snapshot.title) else {
-      return snapshot
-    }
-
-    do {
-      let authorizationStatus = MusicAuthorization.currentStatus
-      switch authorizationStatus {
-      case .authorized:
-        break
-      case .notDetermined:
-        let requestedStatus = await MusicAuthorization.request()
-        guard requestedStatus == .authorized else {
-          NSLog(
-            "[IslandDesktopPresence] MusicKit authorization unavailable: %@",
-            String(describing: requestedStatus)
-          )
-          return snapshot
-        }
-      default:
-        NSLog(
-          "[IslandDesktopPresence] MusicKit authorization unavailable: %@",
-          String(describing: authorizationStatus)
-        )
-        return snapshot
-      }
-
-      var request = MusicCatalogSearchRequest(term: title, types: [Song.self])
-      request.limit = 10
-      let response = try await request.response()
-      let matchedSong = bestMatchingAppleMusicSong(
-        for: snapshot,
-        songs: response.songs
-      )
-      guard let matchedSong,
-        let metadata = AppleMusicMetadata.from(song: matchedSong)
-      else {
-        appleMusicMetadataMisses.insert(searchKey)
-        return snapshot
-      }
-
-      appleMusicMetadataCache[searchKey] = metadata
-      if let catalogID = metadata.catalogID {
-        appleMusicMetadataCache[catalogID] = metadata
-        appleMusicMetadataMisses.remove(catalogID)
-      }
-      appleMusicMetadataMisses.remove(searchKey)
-      return snapshot.withAppleMusicMetadata(metadata)
-    } catch {
-      NSLog(
-        "[IslandDesktopPresence] Failed to search Apple Music metadata for %@ / %@: %@",
-        snapshot.title ?? "",
-        snapshot.artist ?? "",
-        String(describing: error)
-      )
-      return snapshot
-    }
-  }
-
   private func handleExternalNowPlayingSnapshot(
     _ snapshot: ExternalNowPlayingSnapshot?,
     force: Bool
@@ -882,12 +644,15 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     let stoppedSnapshot = ExternalNowPlayingSnapshot(
       source: lastSnapshot.source,
       state: .stopped,
+      providerKey: lastSnapshot.providerKey,
+      providerReferenceID: lastSnapshot.providerReferenceID,
       sourceAppName: lastSnapshot.sourceAppName,
       sourceBundleIdentifier: lastSnapshot.sourceBundleIdentifier,
       uniqueIdentifier: lastSnapshot.uniqueIdentifier,
       title: nil,
       artist: nil,
       album: nil,
+      playbackRate: lastSnapshot.playbackRate,
       durationSeconds: nil,
       positionSeconds: nil,
       titleURL: lastSnapshot.titleURL,
@@ -1035,12 +800,15 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     return ExternalNowPlayingSnapshot(
       source: mapExternalSource(bundleIdentifier: bundleIdentifier),
       state: playbackRate > 0 ? .playing : .paused,
+      providerKey: mapExternalProviderKey(bundleIdentifier: bundleIdentifier),
+      providerReferenceID: nil,
       sourceAppName: resolveApplicationName(bundleIdentifier: bundleIdentifier),
       sourceBundleIdentifier: bundleIdentifier,
       uniqueIdentifier: uniqueIdentifier,
       title: title,
       artist: artist,
       album: album,
+      playbackRate: playbackRate >= 0 ? playbackRate : nil,
       durationSeconds: durationSeconds > 0 ? durationSeconds : nil,
       positionSeconds: positionSeconds >= 0 ? positionSeconds : nil,
       titleURL: nil,
@@ -1450,108 +1218,6 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     return normalizeNonEmptyString(value)
   }
 
-  private func normalizeAppleMusicCatalogID(_ uniqueIdentifier: String?) -> String? {
-    guard let uniqueIdentifier = normalizeExternalString(uniqueIdentifier) else {
-      return nil
-    }
-    let separatorIndex = uniqueIdentifier.lastIndex(of: ":")
-    if let separatorIndex {
-      let suffixIndex = uniqueIdentifier.index(after: separatorIndex)
-      if suffixIndex < uniqueIdentifier.endIndex {
-        return String(uniqueIdentifier[suffixIndex...])
-      }
-    }
-    return uniqueIdentifier
-  }
-
-  private func appleMusicSearchCacheKey(snapshot: ExternalNowPlayingSnapshot) -> String {
-    let title = normalizeExternalString(snapshot.title)?.lowercased() ?? ""
-    let artist = normalizeExternalString(snapshot.artist)?.lowercased() ?? ""
-    return "search:\(title)::\(artist)"
-  }
-
-  @available(macOS 12.0, *)
-  private func bestMatchingAppleMusicSong(
-    for snapshot: ExternalNowPlayingSnapshot,
-    songs: MusicItemCollection<Song>
-  ) -> Song? {
-    let normalizedTitle = normalizeSearchString(snapshot.title)
-    let normalizedArtist = normalizeSearchString(snapshot.artist)
-    let normalizedAlbum = normalizeSearchString(snapshot.album)
-
-    return songs.max { lhs, rhs in
-      appleMusicSongMatchScore(
-        song: lhs,
-        normalizedTitle: normalizedTitle,
-        normalizedArtist: normalizedArtist,
-        normalizedAlbum: normalizedAlbum
-      ) < appleMusicSongMatchScore(
-        song: rhs,
-        normalizedTitle: normalizedTitle,
-        normalizedArtist: normalizedArtist,
-        normalizedAlbum: normalizedAlbum
-      )
-    }
-  }
-
-  @available(macOS 12.0, *)
-  private func appleMusicSongMatchScore(
-    song: Song,
-    normalizedTitle: String?,
-    normalizedArtist: String?,
-    normalizedAlbum: String?
-  ) -> Int {
-    var score = 0
-
-    let songTitle = normalizeSearchString(song.title)
-    let songArtist = normalizeSearchString(song.artistName)
-    let songAlbum = normalizeSearchString(song.albumTitle)
-
-    if normalizedTitle != nil, normalizedTitle == songTitle {
-      score += 100
-    }
-    if normalizedArtist != nil, normalizedArtist == songArtist {
-      score += 60
-    }
-    if normalizedAlbum != nil, normalizedAlbum == songAlbum {
-      score += 30
-    }
-
-    if score == 0,
-      let normalizedTitle,
-      let songTitle,
-      songTitle.contains(normalizedTitle)
-    {
-      score += 20
-    }
-    if score == 0,
-      let normalizedArtist,
-      let songArtist,
-      songArtist.contains(normalizedArtist)
-    {
-      score += 10
-    }
-
-    return score
-  }
-
-  private func normalizeSearchString(_ value: String?) -> String? {
-    guard let value = normalizeExternalString(value)?.folding(
-      options: [.caseInsensitive, .diacriticInsensitive],
-      locale: .current
-    ) else {
-      return nil
-    }
-
-    let filteredScalars = value.unicodeScalars.map { scalar -> Character in
-      CharacterSet.alphanumerics.contains(scalar) ? Character(scalar) : " "
-    }
-    let collapsed = String(filteredScalars)
-      .split(whereSeparator: \ .isWhitespace)
-      .joined(separator: " ")
-    return collapsed.isEmpty ? nil : collapsed
-  }
-
   private func mapExternalSource(bundleIdentifier: String?) -> ExternalNowPlayingSnapshot.Source {
     switch bundleIdentifier {
     case "com.apple.Music":
@@ -1560,6 +1226,17 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       return .spotify
     default:
       return .other
+    }
+  }
+
+  private func mapExternalProviderKey(bundleIdentifier: String?) -> String? {
+    switch bundleIdentifier {
+    case "com.apple.Music":
+      return "apple_music"
+    case "com.spotify.client":
+      return "spotify"
+    default:
+      return normalizeExternalString(bundleIdentifier)
     }
   }
 }
