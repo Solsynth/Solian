@@ -31,12 +31,15 @@ class ExternalNowPlayingEvent {
   const ExternalNowPlayingEvent({
     required this.source,
     required this.state,
+    this.providerKey,
+    this.providerReferenceId,
     this.sourceAppName,
     this.sourceBundleIdentifier,
     this.uniqueIdentifier,
     this.title,
     this.artist,
     this.album,
+    this.playbackRate,
     this.duration,
     this.position,
     this.titleUrl,
@@ -49,12 +52,15 @@ class ExternalNowPlayingEvent {
 
   final ExternalNowPlayingSource source;
   final ExternalNowPlayingState state;
+  final String? providerKey;
+  final String? providerReferenceId;
   final String? sourceAppName;
   final String? sourceBundleIdentifier;
   final String? uniqueIdentifier;
   final String? title;
   final String? artist;
   final String? album;
+  final double? playbackRate;
   final Duration? duration;
   final Duration? position;
   final String? titleUrl;
@@ -73,12 +79,15 @@ class ExternalNowPlayingEvent {
     return other is ExternalNowPlayingEvent &&
         other.source == source &&
         other.state == state &&
+        other.providerKey == providerKey &&
+        other.providerReferenceId == providerReferenceId &&
         other.sourceAppName == sourceAppName &&
         other.sourceBundleIdentifier == sourceBundleIdentifier &&
         other.uniqueIdentifier == uniqueIdentifier &&
         other.title == title &&
         other.artist == artist &&
         other.album == album &&
+        other.playbackRate == playbackRate &&
         other.duration == duration &&
         other.position == position &&
         other.titleUrl == titleUrl &&
@@ -93,12 +102,15 @@ class ExternalNowPlayingEvent {
   int get hashCode => Object.hash(
     source,
     state,
+    providerKey,
+    providerReferenceId,
     sourceAppName,
     sourceBundleIdentifier,
     uniqueIdentifier,
     title,
     artist,
     album,
+    playbackRate,
     duration,
     position,
     titleUrl,

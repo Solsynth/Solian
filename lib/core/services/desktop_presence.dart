@@ -153,6 +153,7 @@ class DesktopNowPlayingService {
   DesktopNowPlayingService(this._ref);
 
   static const Duration _pollInterval = Duration(seconds: 2);
+  static const Duration _pauseClearDebounce = Duration(minutes: 1);
   static const int _leaseMinutes = 5;
   static const String _manualIdPrefix = 'desktop:now_playing';
   static const String _fixedManualId = 'desktop:now_playing:fixed';
@@ -163,6 +164,7 @@ class DesktopNowPlayingService {
   String? _manualId;
   StreamSubscription<ExternalNowPlayingEvent>? _subscription;
   Timer? _renewalTimer;
+  Timer? _pauseClearTimer;
   Timer? _tokenSyncTimer;
   Map<String, dynamic>? _currentActivityData;
   String? _currentActivityFingerprint;
@@ -188,16 +190,12 @@ class DesktopNowPlayingService {
 
     try {
       final executablePath = _ref.read(desktopNowPlayingCliPathProvider);
-      final disableAppleMusic = _ref.read(
-        desktopNowPlayingDisableAppleMusicProvider,
-      );
       Logger.root.info('[DesktopNowPlaying] Starting macOS monitoring');
       await _syncAuthToken();
       _startTokenSync();
       await _presence.startExternalNowPlayingMonitoring(
         pollInterval: _pollInterval,
         executablePath: executablePath,
-        disableAppleMusicIntegration: disableAppleMusic,
       );
     } catch (error, stackTrace) {
       Logger.root.severe(
@@ -215,6 +213,7 @@ class DesktopNowPlayingService {
       'bundle=${event.sourceBundleIdentifier ?? ""} '
       'id=${event.uniqueIdentifier ?? ""} '
       'state=${event.state.name} '
+      'playbackRate=${event.playbackRate?.toString() ?? ""} '
       'title=${event.title ?? ""} '
       'artist=${event.artist ?? ""} '
       'album=${event.album ?? ""}',
@@ -224,6 +223,19 @@ class DesktopNowPlayingService {
   }
 
   Future<void> _syncNowPlayingActivity(ExternalNowPlayingEvent event) async {
+    switch (event.state) {
+      case ExternalNowPlayingState.playing:
+        _cancelPauseClear();
+        break;
+      case ExternalNowPlayingState.paused:
+        _schedulePauseClear();
+        return;
+      case ExternalNowPlayingState.stopped:
+        _cancelPauseClear();
+        await _clearNowPlayingActivity();
+        return;
+    }
+
     if (event.state != ExternalNowPlayingState.playing) {
       await _clearNowPlayingActivity();
       return;
@@ -241,7 +253,8 @@ class DesktopNowPlayingService {
     }
 
     final manualId = activityData['manual_id'] as String?;
-    if (_currentActivityManualId != null && _currentActivityManualId != manualId) {
+    if (_currentActivityManualId != null &&
+        _currentActivityManualId != manualId) {
       try {
         await _ref
             .read(apiClientProvider)
@@ -289,6 +302,17 @@ class DesktopNowPlayingService {
         : event.subtitleUrl;
     final artworkReference =
         event.artworkHash ?? event.artworkUrlLarge ?? event.artworkUrl;
+    final providerKey = _resolveProviderKey(event);
+    final referenceId = _resolveReferenceId(event);
+    final queryableTerms = _buildQueryableTerms(
+      providerKey: providerKey,
+      referenceId: referenceId,
+      title: title,
+      artist: event.artist,
+      album: event.album,
+      sourceAppName: event.sourceAppName,
+      sourceBundleIdentifier: event.sourceBundleIdentifier,
+    );
     final reuseFixedManualId = _ref.read(
       desktopNowPlayingReuseFixedManualIdProvider,
     );
@@ -300,8 +324,11 @@ class DesktopNowPlayingService {
         : '$_manualIdPrefix:${_hashTitle(title)}';
 
     return <String, dynamic>{
-      'type': 2,
+      'type': 'Music',
       'manual_id': _manualId,
+      if (providerKey case final provider?) 'provider': provider,
+      if (referenceId case final reference?) 'reference_id': reference,
+      if (queryableTerms.isNotEmpty) 'queryable_terms': queryableTerms,
       'title': title,
       'subtitle': event.artist,
       'caption': event.album,
@@ -311,6 +338,9 @@ class DesktopNowPlayingService {
       'large_image': artworkReference,
       'meta': <String, dynamic>{
         'source': event.source.name,
+        'provider': providerKey,
+        'reference_id': referenceId,
+        'queryable_terms': queryableTerms,
         'source_app_name': event.sourceAppName,
         'source_bundle_identifier': event.sourceBundleIdentifier,
         'unique_identifier': event.uniqueIdentifier,
@@ -320,6 +350,7 @@ class DesktopNowPlayingService {
         'artwork_url': event.artworkUrl,
         'artwork_url_large': event.artworkUrlLarge,
         'artwork_hash': event.artworkHash,
+        'playback_rate': event.playbackRate,
         'duration_seconds': event.duration?.inMilliseconds != null
             ? event.duration!.inMilliseconds / 1000.0
             : null,
@@ -329,6 +360,58 @@ class DesktopNowPlayingService {
       },
       'lease_minutes': _leaseMinutes,
     };
+  }
+
+  String? _resolveProviderKey(ExternalNowPlayingEvent event) {
+    final explicit = _normalizeQueryableTerm(event.providerKey);
+    if (explicit != null) {
+      return explicit;
+    }
+
+    return switch (event.source) {
+      ExternalNowPlayingSource.music => 'apple_music',
+      ExternalNowPlayingSource.spotify => 'spotify',
+      ExternalNowPlayingSource.other =>
+        _normalizeQueryableTerm(event.sourceBundleIdentifier) ??
+            _normalizeQueryableTerm(event.sourceAppName),
+    };
+  }
+
+  String? _resolveReferenceId(ExternalNowPlayingEvent event) {
+    return _normalizeQueryableTerm(
+      event.providerReferenceId ?? event.catalogId ?? event.uniqueIdentifier,
+    );
+  }
+
+  List<String> _buildQueryableTerms({
+    required String? providerKey,
+    required String? referenceId,
+    required String title,
+    required String? artist,
+    required String? album,
+    required String? sourceAppName,
+    required String? sourceBundleIdentifier,
+  }) {
+    final terms = <String?>[
+      if (providerKey case final provider?) provider,
+      if (referenceId case final reference?) reference,
+      _normalizeQueryableTerm(title),
+      _normalizeQueryableTerm(artist),
+      _normalizeQueryableTerm(album),
+      _normalizeQueryableTerm(sourceAppName),
+      _normalizeQueryableTerm(sourceBundleIdentifier),
+    ];
+
+    return terms.whereType<String>().toSet().toList(growable: false);
+  }
+
+  String? _normalizeQueryableTerm(String? value) {
+    if (value == null) return null;
+    final normalized = value.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   Future<void> _syncAuthToken() async {
@@ -371,6 +454,29 @@ class DesktopNowPlayingService {
     );
   }
 
+  void _schedulePauseClear() {
+    if (_currentActivityData == null) {
+      return;
+    }
+    if (_pauseClearTimer?.isActive ?? false) {
+      return;
+    }
+
+    Logger.root.info(
+      '[DesktopNowPlaying] Playback paused; delaying clear for '
+      '${_pauseClearDebounce.inSeconds}s',
+    );
+    _pauseClearTimer = Timer(_pauseClearDebounce, () {
+      _pauseClearTimer = null;
+      unawaited(_clearNowPlayingActivity());
+    });
+  }
+
+  void _cancelPauseClear() {
+    _pauseClearTimer?.cancel();
+    _pauseClearTimer = null;
+  }
+
   Future<void> _renewActivity() async {
     final activityData = _currentActivityData;
     if (activityData == null) {
@@ -392,6 +498,7 @@ class DesktopNowPlayingService {
   }
 
   Future<void> _clearNowPlayingActivity() async {
+    _cancelPauseClear();
     _renewalTimer?.cancel();
     _renewalTimer = null;
     if (_currentActivityData == null) {
@@ -433,6 +540,7 @@ class DesktopNowPlayingService {
     _subscription = null;
     _tokenSyncTimer?.cancel();
     _tokenSyncTimer = null;
+    _cancelPauseClear();
     await _clearNowPlayingActivity();
     _started = false;
     try {

@@ -144,12 +144,15 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
     return ExternalNowPlayingEvent(
       source: _decodeExternalSource(rawSource),
       state: _decodeExternalState(rawState),
+      providerKey: event['provider_key'] as String?,
+      providerReferenceId: event['provider_reference_id'] as String?,
       sourceAppName: event['source_app_name'] as String?,
       sourceBundleIdentifier: event['source_bundle_identifier'] as String?,
       uniqueIdentifier: event['unique_identifier'] as String?,
       title: event['title'] as String?,
       artist: event['artist'] as String?,
       album: event['album'] as String?,
+      playbackRate: _decodeOptionalDouble(event['playback_rate']),
       duration: _decodeOptionalDuration(event['duration_seconds']),
       position: _decodeOptionalDuration(event['position_seconds']),
       titleUrl: event['title_url'] as String?,
@@ -169,6 +172,18 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
       _ => throw PlatformException(
         code: 'invalid_now_playing_duration',
         message: 'External now playing duration fields must be numeric.',
+      ),
+    };
+  }
+
+  double? _decodeOptionalDouble(Object? rawValue) {
+    return switch (rawValue) {
+      null => null,
+      int value => value.toDouble(),
+      double value => value,
+      _ => throw PlatformException(
+        code: 'invalid_now_playing_number',
+        message: 'External now playing numeric fields must be numeric.',
       ),
     };
   }

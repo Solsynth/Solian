@@ -198,7 +198,8 @@ class ActivityListNotifier
 
     final payload = Map<String, dynamic>.from(response.data as Map);
     final rawItems = (payload['items'] as List?) ?? const [];
-    final nextCursor = payload['next_cursor'] as String?;
+    final nextCursor =
+        (payload['next_cursor'] ?? payload['nextCursor']) as String?;
     currentMode = (payload['mode'] as String?) ?? currentMode;
 
     final List<SnTimelineEvent> items = rawItems
@@ -319,6 +320,8 @@ class ActivityListNotifier
         cursor: null,
       ),
     );
+    cursor = null;
+    hasMore = true;
     isAggressiveMode = isAggressive;
 
     final newItems = await fetch();
@@ -349,6 +352,8 @@ class ActivityListNotifier
         cursor: null,
       ),
     );
+    cursor = null;
+    hasMore = true;
     currentMode = mode;
 
     final newItems = await fetch();
