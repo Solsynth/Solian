@@ -206,6 +206,7 @@ sealed class SnPresenceActivity with _$SnPresenceActivity {
     required int leaseMinutes,
     required DateTime leaseExpiresAt,
     required String accountId,
+    SnAccount? account,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,

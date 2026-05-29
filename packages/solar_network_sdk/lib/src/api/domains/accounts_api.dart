@@ -717,7 +717,7 @@ class AccountsApi extends BaseApi {
   Future<SnAffiliationSpell> createAffiliationSpell({String? spell}) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/affiliations',
-      data: {if (spell != null) 'spell': spell},
+      data: {'spell': ?spell},
     );
     return SnAffiliationSpell.fromJson(response.data!);
   }
@@ -754,7 +754,9 @@ class AccountsApi extends BaseApi {
   ///
   /// [id] - The spell ID.
   Future<SnAffiliationSpell> getAffiliationSpell(String id) async {
-    final response = await get<Map<String, dynamic>>('$_basePath/affiliations/$id');
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/affiliations/$id',
+    );
     return SnAffiliationSpell.fromJson(response.data!);
   }
 
@@ -772,11 +774,7 @@ class AccountsApi extends BaseApi {
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/affiliations/$id/results',
-      queryParameters: {
-        'desc': desc,
-        'take': take,
-        'offset': offset,
-      },
+      queryParameters: {'desc': desc, 'take': take, 'offset': offset},
     );
     final totalCount = getTotalCount(response.headers);
     return PaginatedResult(

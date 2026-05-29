@@ -301,6 +301,9 @@ _SnPresenceActivity _$SnPresenceActivityFromJson(Map<String, dynamic> json) =>
       leaseMinutes: (json['lease_minutes'] as num).toInt(),
       leaseExpiresAt: DateTime.parse(json['lease_expires_at'] as String),
       accountId: json['account_id'] as String,
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt: json['deleted_at'] == null
@@ -324,6 +327,7 @@ Map<String, dynamic> _$SnPresenceActivityToJson(_SnPresenceActivity instance) =>
       'lease_minutes': instance.leaseMinutes,
       'lease_expires_at': instance.leaseExpiresAt.toIso8601String(),
       'account_id': instance.accountId,
+      'account': instance.account?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),

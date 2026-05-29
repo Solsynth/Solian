@@ -520,7 +520,12 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
         guard let self else {
           return
         }
-        let uploadedSnapshot = await snapshot.map { await self.ensureArtworkUploaded($0) }
+        let uploadedSnapshot: ExternalNowPlayingSnapshot?
+        if let snapshot {
+          uploadedSnapshot = await self.ensureArtworkUploaded(snapshot)
+        } else {
+          uploadedSnapshot = nil
+        }
         await MainActor.run {
           self.externalNowPlayingPollInFlight = false
           self.handleExternalNowPlayingSnapshot(uploadedSnapshot, force: force)
