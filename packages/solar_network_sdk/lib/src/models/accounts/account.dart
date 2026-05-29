@@ -166,6 +166,7 @@ sealed class SnAccountStatus with _$SnAccountStatus {
     String? appIdentifier,
     @Default(false) bool isAutomated,
     required String accountId,
+    SnAccount? account,
     required DateTime createdAt,
     required DateTime updatedAt,
     required DateTime? deletedAt,

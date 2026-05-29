@@ -186,6 +186,9 @@ _SnAccountStatus _$SnAccountStatusFromJson(Map<String, dynamic> json) =>
       appIdentifier: json['app_identifier'] as String?,
       isAutomated: json['is_automated'] as bool? ?? false,
       accountId: json['account_id'] as String,
+      account: json['account'] == null
+          ? null
+          : SnAccount.fromJson(json['account'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       deletedAt: json['deleted_at'] == null
@@ -209,6 +212,7 @@ Map<String, dynamic> _$SnAccountStatusToJson(_SnAccountStatus instance) =>
       'app_identifier': instance.appIdentifier,
       'is_automated': instance.isAutomated,
       'account_id': instance.accountId,
+      'account': instance.account?.toJson(),
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
       'deleted_at': instance.deletedAt?.toIso8601String(),
