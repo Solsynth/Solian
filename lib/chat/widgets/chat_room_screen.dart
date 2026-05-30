@@ -17,6 +17,7 @@ import 'package:island/chat/widgets/call_overlay.dart';
 import 'package:island/chat/widgets/chat_input.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
+import 'package:island/chat/widgets/pinned_messages_sheet.dart';
 import 'package:island/chat/widgets/public_room_preview.dart';
 import 'package:island/chat/widgets/room_app_bar.dart';
 import 'package:island/chat/widgets/room_message_list.dart';
@@ -39,6 +40,7 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 import 'package:island/shared/widgets/sync_indicator.dart';
 import 'package:island/thoughts/screens/think_sheet.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -167,6 +169,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     final messages = ref.watch(messagesProvider(id));
     final isAtLatestMessages = useState(true);
     final savedLastReadAt = useState<DateTime?>(chatIdentity.value?.lastReadAt);
+    final pinnedPins = useState<List<SnChatMessagePin>>([]);
+    final isPinnedBarCollapsed = useState(false);
 
     useEffect(() {
       final identity = chatIdentity.value;
@@ -175,6 +179,30 @@ class ChatRoomScreen extends HookConsumerWidget {
       }
       return null;
     }, [chatIdentity.value]);
+
+    // Fetch pinned messages and listen for realtime updates
+    useEffect(() {
+      Future.microtask(() async {
+        final pins = await messagesNotifier.fetchPinnedMessages();
+        if (context.mounted) {
+          pinnedPins.value = pins;
+        }
+      });
+
+      final sub = eventBus.on<ChatMessageNewEvent>().listen((event) {
+        if (event.message.chatRoomId != id) return;
+        if (event.message.type == 'messages.pinned' ||
+            event.message.type == 'messages.unpinned') {
+          Future.microtask(() async {
+            final pins = await messagesNotifier.fetchPinnedMessages();
+            if (context.mounted) {
+              pinnedPins.value = pins;
+            }
+          });
+        }
+      });
+      return sub.cancel;
+    }, [id]);
 
     // Track when app was backgrounded for time-based provider invalidation
     final lastBackgroundTime = useRef<DateTime?>(null);
@@ -737,6 +765,29 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
           body: Column(
             children: [
+              if (pinnedPins.value.isNotEmpty)
+                _PinnedMessagesBar(
+                  pins: pinnedPins.value,
+                  isCollapsed: isPinnedBarCollapsed.value,
+                  onToggleCollapse: () {
+                    isPinnedBarCollapsed.value = !isPinnedBarCollapsed.value;
+                  },
+                  onTapPin: (pin) {
+                    if (pin.messageId.isNotEmpty) {
+                      jumpAndRevealMessage(pin.messageId);
+                    }
+                  },
+                  onViewAll: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => PinnedMessagesSheet(
+                        roomId: id,
+                        onJumpToMessage: jumpAndRevealMessage,
+                      ),
+                    );
+                  },
+                ),
               Expanded(
                 child: Stack(
                   children: [
@@ -1187,6 +1238,130 @@ class _RedirectRoomGroup extends StatelessWidget {
             onTap: () => Navigator.of(context).pop(room.id),
           ),
       ],
+    );
+  }
+}
+
+class _PinnedMessagesBar extends StatelessWidget {
+  final List<SnChatMessagePin> pins;
+  final bool isCollapsed;
+  final VoidCallback onToggleCollapse;
+  final void Function(SnChatMessagePin pin) onTapPin;
+  final VoidCallback onViewAll;
+
+  const _PinnedMessagesBar({
+    required this.pins,
+    required this.isCollapsed,
+    required this.onToggleCollapse,
+    required this.onTapPin,
+    required this.onViewAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (pins.isEmpty) return const SizedBox.shrink();
+
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: onToggleCollapse,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Symbols.push_pin,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${pins.length} pinned message${pins.length == 1 ? '' : 's'}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ),
+                  if (pins.length > 1)
+                    TextButton(
+                      onPressed: onViewAll,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'viewAll'.tr(),
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ),
+                  Icon(
+                    isCollapsed
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_up,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (!isCollapsed)
+            SizedBox(
+              height: 48,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                itemCount: pins.length,
+                itemBuilder: (context, index) {
+                  final pin = pins[index];
+                  final message = pin.message;
+                  final sender = message?.sender;
+                  final senderNick = sender?.nick;
+                  final accountNick = sender?.account.nick;
+                  final senderName = senderNick?.isNotEmpty == true
+                      ? senderNick!
+                      : accountNick ?? '';
+                  final content = message?.content ?? '';
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ActionChip(
+                      avatar: Icon(
+                        Symbols.push_pin,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      label: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 150),
+                        child: Text(
+                          senderName.isNotEmpty
+                              ? '$senderName: $content'
+                              : content,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                      onPressed: () => onTapPin(pin),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  );
+                },
+              ),
+            ),
+          Divider(
+            height: 1,
+            thickness: 1 / MediaQuery.devicePixelRatioOf(context),
+          ),
+        ],
+      ),
     );
   }
 }
