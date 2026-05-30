@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -51,6 +52,20 @@ const kOnboardingLastShownVersion = 'app_onboarding_last_shown_version';
 
 final appWrapperKey = GlobalKey();
 
+class ForcedStartupSplashNotifier extends Notifier<bool> {
+  @override
+  bool build() => kForceShowStartupSplashForTesting;
+
+  void setVisible(bool value) {
+    state = value;
+  }
+}
+
+final forcedStartupSplashProvider =
+    NotifierProvider<ForcedStartupSplashNotifier, bool>(
+      ForcedStartupSplashNotifier.new,
+    );
+
 class AppWrapper extends HookConsumerWidget {
   final Widget child;
   const AppWrapper({super.key, required this.child});
@@ -63,6 +78,7 @@ class AppWrapper extends HookConsumerWidget {
     final connectivityStatus = ref.watch(connectivityStatusProvider);
     final hasConnectivity = hasNetworkConnectivityValue(connectivityStatus);
     final token = ref.watch(tokenProvider);
+    final forceShowStartupSplash = ref.watch(forcedStartupSplashProvider);
     final isShowSnow = useState(false);
     final isSnowGone = useState(false);
     final bootstrapCompleted = useState(false);
@@ -291,7 +307,7 @@ class AppWrapper extends HookConsumerWidget {
     final shouldRunBootstrap = token != null && !bootstrapCompleted.value;
     final shouldShowStartupSplash =
         !startupGateResolved.value ||
-        kForceShowStartupSplashForTesting ||
+        forceShowStartupSplash ||
         shouldRunBootstrap;
 
     useEffect(() {
@@ -403,21 +419,24 @@ class AppWrapper extends HookConsumerWidget {
           child: shouldShowStartupSplash
               ? KeyedSubtree(
                   key: ValueKey('bootstrap_splash'),
-                  child: StartupSplashScreen(
-                    runBootstrap: shouldRunBootstrap,
-                    onCompleted: () {
-                      bootstrapCompleted.value = true;
-                    },
-                  ),
+                   child: StartupSplashScreen(
+                     runBootstrap: shouldRunBootstrap,
+                     onCompleted: () {
+                       ref
+                           .read(forcedStartupSplashProvider.notifier)
+                           .setVisible(false);
+                        bootstrapCompleted.value = true;
+                      },
+                    ),
                 )
-              : KeyedSubtree(
-                  key: const ValueKey('main_content'),
-                  child: Stack(
-                    children: [
-                      child,
-                      if (doesShowSnow && !isSnowGone.value)
-                        IgnorePointer(
-                          child: AnimatedOpacity(
+               : KeyedSubtree(
+                   key: const ValueKey('main_content'),
+                   child: Stack(
+                     children: [
+                      _AppWrapperBackdrop(child: child),
+                       if (doesShowSnow && !isSnowGone.value)
+                         IgnorePointer(
+                           child: AnimatedOpacity(
                             opacity: isShowSnow.value ? 1 : 00,
                             duration: const Duration(seconds: 3),
                             child: SnowFallAnimation(
@@ -699,6 +718,105 @@ class AppWrapper extends HookConsumerWidget {
     queryParams.addAll(payload);
     final target = redirectUri.replace(queryParameters: queryParams).toString();
     await launchUrlString(target, mode: LaunchMode.externalApplication);
+  }
+}
+
+class _AppWrapperBackdrop extends StatelessWidget {
+  final Widget child;
+
+  const _AppWrapperBackdrop({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                scheme.surface,
+                Color.lerp(
+                  scheme.surface,
+                  scheme.surfaceContainerHighest,
+                  isDark ? 0.65 : 0.85,
+                )!,
+                Color.lerp(
+                  scheme.surface,
+                  scheme.primary.withOpacity(isDark ? 0.14 : 0.08),
+                  0.5,
+                )!,
+              ],
+              stops: const [0, 0.55, 1],
+            ),
+          ),
+        ),
+        const Positioned(
+          top: -120,
+          left: -80,
+          child: _BackdropOrb(size: 280, alignment: Alignment.topLeft),
+        ),
+        const Positioned(
+          right: -110,
+          top: 90,
+          child: _BackdropOrb(size: 240, alignment: Alignment.topRight),
+        ),
+        const Positioned(
+          left: 24,
+          bottom: -140,
+          child: _BackdropOrb(size: 320, alignment: Alignment.bottomLeft),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 36, sigmaY: 36),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: scheme.surface.withOpacity(isDark ? 0.18 : 0.08),
+                ),
+              ),
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+}
+
+class _BackdropOrb extends StatelessWidget {
+  final double size;
+  final Alignment alignment;
+
+  const _BackdropOrb({required this.size, required this.alignment});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final primary = scheme.primary.withOpacity(0.18);
+    final tertiary = scheme.tertiary.withOpacity(0.12);
+
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            center: alignment,
+            radius: 1,
+            colors: [primary, tertiary, Colors.transparent],
+            stops: const [0, 0.55, 1],
+          ),
+        ),
+      ),
+    );
   }
 }
 
