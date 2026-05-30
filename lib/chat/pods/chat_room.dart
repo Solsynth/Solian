@@ -1153,8 +1153,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
 
       for (final rawChange in rawChanges.whereType<Map>()) {
         final change = Map<String, dynamic>.from(rawChange);
-        final roomId =
-            change['room_id']?.toString() ?? change['roomId']?.toString();
+        final roomId = change['room_id']?.toString();
         final changeType = change['type']?.toString();
 
         if (roomId != null && changeType == 'removed') {

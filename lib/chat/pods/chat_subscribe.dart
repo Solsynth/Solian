@@ -3,9 +3,12 @@ import "dart:convert";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:island/accounts/account_pod.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/chat/pods/chat_room.dart";
+import "package:island/chat/pods/chat_summary.dart";
 import "package:island/core/lifecycle.dart";
+import "package:island/core/network.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/core/websocket.dart";
 import "package:logging/logging.dart";
@@ -19,11 +22,68 @@ final currentSubscribedChatIdProvider =
       CurrentSubscribedChatIdNotifier.new,
     );
 
+final chatReadSyncProvider = AsyncNotifierProvider<ChatReadSyncNotifier, void>(
+  ChatReadSyncNotifier.new,
+);
+
 class CurrentSubscribedChatIdNotifier extends Notifier<String?> {
   @override
   String? build() => null;
 
   void set(String? value) => state = value;
+}
+
+class ChatReadSyncNotifier extends AsyncNotifier<void> {
+  StreamSubscription<WebSocketPacket>? _subscription;
+
+  @override
+  FutureOr<void> build() {
+    _subscription?.cancel();
+
+    final ws = ref.read(websocketProvider);
+    _subscription = ws.dataStream.listen(_handlePacket);
+
+    ref.onDispose(() {
+      _subscription?.cancel();
+      _subscription = null;
+    });
+  }
+
+  Future<void> _handlePacket(WebSocketPacket packet) async {
+    if (packet.type != 'messages.read') return;
+
+    final data = packet.data;
+    if (data is! Map<Object?, Object?>) return;
+    final packetData = data as Map<Object?, Object?>;
+
+    final roomId = packetData['chat_room_id']?.toString();
+    if (roomId == null || roomId.isEmpty) return;
+
+    final currentUserId = ref.read(userInfoProvider).value?.id;
+    final accountId = packetData['account_id']?.toString();
+    if (currentUserId != null &&
+        accountId != null &&
+        accountId != currentUserId) {
+      return;
+    }
+
+    await ref.read(chatSummaryProvider.notifier).clearUnreadCount(roomId);
+  }
+
+  Future<void> markAllRead() async {
+    if (state.isLoading) return;
+
+    state = const AsyncLoading();
+    try {
+      final client = ref.read(apiClientProvider);
+      await client.post('/messager/chat/read-all');
+      ref.read(chatSummaryProvider.notifier).clearAllUnreadCounts();
+      state = const AsyncData(null);
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
+    }
+  }
 }
 
 @riverpod
