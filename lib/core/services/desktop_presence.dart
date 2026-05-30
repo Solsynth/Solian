@@ -219,6 +219,7 @@ class DesktopNowPlayingService {
     }
     _started = true;
 
+    Logger.root.info('[DesktopNowPlaying] Starting service...');
     _subscription = _presence.externalNowPlayingEvents.listen(
       _handleEvent,
       onError: (Object error, StackTrace stackTrace) {
@@ -228,16 +229,24 @@ class DesktopNowPlayingService {
           stackTrace,
         );
       },
+      onDone: () {
+        Logger.root.info('[DesktopNowPlaying] Event stream done');
+      },
     );
 
     try {
       final executablePath = _ref.read(desktopNowPlayingCliPathProvider);
-      Logger.root.info('[DesktopNowPlaying] Starting macOS monitoring');
+      Logger.root.info(
+        '[DesktopNowPlaying] Starting macOS monitoring with executablePath=$executablePath',
+      );
       await _syncAuthToken();
       _startTokenSync();
       await _presence.startExternalNowPlayingMonitoring(
         pollInterval: _pollInterval,
         executablePath: executablePath,
+      );
+      Logger.root.info(
+        '[DesktopNowPlaying] macOS monitoring started successfully',
       );
     } catch (error, stackTrace) {
       Logger.root.severe(
@@ -249,16 +258,27 @@ class DesktopNowPlayingService {
   }
 
   void _handleEvent(ExternalNowPlayingEvent event) {
+    Logger.root.info('[DesktopNowPlaying] === EVENT RECEIVED ===');
     Logger.root.info(
       '[DesktopNowPlaying] source=${event.source.name} '
-      'app=${event.sourceAppName ?? ""} '
-      'bundle=${event.sourceBundleIdentifier ?? ""} '
-      'id=${event.uniqueIdentifier ?? ""} '
+      'app=${event.sourceAppName ?? "nil"} '
+      'bundle=${event.sourceBundleIdentifier ?? "nil"} '
+      'id=${event.uniqueIdentifier ?? "nil"} '
       'state=${event.state.name} '
-      'playbackRate=${event.playbackRate?.toString() ?? ""} '
-      'title=${event.title ?? ""} '
-      'artist=${event.artist ?? ""} '
-      'album=${event.album ?? ""}',
+      'playbackRate=${event.playbackRate?.toString() ?? "nil"} '
+      'title=${event.title ?? "nil"} '
+      'artist=${event.artist ?? "nil"} '
+      'album=${event.album ?? "nil"}',
+    );
+    Logger.root.info(
+      '[DesktopNowPlaying] providerKey=${event.providerKey ?? "nil"} '
+      'providerReferenceId=${event.providerReferenceId ?? "nil"} '
+      'catalogId=${event.catalogId ?? "nil"} '
+      'artworkHash=${event.artworkHash ?? "nil"} '
+      'artworkUrl=${event.artworkUrl ?? "nil"} '
+      'artworkUrlLarge=${event.artworkUrlLarge ?? "nil"} '
+      'duration=${event.duration?.toString() ?? "nil"} '
+      'position=${event.position?.toString() ?? "nil"}',
     );
 
     _lastEvent = event;
@@ -267,46 +287,66 @@ class DesktopNowPlayingService {
   }
 
   void _emitState() {
-    _stateController.add(NowPlayingState(
-      event: _lastEvent,
-      activityData: _currentActivityData,
-      lastError: _lastError,
-    ));
+    _stateController.add(
+      NowPlayingState(
+        event: _lastEvent,
+        activityData: _currentActivityData,
+        lastError: _lastError,
+      ),
+    );
   }
 
   Future<void> _syncNowPlayingActivity(ExternalNowPlayingEvent event) async {
+    Logger.root.info(
+      '[DesktopNowPlaying] Syncing activity: state=${event.state.name} title=${event.title ?? "nil"}',
+    );
+
     switch (event.state) {
       case ExternalNowPlayingState.playing:
         _cancelPauseClear();
         break;
       case ExternalNowPlayingState.paused:
+        Logger.root.info('[DesktopNowPlaying] Scheduling pause clear');
         _schedulePauseClear();
         return;
       case ExternalNowPlayingState.stopped:
+        Logger.root.info('[DesktopNowPlaying] State is stopped, clearing');
         _cancelPauseClear();
         await _clearNowPlayingActivity();
         return;
     }
 
     if (event.state != ExternalNowPlayingState.playing) {
+      Logger.root.info(
+        '[DesktopNowPlaying] State is not playing (${event.state.name}), clearing',
+      );
       await _clearNowPlayingActivity();
       return;
     }
 
     final activityData = _buildActivityData(event);
     if (activityData == null) {
+      Logger.root.info(
+        '[DesktopNowPlaying] Activity data is null (no title?), clearing',
+      );
       await _clearNowPlayingActivity();
       return;
     }
 
+    Logger.root.fine('[DesktopNowPlaying] Built activity data: $activityData');
+
     final fingerprint = jsonEncode(activityData);
     if (_currentActivityFingerprint == fingerprint) {
+      Logger.root.fine('[DesktopNowPlaying] Activity unchanged, skipping');
       return;
     }
 
     final manualId = activityData['manual_id'] as String?;
     if (_currentActivityManualId != null &&
         _currentActivityManualId != manualId) {
+      Logger.root.info(
+        '[DesktopNowPlaying] Clearing previous activity: $_currentActivityManualId',
+      );
       try {
         await _ref
             .read(apiClientProvider)
@@ -324,6 +364,9 @@ class DesktopNowPlayingService {
     }
 
     try {
+      Logger.root.info(
+        '[DesktopNowPlaying] Publishing activity with manualId=$manualId',
+      );
       await _ref
           .read(apiClientProvider)
           .post('/passport/activities', data: activityData);
@@ -334,7 +377,9 @@ class DesktopNowPlayingService {
       _invalidateCurrentUserPresenceActivities();
       _startRenewal();
       _emitState();
-      Logger.root.info('[DesktopNowPlaying] Published now playing activity');
+      Logger.root.info(
+        '[DesktopNowPlaying] Published now playing activity successfully',
+      );
     } catch (error, stackTrace) {
       _lastError = error.toString();
       _emitState();
@@ -349,9 +394,15 @@ class DesktopNowPlayingService {
   Map<String, dynamic>? _buildActivityData(ExternalNowPlayingEvent event) {
     final title = event.title;
     if (title == null || title.isEmpty) {
+      Logger.root.info(
+        '[DesktopNowPlaying] _buildActivityData: title is null or empty, returning null',
+      );
       return null;
     }
 
+    Logger.root.info(
+      '[DesktopNowPlaying] _buildActivityData: Building for title="$title"',
+    );
     final titleUrl = event.titleUrl;
     final subtitleUrl = event.artist == null || event.artist!.isEmpty
         ? null
@@ -378,6 +429,10 @@ class DesktopNowPlayingService {
         : event.uniqueIdentifier != null || event.catalogId != null
         ? '$_manualIdPrefix:${event.uniqueIdentifier ?? event.catalogId}'
         : '$_manualIdPrefix:${_hashTitle(title)}';
+
+    Logger.root.info(
+      '[DesktopNowPlaying] _buildActivityData: providerKey=$providerKey referenceId=$referenceId manualId=$_manualId',
+    );
 
     return <String, dynamic>{
       'type': 2, // 0=unknown, 1=gaming, 2=music, 3=workout
@@ -421,22 +476,33 @@ class DesktopNowPlayingService {
   String? _resolveProviderKey(ExternalNowPlayingEvent event) {
     final explicit = _normalizeQueryableTerm(event.providerKey);
     if (explicit != null) {
+      Logger.root.fine(
+        '[DesktopNowPlaying] _resolveProviderKey: using explicit=$explicit',
+      );
       return explicit;
     }
 
-    return switch (event.source) {
+    final result = switch (event.source) {
       ExternalNowPlayingSource.music => 'apple_music',
       ExternalNowPlayingSource.spotify => 'spotify',
       ExternalNowPlayingSource.other =>
         _normalizeQueryableTerm(event.sourceBundleIdentifier) ??
             _normalizeQueryableTerm(event.sourceAppName),
     };
+    Logger.root.fine(
+      '[DesktopNowPlaying] _resolveProviderKey: source=${event.source.name} result=$result',
+    );
+    return result;
   }
 
   String? _resolveReferenceId(ExternalNowPlayingEvent event) {
-    return _normalizeQueryableTerm(
+    final result = _normalizeQueryableTerm(
       event.providerReferenceId ?? event.catalogId ?? event.uniqueIdentifier,
     );
+    Logger.root.fine(
+      '[DesktopNowPlaying] _resolveReferenceId: providerReferenceId=${event.providerReferenceId ?? "nil"} catalogId=${event.catalogId ?? "nil"} uniqueIdentifier=${event.uniqueIdentifier ?? "nil"} result=$result',
+    );
+    return result;
   }
 
   List<String> _buildQueryableTerms({
@@ -474,7 +540,11 @@ class DesktopNowPlayingService {
     try {
       final token = await getValidAuthToken(_ref);
       final serverURL = _ref.read(serverUrlProvider);
+      Logger.root.info(
+        '[DesktopNowPlaying] Syncing auth token: serverURL=$serverURL tokenLength=${token?.length}',
+      );
       await _presence.setAuthToken(token: token, serverURL: serverURL);
+      Logger.root.info('[DesktopNowPlaying] Auth token synced successfully');
     } catch (error, stackTrace) {
       Logger.root.warning(
         '[DesktopNowPlaying] Failed to sync auth token',

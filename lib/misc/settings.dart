@@ -29,6 +29,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart' hide PageBackButton;
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island_desktop_presence/island_desktop_presence.dart';
+import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
@@ -3478,6 +3479,45 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                 ],
               ),
             ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final presence = IslandDesktopPresence();
+                  final executablePath = ref.read(desktopNowPlayingCliPathProvider);
+                  Logger.root.info('[DebugNowPlaying] Manual trigger with path=$executablePath');
+                  final result = await presence.debugNowPlaying(executablePath: executablePath);
+                  if (context.mounted) {
+                    if (result != null) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Now Playing Debug Result'),
+                          content: SingleChildScrollView(
+                            child: SelectableText(
+                              const JsonEncoder.withIndent('  ').convert(result),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('close'.tr()),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      showSnackBar('No active now playing source detected');
+                    }
+                  }
+                },
+                icon: const Icon(Symbols.bug_report, size: 18),
+                label: const Text('Debug: Test Now Playing'),
+              ),
+            ),
           ],
         );
       },
