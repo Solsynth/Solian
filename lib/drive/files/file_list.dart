@@ -256,6 +256,16 @@ class FileListScreen extends HookConsumerWidget {
       activeTabId.value = remainingTabs[nextIndex].id;
     }
 
+    void reorderTab(int oldIndex, int newIndex) {
+      final currentTabs = [...tabs.value];
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      final tab = currentTabs.removeAt(oldIndex);
+      currentTabs.insert(newIndex, tab);
+      tabs.value = currentTabs;
+    }
+
     useEffect(() {
       return () {
         for (final notifier in pathStates.values) {
@@ -415,6 +425,7 @@ class FileListScreen extends HookConsumerWidget {
                     onRevealParentFolder: revealParentFolder,
                     onSelectTab: (tabId) => activeTabId.value = tabId,
                     onCloseTab: closeTab,
+                    onReorderTab: reorderTab,
                     onAddIndexedTab: () => createTab(FileListMode.normal),
                     onAddUnindexedTab: () => createTab(FileListMode.unindexed),
                   ),
@@ -1223,6 +1234,7 @@ class _DriveTabStrip extends StatelessWidget {
   final Future<void> Function(SnCloudFile file) onRevealParentFolder;
   final ValueChanged<String> onSelectTab;
   final ValueChanged<String> onCloseTab;
+  final void Function(int oldIndex, int newIndex) onReorderTab;
   final VoidCallback onAddIndexedTab;
   final VoidCallback onAddUnindexedTab;
 
@@ -1234,6 +1246,7 @@ class _DriveTabStrip extends StatelessWidget {
     required this.onRevealParentFolder,
     required this.onSelectTab,
     required this.onCloseTab,
+    required this.onReorderTab,
     required this.onAddIndexedTab,
     required this.onAddUnindexedTab,
   });
@@ -1249,26 +1262,39 @@ class _DriveTabStrip extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final tab in tabs) ...[
-                      _DriveTabChip(
-                        title: getTabTitle(tab),
-                        icon: tab.mode == FileListMode.normal
-                            ? Symbols.cloud
-                            : Symbols.inventory_2,
-                        file: tab.file,
-                        onRenameFile: onRenameFile,
-                        onRevealParentFolder: onRevealParentFolder,
-                        isSelected: tab.id == activeTabId,
-                        onTap: () => onSelectTab(tab.id),
-                        onClose: () => onCloseTab(tab.id),
+              child: SizedBox(
+                height: 40,
+                child: ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: tabs.length,
+                  onReorder: onReorderTab,
+                  itemBuilder: (context, index) {
+                    final tab = tabs[index];
+                    return ReorderableDragStartListener(
+                      key: ValueKey(tab.id),
+                      index: index,
+                      child: Row(
+                        key: ValueKey(tab.id),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _DriveTabChip(
+                            title: getTabTitle(tab),
+                            icon: tab.mode == FileListMode.normal
+                                ? Symbols.cloud
+                                : Symbols.inventory_2,
+                            file: tab.file,
+                            onRenameFile: onRenameFile,
+                            onRevealParentFolder: onRevealParentFolder,
+                            isSelected: tab.id == activeTabId,
+                            onTap: () => onSelectTab(tab.id),
+                            onClose: () => onCloseTab(tab.id),
+                          ),
+                          const Gap(8),
+                        ],
                       ),
-                      const Gap(8),
-                    ],
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -1365,7 +1391,14 @@ class _DriveTabChip extends StatelessWidget {
               children: [
                 Icon(icon, size: 18),
                 const Gap(8),
-                Text(title),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 120),
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const Gap(4),
                 if (file != null) ...[
                   Consumer(
