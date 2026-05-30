@@ -1662,7 +1662,6 @@ class FileDownloadService {
     await _driveApi.downloadFile(
       fileId: item.id,
       savePath: filePath,
-      original: true,
       onReceiveProgress: onProgress,
     );
     await _tryDecryptDownloadedFile(filePath, item);
