@@ -9,6 +9,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/screens/me/settings_auth_factors.dart';
 import 'package:island/accounts/screens/me/settings_connections.dart';
 import 'package:island/accounts/screens/me/settings_contacts.dart';
+import 'package:island/accounts/screens/me/settings_webdav.dart';
 import 'package:island/auth/captcha.dart';
 import 'package:island/auth/login.dart';
 import 'package:island/creators/screens/publishers_form.dart';
@@ -618,6 +619,24 @@ class AccountSettingsScreen extends HookConsumerWidget {
       ),
     ];
 
+    final integrationsSettings = [
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.folder_special),
+        title: Text('webdavSettings').tr(),
+        subtitle: Text('webdavSettingsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => const WebdavSettingsSheet(),
+          );
+        },
+      ),
+    ];
+
     // Create a responsive layout based on screen width
     Widget buildSettingsList() {
       return Column(
@@ -643,6 +662,10 @@ class AccountSettingsScreen extends HookConsumerWidget {
           _SettingsSection(
             title: 'accountSecurityTitle',
             children: securitySettings,
+          ),
+          _SettingsSection(
+            title: 'accountIntegrationsTitle',
+            children: integrationsSettings,
           ),
           _SettingsSection(
             title: 'accountDangerZoneTitle',
