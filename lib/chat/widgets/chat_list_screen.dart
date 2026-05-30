@@ -152,7 +152,7 @@ Widget _buildChatGroupIconWidget(
       value,
       style: TextStyle(fontSize: emojiFontSize, height: 1),
       textAlign: TextAlign.center,
-    );
+    ).padding(left: 3);
   }
   return Icon(_chatGroupIconData(value), color: color, size: iconSize);
 }
@@ -442,11 +442,6 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                         Colors.transparent,
                                     title: Row(
                                       children: [
-                                        _buildChatGroupIconWidget(
-                                          section.group.icon,
-                                          color: groupColor,
-                                        ),
-                                        const Gap(12),
                                         Expanded(
                                           child: Text(section.group.name),
                                         ),
@@ -463,6 +458,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                       ],
                                     ),
                                     leading: CircleAvatar(
+                                      radius: 16,
                                       backgroundColor: groupColor.withOpacity(
                                         0.16,
                                       ),
@@ -915,18 +911,32 @@ String _createChatGroupId() {
   return 'local-chat-group-${DateTime.now().toUtc().microsecondsSinceEpoch}';
 }
 
-Future<List<SnChatGroup>> _fetchAndSaveChatGroups(
-  Dio client,
-  AppDatabase db,
-  String accountId,
-) async {
-  final resp = await client.get('/messager/chat/groups');
-  final groups = (resp.data as List)
-      .whereType<Map>()
-      .map((item) => SnChatGroup.fromJson(Map<String, dynamic>.from(item)))
-      .toList();
-  await db.saveChatGroups(accountId, groups);
-  return groups;
+List<SnChatGroup> _upsertChatGroup(
+  List<SnChatGroup> groups,
+  SnChatGroup group,
+) {
+  final next = groups.where((item) => item.id != group.id).toList()..add(group);
+  return _normalizeChatGroups(next);
+}
+
+List<SnChatGroup> _removeChatGroup(List<SnChatGroup> groups, String groupId) {
+  return _normalizeChatGroups(
+    groups.where((item) => item.id != groupId).toList(),
+  );
+}
+
+List<SnChatGroup> _applyRoomGroupAssignment(
+  List<SnChatGroup> groups,
+  String roomId, {
+  String? groupId,
+}) {
+  return _normalizeChatGroups(
+    groups.map((group) {
+      final nextRoomIds = group.roomIds.where((id) => id != roomId).toList();
+      if (group.id == groupId) nextRoomIds.add(roomId);
+      return group.copyWith(roomIds: nextRoomIds);
+    }).toList(),
+  );
 }
 
 Future<SnChatGroup?> _showChatGroupEditorSheet(
@@ -1064,6 +1074,7 @@ Future<bool> _showChatGroupsManagerSheet(
         builder: (context, setModalState) {
           Future<void> persist(List<SnChatGroup> nextGroups) async {
             currentGroups = _normalizeChatGroups(nextGroups);
+            await db.saveChatGroups(accountId, currentGroups);
             changed = true;
             setModalState(() {});
           }
@@ -1080,7 +1091,7 @@ Future<bool> _showChatGroupsManagerSheet(
                     nextOrder: _nextChatGroupOrder(currentGroups),
                   );
                   if (group == null) return;
-                  await client.post(
+                  final response = await client.post(
                     '/messager/chat/groups',
                     data: {
                       'name': group.name,
@@ -1089,9 +1100,10 @@ Future<bool> _showChatGroupsManagerSheet(
                       'order': group.order,
                     }..removeWhere((_, value) => value == null),
                   );
-                  await persist(
-                    await _fetchAndSaveChatGroups(client, db, accountId),
+                  final created = SnChatGroup.fromJson(
+                    Map<String, dynamic>.from(response.data as Map),
                   );
+                  await persist(_upsertChatGroup(currentGroups, created));
                 },
               ),
             ],
@@ -1139,13 +1151,7 @@ Future<bool> _showChatGroupsManagerSheet(
                                           data: {'order': group.order},
                                         );
                                       }
-                                      await persist(
-                                        await _fetchAndSaveChatGroups(
-                                          client,
-                                          db,
-                                          accountId,
-                                        ),
-                                      );
+                                      await persist(normalized);
                                     },
                             ),
                             IconButton(
@@ -1166,13 +1172,7 @@ Future<bool> _showChatGroupsManagerSheet(
                                           data: {'order': group.order},
                                         );
                                       }
-                                      await persist(
-                                        await _fetchAndSaveChatGroups(
-                                          client,
-                                          db,
-                                          accountId,
-                                        ),
-                                      );
+                                      await persist(normalized);
                                     },
                             ),
                             PopupMenuButton<String>(
@@ -1186,7 +1186,7 @@ Future<bool> _showChatGroupsManagerSheet(
                                         nextOrder: group.order,
                                       );
                                   if (edited == null) return;
-                                  await client.patch(
+                                  final response = await client.patch(
                                     '/messager/chat/groups/${group.id}',
                                     data: {
                                       'name': edited.name,
@@ -1195,12 +1195,13 @@ Future<bool> _showChatGroupsManagerSheet(
                                       'order': edited.order,
                                     }..removeWhere((_, value) => value == null),
                                   );
-                                  await persist(
-                                    await _fetchAndSaveChatGroups(
-                                      client,
-                                      db,
-                                      accountId,
+                                  final updated = SnChatGroup.fromJson(
+                                    Map<String, dynamic>.from(
+                                      response.data as Map,
                                     ),
+                                  );
+                                  await persist(
+                                    _upsertChatGroup(currentGroups, updated),
                                   );
                                   return;
                                 }
@@ -1209,11 +1210,7 @@ Future<bool> _showChatGroupsManagerSheet(
                                     '/messager/chat/groups/${group.id}',
                                   );
                                   await persist(
-                                    await _fetchAndSaveChatGroups(
-                                      client,
-                                      db,
-                                      accountId,
-                                    ),
+                                    _removeChatGroup(currentGroups, group.id),
                                   );
                                 }
                               },
@@ -1282,7 +1279,10 @@ Future<bool> _showAssignChatGroupSheet(
                   '/messager/chat/rooms/${room.id}/group',
                   data: {'group_id': null},
                 );
-                await _fetchAndSaveChatGroups(client, db, accountId);
+                await db.saveChatGroups(
+                  accountId,
+                  _applyRoomGroupAssignment(groups, room.id),
+                );
                 changed = true;
                 if (!context.mounted) return;
                 Navigator.of(context).pop();
@@ -1314,7 +1314,14 @@ Future<bool> _showAssignChatGroupSheet(
                     '/messager/chat/rooms/${room.id}/group',
                     data: {'group_id': group.id},
                   );
-                  await _fetchAndSaveChatGroups(client, db, accountId);
+                  await db.saveChatGroups(
+                    accountId,
+                    _applyRoomGroupAssignment(
+                      groups,
+                      room.id,
+                      groupId: group.id,
+                    ),
+                  );
                   changed = true;
                   if (!context.mounted) return;
                   Navigator.of(context).pop();
@@ -1346,7 +1353,14 @@ Future<bool> _showAssignChatGroupSheet(
                   '/messager/chat/rooms/${room.id}/group',
                   data: {'group_id': createdGroup.id},
                 );
-                await _fetchAndSaveChatGroups(client, db, accountId);
+                await db.saveChatGroups(
+                  accountId,
+                  _applyRoomGroupAssignment(
+                    _upsertChatGroup(groups, createdGroup),
+                    room.id,
+                    groupId: createdGroup.id,
+                  ),
+                );
                 changed = true;
                 if (!context.mounted) return;
                 Navigator.of(context).pop();
