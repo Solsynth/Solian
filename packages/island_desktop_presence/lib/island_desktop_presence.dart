@@ -167,4 +167,10 @@ class IslandDesktopPresence {
       serverURL: serverURL,
     );
   }
+
+  Future<Map<String, dynamic>?> debugNowPlaying({String? executablePath}) {
+    return IslandDesktopPresencePlatform.instance.debugNowPlaying(
+      executablePath: executablePath,
+    );
+  }
 }

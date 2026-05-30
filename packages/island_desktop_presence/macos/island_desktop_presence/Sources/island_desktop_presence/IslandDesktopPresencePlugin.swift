@@ -252,6 +252,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   private var externalNowPlayingExecutablePath = defaultNowPlayingCliPath
   
   private var externalNowPlayingPollInFlight = false
+  private var externalNowPlayingPollStartTime: Date?
   private var didLogMissingNowPlayingCli = false
   private var lastExternalNowPlayingSnapshot: ExternalNowPlayingSnapshot?
   fileprivate var pendingExternalNowPlayingEvent: [String: Any]?
@@ -432,6 +433,24 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       } else {
         result(nil)
       }
+    case "debugNowPlaying":
+      let executablePath: String
+      if let arguments = call.arguments as? [String: Any],
+         let path = arguments["executablePath"] as? String,
+         !path.isEmpty {
+        executablePath = path
+      } else {
+        executablePath = defaultNowPlayingCliPath
+      }
+      NSLog("[IslandDesktopPresence] debugNowPlaying called with path=%@", executablePath)
+      let snapshot = readExternalNowPlayingSnapshot(executablePath: executablePath)
+      if let snapshot {
+        NSLog("[IslandDesktopPresence] debugNowPlaying result: source=%@ state=%@ title=%@", snapshot.source.rawValue, snapshot.state.rawValue, snapshot.title ?? "nil")
+        result(snapshot.payload)
+      } else {
+        NSLog("[IslandDesktopPresence] debugNowPlaying result: nil (no active source)")
+        result(nil)
+      }
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -498,6 +517,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     externalNowPlayingTimer?.invalidate()
     externalNowPlayingTimer = nil
     externalNowPlayingPollInFlight = false
+    externalNowPlayingPollStartTime = nil
     if resetState {
       lastExternalNowPlayingSnapshot = nil
       pendingExternalNowPlayingEvent = nil
@@ -507,18 +527,40 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
 
   private func requestExternalNowPlayingSnapshot(force: Bool) {
     if externalNowPlayingPollInFlight {
-      return
-    }
-
-    let executablePath = externalNowPlayingExecutablePath
-    externalNowPlayingPollInFlight = true
-    DispatchQueue.global(qos: .utility).async { [weak self] in
-      guard let self else {
+      // Safety check: if poll has been in flight for more than 30 seconds, reset it
+      if let startTime = externalNowPlayingPollStartTime,
+         Date().timeIntervalSince(startTime) > 30 {
+        NSLog("[IslandDesktopPresence] Poll stuck for >30s, resetting flag")
+        externalNowPlayingPollInFlight = false
+        externalNowPlayingPollStartTime = nil
+      } else {
+        NSLog("[IslandDesktopPresence] Poll skipped - already in flight")
         return
       }
-      var snapshot = self.readExternalNowPlayingSnapshot(executablePath: executablePath)
-      Task { [weak self] in
+    }
+
+    NSLog("[IslandDesktopPresence] Requesting snapshot (force=%@)", force ? "true" : "false")
+    let executablePath = externalNowPlayingExecutablePath
+    externalNowPlayingPollInFlight = true
+    externalNowPlayingPollStartTime = Date()
+    DispatchQueue.global(qos: .utility).async { [weak self] in
+      guard let self else {
+        NSLog("[IslandDesktopPresence] Self deallocated during poll")
+        return
+      }
+      
+      var snapshot: ExternalNowPlayingSnapshot?
+      do {
+        NSLog("[IslandDesktopPresence] Calling readExternalNowPlayingSnapshot")
+        snapshot = self.readExternalNowPlayingSnapshot(executablePath: executablePath)
+        NSLog("[IslandDesktopPresence] readExternalNowPlayingSnapshot returned: %@", snapshot != nil ? "snapshot" : "nil")
+      } catch {
+        NSLog("[IslandDesktopPresence] Error reading snapshot: %@", String(describing: error))
+      }
+      
+      Task { @MainActor [weak self] in
         guard let self else {
+          NSLog("[IslandDesktopPresence] Self deallocated before MainActor task")
           return
         }
         let uploadedSnapshot: ExternalNowPlayingSnapshot?
@@ -527,10 +569,9 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
         } else {
           uploadedSnapshot = nil
         }
-        await MainActor.run {
-          self.externalNowPlayingPollInFlight = false
-          self.handleExternalNowPlayingSnapshot(uploadedSnapshot, force: force)
-        }
+        self.externalNowPlayingPollInFlight = false
+        self.externalNowPlayingPollStartTime = nil
+        self.handleExternalNowPlayingSnapshot(uploadedSnapshot, force: force)
       }
     }
   }
@@ -638,15 +679,28 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     force: Bool
   ) {
     if let snapshot {
+      NSLog(
+        "[IslandDesktopPresence] Got snapshot: source=%@ state=%@ title=%@ artist=%@",
+        snapshot.source.rawValue,
+        snapshot.state.rawValue,
+        snapshot.title ?? "nil",
+        snapshot.artist ?? "nil"
+      )
       emitExternalNowPlaying(snapshot, force: force)
       return
     }
 
+    NSLog("[IslandDesktopPresence] Snapshot is nil")
     guard let lastSnapshot = lastExternalNowPlayingSnapshot else {
-      NSLog("[IslandDesktopPresence] External now playing poll found no active source")
+      NSLog("[IslandDesktopPresence] External now playing poll found no active source and no previous snapshot")
       return
     }
 
+    NSLog(
+      "[IslandDesktopPresence] Creating stopped snapshot from previous: source=%@ title=%@",
+      lastSnapshot.source.rawValue,
+      lastSnapshot.title ?? "nil"
+    )
     let stoppedSnapshot = ExternalNowPlayingSnapshot(
       source: lastSnapshot.source,
       state: .stopped,
@@ -677,23 +731,33 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     force: Bool
   ) {
     if !force, lastExternalNowPlayingSnapshot == snapshot {
+      NSLog("[IslandDesktopPresence] Skipping emit - snapshot unchanged and not forced")
       return
     }
 
     lastExternalNowPlayingSnapshot = snapshot
     let event = snapshot.payload
     NSLog(
-      "[IslandDesktopPresence] External now playing read: source=%@ app=%@ state=%@ title=%@ artist=%@ album=%@",
+      "[IslandDesktopPresence] Emitting external now playing: source=%@ state=%@ providerKey=%@ app=%@ bundle=%@ title=%@ artist=%@ album=%@ id=%@ playbackRate=%@ duration=%@ position=%@",
       snapshot.source.rawValue,
-      snapshot.sourceAppName ?? "",
       snapshot.state.rawValue,
-      snapshot.title ?? "",
-      snapshot.artist ?? "",
-      snapshot.album ?? ""
+      snapshot.providerKey ?? "nil",
+      snapshot.sourceAppName ?? "nil",
+      snapshot.sourceBundleIdentifier ?? "nil",
+      snapshot.title ?? "nil",
+      snapshot.artist ?? "nil",
+      snapshot.album ?? "nil",
+      snapshot.uniqueIdentifier ?? "nil",
+      snapshot.playbackRate?.description ?? "nil",
+      snapshot.durationSeconds?.description ?? "nil",
+      snapshot.positionSeconds?.description ?? "nil"
     )
+    NSLog("[IslandDesktopPresence] Full payload: %@", event)
     if let externalNowPlayingSink {
+      NSLog("[IslandDesktopPresence] Sending to event sink")
       externalNowPlayingSink(event)
     } else {
+      NSLog("[IslandDesktopPresence] No event sink, queuing as pending")
       pendingExternalNowPlayingEvent = event
     }
   }
@@ -701,6 +765,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
   private func readExternalNowPlayingSnapshot(
     executablePath: String
   ) -> ExternalNowPlayingSnapshot? {
+    NSLog("[IslandDesktopPresence] readExternalNowPlayingSnapshot called with path=%@", executablePath)
     guard FileManager.default.isExecutableFile(atPath: executablePath) else {
       if !didLogMissingNowPlayingCli {
         NSLog("[IslandDesktopPresence] nowplaying-cli is unavailable at %@", executablePath)
@@ -709,6 +774,7 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       return nil
     }
 
+    NSLog("[IslandDesktopPresence] Executable exists, launching nowplaying-cli")
     let process = Process()
     process.executableURL = URL(fileURLWithPath: executablePath)
     process.arguments = [
@@ -733,7 +799,24 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
 
     do {
       try process.run()
-      process.waitUntilExit()
+      NSLog("[IslandDesktopPresence] nowplaying-cli process started, waiting for exit")
+      
+      // Add timeout to prevent hanging
+      let timeoutSeconds: TimeInterval = 10
+      let startTime = Date()
+      while process.isRunning {
+        if Date().timeIntervalSince(startTime) > timeoutSeconds {
+          NSLog("[IslandDesktopPresence] nowplaying-cli timed out after %.1fs, terminating", timeoutSeconds)
+          process.terminate()
+          break
+        }
+        Thread.sleep(forTimeInterval: 0.1)
+      }
+      
+      if process.isRunning {
+        process.waitUntilExit()
+      }
+      NSLog("[IslandDesktopPresence] nowplaying-cli process exited with status %d", process.terminationStatus)
     } catch {
       NSLog(
         "[IslandDesktopPresence] Failed to launch nowplaying-cli at %@: %@",
@@ -743,8 +826,15 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
       return nil
     }
 
+    // If process was terminated due to timeout, return nil
+    if process.terminationStatus == SIGKILL || process.terminationStatus == 15 {
+      NSLog("[IslandDesktopPresence] nowplaying-cli was terminated (timeout or signal)")
+      return nil
+    }
+
     let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
     let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+    NSLog("[IslandDesktopPresence] nowplaying-cli output: %d bytes, error: %d bytes", outputData.count, errorData.count)
     if process.terminationStatus != 0 {
       let stderr = String(data: errorData, encoding: .utf8) ?? ""
       NSLog(
@@ -756,14 +846,17 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     }
 
     guard !outputData.isEmpty else {
+      NSLog("[IslandDesktopPresence] nowplaying-cli returned empty output")
       return nil
     }
+
+    let rawOutput = String(data: outputData, encoding: .utf8) ?? ""
+    NSLog("[IslandDesktopPresence] nowplaying-cli raw output: %@", rawOutput)
 
     let decoded: Any
     do {
       decoded = try JSONSerialization.jsonObject(with: outputData)
     } catch {
-      let rawOutput = String(data: outputData, encoding: .utf8) ?? ""
       NSLog(
         "[IslandDesktopPresence] Failed to decode nowplaying-cli output: %@ raw=%@",
         String(describing: error),
@@ -773,8 +866,11 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     }
 
     guard let payload = decoded as? [String: Any] else {
+      NSLog("[IslandDesktopPresence] nowplaying-cli output is not a JSON object")
       return nil
     }
+
+    NSLog("[IslandDesktopPresence] nowplaying-cli parsed payload keys: %@", payload.keys.sorted().joined(separator: ", "))
 
     let bundleIdentifier = normalizeExternalString(
       payload["clientBundleIdentifier"] as? String
@@ -790,9 +886,30 @@ public class IslandDesktopPresencePlugin: NSObject, FlutterPlugin {
     let durationSeconds = numericValue(payload["duration"])
     let positionSeconds = numericValue(payload["elapsedTime"])
 
+    NSLog(
+      "[IslandDesktopPresence] Parsed values: bundleId=%@ title=%@ artist=%@ album=%@ playbackRate=%.2f duration=%.2f position=%.2f",
+      bundleIdentifier ?? "nil",
+      title ?? "nil",
+      artist ?? "nil",
+      album ?? "nil",
+      playbackRate,
+      durationSeconds,
+      positionSeconds
+    )
+
     if bundleIdentifier == nil, title == nil, artist == nil, album == nil {
+      NSLog("[IslandDesktopPresence] All key fields are nil, returning nil snapshot")
       return nil
     }
+
+    let source = mapExternalSource(bundleIdentifier: bundleIdentifier)
+    let providerKey = mapExternalProviderKey(bundleIdentifier: bundleIdentifier)
+    NSLog(
+      "[IslandDesktopPresence] Mapped source=%@ providerKey=%@ for bundleId=%@",
+      source.rawValue,
+      providerKey ?? "nil",
+      bundleIdentifier ?? "nil"
+    )
 
     let artworkHash: String? = artworkData.flatMap { data in
       guard let imageData = Data(base64Encoded: data) else {

@@ -58,4 +58,8 @@ abstract class IslandDesktopPresencePlatform extends PlatformInterface {
   Future<void> setAuthToken({String? token, String? serverURL}) {
     throw UnimplementedError('setAuthToken() has not been implemented.');
   }
+
+  Future<Map<String, dynamic>?> debugNowPlaying({String? executablePath}) {
+    throw UnimplementedError('debugNowPlaying() has not been implemented.');
+  }
 }
