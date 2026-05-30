@@ -57,7 +57,7 @@ class PollStatsWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _BarStatRow(
-                label: 'Yes',
+                label: 'yes',
                 count: yes,
                 fraction: yesPct,
                 color: Colors.green.shade600,

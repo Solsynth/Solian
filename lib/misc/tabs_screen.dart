@@ -393,14 +393,14 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Not logged in',
+                                        'notLoggedIn'.tr(),
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleSmall
                                             ?.copyWith(color: Colors.white),
                                       ),
                                       Text(
-                                        'Tap to sign in',
+                                        'tapToSignIn'.tr(),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
@@ -455,7 +455,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
             const Divider(),
             ListTile(
               leading: const Icon(Symbols.tune_rounded),
-              title: Text('Customize Navigation'),
+              title: Text('customizeNavigation').tr(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 28),
               dense: true,
               onTap: () {
@@ -728,7 +728,7 @@ class _NavigationCustomizationSheetState
     final allBottomCandidates = widget.allDestinations;
 
     return SheetScaffold(
-      titleText: 'Customize Navigation',
+      titleText: 'customizeNavigation'.tr(),
       actions: [
         IconButton(
           onPressed: () {
@@ -736,7 +736,7 @@ class _NavigationCustomizationSheetState
             Navigator.of(context).pop();
           },
           icon: const Icon(Symbols.refresh_rounded),
-          tooltip: 'Restore Defaults',
+          tooltip: 'restoreDefaults'.tr(),
         ),
         IconButton(
           onPressed: () {
@@ -754,7 +754,7 @@ class _NavigationCustomizationSheetState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Bottom Navigation',
+                  'bottomNavigation'.tr(),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -810,7 +810,7 @@ class _NavigationCustomizationSheetState
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Rail Navigation',
+                  'railNavigation'.tr(),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),

@@ -3312,5 +3312,17 @@
   "settingsRpcServerPackets": "Recent Packets",
   "settingsRpcServerPacketsHelper": "{} packets captured",
   "settingsRpcServerClearPackets": "Clear packets",
-  "settingsRpcServerNoPackets": "No packets received yet. Connect an app to see activity data."
+  "settingsRpcServerNoPackets": "No packets received yet. Connect an app to see activity data.",
+  "customizeNavigation": "Customize Navigation",
+  "restoreDefaults": "Restore Defaults",
+  "bottomNavigation": "Bottom Navigation",
+  "railNavigation": "Rail Navigation",
+  "notLoggedIn": "Not logged in",
+  "tapToSignIn": "Tap to sign in",
+  "systemDefault": "System Default",
+  "aboutDeviceInformation": "Device Information",
+  "welcomeToSolarNetwork": "Welcome to\nthe Solar Network",
+  "loginToAccessDashboard": "Login to access your personalized dashboard with friends, notifications, chats, and more!",
+  "now": "Now",
+  "pollFeedback": "Poll Feedback"
 }
