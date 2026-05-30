@@ -334,19 +334,58 @@ class ChatRoomMemberCard extends HookConsumerWidget {
               runSpacing: 8,
               children: [
                 if (isOwner)
-                  Chip(
-                    avatar: const Icon(Symbols.shield_person, size: 18),
-                    label: Text('chatRoleOwner'.tr()),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      'chatRoleOwner'.tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
                   )
                 else
-                  Chip(
-                    avatar: const Icon(Symbols.person, size: 18),
-                    label: Text('chatRoleMember'.tr()),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondary,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      'chatRoleMember'.tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSecondary,
+                      ),
+                    ),
                   ),
                 if (isSelf)
-                  Chip(
-                    avatar: const Icon(Symbols.person, size: 18),
-                    label: Text('you'.tr()),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.tertiary,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      'you'.tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onTertiary,
+                      ),
+                    ),
                   ),
                 if (isPendingInvite)
                   Chip(

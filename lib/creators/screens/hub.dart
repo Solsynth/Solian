@@ -1316,9 +1316,8 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
     final memberListProvider = publisherMemberListNotifierProvider(
       publisherUname,
     );
-    final memberNotifier = ref.read(
-      publisherMemberListNotifierProvider(publisherUname).notifier,
-    );
+    final memberListState = ref.watch(memberListProvider);
+    final memberNotifier = ref.read(memberListProvider.notifier);
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -1351,7 +1350,7 @@ class _PublisherMemberListSheet extends HookConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'members'.plural(memberNotifier.totalCount ?? 0),
+                  'members'.plural(memberListState.value?.totalCount ?? 0),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5,
@@ -1836,9 +1835,8 @@ class _PublisherSubscriberSheet extends HookConsumerWidget {
     final subscriberListProvider = publisherSubscriberListNotifierProvider(
       publisherUname,
     );
-    final subscriberNotifier = ref.read(
-      publisherSubscriberListNotifierProvider(publisherUname).notifier,
-    );
+    final subscriberListState = ref.watch(subscriberListProvider);
+    final subscriberNotifier = ref.read(subscriberListProvider.notifier);
     final publisherIdentity = ref.watch(
       publisherIdentityProvider(publisherUname),
     );
@@ -1985,7 +1983,7 @@ class _PublisherSubscriberSheet extends HookConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'publisherSubscribers'.tr(),
+                  'members'.plural(subscriberListState.value?.totalCount ?? 0),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.5,
