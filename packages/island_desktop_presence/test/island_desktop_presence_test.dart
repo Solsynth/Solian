@@ -50,6 +50,11 @@ class MockIslandDesktopPresencePlatform
 
   @override
   Future<void> setAuthToken({String? token, String? serverURL}) async {}
+
+  @override
+  Future<Map<String, dynamic>?> debugNowPlaying({String? executablePath}) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {
