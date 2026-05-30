@@ -52,9 +52,9 @@ class SkeletonNotificationTile extends StatelessWidget {
           Row(
             spacing: 6,
             children: [
-              Text('Loading...').fontSize(11),
+              Text('loading'.tr()).fontSize(11),
               Skeleton.ignore(child: Text('·').fontSize(11).bold()),
-              Text('Now').fontSize(11),
+              Text('now'.tr()).fontSize(11),
             ],
           ).opacity(0.75).padding(bottom: 4),
           MarkdownTextContent(
