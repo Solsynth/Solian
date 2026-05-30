@@ -116,8 +116,6 @@ PODS:
     - OrderedSet (~> 6.0.3)
   - flutter_local_notifications (0.0.1):
     - Flutter
-  - flutter_native_splash (2.4.3):
-    - Flutter
   - flutter_nfc_kit (3.6.0):
     - Flutter
   - flutter_secure_storage_darwin (10.0.0):
@@ -264,7 +262,7 @@ PODS:
     - FlutterMacOS
   - pasteboard (0.0.1):
     - Flutter
-  - permission_handler_apple (9.3.0):
+  - permission_handler_apple (9.4.8):
     - Flutter
   - pro_image_editor (12.0.8):
     - Flutter
@@ -280,11 +278,11 @@ PODS:
   - SDWebImage/Core (5.21.7)
   - sensors_plus (0.0.1):
     - Flutter
-  - Sentry/HybridSDK (8.58.2)
-  - sentry_flutter (9.20.0):
+  - Sentry/HybridSDK (8.58.3)
+  - sentry_flutter (9.21.0):
     - Flutter
     - FlutterMacOS
-    - Sentry/HybridSDK (= 8.58.2)
+    - Sentry/HybridSDK (= 8.58.3)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -327,7 +325,6 @@ DEPENDENCIES:
   - flutter_blue_plus_darwin (from `.symlinks/plugins/flutter_blue_plus_darwin/darwin`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
-  - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - flutter_nfc_kit (from `.symlinks/plugins/flutter_nfc_kit/ios`)
   - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - flutter_sharing_intent (from `.symlinks/plugins/flutter_sharing_intent/ios`)
@@ -432,8 +429,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
-  flutter_native_splash:
-    :path: ".symlinks/plugins/flutter_native_splash/ios"
   flutter_nfc_kit:
     :path: ".symlinks/plugins/flutter_nfc_kit/ios"
   flutter_secure_storage_darwin:
@@ -546,7 +541,6 @@ SPEC CHECKSUMS:
   flutter_blue_plus_darwin: 20a08bfeaa0f7804d524858d3d8744bcc1b6dbc3
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
-  flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
   flutter_nfc_kit: e1b71583eafd2c9650bc86844a7f2d185fb414f6
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
   flutter_sharing_intent: 0c1e53949f09fa8df8ac2268505687bde8ff264c
@@ -584,7 +578,7 @@ SPEC CHECKSUMS:
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   passkeys_darwin: 395f63bb4dbfe81344ada36400c391e86fc395ea
   pasteboard: 3913b69d3f2be214970a8ae94e7e87fe76e47e98
-  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
   pro_image_editor: 3dedac450f82a389877286fa9eb08852cefb04ea
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   protocol_handler_ios: 59f23ee71f3ec602d67902ca7f669a80957888d5
@@ -592,8 +586,8 @@ SPEC CHECKSUMS:
   record_ios: 980fd386a97a35987d0fce3dfda4b26a38c90f4c
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
-  Sentry: de29b881e83bd91cf99a927f82f1fd86bfb39db2
-  sentry_flutter: cbb414ef141b64f901bc1ba32daa871349510ce4
+  Sentry: 108fdbb76299c4189af12246bf0308c09c278922
+  sentry_flutter: 32e67cb4756ce3de42bbd56581fa935922ff328f
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
