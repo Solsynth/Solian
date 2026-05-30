@@ -148,6 +148,10 @@ class RealtimeMessageHandler {
           case 'messages.reaction.removed':
             _handleReactionEvent(message);
             break;
+          case 'messages.pinned':
+          case 'messages.unpinned':
+            _handleNewMessage(message);
+            break;
           default:
             _handleNewMessage(message);
         }
@@ -244,6 +248,11 @@ class RealtimeMessageHandler {
       } else {
         await _handleUpdateMessage(event.message);
       }
+    }
+
+    // Pin/unpin events are handled as new messages (system events)
+    if (type == 'messages.pinned' || type == 'messages.unpinned') {
+      await _handleNewMessage(event.message);
     }
   }
 

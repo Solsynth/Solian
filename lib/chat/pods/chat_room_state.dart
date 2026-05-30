@@ -456,6 +456,10 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
         notifier.retryMessage(message.id);
       case 'redirect':
         _redirectSingleMessage(message);
+      case 'pin':
+        notifier.pinMessage(message.id);
+      case 'unpin':
+        notifier.unpinMessage(message.id);
     }
   }
 

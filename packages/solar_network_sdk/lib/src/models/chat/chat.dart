@@ -86,6 +86,24 @@ sealed class SnChatReaction with _$SnChatReaction {
 }
 
 @freezed
+sealed class SnChatMessagePin with _$SnChatMessagePin {
+  const factory SnChatMessagePin({
+    required String id,
+    @JsonKey(name: 'message_id') required String messageId,
+    @JsonKey(name: 'chat_room_id') required String chatRoomId,
+    @JsonKey(name: 'pinned_by_member_id') required String pinnedByMemberId,
+    @JsonKey(name: 'expires_at') DateTime? expiresAt,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'updated_at') required DateTime updatedAt,
+    SnChatMessage? message,
+    @JsonKey(name: 'pinned_by') SnChatMember? pinnedBy,
+  }) = _SnChatMessagePin;
+
+  factory SnChatMessagePin.fromJson(Map<String, dynamic> json) =>
+      _$SnChatMessagePinFromJson(json);
+}
+
+@freezed
 sealed class SnChatMember with _$SnChatMember {
   const factory SnChatMember({
     required DateTime createdAt,
