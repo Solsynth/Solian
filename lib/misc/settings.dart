@@ -3518,26 +3518,281 @@ class _DesktopNowPlayingPreview extends HookConsumerWidget {
                 label: const Text('Debug: Test Now Playing'),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final presence = IslandDesktopPresence();
+                  final executablePath = ref.read(desktopNowPlayingCliPathProvider);
+                  Logger.root.info('[DebugNowPlaying] Authorization test with path=$executablePath');
+                  
+                  // Run the test and show result
+                  final result = await presence.debugNowPlaying(executablePath: executablePath);
+                  Logger.root.info('[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}');
+                  
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Apple Music Authorization Test'),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                result != null
+                                    ? '✓ Authorization successful! nowplaying-cli can access Apple Music.'
+                                    : '✗ No data returned. This may indicate a permission issue.',
+                              ),
+                              const SizedBox(height: 16),
+                              if (result != null) ...[
+                                Text('Title: ${result['title'] ?? 'N/A'}'),
+                                Text('Artist: ${result['artist'] ?? 'N/A'}'),
+                                Text('Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}'),
+                              ],
+                              const SizedBox(height: 16),
+                              Text(
+                                'If you see permission errors, check:\n'
+                                '• System Settings > Privacy & Security > Media & Apple Music\n'
+                                '• Ensure nowplaying-cli is installed and executable',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text('close'.tr()),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Symbols.security, size: 18),
+                label: const Text('Test Apple Music Access'),
+              ),
+            ),
           ],
         );
       },
-      loading: () => ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsNowPlayingPreview'.tr()),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        subtitle: Text('loading'.tr()),
+      loading: () => Column(
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsNowPlayingPreview'.tr()),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            subtitle: Text('loading'.tr()),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final presence = IslandDesktopPresence();
+                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
+                Logger.root.info('[DebugNowPlaying] Manual trigger with path=$executablePath');
+                final result = await presence.debugNowPlaying(executablePath: executablePath);
+                if (context.mounted) {
+                  if (result != null) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Now Playing Debug Result'),
+                        content: SingleChildScrollView(
+                          child: SelectableText(
+                            const JsonEncoder.withIndent('  ').convert(result),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text('close'.tr()),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    showSnackBar('No active now playing source detected');
+                  }
+                }
+              },
+              icon: const Icon(Symbols.bug_report, size: 18),
+              label: const Text('Debug: Test Now Playing'),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final presence = IslandDesktopPresence();
+                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
+                Logger.root.info('[DebugNowPlaying] Authorization test with path=$executablePath');
+                
+                final result = await presence.debugNowPlaying(executablePath: executablePath);
+                Logger.root.info('[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}');
+                
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Apple Music Authorization Test'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              result != null
+                                  ? '✓ Authorization successful! nowplaying-cli can access Apple Music.'
+                                  : '✗ No data returned. This may indicate a permission issue.',
+                            ),
+                            const SizedBox(height: 16),
+                            if (result != null) ...[
+                              Text('Title: ${result['title'] ?? 'N/A'}'),
+                              Text('Artist: ${result['artist'] ?? 'N/A'}'),
+                              Text('Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}'),
+                            ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'If you see permission errors, check:\n'
+                              '• System Settings > Privacy & Security > Media & Apple Music\n'
+                              '• Ensure nowplaying-cli is installed and executable',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('close'.tr()),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Symbols.security, size: 18),
+              label: const Text('Test Apple Music Access'),
+            ),
+          ),
+        ],
       ),
-      error: (_, _) => ListTile(
-        minLeadingWidth: 48,
-        title: Text('settingsNowPlayingPreview'.tr()),
-        contentPadding: const EdgeInsets.only(left: 24, right: 17),
-        leading: const Icon(Symbols.error),
-        subtitle: Text('settingsNowPlayingPreviewError'.tr()),
+      error: (_, _) => Column(
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsNowPlayingPreview'.tr()),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.error),
+            subtitle: Text('settingsNowPlayingPreviewError'.tr()),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final presence = IslandDesktopPresence();
+                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
+                Logger.root.info('[DebugNowPlaying] Manual trigger with path=$executablePath');
+                final result = await presence.debugNowPlaying(executablePath: executablePath);
+                if (context.mounted) {
+                  if (result != null) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Now Playing Debug Result'),
+                        content: SingleChildScrollView(
+                          child: SelectableText(
+                            const JsonEncoder.withIndent('  ').convert(result),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text('close'.tr()),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    showSnackBar('No active now playing source detected');
+                  }
+                }
+              },
+              icon: const Icon(Symbols.bug_report, size: 18),
+              label: const Text('Debug: Test Now Playing'),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final presence = IslandDesktopPresence();
+                final executablePath = ref.read(desktopNowPlayingCliPathProvider);
+                Logger.root.info('[DebugNowPlaying] Authorization test with path=$executablePath');
+                
+                final result = await presence.debugNowPlaying(executablePath: executablePath);
+                Logger.root.info('[DebugNowPlaying] Authorization test result: ${result != null ? "success" : "null"}');
+                
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Apple Music Authorization Test'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              result != null
+                                  ? '✓ Authorization successful! nowplaying-cli can access Apple Music.'
+                                  : '✗ No data returned. This may indicate a permission issue.',
+                            ),
+                            const SizedBox(height: 16),
+                            if (result != null) ...[
+                              Text('Title: ${result['title'] ?? 'N/A'}'),
+                              Text('Artist: ${result['artist'] ?? 'N/A'}'),
+                              Text('Bundle: ${result['clientBundleIdentifier'] ?? result['bundleIdentifier'] ?? 'N/A'}'),
+                            ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'If you see permission errors, check:\n'
+                              '• System Settings > Privacy & Security > Media & Apple Music\n'
+                              '• Ensure nowplaying-cli is installed and executable',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('close'.tr()),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Symbols.security, size: 18),
+              label: const Text('Test Apple Music Access'),
+            ),
+          ),
+        ],
       ),
     );
   }
