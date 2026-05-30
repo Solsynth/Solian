@@ -325,8 +325,8 @@ class ServerState {
 }
 
 class ServerStateNotifier extends Notifier<ServerState> {
-  late final ActivityRpcServer server;
-  late final Dio apiClient;
+  late ActivityRpcServer server;
+  late Dio apiClient;
   Timer? _renewalTimer;
   static const int _maxRecentPackets = 50;
 
