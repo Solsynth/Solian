@@ -43,7 +43,6 @@ class MockIslandDesktopPresencePlatform
   Future<void> startExternalNowPlayingMonitoring({
     required Duration pollInterval,
     String? executablePath,
-    bool disableAppleMusicIntegration = false,
   }) async {}
 
   @override

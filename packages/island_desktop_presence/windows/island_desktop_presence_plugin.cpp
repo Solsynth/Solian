@@ -7,14 +7,25 @@
 #include <chrono>
 #include <cstring>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <thread>
 
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Media.Control.h>
+#include <winrt/Windows.Security.Cryptography.h>
+#include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.Web.Http.h>
+#include <winrt/Windows.Web.Http.Headers.h>
 
 using namespace winrt;
+using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Media::Control;
+using namespace winrt::Windows::Security::Cryptography;
+using namespace winrt::Windows::Storage::Streams;
+using namespace winrt::Windows::Web::Http;
+using namespace winrt::Windows::Web::Http::Headers;
 
 namespace {
 constexpr char kMethodChannelName[] = "island_desktop_presence";
@@ -27,6 +38,22 @@ constexpr UINT_PTR kPollingTimerId = 1;
 constexpr UINT kPollingIntervalMilliseconds = 3000;
 constexpr int kExternalNowPlayingDefaultPollIntervalMilliseconds = 2000;
 constexpr size_t kRpcReadBufferSize = 4096;
+
+std::string ToHex(const uint8_t* data, size_t length) {
+  static constexpr char kHexChars[] = "0123456789abcdef";
+  std::string result;
+  result.reserve(length * 2);
+  for (size_t i = 0; i < length; ++i) {
+    result.push_back(kHexChars[(data[i] >> 4) & 0x0f]);
+    result.push_back(kHexChars[data[i] & 0x0f]);
+  }
+  return result;
+}
+
+bool StartsWith(const std::string& str, const std::string& prefix) {
+  return str.size() >= prefix.size() &&
+         str.compare(0, prefix.size(), prefix) == 0;
+}
 }  // namespace
 
 namespace island_desktop_presence {
@@ -229,6 +256,43 @@ void IslandDesktopPresencePlugin::HandleMethodCall(
   }
 
   if (method_call.method_name() == "setAuthToken") {
+    const auto* arguments_value = method_call.arguments();
+    if (arguments_value != nullptr) {
+      const auto* arguments =
+          std::get_if<flutter::EncodableMap>(arguments_value);
+      if (arguments != nullptr) {
+        const auto token_it =
+            arguments->find(flutter::EncodableValue("token"));
+        if (token_it != arguments->end()) {
+          const auto* token = std::get_if<std::string>(&token_it->second);
+          if (token != nullptr) {
+            auth_token_ = *token;
+          } else {
+            auth_token_.clear();
+          }
+        } else {
+          auth_token_.clear();
+        }
+        const auto url_it =
+            arguments->find(flutter::EncodableValue("serverURL"));
+        if (url_it != arguments->end()) {
+          const auto* url = std::get_if<std::string>(&url_it->second);
+          if (url != nullptr) {
+            server_url_ = *url;
+          } else {
+            server_url_.clear();
+          }
+        } else {
+          server_url_.clear();
+        }
+      } else {
+        auth_token_.clear();
+        server_url_.clear();
+      }
+    } else {
+      auth_token_.clear();
+      server_url_.clear();
+    }
     result->Success();
     return;
   }
@@ -525,16 +589,20 @@ void IslandDesktopPresencePlugin::StopExternalNowPlayingMonitoring(
 }
 
 void IslandDesktopPresencePlugin::EmitCurrentExternalNowPlaying(bool force) {
-  const auto snapshot = ReadExternalNowPlayingSnapshot();
+  auto snapshot = ReadExternalNowPlayingSnapshot();
   if (!snapshot.has_value()) {
     return;
   }
 
+  snapshot = EnsureArtworkUploaded(*snapshot);
+
   if (!force && last_emitted_external_now_playing_.has_value() &&
-      last_emitted_external_now_playing_.value().title == snapshot->title &&
-      last_emitted_external_now_playing_.value().artist == snapshot->artist &&
-      last_emitted_external_now_playing_.value().album == snapshot->album &&
-      last_emitted_external_now_playing_.value().state == snapshot->state) {
+      last_emitted_external_now_playing_->title == snapshot->title &&
+      last_emitted_external_now_playing_->artist == snapshot->artist &&
+      last_emitted_external_now_playing_->album == snapshot->album &&
+      last_emitted_external_now_playing_->state == snapshot->state &&
+      last_emitted_external_now_playing_->artwork_hash ==
+          snapshot->artwork_hash) {
     return;
   }
 
@@ -567,18 +635,30 @@ IslandDesktopPresencePlugin::ReadExternalNowPlayingSnapshot() const {
     }
 
     ExternalNowPlayingSnapshot snapshot;
-    snapshot.source = "music";
+
+    const auto app_id = NormalizeSourceAppId(session.SourceAppUserModelId());
+    snapshot.source = "other";
+    snapshot.source_app_name = ResolveApplicationName(app_id);
+    snapshot.source_bundle_identifier = MapSourceBundleIdentifier(app_id);
+    snapshot.provider_key = MapProviderKey(app_id);
+    snapshot.unique_identifier = app_id;
 
     const auto playback_status = playback.PlaybackStatus();
-    snapshot.state = playback_status ==
-                             GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing
-                         ? "playing"
-                         : playback_status ==
-                                   GlobalSystemMediaTransportControlsSessionPlaybackStatus::Paused
-                               ? "paused"
-                               : "stopped";
-    snapshot.source_app_name = NormalizeSourceAppId(session.SourceAppUserModelId());
-    snapshot.unique_identifier = NormalizeSourceAppId(session.SourceAppUserModelId());
+    snapshot.state =
+        playback_status ==
+                GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing
+            ? "playing"
+            : playback_status ==
+                      GlobalSystemMediaTransportControlsSessionPlaybackStatus::
+                          Paused
+                  ? "paused"
+                  : "stopped";
+
+    const auto playback_rate = playback.PlaybackRate();
+    if (playback_rate != nullptr) {
+      snapshot.playback_rate = playback_rate.GetDouble();
+    }
+
     snapshot.title = title;
 
     const auto artist = ToUtf8(properties.Artist());
@@ -601,10 +681,188 @@ IslandDesktopPresencePlugin::ReadExternalNowPlayingSnapshot() const {
       snapshot.position_seconds = static_cast<double>(position) / 10'000'000.0;
     }
 
+    // Extract thumbnail artwork.
+    auto thumbnail = properties.Thumbnail();
+    if (thumbnail != nullptr) {
+      auto stream = thumbnail.OpenReadAsync().get();
+      if (stream != nullptr) {
+        auto image_bytes = ReadStreamBytes(stream);
+        if (image_bytes.has_value() && !image_bytes->empty()) {
+          auto hash = ComputeArtworkHash(*image_bytes);
+          if (hash.has_value()) {
+            snapshot.artwork_hash = "sha256:" + *hash;
+            snapshot.artwork_data = BytesToBase64(*image_bytes);
+          }
+        }
+      }
+    }
+
     return snapshot;
   } catch (...) {
     return std::nullopt;
   }
+}
+
+IslandDesktopPresencePlugin::ExternalNowPlayingSnapshot
+IslandDesktopPresencePlugin::EnsureArtworkUploaded(
+    const ExternalNowPlayingSnapshot& snapshot) const {
+  if (!snapshot.artwork_hash.has_value() || auth_token_.empty()) {
+    return snapshot;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(artwork_cache_mutex_);
+    if (artwork_hash_cache_.count(*snapshot.artwork_hash) > 0) {
+      return snapshot;
+    }
+  }
+
+  if (CheckArtworkExists(*snapshot.artwork_hash)) {
+    std::lock_guard<std::mutex> lock(artwork_cache_mutex_);
+    artwork_hash_cache_.insert(*snapshot.artwork_hash);
+    return snapshot;
+  }
+
+  if (snapshot.artwork_data.has_value() &&
+      UploadArtwork(*snapshot.artwork_data, *snapshot.artwork_hash)) {
+    std::lock_guard<std::mutex> lock(artwork_cache_mutex_);
+    artwork_hash_cache_.insert(*snapshot.artwork_hash);
+  }
+
+  return snapshot;
+}
+
+bool IslandDesktopPresencePlugin::CheckArtworkExists(
+    const std::string& hash) const {
+  if (server_url_.empty() || auth_token_.empty()) {
+    return false;
+  }
+
+  try {
+    HttpClient client;
+    auto uri = Uri(
+        winrt::to_hstring(server_url_ + "/passport/presence/artworks/" + hash));
+    HttpRequestMessage request(HttpMethod::Get(), uri);
+    request.Headers().Authorization(
+        HttpCredentialsHeaderValue(L"Bearer", winrt::to_hstring(auth_token_)));
+    auto response = client.SendRequestAsync(request).get();
+    return response.StatusCode() == HttpStatusCode::Ok;
+  } catch (...) {
+    return false;
+  }
+}
+
+bool IslandDesktopPresencePlugin::UploadArtwork(
+    const std::string& artwork_data,
+    const std::string& hash) const {
+  if (server_url_.empty() || auth_token_.empty()) {
+    return false;
+  }
+
+  try {
+    auto image_buffer = CryptographyBuffer::DecodeFromBase64String(
+        winrt::to_hstring(artwork_data));
+
+    HttpClient client;
+    auto uri =
+        Uri(winrt::to_hstring(server_url_ + "/passport/presence/artworks"));
+
+    HttpMultipartFormDataContent form;
+    form.Add(HttpBufferContent(image_buffer), L"file", L"now-playing.png");
+
+    HttpRequestMessage request(HttpMethod::Post(), uri);
+    request.Headers().Authorization(
+        HttpCredentialsHeaderValue(L"Bearer", winrt::to_hstring(auth_token_)));
+    request.Content(form);
+    auto response = client.SendRequestAsync(request).get();
+    auto status = static_cast<int>(response.StatusCode());
+    return status >= 200 && status < 300;
+  } catch (...) {
+    return false;
+  }
+}
+
+std::optional<std::string> IslandDesktopPresencePlugin::ComputeArtworkHash(
+    const std::vector<uint8_t>& image_bytes) {
+  try {
+    auto algorithm = Cryptography::Core::HashAlgorithmProvider::OpenAlgorithm(
+        Cryptography::Core::HashAlgorithmNames::Sha256());
+    auto buffer = CryptographyBuffer::CreateFromByteArray(image_bytes);
+    auto hash_buffer = algorithm.HashData(buffer);
+    auto hash_bytes = CryptographyBuffer::CopyToByteArray(hash_buffer);
+    return ToHex(hash_bytes.data(), hash_bytes.size());
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
+std::optional<std::vector<uint8_t>>
+IslandDesktopPresencePlugin::ReadStreamBytes(
+    const IRandomAccessStream& stream) {
+  try {
+    auto size = static_cast<uint32_t>(stream.Size());
+    if (size == 0) {
+      return std::nullopt;
+    }
+    DataReader reader(stream);
+    reader.LoadAsync(size).get();
+    std::vector<uint8_t> bytes(size);
+    reader.ReadBytes(bytes);
+    return bytes;
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
+std::string IslandDesktopPresencePlugin::BytesToBase64(
+    const std::vector<uint8_t>& bytes) {
+  auto buffer = CryptographyBuffer::CreateFromByteArray(bytes);
+  return winrt::to_string(CryptographyBuffer::EncodeToBase64String(buffer));
+}
+
+std::string IslandDesktopPresencePlugin::ToUtf8(const winrt::hstring& value) {
+  return winrt::to_string(value);
+}
+
+std::string IslandDesktopPresencePlugin::NormalizeSourceAppId(
+    const winrt::hstring& value) {
+  return ToUtf8(value);
+}
+
+std::string IslandDesktopPresencePlugin::MapSourceBundleIdentifier(
+    const std::string& app_id) {
+  if (app_id.find("Spotify") != std::string::npos) {
+    return "com.spotify.client";
+  }
+  if (app_id.find("AppleMusic") != std::string::npos ||
+      app_id.find("Apple Music") != std::string::npos) {
+    return "com.apple.Music";
+  }
+  return app_id;
+}
+
+std::string IslandDesktopPresencePlugin::MapProviderKey(
+    const std::string& app_id) {
+  if (app_id.find("Spotify") != std::string::npos) {
+    return "spotify";
+  }
+  if (app_id.find("AppleMusic") != std::string::npos ||
+      app_id.find("Apple Music") != std::string::npos) {
+    return "apple_music";
+  }
+  return app_id;
+}
+
+std::string IslandDesktopPresencePlugin::ResolveApplicationName(
+    const std::string& app_id) {
+  if (app_id.find("Spotify") != std::string::npos) {
+    return "Spotify";
+  }
+  if (app_id.find("AppleMusic") != std::string::npos ||
+      app_id.find("Apple Music") != std::string::npos) {
+    return "Apple Music";
+  }
+  return app_id;
 }
 
 flutter::EncodableMap IslandDesktopPresencePlugin::BuildExternalNowPlayingEvent(
@@ -614,9 +872,21 @@ flutter::EncodableMap IslandDesktopPresencePlugin::BuildExternalNowPlayingEvent(
       {flutter::EncodableValue("state"), flutter::EncodableValue(snapshot.state)},
   };
 
+  if (snapshot.provider_key.has_value()) {
+    event[flutter::EncodableValue("provider_key")] =
+        flutter::EncodableValue(*snapshot.provider_key);
+  }
+  if (snapshot.provider_reference_id.has_value()) {
+    event[flutter::EncodableValue("provider_reference_id")] =
+        flutter::EncodableValue(*snapshot.provider_reference_id);
+  }
   if (snapshot.source_app_name.has_value()) {
     event[flutter::EncodableValue("source_app_name")] =
         flutter::EncodableValue(*snapshot.source_app_name);
+  }
+  if (snapshot.source_bundle_identifier.has_value()) {
+    event[flutter::EncodableValue("source_bundle_identifier")] =
+        flutter::EncodableValue(*snapshot.source_bundle_identifier);
   }
   if (snapshot.unique_identifier.has_value()) {
     event[flutter::EncodableValue("unique_identifier")] =
@@ -634,6 +904,10 @@ flutter::EncodableMap IslandDesktopPresencePlugin::BuildExternalNowPlayingEvent(
     event[flutter::EncodableValue("album")] =
         flutter::EncodableValue(*snapshot.album);
   }
+  if (snapshot.playback_rate.has_value()) {
+    event[flutter::EncodableValue("playback_rate")] =
+        flutter::EncodableValue(*snapshot.playback_rate);
+  }
   if (snapshot.duration_seconds.has_value()) {
     event[flutter::EncodableValue("duration_seconds")] =
         flutter::EncodableValue(*snapshot.duration_seconds);
@@ -642,17 +916,36 @@ flutter::EncodableMap IslandDesktopPresencePlugin::BuildExternalNowPlayingEvent(
     event[flutter::EncodableValue("position_seconds")] =
         flutter::EncodableValue(*snapshot.position_seconds);
   }
+  if (snapshot.title_url.has_value()) {
+    event[flutter::EncodableValue("title_url")] =
+        flutter::EncodableValue(*snapshot.title_url);
+  }
+  if (snapshot.subtitle_url.has_value()) {
+    event[flutter::EncodableValue("subtitle_url")] =
+        flutter::EncodableValue(*snapshot.subtitle_url);
+  }
+  if (snapshot.artwork_url.has_value()) {
+    event[flutter::EncodableValue("artwork_url")] =
+        flutter::EncodableValue(*snapshot.artwork_url);
+  }
+  if (snapshot.artwork_url_large.has_value()) {
+    event[flutter::EncodableValue("artwork_url_large")] =
+        flutter::EncodableValue(*snapshot.artwork_url_large);
+  }
+  if (snapshot.artwork_hash.has_value()) {
+    event[flutter::EncodableValue("artwork_hash")] =
+        flutter::EncodableValue(*snapshot.artwork_hash);
+  }
+  if (snapshot.artwork_data.has_value()) {
+    event[flutter::EncodableValue("artwork_data")] =
+        flutter::EncodableValue(*snapshot.artwork_data);
+  }
+  if (snapshot.catalog_id.has_value()) {
+    event[flutter::EncodableValue("catalog_id")] =
+        flutter::EncodableValue(*snapshot.catalog_id);
+  }
 
   return event;
-}
-
-std::string IslandDesktopPresencePlugin::ToUtf8(const winrt::hstring& value) {
-  return winrt::to_string(value);
-}
-
-std::string IslandDesktopPresencePlugin::NormalizeSourceAppId(
-    const winrt::hstring& value) {
-  return ToUtf8(value);
 }
 
 bool IslandDesktopPresencePlugin::StartRpcTransport(
