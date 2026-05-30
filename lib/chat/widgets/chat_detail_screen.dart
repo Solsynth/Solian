@@ -971,16 +971,45 @@ class MlsUserReadyStatus {
   });
 }
 
+class ChatMemberListFilter {
+  final String? accountName;
+
+  const ChatMemberListFilter({this.accountName});
+
+  bool get hasFilters => accountName != null && accountName!.isNotEmpty;
+
+  ChatMemberListFilter normalized() {
+    final normalizedName = accountName?.trim();
+    return ChatMemberListFilter(
+      accountName: normalizedName?.isEmpty == true ? null : normalizedName,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChatMemberListFilter &&
+        other.accountName == accountName;
+  }
+
+  @override
+  int get hashCode => accountName.hashCode;
+}
+
 class ChatMemberListNotifier
     extends AsyncNotifier<PaginationState<SnChatMember>>
-    with AsyncPaginationController<SnChatMember> {
+    with
+        AsyncPaginationController<SnChatMember>,
+        AsyncPaginationFilter<ChatMemberListFilter, SnChatMember> {
   static const pageSize = 20;
 
   final String arg;
   ChatMemberListNotifier(this.arg);
+  @override
+  ChatMemberListFilter currentFilter = const ChatMemberListFilter();
 
   @override
   Future<List<SnChatMember>> fetch() async {
+    final filter = currentFilter.normalized();
     final apiClient = ref.watch(apiClientProvider);
     final response = await apiClient.get(
       '/messager/chat/$arg/members',
@@ -988,6 +1017,7 @@ class ChatMemberListNotifier
         'offset': fetchedCount.toString(),
         'take': pageSize,
         'withStatus': true,
+        if (filter.accountName != null) 'accountName': filter.accountName,
       },
     );
 
@@ -1011,6 +1041,22 @@ class _ChatMemberListSheet extends HookConsumerWidget {
     final memberNotifier = ref.read(chatMemberListProvider(roomId).notifier);
 
     final chatRoom = ref.watch(chatRoomProvider(roomId));
+    final searchController = useTextEditingController(
+      text: memberNotifier.currentFilter.accountName ?? '',
+    );
+    useListenable(searchController);
+    final currentFilter = memberNotifier.currentFilter.normalized();
+
+    Future<void> applyMemberFilter() async {
+      await memberNotifier.applyFilter(
+        ChatMemberListFilter(accountName: searchController.text).normalized(),
+      );
+    }
+
+    Future<void> clearMemberFilters() async {
+      searchController.clear();
+      await memberNotifier.applyFilter(const ChatMemberListFilter());
+    }
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -1066,30 +1112,82 @@ class _ChatMemberListSheet extends HookConsumerWidget {
         children: [
           Padding(
             padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'members'.plural(memberState.value?.totalCount ?? 0),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
+                Row(
+                  children: [
+                    Text(
+                      'members'.plural(memberState.value?.totalCount ?? 0),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.5,
+                          ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Symbols.person_add),
+                      onPressed: invitePerson,
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size(36, 36),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Symbols.refresh),
+                      onPressed: memberNotifier.refresh,
+                    ),
+                    IconButton(
+                      icon: const Icon(Symbols.close),
+                      onPressed: () => Navigator.pop(context),
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size(36, 36),
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(12),
+                SearchBar(
+                  controller: searchController,
+                  hintText: 'Search member account',
+                  leading: const Icon(Symbols.search),
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                   ),
+                  trailing: [
+                    if (searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Symbols.close),
+                        onPressed: () async {
+                          searchController.clear();
+                          await applyMemberFilter();
+                        },
+                      ),
+                    if (currentFilter.hasFilters)
+                      IconButton(
+                        tooltip: 'Clear filters',
+                        icon: const Icon(Symbols.filter_alt_off),
+                        onPressed: clearMemberFilters,
+                      ),
+                  ],
+                  onSubmitted: (_) => applyMemberFilter(),
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Symbols.person_add),
-                  onPressed: invitePerson,
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-                ),
-                IconButton(
-                  icon: const Icon(Symbols.refresh),
-                  onPressed: memberNotifier.refresh,
-                ),
-                IconButton(
-                  icon: const Icon(Symbols.close),
-                  onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-                ),
+                if (currentFilter.hasFilters) ...[
+                  const Gap(10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      InputChip(
+                        label: Text('Name: ${currentFilter.accountName}'),
+                        onDeleted: () async {
+                          searchController.clear();
+                          await applyMemberFilter();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

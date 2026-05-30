@@ -16,6 +16,7 @@ import 'package:island/core/network.dart';
 import 'package:island/core/services/time.dart';
 import 'package:island/posts/widgets/compose/post_interactions.dart';
 import 'package:island/posts/widgets/compose/post_replies_sheet.dart';
+import 'package:island/realms/widgets/realm_label.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/cloud_file_collection.dart';
@@ -1209,7 +1210,10 @@ class PostHeader extends HookConsumerWidget {
   String _getDisplayName(SnPost post) {
     // Handle publisher case
     if (post.publisher != null) {
-      return post.publisher!.nick;
+      final publisher = post.publisher!;
+      return publisher.realmNick?.trim().isNotEmpty == true
+          ? publisher.realmNick!.trim()
+          : publisher.nick;
     }
     // Handle actor case
     if (post.actor != null) {
@@ -1248,6 +1252,10 @@ class PostHeader extends HookConsumerWidget {
 
   SnVerificationMark? _getVerification(SnPost post) {
     return post.publisher?.verification;
+  }
+
+  SnRealmLabel? _getRealmLabel(SnPost post) {
+    return post.publisher?.realmLabel;
   }
 
   Widget _buildHandleChip(BuildContext context, SnPost post) {
@@ -1394,6 +1402,11 @@ class PostHeader extends HookConsumerWidget {
                                 overflow: TextOverflow.ellipsis,
                               ).bold(),
                       ),
+                      if (_getRealmLabel(item) != null)
+                        RealmLabelWidget(
+                          label: _getRealmLabel(item)!,
+                          fontSize: 9,
+                        ),
                       if (_getVerification(item) != null)
                         VerificationMark(
                           mark: _getVerification(item)!,
