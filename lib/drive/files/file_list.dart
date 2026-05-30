@@ -1436,9 +1436,10 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                   ),
                 ),
                 const Gap(24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 16,
+                  runSpacing: 16,
                   children: [
                     SizedBox(
                       width: 180,
@@ -1475,7 +1476,6 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Gap(12),
                     SizedBox(
                       width: 180,
                       height: 80,

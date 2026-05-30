@@ -1445,7 +1445,9 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                     ),
                   ),
                   if (member.status != null)
-                    AccountStatusLabel(status: member.status!),
+                    Flexible(
+                      child: AccountStatusLabel(status: member.status!),
+                    ),
                   if (member.label != null)
                     RealmLabelWidget(label: member.label!, fontSize: 10),
                   if (member.joinedAt == null)
