@@ -231,6 +231,19 @@ class ChatSummary extends _$ChatSummary {
     });
   }
 
+  void clearAllUnreadCounts() {
+    state.whenData((summaries) {
+      state = AsyncData({
+        for (final entry in summaries.entries)
+          entry.key: SnChatSummary(
+            unreadCount: 0,
+            lastMessage: entry.value.lastMessage,
+          ),
+      });
+      ref.read(chatUnreadCountProvider.notifier).clear();
+    });
+  }
+
   void updateLastMessage(String chatId, SnChatMessage message) {
     state.whenData((summaries) {
       final summary = summaries[chatId];
