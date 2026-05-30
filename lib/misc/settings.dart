@@ -48,7 +48,7 @@ class SettingsScreen extends HookConsumerWidget {
       case 'zh-CN':
         return '简体中文';
       case 'zh-OG':
-        return '文言文 (华夏)';
+        return '文言 (華夏)';
       case 'zh-TW':
         return '繁體中文 (台灣)';
       default:
@@ -1788,7 +1788,7 @@ class _TtsVoiceSelectorState extends State<_TtsVoiceSelector> {
               items: [
                 DropdownMenuItem<String?>(
                   value: null,
-                  child: const Text('System Default'),
+                  child: Text('systemDefault').tr(),
                 ),
                 ..._voices.map((voice) {
                   return DropdownMenuItem<String?>(
@@ -2191,7 +2191,7 @@ class _EmbeddedAboutContent extends HookConsumerWidget {
                 const SizedBox(height: 16),
                 _buildSection(
                   context,
-                  title: 'Device Information',
+                  title: 'aboutdeviceInformation'.tr(),
                   children: [
                     FutureBuilder<String>(
                       future: udid.getDeviceName(),

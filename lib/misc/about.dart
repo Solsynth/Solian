@@ -173,7 +173,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                       if (_deviceInfo != null)
                         _buildSection(
                           context,
-                          title: 'Device Information',
+                          title: 'aboutDeviceInformation'.tr(),
                           children: [
                             FutureBuilder<String>(
                               future: udid.getDeviceName(),

@@ -1211,7 +1211,6 @@
   "holidayOptional": "Optional Holiday",
   "holidayObservance": "Observance",
   "holidayOther": "Holiday",
-
   "region": "Region",
   "accountRegionHint": "This region will be used for content delivery and localization.",
   "settingsCustomFontsHelper": "Use comma to seprate.",
@@ -2770,7 +2769,7 @@
   "authFactorEnabled": "Enabled",
   "authFactorDisabled": "Disabled",
   "profileFields": "Profile Fields",
-"physicalPassports": "Physical Passports",
+  "physicalPassports": "Physical Passports",
   "physicalPassport": "Physical Passport",
   "addPhysicalPassport": "Add Passport",
   "physicalPassportsEmpty": "No physical passports yet",
@@ -3222,5 +3221,17 @@
   "failedToLoadPost": "Failed to load post",
   "expandPostDetails": "Expand post details",
   "restoreSplitView": "Restore split view",
-  "closePostDetails": "Close post details"
+  "closePostDetails": "Close post details",
+  "customizeNavigation": "Customize Navigation",
+  "restoreDefaults": "Restore Defaults",
+  "bottomNavigation": "Bottom Navigation",
+  "railNavigation": "Rail Navigation",
+  "notLoggedIn": "Not logged in",
+  "tapToSignIn": "Tap to sign in",
+  "systemDefault": "System Default",
+  "aboutDeviceInformation": "Device Information",
+  "welcomeToSolarNetwork": "Welcome to\nthe Solar Network",
+  "loginToAccessDashboard": "Login to access your personalized dashboard with friends, notifications, chats, and more!",
+  "now": "Now",
+  "pollFeedback": "Poll Feedback"
 }
