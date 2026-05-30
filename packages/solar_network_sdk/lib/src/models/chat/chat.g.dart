@@ -6,6 +6,33 @@ part of 'chat.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_SnChatGroup _$SnChatGroupFromJson(Map<String, dynamic> json) => _SnChatGroup(
+  id: json['id'] as String,
+  accountId: json['account_id'] as String,
+  name: json['name'] as String,
+  color: json['color'] as String?,
+  icon: json['icon'] as String?,
+  order: (json['order'] as num).toInt(),
+  roomIds:
+      (json['room_ids'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+  createdAt: DateTime.parse(json['created_at'] as String),
+  updatedAt: DateTime.parse(json['updated_at'] as String),
+);
+
+Map<String, dynamic> _$SnChatGroupToJson(_SnChatGroup instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'account_id': instance.accountId,
+      'name': instance.name,
+      'color': instance.color,
+      'icon': instance.icon,
+      'order': instance.order,
+      'room_ids': instance.roomIds,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+    };
+
 _SnChatRoom _$SnChatRoomFromJson(Map<String, dynamic> json) => _SnChatRoom(
   id: json['id'] as String,
   name: json['name'] as String?,
@@ -220,6 +247,10 @@ _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
       timeoutUntil: json['timeout_until'] == null
           ? null
           : DateTime.parse(json['timeout_until'] as String),
+      chatGroupId: json['chat_group_id'] as String?,
+      chatGroup: json['chat_group'] == null
+          ? null
+          : SnChatGroup.fromJson(json['chat_group'] as Map<String, dynamic>),
       lastReadAt: json['last_read_at'] == null
           ? null
           : DateTime.parse(json['last_read_at'] as String),
@@ -255,6 +286,8 @@ Map<String, dynamic> _$SnChatMemberToJson(_SnChatMember instance) =>
       'joined_at': instance.joinedAt?.toIso8601String(),
       'break_until': instance.breakUntil?.toIso8601String(),
       'timeout_until': instance.timeoutUntil?.toIso8601String(),
+      'chat_group_id': instance.chatGroupId,
+      'chat_group': instance.chatGroup?.toJson(),
       'last_read_at': instance.lastReadAt?.toIso8601String(),
       'status': instance.status?.toJson(),
       'realm_nick': instance.realmNick,

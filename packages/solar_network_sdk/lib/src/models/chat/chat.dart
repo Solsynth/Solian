@@ -7,6 +7,24 @@ part 'chat.freezed.dart';
 part 'chat.g.dart';
 
 @freezed
+sealed class SnChatGroup with _$SnChatGroup {
+  const factory SnChatGroup({
+    required String id,
+    required String accountId,
+    required String name,
+    String? color,
+    String? icon,
+    required int order,
+    @JsonKey(name: 'room_ids') @Default([]) List<String> roomIds,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) = _SnChatGroup;
+
+  factory SnChatGroup.fromJson(Map<String, dynamic> json) =>
+      _$SnChatGroupFromJson(json);
+}
+
+@freezed
 sealed class SnChatRoom with _$SnChatRoom {
   const factory SnChatRoom({
     required String id,
@@ -119,6 +137,8 @@ sealed class SnChatMember with _$SnChatMember {
     required DateTime? joinedAt,
     required DateTime? breakUntil,
     required DateTime? timeoutUntil,
+    @JsonKey(name: 'chat_group_id') String? chatGroupId,
+    @JsonKey(name: 'chat_group') SnChatGroup? chatGroup,
     required DateTime? lastReadAt,
     required SnAccountStatus? status,
     // Realm related-content

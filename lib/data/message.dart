@@ -215,6 +215,8 @@ class LocalChatMessage {
       joinedAt: null,
       breakUntil: null,
       timeoutUntil: null,
+      chatGroupId: null,
+      chatGroup: null,
       lastReadAt: null,
       status: null,
       realmNick: null,

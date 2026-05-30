@@ -1107,6 +1107,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
   Stream<List<SnChatRoom>> build() async* {
     final db = ref.watch(databaseProvider);
     final prefs = ref.watch(sharedPreferencesProvider);
+    final userInfo = ref.watch(userInfoProvider);
 
     Future<List<SnChatRoom>> loadLocalRooms() async {
       final localRooms = await db.getAllChatRooms();
@@ -1142,6 +1143,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       final body = resp.data as Map<String, dynamic>;
       final rawChanges = (body['changes'] as List?) ?? const [];
       final rawSummaries = (body['summaries'] as List?) ?? const [];
+      final rawGroups = (body['groups'] as List?) ?? const [];
       final currentTimestampRaw =
           body['current_timestamp'] ?? body['currentTimestamp'];
       final currentTimestamp = _parseSyncTimestamp(currentTimestampRaw);
@@ -1184,6 +1186,15 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
       }
 
       await db.saveChatRooms(roomsById.values.toList(), override: true);
+      if (userInfo.value != null) {
+        final groups = rawGroups
+            .whereType<Map>()
+            .map(
+              (group) => SnChatGroup.fromJson(Map<String, dynamic>.from(group)),
+            )
+            .toList();
+        await db.saveChatGroups(userInfo.value!.id, groups);
+      }
       ref
           .read(chatSummaryProvider.notifier)
           .applySyncedSummaries(rawSummaries, removedRoomIds: removedRoomIds);

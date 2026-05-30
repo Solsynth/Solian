@@ -23,6 +23,7 @@ class AppDatabase {
   static const String _chatStorageCompactionKey =
       'chat_storage_compaction_version';
   static const String _chatStorageCompactionVersion = '2';
+  static const String _chatGroupsKeyPrefix = 'chat_groups_';
 
   Future<Store?> _getStore() async {
     if (_isWeb) return null;
@@ -581,6 +582,51 @@ class AppDatabase {
     box.put(room);
   }
 
+  Future<List<SnChatGroup>> getChatGroups(String accountId) async {
+    await _loadNativeKvStore();
+    final raw = _nativeKvStore['$_chatGroupsKeyPrefix$accountId'];
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      final groups = decoded
+          .whereType<Map>()
+          .map((item) => SnChatGroup.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+      groups.sort((a, b) => a.order.compareTo(b.order));
+      return groups;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> saveChatGroups(
+    String accountId,
+    List<SnChatGroup> groups,
+  ) async {
+    await _loadNativeKvStore();
+    final normalized = groups.toList()
+      ..sort((a, b) => a.order.compareTo(b.order));
+    _nativeKvStore['$_chatGroupsKeyPrefix$accountId'] = jsonEncode(
+      normalized.map((group) => group.toJson()).toList(),
+    );
+    await _flushNativeKvStore();
+  }
+
+  Future<void> assignChatRoomToGroup(
+    String accountId,
+    String roomId, {
+    String? groupId,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final groups = (await getChatGroups(accountId)).map((group) {
+      final roomIds = group.roomIds.where((id) => id != roomId).toList();
+      if (group.id == groupId) roomIds.add(roomId);
+      return group.copyWith(roomIds: roomIds, updatedAt: now);
+    }).toList();
+    await saveChatGroups(accountId, groups);
+  }
+
   // ---------------------------------------------------------------------------
   // Members
   // ---------------------------------------------------------------------------
@@ -929,10 +975,10 @@ class AppDatabase {
           accountId: relationship.accountId,
           relatedId: relationship.relatedId,
           status: relationship.status,
-          createdAtMs: (relationship.createdAt ?? DateTime.now())
-              .millisecondsSinceEpoch,
-          updatedAtMs: (relationship.updatedAt ?? DateTime.now())
-              .millisecondsSinceEpoch,
+          createdAtMs:
+              (relationship.createdAt ?? DateTime.now()).millisecondsSinceEpoch,
+          updatedAtMs:
+              (relationship.updatedAt ?? DateTime.now()).millisecondsSinceEpoch,
         );
     entity.uid = uid;
     entity.accountId = relationship.accountId;
@@ -1217,6 +1263,8 @@ class AppDatabase {
       joinedAt: _fromMs(entity.joinedAtMs),
       breakUntil: _fromMs(entity.breakUntilMs),
       timeoutUntil: _fromMs(entity.timeoutUntilMs),
+      chatGroupId: null,
+      chatGroup: null,
       status: null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(entity.createdAtMs),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(entity.updatedAtMs),
@@ -1759,6 +1807,8 @@ class AppDatabase {
       joinedAt: null,
       breakUntil: null,
       timeoutUntil: null,
+      chatGroupId: null,
+      chatGroup: null,
       status: null,
       lastTyped: null,
       createdAt: DateTime.now(),
