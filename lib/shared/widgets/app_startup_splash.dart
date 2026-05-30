@@ -245,17 +245,15 @@ class StartupSplashScreen extends HookConsumerWidget {
 
     return Material(
       color: Theme.of(context).colorScheme.surface,
-      child: GestureDetector(
-        onTap: () {
-          if (isBusy.value) return;
-          if (isDismissable.value) {
-            if (runBootstrap) {
+        child: GestureDetector(
+          onTap: () {
+            if (isBusy.value) return;
+            if (isDismissable.value) {
               onCompleted();
+            } else {
+              Future(() => runStages());
             }
-          } else {
-            Future(() => runStages());
-          }
-        },
+          },
         child: Column(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -22,6 +22,7 @@ import 'package:island/core/config.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:island/shared/widgets/app_onboarding_sheet.dart';
+import 'package:island/shared/widgets/app_wrapper.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/main.dart';
 import 'package:island/route.dart';
@@ -584,6 +585,20 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             );
           },
         ),
+        _DebugItem(
+          icon: Symbols.splitscreen,
+          title: 'Force show startup splash',
+          onTap: () {
+            ref.read(forcedStartupSplashProvider.notifier).setVisible(true);
+          },
+        ),
+        _DebugItem(
+          icon: Symbols.visibility_off,
+          title: 'Hide startup splash',
+          onTap: () {
+            ref.read(forcedStartupSplashProvider.notifier).setVisible(false);
+          },
+        ),
         _Divider(),
         _DebugItem(
           icon: Symbols.wifi,
@@ -1139,9 +1154,9 @@ class DebugSheet extends HookConsumerWidget {
               },
             ),
             const Divider(height: 8),
-            ListTile(
-              minTileHeight: 48,
-              leading: const Icon(Symbols.slideshow),
+             ListTile(
+               minTileHeight: 48,
+               leading: const Icon(Symbols.slideshow),
               trailing: const Icon(Symbols.chevron_right),
               title: const Text('Show onboarding (new user)'),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -1170,10 +1185,30 @@ class DebugSheet extends HookConsumerWidget {
                   version: info.version,
                   isFirstLaunch: false,
                   suggestAuth: false,
-                );
-              },
-            ),
-            const Divider(height: 8),
+                 );
+               },
+             ),
+             ListTile(
+               minTileHeight: 48,
+               leading: const Icon(Symbols.splitscreen),
+               trailing: const Icon(Symbols.chevron_right),
+               title: const Text('Force show startup splash'),
+               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+               onTap: () {
+                 ref.read(forcedStartupSplashProvider.notifier).setVisible(true);
+               },
+             ),
+             ListTile(
+               minTileHeight: 48,
+               leading: const Icon(Symbols.visibility_off),
+               trailing: const Icon(Symbols.chevron_right),
+               title: const Text('Hide startup splash'),
+               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+               onTap: () {
+                 ref.read(forcedStartupSplashProvider.notifier).setVisible(false);
+               },
+             ),
+             const Divider(height: 8),
             ListTile(
               minTileHeight: 48,
               leading: const Icon(Symbols.wifi),
