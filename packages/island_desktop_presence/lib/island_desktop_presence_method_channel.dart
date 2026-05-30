@@ -89,6 +89,20 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
     });
   }
 
+  @override
+  Future<Map<String, dynamic>?> debugNowPlaying({String? executablePath}) async {
+    final arguments = <String, Object>{};
+    if (executablePath != null && executablePath.isNotEmpty) {
+      arguments['executablePath'] = executablePath;
+    }
+    final result = await methodChannel.invokeMethod<Map<Object?, Object?>>(
+      'debugNowPlaying',
+      arguments.isNotEmpty ? arguments : null,
+    );
+    if (result == null) return null;
+    return result.map((key, value) => MapEntry(key.toString(), value));
+  }
+
   PresenceEvent _decodeEvent(dynamic event) {
     if (event is! Map<Object?, Object?>) {
       throw PlatformException(
