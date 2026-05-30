@@ -1357,8 +1357,15 @@ class _RealmMemberListSheet extends HookConsumerWidget {
     final memberListProvider = realmMemberListNotifierProvider(realmSlug);
 
     final memberListState = ref.watch(memberListProvider);
-    final memberListNotifier = ref.watch(memberListProvider.notifier);
+    final memberListNotifier = ref.read(memberListProvider.notifier);
     final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
+
+    Future<void> refreshMemberList({bool refreshIdentity = false}) async {
+      await memberListNotifier.refresh();
+      if (refreshIdentity) {
+        ref.invalidate(realmIdentityProvider(realmSlug));
+      }
+    }
 
     Future<void> invitePerson() async {
       final result = await showModalBottomSheet(
@@ -1374,8 +1381,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
           '/passport/realms/invites/$realmSlug',
           data: {'related_user_id': result.id, 'role': 0},
         );
-        // Refresh the provider
-        memberListNotifier.refresh();
+        await refreshMemberList(refreshIdentity: true);
       } catch (err) {
         showErrorAlert(err);
       }
@@ -1405,10 +1411,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Symbols.refresh),
-              onPressed: () {
-                // Refresh the provider
-                ref.invalidate(memberListProvider);
-              },
+              onPressed: refreshMemberList,
             ),
             IconButton(
               icon: const Icon(Symbols.close),
@@ -1483,8 +1486,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                           ),
                         ).then((value) {
                           if (value != null) {
-                            ref.invalidate(memberListProvider);
-                            ref.invalidate(realmIdentityProvider(realmSlug));
+                            refreshMemberList(refreshIdentity: true);
                           }
                         });
                       },
@@ -1502,8 +1504,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                           ),
                         ).then((value) {
                           if (value != null) {
-                            // Refresh the provider
-                            ref.invalidate(memberListProvider);
+                            refreshMemberList();
                           }
                         });
                       },
@@ -1525,8 +1526,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                               slug: realmSlug,
                               accountId: member.accountId,
                             );
-                            // Refresh the provider
-                            ref.invalidate(memberListProvider);
+                            await refreshMemberList(refreshIdentity: true);
                           } catch (err) {
                             showErrorAlert(err);
                           }

@@ -691,8 +691,7 @@ class _ChatRoomActionMenu extends HookConsumerWidget {
                 builder: (context) => EditChatScreen(id: id),
               ).then((value) {
                 if (value != null) {
-                  // Invalidate to refresh room data after edit
-                  ref.invalidate(chatMemberListProvider(id));
+                  ref.read(chatMemberListProvider(id).notifier).refresh();
                 }
               });
             },
@@ -1009,7 +1008,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final memberState = ref.watch(chatMemberListProvider(roomId));
-    final memberNotifier = ref.watch(chatMemberListProvider(roomId).notifier);
+    final memberNotifier = ref.read(chatMemberListProvider(roomId).notifier);
 
     final chatRoom = ref.watch(chatRoomProvider(roomId));
 
@@ -1053,7 +1052,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
           }
         }
 
-        memberNotifier.refresh();
+        await memberNotifier.refresh();
       } catch (err) {
         showErrorAlert(err);
       }
@@ -1084,9 +1083,7 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                 ),
                 IconButton(
                   icon: const Icon(Symbols.refresh),
-                  onPressed: () {
-                    memberNotifier.refresh();
-                  },
+                  onPressed: memberNotifier.refresh,
                 ),
                 IconButton(
                   icon: const Icon(Symbols.close),
@@ -1142,7 +1139,7 @@ class _MemberListTile extends HookConsumerWidget {
     final isManagable =
         chatRoom.value?.accountId == roomIdentity.value?.accountId ||
         chatRoom.value?.type == 1;
-    final memberNotifier = ref.watch(chatMemberListProvider(roomId).notifier);
+    final memberNotifier = ref.read(chatMemberListProvider(roomId).notifier);
 
     return ListTile(
       contentPadding: EdgeInsets.only(left: 16, right: 12),
@@ -1196,7 +1193,7 @@ class _MemberListTile extends HookConsumerWidget {
             member: member,
             canModerate: isManagable,
             onUpdated: () async {
-              memberNotifier.refresh();
+              await memberNotifier.refresh();
             },
           );
         },
@@ -1208,7 +1205,7 @@ class _MemberListTile extends HookConsumerWidget {
           member: member,
           canModerate: isManagable,
           onUpdated: () async {
-            memberNotifier.refresh();
+            await memberNotifier.refresh();
           },
         );
       },
@@ -1265,7 +1262,9 @@ class _ChatIdentityEditorSheet extends HookConsumerWidget {
                           },
                         );
                         ref.invalidate(chatRoomIdentityProvider(roomId));
-                        ref.invalidate(chatMemberListProvider(roomId));
+                        await ref
+                            .read(chatMemberListProvider(roomId).notifier)
+                            .refresh();
                         if (context.mounted) {
                           showSnackBar('saveChanges'.tr());
                           Navigator.pop(context, true);
@@ -1294,7 +1293,9 @@ class _ChatIdentityEditorSheet extends HookConsumerWidget {
                               '/messager/chat/$roomId/members/me/profile',
                             );
                             ref.invalidate(chatRoomIdentityProvider(roomId));
-                            ref.invalidate(chatMemberListProvider(roomId));
+                            await ref
+                                .read(chatMemberListProvider(roomId).notifier)
+                                .refresh();
                             if (context.mounted) {
                               showSnackBar('cleared'.tr());
                               Navigator.pop(context, true);
