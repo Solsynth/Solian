@@ -75,12 +75,16 @@ class CallScreen extends HookConsumerWidget {
     final roomTitle = ongoingCall.value?.room.name ?? room.name ?? 'call'.tr();
     final statusText = callState.isConnected
         ? formatDuration(callState.duration)
+        : callState.isReconnecting
+        ? 'reconnecting'.tr()
         : (switch (callNotifier.room?.connectionState) {
             ConnectionState.connected => 'connected',
             ConnectionState.connecting => 'connecting',
             ConnectionState.reconnecting => 'reconnecting',
             _ => 'disconnected',
           }).tr();
+    final showReconnectBanner =
+        callState.isReconnecting && callState.error == null;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0E1117),
@@ -204,6 +208,54 @@ class CallScreen extends HookConsumerWidget {
                         ),
                       ),
                   ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: mediaQuery.padding.top + 68,
+              left: 16,
+              right: 16,
+              child: IgnorePointer(
+                ignoring: !showReconnectBanner,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: showReconnectBanner ? 1 : 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.72),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const Gap(10),
+                          Text(
+                            callState.reconnectAttempt > 0
+                                ? 'Reconnecting... (${callState.reconnectAttempt}/${CallNotifier.maxReconnectAttempts})'
+                                : 'Reconnecting...',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

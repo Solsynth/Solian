@@ -30,6 +30,7 @@ String formatDuration(Duration duration) {
 sealed class CallState with _$CallState {
   const factory CallState({
     required bool isConnected,
+    @Default(false) bool isReconnecting,
     required bool isMicrophoneEnabled,
     required bool isCameraEnabled,
     required bool isScreenSharing,
@@ -38,6 +39,8 @@ sealed class CallState with _$CallState {
     DateTime? joinedAt,
     @Default(ViewMode.grid) ViewMode viewMode,
     @Default(0) int participantSyncVersion,
+    @Default(0) int reconnectAttempt,
+    @Default(false) bool hasJoined,
     String? error,
   }) = _CallState;
 }
@@ -80,6 +83,7 @@ class CallNotifier extends _$CallNotifier {
   Timer? _durationTimer;
   Timer? _reconnectTimer;
   Timer? _connectionHealthTimer;
+  Timer? _reconnectGraceTimer;
 
   lk.Room? get room => _room;
   bool get isAdmin => _isAdmin;
@@ -91,6 +95,9 @@ class CallNotifier extends _$CallNotifier {
   static const Duration _maxReconnectDelay = Duration(seconds: 30);
   bool _isReconnecting = false;
   bool _shouldAutoReconnect = true;
+  bool _isManualDisconnect = false;
+
+  static int get maxReconnectAttempts => _maxReconnectAttempts;
 
   SnChatRoom? _currentRoom;
 
@@ -99,6 +106,7 @@ class CallNotifier extends _$CallNotifier {
     // Subscribe to websocket updates
     return const CallState(
       isConnected: false,
+      isReconnecting: false,
       isMicrophoneEnabled: true,
       isCameraEnabled: false,
       isScreenSharing: false,
@@ -124,8 +132,13 @@ class CallNotifier extends _$CallNotifier {
         _refreshLiveParticipants();
       })
       ..on<lk.RoomDisconnectedEvent>((e) {
-        _participants = [];
-        _bumpParticipantSync();
+        if (_isManualDisconnect) {
+          _participants = [];
+          _bumpParticipantSync();
+          return;
+        }
+        Logger.root.warning('[Call] Room disconnected event: ${e.reason}');
+        _scheduleReconnect(force: true);
       });
   }
 
@@ -260,10 +273,14 @@ class CallNotifier extends _$CallNotifier {
     _shouldAutoReconnect = true;
     _reconnectAttempts = 0;
     _isReconnecting = false;
+    _isManualDisconnect = false;
+    _reconnectGraceTimer?.cancel();
 
     if (_room != null) {
+      _isManualDisconnect = true;
       await _room!.disconnect();
       await _room!.dispose();
+      _isManualDisconnect = false;
       _room = null;
       _localParticipant = null;
       _participants = [];
@@ -294,17 +311,17 @@ class CallNotifier extends _$CallNotifier {
 
     // Setup duration timer
     final joinedAt = DateTime.now();
-    state = state.copyWith(joinedAt: joinedAt, duration: Duration.zero);
-    _durationTimer?.cancel();
-    _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      state = state.copyWith(
-        duration: Duration(
-          milliseconds:
-              DateTime.now().millisecondsSinceEpoch -
-              joinedAt.millisecondsSinceEpoch,
-        ),
-      );
-    });
+    if (!state.hasJoined || state.joinedAt == null) {
+      state = state.copyWith(joinedAt: joinedAt, duration: Duration.zero);
+      _durationTimer?.cancel();
+      _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        final baseJoinedAt = state.joinedAt;
+        if (baseJoinedAt == null) return;
+        state = state.copyWith(
+          duration: DateTime.now().difference(baseJoinedAt),
+        );
+      });
+    }
 
     // Connect to LiveKit
     _room = lk.Room();
@@ -323,6 +340,7 @@ class CallNotifier extends _$CallNotifier {
     _initRoomListeners();
     _updateLiveParticipants(participants);
     _startConnectionHealthMonitor();
+    _reconnectGraceTimer?.cancel();
 
     if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
       lk.Hardware.instance.setSpeakerphoneOn(true);
@@ -330,7 +348,13 @@ class CallNotifier extends _$CallNotifier {
 
     // Listen for connection updates
     _room!.addListener(_onConnectionStateChange);
-    state = state.copyWith(isConnected: true);
+    state = state.copyWith(
+      isConnected: true,
+      isReconnecting: false,
+      reconnectAttempt: 0,
+      hasJoined: true,
+      error: null,
+    );
     WakelockPlus.enable();
   }
 
@@ -338,23 +362,36 @@ class CallNotifier extends _$CallNotifier {
     if (_room == null || _room!.isDisposed) return;
 
     final connectionState = _room!.connectionState;
-    final wasConnected = state.isConnected;
     final isNowConnected = connectionState == lk.ConnectionState.connected;
+    final isNowReconnecting =
+        connectionState == lk.ConnectionState.reconnecting ||
+        connectionState == lk.ConnectionState.connecting;
 
     state = state.copyWith(
       isConnected: isNowConnected,
+      isReconnecting: isNowReconnecting || _isReconnecting,
       isMicrophoneEnabled: _localParticipant?.isMicrophoneEnabled() ?? false,
       isCameraEnabled: _localParticipant?.isCameraEnabled() ?? false,
       isScreenSharing: _localParticipant?.isScreenShareEnabled() ?? false,
     );
 
-    if (!wasConnected && isNowConnected) {
+    if (isNowConnected) {
       WakelockPlus.enable();
       _reconnectAttempts = 0;
       _isReconnecting = false;
-    } else if (wasConnected && !isNowConnected) {
-      WakelockPlus.disable();
-      _attemptReconnect();
+      _reconnectGraceTimer?.cancel();
+      state = state.copyWith(isReconnecting: false, reconnectAttempt: 0);
+      return;
+    }
+
+    if (isNowReconnecting) {
+      _scheduleReconnect();
+      return;
+    }
+
+    if (connectionState == lk.ConnectionState.disconnected &&
+        !_isManualDisconnect) {
+      _scheduleReconnect(force: true);
     }
   }
 
@@ -370,12 +407,42 @@ class CallNotifier extends _$CallNotifier {
     if (_room == null || _room!.isDisposed) return;
 
     final connectionState = _room!.connectionState;
-    if (connectionState != lk.ConnectionState.connected) {
+    if (connectionState == lk.ConnectionState.connected ||
+        connectionState == lk.ConnectionState.reconnecting ||
+        connectionState == lk.ConnectionState.connecting) {
+      return;
+    }
+
+    if (!_isManualDisconnect) {
       Logger.root.warning(
         '[Call] Connection health check failed: $connectionState',
       );
-      _attemptReconnect();
+      _scheduleReconnect(force: true);
     }
+  }
+
+  void _scheduleReconnect({bool force = false}) {
+    if (_isManualDisconnect || !_shouldAutoReconnect || _currentRoom == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      isConnected: false,
+      isReconnecting: true,
+      reconnectAttempt: _reconnectAttempts,
+      error: null,
+    );
+
+    if (!force) {
+      if (_reconnectGraceTimer?.isActive ?? false) return;
+      _reconnectGraceTimer = Timer(const Duration(seconds: 8), () {
+        _attemptReconnect();
+      });
+      return;
+    }
+
+    _reconnectGraceTimer?.cancel();
+    _attemptReconnect();
   }
 
   Future<void> _attemptReconnect() async {
@@ -384,12 +451,22 @@ class CallNotifier extends _$CallNotifier {
     }
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       Logger.root.severe('[Call] Max reconnection attempts reached');
-      state = state.copyWith(error: 'Connection lost. Please rejoin the call.');
+      state = state.copyWith(
+        isReconnecting: false,
+        reconnectAttempt: _reconnectAttempts,
+        error: 'Connection lost. Please rejoin the call.',
+      );
       return;
     }
 
     _isReconnecting = true;
     _reconnectAttempts++;
+    state = state.copyWith(
+      isConnected: false,
+      isReconnecting: true,
+      reconnectAttempt: _reconnectAttempts,
+      error: null,
+    );
 
     // Exponential backoff with jitter
     final delay = Duration(
@@ -412,8 +489,10 @@ class CallNotifier extends _$CallNotifier {
         // Clean up old connection
         if (_room != null) {
           _room!.removeListener(_onConnectionStateChange);
+          _isManualDisconnect = true;
           await _room!.disconnect();
           await _room!.dispose();
+          _isManualDisconnect = false;
         }
         _room = null;
         _localParticipant = null;
@@ -425,7 +504,13 @@ class CallNotifier extends _$CallNotifier {
       } catch (e) {
         Logger.root.severe('[Call] Reconnection failed: $e');
         _isReconnecting = false;
-        // Will try again on next timer if needed
+        state = state.copyWith(
+          isConnected: false,
+          isReconnecting: true,
+          reconnectAttempt: _reconnectAttempts,
+          error: null,
+        );
+        _scheduleReconnect(force: true);
       }
     });
   }
@@ -499,14 +584,21 @@ class CallNotifier extends _$CallNotifier {
   }
 
   Future<void> disconnect() async {
+    _shouldAutoReconnect = false;
+    _reconnectGraceTimer?.cancel();
+    _reconnectTimer?.cancel();
     if (_room != null) {
+      _isManualDisconnect = true;
       await _room!.disconnect();
       state = state.copyWith(
         isConnected: false,
+        isReconnecting: false,
         isMicrophoneEnabled: false,
         isCameraEnabled: false,
         isScreenSharing: false,
+        reconnectAttempt: 0,
       );
+      _isManualDisconnect = false;
       // Disable wakelock when call disconnects
       WakelockPlus.disable();
     }
@@ -586,14 +678,21 @@ class CallNotifier extends _$CallNotifier {
     _shouldAutoReconnect = false;
     _reconnectTimer?.cancel();
     _connectionHealthTimer?.cancel();
+    _reconnectGraceTimer?.cancel();
     _isReconnecting = false;
+    _isManualDisconnect = true;
 
     state = state.copyWith(
       error: null,
       isConnected: false,
+      isReconnecting: false,
       isMicrophoneEnabled: false,
       isCameraEnabled: false,
       isScreenSharing: false,
+      reconnectAttempt: 0,
+      hasJoined: false,
+      joinedAt: null,
+      duration: Duration.zero,
     );
     _room?.removeListener(_onConnectionStateChange);
     _roomListener?.dispose();
@@ -603,6 +702,8 @@ class CallNotifier extends _$CallNotifier {
     _roomId = null;
     _currentRoom = null;
     _isAdmin = false;
+    _participants = [];
+    _participantInfoByIdentity.clear();
     participantsVolumes = {};
     WakelockPlus.disable();
   }

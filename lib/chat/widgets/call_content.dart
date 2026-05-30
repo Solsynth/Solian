@@ -124,19 +124,26 @@ class CallContent extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isConnected = ref.watch(
-      callProvider.select((state) => state.isConnected),
-    );
-    final viewMode = ref.watch(callProvider.select((state) => state.viewMode));
-    ref.watch(callProvider.select((state) => state.participantSyncVersion));
+    final callState = ref.watch(callProvider);
     final callNotifier = ref.read(callProvider.notifier);
+    final viewMode = callState.viewMode;
 
-    if (!isConnected) {
+    final participants = callNotifier.participants;
+    final hasRenderableCall =
+        participants.isNotEmpty || callState.hasJoined || callState.isReconnecting;
+
+    if (!hasRenderableCall) {
       return const Center(child: CircularProgressIndicator());
     }
-    final participants = callNotifier.participants;
+
     if (participants.isEmpty) {
-      return const Center(child: Text('No participants in call'));
+      return Center(
+        child: Text(
+          callState.isReconnecting
+              ? 'Reconnecting call...'
+              : 'Waiting for participants...',
+        ),
+      );
     }
     final allAudioOnly = participants.every(
       (participant) => !_hasActiveVideo(participant),
