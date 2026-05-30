@@ -1021,33 +1021,6 @@ class SettingsScreen extends HookConsumerWidget {
                   );
                 },
               ),
-              Builder(
-                builder: (context) {
-                  final disableAppleMusic = ref.watch(
-                    desktopNowPlayingDisableAppleMusicProvider,
-                  );
-                  return ListTile(
-                    minLeadingWidth: 48,
-                    title: Text('settingsNowPlayingDisableAppleMusic').tr(),
-                    subtitle: Text(
-                      'settingsNowPlayingDisableAppleMusicHelper',
-                    ).tr().fontSize(12),
-                    contentPadding: const EdgeInsets.only(left: 24, right: 17),
-                    leading: const Icon(Symbols.music_off),
-                    trailing: Switch(
-                      value: disableAppleMusic,
-                      onChanged: (value) {
-                        ref
-                            .read(
-                              desktopNowPlayingDisableAppleMusicProvider
-                                  .notifier,
-                            )
-                            .setEnabled(value);
-                      },
-                    ),
-                  );
-                },
-              ),
             ],
             _DesktopNowPlayingPreview(),
             const Divider(height: 24),

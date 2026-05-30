@@ -148,13 +148,11 @@ class IslandDesktopPresence {
   Future<void> startExternalNowPlayingMonitoring({
     Duration pollInterval = const Duration(seconds: 2),
     String? executablePath,
-    bool disableAppleMusicIntegration = false,
   }) {
     return IslandDesktopPresencePlatform.instance
         .startExternalNowPlayingMonitoring(
           pollInterval: pollInterval,
           executablePath: executablePath,
-          disableAppleMusicIntegration: disableAppleMusicIntegration,
         );
   }
 
