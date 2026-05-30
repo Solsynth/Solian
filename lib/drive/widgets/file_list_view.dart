@@ -204,10 +204,8 @@ class FileListView extends HookConsumerWidget {
 
     useEffect(() {
       if (modeValue == FileListMode.unindexed) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          isSelectionMode.value = false;
-          selectedIdsNotifier.value = <String>{};
-        });
+        isSelectionMode.value = false;
+        selectedIdsNotifier.value = <String>{};
       }
       return null;
     }, [modeValue]);
@@ -240,15 +238,11 @@ class FileListView extends HookConsumerWidget {
       return null;
     }, [queryValue, order.value, orderDesc.value, modeValue]);
 
-    final isRefreshing = ref.watch(
-      modeValue == FileListMode.normal
-          ? indexedCloudFileListFamilyProvider(
-              tabId,
-            ).select((value) => value.isLoading || value.isReloading)
-          : unindexedFileListFamilyProvider(
-              tabId,
-            ).select((value) => value.isLoading || value.isReloading),
-    );
+    final indexedListState = ref.watch(indexedCloudFileListFamilyProvider(tabId));
+    final unindexedListState = ref.watch(unindexedFileListFamilyProvider(tabId));
+    final isRefreshing = modeValue == FileListMode.normal
+        ? (indexedListState.isLoading || indexedListState.isReloading)
+        : (unindexedListState.isLoading || unindexedListState.isReloading);
 
     final bodyWidget = switch (modeValue) {
       FileListMode.unindexed => PaginationWidget(
