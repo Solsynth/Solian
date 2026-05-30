@@ -19,6 +19,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/core/utils/file_icon_utils.dart';
 import 'package:island/core/utils/format.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/content/image.dart';
@@ -204,8 +205,10 @@ class FileListView extends HookConsumerWidget {
 
     useEffect(() {
       if (modeValue == FileListMode.unindexed) {
-        isSelectionMode.value = false;
-        selectedIdsNotifier.value = <String>{};
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          isSelectionMode.value = false;
+          selectedIdsNotifier.value = <String>{};
+        });
       }
       return null;
     }, [modeValue]);
@@ -806,6 +809,15 @@ class FileListView extends HookConsumerWidget {
                 }
               }
               break;
+            case 'moveToFolder':
+              await _showMoveToFolderSheet(
+                context: ref.context,
+                ref: ref,
+                fileId: file.id,
+                fileName: file.name,
+                isUnindexed: false,
+              );
+              break;
             case 'more':
               await CloudFileActionsSheet.show(
                 context: context,
@@ -825,6 +837,16 @@ class FileListView extends HookConsumerWidget {
                 const Icon(Symbols.edit, size: 20),
                 const Gap(12),
                 Text('rename'.tr()),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'moveToFolder',
+            child: Row(
+              children: [
+                const Icon(Symbols.drive_file_move, size: 20),
+                const Gap(12),
+                Text('moveToFolder'.tr()),
               ],
             ),
           ),
@@ -1467,6 +1489,17 @@ class FileListView extends HookConsumerWidget {
       context,
       [
         IconButton(
+          tooltip: 'moveToFolder'.tr(),
+          icon: const Icon(Symbols.drive_file_move),
+          onPressed: () => _showMoveToFolderSheet(
+            context: context,
+            ref: ref,
+            fileId: unindexedFileItem.file.id,
+            fileName: unindexedFileItem.file.name,
+            isUnindexed: true,
+          ),
+        ),
+        IconButton(
           icon: const Icon(Symbols.delete),
           onPressed: () async {
             final confirmed = await showConfirmAlert(
@@ -1534,6 +1567,53 @@ class FileListView extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showMoveToFolderSheet({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String fileId,
+    required String fileName,
+    required bool isUnindexed,
+  }) async {
+    final result = await showModalBottomSheet<String>(
+      useRootNavigator: true,
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => _FolderSelectorSheet(fileName: fileName),
+    );
+
+    if (result == null || !context.mounted) return;
+
+    showLoadingModal(context);
+    try {
+      final uploader = ref.read(driveFileUploaderProvider);
+
+      // result is the target path, resolve to parent ID
+      String? parentId;
+      if (result.isNotEmpty) {
+        parentId = await uploader.resolveParentIdFromPath(path: result);
+      }
+
+      await uploader.moveFile(
+        fileId,
+        parentId: parentId,
+        indexed: true,
+      );
+
+      if (isUnindexed) {
+        ref.invalidate(unindexedFileListFamilyProvider(tabId));
+      }
+      ref.invalidate(indexedCloudFileListFamilyProvider(tabId));
+
+      showSnackBar('fileMoved'.tr());
+    } catch (e) {
+      showSnackBar('failedToMoveFile'.tr());
+    } finally {
+      if (context.mounted) {
+        hideLoadingModal(context);
+      }
+    }
   }
 
   Widget _buildClearRecycledButton(WidgetRef ref) {
@@ -1802,5 +1882,281 @@ class _FileListLeadingPreview extends HookConsumerWidget {
       ),
       child: ClipRRect(borderRadius: BorderRadius.circular(10), child: preview),
     );
+  }
+}
+
+class _FolderSelectorSheet extends HookConsumerWidget {
+  final String fileName;
+
+  const _FolderSelectorSheet({required this.fileName});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentPath = useState('/');
+
+    useEffect(() {
+      ref
+          .read(_folderSelectorListProvider.notifier)
+          .setPath(currentPath.value);
+      return null;
+    }, [currentPath.value]);
+
+    List<({String label, String path})> buildBreadcrumbs(String path) {
+      final parts = path.split('/').where((part) => part.isNotEmpty).toList();
+      final crumbs = <({String label, String path})>[
+        (label: 'rootDirectory'.tr(), path: '/'),
+      ];
+
+      var current = '';
+      for (final part in parts) {
+        current = '$current/$part';
+        crumbs.add((label: part, path: current));
+      }
+      return crumbs;
+    }
+
+    return SheetScaffold(
+      titleText: 'moveToFolder'.tr(),
+      heightFactor: 0.7,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Row(
+              children: [
+                Icon(
+                  Symbols.drive_file_move,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const Gap(8),
+                Expanded(
+                  child: Text(
+                    fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: PaginationWidget(
+              provider: _folderSelectorListProvider,
+              notifier: _folderSelectorListProvider.notifier,
+              isRefreshable: false,
+              contentBuilder: (data, footer) {
+                final breadcrumbs = buildBreadcrumbs(currentPath.value);
+                return CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: [
+                            for (var i = 0; i < breadcrumbs.length; i++) ...[
+                              TextButton(
+                                onPressed:
+                                    breadcrumbs[i].path == currentPath.value
+                                    ? null
+                                    : () =>
+                                          currentPath.value = breadcrumbs[i].path,
+                                style: TextButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(breadcrumbs[i].label),
+                              ),
+                              if (i != breadcrumbs.length - 1)
+                                const Icon(Symbols.chevron_right, size: 18),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: ListTile(
+                          leading: Icon(
+                            Symbols.create_new_folder,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: Text('moveHere'.tr()),
+                          subtitle: currentPath.value == '/'
+                              ? Text('rootDirectory'.tr())
+                              : Text(currentPath.value),
+                          trailing: const Icon(Symbols.check_circle),
+                          onTap: () {
+                            Navigator.pop(context, currentPath.value);
+                          },
+                        ),
+                    ),
+                    if (currentPath.value != '/') ...[
+                      SliverToBoxAdapter(
+                        child: ListTile(
+                          leading: const Icon(Symbols.arrow_upward),
+                          title: Text('parentFolder'.tr()),
+                          onTap: () {
+                            final parts = currentPath.value
+                                .split('/')
+                                .where((p) => p.isNotEmpty)
+                                .toList();
+                            if (parts.length <= 1) {
+                              currentPath.value = '/';
+                            } else {
+                              currentPath.value =
+                                  '/${parts.sublist(0, parts.length - 1).join('/')}';
+                            }
+                          },
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: Divider(height: 1)),
+                    ],
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      sliver: SliverList.builder(
+                        itemCount: data.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index == data.length) return footer;
+                          return data[index].map(
+                            file: (fileItem) => const SizedBox.shrink(),
+                            folder: (folderItem) => ListTile(
+                              leading: Icon(
+                                Symbols.folder,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primaryFixedDim,
+                              ),
+                              title: Text(
+                                folderItem.file.name.isEmpty
+                                    ? 'untitled'.tr()
+                                    : folderItem.file.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text('folder'.tr()),
+                              trailing:
+                                  const Icon(Symbols.chevron_right, size: 20),
+                              onTap: () {
+                                final newPath = currentPath.value == '/'
+                                    ? '/${folderItem.file.name}'
+                                    : '${currentPath.value}/${folderItem.file.name}';
+                                currentPath.value = newPath;
+                              },
+                            ),
+                            unindexedFile: (unindexedFileItem) =>
+                                const SizedBox.shrink(),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+final _folderSelectorListProvider = AsyncNotifierProvider.autoDispose(
+  _FolderSelectorListNotifier.new,
+);
+
+class _FolderSelectorListNotifier
+    extends AsyncNotifier<PaginationState<FileListItem>>
+    with AsyncPaginationController<FileListItem> {
+  String _currentPath = '/';
+
+  void setPath(String path) {
+    if (_currentPath == path) return;
+    _currentPath = path;
+    ref.invalidateSelf();
+  }
+
+  @override
+  FutureOr<PaginationState<FileListItem>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: false,
+      cursor: null,
+    );
+  }
+
+  @override
+  Future<List<FileListItem>> fetch() async {
+    final driveApi = ref.read(solarNetworkClientProvider).drive;
+
+    final resolution = await _resolveParentIdForPath(driveApi);
+    if (!resolution.found) return const [];
+
+    final PaginatedResult<SnCloudFile> result;
+    if (resolution.parentId == null) {
+      result = await driveApi.listRootChildren(isFolder: true);
+    } else {
+      result = await driveApi.listFolderChildren(
+        resolution.parentId!,
+        isFolder: true,
+      );
+    }
+
+    totalCount = result.totalCount;
+    return result.items.map((file) {
+      if (file.isFolder) return FileListItem.folder(file);
+      return FileListItem.file(file);
+    }).toList();
+  }
+
+  Future<({bool found, String? parentId})> _resolveParentIdForPath(
+    DriveApi driveApi,
+  ) async {
+    final parts = _currentPath
+        .split('/')
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) {
+      return (found: true, parentId: null);
+    }
+
+    String? parentId;
+    for (final part in parts) {
+      final PaginatedResult<SnCloudFile> result;
+      if (parentId == null) {
+        result = await driveApi.listRootChildren();
+      } else {
+        result = await driveApi.listFolderChildren(parentId);
+      }
+
+      final matchedFolder = result.items
+          .where((item) => item.isFolder && item.name == part)
+          .firstOrNull;
+
+      if (matchedFolder == null) {
+        return (found: false, parentId: null);
+      }
+
+      parentId = matchedFolder.id;
+      if (parentId.isEmpty) {
+        return (found: false, parentId: null);
+      }
+    }
+
+    return (found: true, parentId: parentId);
   }
 }
