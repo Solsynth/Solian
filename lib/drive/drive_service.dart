@@ -15,6 +15,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/tasks/app_task.dart';
+import 'package:island/core/tasks/tasks_notifier.dart';
 import 'package:island/drive/screens/upload_tasks.dart';
 import 'package:island/drive/widgets/quota_sidebar.dart';
 import 'package:island/route.dart';
@@ -1784,12 +1786,17 @@ class FileDownloadService {
 
       showSnackBar('downloadingFiles'.plural(items.length));
 
-      final taskNotifier = ref.read(uploadTasksProvider.notifier);
+      final tasks = ref.read(tasksProvider.notifier);
       var completed = 0;
       var failed = 0;
 
       for (final item in items) {
-        final taskId = taskNotifier.addLocalDownloadTask(item);
+        final taskId = tasks.addTask(
+          title: item.name,
+          type: AppTaskType.driveDownload,
+          status: AppTaskStatus.inProgress,
+          metadata: DriveDownloadTaskMeta(fileId: item.id).toMap(),
+        );
         try {
           final extName = _getFileExtension(item);
           final downloaded = await _downloadToTemp(
@@ -1797,10 +1804,14 @@ class FileDownloadService {
             extName,
             onProgress: (received, total) {
               if (total > 0) {
-                taskNotifier.updateDownloadProgress(taskId, received, total);
-                taskNotifier.updateTransmissionProgress(
+                tasks.updateTask(
                   taskId,
-                  received / total,
+                  progress: received / total,
+                  metadata: DriveDownloadTaskMeta(
+                    fileId: item.id,
+                    totalBytes: total,
+                    downloadedBytes: received,
+                  ).toMap(),
                 );
               }
             },
@@ -1819,18 +1830,17 @@ class FileDownloadService {
               file: File(downloaded.filePath),
             );
           }
-          taskNotifier.updateDownloadProgress(
+          tasks.updateTask(
             taskId,
-            downloaded.bytes,
-            downloaded.bytes,
+            status: AppTaskStatus.completed,
+            progress: 1.0,
           );
-          taskNotifier.updateTaskStatus(taskId, DriveTaskStatus.completed);
           completed++;
         } catch (e) {
           failed++;
-          taskNotifier.updateTaskStatus(
+          tasks.updateTask(
             taskId,
-            DriveTaskStatus.failed,
+            status: AppTaskStatus.failed,
             errorMessage: e.toString(),
           );
         }
@@ -1858,7 +1868,7 @@ class FileDownloadService {
     bool useDownloadsFolder = false,
     void Function(int received, int total)? onProgress,
   }) async {
-    final taskNotifier = ref.read(uploadTasksProvider.notifier);
+    final tasks = ref.read(tasksProvider.notifier);
     String? taskId;
 
     try {
@@ -1870,7 +1880,12 @@ class FileDownloadService {
         return;
       }
 
-      taskId = taskNotifier.addLocalDownloadTask(item);
+      taskId = tasks.addTask(
+        title: item.name,
+        type: AppTaskType.driveDownload,
+        status: AppTaskStatus.inProgress,
+        metadata: DriveDownloadTaskMeta(fileId: item.id).toMap(),
+      );
       showSnackBar('downloadingFile'.tr());
       final downloaded = await _downloadToTemp(
         item,
@@ -1878,8 +1893,15 @@ class FileDownloadService {
         onProgress: (count, total) {
           onProgress?.call(count, total);
           if (total > 0 && taskId != null) {
-            taskNotifier.updateDownloadProgress(taskId, count, total);
-            taskNotifier.updateTransmissionProgress(taskId, count / total);
+            tasks.updateTask(
+              taskId,
+              progress: count / total,
+              metadata: DriveDownloadTaskMeta(
+                fileId: item.id,
+                totalBytes: total,
+                downloadedBytes: count,
+              ).toMap(),
+            );
           }
         },
       );
@@ -1897,18 +1919,17 @@ class FileDownloadService {
           file: File(downloaded.filePath),
         );
       }
-      taskNotifier.updateDownloadProgress(
+      tasks.updateTask(
         taskId,
-        downloaded.bytes,
-        downloaded.bytes,
+        status: AppTaskStatus.completed,
+        progress: 1.0,
       );
-      taskNotifier.updateTaskStatus(taskId, DriveTaskStatus.completed);
       showSnackBar(_isDesktop ? 'fileSaved'.tr() : 'fileSavedToDownloads'.tr());
     } catch (e) {
       if (taskId != null) {
-        taskNotifier.updateTaskStatus(
+        tasks.updateTask(
           taskId,
-          DriveTaskStatus.failed,
+          status: AppTaskStatus.failed,
           errorMessage: e.toString(),
         );
       }

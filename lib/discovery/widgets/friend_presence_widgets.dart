@@ -33,8 +33,9 @@ String resolvePresenceArtworkUrl(WidgetRef ref, String imageUri) {
 
 Map<String, dynamic> asStringKeyedMap(dynamic value) {
   if (value is Map<String, dynamic>) return value;
-  if (value is Map)
+  if (value is Map) {
     return value.map((key, value) => MapEntry(key.toString(), value));
+  }
   return const <String, dynamic>{};
 }
 

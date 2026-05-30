@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'upload_tasks.dart';
+part of 'drive_task_ws_handler.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,52 @@ part of 'upload_tasks.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(UploadTasks)
-final uploadTasksProvider = UploadTasksProvider._();
+@ProviderFor(DriveTaskWsHandler)
+final driveTaskWsHandlerProvider = DriveTaskWsHandlerProvider._();
 
-final class UploadTasksProvider
-    extends $NotifierProvider<UploadTasks, List<DriveTask>> {
-  UploadTasksProvider._()
+final class DriveTaskWsHandlerProvider
+    extends $NotifierProvider<DriveTaskWsHandler, void> {
+  DriveTaskWsHandlerProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'uploadTasksProvider',
+        name: r'driveTaskWsHandlerProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$uploadTasksHash();
+  String debugGetCreateSourceHash() => _$driveTaskWsHandlerHash();
 
   @$internal
   @override
-  UploadTasks create() => UploadTasks();
+  DriveTaskWsHandler create() => DriveTaskWsHandler();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<DriveTask> value) {
+  Override overrideWithValue(void value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<List<DriveTask>>(value),
+      providerOverride: $SyncValueProvider<void>(value),
     );
   }
 }
 
-String _$uploadTasksHash() => r'26e815d92a4bda520b00690e24214cf966ae43ff';
+String _$driveTaskWsHandlerHash() =>
+    r'2e74fff852ab6e98a6f40f63c63ca86316aff6bc';
 
-abstract class _$UploadTasks extends $Notifier<List<DriveTask>> {
-  List<DriveTask> build();
+abstract class _$DriveTaskWsHandler extends $Notifier<void> {
+  void build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<List<DriveTask>, List<DriveTask>>;
+    final ref = this.ref as $Ref<void, void>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<List<DriveTask>, List<DriveTask>>,
-              List<DriveTask>,
+              AnyNotifier<void, void>,
+              void,
               Object?,
               Object?
             >;
