@@ -41,7 +41,7 @@ final class CallNotifierProvider
   }
 }
 
-String _$callNotifierHash() => r'3b1265d92e88c9e61cdc0abe99d93c771f2b007e';
+String _$callNotifierHash() => r'ddf59de5d0eca0dd34ecd4a57adccd8c78d7e59f';
 
 abstract class _$CallNotifier extends $Notifier<CallState> {
   CallState build();
