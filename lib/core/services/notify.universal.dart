@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -66,6 +67,61 @@ Future<void> _speakNotification(
   }
 }
 
+String _buildThreadIdentifier(SnNotification notification) {
+  final meta = notification.meta;
+  if (meta['room_id'] != null) {
+    return 'room_${meta['room_id']}';
+  } else if (meta['user_id'] != null) {
+    return 'user_${meta['user_id']}';
+  } else if (notification.topic.isNotEmpty) {
+    return 'topic_${notification.topic}';
+  }
+  return 'type_${notification.topic}';
+}
+
+Future<List<DarwinNotificationAttachment>> _downloadDarwinAttachments(
+  String serverUrl,
+  SnNotification notification,
+) async {
+  final meta = notification.meta;
+  final imageIds = <String>[];
+
+  if (meta['images'] is List && (meta['images'] as List).isNotEmpty) {
+    imageIds.addAll((meta['images'] as List).map((e) => e.toString()));
+  } else if (meta['image'] is String) {
+    imageIds.add(meta['image'] as String);
+  } else if (meta['pfp'] is String) {
+    imageIds.add(meta['pfp'] as String);
+  }
+
+  if (imageIds.isEmpty) return [];
+
+  final futures = imageIds.map((imageId) async {
+    try {
+      final file = await DefaultCacheManager()
+          .getSingleFile('$serverUrl/drive/files/$imageId')
+          .timeout(const Duration(seconds: 10));
+      return DarwinNotificationAttachment(file.path, identifier: imageId);
+    } catch (e) {
+      Logger.root.warning(
+        'Failed to download notification attachment ($imageId): $e',
+      );
+      return null;
+    }
+  });
+
+  final results = await Future.wait(futures);
+  return results.whereType<DarwinNotificationAttachment>().toList();
+}
+
+int _notificationIdFromString(String id) {
+  var hash = 0;
+  for (var i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.codeUnitAt(i)) & 0x7FFFFFFF;
+  }
+  return hash;
+}
+
 Future<void> initializeLocalNotifications(WidgetRef ref) async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -94,6 +150,8 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
     windows: initializationSettingsWindows,
   );
 
+  // Hold the router
+  final router = ref.read(routerProvider);
   await flutterLocalNotificationsPlugin.initialize(
     settings: initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse response) async {
@@ -101,7 +159,7 @@ Future<void> initializeLocalNotifications(WidgetRef ref) async {
       if (payload != null) {
         if (payload.startsWith('/')) {
           // In-app routes
-          ref.read(routerProvider).pushPath(payload);
+          router.pushPath(payload);
         } else {
           // External URLs
           launchUrlString(payload);
@@ -125,6 +183,17 @@ class LifecycleEventHandler extends WidgetsBindingObserver {
     onAppLifecycleChanged(state);
   }
 }
+
+const AndroidNotificationDetails androidNotificationDetails =
+    AndroidNotificationDetails(
+      'solar_network_notifications',
+      'Notifications',
+      channelDescription: 'Receive notifications from the Solar Network',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'Solar Network Notification',
+      icon: 'launcher_icon',
+    );
 
 StreamSubscription<WebSocketPacket> setupNotificationListener(
   BuildContext context,
@@ -151,22 +220,33 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
             '[Notification] Showing system notification: ${notification.title}',
           );
 
-          // Use flutter_local_notifications for universal platforms
-          const AndroidNotificationDetails androidNotificationDetails =
-              AndroidNotificationDetails(
-                'island_notifications',
-                'Notifications',
-                channelDescription: 'Receive notifications from Island',
-                importance: Importance.max,
-                priority: Priority.high,
-                ticker: 'Island notification',
-                icon: 'launcher_icon',
+          final serverUrl = ref.read(serverUrlProvider);
+          final threadId = _buildThreadIdentifier(notification);
+          final attachments = await _downloadDarwinAttachments(
+            serverUrl,
+            notification,
+          );
+
+          final DarwinNotificationDetails darwinNotificationDetails =
+              DarwinNotificationDetails(
+                presentAlert: true,
+                presentBadge: true,
+                presentSound: true,
+                sound: notification.topic.startsWith('messages.')
+                    ? 'SfxMessage.caf'
+                    : 'SfxNotification.caf',
+                threadIdentifier: threadId,
+                categoryIdentifier: notification.topic.startsWith('messages.')
+                    ? 'CHAT_MESSAGE'
+                    : null,
+                attachments: attachments,
               );
-          const NotificationDetails notificationDetails = NotificationDetails(
+          final NotificationDetails notificationDetails = NotificationDetails(
             android: androidNotificationDetails,
+            macOS: darwinNotificationDetails,
           );
           await flutterLocalNotificationsPlugin.show(
-            id: 0,
+            id: _notificationIdFromString(notification.id),
             title: notification.title,
             body: notification.body,
             notificationDetails: notificationDetails,
