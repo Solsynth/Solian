@@ -649,6 +649,8 @@ static void island_desktop_presence_plugin_handle_method_call(
         }
       }
     }
+  } else if (strcmp(method, "setAuthToken") == 0) {
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
   } else if (strcmp(method, "closeRpcConnection") == 0) {
     FlValue* args = fl_method_call_get_args(method_call);
     if (args == nullptr || fl_value_get_type(args) != FL_VALUE_TYPE_MAP) {

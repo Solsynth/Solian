@@ -232,14 +232,12 @@ class DesktopNowPlayingService {
 
     try {
       final executablePath = _ref.read(desktopNowPlayingCliPathProvider);
-      final disableAppleMusic = _ref.read(desktopNowPlayingDisableAppleMusicProvider);
       Logger.root.info('[DesktopNowPlaying] Starting macOS monitoring');
       await _syncAuthToken();
       _startTokenSync();
       await _presence.startExternalNowPlayingMonitoring(
         pollInterval: _pollInterval,
         executablePath: executablePath,
-        disableAppleMusicIntegration: disableAppleMusic,
       );
     } catch (error, stackTrace) {
       Logger.root.severe(

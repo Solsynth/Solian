@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <string>
 #include <thread>
 #include <vector>
@@ -52,9 +53,9 @@ class IslandDesktopPresencePlugin : public flutter::Plugin {
   };
 
   std::optional<LRESULT> HandleWindowProc(HWND hwnd,
-                                          UINT message,
-                                          WPARAM wparam,
-                                          LPARAM lparam);
+                                           UINT message,
+                                           WPARAM wparam,
+                                           LPARAM lparam);
   std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
   OnExternalNowPlayingListen(
       const flutter::EncodableValue* arguments,
@@ -83,24 +84,48 @@ class IslandDesktopPresencePlugin : public flutter::Plugin {
   struct ExternalNowPlayingSnapshot {
     std::string source;
     std::string state;
+    std::optional<std::string> provider_key;
+    std::optional<std::string> provider_reference_id;
     std::optional<std::string> source_app_name;
     std::optional<std::string> source_bundle_identifier;
     std::optional<std::string> unique_identifier;
     std::optional<std::string> title;
     std::optional<std::string> artist;
     std::optional<std::string> album;
+    std::optional<double> playback_rate;
     std::optional<double> duration_seconds;
     std::optional<double> position_seconds;
+    std::optional<std::string> title_url;
+    std::optional<std::string> subtitle_url;
+    std::optional<std::string> artwork_url;
+    std::optional<std::string> artwork_url_large;
+    std::optional<std::string> artwork_hash;
+    std::optional<std::string> artwork_data;
+    std::optional<std::string> catalog_id;
   };
 
   void StartExternalNowPlayingMonitoring(int poll_interval_milliseconds);
   void StopExternalNowPlayingMonitoring(bool reset_state = true);
   void EmitCurrentExternalNowPlaying(bool force);
-  std::optional<ExternalNowPlayingSnapshot> ReadExternalNowPlayingSnapshot() const;
+  std::optional<ExternalNowPlayingSnapshot> ReadExternalNowPlayingSnapshot()
+      const;
+  ExternalNowPlayingSnapshot EnsureArtworkUploaded(
+      const ExternalNowPlayingSnapshot& snapshot) const;
+  bool CheckArtworkExists(const std::string& hash) const;
+  bool UploadArtwork(const std::string& artwork_data,
+                     const std::string& hash) const;
+  static std::optional<std::string> ComputeArtworkHash(
+      const std::vector<uint8_t>& image_bytes);
+  static std::optional<std::vector<uint8_t>> ReadStreamBytes(
+      const winrt::Windows::Storage::Streams::IRandomAccessStream& stream);
+  static std::string BytesToBase64(const std::vector<uint8_t>& bytes);
+  static std::string NormalizeSourceAppId(const winrt::hstring& value);
+  static std::string MapSourceBundleIdentifier(const std::string& app_id);
+  static std::string MapProviderKey(const std::string& app_id);
+  static std::string ResolveApplicationName(const std::string& app_id);
+  static std::string ToUtf8(const winrt::hstring& value);
   flutter::EncodableMap BuildExternalNowPlayingEvent(
       const ExternalNowPlayingSnapshot& snapshot) const;
-  static std::string NormalizeSourceAppId(const winrt::hstring& value);
-  static std::string ToUtf8(const winrt::hstring& value);
 
   bool StartRpcTransport(std::string* error_message);
   void StopRpcTransport();
@@ -140,6 +165,11 @@ class IslandDesktopPresencePlugin : public flutter::Plugin {
   std::optional<flutter::EncodableMap> pending_external_now_playing_event_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
       external_now_playing_event_sink_;
+
+  std::string auth_token_;
+  std::string server_url_;
+  mutable std::mutex artwork_cache_mutex_;
+  mutable std::set<std::string> artwork_hash_cache_;
 
   std::mutex rpc_mutex_;
   std::atomic_bool rpc_running_ = false;

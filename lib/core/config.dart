@@ -83,8 +83,6 @@ const kAppIpOverrideDomains = 'app_ip_override_domains';
 const kAppMacosNowPlayingCliPath = 'app_macos_now_playing_cli_path';
 const kAppMacosNowPlayingReuseFixedManualId =
     'app_macos_now_playing_reuse_fixed_manual_id';
-const kAppMacosNowPlayingDisableAppleMusic =
-    'app_macos_now_playing_disable_apple_music';
 const kAppDesktopIdleStatusEnabled = 'app_desktop_idle_status_enabled';
 const kAppDesktopNowPlayingEnabled = 'app_desktop_now_playing_enabled';
 const kAppDesktopRpcServerEnabled = 'app_desktop_rpc_server_enabled';
@@ -309,25 +307,6 @@ class DesktopNowPlayingReuseFixedManualIdNotifier extends Notifier<bool> {
 final desktopNowPlayingReuseFixedManualIdProvider =
     NotifierProvider<DesktopNowPlayingReuseFixedManualIdNotifier, bool>(
       DesktopNowPlayingReuseFixedManualIdNotifier.new,
-    );
-
-class DesktopNowPlayingDisableAppleMusicNotifier extends Notifier<bool> {
-  @override
-  bool build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    return prefs.getBool(kAppMacosNowPlayingDisableAppleMusic) ?? false;
-  }
-
-  void setEnabled(bool value) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppMacosNowPlayingDisableAppleMusic, value);
-    state = value;
-  }
-}
-
-final desktopNowPlayingDisableAppleMusicProvider =
-    NotifierProvider<DesktopNowPlayingDisableAppleMusicNotifier, bool>(
-      DesktopNowPlayingDisableAppleMusicNotifier.new,
     );
 
 class DesktopIdleStatusEnabledNotifier extends Notifier<bool> {

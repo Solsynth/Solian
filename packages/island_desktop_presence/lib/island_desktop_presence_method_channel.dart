@@ -63,11 +63,9 @@ class MethodChannelIslandDesktopPresence extends IslandDesktopPresencePlatform {
   Future<void> startExternalNowPlayingMonitoring({
     required Duration pollInterval,
     String? executablePath,
-    bool disableAppleMusicIntegration = false,
   }) {
     final arguments = <String, Object>{
       'pollIntervalMilliseconds': pollInterval.inMilliseconds,
-      'disableAppleMusicIntegration': disableAppleMusicIntegration,
     };
     if (executablePath != null && executablePath.isNotEmpty) {
       arguments['executablePath'] = executablePath;
