@@ -190,6 +190,34 @@ class MessageContent extends StatelessWidget {
             ),
           ],
         );
+      case 'messages.pinned':
+      case 'messages.unpinned':
+        final isPinned = item.type == 'messages.pinned';
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              isPinned ? Symbols.push_pin : Icons.push_pin_outlined,
+              size: 16,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+            ),
+            const Gap(6),
+            Flexible(
+              child: Text(
+                isPinned ? 'Pinned a message' : 'Unpinned a message',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        );
       case 'voice':
         return _VoiceMessageContent(item: item);
       case 'text':

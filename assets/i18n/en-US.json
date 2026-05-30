@@ -3331,5 +3331,6 @@
   "now": "Now",
   "pollFeedback": "Poll Feedback",
   "settingsIpOverrideHelperOn": "Override DNS for {}",
-  "settingsIpOverrideHelperOff": "Configure server URL first"
+  "settingsIpOverrideHelperOff": "Configure server URL first",
+  "viewAll": "View All"
 }

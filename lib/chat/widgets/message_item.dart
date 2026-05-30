@@ -357,6 +357,8 @@ class MessageItem extends HookConsumerWidget {
                       'messages.delete',
                       'messages.reaction.added',
                       'messages.reaction.removed',
+                      'messages.pinned',
+                      'messages.unpinned',
                     ].contains(message.type) &&
                     message.meta['message_id'] is String &&
                     message.meta['message_id'] != null) {

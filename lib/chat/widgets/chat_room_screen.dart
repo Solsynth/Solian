@@ -19,6 +19,8 @@ import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/chat/widgets/chat_search_screen.dart';
 import 'package:island/chat/widgets/pinned_messages_sheet.dart';
 import 'package:island/chat/widgets/public_room_preview.dart';
+import 'package:island/accounts/widgets/account/account_name.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/chat/widgets/room_app_bar.dart';
 import 'package:island/chat/widgets/room_message_list.dart';
 import 'package:island/chat/widgets/room_selection_mode.dart';
@@ -787,6 +789,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                       ),
                     );
                   },
+                  fetchMessageById: messagesNotifier.fetchMessageById,
                 ),
               Expanded(
                 child: Stack(
@@ -1242,12 +1245,13 @@ class _RedirectRoomGroup extends StatelessWidget {
   }
 }
 
-class _PinnedMessagesBar extends StatelessWidget {
+class _PinnedMessagesBar extends StatefulWidget {
   final List<SnChatMessagePin> pins;
   final bool isCollapsed;
   final VoidCallback onToggleCollapse;
   final void Function(SnChatMessagePin pin) onTapPin;
   final VoidCallback onViewAll;
+  final Future<LocalChatMessage?> Function(String messageId) fetchMessageById;
 
   const _PinnedMessagesBar({
     required this.pins,
@@ -1255,11 +1259,52 @@ class _PinnedMessagesBar extends StatelessWidget {
     required this.onToggleCollapse,
     required this.onTapPin,
     required this.onViewAll,
+    required this.fetchMessageById,
   });
 
   @override
+  State<_PinnedMessagesBar> createState() => _PinnedMessagesBarState();
+}
+
+class _PinnedMessagesBarState extends State<_PinnedMessagesBar> {
+  late final PageController _pageController;
+  int _currentPage = 0;
+  final Map<String, LocalChatMessage> _fetchedMessages = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _fetchAllMessages();
+  }
+
+  @override
+  void didUpdateWidget(_PinnedMessagesBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.pins != widget.pins) {
+      _fetchAllMessages();
+    }
+  }
+
+  Future<void> _fetchAllMessages() async {
+    for (final pin in widget.pins) {
+      if (_fetchedMessages.containsKey(pin.messageId)) continue;
+      final message = await widget.fetchMessageById(pin.messageId);
+      if (mounted && message != null) {
+        setState(() => _fetchedMessages[pin.messageId] = message);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (pins.isEmpty) return const SizedBox.shrink();
+    if (widget.pins.isEmpty) return const SizedBox.shrink();
 
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerHigh,
@@ -1267,41 +1312,44 @@ class _PinnedMessagesBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
-            onTap: onToggleCollapse,
+            onTap: widget.onToggleCollapse,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 children: [
                   Icon(
                     Symbols.push_pin,
-                    size: 16,
+                    size: 15,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${pins.length} pinned message${pins.length == 1 ? '' : 's'}',
+                      '${widget.pins.length} pinned message${widget.pins.length == 1 ? '' : 's'}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  if (pins.length > 1)
-                    TextButton(
-                      onPressed: onViewAll,
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  if (widget.pins.length > 1) ...[
+                    _buildPageIndicator(context),
+                    const SizedBox(width: 4),
+                  ],
+                  if (widget.pins.length > 1)
+                    IconButton(
+                      icon: const Icon(Symbols.list, size: 16),
+                      onPressed: widget.onViewAll,
+                      tooltip: 'viewAll'.tr(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 28,
+                        minHeight: 28,
                       ),
-                      child: Text(
-                        'viewAll'.tr(),
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
+                      visualDensity: VisualDensity.compact,
                     ),
                   Icon(
-                    isCollapsed
+                    widget.isCollapsed
                         ? Icons.keyboard_arrow_down
                         : Icons.keyboard_arrow_up,
                     size: 18,
@@ -1311,46 +1359,134 @@ class _PinnedMessagesBar extends StatelessWidget {
               ),
             ),
           ),
-          if (!isCollapsed)
+          if (!widget.isCollapsed)
             SizedBox(
-              height: 48,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: pins.length,
+              height: 42,
+              child: PageView.builder(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                itemCount: widget.pins.length,
+                onPageChanged: (index) {
+                  setState(() => _currentPage = index);
+                },
                 itemBuilder: (context, index) {
-                  final pin = pins[index];
-                  final message = pin.message;
+                  final pin = widget.pins[index];
+                  final message = _fetchedMessages[pin.messageId];
                   final sender = message?.sender;
-                  final senderNick = sender?.nick;
-                  final accountNick = sender?.account.nick;
-                  final senderName = senderNick?.isNotEmpty == true
-                      ? senderNick!
-                      : accountNick ?? '';
                   final content = message?.content ?? '';
+                  final createdAt = message?.createdAt;
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ActionChip(
-                      avatar: Icon(
-                        Symbols.push_pin,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.primary,
+                  final timestamp = createdAt != null
+                      ? (DateTime.now().difference(createdAt).inDays > 365
+                            ? DateFormat(
+                                'yyyy/MM/dd HH:mm',
+                              ).format(createdAt.toLocal())
+                            : DateTime.now().difference(createdAt).inDays > 0
+                            ? DateFormat(
+                                'MM/dd HH:mm',
+                              ).format(createdAt.toLocal())
+                            : DateFormat('HH:mm').format(createdAt.toLocal()))
+                      : '';
+
+                  return InkWell(
+                    onTap: () => widget.onTapPin(pin),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
                       ),
-                      label: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 150),
-                        child: Text(
-                          senderName.isNotEmpty
-                              ? '$senderName: $content'
-                              : content,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                      onPressed: () => onTapPin(pin),
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      visualDensity: VisualDensity.compact,
+                      child: message == null
+                          ? Row(
+                              children: [
+                                SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant
+                                        .withOpacity(0.4),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Loading...',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant
+                                            .withOpacity(0.5),
+                                      ),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (sender != null)
+                                  ProfilePictureWidget(
+                                    file: sender.account.profile.picture,
+                                    radius: 14,
+                                  ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          if (sender != null)
+                                            Flexible(
+                                              child: AccountName(
+                                                account: sender.account,
+                                                textOverride:
+                                                    sender.nick?.isNotEmpty ==
+                                                        true
+                                                    ? sender.nick
+                                                    : sender.account.nick,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                hideVerificationMark: true,
+                                                hideOverlay: true,
+                                              ),
+                                            ),
+                                          if (timestamp.isNotEmpty) ...[
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              timestamp,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall
+                                                  ?.copyWith(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant
+                                                        .withOpacity(0.5),
+                                                  ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 1),
+                                      _buildContentPreview(
+                                        context,
+                                        content,
+                                        message.attachments,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                     ),
                   );
                 },
@@ -1363,5 +1499,67 @@ class _PinnedMessagesBar extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildPageIndicator(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(widget.pins.length.clamp(0, 5), (index) {
+        final isActive = index == _currentPage;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          width: isActive ? 12 : 5,
+          height: 5,
+          decoration: BoxDecoration(
+            color: isActive
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(2.5),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildContentPreview(
+    BuildContext context,
+    String content,
+    List<Map<String, dynamic>> attachments,
+  ) {
+    if (content.isNotEmpty) {
+      return Text(
+        content,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodySmall,
+      );
+    }
+    if (attachments.isNotEmpty) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Symbols.attach_file,
+            size: 14,
+            color:
+                Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'hasAttachments'.plural(attachments.length),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withOpacity(0.6),
+                ),
+          ),
+        ],
+      );
+    }
+    return const SizedBox.shrink();
   }
 }
