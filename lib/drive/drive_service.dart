@@ -1508,12 +1508,19 @@ class FileUploader {
   }
 
   /// Moves a file to a different folder or to root. Owner only.
-  Future<SnCloudFile> moveFile(
+  Future<void> moveFile(
     String fileId, {
     String? parentId,
     bool? indexed,
-  }) {
-    return _driveApi.moveFile(fileId, parentId: parentId, indexed: indexed);
+  }) async {
+    await _client.post(
+      '/drive/files/move/batch',
+      data: {
+        'file_ids': [fileId],
+        if (parentId != null) 'parent_id': parentId,
+        if (indexed != null) 'indexed': indexed,
+      },
+    );
   }
 
   /// Permanently deletes a file. Owner only.
