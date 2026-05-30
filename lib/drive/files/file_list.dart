@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:animations/animations.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -418,74 +419,97 @@ class FileListScreen extends HookConsumerWidget {
                     onAddUnindexedTab: () => createTab(FileListMode.unindexed),
                   ),
                   Expanded(
-                    child: activeTab == null
-                        ? _DriveWorkspaceEmptyState(
-                            onOpenIndexed: () => createTab(FileListMode.normal),
-                            onOpenUnindexed: () =>
-                                createTab(FileListMode.unindexed),
-                          )
-                        : activeTab.file != null
-                        ? _DriveFileContentTab(
-                            file: activeTab.file!,
-                            onInspectFile: (file) {
-                              ref
-                                  .read(driveInspectorFileProvider.notifier)
-                                  .setFile(file);
-                              showSidebar.value = true;
-                            },
-                          )
-                        : currentPath == null ||
-                              selectedPool == null ||
-                              mode == null ||
-                              viewMode == null ||
-                              isSelectionMode == null ||
-                              query == null
-                        ? _DriveWorkspaceEmptyState(
-                            onOpenIndexed: () => createTab(FileListMode.normal),
-                            onOpenUnindexed: () =>
-                                createTab(FileListMode.unindexed),
-                          )
-                        : FileListView(
-                            tabId: activeTab.id,
-                            usage: usage,
-                            quota: quota,
-                            currentPath: currentPath,
-                            selectedPool: selectedPool,
-                            onOpenFolderInNewTab: openFolderTab,
-                            onPickAndUpload: () => _pickAndUploadFile(
-                              ref,
-                              activeTab.id,
-                              currentPathValue,
-                              selectedPoolValue?.id,
+                    child: PageTransitionSwitcher(
+                      reverse: false,
+                      transitionBuilder:
+                          (
+                            Widget child,
+                            Animation<double> primaryAnimation,
+                            Animation<double> secondaryAnimation,
+                          ) {
+                            return SharedAxisTransition(
+                              animation: primaryAnimation,
+                              secondaryAnimation: secondaryAnimation,
+                              transitionType:
+                                  SharedAxisTransitionType.horizontal,
+                              child: child,
+                            );
+                          },
+                      child: activeTab == null
+                          ? _DriveWorkspaceEmptyState(
+                              key: const ValueKey('empty'),
+                              onOpenIndexed: () =>
+                                  createTab(FileListMode.normal),
+                              onOpenUnindexed: () =>
+                                  createTab(FileListMode.unindexed),
+                            )
+                          : activeTab.file != null
+                          ? _DriveFileContentTab(
+                              key: ValueKey(activeTab.id),
+                              file: activeTab.file!,
+                              onInspectFile: (file) {
+                                ref
+                                    .read(driveInspectorFileProvider.notifier)
+                                    .setFile(file);
+                                showSidebar.value = true;
+                              },
+                            )
+                          : currentPath == null ||
+                                selectedPool == null ||
+                                mode == null ||
+                                viewMode == null ||
+                                isSelectionMode == null ||
+                                query == null
+                          ? _DriveWorkspaceEmptyState(
+                              key: const ValueKey('empty'),
+                              onOpenIndexed: () =>
+                                  createTab(FileListMode.normal),
+                              onOpenUnindexed: () =>
+                                  createTab(FileListMode.unindexed),
+                            )
+                          : FileListView(
+                              key: ValueKey(activeTab.id),
+                              tabId: activeTab.id,
+                              usage: usage,
+                              quota: quota,
+                              currentPath: currentPath,
+                              selectedPool: selectedPool,
+                              onOpenFolderInNewTab: openFolderTab,
+                              onPickAndUpload: () => _pickAndUploadFile(
+                                ref,
+                                activeTab.id,
+                                currentPathValue,
+                                selectedPoolValue?.id,
+                              ),
+                              onDropFiles: (files) => _uploadDroppedFiles(
+                                ref,
+                                activeTab.id,
+                                currentPathValue,
+                                selectedPoolValue?.id,
+                                files,
+                              ),
+                              onShowCreateFolder: () => _showCreateFolderDialog(
+                                context,
+                                ref,
+                                activeTab.id,
+                                currentPathValue,
+                                selectedPoolValue?.id,
+                              ),
+                              onInspectFile: (file) {
+                                ref
+                                    .read(driveInspectorFileProvider.notifier)
+                                    .setFile(file);
+                                showSidebar.value = true;
+                              },
+                              onOpenFile: openFileTab,
+                              selectedFileIds: selectedFileIds,
+                              currentVisibleFileIds: visibleFileIds,
+                              mode: mode,
+                              viewMode: viewMode,
+                              isSelectionMode: isSelectionMode,
+                              query: query,
                             ),
-                            onDropFiles: (files) => _uploadDroppedFiles(
-                              ref,
-                              activeTab.id,
-                              currentPathValue,
-                              selectedPoolValue?.id,
-                              files,
-                            ),
-                            onShowCreateFolder: () => _showCreateFolderDialog(
-                              context,
-                              ref,
-                              activeTab.id,
-                              currentPathValue,
-                              selectedPoolValue?.id,
-                            ),
-                            onInspectFile: (file) {
-                              ref
-                                  .read(driveInspectorFileProvider.notifier)
-                                  .setFile(file);
-                              showSidebar.value = true;
-                            },
-                            onOpenFile: openFileTab,
-                            selectedFileIds: selectedFileIds,
-                            currentVisibleFileIds: visibleFileIds,
-                            mode: mode,
-                            viewMode: viewMode,
-                            isSelectionMode: isSelectionMode,
-                            query: query,
-                          ),
+                    ),
                   ),
                 ],
               ),
@@ -1403,6 +1427,7 @@ class _DriveWorkspaceEmptyState extends StatelessWidget {
   final VoidCallback onOpenUnindexed;
 
   const _DriveWorkspaceEmptyState({
+    super.key,
     required this.onOpenIndexed,
     required this.onOpenUnindexed,
   });
@@ -1720,7 +1745,11 @@ class _DriveFileContentTab extends ConsumerWidget {
   final SnCloudFile file;
   final void Function(SnCloudFile file) onInspectFile;
 
-  const _DriveFileContentTab({required this.file, required this.onInspectFile});
+  const _DriveFileContentTab({
+    super.key,
+    required this.file,
+    required this.onInspectFile,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

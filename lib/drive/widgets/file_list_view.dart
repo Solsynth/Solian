@@ -91,12 +91,6 @@ class FileListView extends HookConsumerWidget {
 
     if (usage == null) return const SizedBox.shrink();
 
-    final unindexedNotifier = ref.read(
-      unindexedFileListFamilyProvider(tabId).notifier,
-    );
-    final cloudNotifier = ref.read(
-      indexedCloudFileListFamilyProvider(tabId).notifier,
-    );
     final recycled = useState<bool>(false);
     final localSelectedFileIds = useState<Set<String>>({});
     final currentVisibleItems = useState<List<FileListItem>>([]);
@@ -192,10 +186,12 @@ class FileListView extends HookConsumerWidget {
           };
           syncLoadedChildrenSelection(selectedIdsNotifier, file, result.items);
           if (currentVisibleFileIds != null) {
-            currentVisibleFileIds!.value = {
-              ...currentVisibleFileIds!.value,
-              ...result.items.map((item) => item.id),
-            };
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              currentVisibleFileIds!.value = {
+                ...currentVisibleFileIds!.value,
+                ...result.items.map((item) => item.id),
+              };
+            });
           }
         }
       } catch (_) {
@@ -208,8 +204,10 @@ class FileListView extends HookConsumerWidget {
 
     useEffect(() {
       if (modeValue == FileListMode.unindexed) {
-        isSelectionMode.value = false;
-        selectedIdsNotifier.value = <String>{};
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          isSelectionMode.value = false;
+          selectedIdsNotifier.value = <String>{};
+        });
       }
       return null;
     }, [modeValue]);
@@ -217,9 +215,11 @@ class FileListView extends HookConsumerWidget {
     useEffect(() {
       // Sync pool when mode or selectedPool changes
       if (modeValue == FileListMode.unindexed) {
-        unindexedNotifier.setPool(selectedPool.value?.id);
+        ref.read(unindexedFileListFamilyProvider(tabId).notifier)
+            .setPool(selectedPool.value?.id);
       } else {
-        cloudNotifier.setPool(selectedPool.value?.id);
+        ref.read(indexedCloudFileListFamilyProvider(tabId).notifier)
+            .setPool(selectedPool.value?.id);
       }
       return null;
     }, [selectedPool.value, modeValue]);
@@ -227,13 +227,15 @@ class FileListView extends HookConsumerWidget {
     useEffect(() {
       // Sync query, order, and orderDesc filters
       if (modeValue == FileListMode.unindexed) {
-        unindexedNotifier.setQuery(queryValue);
-        unindexedNotifier.setOrder(order.value);
-        unindexedNotifier.setOrderDesc(orderDesc.value);
+        final notifier = ref.read(unindexedFileListFamilyProvider(tabId).notifier);
+        notifier.setQuery(queryValue);
+        notifier.setOrder(order.value);
+        notifier.setOrderDesc(orderDesc.value);
       } else {
-        cloudNotifier.setQuery(queryValue);
-        cloudNotifier.setOrder(order.value);
-        cloudNotifier.setOrderDesc(orderDesc.value);
+        final notifier = ref.read(indexedCloudFileListFamilyProvider(tabId).notifier);
+        notifier.setQuery(queryValue);
+        notifier.setOrder(order.value);
+        notifier.setOrderDesc(orderDesc.value);
       }
       return null;
     }, [queryValue, order.value, orderDesc.value, modeValue]);
@@ -454,8 +456,6 @@ class FileListView extends HookConsumerWidget {
               mode,
               currentPath,
               isRefreshing,
-              unindexedNotifier,
-              cloudNotifier,
               query,
               order,
               orderDesc,
@@ -1600,8 +1600,6 @@ class FileListView extends HookConsumerWidget {
     ValueNotifier<FileListMode> mode,
     ValueNotifier<String> currentPath,
     bool isRefreshing,
-    dynamic unindexedNotifier,
-    dynamic cloudNotifier,
     ValueNotifier<String?> query,
     ValueNotifier<String?> order,
     ValueNotifier<bool> orderDesc,
@@ -1695,17 +1693,21 @@ class FileListView extends HookConsumerWidget {
                     final newValue = !orderDesc.value;
                     orderDesc.value = newValue;
                     if (mode.value == FileListMode.unindexed) {
-                      unindexedNotifier.setOrderDesc(newValue);
+                      ref.read(unindexedFileListFamilyProvider(tabId).notifier)
+                          .setOrderDesc(newValue);
                     } else {
-                      cloudNotifier.setOrderDesc(newValue);
+                      ref.read(indexedCloudFileListFamilyProvider(tabId).notifier)
+                          .setOrderDesc(newValue);
                     }
                   } else {
                     // Change sort option
                     order.value = value;
                     if (mode.value == FileListMode.unindexed) {
-                      unindexedNotifier.setOrder(value);
+                      ref.read(unindexedFileListFamilyProvider(tabId).notifier)
+                          .setOrder(value);
                     } else {
-                      cloudNotifier.setOrder(value);
+                      ref.read(indexedCloudFileListFamilyProvider(tabId).notifier)
+                          .setOrder(value);
                     }
                   }
                 },
