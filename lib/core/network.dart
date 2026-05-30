@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/io.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -398,17 +397,6 @@ final padlockApiClientProvider = Provider<Dio>((ref) {
     ),
   );
 
-  final connectionFactory = ref.watch(ipOverrideConnectionFactoryProvider);
-  if (connectionFactory != null) {
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.connectionFactory = connectionFactory;
-        return client;
-      },
-    );
-  }
-
   dio.interceptors.addAll([
     InterceptorsWrapper(
       onRequest:
@@ -532,17 +520,6 @@ final apiClientProvider = Provider<Dio>((ref) {
       },
     ),
   );
-
-  final connectionFactory = ref.watch(ipOverrideConnectionFactoryProvider);
-  if (connectionFactory != null) {
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.connectionFactory = connectionFactory;
-        return client;
-      },
-    );
-  }
 
   dio.interceptors.addAll([
     InterceptorsWrapper(
