@@ -4,55 +4,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/drive/screens/upload_tasks.dart';
+import 'package:island/core/tasks/app_task.dart';
+import 'package:island/core/tasks/tasks_notifier.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/drive/services/drive_task_ws_handler.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class TaskOverlay extends HookConsumerWidget {
   const TaskOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final uploadTasks = ref.watch(uploadTasksProvider);
+    final allTasks = ref.watch(tasksProvider);
+    // Ensure drive WebSocket task handler is initialized
+    ref.watch(driveTaskWsHandlerProvider);
     final activeTasks =
-        uploadTasks
-            .where(
-              (task) =>
-                  task.status == DriveTaskStatus.pending ||
-                  task.status == DriveTaskStatus.inProgress ||
-                  task.status == DriveTaskStatus.paused ||
-                  task.status == DriveTaskStatus.completed,
-            )
+        allTasks
+            .where((task) => task.isActive || task.status == AppTaskStatus.completed)
             .toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     final isVisibleOverride = useState<bool?>(null);
     final pendingHide = useState(false);
     final isExpandedLocal = useState(false);
-    final isCompactLocal = useState(true); // Start compact
+    final isCompactLocal = useState(true);
     final autoHideTimer = useState<Timer?>(null);
     final autoCompactTimer = useState<Timer?>(null);
 
-    final allFinished = activeTasks.every(
-      (task) =>
-          task.status == DriveTaskStatus.completed ||
-          task.status == DriveTaskStatus.failed ||
-          task.status == DriveTaskStatus.cancelled ||
-          task.status == DriveTaskStatus.expired,
-    );
+    final allFinished = activeTasks.every((task) => task.isFinished);
 
-    // Auto-hide timer effect
     useEffect(() {
-      // Reset pendingHide if there are unfinished tasks
-      final hasUnfinishedTasks = activeTasks.any(
-        (task) =>
-            task.status == DriveTaskStatus.pending ||
-            task.status == DriveTaskStatus.inProgress ||
-            task.status == DriveTaskStatus.paused,
-      );
+      final hasUnfinishedTasks = activeTasks.any((task) => task.isActive);
       if (hasUnfinishedTasks && pendingHide.value) {
         pendingHide.value = false;
       }
@@ -74,10 +58,8 @@ class TaskOverlay extends HookConsumerWidget {
 
     final isDesktop = isWideScreen(context);
 
-    // Auto-compact timer for mobile when not expanded
     useEffect(() {
       if (!isDesktop && !isCompactLocal.value && !isExpandedLocal.value) {
-        // Start timer to auto-compact after 5 seconds
         autoCompactTimer.value?.cancel();
         autoCompactTimer.value = Timer(const Duration(seconds: 5), () {
           isCompactLocal.value = true;
@@ -94,16 +76,13 @@ class TaskOverlay extends HookConsumerWidget {
     final slideController = useAnimationController(
       duration: const Duration(milliseconds: 300),
     );
-    final isTopPositioned = !isDesktop; // Mobile: top, Desktop: bottom
+    final isTopPositioned = !isDesktop;
 
     final slideAnimation = Tween<Offset>(
-      begin: isTopPositioned
-          ? const Offset(0, -1)
-          : const Offset(0, 1), // Start from above/below the screen
-      end: Offset.zero, // End at normal position
+      begin: isTopPositioned ? const Offset(0, -1) : const Offset(0, 1),
+      end: Offset.zero,
     ).animate(CurvedAnimation(parent: slideController, curve: Curves.easeOut));
 
-    // Animate when visibility changes
     useEffect(() {
       if (isVisible) {
         slideController.forward();
@@ -114,7 +93,6 @@ class TaskOverlay extends HookConsumerWidget {
     }, [isVisible]);
 
     if (!isVisible && slideController.status == AnimationStatus.dismissed) {
-      // If not visible and animation is complete (back to start), don't show anything
       return const SizedBox.shrink();
     }
 
@@ -147,7 +125,7 @@ class TaskOverlay extends HookConsumerWidget {
 }
 
 class _TaskOverlayContent extends HookConsumerWidget {
-  final List<DriveTask> activeTasks;
+  final List<AppTask> activeTasks;
   final bool isExpanded;
   final bool isCompact;
   final Function(bool)? onExpansionChanged;
@@ -192,7 +170,7 @@ class _TaskOverlayContent extends HookConsumerWidget {
 
     final isMobile = !isWideScreen(context);
 
-    final taskNotifier = ref.read(uploadTasksProvider.notifier);
+    final tasks = ref.read(tasksProvider.notifier);
 
     void handleInteraction() {
       if (isCompact) {
@@ -231,8 +209,7 @@ class _TaskOverlayContent extends HookConsumerWidget {
             switchInCurve: Curves.easeInOut,
             switchOutCurve: Curves.easeInOut,
             child: isCompact
-                ? // Compact view with progress bar background and text
-                  Container(
+                ? Container(
                     key: const ValueKey('compact'),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -275,11 +252,11 @@ class _TaskOverlayContent extends HookConsumerWidget {
                               ),
                               if (activeTasks.any(
                                 (task) =>
-                                    task.status == DriveTaskStatus.inProgress &&
-                                    task.uploadedBytes < task.fileSize,
+                                    task.status == AppTaskStatus.inProgress &&
+                                    task.progress < 1.0,
                               ))
                                 CircularProgressIndicator(
-                                  value: null, // Indeterminate
+                                  value: null,
                                   strokeWidth: 3,
                                   trackGap: 0,
                                   valueColor: AlwaysStoppedAnimation<Color>(
@@ -301,13 +278,11 @@ class _TaskOverlayContent extends HookConsumerWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Collapsed Header
                         Container(
                           height: 60,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
                             children: [
-                              // Task icon with animation
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 150),
                                 transitionBuilder: (child, animation) {
@@ -326,8 +301,6 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                 ),
                               ),
                               const SizedBox(width: 12),
-
-                              // Title and count
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -361,8 +334,6 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                   ],
                                 ),
                               ),
-
-                              // Progress indicator (collapsed)
                               if (!isExpanded)
                                 SizedBox(
                                   width: 32,
@@ -379,11 +350,11 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                       if (activeTasks.any(
                                         (task) =>
                                             task.status ==
-                                                DriveTaskStatus.inProgress &&
-                                            task.uploadedBytes < task.fileSize,
+                                                AppTaskStatus.inProgress &&
+                                            task.progress < 1.0,
                                       ))
                                         CircularProgressIndicator(
-                                          value: null, // Indeterminate
+                                          value: null,
                                           strokeWidth: 3,
                                           trackGap: 0,
                                           valueColor:
@@ -398,8 +369,6 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                     ],
                                   ),
                                 ),
-
-                              // Expand/collapse button
                               IconButton(
                                 icon: AnimatedRotation(
                                   turns: opacityAnimation * 0.5,
@@ -419,8 +388,6 @@ class _TaskOverlayContent extends HookConsumerWidget {
                             ],
                           ),
                         ),
-
-                        // Expanded content
                         if (isExpanded)
                           Expanded(
                             child: Container(
@@ -458,7 +425,7 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                           ).colorScheme.onSurfaceVariant,
                                         ),
                                         onTap: () {
-                                          taskNotifier.clearCompletedTasks();
+                                          tasks.clearCompleted();
                                           onExpansionChanged?.call(false);
                                         },
                                         trailing: IconButton(
@@ -472,7 +439,7 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                           ),
                                           padding: EdgeInsets.zero,
                                           onPressed: () {
-                                            taskNotifier.clearAllTasks();
+                                            tasks.clearAll();
                                             onExpansionChanged?.call(false);
                                           },
                                         ),
@@ -481,8 +448,6 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                         ).colorScheme.surfaceContainerHighest,
                                       ),
                                     ),
-
-                                    // Task list
                                     SliverList(
                                       delegate: SliverChildBuilderDelegate((
                                         context,
@@ -494,7 +459,7 @@ class _TaskOverlayContent extends HookConsumerWidget {
                                           duration: const Duration(
                                             milliseconds: 150,
                                           ),
-                                          child: UploadTaskTile(task: task),
+                                          child: AppTaskTile(task: task),
                                         );
                                       }, childCount: activeTasks.length),
                                     ),
@@ -511,7 +476,6 @@ class _TaskOverlayContent extends HookConsumerWidget {
       ),
     );
 
-    // Add MouseRegion for desktop hover
     if (!isMobile) {
       content = MouseRegion(
         onEnter: (_) => onCompactChanged?.call(false),
@@ -534,24 +498,19 @@ class _TaskOverlayContent extends HookConsumerWidget {
     );
   }
 
-  double? _getTaskProgress(DriveTask task) {
-    if (task.status == DriveTaskStatus.completed ||
-        (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) {
+  double? _getTaskProgress(AppTask task) {
+    if (task.status == AppTaskStatus.completed || task.progress >= 1.0) {
       return 1.0;
     }
-    if (task.status != DriveTaskStatus.inProgress) return 0.0;
-
-    return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
+    if (task.status != AppTaskStatus.inProgress) return 0.0;
+    return task.progress;
   }
 
-  double _getOverallProgress(List<DriveTask> tasks) {
+  double _getOverallProgress(List<AppTask> tasks) {
     if (tasks.isEmpty) return 0.0;
-
     final progressValues = tasks.map((task) => _getTaskProgress(task));
     final determinateProgresses = progressValues.where((p) => p != null);
-
     if (determinateProgresses.isEmpty) return 0.0;
-
     final totalProgress = determinateProgresses.fold<double>(
       0.0,
       (sum, progress) => sum + progress!,
@@ -559,40 +518,33 @@ class _TaskOverlayContent extends HookConsumerWidget {
     return totalProgress / tasks.length;
   }
 
-  String _getOverallProgressText(List<DriveTask> tasks) {
+  String _getOverallProgressText(List<AppTask> tasks) {
     final overallProgress = _getOverallProgress(tasks);
     return '${(overallProgress * 100).toStringAsFixed(0)}%';
   }
 
-  IconData _getOverallStatusIcon(List<DriveTask> tasks) {
+  IconData _getOverallStatusIcon(List<AppTask> tasks) {
     if (tasks.isEmpty) return Symbols.upload;
 
-    final hasDownload = tasks.any((task) => task.type == 'FileDownload');
+    final hasDownload = tasks.any(
+      (task) => task.type == AppTaskType.driveDownload,
+    );
     final hasInProgress = tasks.any(
-      (task) => task.status == DriveTaskStatus.inProgress,
+      (task) => task.status == AppTaskStatus.inProgress,
     );
     final hasPending = tasks.any(
-      (task) => task.status == DriveTaskStatus.pending,
+      (task) => task.status == AppTaskStatus.pending,
     );
     final hasPaused = tasks.any(
-      (task) => task.status == DriveTaskStatus.paused,
+      (task) => task.status == AppTaskStatus.paused,
     );
-    final hasFailed = tasks.any(
-      (task) =>
-          task.status == DriveTaskStatus.failed ||
-          task.status == DriveTaskStatus.cancelled ||
-          task.status == DriveTaskStatus.expired,
-    );
+    final hasFailed = tasks.any((task) => task.isFinished && task.status != AppTaskStatus.completed);
     final hasCompleted = tasks.any(
-      (task) => task.status == DriveTaskStatus.completed,
+      (task) => task.status == AppTaskStatus.completed,
     );
 
-    // Priority order: in progress > pending > paused > failed > completed
     if (hasInProgress) {
-      if (hasDownload) {
-        return Symbols.download;
-      }
-      return Symbols.upload;
+      return hasDownload ? Symbols.download : Symbols.upload;
     } else if (hasPending) {
       return Symbols.schedule;
     } else if (hasPaused) {
@@ -606,30 +558,26 @@ class _TaskOverlayContent extends HookConsumerWidget {
     }
   }
 
-  String _getOverallStatusText(List<DriveTask> tasks) {
+  String _getOverallStatusText(List<AppTask> tasks) {
     if (tasks.isEmpty) return 'tasks'.plural(0);
 
-    final hasDownload = tasks.any((task) => task.type == 'FileDownload');
+    final hasDownload = tasks.any(
+      (task) => task.type == AppTaskType.driveDownload,
+    );
     final hasInProgress = tasks.any(
-      (task) => task.status == DriveTaskStatus.inProgress,
+      (task) => task.status == AppTaskStatus.inProgress,
     );
     final hasPending = tasks.any(
-      (task) => task.status == DriveTaskStatus.pending,
+      (task) => task.status == AppTaskStatus.pending,
     );
     final hasPaused = tasks.any(
-      (task) => task.status == DriveTaskStatus.paused,
+      (task) => task.status == AppTaskStatus.paused,
     );
-    final hasFailed = tasks.any(
-      (task) =>
-          task.status == DriveTaskStatus.failed ||
-          task.status == DriveTaskStatus.cancelled ||
-          task.status == DriveTaskStatus.expired,
-    );
+    final hasFailed = tasks.any((task) => task.isFinished && task.status != AppTaskStatus.completed);
     final hasCompleted = tasks.any(
-      (task) => task.status == DriveTaskStatus.completed,
+      (task) => task.status == AppTaskStatus.completed,
     );
 
-    // Priority order: in progress > pending > paused > failed > completed
     if (hasInProgress) {
       if (hasDownload) {
         return '${tasks.length} ${'downloading'.tr()}';
@@ -649,40 +597,32 @@ class _TaskOverlayContent extends HookConsumerWidget {
     }
   }
 
-  double _getCompactWidth(List<DriveTask> tasks) {
-    // Base width for icon and padding
-    double width = 16 + 12 + 12; // icon size + padding + spacing
-
-    // Add text width estimation
+  double _getCompactWidth(List<AppTask> tasks) {
+    double width = 16 + 12 + 12;
     final text = activeTasks.isEmpty ? '0 tasks' : _getOverallStatusText(tasks);
-    // Rough estimation: 8px per character
     width += text.length * 8.0;
-
-    // Cap at reasonable maximum
     return width.clamp(200, 280);
   }
 }
 
-class UploadTaskTile extends StatefulWidget {
-  final DriveTask task;
+class AppTaskTile extends StatefulWidget {
+  final AppTask task;
 
-  const UploadTaskTile({super.key, required this.task});
+  const AppTaskTile({super.key, required this.task});
 
   @override
-  State<UploadTaskTile> createState() => _UploadTaskTileState();
+  State<AppTaskTile> createState() => _AppTaskTileState();
 
-  static double? _getTaskProgress(DriveTask task) {
-    if (task.status == DriveTaskStatus.completed ||
-        (task.uploadedBytes >= task.fileSize && task.fileSize > 0)) {
+  static double? _getTaskProgress(AppTask task) {
+    if (task.status == AppTaskStatus.completed || task.progress >= 1.0) {
       return 1.0;
     }
-    if (task.status == DriveTaskStatus.inProgress) return null;
-
-    return task.fileSize > 0 ? task.uploadedBytes / task.fileSize : 0.0;
+    if (task.status == AppTaskStatus.inProgress) return null;
+    return task.progress;
   }
 }
 
-class _UploadTaskTileState extends State<UploadTaskTile>
+class _AppTaskTileState extends State<AppTaskTile>
     with TickerProviderStateMixin {
   late AnimationController _rotationController;
   late Animation<double> _rotationAnimation;
@@ -713,9 +653,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.task.fileName.isEmpty
-                ? 'untitled'.tr()
-                : widget.task.fileName,
+            widget.task.title.isEmpty ? 'untitled'.tr() : widget.task.title,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
@@ -724,7 +662,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
           ),
           const SizedBox(height: 2),
           Text(
-            _formatFileSize(widget.task.fileSize),
+            _getTaskTypeLabel(widget.task.type),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -740,7 +678,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
             child: Padding(
               padding: const EdgeInsets.all(2),
               child: CircularProgressIndicator(
-                value: UploadTaskTile._getTaskProgress(widget.task),
+                value: AppTaskTile._getTaskProgress(widget.task),
                 strokeWidth: 2.5,
                 backgroundColor: Theme.of(
                   context,
@@ -786,33 +724,33 @@ class _UploadTaskTileState extends State<UploadTaskTile>
     Color color;
 
     switch (widget.task.status) {
-      case DriveTaskStatus.pending:
+      case AppTaskStatus.pending:
         icon = Symbols.schedule;
         color = Theme.of(context).colorScheme.secondary;
         break;
-      case DriveTaskStatus.inProgress:
-        icon = widget.task.type == 'FileDownload'
+      case AppTaskStatus.inProgress:
+        icon = widget.task.type == AppTaskType.driveDownload
             ? Symbols.download
             : Symbols.upload;
         color = Theme.of(context).colorScheme.primary;
         break;
-      case DriveTaskStatus.paused:
+      case AppTaskStatus.paused:
         icon = Symbols.pause_circle;
         color = Theme.of(context).colorScheme.tertiary;
         break;
-      case DriveTaskStatus.completed:
+      case AppTaskStatus.completed:
         icon = Symbols.check_circle;
         color = Colors.green;
         break;
-      case DriveTaskStatus.failed:
+      case AppTaskStatus.failed:
         icon = Symbols.error;
         color = Theme.of(context).colorScheme.error;
         break;
-      case DriveTaskStatus.cancelled:
+      case AppTaskStatus.cancelled:
         icon = Symbols.cancel;
         color = Theme.of(context).colorScheme.error;
         break;
-      case DriveTaskStatus.expired:
+      case AppTaskStatus.expired:
         icon = Symbols.timer_off;
         color = Theme.of(context).colorScheme.error;
         break;
@@ -829,19 +767,25 @@ class _UploadTaskTileState extends State<UploadTaskTile>
         borderRadius: BorderRadius.circular(6),
       ),
       child: switch (widget.task.type) {
-        'FileUpload' => _buildFileUploadDetails(context),
+        AppTaskType.driveUpload => _buildDriveUploadDetails(context),
+        AppTaskType.driveDownload => _buildDriveDownloadDetails(context),
+        AppTaskType.postPublish => _buildPostPublishDetails(context),
         _ => _buildGenericTaskDetails(context),
       },
     );
   }
 
-  Widget _buildFileUploadDetails(BuildContext context) {
-    final transmissionProgress = widget.task.transmissionProgress ?? 0.0;
+  Widget _buildDriveUploadDetails(BuildContext context) {
+    final meta = widget.task.metadata;
+    final transmissionProgress =
+        (meta?['transmissionProgress'] as num?)?.toDouble() ?? 0.0;
+    final uploadedChunks = meta?['uploadedChunks'] as int? ?? 0;
+    final totalChunks = meta?['totalChunks'] as int? ?? 1;
+    final fileSize = meta?['fileSize'] as int? ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Server Processing Progress
         Text(
           widget.task.statusMessage ?? 'Processing',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -860,23 +804,20 @@ class _UploadTaskTileState extends State<UploadTaskTile>
               ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
-              '${widget.task.uploadedChunks}/${widget.task.totalChunks} chunks',
+              '$uploadedChunks/$totalChunks chunks',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
-          value: UploadTaskTile._getTaskProgress(widget.task),
+          value: AppTaskTile._getTaskProgress(widget.task),
           backgroundColor: Theme.of(context).colorScheme.surface,
           valueColor: AlwaysStoppedAnimation<Color>(
             Theme.of(context).colorScheme.primary,
           ),
         ),
-
         const SizedBox(height: 8),
-
-        // File Transmission Progress
         Text(
           'File Transmission',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -895,7 +836,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
               ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
-              '${_formatFileSize((transmissionProgress * widget.task.fileSize).toInt())} / ${_formatFileSize(widget.task.fileSize)}',
+              '${_formatFileSize((transmissionProgress * fileSize).toInt())} / ${_formatFileSize(fileSize)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -908,10 +849,7 @@ class _UploadTaskTileState extends State<UploadTaskTile>
             Theme.of(context).colorScheme.secondary,
           ),
         ),
-
         const SizedBox(height: 4),
-
-        // Speed and ETA
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -921,17 +859,108 @@ class _UploadTaskTileState extends State<UploadTaskTile>
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            if (widget.task.status == DriveTaskStatus.inProgress)
-              Text(
-                'ETA: ${_formatDuration(widget.task.estimatedTimeRemaining)}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
           ],
         ),
+        if (widget.task.errorMessage != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            widget.task.errorMessage!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 
-        // Error message if failed
+  Widget _buildDriveDownloadDetails(BuildContext context) {
+    final meta = widget.task.metadata;
+    final totalBytes = meta?['totalBytes'] as int? ?? 0;
+    final downloadedBytes = meta?['downloadedBytes'] as int? ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.task.statusMessage ?? 'Downloading',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '${(widget.task.progress * 100).toStringAsFixed(1)}%',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              '${_formatFileSize(downloadedBytes)} / ${_formatFileSize(totalBytes)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: widget.task.progress,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        if (widget.task.errorMessage != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            widget.task.errorMessage!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPostPublishDetails(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.task.statusMessage ?? 'Publishing',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '${(widget.task.progress * 100).toStringAsFixed(0)}%',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              widget.task.status.name,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: widget.task.progress,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.primary,
+          ),
+        ),
         if (widget.task.errorMessage != null) ...[
           const SizedBox(height: 4),
           Text(
@@ -949,7 +978,6 @@ class _UploadTaskTileState extends State<UploadTaskTile>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Generic task progress
         Text(
           'Progress',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -981,8 +1009,6 @@ class _UploadTaskTileState extends State<UploadTaskTile>
             Theme.of(context).colorScheme.primary,
           ),
         ),
-
-        // Error message if failed
         if (widget.task.errorMessage != null) ...[
           const SizedBox(height: 4),
           Text(
@@ -996,7 +1022,16 @@ class _UploadTaskTileState extends State<UploadTaskTile>
     );
   }
 
-  String _formatFileSize(int bytes) {
+  String _getTaskTypeLabel(String type) {
+    return switch (type) {
+      AppTaskType.driveUpload => 'File Upload',
+      AppTaskType.driveDownload => 'File Download',
+      AppTaskType.postPublish => 'Post Publishing',
+      _ => type,
+    };
+  }
+
+  String _formatFileSize(num bytes) {
     if (bytes >= 1073741824) {
       return '${(bytes / 1073741824).toStringAsFixed(1)} GB';
     } else if (bytes >= 1048576) {
@@ -1008,23 +1043,18 @@ class _UploadTaskTileState extends State<UploadTaskTile>
     }
   }
 
-  String _formatBytesPerSecond(DriveTask task) {
-    if (task.uploadedBytes == 0) return '0 B/s';
+  String _formatBytesPerSecond(AppTask task) {
+    final meta = task.metadata;
+    final uploadedBytes =
+        (meta?['transmissionProgress'] as num?)?.toDouble() ?? 0.0;
+    final fileSize = meta?['fileSize'] as int? ?? 0;
+    final bytes = (uploadedBytes * fileSize).toInt();
+    if (bytes == 0) return '0 B/s';
 
     final elapsedSeconds = DateTime.now().difference(task.createdAt).inSeconds;
     if (elapsedSeconds == 0) return '0 B/s';
 
-    final bytesPerSecond = task.uploadedBytes / elapsedSeconds;
+    final bytesPerSecond = bytes / elapsedSeconds;
     return '${_formatFileSize(bytesPerSecond.toInt())}/s';
-  }
-
-  String _formatDuration(Duration duration) {
-    if (duration.inHours > 0) {
-      return '${duration.inHours}h ${duration.inMinutes.remainder(60)}m';
-    } else if (duration.inMinutes > 0) {
-      return '${duration.inMinutes}m ${duration.inSeconds.remainder(60)}s';
-    } else {
-      return '${duration.inSeconds}s';
-    }
   }
 }

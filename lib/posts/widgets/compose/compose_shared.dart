@@ -19,6 +19,8 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/tasks/app_task.dart';
+import 'package:island/core/tasks/tasks_notifier.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -903,15 +905,45 @@ class ComposeLogic {
     try {
       state.submitting.value = true;
 
+      final localAttachments =
+          state.attachments.value
+              .asMap()
+              .entries
+              .where((entry) => entry.value.isOnDevice)
+              .toList();
+
+      // Create a task for tracking
+      final tasks = ref.read(tasksProvider.notifier);
+      final taskId = tasks.addTask(
+        title: state.titleController.text.trim().isNotEmpty
+            ? state.titleController.text.trim()
+            : 'New post',
+        type: AppTaskType.postPublish,
+        status: AppTaskStatus.inProgress,
+        metadata: PostPublishTaskMeta(
+          draftId: state.cloudDraftId.value,
+          attachmentCount: localAttachments.length,
+        ).toMap(),
+      );
+
       // Upload any local attachments first
-      await Future.wait(
-        state.attachments.value
-            .asMap()
-            .entries
-            .where((entry) => entry.value.isOnDevice)
-            .map(
-              (entry) => ComposeLogic.uploadAttachment(ref, state, entry.key),
-            ),
+      if (localAttachments.isNotEmpty) {
+        tasks.updateTask(
+          taskId,
+          progress: 0.1,
+          statusMessage: 'Uploading ${localAttachments.length} attachment(s)...',
+        );
+        await Future.wait(
+          localAttachments.map(
+            (entry) => ComposeLogic.uploadAttachment(ref, state, entry.key),
+          ),
+        );
+      }
+
+      tasks.updateTask(
+        taskId,
+        progress: 0.6,
+        statusMessage: 'Publishing...',
       );
 
       final client = ref.read(solarNetworkClientProvider);
@@ -996,6 +1028,13 @@ class ComposeLogic {
       // Call the success callback
       onSuccess();
 
+      tasks.updateTask(
+        taskId,
+        status: AppTaskStatus.completed,
+        progress: 1.0,
+        statusMessage: 'Published',
+      );
+
       final postTypeStr = state.postType == 0 ? 'regular' : 'article';
       final visibilityStr = state.visibility.value.toString();
       final publisherId = state.currentPublisher.value?.id ?? 'unknown';
@@ -1009,6 +1048,22 @@ class ComposeLogic {
 
       return post;
     } catch (err) {
+      // Mark task as failed if it was created
+      final existingTask = ref
+          .read(tasksProvider)
+          .where(
+            (t) =>
+                t.type == AppTaskType.postPublish &&
+                t.status == AppTaskStatus.inProgress,
+          )
+          .lastOrNull;
+      if (existingTask != null) {
+        ref.read(tasksProvider.notifier).updateTask(
+          existingTask.id,
+          status: AppTaskStatus.failed,
+          errorMessage: err.toString(),
+        );
+      }
       showErrorAlert(err);
       rethrow;
     } finally {
