@@ -8,6 +8,7 @@ class AppDatabase {
   AppDatabase.web();
   final Map<String, SnPost> _webDraftStore = {};
   final Map<String, String> _webKvStore = {};
+  final Map<String, List<SnChatGroup>> _webChatGroupStore = {};
 
   Future<void> close() async {}
 
@@ -75,6 +76,35 @@ class AppDatabase {
   Future<List<SnChatRoom>> getAllChatRooms() async => const [];
 
   Future<SnChatRoom?> getChatRoomById(String id) async => null;
+
+  Future<List<SnChatGroup>> getChatGroups(String accountId) async {
+    final groups = _webChatGroupStore[accountId] ?? const [];
+    return groups.toList()..sort((a, b) => a.order.compareTo(b.order));
+  }
+
+  Future<void> saveChatGroups(
+    String accountId,
+    List<SnChatGroup> groups,
+  ) async {
+    _webChatGroupStore[accountId] = groups.toList()
+      ..sort((a, b) => a.order.compareTo(b.order));
+  }
+
+  Future<void> assignChatRoomToGroup(
+    String accountId,
+    String roomId, {
+    String? groupId,
+  }) async {
+    final groups = (_webChatGroupStore[accountId] ?? const []).map((group) {
+      final roomIds = group.roomIds.where((id) => id != roomId).toList();
+      if (group.id == groupId) roomIds.add(roomId);
+      return group.copyWith(
+        roomIds: roomIds,
+        updatedAt: DateTime.now().toUtc(),
+      );
+    }).toList();
+    _webChatGroupStore[accountId] = groups;
+  }
 
   Future<List<SnChatMember>> getMembersByRoomId(String roomId) async =>
       const [];
@@ -158,9 +188,10 @@ class AppDatabase {
   final Map<String, SnRelationship> _webRelationshipStore = {};
 
   Future<List<SnRelationship>> getAllRelationships() async {
-    return _webRelationshipStore.values.toList()
-      ..sort((a, b) =>
-          (b.updatedAt ?? DateTime(0)).compareTo(a.updatedAt ?? DateTime(0)));
+    return _webRelationshipStore.values.toList()..sort(
+      (a, b) =>
+          (b.updatedAt ?? DateTime(0)).compareTo(a.updatedAt ?? DateTime(0)),
+    );
   }
 
   Future<SnRelationship?> getRelationshipById(String id) async {

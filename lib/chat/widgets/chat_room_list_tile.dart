@@ -14,6 +14,8 @@ class ChatRoomListTile extends HookConsumerWidget {
   final Widget? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final GestureTapDownCallback? onSecondaryTapDown;
 
   const ChatRoomListTile({
     super.key,
@@ -24,6 +26,8 @@ class ChatRoomListTile extends HookConsumerWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
+    this.onLongPress,
+    this.onSecondaryTapDown,
   });
 
   @override
@@ -64,54 +68,58 @@ class ChatRoomListTile extends HookConsumerWidget {
       titleText = room.name ?? '';
     }
 
-    return ListTile(
-      selected: selected,
-      selectedTileColor: Theme.of(
-        context,
-      ).colorScheme.secondaryContainer.withOpacity(0.6),
-      leading: ChatRoomAvatar(
-        room: room,
-        isDirect: isDirect,
-        summary: summary,
-        validMembers: validMembers,
-      ),
-      title: Row(
-        children: [
-          Expanded(child: Text(titleText)),
-          if (room.encryptionMode != 0)
-            Icon(
-              Icons.lock,
-              size: 14,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          if (pushNotificationsSuppressed)
-            Tooltip(
-              message: 'Notifications suspended for this room',
-              child: Icon(
-                Icons.notifications_off,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: onSecondaryTapDown,
+      child: ListTile(
+        selected: selected,
+        selectedTileColor: Theme.of(
+          context,
+        ).colorScheme.secondaryContainer.withOpacity(0.6),
+        trailing: trailing,
+        leading: ChatRoomAvatar(
+          room: room,
+          isDirect: isDirect,
+          summary: summary,
+          validMembers: validMembers,
+        ),
+        title: Row(
+          children: [
+            Expanded(child: Text(titleText)),
+            if (room.encryptionMode != 0)
+              Icon(
+                Icons.lock,
                 size: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.primary,
               ),
-            ),
-        ],
+            if (pushNotificationsSuppressed)
+              Tooltip(
+                message: 'Notifications suspended for this room',
+                child: Icon(
+                  Icons.notifications_off,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+          ],
+        ),
+        subtitle: ChatRoomSubtitle(
+          room: room,
+          isDirect: isDirect,
+          validMembers: validMembers,
+          summary: summary,
+          subtitle: subtitle,
+        ),
+        onLongPress: onLongPress,
+        onTap: () async {
+          ref.read(chatSummaryProvider.future).then((summary) {
+            if ((summary[room.id]?.unreadCount ?? 0) > 0) {
+              ref.read(chatSummaryProvider.notifier).clearUnreadCount(room.id);
+            }
+          });
+          onTap?.call();
+        },
       ),
-      subtitle: ChatRoomSubtitle(
-        room: room,
-        isDirect: isDirect,
-        validMembers: validMembers,
-        summary: summary,
-        subtitle: subtitle,
-      ),
-      trailing: trailing, // Add this line
-      onTap: () async {
-        // Clear unread count if there are unread messages
-        ref.read(chatSummaryProvider.future).then((summary) {
-          if ((summary[room.id]?.unreadCount ?? 0) > 0) {
-            ref.read(chatSummaryProvider.notifier).clearUnreadCount(room.id);
-          }
-        });
-        onTap?.call();
-      },
     );
   }
 }
