@@ -95,14 +95,27 @@ class RealmsApi extends BaseApi {
   /// [slug] - The realm slug.
   /// [offset] - Pagination offset.
   /// [take] - Number of items to take.
+  /// [accountName] - Optional fuzzy account name query.
+  /// [labelId] - Optional label ID filter.
+  /// [withStatus] - Whether to include member status in the response.
   Future<PaginatedResult<SnRealmMember>> getMembers({
     required String slug,
     int offset = 0,
     int take = 50,
+    String? accountName,
+    String? labelId,
+    bool withStatus = false,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/$slug/members',
-      queryParameters: {'offset': offset, 'take': take},
+      queryParameters: {
+        'offset': offset,
+        'take': take,
+        'withStatus': withStatus,
+        if (accountName != null && accountName.isNotEmpty)
+          'accountName': accountName,
+        if (labelId != null && labelId.isNotEmpty) 'labelId': labelId,
+      },
     );
     final totalCount = getTotalCount(response.headers);
     final items = parseList(response, SnRealmMember.fromJson);
