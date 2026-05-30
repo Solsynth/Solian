@@ -881,7 +881,7 @@ class ChatListCard extends HookConsumerWidget {
               error: (error, stack) => Center(child: Text('Error: $error')),
               data: (rooms) {
                 if (rooms.isEmpty) {
-                  return const Center(child: Text('No chat rooms available'));
+                  return Center(child: Text('noChatRoomsAvailable'.tr()));
                 }
                 // Take only the first 5 rooms
                 final recentRooms = rooms.take(5).toList();
@@ -1205,7 +1205,7 @@ class _UnauthorizedCard extends HookConsumerWidget {
             ),
             const Gap(16),
             Text(
-              'Welcome to\nthe Solar Network',
+              'welcomeToSolarNetwork'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),

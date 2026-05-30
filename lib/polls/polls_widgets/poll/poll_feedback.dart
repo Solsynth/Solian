@@ -52,7 +52,7 @@ class PollFeedbackSheet extends HookConsumerWidget {
     final provider = pollFeedbackNotifierProvider(pollId);
 
     return SheetScaffold(
-      titleText: title ?? 'Poll feedback',
+      titleText: title ?? 'pollFeedback'.tr(),
       child: poll.when(
         data: (data) => CustomScrollView(
           slivers: [
@@ -175,7 +175,7 @@ class _PollAnswerTile extends StatelessWidget {
       case SnPollQuestionType.yesNo:
         final val = ansMap[q.id];
         if (val is bool) {
-          return val ? 'Yes' : 'No';
+          return val ? 'yes'.tr() : 'no'.tr();
         }
         return '—';
       case SnPollQuestionType.rating:

@@ -54,7 +54,7 @@ class SettingsScreen extends HookConsumerWidget {
       case 'zh-CN':
         return '简体中文';
       case 'zh-OG':
-        return '文言文 (华夏)';
+        return '文言 (華夏)';
       case 'zh-TW':
         return '繁體中文 (台灣)';
       default:
@@ -2248,7 +2248,7 @@ class _TtsVoiceSelectorState extends State<_TtsVoiceSelector> {
               items: [
                 DropdownMenuItem<String?>(
                   value: null,
-                  child: const Text('System Default'),
+                  child: Text('systemDefault').tr(),
                 ),
                 ..._voices.map((voice) {
                   return DropdownMenuItem<String?>(
@@ -2588,6 +2588,171 @@ class _StorageSettingsSection extends HookConsumerWidget {
                     ),
                   ),
                 ),
+<<<<<<< HEAD
+=======
+              ),
+              const SizedBox(height: 16),
+              Text(
+                info.appName,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'aboutScreenVersionInfo'.tr(
+                  args: [info.version, info.buildNumber],
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                context,
+                title: 'aboutScreenAppInfoSectionTitle'.tr(),
+                children: [
+                  _buildInfoItem(
+                    context,
+                    icon: Symbols.info,
+                    label: 'aboutScreenPackageNameLabel'.tr(),
+                    value: info.packageName,
+                  ),
+                  _buildInfoItem(
+                    context,
+                    icon: Symbols.update,
+                    label: 'aboutScreenVersionLabel'.tr(),
+                    value: info.version,
+                  ),
+                  _buildInfoItem(
+                    context,
+                    icon: Symbols.build,
+                    label: 'aboutScreenBuildNumberLabel'.tr(),
+                    value: info.buildNumber,
+                  ),
+                ],
+              ),
+              if (deviceInfo.value != null) ...[
+                const SizedBox(height: 16),
+                _buildSection(
+                  context,
+                  title: 'aboutdeviceInformation'.tr(),
+                  children: [
+                    FutureBuilder<String>(
+                      future: udid.getDeviceName(),
+                      builder: (context, snapshot) {
+                        final value = snapshot.hasData
+                            ? snapshot.data!
+                            : 'unknown'.tr();
+                        return _buildInfoItem(
+                          context,
+                          icon: Symbols.label,
+                          label: 'aboutDeviceName'.tr(),
+                          value: value,
+                        );
+                      },
+                    ),
+                    _buildInfoItem(
+                      context,
+                      icon: Symbols.fingerprint,
+                      label: 'aboutDeviceIdentifier'.tr(),
+                      value: deviceUdid.value ?? 'N/A',
+                      copyable: true,
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+              _buildSection(
+                context,
+                title: 'aboutScreenLinksSectionTitle'.tr(),
+                children: [
+                  _buildListTile(
+                    context,
+                    icon: Symbols.privacy_tip,
+                    title: 'aboutScreenPrivacyPolicyTitle'.tr(),
+                    onTap: () => launchURL(
+                      'https://solsynth.dev/terms/privacy-policy',
+                    ),
+                  ),
+                  _buildListTile(
+                    context,
+                    icon: Symbols.description,
+                    title: 'aboutScreenTermsOfServiceTitle'.tr(),
+                    onTap: () => launchURL(
+                      'https://solsynth.dev/terms/user-agreement',
+                    ),
+                  ),
+                  _buildListTile(
+                    context,
+                    icon: Symbols.code,
+                    title: 'aboutScreenOpenSourceLicensesTitle'.tr(),
+                    onTap: () {
+                      showLicensePage(
+                        context: context,
+                        applicationName: info.appName,
+                        applicationVersion: 'Version ${info.version}',
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildSection(
+                context,
+                title: 'aboutScreenDeveloperSectionTitle'.tr(),
+                children: [
+                  _buildListTile(
+                    context,
+                    icon: Symbols.email,
+                    title: 'aboutScreenContactUsTitle'.tr(),
+                    subtitle: 'lily@solsynth.dev',
+                    onTap: () => launchURL('mailto:lily@solsynth.dev'),
+                  ),
+                  _buildListTile(
+                    context,
+                    icon: Symbols.copyright,
+                    title: 'aboutScreenLicenseTitle'.tr(),
+                    subtitle: 'aboutScreenLicenseContent'.tr(),
+                    onTap: () => launchURL(
+                      'https://github.com/Solsynth/Solian/blob/v3/LICENSE.txt',
+                    ),
+                  ),
+                  if (kIsWeb || !(Platform.isMacOS || Platform.isIOS))
+                    _buildListTile(
+                      context,
+                      icon: Symbols.favorite,
+                      title: 'donate'.tr(),
+                      subtitle: 'donateDescription'.tr(),
+                      onTap: () {
+                        launchUrl(
+                          Uri.parse('https://afdian.com/@littlesheep'),
+                        );
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'aboutScreenCopyright'.tr(
+                        args: [DateTime.now().year.toString()],
+                      ),
+                      style: theme.textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(1),
+                    Text(
+                      'aboutScreenMadeWith'.tr(),
+                      textAlign: TextAlign.center,
+                    ).fontSize(10).opacity(0.8),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+>>>>>>> 28f5b713 (:globe_with_meridians: 中文翻译追加&表达优化并修复缺失i18n键值)
             ],
           ),
         ),
