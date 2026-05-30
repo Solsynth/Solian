@@ -1155,10 +1155,12 @@ class _MemberListTile extends HookConsumerWidget {
         children: [
           Flexible(child: Text(member.account.nick)),
           if (member.status != null)
-            AccountStatusLabel(
-              status: member.status!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Flexible(
+              child: AccountStatusLabel(
+                status: member.status!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           if (member.realmLabel != null)
             RealmLabelWidget(label: member.realmLabel!, fontSize: 10),
