@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -15,16 +18,19 @@ import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/chat/widgets/chat_room_widgets.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/database.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/data/database.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
+import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/response.dart';
 
 import 'package:logging/logging.dart';
@@ -58,16 +64,183 @@ List<SnChatRoom> _sortChatRoomsByActivity(
   });
 }
 
+class _ChatGroupIconOption {
+  const _ChatGroupIconOption(this.id, this.icon);
+
+  final String id;
+  final IconData icon;
+}
+
+enum _ChatToolbarMenuAction { invites, groups }
+
+class _CustomChatGroupSection {
+  const _CustomChatGroupSection({required this.group, required this.rooms});
+
+  final SnChatGroup group;
+  final List<SnChatRoom> rooms;
+}
+
+class _RealmChatGroupSection {
+  const _RealmChatGroupSection({required this.realm, required this.rooms});
+
+  final SnRealm? realm;
+  final List<SnChatRoom> rooms;
+}
+
+class _GroupedChatSections {
+  const _GroupedChatSections({
+    required this.customGroups,
+    required this.realmGroups,
+    required this.ungroupedRooms,
+  });
+
+  final List<_CustomChatGroupSection> customGroups;
+  final List<_RealmChatGroupSection> realmGroups;
+  final List<SnChatRoom> ungroupedRooms;
+}
+
+const List<String> _chatGroupColorOptions = <String>[
+  '#4A90D9',
+  '#7ED321',
+  '#F5A623',
+  '#E35D6A',
+  '#8B5CF6',
+  '#14B8A6',
+];
+
+const List<_ChatGroupIconOption> _chatGroupIconOptions = <_ChatGroupIconOption>[
+  _ChatGroupIconOption('folder', Symbols.folder),
+  _ChatGroupIconOption('work', Symbols.work),
+  _ChatGroupIconOption('favorite', Symbols.favorite),
+  _ChatGroupIconOption('forum', Symbols.forum),
+  _ChatGroupIconOption('school', Symbols.school),
+  _ChatGroupIconOption('bolt', Symbols.bolt),
+];
+
+Color? _chatGroupColorFromHex(String? value) {
+  if (value == null || value.isEmpty) return null;
+  final normalized = value.replaceFirst('#', '');
+  final hex = switch (normalized.length) {
+    6 => 'FF$normalized',
+    8 => normalized,
+    _ => '',
+  };
+  if (hex.isEmpty) return null;
+  return Color(int.tryParse(hex, radix: 16) ?? 0xFF9E9E9E);
+}
+
+IconData _chatGroupIconData(String? value) {
+  for (final option in _chatGroupIconOptions) {
+    if (option.id == value) return option.icon;
+  }
+  return Symbols.folder;
+}
+
+bool _chatGroupIconIsPreset(String? value) {
+  if (value == null || value.isEmpty) return false;
+  return _chatGroupIconOptions.any((option) => option.id == value);
+}
+
+Widget _buildChatGroupIconWidget(
+  String? value, {
+  Color? color,
+  double iconSize = 20,
+  double emojiFontSize = 18,
+}) {
+  if (value != null && value.isNotEmpty && !_chatGroupIconIsPreset(value)) {
+    return Text(
+      value,
+      style: TextStyle(fontSize: emojiFontSize, height: 1),
+      textAlign: TextAlign.center,
+    );
+  }
+  return Icon(_chatGroupIconData(value), color: color, size: iconSize);
+}
+
+List<SnChatGroup> _normalizeChatGroups(List<SnChatGroup> groups) {
+  final sorted = groups.toList()..sort((a, b) => a.order.compareTo(b.order));
+  return [for (var i = 0; i < sorted.length; i++) sorted[i].copyWith(order: i)];
+}
+
+int _totalUnreadForRooms(
+  Iterable<SnChatRoom> rooms,
+  Map<String, SnChatSummary> summaries,
+) {
+  return rooms.fold<int>(
+    0,
+    (sum, room) => sum + (summaries[room.id]?.unreadCount ?? 0),
+  );
+}
+
+_GroupedChatSections _buildGroupedChatSections(
+  List<SnChatRoom> rooms,
+  List<SnChatGroup> chatGroups,
+  Map<String, SnChatSummary> summaries,
+) {
+  final sortedGroups = _normalizeChatGroups(chatGroups);
+  final roomById = {for (final room in rooms) room.id: room};
+  final assignedRoomIds = <String>{};
+  final customGroups = <_CustomChatGroupSection>[];
+
+  for (final group in sortedGroups) {
+    final groupRooms = <SnChatRoom>[];
+    for (final roomId in group.roomIds) {
+      final room = roomById[roomId];
+      if (room == null || !assignedRoomIds.add(roomId)) continue;
+      groupRooms.add(room);
+    }
+    customGroups.add(
+      _CustomChatGroupSection(
+        group: group,
+        rooms: _sortChatRoomsByActivity(groupRooms, summaries),
+      ),
+    );
+  }
+
+  final realmMap = <String, List<SnChatRoom>>{};
+  final realmLookup = <String, SnRealm?>{};
+  final ungrouped = <SnChatRoom>[];
+
+  for (final room in rooms) {
+    if (assignedRoomIds.contains(room.id)) continue;
+    if (room.realmId != null) {
+      realmMap.putIfAbsent(room.realmId!, () => []).add(room);
+      realmLookup[room.realmId!] = room.realm;
+    } else {
+      ungrouped.add(room);
+    }
+  }
+
+  return _GroupedChatSections(
+    customGroups: customGroups,
+    realmGroups: realmMap.entries
+        .map(
+          (entry) => _RealmChatGroupSection(
+            realm: realmLookup[entry.key],
+            rooms: entry.value,
+          ),
+        )
+        .toList(),
+    ungroupedRooms: ungrouped,
+  );
+}
+
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
   final TabController tabController;
   final ValueNotifier<int> selectedTab;
+  final List<SnChatGroup> chatGroups;
+  final Future<void> Function() onChatGroupsChanged;
+  final String? accountId;
 
   const ChatListBodyWidget({
     super.key,
     this.isFloating = false,
     required this.tabController,
     required this.selectedTab,
+    required this.chatGroups,
+    required this.onChatGroupsChanged,
+    required this.accountId,
   });
 
   @override
@@ -81,6 +254,47 @@ class ChatListBodyWidget extends HookConsumerWidget {
     final activeChatId = ref.watch(currentSubscribedChatIdProvider);
     final accountStatus = ref.watch(chatAccountStatusProvider);
     final selectedTabValue = selectedTab.value;
+    final db = ref.watch(databaseProvider);
+    final client = ref.watch(apiClientProvider);
+
+    Future<void> showRoomActions(SnChatRoom room) async {
+      final currentAccountId = accountId;
+      final changed = await _showChatRoomActionsSheet(
+        context,
+        client: client,
+        db: db,
+        accountId: currentAccountId,
+        room: room,
+        groups: chatGroups,
+      );
+      if (changed) {
+        ref.invalidate(chatRoomJoinedProvider);
+        await onChatGroupsChanged();
+      }
+    }
+
+    Widget buildRoomTile(SnChatRoom room) {
+      return ChatRoomListTile(
+        room: room,
+        isDirect: room.type == 1,
+        selected: activeChatId == room.id,
+        pushNotificationsSuppressed:
+            accountStatus
+                .whenData((data) => data)
+                .value
+                ?.isPushNotificationsSuppressed(room.id) ??
+            false,
+        onLongPress: () => showRoomActions(room),
+        onSecondaryTapDown: (_) => showRoomActions(room),
+        onTap: () {
+          if (isWideScreen(context)) {
+            context.router.navigate(ChatRoomRoute(id: room.id));
+          } else {
+            context.router.push(ChatRoomRoute(id: room.id));
+          }
+        },
+      );
+    }
 
     Widget bodyWidget = Column(
       children: [
@@ -111,6 +325,14 @@ class ChatListBodyWidget extends HookConsumerWidget {
               final unpinnedItems = useMemoized(
                 () => filteredItems.where((item) => !item.isPinned).toList(),
                 [filteredItems],
+              );
+              final groupedSections = useMemoized(
+                () => _buildGroupedChatSections(
+                  unpinnedItems,
+                  chatGroups,
+                  summariesData,
+                ),
+                [unpinnedItems, chatGroups, summariesData],
               );
 
               return ExtendedRefreshIndicator(
@@ -187,31 +409,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                           ),
                           initiallyExpanded: true,
                           children: [
-                            for (final item in pinnedItems)
-                              ChatRoomListTile(
-                                room: item,
-                                isDirect: item.type == 1,
-                                selected: activeChatId == item.id,
-                                pushNotificationsSuppressed:
-                                    accountStatus
-                                        .whenData((data) => data)
-                                        .value
-                                        ?.isPushNotificationsSuppressed(
-                                          item.id,
-                                        ) ??
-                                    false,
-                                onTap: () {
-                                  if (isWideScreen(context)) {
-                                    context.router.navigate(
-                                      ChatRoomRoute(id: item.id),
-                                    );
-                                  } else {
-                                    context.router.push(
-                                      ChatRoomRoute(id: item.id),
-                                    );
-                                  }
-                                },
-                              ),
+                            for (final item in pinnedItems) buildRoomTile(item),
                           ],
                         ),
                       Expanded(
@@ -219,36 +417,87 @@ class ChatListBodyWidget extends HookConsumerWidget {
                           builder: (context) {
                             if (settings.groupedChatList &&
                                 selectedTabValue == 0) {
-                              // Group by realm (include both pinned and unpinned)
-                              final realmGroups = <String?, List<SnChatRoom>>{};
-                              final ungrouped = <SnChatRoom>[];
-
-                              for (final item in filteredItems) {
-                                if (item.realmId != null) {
-                                  realmGroups
-                                      .putIfAbsent(item.realmId, () => [])
-                                      .add(item);
-                                } else if (!item.isPinned) {
-                                  // Only unpinned chats without realm go to ungrouped
-                                  ungrouped.add(item);
-                                }
-                              }
-
                               final children = <Widget>[];
 
-                              // Add realm groups
-                              for (final entry in realmGroups.entries) {
-                                final rooms = entry.value;
-                                final realm = rooms.first.realm;
+                              for (final section
+                                  in groupedSections.customGroups) {
+                                final rooms = section.rooms;
+                                final totalUnread = _totalUnreadForRooms(
+                                  rooms,
+                                  summariesData,
+                                );
+                                final groupColor =
+                                    _chatGroupColorFromHex(
+                                      section.group.color,
+                                    ) ??
+                                    Theme.of(context).colorScheme.primary;
+
+                                children.add(
+                                  ExpansionTile(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                        .withOpacity(0.5),
+                                    collapsedBackgroundColor:
+                                        Colors.transparent,
+                                    title: Row(
+                                      children: [
+                                        _buildChatGroupIconWidget(
+                                          section.group.icon,
+                                          color: groupColor,
+                                        ),
+                                        const Gap(12),
+                                        Expanded(
+                                          child: Text(section.group.name),
+                                        ),
+                                        Badge(
+                                          isLabelVisible: totalUnread > 0,
+                                          label: Text(totalUnread.toString()),
+                                          backgroundColor: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          textColor: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                        ),
+                                      ],
+                                    ),
+                                    leading: CircleAvatar(
+                                      backgroundColor: groupColor.withOpacity(
+                                        0.16,
+                                      ),
+                                      foregroundColor: groupColor,
+                                      child: _buildChatGroupIconWidget(
+                                        section.group.icon,
+                                        color: groupColor,
+                                      ),
+                                    ),
+                                    tilePadding: const EdgeInsets.only(
+                                      left: 20,
+                                      right: 24,
+                                    ),
+                                    children: [
+                                      for (final room in rooms)
+                                        buildRoomTile(room),
+                                      if (rooms.isEmpty)
+                                        const ListTile(
+                                          dense: true,
+                                          title: Text('No rooms assigned yet'),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              for (final section
+                                  in groupedSections.realmGroups) {
+                                final realm = section.realm;
+                                final rooms = section.rooms;
                                 final realmName =
                                     realm?.name ?? 'Unknown Realm';
-
-                                final totalUnread = rooms.fold<int>(
-                                  0,
-                                  (sum, room) =>
-                                      sum +
-                                      (summariesData[room.id]?.unreadCount ??
-                                          0),
+                                final totalUnread = _totalUnreadForRooms(
+                                  rooms,
+                                  summariesData,
                                 );
 
                                 children.add(
@@ -282,65 +531,19 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                       left: 20,
                                       right: 24,
                                     ),
-                                    children: rooms.map((room) {
-                                      return ChatRoomListTile(
-                                        room: room,
-                                        isDirect: room.type == 1,
-                                        selected: activeChatId == room.id,
-                                        pushNotificationsSuppressed:
-                                            accountStatus
-                                                .whenData((data) => data)
-                                                .value
-                                                ?.isPushNotificationsSuppressed(
-                                                  room.id,
-                                                ) ??
-                                            false,
-                                        onTap: () {
-                                          if (isWideScreen(context)) {
-                                            context.router.navigate(
-                                              ChatRoomRoute(id: room.id),
-                                            );
-                                          } else {
-                                            context.router.push(
-                                              ChatRoomRoute(id: room.id),
-                                            );
-                                          }
-                                        },
-                                      );
-                                    }).toList(),
+                                    children: [
+                                      for (final room in rooms)
+                                        buildRoomTile(room),
+                                    ],
                                   ),
                                 );
                               }
 
-                              // Add ungrouped chats
-                              if (ungrouped.isNotEmpty) {
+                              if (groupedSections.ungroupedRooms.isNotEmpty) {
                                 children.addAll(
-                                  ungrouped.map((room) {
-                                    return ChatRoomListTile(
-                                      room: room,
-                                      isDirect: room.type == 1,
-                                      selected: activeChatId == room.id,
-                                      pushNotificationsSuppressed:
-                                          accountStatus
-                                              .whenData((data) => data)
-                                              .value
-                                              ?.isPushNotificationsSuppressed(
-                                                room.id,
-                                              ) ??
-                                          false,
-                                      onTap: () {
-                                        if (isWideScreen(context)) {
-                                          context.router.navigate(
-                                            ChatRoomRoute(id: room.id),
-                                          );
-                                        } else {
-                                          context.router.push(
-                                            ChatRoomRoute(id: room.id),
-                                          );
-                                        }
-                                      },
-                                    );
-                                  }),
+                                  groupedSections.ungroupedRooms.map(
+                                    buildRoomTile,
+                                  ),
                                 );
                               }
 
@@ -354,30 +557,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                 itemCount: unpinnedItems.length,
                                 itemBuilder: (context, index) {
                                   final item = unpinnedItems[index];
-                                  return ChatRoomListTile(
-                                    room: item,
-                                    isDirect: item.type == 1,
-                                    selected: activeChatId == item.id,
-                                    pushNotificationsSuppressed:
-                                        accountStatus
-                                            .whenData((data) => data)
-                                            .value
-                                            ?.isPushNotificationsSuppressed(
-                                              item.id,
-                                            ) ??
-                                        false,
-                                    onTap: () {
-                                      if (isWideScreen(context)) {
-                                        context.router.navigate(
-                                          ChatRoomRoute(id: item.id),
-                                        );
-                                      } else {
-                                        context.router.push(
-                                          ChatRoomRoute(id: item.id),
-                                        );
-                                      }
-                                    },
-                                  );
+                                  return buildRoomTile(item);
                                 },
                               );
                             }
@@ -536,14 +716,86 @@ class ChatFabWidget extends HookConsumerWidget {
 
 class _ChatListAppBar extends HookConsumerWidget {
   final TabController tabController;
+  final List<SnChatGroup> chatGroups;
+  final Future<void> Function() onChatGroupsChanged;
+  final String? accountId;
 
-  const _ChatListAppBar({required this.tabController});
+  const _ChatListAppBar({
+    required this.tabController,
+    required this.chatGroups,
+    required this.onChatGroupsChanged,
+    required this.accountId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatInvites = ref.watch(chatroomInvitesProvider);
     final isSyncing = ref.watch(chatSyncingProvider);
     final appbarFeColor = Theme.of(context).appBarTheme.foregroundColor;
+    final db = ref.watch(databaseProvider);
+    final client = ref.watch(apiClientProvider);
+
+    Future<void> openInvites() async {
+      await showModalBottomSheet(
+        useRootNavigator: true,
+        isScrollControlled: true,
+        context: context,
+        builder: (context) => const ChatInvitesSheet(),
+      );
+    }
+
+    Future<void> openGroups() async {
+      final currentAccountId = accountId;
+      if (currentAccountId == null) return;
+      final changed = await _showChatGroupsManagerSheet(
+        context,
+        client: client,
+        db: db,
+        accountId: currentAccountId,
+        groups: chatGroups,
+      );
+      if (changed) {
+        await onChatGroupsChanged();
+      }
+    }
+
+    PopupMenuButton<_ChatToolbarMenuAction> buildToolbarMenu() {
+      return PopupMenuButton<_ChatToolbarMenuAction>(
+        icon: Badge(
+          label: Text(
+            chatInvites.when(
+              data: (invites) => invites.length.toString(),
+              error: (_, _) => '0',
+              loading: () => '0',
+            ),
+          ),
+          isLabelVisible: chatInvites.when(
+            data: (invites) => invites.isNotEmpty,
+            error: (_, _) => false,
+            loading: () => false,
+          ),
+          child: const Icon(Symbols.email),
+        ),
+        color: appbarFeColor,
+        onSelected: (value) async {
+          if (value == _ChatToolbarMenuAction.invites) {
+            await openInvites();
+          } else {
+            await openGroups();
+          }
+        },
+        itemBuilder: (context) => const [
+          PopupMenuItem(
+            value: _ChatToolbarMenuAction.invites,
+            child: Text('Chat Invites'),
+          ),
+          PopupMenuItem(
+            value: _ChatToolbarMenuAction.groups,
+            child: Text('Chat Groups'),
+          ),
+        ],
+      );
+    }
 
     return Container(
       height: 48,
@@ -609,32 +861,7 @@ class _ChatListAppBar extends HookConsumerWidget {
                 ),
               ),
             const _MarkAllReadButton(),
-            IconButton(
-              icon: Badge(
-                label: Text(
-                  chatInvites.when(
-                    data: (invites) => invites.length.toString(),
-                    error: (_, _) => '0',
-                    loading: () => '0',
-                  ),
-                ),
-                isLabelVisible: chatInvites.when(
-                  data: (invites) => invites.isNotEmpty,
-                  error: (_, _) => false,
-                  loading: () => false,
-                ),
-                child: const Icon(Symbols.email),
-              ),
-              color: appbarFeColor,
-              onPressed: () {
-                showModalBottomSheet(
-                  useRootNavigator: true,
-                  isScrollControlled: true,
-                  context: context,
-                  builder: (context) => const ChatInvitesSheet(),
-                );
-              },
-            ),
+            buildToolbarMenu(),
           ],
         ),
       ),
@@ -679,10 +906,541 @@ class _MarkAllReadButton extends ConsumerWidget {
   }
 }
 
+int _nextChatGroupOrder(List<SnChatGroup> groups) {
+  if (groups.isEmpty) return 0;
+  return groups.map((group) => group.order).reduce(math.max) + 1;
+}
+
+String _createChatGroupId() {
+  return 'local-chat-group-${DateTime.now().toUtc().microsecondsSinceEpoch}';
+}
+
+Future<List<SnChatGroup>> _fetchAndSaveChatGroups(
+  Dio client,
+  AppDatabase db,
+  String accountId,
+) async {
+  final resp = await client.get('/messager/chat/groups');
+  final groups = (resp.data as List)
+      .whereType<Map>()
+      .map((item) => SnChatGroup.fromJson(Map<String, dynamic>.from(item)))
+      .toList();
+  await db.saveChatGroups(accountId, groups);
+  return groups;
+}
+
+Future<SnChatGroup?> _showChatGroupEditorSheet(
+  BuildContext context, {
+  required String accountId,
+  SnChatGroup? initialGroup,
+  required int nextOrder,
+}) async {
+  final nameController = TextEditingController(text: initialGroup?.name ?? '');
+  final iconController = TextEditingController(text: initialGroup?.icon ?? '');
+  var selectedColor = initialGroup?.color ?? _chatGroupColorOptions.first;
+  var selectedIcon = initialGroup?.icon ?? '';
+
+  return showModalBottomSheet<SnChatGroup>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          return SheetScaffold(
+            titleText: initialGroup == null ? 'Create Group' : 'Edit Group',
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    maxLength: 256,
+                    autofocus: true,
+                    decoration: const InputDecoration(labelText: 'Name'),
+                  ),
+                  const Gap(12),
+                  TextField(
+                    controller: iconController,
+                    maxLength: 8,
+                    decoration: const InputDecoration(
+                      labelText: 'Icon or emoji',
+                      hintText: '📁',
+                    ),
+                    onChanged: (value) => selectedIcon = value.trim(),
+                  ),
+                  const Gap(12),
+                  Text('Color', style: Theme.of(context).textTheme.titleSmall),
+                  const Gap(8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final color in _chatGroupColorOptions)
+                        InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: () =>
+                              setModalState(() => selectedColor = color),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _chatGroupColorFromHex(color),
+                              border: Border.all(
+                                color: selectedColor == color
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: selectedColor == color
+                                ? Icon(
+                                    Icons.check,
+                                    size: 18,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                  )
+                                : null,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const Gap(20),
+                  FilledButton(
+                    onPressed: () {
+                      final trimmedName = nameController.text.trim();
+                      if (trimmedName.isEmpty) return;
+                      final now = DateTime.now().toUtc();
+                      Navigator.of(context).pop(
+                        SnChatGroup(
+                          id: initialGroup?.id ?? _createChatGroupId(),
+                          accountId: accountId,
+                          name: trimmedName,
+                          color: selectedColor,
+                          icon: selectedIcon,
+                          order: initialGroup?.order ?? nextOrder,
+                          roomIds: initialGroup?.roomIds ?? const [],
+                          createdAt: initialGroup?.createdAt ?? now,
+                          updatedAt: now,
+                        ),
+                      );
+                    },
+                    child: Text(initialGroup == null ? 'Create' : 'Save'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+Future<bool> _showChatGroupsManagerSheet(
+  BuildContext context, {
+  required Dio client,
+  required AppDatabase db,
+  required String accountId,
+  required List<SnChatGroup> groups,
+}) async {
+  var currentGroups = _normalizeChatGroups(groups);
+  var changed = false;
+
+  await showModalBottomSheet<void>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          Future<void> persist(List<SnChatGroup> nextGroups) async {
+            currentGroups = _normalizeChatGroups(nextGroups);
+            changed = true;
+            setModalState(() {});
+          }
+
+          return SheetScaffold(
+            titleText: 'Chat Groups',
+            actions: [
+              IconButton(
+                icon: const Icon(Symbols.add),
+                onPressed: () async {
+                  final group = await _showChatGroupEditorSheet(
+                    context,
+                    accountId: accountId,
+                    nextOrder: _nextChatGroupOrder(currentGroups),
+                  );
+                  if (group == null) return;
+                  await client.post(
+                    '/messager/chat/groups',
+                    data: {
+                      'name': group.name,
+                      'color': group.color,
+                      'icon': group.icon,
+                      'order': group.order,
+                    }..removeWhere((_, value) => value == null),
+                  );
+                  await persist(
+                    await _fetchAndSaveChatGroups(client, db, accountId),
+                  );
+                },
+              ),
+            ],
+            child: currentGroups.isEmpty
+                ? const Center(child: Text('No chat groups yet'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: currentGroups.length,
+                    itemBuilder: (context, index) {
+                      final group = currentGroups[index];
+                      final groupColor =
+                          _chatGroupColorFromHex(group.color) ??
+                          Theme.of(context).colorScheme.primary;
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: groupColor.withOpacity(0.16),
+                          foregroundColor: groupColor,
+                          child: _buildChatGroupIconWidget(
+                            group.icon,
+                            color: groupColor,
+                          ),
+                        ),
+                        title: Text(group.name),
+                        subtitle: Text(
+                          '${group.roomIds.length} room${group.roomIds.length == 1 ? '' : 's'}',
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_upward),
+                              onPressed: index == 0
+                                  ? null
+                                  : () async {
+                                      final next = currentGroups.toList();
+                                      final temp = next[index - 1];
+                                      next[index - 1] = next[index];
+                                      next[index] = temp;
+                                      final normalized = _normalizeChatGroups(
+                                        next,
+                                      );
+                                      for (final group in normalized) {
+                                        await client.patch(
+                                          '/messager/chat/groups/${group.id}',
+                                          data: {'order': group.order},
+                                        );
+                                      }
+                                      await persist(
+                                        await _fetchAndSaveChatGroups(
+                                          client,
+                                          db,
+                                          accountId,
+                                        ),
+                                      );
+                                    },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_downward),
+                              onPressed: index == currentGroups.length - 1
+                                  ? null
+                                  : () async {
+                                      final next = currentGroups.toList();
+                                      final temp = next[index + 1];
+                                      next[index + 1] = next[index];
+                                      next[index] = temp;
+                                      final normalized = _normalizeChatGroups(
+                                        next,
+                                      );
+                                      for (final group in normalized) {
+                                        await client.patch(
+                                          '/messager/chat/groups/${group.id}',
+                                          data: {'order': group.order},
+                                        );
+                                      }
+                                      await persist(
+                                        await _fetchAndSaveChatGroups(
+                                          client,
+                                          db,
+                                          accountId,
+                                        ),
+                                      );
+                                    },
+                            ),
+                            PopupMenuButton<String>(
+                              onSelected: (value) async {
+                                if (value == 'edit') {
+                                  final edited =
+                                      await _showChatGroupEditorSheet(
+                                        context,
+                                        accountId: accountId,
+                                        initialGroup: group,
+                                        nextOrder: group.order,
+                                      );
+                                  if (edited == null) return;
+                                  await client.patch(
+                                    '/messager/chat/groups/${group.id}',
+                                    data: {
+                                      'name': edited.name,
+                                      'color': edited.color,
+                                      'icon': edited.icon,
+                                      'order': edited.order,
+                                    }..removeWhere((_, value) => value == null),
+                                  );
+                                  await persist(
+                                    await _fetchAndSaveChatGroups(
+                                      client,
+                                      db,
+                                      accountId,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (value == 'delete') {
+                                  await client.delete(
+                                    '/messager/chat/groups/${group.id}',
+                                  );
+                                  await persist(
+                                    await _fetchAndSaveChatGroups(
+                                      client,
+                                      db,
+                                      accountId,
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) => const [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text('Edit'),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          );
+        },
+      );
+    },
+  );
+
+  return changed;
+}
+
+Future<bool> _showAssignChatGroupSheet(
+  BuildContext context, {
+  required Dio client,
+  required AppDatabase db,
+  required String accountId,
+  required SnChatRoom room,
+  required List<SnChatGroup> groups,
+}) async {
+  SnChatGroup? currentGroup;
+  for (final group in groups) {
+    if (group.roomIds.contains(room.id)) {
+      currentGroup = group;
+      break;
+    }
+  }
+
+  var changed = false;
+  await showModalBottomSheet<void>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (context) {
+      return SheetScaffold(
+        titleText: 'Move To Group',
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          children: [
+            ListTile(
+              title: Text(room.name ?? 'Chat room'),
+              subtitle: const Text('Choose where this room should live'),
+            ),
+            ListTile(
+              leading: const Icon(Symbols.do_not_disturb_on),
+              title: const Text('Ungrouped'),
+              trailing: currentGroup == null ? const Icon(Icons.check) : null,
+              onTap: () async {
+                await client.patch(
+                  '/messager/chat/rooms/${room.id}/group',
+                  data: {'group_id': null},
+                );
+                await _fetchAndSaveChatGroups(client, db, accountId);
+                changed = true;
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+              },
+            ),
+            for (final group in _normalizeChatGroups(groups))
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor:
+                      (_chatGroupColorFromHex(group.color) ??
+                              Theme.of(context).colorScheme.primary)
+                          .withOpacity(0.16),
+                  foregroundColor:
+                      _chatGroupColorFromHex(group.color) ??
+                      Theme.of(context).colorScheme.primary,
+                  child: _buildChatGroupIconWidget(
+                    group.icon,
+                    color:
+                        _chatGroupColorFromHex(group.color) ??
+                        Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                title: Text(group.name),
+                trailing: currentGroup?.id == group.id
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () async {
+                  await client.patch(
+                    '/messager/chat/rooms/${room.id}/group',
+                    data: {'group_id': group.id},
+                  );
+                  await _fetchAndSaveChatGroups(client, db, accountId);
+                  changed = true;
+                  if (!context.mounted) return;
+                  Navigator.of(context).pop();
+                },
+              ),
+            ListTile(
+              leading: const Icon(Symbols.add),
+              title: const Text('Create New Group'),
+              onTap: () async {
+                final created = await _showChatGroupEditorSheet(
+                  context,
+                  accountId: accountId,
+                  nextOrder: _nextChatGroupOrder(groups),
+                );
+                if (created == null) return;
+                final createdResp = await client.post(
+                  '/messager/chat/groups',
+                  data: {
+                    'name': created.name,
+                    'color': created.color,
+                    'icon': created.icon,
+                    'order': created.order,
+                  }..removeWhere((_, value) => value == null),
+                );
+                final createdGroup = SnChatGroup.fromJson(
+                  Map<String, dynamic>.from(createdResp.data as Map),
+                );
+                await client.patch(
+                  '/messager/chat/rooms/${room.id}/group',
+                  data: {'group_id': createdGroup.id},
+                );
+                await _fetchAndSaveChatGroups(client, db, accountId);
+                changed = true;
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+  return changed;
+}
+
+Future<bool> _showChatRoomActionsSheet(
+  BuildContext context, {
+  required Dio client,
+  required AppDatabase db,
+  required String? accountId,
+  required SnChatRoom room,
+  required List<SnChatGroup> groups,
+}) async {
+  var changed = false;
+  await showModalBottomSheet<void>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (sheetContext) {
+      return SheetScaffold(
+        titleText: room.name ?? 'Chat Room',
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          children: [
+            ListTile(
+              leading: Icon(room.isPinned ? Symbols.keep_off : Symbols.keep),
+              title: Text(room.isPinned ? 'Unpin Room' : 'Pin Room'),
+              onTap: () async {
+                await db.toggleChatRoomPinned(room.id);
+                changed = true;
+                if (!sheetContext.mounted) return;
+                Navigator.of(sheetContext).pop();
+              },
+            ),
+            if (accountId != null)
+              ListTile(
+                leading: const Icon(Symbols.folder_open),
+                title: const Text('Move To Group'),
+                subtitle: Text(
+                  groups
+                      .firstWhere(
+                        (group) => group.roomIds.contains(room.id),
+                        orElse: () => SnChatGroup(
+                          id: '',
+                          accountId: accountId,
+                          name: 'Ungrouped',
+                          order: 0,
+                          createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+                          updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+                        ),
+                      )
+                      .name,
+                ),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  final changedGroup = await _showAssignChatGroupSheet(
+                    context,
+                    client: client,
+                    db: db,
+                    accountId: accountId,
+                    room: room,
+                    groups: groups,
+                  );
+                  if (changedGroup) changed = true;
+                },
+              ),
+          ],
+        ),
+      );
+    },
+  );
+  return changed;
+}
+
 class _CollapsedChatListBody extends HookConsumerWidget {
   final ValueNotifier<int> selectedTab;
+  final List<SnChatGroup> chatGroups;
+  final Future<void> Function() onChatGroupsChanged;
+  final String? accountId;
 
-  const _CollapsedChatListBody({required this.selectedTab});
+  const _CollapsedChatListBody({
+    required this.selectedTab,
+    required this.chatGroups,
+    required this.onChatGroupsChanged,
+    required this.accountId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -691,6 +1449,8 @@ class _CollapsedChatListBody extends HookConsumerWidget {
     final summaries = ref.watch(chatSummaryProvider);
     final userInfo = ref.watch(userInfoProvider);
     final activeChatId = ref.watch(currentSubscribedChatIdProvider);
+    final db = ref.watch(databaseProvider);
+    final client = ref.watch(apiClientProvider);
 
     void openRoom(String roomId) {
       if (isWideScreen(context)) {
@@ -773,6 +1533,21 @@ class _CollapsedChatListBody extends HookConsumerWidget {
       );
     }
 
+    Future<void> showRoomActions(SnChatRoom room) async {
+      final changed = await _showChatRoomActionsSheet(
+        context,
+        client: client,
+        db: db,
+        accountId: accountId,
+        room: room,
+        groups: chatGroups,
+      );
+      if (changed) {
+        ref.invalidate(chatRoomJoinedProvider);
+        await onChatGroupsChanged();
+      }
+    }
+
     return chats.when(
       data: (items) {
         final selectedTabValue = selectedTab.value;
@@ -787,25 +1562,158 @@ class _CollapsedChatListBody extends HookConsumerWidget {
             )
             .toList();
 
+        Widget buildRoomIconButton(SnChatRoom room) {
+          final unread = summariesData[room.id]?.unreadCount ?? 0;
+          final validMembers = getValidMembers(room);
+          final title = getRoomTitle(room, validMembers);
+          return withSelectedDot(
+            isSelected: activeChatId == room.id,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: () => showRoomActions(room),
+              onSecondaryTapDown: (_) => showRoomActions(room),
+              child: IconButton(
+                tooltip: title,
+                onPressed: () => openRoom(room.id),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 48,
+                  height: 48,
+                ),
+                splashRadius: 24,
+                icon: Badge(
+                  isLabelVisible: unread > 0,
+                  label: Text(unread.toString()),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  textColor: Theme.of(context).colorScheme.onPrimary,
+                  child: buildRoundAvatar(
+                    ChatRoomAvatar(
+                      room: room,
+                      isDirect: room.type == 1,
+                      summary: AsyncValue.data(summariesData[room.id]),
+                      validMembers: validMembers,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
         final avatarTiles = <Widget>[];
         if (settings.groupedChatList && selectedTabValue == 0) {
-          final realmGroups = <String?, List<SnChatRoom>>{};
-          final ungrouped = <SnChatRoom>[];
+          final groupedSections = _buildGroupedChatSections(
+            filteredItems,
+            chatGroups,
+            summariesData,
+          );
 
-          for (final item in filteredItems) {
-            if (item.realmId != null) {
-              realmGroups.putIfAbsent(item.realmId, () => []).add(item);
-            } else {
-              ungrouped.add(item);
-            }
+          for (final section in groupedSections.customGroups) {
+            final rooms = section.rooms;
+            final totalUnread = _totalUnreadForRooms(rooms, summariesData);
+            final groupColor =
+                _chatGroupColorFromHex(section.group.color) ??
+                Theme.of(context).colorScheme.primary;
+            avatarTiles.add(
+              withSelectedDot(
+                isSelected: rooms.any((room) => room.id == activeChatId),
+                child: PopupMenuButton<SnChatRoom>(
+                  tooltip: section.group.name,
+                  position: PopupMenuPosition.under,
+                  onSelected: (room) => openRoom(room.id),
+                  itemBuilder: (context) => [
+                    PopupMenuItem<SnChatRoom>(
+                      enabled: false,
+                      child: Row(
+                        spacing: 12,
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: groupColor.withOpacity(0.16),
+                            foregroundColor: groupColor,
+                            child: _buildChatGroupIconWidget(
+                              section.group.icon,
+                              color: groupColor,
+                            ),
+                          ),
+                          Text(
+                            section.group.name,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ).bold(),
+                        ],
+                      ).padding(horizontal: 8),
+                    ),
+                    ...rooms.map((room) {
+                      final unread = summariesData[room.id]?.unreadCount ?? 0;
+                      final validMembers = getValidMembers(room);
+                      return PopupMenuItem<SnChatRoom>(
+                        value: room,
+                        child: Row(
+                          spacing: 12,
+                          children: [
+                            ChatRoomAvatar(
+                              room: room,
+                              isDirect: room.type == 1,
+                              summary: AsyncValue.data(summariesData[room.id]),
+                              validMembers: validMembers,
+                              hideRealm: true,
+                              radius: 16,
+                            ),
+                            Expanded(
+                              child: Text(
+                                getRoomTitle(room, validMembers),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (unread > 0)
+                              Badge(
+                                label: Text(unread.toString()),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                textColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary,
+                              ),
+                          ],
+                        ).padding(horizontal: 8),
+                      );
+                    }),
+                  ],
+                  padding: EdgeInsets.zero,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: Badge(
+                        isLabelVisible: totalUnread > 0,
+                        label: Text(totalUnread.toString()),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        textColor: Theme.of(context).colorScheme.onPrimary,
+                        child: buildRoundedRectAvatar(
+                          Container(
+                            color: groupColor.withOpacity(0.16),
+                            child: Center(
+                              child: _buildChatGroupIconWidget(
+                                section.group.icon,
+                                color: groupColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
           }
 
-          for (final rooms in realmGroups.values) {
-            final realm = rooms.first.realm;
-            final totalUnread = rooms.fold<int>(
-              0,
-              (sum, room) => sum + (summariesData[room.id]?.unreadCount ?? 0),
-            );
+          for (final section in groupedSections.realmGroups) {
+            final realm = section.realm;
+            final rooms = section.rooms;
+            final totalUnread = _totalUnreadForRooms(rooms, summariesData);
             avatarTiles.add(
               withSelectedDot(
                 isSelected: rooms.any((room) => room.id == activeChatId),
@@ -893,72 +1801,14 @@ class _CollapsedChatListBody extends HookConsumerWidget {
           }
 
           avatarTiles.addAll(
-            ungrouped.map((room) {
-              final unread = summariesData[room.id]?.unreadCount ?? 0;
-              final validMembers = getValidMembers(room);
-              final title = getRoomTitle(room, validMembers);
-              return withSelectedDot(
-                isSelected: activeChatId == room.id,
-                child: IconButton(
-                  tooltip: title,
-                  onPressed: () => openRoom(room.id),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(
-                    width: 48,
-                    height: 48,
-                  ),
-                  splashRadius: 24,
-                  icon: Badge(
-                    isLabelVisible: unread > 0,
-                    label: Text(unread.toString()),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                    child: buildRoundAvatar(
-                      ChatRoomAvatar(
-                        room: room,
-                        isDirect: room.type == 1,
-                        summary: AsyncValue.data(summariesData[room.id]),
-                        validMembers: validMembers,
-                      ),
-                    ),
-                  ),
-                ),
-              );
+            groupedSections.ungroupedRooms.map((room) {
+              return buildRoomIconButton(room);
             }),
           );
         } else {
           avatarTiles.addAll(
             filteredItems.map((room) {
-              final unread = summariesData[room.id]?.unreadCount ?? 0;
-              final validMembers = getValidMembers(room);
-              final title = getRoomTitle(room, validMembers);
-              return withSelectedDot(
-                isSelected: activeChatId == room.id,
-                child: IconButton(
-                  tooltip: title,
-                  onPressed: () => openRoom(room.id),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(
-                    width: 48,
-                    height: 48,
-                  ),
-                  splashRadius: 24,
-                  icon: Badge(
-                    isLabelVisible: unread > 0,
-                    label: Text(unread.toString()),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                    child: buildRoundAvatar(
-                      ChatRoomAvatar(
-                        room: room,
-                        isDirect: room.type == 1,
-                        summary: AsyncValue.data(summariesData[room.id]),
-                        validMembers: validMembers,
-                      ),
-                    ),
-                  ),
-                ),
-              );
+              return buildRoomIconButton(room);
             }),
           );
         }
@@ -1000,6 +1850,44 @@ class ChatListWidget extends HookConsumerWidget {
     final lifecycleState = ref.watch(appLifecycleStateProvider);
     final previousLifecycleState = useRef<AppLifecycleState?>(null);
     final isResyncingAfterResume = useState(false);
+    final userInfo = ref.watch(userInfoProvider);
+    final db = ref.watch(databaseProvider);
+    final chatGroupVersion = useState(0);
+    final accountId = userInfo.value?.id;
+    final chatGroupsFuture = useMemoized<Future<List<SnChatGroup>>>(() async {
+      if (accountId == null) return const <SnChatGroup>[];
+      return db.getChatGroups(accountId);
+    }, [db, accountId, chatGroupVersion.value]);
+    final chatGroups =
+        useFuture(chatGroupsFuture).data ?? const <SnChatGroup>[];
+
+    Future<void> refreshChatGroups() async {
+      chatGroupVersion.value++;
+    }
+
+    Future<void> openInvitesSheet() async {
+      await showModalBottomSheet(
+        useRootNavigator: true,
+        isScrollControlled: true,
+        context: context,
+        builder: (context) => const ChatInvitesSheet(),
+      );
+    }
+
+    Future<void> openGroupsSheet() async {
+      if (accountId == null) return;
+      final client = ref.read(apiClientProvider);
+      final changed = await _showChatGroupsManagerSheet(
+        context,
+        client: client,
+        db: db,
+        accountId: accountId,
+        groups: chatGroups,
+      );
+      if (changed) {
+        await refreshChatGroups();
+      }
+    }
 
     useEffect(() {
       tabController.addListener(() {
@@ -1091,6 +1979,9 @@ class ChatListWidget extends HookConsumerWidget {
                         Expanded(
                           child: _CollapsedChatListBody(
                             selectedTab: selectedTab,
+                            chatGroups: chatGroups,
+                            onChatGroupsChanged: refreshChatGroups,
+                            accountId: accountId,
                           ),
                         ),
                       ],
@@ -1116,7 +2007,7 @@ class ChatListWidget extends HookConsumerWidget {
                             const _MarkAllReadButton(),
                             Padding(
                               padding: const EdgeInsets.only(right: 8),
-                              child: IconButton(
+                              child: PopupMenuButton<_ChatToolbarMenuAction>(
                                 icon: Badge(
                                   label: Text(
                                     chatInvites.when(
@@ -1131,17 +2022,37 @@ class ChatListWidget extends HookConsumerWidget {
                                     error: (_, _) => false,
                                     loading: () => false,
                                   ),
-                                  child: const Icon(Symbols.email),
+                                  child: const Icon(Symbols.action_key),
                                 ),
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    useRootNavigator: true,
-                                    isScrollControlled: true,
-                                    context: context,
-                                    builder: (context) =>
-                                        const ChatInvitesSheet(),
-                                  );
+                                onSelected: (value) async {
+                                  if (value == _ChatToolbarMenuAction.invites) {
+                                    await openInvitesSheet();
+                                  } else {
+                                    await openGroupsSheet();
+                                  }
                                 },
+                                itemBuilder: (context) => const [
+                                  PopupMenuItem(
+                                    value: _ChatToolbarMenuAction.invites,
+                                    child: Row(
+                                      children: [
+                                        Icon(Symbols.person_add),
+                                        Gap(12),
+                                        Text('Invites'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _ChatToolbarMenuAction.groups,
+                                    child: Row(
+                                      children: [
+                                        Icon(Symbols.group),
+                                        Gap(12),
+                                        Text('Groups'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -1152,6 +2063,9 @@ class ChatListWidget extends HookConsumerWidget {
                             isFloating: false,
                             tabController: tabController,
                             selectedTab: selectedTab,
+                            chatGroups: chatGroups,
+                            onChatGroupsChanged: refreshChatGroups,
+                            accountId: accountId,
                           ),
                         ),
                       ],
@@ -1244,8 +2158,6 @@ class ChatListWidget extends HookConsumerWidget {
       );
     }
 
-    final userInfo = ref.watch(userInfoProvider);
-
     return AppScaffold(
       extendBody: false,
       floatingActionButton: const ChatFabWidget().padding(
@@ -1254,7 +2166,14 @@ class ChatListWidget extends HookConsumerWidget {
       appBar: AppBar(
         leading: null,
         flexibleSpace: Stack(
-          children: [_ChatListAppBar(tabController: tabController)],
+          children: [
+            _ChatListAppBar(
+              tabController: tabController,
+              chatGroups: chatGroups,
+              onChatGroupsChanged: refreshChatGroups,
+              accountId: accountId,
+            ),
+          ],
         ),
       ),
       body: userInfo.value == null
@@ -1263,6 +2182,9 @@ class ChatListWidget extends HookConsumerWidget {
               isFloating: false,
               tabController: tabController,
               selectedTab: selectedTab,
+              chatGroups: chatGroups,
+              onChatGroupsChanged: refreshChatGroups,
+              accountId: accountId,
             ),
     );
   }
