@@ -222,6 +222,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
     final theme = Theme.of(context);
     final callState = ref.watch(callProvider);
     final isConnected = callState.isConnected;
+    final isReconnecting = callState.isReconnecting;
     final duration = callState.duration;
     final isMicrophoneEnabled = callState.isMicrophoneEnabled;
     final callNotifier = ref.read(callProvider.notifier);
@@ -273,7 +274,7 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
       orElse: () => false,
     );
 
-    if (!isConnected && !hasActiveCall) {
+    if (!isConnected && !isReconnecting && !hasActiveCall) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         hideCallOverlay();
       });
@@ -312,11 +313,14 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
           child: AnimatedBuilder(
             animation: _expandAnim,
             builder: (context, child) {
-              if (!isConnected && hasActiveCall) {
+              if (!isConnected && !isReconnecting && hasActiveCall) {
                 return _buildJoinPrompt(context, ref, room, theme);
               }
 
               if (lastSpeaker == null) {
+                if (isReconnecting) {
+                  return _buildReconnectingCard(theme, callState.reconnectAttempt);
+                }
                 return const SizedBox.shrink();
               }
 
@@ -349,6 +353,36 @@ class _CallOverlayPanelState extends ConsumerState<_CallOverlayPanel>
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 320),
         child: _JoinPromptWidget(room: room, theme: theme),
+      ),
+    );
+  }
+
+  Widget _buildReconnectingCard(ThemeData theme, int reconnectAttempt) {
+    return Container(
+      width: 220,
+      height: 120,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2.4),
+          ),
+          const Gap(12),
+          Text(
+            reconnectAttempt > 0
+                ? 'Reconnecting... ($reconnectAttempt/${CallNotifier.maxReconnectAttempts})'
+                : 'Reconnecting...',
+            style: theme.textTheme.titleSmall,
+          ),
+        ],
       ),
     );
   }
