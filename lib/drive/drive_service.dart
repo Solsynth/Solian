@@ -1517,8 +1517,8 @@ class FileUploader {
       '/drive/files/move/batch',
       data: {
         'file_ids': [fileId],
-        if (parentId != null) 'parent_id': parentId,
-        if (indexed != null) 'indexed': indexed,
+        'parent_id': ?parentId,
+        'indexed': ?indexed,
       },
     );
   }
