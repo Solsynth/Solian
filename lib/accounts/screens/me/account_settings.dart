@@ -622,16 +622,16 @@ class AccountSettingsScreen extends HookConsumerWidget {
     final integrationsSettings = [
       ListTile(
         minLeadingWidth: 48,
-        leading: const Icon(Symbols.folder_special),
-        title: Text('webdavSettings').tr(),
-        subtitle: Text('webdavSettingsDescription').tr().fontSize(12),
+        leading: const Icon(Symbols.cloud_sync),
+        title: Text('storageSettings').tr(),
+        subtitle: Text('storageSettingsDescription').tr().fontSize(12),
         contentPadding: const EdgeInsets.only(left: 24, right: 17),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => const WebdavSettingsSheet(),
+            builder: (context) => const StorageSettingsSheet(),
           );
         },
       ),
