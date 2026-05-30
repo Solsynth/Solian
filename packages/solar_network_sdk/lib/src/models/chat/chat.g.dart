@@ -163,6 +163,38 @@ Map<String, dynamic> _$SnChatReactionToJson(_SnChatReaction instance) =>
       'attitude': instance.attitude,
     };
 
+_SnChatMessagePin _$SnChatMessagePinFromJson(Map<String, dynamic> json) =>
+    _SnChatMessagePin(
+      id: json['id'] as String,
+      messageId: json['message_id'] as String,
+      chatRoomId: json['chat_room_id'] as String,
+      pinnedByMemberId: json['pinned_by_member_id'] as String,
+      expiresAt: json['expires_at'] == null
+          ? null
+          : DateTime.parse(json['expires_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      message: json['message'] == null
+          ? null
+          : SnChatMessage.fromJson(json['message'] as Map<String, dynamic>),
+      pinnedBy: json['pinned_by'] == null
+          ? null
+          : SnChatMember.fromJson(json['pinned_by'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SnChatMessagePinToJson(_SnChatMessagePin instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'message_id': instance.messageId,
+      'chat_room_id': instance.chatRoomId,
+      'pinned_by_member_id': instance.pinnedByMemberId,
+      'expires_at': instance.expiresAt?.toIso8601String(),
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      'message': instance.message?.toJson(),
+      'pinned_by': instance.pinnedBy?.toJson(),
+    };
+
 _SnChatMember _$SnChatMemberFromJson(Map<String, dynamic> json) =>
     _SnChatMember(
       createdAt: DateTime.parse(json['created_at'] as String),

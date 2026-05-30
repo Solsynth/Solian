@@ -46,6 +46,8 @@ class MessageItemAction {
   static const String forward = "forward";
   static const String resend = "resend";
   static const String redirect = "redirect";
+  static const String pin = "pin";
+  static const String unpin = "unpin";
 }
 
 Map<String, int> getMessageReactionsCount(LocalChatMessage message) {
@@ -104,6 +106,17 @@ class MessageItem extends HookConsumerWidget {
     final messagesNotifier = ref.read(
       messagesProvider(message.roomId).notifier,
     );
+
+    final isPinned = messagesNotifier.isMessagePinned(message.id);
+    final roomAsync = ref.watch(chatRoomProvider(message.roomId));
+    final identityAsync = ref.watch(chatRoomIdentityProvider(message.roomId));
+    final room = roomAsync.value;
+    final identity = identityAsync.value;
+    final canPin = room == null
+        ? false
+        : room.type == 1 // DM: any member can pin
+            ? true
+            : room.accountId == identity?.accountId; // Group: owner only
 
     final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
     final swipeEnabled = isMobile && onAction != null && !isSelectionMode;
@@ -225,6 +238,8 @@ class MessageItem extends HookConsumerWidget {
         context: context,
         builder: (context) => MessageActionSheet(
           isCurrentUser: isCurrentUser,
+          isPinned: isPinned,
+          canPin: canPin,
           onAction: onAction,
           onReact: openReactionSheet,
           onReactionHistory: openReactionHistorySheet,
@@ -361,6 +376,40 @@ class MessageItem extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (isPinned)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left: showAvatar ? 48 : 16,
+                            right: 16,
+                            bottom: 2,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Symbols.push_pin,
+                                size: 12,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withOpacity(0.6),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'pinnedMessage'.tr(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant
+                                          .withOpacity(0.6),
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
                       switch (settings.messageDisplayStyle) {
                         'compact' => MessageItemDisplayIRC(
                           message: message,
@@ -418,6 +467,8 @@ class MessageItem extends HookConsumerWidget {
               onExit: (_) => isHovered.value = false,
               child: MessageHoverActionMenu(
                 isCurrentUser: isCurrentUser,
+                isPinned: isPinned,
+                canPin: canPin,
                 onAction: onAction,
                 onReact: openReactionSheet,
                 translatableLanguage: translatableLanguage,
@@ -435,6 +486,8 @@ class MessageItem extends HookConsumerWidget {
 
 class MessageActionSheet extends StatefulWidget {
   final bool isCurrentUser;
+  final bool isPinned;
+  final bool canPin;
   final Function(String action)? onAction;
   final VoidCallback onReact;
   final VoidCallback onReactionHistory;
@@ -454,6 +507,8 @@ class MessageActionSheet extends StatefulWidget {
   const MessageActionSheet({
     super.key,
     required this.isCurrentUser,
+    required this.isPinned,
+    required this.canPin,
     required this.onAction,
     required this.onReact,
     required this.onReactionHistory,
@@ -610,6 +665,23 @@ class _MessageActionSheetState extends State<MessageActionSheet> {
           Navigator.pop(context);
         },
       ),
+      if (widget.canPin)
+        _ActionListTile(
+          leading: Icon(
+            widget.isPinned ? Icons.push_pin_outlined : Symbols.push_pin,
+          ),
+          title: Text(
+            widget.isPinned ? 'unpinMessage'.tr() : 'pinMessage'.tr(),
+          ),
+          onTap: () {
+            widget.onAction!.call(
+              widget.isPinned
+                  ? MessageItemAction.unpin
+                  : MessageItemAction.pin,
+            );
+            Navigator.pop(context);
+          },
+        ),
     ];
     final authorActions = <Widget>[
       if (widget.isCurrentUser)
@@ -984,6 +1056,8 @@ class _MessageTextSelectionView extends HookConsumerWidget {
 
 class MessageHoverActionMenu extends StatelessWidget {
   final bool isCurrentUser;
+  final bool isPinned;
+  final bool canPin;
   final Function(String action)? onAction;
   final VoidCallback onReact;
   final bool translatableLanguage;
@@ -995,6 +1069,8 @@ class MessageHoverActionMenu extends StatelessWidget {
   const MessageHoverActionMenu({
     super.key,
     required this.isCurrentUser,
+    required this.isPinned,
+    required this.canPin,
     required this.onAction,
     required this.onReact,
     required this.translatableLanguage,
@@ -1049,6 +1125,19 @@ class MessageHoverActionMenu extends StatelessWidget {
           tooltip: translatedText == null
               ? 'translate'.tr()
               : 'translated'.tr(),
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        ),
+      if (canPin)
+        IconButton(
+          icon: Icon(
+            isPinned ? Icons.push_pin_outlined : Symbols.push_pin,
+            size: 16,
+          ),
+          onPressed: () => onAction?.call(
+            isPinned ? MessageItemAction.unpin : MessageItemAction.pin,
+          ),
+          tooltip: isPinned ? 'unpinMessage'.tr() : 'pinMessage'.tr(),
           padding: const EdgeInsets.all(8),
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         ),

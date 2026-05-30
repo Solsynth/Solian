@@ -1070,6 +1070,335 @@ $SnChatMemberCopyWith<$Res> get sender {
 
 
 /// @nodoc
+mixin _$SnChatMessagePin {
+
+ String get id;@JsonKey(name: 'message_id') String get messageId;@JsonKey(name: 'chat_room_id') String get chatRoomId;@JsonKey(name: 'pinned_by_member_id') String get pinnedByMemberId;@JsonKey(name: 'expires_at') DateTime? get expiresAt;@JsonKey(name: 'created_at') DateTime get createdAt;@JsonKey(name: 'updated_at') DateTime get updatedAt; SnChatMessage? get message;@JsonKey(name: 'pinned_by') SnChatMember? get pinnedBy;
+/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SnChatMessagePinCopyWith<SnChatMessagePin> get copyWith => _$SnChatMessagePinCopyWithImpl<SnChatMessagePin>(this as SnChatMessagePin, _$identity);
+
+  /// Serializes this SnChatMessagePin to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnChatMessagePin&&(identical(other.id, id) || other.id == id)&&(identical(other.messageId, messageId) || other.messageId == messageId)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.pinnedByMemberId, pinnedByMemberId) || other.pinnedByMemberId == pinnedByMemberId)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.message, message) || other.message == message)&&(identical(other.pinnedBy, pinnedBy) || other.pinnedBy == pinnedBy));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,messageId,chatRoomId,pinnedByMemberId,expiresAt,createdAt,updatedAt,message,pinnedBy);
+
+@override
+String toString() {
+  return 'SnChatMessagePin(id: $id, messageId: $messageId, chatRoomId: $chatRoomId, pinnedByMemberId: $pinnedByMemberId, expiresAt: $expiresAt, createdAt: $createdAt, updatedAt: $updatedAt, message: $message, pinnedBy: $pinnedBy)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SnChatMessagePinCopyWith<$Res>  {
+  factory $SnChatMessagePinCopyWith(SnChatMessagePin value, $Res Function(SnChatMessagePin) _then) = _$SnChatMessagePinCopyWithImpl;
+@useResult
+$Res call({
+ String id,@JsonKey(name: 'message_id') String messageId,@JsonKey(name: 'chat_room_id') String chatRoomId,@JsonKey(name: 'pinned_by_member_id') String pinnedByMemberId,@JsonKey(name: 'expires_at') DateTime? expiresAt,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime updatedAt, SnChatMessage? message,@JsonKey(name: 'pinned_by') SnChatMember? pinnedBy
+});
+
+
+$SnChatMessageCopyWith<$Res>? get message;$SnChatMemberCopyWith<$Res>? get pinnedBy;
+
+}
+/// @nodoc
+class _$SnChatMessagePinCopyWithImpl<$Res>
+    implements $SnChatMessagePinCopyWith<$Res> {
+  _$SnChatMessagePinCopyWithImpl(this._self, this._then);
+
+  final SnChatMessagePin _self;
+  final $Res Function(SnChatMessagePin) _then;
+
+/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? messageId = null,Object? chatRoomId = null,Object? pinnedByMemberId = null,Object? expiresAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? message = freezed,Object? pinnedBy = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,messageId: null == messageId ? _self.messageId : messageId // ignore: cast_nullable_to_non_nullable
+as String,chatRoomId: null == chatRoomId ? _self.chatRoomId : chatRoomId // ignore: cast_nullable_to_non_nullable
+as String,pinnedByMemberId: null == pinnedByMemberId ? _self.pinnedByMemberId : pinnedByMemberId // ignore: cast_nullable_to_non_nullable
+as String,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as SnChatMessage?,pinnedBy: freezed == pinnedBy ? _self.pinnedBy : pinnedBy // ignore: cast_nullable_to_non_nullable
+as SnChatMember?,
+  ));
+}
+/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnChatMessageCopyWith<$Res>? get message {
+    if (_self.message == null) {
+    return null;
+  }
+
+  return $SnChatMessageCopyWith<$Res>(_self.message!, (value) {
+    return _then(_self.copyWith(message: value));
+  });
+}/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnChatMemberCopyWith<$Res>? get pinnedBy {
+    if (_self.pinnedBy == null) {
+    return null;
+  }
+
+  return $SnChatMemberCopyWith<$Res>(_self.pinnedBy!, (value) {
+    return _then(_self.copyWith(pinnedBy: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SnChatMessagePin].
+extension SnChatMessagePinPatterns on SnChatMessagePin {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SnChatMessagePin value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SnChatMessagePin() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SnChatMessagePin value)  $default,){
+final _that = this;
+switch (_that) {
+case _SnChatMessagePin():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SnChatMessagePin value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SnChatMessagePin() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'message_id')  String messageId, @JsonKey(name: 'chat_room_id')  String chatRoomId, @JsonKey(name: 'pinned_by_member_id')  String pinnedByMemberId, @JsonKey(name: 'expires_at')  DateTime? expiresAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  SnChatMessage? message, @JsonKey(name: 'pinned_by')  SnChatMember? pinnedBy)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SnChatMessagePin() when $default != null:
+return $default(_that.id,_that.messageId,_that.chatRoomId,_that.pinnedByMemberId,_that.expiresAt,_that.createdAt,_that.updatedAt,_that.message,_that.pinnedBy);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'message_id')  String messageId, @JsonKey(name: 'chat_room_id')  String chatRoomId, @JsonKey(name: 'pinned_by_member_id')  String pinnedByMemberId, @JsonKey(name: 'expires_at')  DateTime? expiresAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  SnChatMessage? message, @JsonKey(name: 'pinned_by')  SnChatMember? pinnedBy)  $default,) {final _that = this;
+switch (_that) {
+case _SnChatMessagePin():
+return $default(_that.id,_that.messageId,_that.chatRoomId,_that.pinnedByMemberId,_that.expiresAt,_that.createdAt,_that.updatedAt,_that.message,_that.pinnedBy);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'message_id')  String messageId, @JsonKey(name: 'chat_room_id')  String chatRoomId, @JsonKey(name: 'pinned_by_member_id')  String pinnedByMemberId, @JsonKey(name: 'expires_at')  DateTime? expiresAt, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime updatedAt,  SnChatMessage? message, @JsonKey(name: 'pinned_by')  SnChatMember? pinnedBy)?  $default,) {final _that = this;
+switch (_that) {
+case _SnChatMessagePin() when $default != null:
+return $default(_that.id,_that.messageId,_that.chatRoomId,_that.pinnedByMemberId,_that.expiresAt,_that.createdAt,_that.updatedAt,_that.message,_that.pinnedBy);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SnChatMessagePin implements SnChatMessagePin {
+  const _SnChatMessagePin({required this.id, @JsonKey(name: 'message_id') required this.messageId, @JsonKey(name: 'chat_room_id') required this.chatRoomId, @JsonKey(name: 'pinned_by_member_id') required this.pinnedByMemberId, @JsonKey(name: 'expires_at') this.expiresAt, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') required this.updatedAt, this.message, @JsonKey(name: 'pinned_by') this.pinnedBy});
+  factory _SnChatMessagePin.fromJson(Map<String, dynamic> json) => _$SnChatMessagePinFromJson(json);
+
+@override final  String id;
+@override@JsonKey(name: 'message_id') final  String messageId;
+@override@JsonKey(name: 'chat_room_id') final  String chatRoomId;
+@override@JsonKey(name: 'pinned_by_member_id') final  String pinnedByMemberId;
+@override@JsonKey(name: 'expires_at') final  DateTime? expiresAt;
+@override@JsonKey(name: 'created_at') final  DateTime createdAt;
+@override@JsonKey(name: 'updated_at') final  DateTime updatedAt;
+@override final  SnChatMessage? message;
+@override@JsonKey(name: 'pinned_by') final  SnChatMember? pinnedBy;
+
+/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SnChatMessagePinCopyWith<_SnChatMessagePin> get copyWith => __$SnChatMessagePinCopyWithImpl<_SnChatMessagePin>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SnChatMessagePinToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnChatMessagePin&&(identical(other.id, id) || other.id == id)&&(identical(other.messageId, messageId) || other.messageId == messageId)&&(identical(other.chatRoomId, chatRoomId) || other.chatRoomId == chatRoomId)&&(identical(other.pinnedByMemberId, pinnedByMemberId) || other.pinnedByMemberId == pinnedByMemberId)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.message, message) || other.message == message)&&(identical(other.pinnedBy, pinnedBy) || other.pinnedBy == pinnedBy));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,messageId,chatRoomId,pinnedByMemberId,expiresAt,createdAt,updatedAt,message,pinnedBy);
+
+@override
+String toString() {
+  return 'SnChatMessagePin(id: $id, messageId: $messageId, chatRoomId: $chatRoomId, pinnedByMemberId: $pinnedByMemberId, expiresAt: $expiresAt, createdAt: $createdAt, updatedAt: $updatedAt, message: $message, pinnedBy: $pinnedBy)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SnChatMessagePinCopyWith<$Res> implements $SnChatMessagePinCopyWith<$Res> {
+  factory _$SnChatMessagePinCopyWith(_SnChatMessagePin value, $Res Function(_SnChatMessagePin) _then) = __$SnChatMessagePinCopyWithImpl;
+@override @useResult
+$Res call({
+ String id,@JsonKey(name: 'message_id') String messageId,@JsonKey(name: 'chat_room_id') String chatRoomId,@JsonKey(name: 'pinned_by_member_id') String pinnedByMemberId,@JsonKey(name: 'expires_at') DateTime? expiresAt,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime updatedAt, SnChatMessage? message,@JsonKey(name: 'pinned_by') SnChatMember? pinnedBy
+});
+
+
+@override $SnChatMessageCopyWith<$Res>? get message;@override $SnChatMemberCopyWith<$Res>? get pinnedBy;
+
+}
+/// @nodoc
+class __$SnChatMessagePinCopyWithImpl<$Res>
+    implements _$SnChatMessagePinCopyWith<$Res> {
+  __$SnChatMessagePinCopyWithImpl(this._self, this._then);
+
+  final _SnChatMessagePin _self;
+  final $Res Function(_SnChatMessagePin) _then;
+
+/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? messageId = null,Object? chatRoomId = null,Object? pinnedByMemberId = null,Object? expiresAt = freezed,Object? createdAt = null,Object? updatedAt = null,Object? message = freezed,Object? pinnedBy = freezed,}) {
+  return _then(_SnChatMessagePin(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,messageId: null == messageId ? _self.messageId : messageId // ignore: cast_nullable_to_non_nullable
+as String,chatRoomId: null == chatRoomId ? _self.chatRoomId : chatRoomId // ignore: cast_nullable_to_non_nullable
+as String,pinnedByMemberId: null == pinnedByMemberId ? _self.pinnedByMemberId : pinnedByMemberId // ignore: cast_nullable_to_non_nullable
+as String,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as SnChatMessage?,pinnedBy: freezed == pinnedBy ? _self.pinnedBy : pinnedBy // ignore: cast_nullable_to_non_nullable
+as SnChatMember?,
+  ));
+}
+
+/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnChatMessageCopyWith<$Res>? get message {
+    if (_self.message == null) {
+    return null;
+  }
+
+  return $SnChatMessageCopyWith<$Res>(_self.message!, (value) {
+    return _then(_self.copyWith(message: value));
+  });
+}/// Create a copy of SnChatMessagePin
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnChatMemberCopyWith<$Res>? get pinnedBy {
+    if (_self.pinnedBy == null) {
+    return null;
+  }
+
+  return $SnChatMemberCopyWith<$Res>(_self.pinnedBy!, (value) {
+    return _then(_self.copyWith(pinnedBy: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$SnChatMember {
 
  DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt; String get id; String get chatRoomId; SnChatRoom? get chatRoom; String get accountId; SnAccount get account; String? get nick; int get notify; DateTime? get joinedAt; DateTime? get breakUntil; DateTime? get timeoutUntil; DateTime? get lastReadAt; SnAccountStatus? get status;// Realm related-content

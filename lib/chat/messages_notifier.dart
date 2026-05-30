@@ -39,6 +39,7 @@ class MessagesNotifier extends _$MessagesNotifier {
 
   final Map<String, LocalChatMessage> _pendingMessages = {};
   final Map<String, SnChatMember> _membersById = {};
+  final Map<String, SnChatMessagePin> _pinnedMessages = {};
   String? _searchQuery;
   bool? _withLinks;
   bool? _withAttachments;
@@ -130,6 +131,8 @@ class MessagesNotifier extends _$MessagesNotifier {
       case 'messages.delete':
       case 'messages.reaction.added':
       case 'messages.reaction.removed':
+      case 'messages.pinned':
+      case 'messages.unpinned':
         return true;
       default:
         return false;
@@ -144,6 +147,9 @@ class MessagesNotifier extends _$MessagesNotifier {
       return true;
     }
     if (type == 'system.e2ee.enabled') {
+      return true;
+    }
+    if (type == 'messages.pinned' || type == 'messages.unpinned') {
       return true;
     }
     return type == 'system.call.member.joined' ||
@@ -946,6 +952,10 @@ class MessagesNotifier extends _$MessagesNotifier {
         await receiveReactionAdded(remoteMessage);
       case "messages.reaction.removed":
         await receiveReactionRemoved(remoteMessage);
+      case "messages.pinned":
+        _handleMessagePinned(remoteMessage);
+      case "messages.unpinned":
+        _handleMessageUnpinned(remoteMessage);
     }
   }
 
@@ -1176,6 +1186,94 @@ class MessagesNotifier extends _$MessagesNotifier {
       showErrorAlert(err);
     }
   }
+
+  // ── Pin methods ─────────────────────────────────────────────────
+
+  void _handleMessagePinned(SnChatMessage remoteMessage) {
+    final pinId = remoteMessage.meta['pin_id']?.toString();
+    final targetMessageId = remoteMessage.meta['message_id']?.toString();
+    if (targetMessageId == null) return;
+
+    _pinnedMessages[targetMessageId] = SnChatMessagePin(
+      id: pinId ?? '',
+      messageId: targetMessageId,
+      chatRoomId: roomId,
+      pinnedByMemberId: remoteMessage.meta['pinned_by_member_id']?.toString() ?? '',
+      expiresAt: remoteMessage.meta['expires_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              remoteMessage.meta['expires_at'] is int
+                  ? remoteMessage.meta['expires_at']
+                  : int.tryParse(remoteMessage.meta['expires_at'].toString()) ?? 0,
+            )
+          : null,
+      createdAt: remoteMessage.createdAt,
+      updatedAt: remoteMessage.updatedAt,
+    );
+  }
+
+  void _handleMessageUnpinned(SnChatMessage remoteMessage) {
+    final targetMessageId = remoteMessage.meta['message_id']?.toString();
+    if (targetMessageId != null) {
+      _pinnedMessages.remove(targetMessageId);
+    }
+  }
+
+  Future<void> pinMessage(String messageId, {DateTime? expiresAt}) async {
+    try {
+      await _apiClient.post(
+        '/messager/chat/$roomId/pins',
+        data: {
+          'message_id': messageId,
+          if (expiresAt != null) 'expires_at': expiresAt.millisecondsSinceEpoch,
+        },
+      );
+    } catch (err, stackTrace) {
+      Logger.root.info('Failed to pin message $messageId', err, stackTrace);
+      showErrorAlert(err);
+    }
+  }
+
+  Future<void> unpinMessage(String messageId) async {
+    final pin = _pinnedMessages[messageId];
+    if (pin == null) {
+      Logger.root.info('No pin found for message $messageId');
+      return;
+    }
+    try {
+      await _apiClient.delete('/messager/chat/$roomId/pins/${pin.id}');
+      _pinnedMessages.remove(messageId);
+    } catch (err, stackTrace) {
+      Logger.root.info('Failed to unpin message $messageId', err, stackTrace);
+      showErrorAlert(err);
+    }
+  }
+
+  Future<List<SnChatMessagePin>> fetchPinnedMessages({
+    bool includeExpired = false,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        '/messager/chat/$roomId/pins',
+        queryParameters: {'include_expired': includeExpired},
+      );
+      final pins = (response.data as List)
+          .map((e) => SnChatMessagePin.fromJson(e as Map<String, dynamic>))
+          .toList();
+      for (final pin in pins) {
+        _pinnedMessages[pin.messageId] = pin;
+      }
+      return pins;
+    } catch (err, stackTrace) {
+      Logger.root.info('Failed to fetch pinned messages', err, stackTrace);
+      return [];
+    }
+  }
+
+  bool isMessagePinned(String messageId) => _pinnedMessages.containsKey(messageId);
+
+  List<SnChatMessagePin> get pinnedMessagesList => _pinnedMessages.values
+      .where((pin) => pin.expiresAt == null || pin.expiresAt!.isAfter(DateTime.now()))
+      .toList();
 
   Map<String, int> _extractLocalReactionCounts(LocalChatMessage message) {
     final raw = message.data['reactions_count'];
