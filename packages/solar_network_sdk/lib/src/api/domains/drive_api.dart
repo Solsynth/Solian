@@ -50,13 +50,11 @@ class DriveApi extends BaseApi {
   Future<Response> downloadFile({
     required String fileId,
     required String savePath,
-    bool original = true,
     ProgressCallback? onReceiveProgress,
   }) {
     return dio.download(
       '$_basePath/files/$fileId',
       savePath,
-      queryParameters: {'original': original},
       onReceiveProgress: onReceiveProgress,
     );
   }
