@@ -92,7 +92,6 @@ void main() {
     expect(methodCalls.single.arguments, <String, Object>{
       'pollIntervalMilliseconds': 2000,
       'executablePath': '/opt/homebrew/bin/nowplaying-cli',
-      'disableAppleMusicIntegration': false,
     });
   });
 
