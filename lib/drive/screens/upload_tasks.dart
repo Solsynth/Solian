@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:island/core/database.dart';
-import 'package:island/core/tasks/app_task.dart';
-import 'package:island/core/tasks/tasks_notifier.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/drive/services/drive_task_ws_handler.dart';
 import 'package:logging/logging.dart';
@@ -264,8 +264,7 @@ class EnhancedFileUploader extends FileUploader {
           onSendProgress: (sent, total) {
             final overallProgress = (bytesUploaded + sent) / totalSize;
             onProgress?.call(overallProgress, Duration.zero);
-            final currentMeta =
-                tasks.getTask(taskId)?.metadata ?? {};
+            final currentMeta = tasks.getTask(taskId)?.metadata ?? {};
             tasks.updateTask(
               taskId,
               progress: overallProgress,
@@ -307,8 +306,7 @@ class EnhancedFileUploader extends FileUploader {
           onSendProgress: (sent, total) {
             final overallProgress = (bytesUploaded + sent) / totalSize;
             onProgress?.call(overallProgress, Duration.zero);
-            final currentMeta =
-                tasks.getTask(taskId)?.metadata ?? {};
+            final currentMeta = tasks.getTask(taskId)?.metadata ?? {};
             tasks.updateTask(
               taskId,
               progress: overallProgress,
@@ -350,11 +348,7 @@ class EnhancedFileUploader extends FileUploader {
       '[DriveUpload] Step 3 (Complete upload) took: ${completeTimer.elapsedMilliseconds}ms',
     );
 
-    tasks.updateTask(
-      taskId,
-      status: AppTaskStatus.completed,
-      progress: 1.0,
-    );
+    tasks.updateTask(taskId, status: AppTaskStatus.completed, progress: 1.0);
 
     if (localEncryptKey != null && localEncryptKey.isNotEmpty) {
       try {

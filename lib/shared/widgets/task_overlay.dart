@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/core/tasks/app_task.dart';
-import 'package:island/core/tasks/tasks_notifier.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/drive/services/drive_task_ws_handler.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -22,7 +22,9 @@ class TaskOverlay extends HookConsumerWidget {
     ref.watch(driveTaskWsHandlerProvider);
     final activeTasks =
         allTasks
-            .where((task) => task.isActive || task.status == AppTaskStatus.completed)
+            .where(
+              (task) => task.isActive || task.status == AppTaskStatus.completed,
+            )
             .toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
@@ -535,10 +537,10 @@ class _TaskOverlayContent extends HookConsumerWidget {
     final hasPending = tasks.any(
       (task) => task.status == AppTaskStatus.pending,
     );
-    final hasPaused = tasks.any(
-      (task) => task.status == AppTaskStatus.paused,
+    final hasPaused = tasks.any((task) => task.status == AppTaskStatus.paused);
+    final hasFailed = tasks.any(
+      (task) => task.isFinished && task.status != AppTaskStatus.completed,
     );
-    final hasFailed = tasks.any((task) => task.isFinished && task.status != AppTaskStatus.completed);
     final hasCompleted = tasks.any(
       (task) => task.status == AppTaskStatus.completed,
     );
@@ -570,10 +572,10 @@ class _TaskOverlayContent extends HookConsumerWidget {
     final hasPending = tasks.any(
       (task) => task.status == AppTaskStatus.pending,
     );
-    final hasPaused = tasks.any(
-      (task) => task.status == AppTaskStatus.paused,
+    final hasPaused = tasks.any((task) => task.status == AppTaskStatus.paused);
+    final hasFailed = tasks.any(
+      (task) => task.isFinished && task.status != AppTaskStatus.completed,
     );
-    final hasFailed = tasks.any((task) => task.isFinished && task.status != AppTaskStatus.completed);
     final hasCompleted = tasks.any(
       (task) => task.status == AppTaskStatus.completed,
     );

@@ -15,8 +15,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/tasks/app_task.dart';
-import 'package:island/core/tasks/tasks_notifier.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/screens/upload_tasks.dart';
 import 'package:island/drive/widgets/quota_sidebar.dart';
 import 'package:island/route.dart';
@@ -1919,11 +1919,7 @@ class FileDownloadService {
           file: File(downloaded.filePath),
         );
       }
-      tasks.updateTask(
-        taskId,
-        status: AppTaskStatus.completed,
-        progress: 1.0,
-      );
+      tasks.updateTask(taskId, status: AppTaskStatus.completed, progress: 1.0);
       showSnackBar(_isDesktop ? 'fileSaved'.tr() : 'fileSavedToDownloads'.tr());
     } catch (e) {
       if (taskId != null) {

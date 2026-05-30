@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:island/core/tasks/app_task.dart';
-import 'package:island/core/tasks/tasks_notifier.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/core/websocket.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
