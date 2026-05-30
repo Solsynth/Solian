@@ -608,6 +608,7 @@ class _ChatListAppBar extends HookConsumerWidget {
                   ),
                 ),
               ),
+            const _MarkAllReadButton(),
             IconButton(
               icon: Badge(
                 label: Text(
@@ -637,6 +638,43 @@ class _ChatListAppBar extends HookConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MarkAllReadButton extends ConsumerWidget {
+  const _MarkAllReadButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final readSyncState = ref.watch(chatReadSyncProvider);
+    final unreadCount = ref.watch(chatUnreadCountProvider).value ?? 0;
+
+    if (unreadCount <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    return IconButton(
+      icon: readSyncState.isLoading
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            )
+          : const Icon(Symbols.done_all),
+      tooltip: 'Mark all as read',
+      onPressed: readSyncState.isLoading
+          ? null
+          : () async {
+              try {
+                await ref.read(chatReadSyncProvider.notifier).markAllRead();
+              } catch (err) {
+                showErrorAlert(err);
+              }
+            },
     );
   }
 }
@@ -1075,6 +1113,7 @@ class ChatListWidget extends HookConsumerWidget {
                                 ],
                               ),
                             ),
+                            const _MarkAllReadButton(),
                             Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: IconButton(
