@@ -3407,6 +3407,5 @@
   "poolUpdated": "Pool updated successfully",
   "poolDelete": "Delete Pool",
   "poolDeleteHint": "This will permanently delete this pool and all its configuration. Files in the pool won't be deleted.",
-  "poolDeleted": "Pool deleted successfully",
-  "done": "Done"
+  "poolDeleted": "Pool deleted successfully"
 }

@@ -12,6 +12,14 @@ _SnPublisher _$SnPublisherFromJson(Map<String, dynamic> json) => _SnPublisher(
   name: json['name'] as String? ?? '',
   nick: json['nick'] as String? ?? '',
   bio: json['bio'] as String? ?? '',
+  realmNick: json['realm_nick'] as String?,
+  realmBio: json['realm_bio'] as String?,
+  realmExperience: (json['realm_experience'] as num?)?.toInt(),
+  realmLevel: (json['realm_level'] as num?)?.toInt(),
+  realmLevelingProgress: (json['realm_leveling_progress'] as num?)?.toDouble(),
+  realmLabel: json['realm_label'] == null
+      ? null
+      : SnRealmLabel.fromJson(json['realm_label'] as Map<String, dynamic>),
   picture: json['picture'] == null
       ? null
       : SnCloudFileReference.fromJson(json['picture'] as Map<String, dynamic>),
@@ -56,6 +64,12 @@ Map<String, dynamic> _$SnPublisherToJson(_SnPublisher instance) =>
       'name': instance.name,
       'nick': instance.nick,
       'bio': instance.bio,
+      'realm_nick': instance.realmNick,
+      'realm_bio': instance.realmBio,
+      'realm_experience': instance.realmExperience,
+      'realm_level': instance.realmLevel,
+      'realm_leveling_progress': instance.realmLevelingProgress,
+      'realm_label': instance.realmLabel?.toJson(),
       'picture': instance.picture?.toJson(),
       'background': instance.background?.toJson(),
       'account': instance.account?.toJson(),

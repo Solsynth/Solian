@@ -1325,22 +1325,64 @@ class _RealmActionMenu extends HookConsumerWidget {
 final realmMemberListNotifierProvider = AsyncNotifierProvider.autoDispose
     .family(RealmMemberListNotifier.new);
 
+class RealmMemberListFilter {
+  final String? accountName;
+  final String? labelId;
+
+  const RealmMemberListFilter({this.accountName, this.labelId});
+
+  RealmMemberListFilter copyWith({String? accountName, String? labelId}) {
+    return RealmMemberListFilter(accountName: accountName, labelId: labelId);
+  }
+
+  bool get hasFilters =>
+      (accountName != null && accountName!.isNotEmpty) ||
+      (labelId != null && labelId!.isNotEmpty);
+
+  RealmMemberListFilter normalized() {
+    final normalizedName = accountName?.trim();
+    final normalizedLabelId = labelId?.trim();
+    return RealmMemberListFilter(
+      accountName: normalizedName?.isEmpty == true ? null : normalizedName,
+      labelId: normalizedLabelId?.isEmpty == true ? null : normalizedLabelId,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RealmMemberListFilter &&
+        other.accountName == accountName &&
+        other.labelId == labelId;
+  }
+
+  @override
+  int get hashCode => Object.hash(accountName, labelId);
+}
+
 class RealmMemberListNotifier
     extends AsyncNotifier<PaginationState<SnRealmMember>>
-    with AsyncPaginationController<SnRealmMember> {
+    with
+        AsyncPaginationController<SnRealmMember>,
+        AsyncPaginationFilter<RealmMemberListFilter, SnRealmMember> {
   String arg;
   RealmMemberListNotifier(this.arg);
 
   static const int pageSize = 20;
+  @override
+  RealmMemberListFilter currentFilter = const RealmMemberListFilter();
 
   @override
   Future<List<SnRealmMember>> fetch() async {
     final client = ref.read(solarNetworkClientProvider);
+    final filter = currentFilter.normalized();
 
     final result = await client.realms.getMembers(
       slug: arg,
       offset: fetchedCount,
       take: pageSize,
+      withStatus: true,
+      accountName: filter.accountName,
+      labelId: filter.labelId,
     );
 
     totalCount = result.totalCount;
@@ -1359,12 +1401,47 @@ class _RealmMemberListSheet extends HookConsumerWidget {
     final memberListState = ref.watch(memberListProvider);
     final memberListNotifier = ref.read(memberListProvider.notifier);
     final realmIdentity = ref.watch(realmIdentityProvider(realmSlug));
+    final realmLabels = ref.watch(realmLabelsProvider(realmSlug));
+    final searchController = useTextEditingController(
+      text: memberListNotifier.currentFilter.accountName ?? '',
+    );
+    useListenable(searchController);
+    final selectedLabelId = useState<String?>(
+      memberListNotifier.currentFilter.labelId,
+    );
+    final currentFilter = memberListNotifier.currentFilter.normalized();
+
+    String? selectedLabelName() {
+      return realmLabels.maybeWhen(
+        data: (labels) {
+          for (final label in labels) {
+            if (label.id == currentFilter.labelId) return label.name;
+          }
+          return null;
+        },
+        orElse: () => null,
+      );
+    }
+
+    Future<void> applyMemberFilter() async {
+      final nextFilter = RealmMemberListFilter(
+        accountName: searchController.text,
+        labelId: selectedLabelId.value,
+      ).normalized();
+      await memberListNotifier.applyFilter(nextFilter);
+    }
 
     Future<void> refreshMemberList({bool refreshIdentity = false}) async {
       await memberListNotifier.refresh();
       if (refreshIdentity) {
         ref.invalidate(realmIdentityProvider(realmSlug));
       }
+    }
+
+    Future<void> clearMemberFilters() async {
+      searchController.clear();
+      selectedLabelId.value = null;
+      await memberListNotifier.applyFilter(const RealmMemberListFilter());
     }
 
     Future<void> invitePerson() async {
@@ -1390,34 +1467,163 @@ class _RealmMemberListSheet extends HookConsumerWidget {
     Widget buildMemberListHeader() {
       return Padding(
         padding: EdgeInsets.only(top: 16, left: 20, right: 16, bottom: 12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Consumer(
-              builder: (context, ref, _) {
-                return Text(
-                  'members'.plural(memberListState.value?.totalCount ?? 0),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
+            Row(
+              children: [
+                Consumer(
+                  builder: (context, ref, _) {
+                    return Text(
+                      'members'.plural(memberListState.value?.totalCount ?? 0),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.5,
+                          ),
+                    );
+                  },
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Symbols.person_add),
+                  onPressed: invitePerson,
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  onPressed: refreshMemberList,
+                ),
+                IconButton(
+                  icon: const Icon(Symbols.close),
+                  onPressed: () => Navigator.pop(context),
+                  style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
+                ),
+              ],
+            ),
+            const Gap(12),
+            SearchBar(
+              controller: searchController,
+              hintText: 'Search member account',
+              leading: const Icon(Symbols.search),
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              ),
+              trailing: [
+                realmLabels.when(
+                  loading: () => const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                );
-              },
+                  error: (_, _) => IconButton(
+                    tooltip: 'Retry labels',
+                    icon: const Icon(Symbols.sync_problem),
+                    onPressed: () =>
+                        ref.invalidate(realmLabelsProvider(realmSlug)),
+                  ),
+                  data: (labels) => PopupMenuButton<String?>(
+                    tooltip: 'Filter by label',
+                    initialValue: selectedLabelId.value,
+                    onSelected: (value) async {
+                      selectedLabelId.value = value;
+                      await applyMemberFilter();
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem<String?>(
+                        value: null,
+                        child: Text('All labels'),
+                      ),
+                      ...labels.map(
+                        (label) => PopupMenuItem<String?>(
+                          value: label.id,
+                          child: Row(
+                            children: [
+                              if (selectedLabelId.value == label.id)
+                                const Icon(Symbols.check, size: 18)
+                              else
+                                const SizedBox(width: 18),
+                              const Gap(8),
+                              Expanded(child: Text(label.name)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Symbols.label,
+                            size: 20,
+                            color: currentFilter.labelId != null
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                          ),
+                          if (currentFilter.labelId != null) ...[
+                            const Gap(6),
+                            Text(
+                              selectedLabelName() ?? 'Label',
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (searchController.text.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Symbols.close),
+                    onPressed: () async {
+                      searchController.clear();
+                      await applyMemberFilter();
+                    },
+                  ),
+                if (currentFilter.hasFilters)
+                  IconButton(
+                    tooltip: 'Clear filters',
+                    icon: const Icon(Symbols.filter_alt_off),
+                    onPressed: clearMemberFilters,
+                  ),
+              ],
+              onSubmitted: (_) => applyMemberFilter(),
             ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Symbols.person_add),
-              onPressed: invitePerson,
-              style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-            ),
-            IconButton(
-              icon: const Icon(Symbols.refresh),
-              onPressed: refreshMemberList,
-            ),
-            IconButton(
-              icon: const Icon(Symbols.close),
-              onPressed: () => Navigator.pop(context),
-              style: IconButton.styleFrom(minimumSize: const Size(36, 36)),
-            ),
+            if (currentFilter.hasFilters) ...[
+              const Gap(10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (currentFilter.accountName != null)
+                    InputChip(
+                      label: Text('Name: ${currentFilter.accountName}'),
+                      onDeleted: () async {
+                        searchController.clear();
+                        await applyMemberFilter();
+                      },
+                    ),
+                  if (currentFilter.labelId != null)
+                    InputChip(
+                      label: Text(selectedLabelName() ?? 'Label'),
+                      avatar: const Icon(Symbols.label, size: 18),
+                      onDeleted: () async {
+                        selectedLabelId.value = null;
+                        await applyMemberFilter();
+                      },
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       );
@@ -1448,9 +1654,7 @@ class _RealmMemberListSheet extends HookConsumerWidget {
                     ),
                   ),
                   if (member.status != null)
-                    Flexible(
-                      child: AccountStatusLabel(status: member.status!),
-                    ),
+                    Flexible(child: AccountStatusLabel(status: member.status!)),
                   if (member.label != null)
                     RealmLabelWidget(label: member.label!, fontSize: 10),
                   if (member.joinedAt == null)
