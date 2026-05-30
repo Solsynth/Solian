@@ -1255,7 +1255,7 @@ class _DriveTabStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: colorScheme.surfaceContainerLow,
+      color: colorScheme.surfaceContainerLow.withOpacity(0.8),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
