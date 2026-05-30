@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:island/core/tasks/app_task.dart';
-import 'package:island/core/tasks/app_task_event.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/app_task_event.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tasks_notifier.g.dart';
@@ -73,9 +73,7 @@ class Tasks extends _$Tasks {
       );
     }
     if (status == AppTaskStatus.completed) {
-      _eventController.add(
-        TaskCompletedEvent(taskId: id, result: result),
-      );
+      _eventController.add(TaskCompletedEvent(taskId: id, result: result));
     }
     if (status == AppTaskStatus.failed) {
       _eventController.add(

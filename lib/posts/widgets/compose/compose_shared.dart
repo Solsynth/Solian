@@ -19,8 +19,8 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/network.dart';
-import 'package:island/core/tasks/app_task.dart';
-import 'package:island/core/tasks/tasks_notifier.dart';
+import 'package:island/tasks/app_task.dart';
+import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -905,12 +905,11 @@ class ComposeLogic {
     try {
       state.submitting.value = true;
 
-      final localAttachments =
-          state.attachments.value
-              .asMap()
-              .entries
-              .where((entry) => entry.value.isOnDevice)
-              .toList();
+      final localAttachments = state.attachments.value
+          .asMap()
+          .entries
+          .where((entry) => entry.value.isOnDevice)
+          .toList();
 
       // Create a task for tracking
       final tasks = ref.read(tasksProvider.notifier);
@@ -931,7 +930,8 @@ class ComposeLogic {
         tasks.updateTask(
           taskId,
           progress: 0.1,
-          statusMessage: 'Uploading ${localAttachments.length} attachment(s)...',
+          statusMessage:
+              'Uploading ${localAttachments.length} attachment(s)...',
         );
         await Future.wait(
           localAttachments.map(
@@ -940,11 +940,7 @@ class ComposeLogic {
         );
       }
 
-      tasks.updateTask(
-        taskId,
-        progress: 0.6,
-        statusMessage: 'Publishing...',
-      );
+      tasks.updateTask(taskId, progress: 0.6, statusMessage: 'Publishing...');
 
       final client = ref.read(solarNetworkClientProvider);
       final isNewPost = originalPost == null;
@@ -1058,11 +1054,13 @@ class ComposeLogic {
           )
           .lastOrNull;
       if (existingTask != null) {
-        ref.read(tasksProvider.notifier).updateTask(
-          existingTask.id,
-          status: AppTaskStatus.failed,
-          errorMessage: err.toString(),
-        );
+        ref
+            .read(tasksProvider.notifier)
+            .updateTask(
+              existingTask.id,
+              status: AppTaskStatus.failed,
+              errorMessage: err.toString(),
+            );
       }
       showErrorAlert(err);
       rethrow;
