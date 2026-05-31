@@ -278,10 +278,14 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
         : 0;
-    final isDrawerEnabled = shouldShowBottomNavForCurrentPath(
-      context,
-      routes: rootTabRoutes,
-    );
+    final isDrawerEnabled = kIsWeb ||
+        defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        shouldShowBottomNavForCurrentPath(
+          context,
+          routes: rootTabRoutes,
+        );
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
