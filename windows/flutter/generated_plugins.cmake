@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   bluetooth_low_energy_windows
   connectivity_plus
   desktop_drop
+  desktop_multi_window
   disk_space_2
   file_saver
   file_selector_windows

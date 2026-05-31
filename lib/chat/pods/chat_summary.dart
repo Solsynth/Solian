@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/chat/pods/chat_subscribe.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -14,6 +15,9 @@ class ChatUnreadCountNotifier extends _$ChatUnreadCountNotifier {
 
   @override
   Future<int> build() async {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      return 0;
+    }
     // Subscribe to websocket events when this provider is built
     _subscribeToWebSocket();
 
@@ -141,6 +145,9 @@ class ChatSummary extends _$ChatSummary {
 
   @override
   Future<Map<String, SnChatSummary>> build() async {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      return const <String, SnChatSummary>{};
+    }
     final client = ref.watch(apiClientProvider);
     final resp = await client.get('/messager/chat/summary');
 

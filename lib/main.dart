@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -12,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:island/core/log_recorder.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
@@ -56,6 +58,8 @@ void main(List<String> args) async {
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+  final desktopLaunchDetails = await resolveDesktopWindowLaunchDetails();
+  final isPrimaryWindow = desktopLaunchDetails.isPrimary;
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     Logger.root.info(
@@ -66,7 +70,13 @@ void main(List<String> args) async {
 
   if (!kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
     Logger.root.info("[SplashScreen] Initializing desktop window manager...");
-    await protocolHandler.register('solian');
+    await windowManager.ensureInitialized();
+    if (isPrimaryWindow) {
+      if (kDebugMode) {
+        await closeAllDesktopChatWindows();
+      }
+      await protocolHandler.register('solian');
+    }
     Logger.root.info("[SplashScreen] Desktop window manager is ready!");
   }
 
@@ -131,58 +141,74 @@ void main(List<String> args) async {
 
     if (!kIsWeb &&
         (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
-      await windowManager.ensureInitialized();
-
-      const defaultSize = Size(360, 640);
-      final savedSizeString = prefs.getString(kAppWindowSize);
-      Size initialSize = defaultSize;
-
-      if (savedSizeString != null) {
-        try {
-          final parts = savedSizeString.split(',');
-          if (parts.length == 2) {
-            final width = double.parse(parts[0]);
-            final height = double.parse(parts[1]);
-            initialSize = Size(width, height);
-          }
-        } catch (e) {
-          Logger.root.severe(
-            "[SplashScreen] Failed to parse saved window size",
-            e,
-          );
-          initialSize = defaultSize;
-        }
-      }
-
-      WindowOptions windowOptions = WindowOptions(
-        size: initialSize,
-        center: true,
-        backgroundColor: Colors.transparent,
-        skipTaskbar: false,
-        titleBarStyle: TitleBarStyle.hidden,
-        windowButtonVisibility: true,
-      );
-      windowManager.waitUntilReadyToShow(windowOptions, () async {
-        final env = Platform.environment;
-        final isWayland = env.containsKey('WAYLAND_DISPLAY');
-
-        if (isWayland) {
-          try {
-            await windowManager.setAsFrameless();
-          } catch (e) {
-            debugPrint('[Wayland] setAsFrameless failed: $e');
-          }
-        }
-        await windowManager.setMinimumSize(defaultSize);
-        await windowManager.show();
-        await windowManager.focus();
-        final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
-        await windowManager.setOpacity(opacity);
-        Logger.root.info(
-          "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
-          "${isWayland ? " (Wayland frameless fix applied)" : ""}",
+      if (desktopLaunchDetails.kind == DesktopWindowKind.chatRoom) {
+        const chatWindowSize = Size(420, 760);
+        const windowOptions = WindowOptions(
+          size: chatWindowSize,
+          minimumSize: chatWindowSize,
+          center: true,
+          backgroundColor: Colors.transparent,
+          skipTaskbar: false,
+          titleBarStyle: TitleBarStyle.hidden,
+          windowButtonVisibility: true,
         );
-      });
+        windowManager.waitUntilReadyToShow(windowOptions, () async {
+          await windowManager.show();
+          await windowManager.focus();
+          await windowManager.setTitle('Solar Network Chat');
+        });
+      } else {
+        const defaultSize = Size(360, 640);
+        final savedSizeString = prefs.getString(kAppWindowSize);
+        Size initialSize = defaultSize;
+
+        if (savedSizeString != null) {
+          try {
+            final parts = savedSizeString.split(',');
+            if (parts.length == 2) {
+              final width = double.parse(parts[0]);
+              final height = double.parse(parts[1]);
+              initialSize = Size(width, height);
+            }
+          } catch (e) {
+            Logger.root.severe(
+              "[SplashScreen] Failed to parse saved window size",
+              e,
+            );
+            initialSize = defaultSize;
+          }
+        }
+
+        WindowOptions windowOptions = WindowOptions(
+          size: initialSize,
+          center: true,
+          backgroundColor: Colors.transparent,
+          skipTaskbar: false,
+          titleBarStyle: TitleBarStyle.hidden,
+          windowButtonVisibility: true,
+        );
+        windowManager.waitUntilReadyToShow(windowOptions, () async {
+          final env = Platform.environment;
+          final isWayland = env.containsKey('WAYLAND_DISPLAY');
+
+          if (isWayland) {
+            try {
+              await windowManager.setAsFrameless();
+            } catch (e) {
+              debugPrint('[Wayland] setAsFrameless failed: $e');
+            }
+          }
+          await windowManager.setMinimumSize(defaultSize);
+          await windowManager.show();
+          await windowManager.focus();
+          final opacity = prefs.getDouble(kAppWindowOpacity) ?? 1.0;
+          await windowManager.setOpacity(opacity);
+          Logger.root.info(
+            "[SplashScreen] Desktop window is ready with size: ${initialSize.width}x${initialSize.height}"
+            "${isWayland ? " (Wayland frameless fix applied)" : ""}",
+          );
+        });
+      }
     }
 
     if (!kIsWeb && Platform.isAndroid) {
@@ -229,7 +255,12 @@ void main(List<String> args) async {
           return const Duration(milliseconds: 300);
         },
         observers: [ProviderLogger()],
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          desktopWindowLaunchDetailsProvider.overrideWithValue(
+            desktopLaunchDetails,
+          ),
+        ],
         child: Directionality(
           textDirection: TextDirection.ltr,
           child: EasyLocalization(
@@ -245,7 +276,13 @@ void main(List<String> args) async {
             path: 'assets/i18n',
             fallbackLocale: Locale('en', 'US'),
             useFallbackTranslations: true,
-            child: IslandApp(),
+            child: IslandApp(
+              initialRoutePath: desktopLaunchDetails.kind ==
+                      DesktopWindowKind.chatRoom
+                  ? '/chat/${desktopLaunchDetails.roomId}'
+                  : null,
+              isPrimaryWindow: isPrimaryWindow,
+            ),
           ),
         ),
       ),
@@ -270,7 +307,14 @@ final globalOverlay = GlobalKey<OverlayState>();
 final globalScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 class IslandApp extends HookConsumerWidget {
-  const IslandApp({super.key});
+  final String? initialRoutePath;
+  final bool isPrimaryWindow;
+
+  const IslandApp({
+    super.key,
+    this.initialRoutePath,
+    this.isPrimaryWindow = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -375,6 +419,9 @@ class IslandApp extends HookConsumerWidget {
               FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
           ];
         },
+        deepLinkBuilder: initialRoutePath == null
+            ? null
+            : (_) => DeepLink.path(initialRoutePath!),
       ),
       supportedLocales: context.supportedLocales,
       scrollBehavior: AppScrollBehavior(),
@@ -390,7 +437,10 @@ class IslandApp extends HookConsumerWidget {
             OverlayEntry(
               builder: (_) {
                 return WindowScaffold(
-                  child: AppWrapper(child: child ?? const SizedBox.shrink()),
+                  child: AppWrapper(
+                    isPrimaryWindow: isPrimaryWindow,
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 );
               },
             ),

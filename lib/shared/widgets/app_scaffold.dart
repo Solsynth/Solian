@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
@@ -10,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/command_palette/palette.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
@@ -38,6 +40,8 @@ class WindowScaffold extends HookConsumerWidget {
     final isMaximized = useState(false);
     final showPalette = useState(false);
     final keyboardFocusNode = useFocusNode();
+    final isPrimaryWindow =
+        ref.read(desktopWindowLaunchDetailsProvider).isPrimary;
 
     useEffect(() {
       keyboardFocusNode.requestFocus();
@@ -47,6 +51,7 @@ class WindowScaffold extends HookConsumerWidget {
     // Add window resize listener for desktop platforms
     useEffect(() {
       if (!kIsWeb &&
+          isPrimaryWindow &&
           (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
         void saveWindowSize() {
           windowManager.getBounds().then((bounds) {
@@ -73,7 +78,27 @@ class WindowScaffold extends HookConsumerWidget {
         };
       }
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
+
+    useEffect(() {
+      if (!kIsWeb &&
+          !isPrimaryWindow &&
+          (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        final closeListener = _ChildWindowCloseListener();
+        Future<void>(() async {
+          await windowManager.setPreventClose(true);
+          windowManager.addListener(closeListener);
+        });
+
+        return () {
+          Future<void>(() async {
+            windowManager.removeListener(closeListener);
+            await windowManager.setPreventClose(false);
+          });
+        };
+      }
+      return null;
+    }, [isPrimaryWindow]);
 
     // Event bus listener for command palette
     final subscription = useMemoized(
@@ -270,6 +295,20 @@ class _WindowMaximizeListener with WindowListener {
   @override
   void onWindowUnmaximize() {
     isMaximized.value = false;
+  }
+}
+
+class _ChildWindowCloseListener with WindowListener {
+  bool _isClosing = false;
+
+  @override
+  void onWindowClose() {
+    if (_isClosing) return;
+    _isClosing = true;
+    Future<void>(() async {
+      await windowManager.setPreventClose(false);
+      await windowManager.destroy();
+    });
   }
 }
 
@@ -514,11 +553,17 @@ class _WebSocketIndicator extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop =
         !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+    final isPrimaryWindow =
+        ref.read(desktopWindowLaunchDetailsProvider).isPrimary;
 
     final devicePadding = MediaQuery.of(context).padding;
 
     final user = ref.watch(userInfoProvider);
     final websocketState = ref.watch(websocketStateProvider);
+
+    if (isDesktop && !isPrimaryWindow && supportsDesktopMultiWindow) {
+      return const SizedBox.shrink();
+    }
 
     Color indicatorColor;
     String indicatorText;

@@ -7,15 +7,22 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
+import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/accounts/pods/friend_status_listener.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
+import 'package:island/chat/messages_notifier.dart';
+import 'package:island/chat/pods/chat_online_count.dart';
+import 'package:island/chat/pods/chat_room.dart';
+import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/core/services/deeplink_service.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/core/services/desktop_presence.dart';
 import 'package:island/core/services/quick_actions.dart';
 import 'package:island/notifications/notification.dart';
@@ -68,7 +75,13 @@ final forcedStartupSplashProvider =
 
 class AppWrapper extends HookConsumerWidget {
   final Widget child;
-  const AppWrapper({super.key, required this.child});
+  final bool isPrimaryWindow;
+
+  const AppWrapper({
+    super.key,
+    required this.child,
+    this.isPrimaryWindow = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -86,24 +99,28 @@ class AppWrapper extends HookConsumerWidget {
     final onboardingChecked = useState(false);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       ref.read(progressionWebSocketProvider);
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       ref.read(friendStatusListenerProvider);
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       ref.read(desktopPresenceProvider);
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       ref.read(desktopNowPlayingProvider);
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
 
     useEffect(() {
       bool triedOpen = false;
@@ -154,6 +171,7 @@ class AppWrapper extends HookConsumerWidget {
     }, [websocketState, apiState, hasConnectivity]);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       if (!hasConnectivity) {
         Future.microtask(() {
           ref.read(networkStatusProvider.notifier).setOffline();
@@ -172,7 +190,7 @@ class AppWrapper extends HookConsumerWidget {
         Future(() => ref.read(websocketStateProvider.notifier).connect());
       }
       return null;
-    }, [hasConnectivity, token, websocketState]);
+    }, [isPrimaryWindow, hasConnectivity, token, websocketState]);
 
     // TODO reenable this till the python service is stable
     // useEffect(() {
@@ -192,6 +210,93 @@ class AppWrapper extends HookConsumerWidget {
     // }, []);
 
     useEffect(() {
+      if (!supportsDesktopMultiWindow) return null;
+
+      if (isPrimaryWindow) {
+        registerPrimaryDesktopWindowRpcHandler((call) async {
+          switch (call.method) {
+            case desktopWindowGetCurrentUserMethod:
+              return (await ref.read(userInfoProvider.future))?.toJson();
+            default:
+              throw MissingPluginException(
+                'Unknown desktop window RPC: ${call.method}',
+              );
+          }
+        });
+
+        final newSub = eventBus.on<ChatMessageNewEvent>().listen((event) {
+          broadcastToDesktopChatWindows(
+            desktopWindowRefreshRoomMethod,
+            event.message.chatRoomId,
+          );
+        });
+        final updateSub = eventBus.on<ChatMessageUpdateEvent>().listen((event) {
+          broadcastToDesktopChatWindows(
+            desktopWindowRefreshRoomMethod,
+            event.message.chatRoomId,
+          );
+        });
+        final deleteSub = eventBus.on<ChatMessageDeleteEvent>().listen((event) {
+          broadcastToDesktopChatWindows(
+            desktopWindowRefreshRoomMethod,
+            event.roomId,
+          );
+        });
+        final syncSub = eventBus.on<ChatMessagesSyncedEvent>().listen((event) {
+          for (final roomId in event.roomIds) {
+            broadcastToDesktopChatWindows(
+              desktopWindowRefreshRoomMethod,
+              roomId,
+            );
+          }
+        });
+        final roomsSub = eventBus.on<ChatRoomsRefreshEvent>().listen((_) {
+          broadcastToDesktopChatWindows(desktopWindowRefreshRoomsMethod);
+        });
+        final groupsSub = eventBus.on<ChatGroupsRefreshEvent>().listen((_) {
+          broadcastToDesktopChatWindows(desktopWindowRefreshRoomsMethod);
+        });
+
+        return () {
+          newSub.cancel();
+          updateSub.cancel();
+          deleteSub.cancel();
+          syncSub.cancel();
+          roomsSub.cancel();
+          groupsSub.cancel();
+        };
+      }
+
+      registerCurrentDesktopWindowHandler((call) async {
+        switch (call.method) {
+          case desktopWindowCloseMethod:
+            await windowManager.destroy();
+            return null;
+          case desktopWindowRefreshRoomMethod:
+            final roomId = call.arguments?.toString();
+            if (roomId == null || roomId.isEmpty) return null;
+            ref.invalidate(chatRoomProvider(roomId));
+            ref.invalidate(chatRoomIdentityProvider(roomId));
+            ref.invalidate(chatOnlineCountProvider(roomId));
+            unawaited(
+              ref.read(messagesProvider(roomId).notifier).refreshFromLocalCache(),
+            );
+            return null;
+          case desktopWindowRefreshRoomsMethod:
+            ref.invalidate(chatRoomJoinedProvider);
+            ref.invalidate(chatSummaryProvider);
+            return null;
+          default:
+            throw MissingPluginException(
+              'Unknown desktop window method: ${call.method}',
+            );
+        }
+      });
+      return null;
+    }, [isPrimaryWindow]);
+
+    useEffect(() {
+      if (!isPrimaryWindow) return null;
       final ntySubs = setupNotificationListener(context, ref);
       final sharingService = SharingIntentService();
       final deeplinkService = DeeplinkService();
@@ -284,12 +389,13 @@ class AppWrapper extends HookConsumerWidget {
         thoughtSheetSubs.cancel();
         webAuthSubs.cancel();
       };
-    }, []);
+    }, [isPrimaryWindow]);
 
     final settings = ref.watch(appSettingsProvider);
     final settingsNotifier = ref.watch(appSettingsProvider.notifier);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       if (settings.defaultScreen != null &&
           settings.defaultScreen != 'dashboard') {
         Future(() {
@@ -297,14 +403,15 @@ class AppWrapper extends HookConsumerWidget {
         });
       }
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
 
     final now = DateTime.now();
     final doesShowSnow =
         settings.festivalFeatures &&
         now.month == 12 &&
         (now.day >= 22 && now.day <= 28);
-    final shouldRunBootstrap = token != null && !bootstrapCompleted.value;
+    final shouldRunBootstrap =
+        isPrimaryWindow && token != null && !bootstrapCompleted.value;
     final shouldShowStartupSplash =
         !startupGateResolved.value ||
         forceShowStartupSplash ||
@@ -318,6 +425,7 @@ class AppWrapper extends HookConsumerWidget {
     }, []);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       Future(() {
         final now = DateTime.now();
         if (doesShowSnow) {
@@ -352,9 +460,10 @@ class AppWrapper extends HookConsumerWidget {
       });
 
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       Future(() async {
         try {
           Logger.root.info(
@@ -371,9 +480,10 @@ class AppWrapper extends HookConsumerWidget {
         }
       });
       return null;
-    }, []);
+    }, [isPrimaryWindow]);
 
     useEffect(() {
+      if (!isPrimaryWindow) return null;
       if (shouldShowStartupSplash || onboardingChecked.value) return null;
 
       Future(() async {
@@ -402,7 +512,7 @@ class AppWrapper extends HookConsumerWidget {
         });
       });
       return null;
-    }, [shouldShowStartupSplash, token]);
+    }, [isPrimaryWindow, shouldShowStartupSplash, token]);
 
     return Container(
       key: appWrapperKey,

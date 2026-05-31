@@ -8,6 +8,7 @@ import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/event_bus.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/chat/pods/chat_summary.dart';
@@ -256,6 +257,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
   @override
   Future<void> build() async {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      return;
+    }
     // Set up global WebSocket listener for real-time message handling
     final ws = ref.watch(websocketProvider);
     _wsSubscription = ws.dataStream.listen(_handleWebSocketMessage);
@@ -817,6 +821,9 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
   /// Perform global sync to fetch messages from all chat rooms
   Future<void> syncAllMessages({bool force = false}) async {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      return;
+    }
     if (_ongoingSync != null) {
       Logger.root.info(
         'Global sync already in progress, joining existing task',
@@ -1108,6 +1115,8 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
     final db = ref.watch(databaseProvider);
     final prefs = ref.watch(sharedPreferencesProvider);
     final userInfo = ref.watch(userInfoProvider);
+    final allowRemoteSync =
+        isPrimaryDesktopWindow(ref) || !supportsDesktopMultiWindow;
 
     Future<List<SnChatRoom>> loadLocalRooms() async {
       final localRooms = await db.getAllChatRooms();
@@ -1208,19 +1217,25 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
     final localRooms = await loadLocalRooms();
     yield localRooms;
 
-    try {
-      await syncRemoteRooms(localRooms);
-      final syncedRooms = await loadLocalRooms();
-      yield syncedRooms;
-    } catch (e, stackTrace) {
-      if (localRooms.isEmpty) {
-        Logger.root.info('Error loading synced chat rooms', e, stackTrace);
-        rethrow;
+    if (allowRemoteSync) {
+      try {
+        await syncRemoteRooms(localRooms);
+        final syncedRooms = await loadLocalRooms();
+        yield syncedRooms;
+      } catch (e, stackTrace) {
+        if (localRooms.isEmpty) {
+          Logger.root.info('Error loading synced chat rooms', e, stackTrace);
+          rethrow;
+        }
+        Logger.root.info(
+          'Using local chat rooms after sync failed',
+          e,
+          stackTrace,
+        );
       }
+    } else {
       Logger.root.info(
-        'Using local chat rooms after sync failed',
-        e,
-        stackTrace,
+        'ChatRoomJoinedNotifier using local-only room list in child window',
       );
     }
   }
@@ -1232,6 +1247,8 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
   Future<SnChatRoom?> build(String? identifier) async {
     if (identifier == null) return null;
     final db = ref.watch(databaseProvider);
+    final allowRemoteSync =
+        isPrimaryDesktopWindow(ref) || !supportsDesktopMultiWindow;
 
     try {
       // Try to get from local database first
@@ -1251,24 +1268,28 @@ class ChatRoomNotifier extends _$ChatRoomNotifier {
         );
 
         // Background sync
-        Future(() async {
-          try {
-            final client = ref.read(apiClientProvider);
-            final resp = await client.get('/messager/chat/$identifier');
-            await _persistRoomEncryptionModeFromJson(
-              db,
-              Map<String, dynamic>.from(resp.data as Map),
-            );
-            final remoteRoom = SnChatRoom.fromJson(resp.data);
-            // Update state with fresh data directly without saving to DB
-            // DB will be updated by ChatRoomJoinedNotifier's full sync
-            state = AsyncData(remoteRoom);
-          } catch (_) {}
-        }).ignore();
+        if (allowRemoteSync) {
+          Future(() async {
+            try {
+              final client = ref.read(apiClientProvider);
+              final resp = await client.get('/messager/chat/$identifier');
+              await _persistRoomEncryptionModeFromJson(
+                db,
+                Map<String, dynamic>.from(resp.data as Map),
+              );
+              final remoteRoom = SnChatRoom.fromJson(resp.data);
+              state = AsyncData(remoteRoom);
+            } catch (_) {}
+          }).ignore();
+        }
 
         return room;
       }
     } catch (_) {}
+
+    if (!allowRemoteSync) {
+      return null;
+    }
 
     // Fallback to API
     try {
@@ -1297,41 +1318,55 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
     if (identifier == null) return null;
     final db = ref.watch(databaseProvider);
     final userInfo = ref.watch(userInfoProvider);
+    final allowRemoteSync =
+        isPrimaryDesktopWindow(ref) || !supportsDesktopMultiWindow;
+    final resolvedUser = userInfo.hasValue
+        ? userInfo.value
+        : (!allowRemoteSync ? await ref.watch(userInfoProvider.future) : null);
 
     try {
       // Try to get from local database first
-      if (userInfo.value != null) {
+      if (resolvedUser != null) {
         final localMember = await db.getMemberByRoomAndAccount(
           identifier,
-          userInfo.value!.id,
+          resolvedUser.id,
         );
 
         if (localMember != null) {
           // Background sync
-          Future(() async {
-            try {
-              final client = ref.read(apiClientProvider);
-              final resp = await client.get(
-                '/messager/chat/$identifier/members/me',
-              );
-              final remoteMember = SnChatMember.fromJson(resp.data);
-              await db.saveMember(remoteMember);
-              // Update state with fresh data
-              if (userInfo.value != null) {
-                state = AsyncData(
-                  await db.getMemberByRoomAndAccount(
-                    identifier,
-                    userInfo.value!.id,
-                  ),
+          if (allowRemoteSync) {
+            Future(() async {
+              try {
+                final client = ref.read(apiClientProvider);
+                final resp = await client.get(
+                  '/messager/chat/$identifier/members/me',
                 );
-              }
-            } catch (_) {}
-          }).ignore();
+                final remoteMember = SnChatMember.fromJson(resp.data);
+                await db.saveMember(remoteMember);
+                final refreshedUserAsync = ref.read(userInfoProvider);
+                final refreshedUser = refreshedUserAsync.hasValue
+                    ? refreshedUserAsync.value
+                    : null;
+                if (refreshedUser != null) {
+                  state = AsyncData(
+                    await db.getMemberByRoomAndAccount(
+                      identifier,
+                      refreshedUser.id,
+                    ),
+                  );
+                }
+              } catch (_) {}
+            }).ignore();
+          }
 
           return localMember;
         }
       }
     } catch (_) {}
+
+    if (!allowRemoteSync) {
+      return null;
+    }
 
     // Fallback to API
     try {

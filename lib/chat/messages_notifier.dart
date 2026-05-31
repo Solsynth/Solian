@@ -15,6 +15,7 @@ import "package:island/data/message.dart";
 import "package:island/core/config.dart";
 import "package:island/core/database.dart";
 import "package:island/core/network.dart";
+import "package:island/core/services/desktop_chat_window.dart";
 import "package:island/core/services/event_bus.dart";
 import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
@@ -239,6 +240,8 @@ class MessagesNotifier extends _$MessagesNotifier {
   /// since MLS forward secrecy prevents self-decryption - plaintext is preserved from pending.
   @override
   FutureOr<List<LocalChatMessage>> build(String roomId) async {
+    final allowRemoteSync =
+        isPrimaryDesktopWindow(ref) || !supportsDesktopMultiWindow;
     _apiClient = ref.read(apiClientProvider);
     _database = ref.read(databaseProvider);
     _messageCache = MessageCache(maxSize: PaginationConfig.maxCacheSize);
@@ -334,8 +337,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     _mlsGroupId = room.mlsGroupId;
 
     // Defer heavy MLS operations to post-frame callback to not block initial build
-    Future.microtask(() async {
-      if (disposed || !ref.mounted) return;
+    if (allowRemoteSync) {
+      Future.microtask(() async {
+        if (disposed || !ref.mounted) return;
 
       // Set account ID for MLS operations
       if (identity != null) {
@@ -384,7 +388,8 @@ class MessagesNotifier extends _$MessagesNotifier {
           }
         }
       }
-    });
+      });
+    }
 
     // Allow building even if identity is null for public rooms
     if (identity != null) {
@@ -394,7 +399,9 @@ class MessagesNotifier extends _$MessagesNotifier {
 
     Logger.root.info('MessagesNotifier built for room $roomId');
 
-    _realtime.startListening();
+    if (allowRemoteSync) {
+      _realtime.startListening();
+    }
 
     e2eeStartSub = eventBus.on<MlsExternalJoinStartedEvent>().listen((event) {
       if (event.mlsGroupId != _mlsGroupId) return;
@@ -737,6 +744,9 @@ class MessagesNotifier extends _$MessagesNotifier {
   }
 
   Future<void> syncMessages() async {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      return;
+    }
     if (_isSyncing) {
       Logger.root.info('Sync already in progress, skipping.');
       return;
@@ -773,6 +783,9 @@ class MessagesNotifier extends _$MessagesNotifier {
     int take = 20,
     bool synced = false,
   }) async {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      return _getCachedMessages(offset: offset, take: take);
+    }
     final currentCount = _currentMessages.length;
     return _syncService.loadMore(
       currentCount: offset > 0 ? offset : currentCount,
@@ -784,16 +797,22 @@ class MessagesNotifier extends _$MessagesNotifier {
   Future<List<LocalChatMessage>> _loadInitialMessages({
     bool forceRemoteRefresh = true,
   }) async {
+    final allowRemoteSync =
+        isPrimaryDesktopWindow(ref) || !supportsDesktopMultiWindow;
+    final effectiveForceRemote =
+        allowRemoteSync && forceRemoteRefresh;
     _setGlobalSyncing(true);
     try {
       final initial = await _syncService.loadInitial(
-        forceRemote: forceRemoteRefresh,
+        forceRemote: effectiveForceRemote,
         filter: _activeFilter,
       );
-      final prefetched = await _syncService.eagerPrefetchIfNeeded(
-        initial,
-        filter: _activeFilter,
-      );
+      final prefetched = allowRemoteSync
+          ? await _syncService.eagerPrefetchIfNeeded(
+              initial,
+              filter: _activeFilter,
+            )
+          : initial;
       _allRemoteMessagesFetched = _syncService.allRemoteFetched;
       _lastApiFetchOffset = _syncService.lastApiOffset;
       _hasMore = !_allRemoteMessagesFetched;
@@ -815,6 +834,23 @@ class MessagesNotifier extends _$MessagesNotifier {
       task: () => _loadInitialImpl(forceRemoteRefresh: forceRemoteRefresh),
       logLabel: 'LoadInitial operation',
     );
+  }
+
+  Future<void> refreshFromLocalCache() async {
+    if (!ref.mounted) return;
+
+    final currentCount = _currentMessages.length;
+    final take = currentCount > _pageSize ? currentCount : _pageSize;
+    final refreshed = await _getCachedMessages(
+      offset: 0,
+      take: take,
+      searchQuery: _searchQuery,
+      withLinks: _withLinks,
+      withAttachments: _withAttachments,
+    );
+
+    if (!ref.mounted) return;
+    _emitMessages(refreshed);
   }
 
   Future<void> _loadInitialImpl({bool forceRemoteRefresh = true}) async {

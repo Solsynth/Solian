@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:logging/logging.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -443,6 +444,10 @@ class WebSocketStateNotifier extends Notifier<WebSocketState> {
   }
 
   Future<void> connect() async {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      state = const WebSocketState.disconnected();
+      return;
+    }
     final service = ref.read(websocketProvider);
     await service.connect(ref);
   }
@@ -459,6 +464,10 @@ class WebSocketStateNotifier extends Notifier<WebSocketState> {
   }
 
   void manualReconnect() {
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      state = const WebSocketState.disconnected();
+      return;
+    }
     final service = ref.read(websocketProvider);
     service.manualReconnect();
   }

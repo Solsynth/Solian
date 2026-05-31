@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/analytics_service.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/e2ee/mls_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -25,6 +26,33 @@ class UserInfoNotifier extends AsyncNotifier<SnAccount?> {
     if (token == null) {
       Logger.root.info('[UserInfo] No token found, not going to fetch...');
       return null;
+    }
+    if (!isPrimaryDesktopWindow(ref) && supportsDesktopMultiWindow) {
+      for (var attempt = 0; attempt < 10; attempt++) {
+        final rpcUser =
+            await invokePrimaryDesktopWindowRpc<Map<dynamic, dynamic>>(
+              desktopWindowGetCurrentUserMethod,
+            );
+        if (rpcUser != null) {
+          try {
+            return SnAccount.fromJson(
+              Map<String, dynamic>.from(
+                rpcUser.map(
+                  (key, value) => MapEntry(key.toString(), value),
+                ),
+              ),
+            );
+          } catch (error, stackTrace) {
+            Logger.root.warning(
+              '[UserInfo] Failed to parse current user from primary window',
+              error,
+              stackTrace,
+            );
+            break;
+          }
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
     }
     return _fetchUserWithRetry(showErrorDialog: false);
   }

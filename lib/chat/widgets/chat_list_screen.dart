@@ -24,6 +24,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/data/database.dart';
@@ -101,6 +102,76 @@ class _GroupedChatSections {
   final List<_CustomChatGroupSection> customGroups;
   final List<_RealmChatGroupSection> realmGroups;
   final List<SnChatRoom> ungroupedRooms;
+}
+
+void _openChatRoomEmbedded(BuildContext context, String roomId) {
+  if (isWideScreen(context)) {
+    context.router.navigate(ChatRoomRoute(id: roomId));
+  } else {
+    context.router.push(ChatRoomRoute(id: roomId));
+  }
+}
+
+Future<void> _openChatRoom(
+  BuildContext context,
+  String roomId, {
+  bool separateWindow = false,
+}) async {
+  if (separateWindow && supportsDesktopMultiWindow) {
+    await openChatRoomInSeparateWindow(roomId);
+    return;
+  }
+  _openChatRoomEmbedded(context, roomId);
+}
+
+List<MenuElement> _buildChatRoomMenuActions({
+  required BuildContext context,
+  required WidgetRef ref,
+  required SnChatRoom room,
+  required AppDatabase db,
+  required Dio client,
+  required List<SnChatGroup> chatGroups,
+  required Future<void> Function() onChatGroupsChanged,
+  required String? accountId,
+}) {
+  return [
+    MenuAction(
+      title: room.isPinned ? 'Unpin Room' : 'Pin Room',
+      image: MenuImage.icon(room.isPinned ? Symbols.keep_off : Symbols.keep),
+      callback: () async {
+        await db.toggleChatRoomPinned(room.id);
+        ref.invalidate(chatRoomJoinedProvider);
+        await onChatGroupsChanged();
+      },
+    ),
+    if (supportsDesktopMultiWindow)
+      MenuAction(
+        title: 'Open in Separate Window',
+        image: MenuImage.icon(Symbols.open_in_new),
+        callback: () async {
+          await _openChatRoom(context, room.id, separateWindow: true);
+        },
+      ),
+    if (accountId != null)
+      MenuAction(
+        title: 'Move To Group',
+        image: MenuImage.icon(Symbols.folder_open),
+        callback: () async {
+          final changedGroup = await _showAssignChatGroupSheet(
+            context,
+            client: client,
+            db: db,
+            accountId: accountId,
+            room: room,
+            groups: chatGroups,
+          );
+          if (changedGroup) {
+            ref.invalidate(chatRoomJoinedProvider);
+            await onChatGroupsChanged();
+          }
+        },
+      ),
+  ];
 }
 
 const List<String> _chatGroupColorOptions = <String>[
@@ -240,38 +311,16 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
     return ContextMenuWidget(
       menuProvider: (_) {
         return Menu(
-          children: [
-            MenuAction(
-              title: room.isPinned ? 'Unpin Room' : 'Pin Room',
-              image: MenuImage.icon(
-                room.isPinned ? Symbols.keep_off : Symbols.keep,
-              ),
-              callback: () async {
-                await db.toggleChatRoomPinned(room.id);
-                ref.invalidate(chatRoomJoinedProvider);
-                await onChatGroupsChanged();
-              },
-            ),
-            if (accountId != null)
-              MenuAction(
-                title: 'Move To Group',
-                image: MenuImage.icon(Symbols.folder_open),
-                callback: () async {
-                  final changedGroup = await _showAssignChatGroupSheet(
-                    context,
-                    client: client,
-                    db: db,
-                    accountId: accountId!,
-                    room: room,
-                    groups: chatGroups,
-                  );
-                  if (changedGroup) {
-                    ref.invalidate(chatRoomJoinedProvider);
-                    await onChatGroupsChanged();
-                  }
-                },
-              ),
-          ],
+          children: _buildChatRoomMenuActions(
+            context: context,
+            ref: ref,
+            room: room,
+            db: db,
+            client: client,
+            chatGroups: chatGroups,
+            onChatGroupsChanged: onChatGroupsChanged,
+            accountId: accountId,
+          ),
         );
       },
       child: GestureDetector(
@@ -453,38 +502,16 @@ class ChatListBodyWidget extends HookConsumerWidget {
       return ContextMenuWidget(
         menuProvider: (_) {
           return Menu(
-            children: [
-              MenuAction(
-                title: room.isPinned ? 'Unpin Room' : 'Pin Room',
-                image: MenuImage.icon(
-                  room.isPinned ? Symbols.keep_off : Symbols.keep,
-                ),
-                callback: () async {
-                  await db.toggleChatRoomPinned(room.id);
-                  ref.invalidate(chatRoomJoinedProvider);
-                  await onChatGroupsChanged();
-                },
-              ),
-              if (accountId != null)
-                MenuAction(
-                  title: 'Move To Group',
-                  image: MenuImage.icon(Symbols.folder_open),
-                  callback: () async {
-                    final changedGroup = await _showAssignChatGroupSheet(
-                      context,
-                      client: client,
-                      db: db,
-                      accountId: accountId!,
-                      room: room,
-                      groups: chatGroups,
-                    );
-                    if (changedGroup) {
-                      ref.invalidate(chatRoomJoinedProvider);
-                      await onChatGroupsChanged();
-                    }
-                  },
-                ),
-            ],
+            children: _buildChatRoomMenuActions(
+              context: context,
+              ref: ref,
+              room: room,
+              db: db,
+              client: client,
+              chatGroups: chatGroups,
+              onChatGroupsChanged: onChatGroupsChanged,
+              accountId: accountId,
+            ),
           );
         },
         child: ChatRoomListTile(
@@ -498,11 +525,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                   ?.isPushNotificationsSuppressed(room.id) ??
               false,
           onTap: () {
-            if (isWideScreen(context)) {
-              context.router.navigate(ChatRoomRoute(id: room.id));
-            } else {
-              context.router.push(ChatRoomRoute(id: room.id));
-            }
+            _openChatRoom(context, room.id);
           },
         ),
       );
@@ -650,15 +673,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                   isActive: activeChatId == room.id,
                                   isDirect: room.type == 1,
                                   onTap: () {
-                                    if (isWideScreen(context)) {
-                                      context.router.navigate(
-                                        ChatRoomRoute(id: room.id),
-                                      );
-                                    } else {
-                                      context.router.push(
-                                        ChatRoomRoute(id: room.id),
-                                      );
-                                    }
+                                    _openChatRoom(context, room.id);
                                   },
                                   chatGroups: chatGroups,
                                   onChatGroupsChanged: onChatGroupsChanged,
@@ -1654,12 +1669,8 @@ class _CollapsedChatListBody extends HookConsumerWidget {
     final db = ref.watch(databaseProvider);
     final client = ref.watch(apiClientProvider);
 
-    void openRoom(String roomId) {
-      if (isWideScreen(context)) {
-        context.router.navigate(ChatRoomRoute(id: roomId));
-      } else {
-        context.router.push(ChatRoomRoute(id: roomId));
-      }
+    void openRoom(String roomId, {bool separateWindow = false}) {
+      _openChatRoom(context, roomId, separateWindow: separateWindow);
     }
 
     List<SnChatMember> getValidMembers(SnChatRoom room) {
@@ -1755,38 +1766,16 @@ class _CollapsedChatListBody extends HookConsumerWidget {
             child: ContextMenuWidget(
               menuProvider: (_) {
                 return Menu(
-                  children: [
-                    MenuAction(
-                      title: room.isPinned ? 'Unpin Room' : 'Pin Room',
-                      image: MenuImage.icon(
-                        room.isPinned ? Symbols.keep_off : Symbols.keep,
-                      ),
-                      callback: () async {
-                        await db.toggleChatRoomPinned(room.id);
-                        ref.invalidate(chatRoomJoinedProvider);
-                        await onChatGroupsChanged();
-                      },
-                    ),
-                    if (accountId != null)
-                      MenuAction(
-                        title: 'Move To Group',
-                        image: MenuImage.icon(Symbols.folder_open),
-                        callback: () async {
-                          final changedGroup = await _showAssignChatGroupSheet(
-                            context,
-                            client: client,
-                            db: db,
-                            accountId: accountId!,
-                            room: room,
-                            groups: chatGroups,
-                          );
-                          if (changedGroup) {
-                            ref.invalidate(chatRoomJoinedProvider);
-                            await onChatGroupsChanged();
-                          }
-                        },
-                      ),
-                  ],
+                  children: _buildChatRoomMenuActions(
+                    context: context,
+                    ref: ref,
+                    room: room,
+                    db: db,
+                    client: client,
+                    chatGroups: chatGroups,
+                    onChatGroupsChanged: onChatGroupsChanged,
+                    accountId: accountId,
+                  ),
                 );
               },
               child: IconButton(

@@ -28,11 +28,13 @@ import 'package:island/chat/messages_notifier.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/lifecycle.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/desktop_chat_window.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island/core/services/analytics_service.dart';
 import 'package:island/data/message.dart';
 import 'package:island/drive/drive_service.dart';
+import 'package:island/accounts/relationship_pod.dart';
 import 'package:island/route.gr.dart';
 
 import 'package:island/shared/widgets/alert.dart';
@@ -45,6 +47,7 @@ import 'package:island/thoughts/screens/think_sheet.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
+import 'package:window_manager/window_manager.dart';
 
 @RoutePage()
 class ChatRoomScreen extends HookConsumerWidget {
@@ -57,6 +60,56 @@ class ChatRoomScreen extends HookConsumerWidget {
     final chatIdentity = ref.watch(chatRoomIdentityProvider(id));
     final onlineCount = ref.watch(chatOnlineCountProvider(id));
     final settings = ref.watch(appSettingsProvider);
+    final isDedicatedChatWindow =
+        supportsDesktopMultiWindow &&
+        !ref.read(desktopWindowLaunchDetailsProvider).isPrimary;
+
+    String resolveWindowTitle(SnChatRoom room) {
+      if (room.type == 1 && (room.name == null || room.name!.isEmpty)) {
+        final currentUserId = chatIdentity.value?.accountId;
+        final validMembers = (room.members ?? const <SnChatMember>[])
+            .where((member) => member.accountId != currentUserId)
+            .toList();
+        final names = <String>[];
+        for (final member in validMembers) {
+          final aliasAsync = ref.watch(
+            relationshipAliasProvider(member.accountId),
+          );
+          final alias = aliasAsync.hasValue ? aliasAsync.value : null;
+          names.add(
+            (alias != null && alias.isNotEmpty) ? alias : member.account.nick,
+          );
+        }
+        if (names.isNotEmpty) {
+          return names.join(', ');
+        }
+      }
+      return room.name?.trim().isNotEmpty == true
+          ? room.name!.trim()
+          : 'Chat';
+    }
+
+    useEffect(() {
+      if (!isDedicatedChatWindow) return null;
+      final room = chatRoom.value;
+      if (room == null) return null;
+      final title = resolveWindowTitle(room);
+      Future<void>(() async {
+        await windowManager.setTitle('Solar Network • $title');
+      });
+      return null;
+    }, [isDedicatedChatWindow, chatRoom.value, chatIdentity.value]);
+
+    Widget buildLeading() {
+      if (!isDedicatedChatWindow) return const AutoLeadingButton();
+      return IconButton(
+        icon: const Icon(Symbols.close),
+        tooltip: 'Close',
+        onPressed: () async {
+          await windowManager.destroy();
+        },
+      );
+    }
 
     // Universal chat room state - manages all UI state for this room
     final chatState = ref.watch(chatRoomStateProvider(id));
@@ -79,7 +132,7 @@ class ChatRoomScreen extends HookConsumerWidget {
 
     if (chatIdentity.isLoading || chatRoom.isLoading) {
       return AppScaffold(
-        appBar: AppBar(leading: const AutoLeadingButton()),
+        appBar: AppBar(leading: buildLeading()),
         body: Center(
           child: ConfuseSpinner(
             size: 40,
@@ -93,11 +146,23 @@ class ChatRoomScreen extends HookConsumerWidget {
     } else if (chatIdentity.value == null) {
       return chatRoom.when(
         data: (room) {
-          if (room!.isPublic) {
+          if (room == null) {
+            return AppScaffold(
+              appBar: AppBar(leading: buildLeading()),
+              body: ResponseErrorWidget(
+                error: 'Chat room is not available yet.',
+                onRetry: () {
+                  ref.invalidate(chatRoomProvider(id));
+                  ref.invalidate(chatRoomIdentityProvider(id));
+                },
+              ),
+            );
+          }
+          if (room.isPublic) {
             return PublicRoomPreview(id: id, room: room);
           } else {
             return AppScaffold(
-              appBar: AppBar(leading: const AutoLeadingButton()),
+              appBar: AppBar(leading: buildLeading()),
               body: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 280),
@@ -147,7 +212,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           }
         },
         loading: () => AppScaffold(
-          appBar: AppBar(leading: const AutoLeadingButton()),
+          appBar: AppBar(leading: buildLeading()),
           body: Center(
             child: ConfuseSpinner(
               size: 40,
@@ -159,7 +224,7 @@ class ChatRoomScreen extends HookConsumerWidget {
           ),
         ),
         error: (error, _) => AppScaffold(
-          appBar: AppBar(leading: const AutoLeadingButton()),
+          appBar: AppBar(leading: buildLeading()),
           body: ResponseErrorWidget(
             error: error,
             onRetry: () => ref.refresh(chatRoomProvider(id)),
@@ -732,7 +797,7 @@ class ChatRoomScreen extends HookConsumerWidget {
       children: [
         AppScaffold(
           appBar: AppBar(
-            leading: const AutoLeadingButton(),
+            leading: buildLeading(),
             automaticallyImplyLeading: false,
             title: chatRoom.when(
               data: (room) =>
