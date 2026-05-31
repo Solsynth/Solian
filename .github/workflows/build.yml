@@ -90,6 +90,29 @@ jobs:
         with:
           name: build-output-linux-appimage
           path: "./*.AppImage*"
+  build-flatpak:
+    needs: [build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-output-linux
+          path: build/linux/x64/release/bundle
+      - name: Install Flatpak
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y flatpak
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y --noninteractive flathub org.freedesktop.Platform//24.08
+          flatpak install -y --noninteractive flathub org.freedesktop.Sdk//24.08
+      - name: Build Flatpak
+        run: bash buildtools/flatpak/build-flatpak.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-output-linux-flatpak
+          path: buildtools/flatpak/repo/
+
   upload-to-s3:
     needs: [build-exe, build-linux]
     if: always()
