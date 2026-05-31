@@ -7,23 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-web:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v4
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - run: flutter pub get
-      - run: flutter build web --release --dart-define=SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output-web
-          path: build/web
   build-exe:
     runs-on: windows-latest
     steps:
