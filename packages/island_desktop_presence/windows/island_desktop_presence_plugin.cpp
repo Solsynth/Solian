@@ -24,6 +24,7 @@ using namespace winrt;
 using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Media::Control;
 using namespace winrt::Windows::Security::Cryptography;
+using namespace winrt::Windows::Security::Cryptography::Core;
 using namespace winrt::Windows::Storage::Streams;
 using namespace winrt::Windows::Web::Http;
 using namespace winrt::Windows::Web::Http::Headers;
@@ -761,7 +762,7 @@ bool IslandDesktopPresencePlugin::UploadArtwork(
   }
 
   try {
-    auto image_buffer = CryptographyBuffer::DecodeFromBase64String(
+    auto image_buffer = CryptographicBuffer::DecodeFromBase64String(
         winrt::to_hstring(artwork_data));
 
     HttpClient client;
@@ -786,12 +787,16 @@ bool IslandDesktopPresencePlugin::UploadArtwork(
 std::optional<std::string> IslandDesktopPresencePlugin::ComputeArtworkHash(
     const std::vector<uint8_t>& image_bytes) {
   try {
-    auto algorithm = Cryptography::Core::HashAlgorithmProvider::OpenAlgorithm(
-        Cryptography::Core::HashAlgorithmNames::Sha256());
-    auto buffer = CryptographyBuffer::CreateFromByteArray(image_bytes);
+    auto algorithm = HashAlgorithmProvider::OpenAlgorithm(
+        HashAlgorithmNames::Sha256());
+    auto buffer = CryptographicBuffer::CreateFromByteArray(image_bytes);
     auto hash_buffer = algorithm.HashData(buffer);
-    auto hash_bytes = CryptographyBuffer::CopyToByteArray(hash_buffer);
-    return ToHex(hash_bytes.data(), hash_bytes.size());
+    auto hash_bytes = CryptographicBuffer::CopyToByteArray(hash_buffer);
+    std::vector<uint8_t> hash_vec;
+    for (auto b : hash_bytes) {
+      hash_vec.push_back(b);
+    }
+    return ToHex(hash_vec.data(), hash_vec.size());
   } catch (...) {
     return std::nullopt;
   }
@@ -817,8 +822,8 @@ IslandDesktopPresencePlugin::ReadStreamBytes(
 
 std::string IslandDesktopPresencePlugin::BytesToBase64(
     const std::vector<uint8_t>& bytes) {
-  auto buffer = CryptographyBuffer::CreateFromByteArray(bytes);
-  return winrt::to_string(CryptographyBuffer::EncodeToBase64String(buffer));
+  auto buffer = CryptographicBuffer::CreateFromByteArray(bytes);
+  return winrt::to_string(CryptographicBuffer::EncodeToBase64String(buffer));
 }
 
 std::string IslandDesktopPresencePlugin::ToUtf8(const winrt::hstring& value) {
