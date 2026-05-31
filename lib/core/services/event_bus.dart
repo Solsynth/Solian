@@ -41,6 +41,11 @@ class ChatRoomsRefreshEvent {
   const ChatRoomsRefreshEvent();
 }
 
+/// Event fired when chat groups need to be refreshed.
+class ChatGroupsRefreshEvent {
+  const ChatGroupsRefreshEvent();
+}
+
 /// Event fired when global chat message sync completes.
 class ChatMessagesSyncedEvent {
   final Set<String> roomIds;
