@@ -1194,6 +1194,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
             )
             .toList();
         await db.saveChatGroups(userInfo.value!.id, groups);
+        eventBus.fire(const ChatGroupsRefreshEvent());
       }
       ref
           .read(chatSummaryProvider.notifier)
