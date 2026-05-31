@@ -5,9 +5,20 @@ on:
     tags:
       - "*"
   workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - windows
+          - linux
 
 jobs:
   build-exe:
+    if: github.event_name == 'push' || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'windows'
     runs-on: windows-latest
     steps:
       - name: Clone repository
@@ -45,6 +56,7 @@ jobs:
           name: build-output-windows-installer
           path: Installer/windows-x86_64-setup.exe
   build-linux:
+    if: github.event_name == 'push' || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'linux'
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
@@ -80,27 +92,33 @@ jobs:
           path: "./*.AppImage*"
   upload-to-s3:
     needs: [build-exe, build-linux]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Download Windows installer artifact
+      - if: needs.build-exe.result == 'success'
+        name: Download Windows installer artifact
         uses: actions/download-artifact@v4
         with:
           name: build-output-windows-installer
           path: ./artifacts/windows
-      - name: Download AppImage artifact
+      - if: needs.build-linux.result == 'success'
+        name: Download AppImage artifact
         uses: actions/download-artifact@v4
         with:
           name: build-output-linux-appimage
           path: ./artifacts/linux
-      - name: Zip Windows installer
+      - if: needs.build-exe.result == 'success'
+        name: Zip Windows installer
         run: |
           cd ./artifacts/windows
           zip -r ../build-output-windows-installer.zip .
-      - name: Zip Linux AppImage
+      - if: needs.build-linux.result == 'success'
+        name: Zip Linux AppImage
         run: |
           cd ./artifacts/linux
           zip -r ../build-output-linux-appimage.zip .
-      - name: Upload Windows to R2
+      - if: needs.build-exe.result == 'success'
+        name: Upload Windows to R2
         uses: ryand56/r2-upload-action@latest
         with:
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
@@ -109,7 +127,8 @@ jobs:
           r2-bucket: ${{ secrets.S3_BUCKET_NAME }}
           source-dir: ./artifacts/build-output-windows-installer.zip
           destination-dir: solian
-      - name: Upload Linux to R2
+      - if: needs.build-linux.result == 'success'
+        name: Upload Linux to R2
         uses: ryand56/r2-upload-action@latest
         with:
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
