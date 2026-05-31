@@ -53,10 +53,15 @@ const kOnboardingLastShownVersion = 'app_onboarding_last_shown_version';
 final appWrapperKey = GlobalKey();
 
 class ForcedStartupSplashNotifier extends Notifier<bool> {
+  bool _showAfterDone = false;
+  
+  bool get showAfterDone => _showAfterDone;
+
   @override
   bool build() => kForceShowStartupSplashForTesting;
 
-  void setVisible(bool value) {
+  void setVisible(bool value, {bool afterDone = false}) {
+    _showAfterDone = afterDone;
     state = value;
   }
 }
@@ -421,6 +426,7 @@ class AppWrapper extends HookConsumerWidget {
                   key: ValueKey('bootstrap_splash'),
                    child: StartupSplashScreen(
                      runBootstrap: shouldRunBootstrap,
+                     showCompleted: ref.read(forcedStartupSplashProvider.notifier).showAfterDone,
                      onCompleted: () {
                        ref
                            .read(forcedStartupSplashProvider.notifier)

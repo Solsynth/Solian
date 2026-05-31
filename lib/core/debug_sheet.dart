@@ -599,6 +599,13 @@ class _DraggableDebugPanelState extends ConsumerState<_DraggableDebugPanel>
             ref.read(forcedStartupSplashProvider.notifier).setVisible(false);
           },
         ),
+        _DebugItem(
+          icon: Symbols.check_circle,
+          title: 'Show startup splash (after done)',
+          onTap: () {
+            ref.read(forcedStartupSplashProvider.notifier).setVisible(true, afterDone: true);
+          },
+        ),
         _Divider(),
         _DebugItem(
           icon: Symbols.wifi,
@@ -1206,6 +1213,16 @@ class DebugSheet extends HookConsumerWidget {
                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                onTap: () {
                  ref.read(forcedStartupSplashProvider.notifier).setVisible(false);
+               },
+             ),
+             ListTile(
+               minTileHeight: 48,
+               leading: const Icon(Symbols.check_circle),
+               trailing: const Icon(Symbols.chevron_right),
+               title: const Text('Show startup splash (after done)'),
+               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+               onTap: () {
+                 ref.read(forcedStartupSplashProvider.notifier).setVisible(true, afterDone: true);
                },
              ),
              const Divider(height: 8),
