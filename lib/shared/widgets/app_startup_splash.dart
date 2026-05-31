@@ -285,11 +285,41 @@ class StartupSplashScreen extends HookConsumerWidget {
                 right: 0,
                 bottom: 0,
                 top: 0,
-                child: Center(
-                  child: StartupProgressBar(
-                    progress: progress,
-                    isErrored: isErrored.value,
-                    colorScheme: colorScheme,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: isBusy.value
+                              ? Text(
+                                  '$percentage%',
+                                  key: ValueKey(percentage),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.primary,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                )
+                              : const SizedBox(
+                                  key: ValueKey('idle-progress-label'),
+                                  height: 18,
+                                ),
+                        ),
+                        const SizedBox(height: 8),
+                        StartupProgressBar(
+                          progress: progress,
+                          isErrored: isErrored.value,
+                          colorScheme: colorScheme,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -298,7 +328,6 @@ class StartupSplashScreen extends HookConsumerWidget {
                 children: [
                   const Spacer(flex: 3),
                   StartupProgressIcon(
-                    percentage: percentage,
                     isBusy: isBusy.value,
                     isErrored: isErrored.value,
                     isDismissable: isDismissable.value,
