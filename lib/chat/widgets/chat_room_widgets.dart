@@ -183,11 +183,12 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                                 // Redirect message preview
                                 if (lastMessage.meta['redirect'] is Map) {
                                   try {
-                                    final redirectData = SnRedirectData.fromJson(
-                                      Map<String, dynamic>.from(
-                                        lastMessage.meta['redirect'] as Map,
-                                      ),
-                                    );
+                                    final redirectData =
+                                        SnRedirectData.fromJson(
+                                          Map<String, dynamic>.from(
+                                            lastMessage.meta['redirect'] as Map,
+                                          ),
+                                        );
                                     return Text(
                                       'chatRedirectedHistoryFrom'.tr(
                                         args: [redirectData.sourceRoomName],
@@ -245,7 +246,8 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                                       '$baseUrl/sphere/stickers/lookup/$stickerPlaceholder/open';
                                   return Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       UniversalImage(
                                         uri: stickerUri,
@@ -309,8 +311,7 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                                     ? 'Unable to decrypt message'
                                     : resolved.emptyAfterDecrypt
                                     ? 'Encrypted message'
-                                    : reactionPreview() ??
-                                          'No message preview';
+                                    : reactionPreview() ?? 'No message preview';
 
                                 if (!hasText) {
                                   return buildHint(preview);
@@ -334,10 +335,9 @@ class ChatRoomSubtitle extends HookConsumerWidget {
                               child: Icon(
                                 Icons.alternate_email,
                                 size: 14,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withOpacity(0.9),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.9),
                               ),
                             ),
                           Align(
