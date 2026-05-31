@@ -52,3 +52,6 @@ Solian.AppDir
 buildtools/sentry.env
 buildtools/.env
 .env
+
+# Development certificate
+devcert.pfx
