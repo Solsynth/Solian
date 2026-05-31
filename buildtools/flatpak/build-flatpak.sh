@@ -108,7 +108,48 @@ flatpak build "$BUILDDIR" bash << 'SCRIPT'
   cat "$COPY_LOG" >&2
 SCRIPT
 
-# ── Step 4: Finalize the build ──────────────────────────────────
+# ── Step 4: Fix absolute DT_NEEDED paths in bundled libs ────────
+echo "=== Fixing library paths ==="
+if ! command -v patchelf &>/dev/null; then
+  if [ -f /tmp/patchelf ]; then
+    PATCHELF=/tmp/patchelf
+  else
+    echo "  Downloading patchelf..."
+    curl -fsSL "https://github.com/NixOS/patchelf/releases/download/0.18.0/patchelf-0.18.0-x86_64.tar.gz" \
+      -o /tmp/patchelf.tar.gz
+    (mkdir -p /tmp/patchelf_extract && \
+     tar xzf /tmp/patchelf.tar.gz -C /tmp/patchelf_extract 2>/dev/null) || true
+    PATCHELF=$(find /tmp/patchelf_extract /tmp -name patchelf -type f 2>/dev/null | head -1)
+    if [ -z "$PATCHELF" ]; then
+      echo "  WARNING: could not get patchelf. Skipping path fixes."
+      PATCHELF=""
+    fi
+  fi
+else
+  PATCHELF=$(command -v patchelf)
+fi
+
+if [ -n "${PATCHELF:-}" ]; then
+  cp "$PATCHELF" "$BUILDDIR/patchelf"
+  flatpak build "$BUILDDIR" bash << 'SCRIPT'
+    shopt -s nullglob
+    PATCH="$(ls /patchelf 2>/dev/null || echo "")"
+    [ -z "$PATCH" ] && exit 0
+    for f in /app/lib/*.so; do
+      [ -f "$f" ] || continue
+      # Fix absolute DT_NEEDED paths (e.g. /usr/lib/libfoo.so -> libfoo.so)
+      readelf -d "$f" 2>/dev/null | grep "NEEDED" | grep "/" | while IFS= read -r line; do
+        old=$(echo "$line" | sed 's/.*\[\(.*\)\]/\1/')
+        new=$(basename "$old")
+        echo "  $f: $old -> $new" >&2
+        "$PATCH" --replace-needed "$old" "$new" "$f" 2>/dev/null || true
+      done
+    done
+SCRIPT
+  rm -f "$BUILDDIR/patchelf"
+fi
+
+# ── Step 5: Finalize the build ──────────────────────────────────
 echo "=== Finalizing ==="
 flatpak build-finish \
   "$BUILDDIR" \
@@ -120,7 +161,7 @@ flatpak build-finish \
   --share=ipc \
   --env=LD_LIBRARY_PATH=/app/lib
 
-# ── Step 5: Export to repository ────────────────────────────────
+# ── Step 6: Export to repository ────────────────────────────────
 echo "=== Exporting to repository ==="
 flatpak build-export \
   --no-update-summary \
@@ -128,7 +169,7 @@ flatpak build-export \
   "$BUILDDIR" \
   "$BRANCH"
 
-# ── Step 6: Install locally ────────────────────────────────────
+# ── Step 7: Install locally ────────────────────────────────────
 echo "=== Installing locally ==="
 flatpak --user install -y --noninteractive "$REPO" "$APP_ID" "$BRANCH" 2>/dev/null && true
 
