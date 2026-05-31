@@ -204,6 +204,7 @@ dev_dependencies:
   objectbox_generator: ^5.3.2
   flutter_launcher_icons: ^0.14.4
   auto_route_generator: ^10.4.0
+  msix: ^3.16.13
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -278,3 +279,18 @@ flutter_native_splash:
   image_dark: "assets/icons/icon-dark.png"
   color: "#ffffff"
   color_dark: "#121212"
+
+msix_config:
+  display_name: Solian
+  publisher_display_name: Solsynth
+  publisher: CN=8B500F48-CBAA-4C83-83B2-7BB79FE401EE
+  identity_name: LittleSheep.Solian
+  msix_version: 0.0.0.0
+  logo_path: buildtools\icon-padded.png
+  output_directory: build\msix
+  trim_logo: true
+  protocol_activation: solian
+  execution_alias: solian
+  capabilities: "internetClient, location, microphone, webcam"
+  languages: en-US
+  store: true
