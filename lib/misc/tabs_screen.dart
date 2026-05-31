@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -278,14 +279,12 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
     final bottomNavCurrentIndex = selectedBottomNavIndex >= 0
         ? selectedBottomNavIndex
         : 0;
-    final isDrawerEnabled = kIsWeb ||
+    final isDrawerEnabled =
+        kIsWeb ||
         defaultTargetPlatform == TargetPlatform.macOS ||
         defaultTargetPlatform == TargetPlatform.windows ||
         defaultTargetPlatform == TargetPlatform.linux ||
-        shouldShowBottomNavForCurrentPath(
-          context,
-          routes: rootTabRoutes,
-        );
+        shouldShowBottomNavForCurrentPath(context, routes: rootTabRoutes);
 
     void onDestinationSelected(int index) {
       tabsRouter.setActiveIndex(index);
