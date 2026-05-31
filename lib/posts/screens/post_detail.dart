@@ -1366,11 +1366,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
 
     Widget buildMenuItem({required String label, required IconData icon}) {
       return Row(
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 12),
-          Text(label),
-        ],
+        children: [Icon(icon), const SizedBox(width: 12), Text(label)],
       );
     }
 
@@ -2153,7 +2149,7 @@ class PostDetailScreen extends HookConsumerWidget {
           ];
 
           final trailing = PopupMenuButton<String>(
-            icon: const Icon(Symbols.more_horiz, size: 18),
+      icon: const Icon(Symbols.more_horiz),
             style: ButtonStyle(
               visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
               padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
