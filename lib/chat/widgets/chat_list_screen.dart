@@ -36,6 +36,7 @@ import 'package:island/shared/widgets/response.dart';
 import 'package:logging/logging.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:super_context_menu/super_context_menu.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -225,6 +226,14 @@ _GroupedChatSections _buildGroupedChatSections(
   );
 }
 
+final chatGroupsProvider = FutureProvider<List<SnChatGroup>>((ref) async {
+  final db = ref.watch(databaseProvider);
+  final userInfo = ref.watch(userInfoProvider);
+  final accountId = userInfo.value?.id;
+  if (accountId == null) return const <SnChatGroup>[];
+  return db.getChatGroups(accountId);
+});
+
 class ChatListBodyWidget extends HookConsumerWidget {
   final bool isFloating;
   final TabController tabController;
@@ -257,42 +266,62 @@ class ChatListBodyWidget extends HookConsumerWidget {
     final db = ref.watch(databaseProvider);
     final client = ref.watch(apiClientProvider);
 
-    Future<void> showRoomActions(SnChatRoom room) async {
-      final currentAccountId = accountId;
-      final changed = await _showChatRoomActionsSheet(
-        context,
-        client: client,
-        db: db,
-        accountId: currentAccountId,
-        room: room,
-        groups: chatGroups,
-      );
-      if (changed) {
-        ref.invalidate(chatRoomJoinedProvider);
-        await onChatGroupsChanged();
-      }
-    }
-
     Widget buildRoomTile(SnChatRoom room) {
-      return ChatRoomListTile(
-        room: room,
-        isDirect: room.type == 1,
-        selected: activeChatId == room.id,
-        pushNotificationsSuppressed:
-            accountStatus
-                .whenData((data) => data)
-                .value
-                ?.isPushNotificationsSuppressed(room.id) ??
-            false,
-        onLongPress: () => showRoomActions(room),
-        onSecondaryTapDown: (_) => showRoomActions(room),
-        onTap: () {
-          if (isWideScreen(context)) {
-            context.router.navigate(ChatRoomRoute(id: room.id));
-          } else {
-            context.router.push(ChatRoomRoute(id: room.id));
-          }
+      return ContextMenuWidget(
+        menuProvider: (_) {
+          return Menu(
+            children: [
+              MenuAction(
+                title: room.isPinned ? 'Unpin Room' : 'Pin Room',
+                image: MenuImage.icon(
+                  room.isPinned ? Symbols.keep_off : Symbols.keep,
+                ),
+                callback: () async {
+                  await db.toggleChatRoomPinned(room.id);
+                  ref.invalidate(chatRoomJoinedProvider);
+                  await onChatGroupsChanged();
+                },
+              ),
+              if (accountId != null)
+                MenuAction(
+                  title: 'Move To Group',
+                  image: MenuImage.icon(Symbols.folder_open),
+                  callback: () async {
+                    final changedGroup = await _showAssignChatGroupSheet(
+                      context,
+                      client: client,
+                      db: db,
+                      accountId: accountId!,
+                      room: room,
+                      groups: chatGroups,
+                    );
+                    if (changedGroup) {
+                      ref.invalidate(chatRoomJoinedProvider);
+                      await onChatGroupsChanged();
+                    }
+                  },
+                ),
+            ],
+          );
         },
+        child: ChatRoomListTile(
+          room: room,
+          isDirect: room.type == 1,
+          selected: activeChatId == room.id,
+          pushNotificationsSuppressed:
+              accountStatus
+                  .whenData((data) => data)
+                  .value
+                  ?.isPushNotificationsSuppressed(room.id) ??
+              false,
+          onTap: () {
+            if (isWideScreen(context)) {
+              context.router.navigate(ChatRoomRoute(id: room.id));
+            } else {
+              context.router.push(ChatRoomRoute(id: room.id));
+            }
+          },
+        ),
       );
     }
 
@@ -1262,16 +1291,16 @@ Future<bool> _showAssignChatGroupSheet(
     isScrollControlled: true,
     builder: (context) {
       return SheetScaffold(
+        heightFactor: 0.6,
         titleText: 'Move To Group',
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: EdgeInsets.zero,
           children: [
             ListTile(
-              title: Text(room.name ?? 'Chat room'),
-              subtitle: const Text('Choose where this room should live'),
-            ),
-            ListTile(
-              leading: const Icon(Symbols.do_not_disturb_on),
+              leading: CircleAvatar(
+                radius: 16,
+                child: const Icon(Symbols.do_not_disturb_on),
+              ),
               title: const Text('Ungrouped'),
               trailing: currentGroup == null ? const Icon(Icons.check) : null,
               onTap: () async {
@@ -1291,6 +1320,7 @@ Future<bool> _showAssignChatGroupSheet(
             for (final group in _normalizeChatGroups(groups))
               ListTile(
                 leading: CircleAvatar(
+                  radius: 16,
                   backgroundColor:
                       (_chatGroupColorFromHex(group.color) ??
                               Theme.of(context).colorScheme.primary)
@@ -1328,7 +1358,7 @@ Future<bool> _showAssignChatGroupSheet(
                 },
               ),
             ListTile(
-              leading: const Icon(Symbols.add),
+              leading: CircleAvatar(radius: 16, child: const Icon(Symbols.add)),
               title: const Text('Create New Group'),
               onTap: () async {
                 final created = await _showChatGroupEditorSheet(
@@ -1366,75 +1396,6 @@ Future<bool> _showAssignChatGroupSheet(
                 Navigator.of(context).pop();
               },
             ),
-          ],
-        ),
-      );
-    },
-  );
-  return changed;
-}
-
-Future<bool> _showChatRoomActionsSheet(
-  BuildContext context, {
-  required Dio client,
-  required AppDatabase db,
-  required String? accountId,
-  required SnChatRoom room,
-  required List<SnChatGroup> groups,
-}) async {
-  var changed = false;
-  await showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    builder: (sheetContext) {
-      return SheetScaffold(
-        titleText: room.name ?? 'Chat Room',
-        child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          children: [
-            ListTile(
-              leading: Icon(room.isPinned ? Symbols.keep_off : Symbols.keep),
-              title: Text(room.isPinned ? 'Unpin Room' : 'Pin Room'),
-              onTap: () async {
-                await db.toggleChatRoomPinned(room.id);
-                changed = true;
-                if (!sheetContext.mounted) return;
-                Navigator.of(sheetContext).pop();
-              },
-            ),
-            if (accountId != null)
-              ListTile(
-                leading: const Icon(Symbols.folder_open),
-                title: const Text('Move To Group'),
-                subtitle: Text(
-                  groups
-                      .firstWhere(
-                        (group) => group.roomIds.contains(room.id),
-                        orElse: () => SnChatGroup(
-                          id: '',
-                          accountId: accountId,
-                          name: 'Ungrouped',
-                          order: 0,
-                          createdAt: DateTime.fromMillisecondsSinceEpoch(0),
-                          updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
-                        ),
-                      )
-                      .name,
-                ),
-                onTap: () async {
-                  Navigator.of(sheetContext).pop();
-                  final changedGroup = await _showAssignChatGroupSheet(
-                    context,
-                    client: client,
-                    db: db,
-                    accountId: accountId,
-                    room: room,
-                    groups: groups,
-                  );
-                  if (changedGroup) changed = true;
-                },
-              ),
           ],
         ),
       );
@@ -1547,21 +1508,6 @@ class _CollapsedChatListBody extends HookConsumerWidget {
       );
     }
 
-    Future<void> showRoomActions(SnChatRoom room) async {
-      final changed = await _showChatRoomActionsSheet(
-        context,
-        client: client,
-        db: db,
-        accountId: accountId,
-        room: room,
-        groups: chatGroups,
-      );
-      if (changed) {
-        ref.invalidate(chatRoomJoinedProvider);
-        await onChatGroupsChanged();
-      }
-    }
-
     return chats.when(
       data: (items) {
         final selectedTabValue = selectedTab.value;
@@ -1582,10 +1528,43 @@ class _CollapsedChatListBody extends HookConsumerWidget {
           final title = getRoomTitle(room, validMembers);
           return withSelectedDot(
             isSelected: activeChatId == room.id,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onLongPress: () => showRoomActions(room),
-              onSecondaryTapDown: (_) => showRoomActions(room),
+            child: ContextMenuWidget(
+              menuProvider: (_) {
+                return Menu(
+                  children: [
+                    MenuAction(
+                      title: room.isPinned ? 'Unpin Room' : 'Pin Room',
+                      image: MenuImage.icon(
+                        room.isPinned ? Symbols.keep_off : Symbols.keep,
+                      ),
+                      callback: () async {
+                        await db.toggleChatRoomPinned(room.id);
+                        ref.invalidate(chatRoomJoinedProvider);
+                        await onChatGroupsChanged();
+                      },
+                    ),
+                    if (accountId != null)
+                      MenuAction(
+                        title: 'Move To Group',
+                        image: MenuImage.icon(Symbols.folder_open),
+                        callback: () async {
+                          final changedGroup = await _showAssignChatGroupSheet(
+                            context,
+                            client: client,
+                            db: db,
+                            accountId: accountId!,
+                            room: room,
+                            groups: chatGroups,
+                          );
+                          if (changedGroup) {
+                            ref.invalidate(chatRoomJoinedProvider);
+                            await onChatGroupsChanged();
+                          }
+                        },
+                      ),
+                  ],
+                );
+              },
               child: IconButton(
                 tooltip: title,
                 onPressed: () => openRoom(room.id),
@@ -1866,17 +1845,12 @@ class ChatListWidget extends HookConsumerWidget {
     final isResyncingAfterResume = useState(false);
     final userInfo = ref.watch(userInfoProvider);
     final db = ref.watch(databaseProvider);
-    final chatGroupVersion = useState(0);
     final accountId = userInfo.value?.id;
-    final chatGroupsFuture = useMemoized<Future<List<SnChatGroup>>>(() async {
-      if (accountId == null) return const <SnChatGroup>[];
-      return db.getChatGroups(accountId);
-    }, [db, accountId, chatGroupVersion.value]);
     final chatGroups =
-        useFuture(chatGroupsFuture).data ?? const <SnChatGroup>[];
+        ref.watch(chatGroupsProvider).value ?? const <SnChatGroup>[];
 
     Future<void> refreshChatGroups() async {
-      chatGroupVersion.value++;
+      ref.invalidate(chatGroupsProvider);
     }
 
     Future<void> openInvitesSheet() async {
@@ -1909,12 +1883,20 @@ class ChatListWidget extends HookConsumerWidget {
       });
 
       // Listen for chat rooms refresh events
-      final subscription = eventBus.on<ChatRoomsRefreshEvent>().listen((event) {
+      final roomSubscription = eventBus.on<ChatRoomsRefreshEvent>().listen((
+        event,
+      ) {
         ref.invalidate(chatRoomJoinedProvider);
+      });
+      final groupSubscription = eventBus.on<ChatGroupsRefreshEvent>().listen((
+        event,
+      ) {
+        ref.invalidate(chatGroupsProvider);
       });
 
       return () {
-        subscription.cancel();
+        roomSubscription.cancel();
+        groupSubscription.cancel();
       };
     }, [tabController]);
 
