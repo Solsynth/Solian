@@ -297,14 +297,18 @@ class MlsGroupManager {
 
       _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'bootstrap');
 
-      if (invitedMembers != null && invitedMembers.isNotEmpty) {
-        await fanoutWelcome(mlsGroupId, invitedMembers);
-      }
-
       await _notifyGroupJoined(
         roomId: roomId ?? mlsGroupId,
         epoch: epoch.toInt(),
       );
+
+      if (invitedMembers != null && invitedMembers.isNotEmpty) {
+        await addMembersAndFanoutWelcome(
+          mlsGroupId,
+          invitedMembers,
+          chatRoomId: roomId ?? mlsGroupId,
+        );
+      }
 
       return await getGroupState(mlsGroupId);
     } catch (e) {
@@ -366,8 +370,10 @@ class MlsGroupManager {
 
   Future<Map<String, dynamic>?> commitPending(String mlsGroupId) async {
     try {
+      final currentEpoch = await getCurrentEpoch(mlsGroupId);
       final response = await _padlockClient.post(
         '/e2ee/mls/groups/$mlsGroupId/commit',
+        data: {'epoch': currentEpoch, 'reason': 'client_commit'},
         options: Options(headers: await _getMlsHeaders()),
       );
       if (response.data is Map<String, dynamic>) {
@@ -395,27 +401,12 @@ class MlsGroupManager {
     List<String> invitedMembers,
   ) async {
     try {
-      for (final memberId in invitedMembers) {
-        final devices = await _identityManager.getDevicesForAccount(memberId);
-        final payloads = devices
-            .map(
-              (deviceId) => {
-                'recipient_device_id': deviceId,
-                'ciphertext': '',
-                'header': '',
-                'client_message_id': _generateNonce(),
-                'meta': {},
-              },
-            )
-            .toList();
-
-        await _padlockClient.post(
-          '/e2ee/mls/groups/$mlsGroupId/welcome/fanout',
-          data: {'recipient_account_id': memberId, 'payloads': payloads},
-          options: Options(headers: await _getMlsHeaders()),
-        );
-      }
-      return true;
+      final welcome = await addMembersAndFanoutWelcome(
+        mlsGroupId,
+        invitedMembers,
+        chatRoomId: mlsGroupId,
+      );
+      return welcome != null;
     } catch (e) {
       _mlsLogError('Failed to fanout welcome: $e');
       return false;
@@ -455,12 +446,20 @@ class MlsGroupManager {
 
       // 1. Fetch KeyPackages for each member
       final List<Uint8List> keyPackages = [];
+      final addedDeviceIdsByAccount = <String, List<String>>{};
       for (final memberId in memberAccountIds) {
         final devices = await _identityManager.getDeviceKeyPackages(memberId);
         for (final device in devices) {
           final kpBase64 = device['key_package'] as String?;
-          if (kpBase64 != null && kpBase64.isNotEmpty) {
+          final deviceId = device['device_id']?.toString();
+          if (kpBase64 != null &&
+              kpBase64.isNotEmpty &&
+              deviceId != null &&
+              deviceId.isNotEmpty) {
             keyPackages.add(base64Decode(kpBase64));
+            addedDeviceIdsByAccount
+                .putIfAbsent(memberId, () => [])
+                .add(deviceId);
           }
         }
       }
@@ -522,7 +521,7 @@ class MlsGroupManager {
         await _sendWelcomeToServer(
           mlsGroupId,
           addResult.welcome,
-          memberAccountIds,
+          addedDeviceIdsByAccount,
         );
         return addResult.welcome;
       }
@@ -570,7 +569,7 @@ class MlsGroupManager {
   Future<void> _sendWelcomeToServer(
     String mlsGroupId,
     Uint8List welcomeBytes,
-    List<String> memberAccountIds,
+    Map<String, List<String>> deviceIdsByAccount,
   ) async {
     final myAccountId = await _identityManager.getCurrentAccountId();
     if (myAccountId == null) {
@@ -592,8 +591,11 @@ class MlsGroupManager {
     );
 
     try {
-      for (final memberId in memberAccountIds) {
-        final devices = await _identityManager.getDevicesForAccount(memberId);
+      for (final entry in deviceIdsByAccount.entries) {
+        final memberId = entry.key;
+        final devices = entry.value;
+        if (devices.isEmpty) continue;
+
         final payloads = devices
             .map(
               (deviceId) => {
@@ -613,7 +615,7 @@ class MlsGroupManager {
         );
       }
       _mlsLog(
-        'Welcome sent to server for fanout to room $mlsGroupId (${memberAccountIds.length} members)',
+        'Welcome sent to server for fanout to room $mlsGroupId (${deviceIdsByAccount.length} members)',
       );
     } catch (e) {
       _mlsLogError('Failed to send welcome to server for room $mlsGroupId: $e');

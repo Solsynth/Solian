@@ -120,6 +120,15 @@ class MlsClient {
                 'Processed welcome envelope $envelopeId for group $mlsGroupId',
               );
             }
+          } else if (envelopeType == MlsEnvelopeType.commit.value ||
+              envelopeType == MlsEnvelopeType.proposal.value) {
+            await decryptMessage(
+              messageId: envelopeId,
+              mlsGroupId: mlsGroupId,
+              ciphertext: ciphertext,
+              encryptionHeader: envelope['header']?.toString(),
+              encryptionScheme: 'chat.mls.v2',
+            );
           }
         } catch (e) {
           _mlsLogWarn('Failed to process envelope $envelopeId: $e');
