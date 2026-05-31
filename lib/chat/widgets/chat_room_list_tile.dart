@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/relationship_pod.dart';
+import 'package:island/accounts/utils/account_status_utils.dart';
+import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/chat/widgets/chat_room_widgets.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -46,6 +49,17 @@ class ChatRoomListTile extends HookConsumerWidget {
       }
     }
 
+    final friendsOverview = ref.watch(friendsOverviewProvider);
+    final onlineFriendIds = useMemoized(() {
+      if (!friendsOverview.hasValue) return <String>{};
+      return friendsOverview.value!
+          .where((f) => showsOnlinePresence(f.status))
+          .map((f) => f.account.id)
+          .toSet();
+    }, [friendsOverview.hasValue ? friendsOverview.value : null]);
+    final isOnline = isDirect &&
+        validMembers.any((m) => onlineFriendIds.contains(m.accountId));
+
     String titleText;
     if (isDirect && room.name == null) {
       if (room.members?.isNotEmpty ?? false) {
@@ -77,11 +91,32 @@ class ChatRoomListTile extends HookConsumerWidget {
           context,
         ).colorScheme.secondaryContainer.withOpacity(0.6),
         trailing: trailing,
-        leading: ChatRoomAvatar(
-          room: room,
-          isDirect: isDirect,
-          summary: summary,
-          validMembers: validMembers,
+        leading: Stack(
+          children: [
+            ChatRoomAvatar(
+              room: room,
+              isDirect: isDirect,
+              summary: summary,
+              validMembers: validMembers,
+            ),
+            if (isOnline)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.surface,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         title: Row(
           children: [
