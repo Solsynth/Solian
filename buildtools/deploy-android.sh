@@ -5,7 +5,7 @@ set -e
 
 # --- CONFIGURATION ---
 RCLONE_REMOTE="r2"
-S3_BUCKET="solsyth-files/solian"
+S3_BUCKET="solsynth-files/solian"
 
 # Paths
 FLUTTER_PROJECT_DIR=$(pwd)

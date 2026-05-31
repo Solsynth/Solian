@@ -328,35 +328,20 @@ class ServerStateNotifier extends Notifier<ServerState> {
   late ActivityRpcServer server;
   late Dio apiClient;
   Timer? _renewalTimer;
+  bool _serverStarted = false;
   static const int _maxRecentPackets = 50;
 
   @override
   ServerState build() {
     apiClient = ref.watch(apiClientProvider);
-    final enabled = ref.watch(desktopRpcServerEnabledProvider);
+    final enabled = ref.read(desktopRpcServerEnabledProvider);
     server = ActivityRpcServer({});
     _setupHandlers();
     ref.onDispose(() {
       _stopRenewal();
       server.stop();
     });
-    if (enabled) {
-      _startServer();
-    }
-    return ServerState(status: enabled ? 'Starting...' : 'Disabled');
-  }
-
-  Future<void> _startServer() async {
-    if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
-      try {
-        await server.start();
-        state = state.copyWith(status: 'Server running');
-      } catch (e) {
-        state = state.copyWith(status: 'Server failed: $e');
-      }
-    } else {
-      state = state.copyWith(status: 'Server disabled on mobile/web');
-    }
+    return ServerState(status: enabled ? 'Stopped' : 'Disabled');
   }
 
   void _setupHandlers() {
@@ -518,23 +503,47 @@ class ServerStateNotifier extends Notifier<ServerState> {
 
   Future<void> toggleServer(bool enabled) async {
     final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setBool(kAppDesktopRpcServerEnabled, enabled);
+    await prefs.setBool(kAppDesktopRpcServerEnabled, enabled);
     ref.invalidate(desktopRpcServerEnabledProvider);
+    if (enabled) {
+      await start();
+      return;
+    }
+    await _stopServer();
+    state = state.copyWith(status: 'Disabled');
   }
 
   Future<void> start() async {
+    final enabled = ref.read(desktopRpcServerEnabledProvider);
+    if (!enabled) {
+      state = state.copyWith(status: 'Disabled');
+      return;
+    }
+    if (_serverStarted) {
+      state = state.copyWith(status: 'Server running');
+      return;
+    }
     if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+      state = state.copyWith(status: 'Starting...');
       try {
         await server.start();
+        _serverStarted = true;
+        if (!ref.mounted) return;
         state = state.copyWith(status: 'Server running');
       } catch (e) {
+        if (!ref.mounted) return;
         state = state.copyWith(status: 'Server failed: $e');
       }
     } else {
-      Future(() {
-        state = state.copyWith(status: 'Server disabled on mobile/web');
-      });
+      state = state.copyWith(status: 'Server disabled on mobile/web');
     }
+  }
+
+  Future<void> _stopServer() async {
+    if (!_serverStarted) return;
+    _stopRenewal();
+    await server.stop();
+    _serverStarted = false;
   }
 
   void updateStatus(String status) {

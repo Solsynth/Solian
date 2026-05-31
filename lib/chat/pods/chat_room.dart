@@ -1196,6 +1196,7 @@ class ChatRoomJoinedNotifier extends _$ChatRoomJoinedNotifier {
         await db.saveChatGroups(userInfo.value!.id, groups);
         eventBus.fire(const ChatGroupsRefreshEvent());
       }
+      if (!ref.mounted) return;
       ref
           .read(chatSummaryProvider.notifier)
           .applySyncedSummaries(rawSummaries, removedRoomIds: removedRoomIds);

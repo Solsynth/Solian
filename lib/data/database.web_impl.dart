@@ -8,6 +8,9 @@ class AppDatabase {
   AppDatabase.web();
   final Map<String, SnPost> _webDraftStore = {};
   final Map<String, String> _webKvStore = {};
+  final Map<String, SnChatRoom> _webChatRoomStore = {};
+  final Map<String, SnChatMember> _webChatMemberStore = {};
+  final Map<String, SnRealm> _webRealmStore = {};
   final Map<String, List<SnChatGroup>> _webChatGroupStore = {};
 
   Future<void> close() async {}
@@ -15,14 +18,20 @@ class AppDatabase {
   Future<void> reset() async {
     _webDraftStore.clear();
     _webKvStore.clear();
+    _webChatRoomStore.clear();
+    _webChatMemberStore.clear();
+    _webRealmStore.clear();
+    _webRelationshipStore.clear();
+    _webChatGroupStore.clear();
   }
 
   Future<Map<String, int>> getDatabaseStats() async {
     return {
       'messages': 0,
-      'chatRooms': 0,
-      'chatMembers': 0,
-      'realms': 0,
+      'chatRooms': _webChatRoomStore.length,
+      'chatMembers': _webChatMemberStore.length,
+      'realms': _webRealmStore.length,
+      'relationships': _webRelationshipStore.length,
       'postDrafts': _webDraftStore.length,
     };
   }
@@ -69,13 +78,48 @@ class AppDatabase {
   Future<void> saveChatRooms(
     List<SnChatRoom> rooms, {
     bool override = false,
-  }) async {}
+  }) async {
+    if (override) {
+      final remoteRoomIds = rooms.map((room) => room.id).toSet();
+      final idsToRemove = _webChatRoomStore.keys
+          .where((id) => !remoteRoomIds.contains(id))
+          .toList();
+      for (final roomId in idsToRemove) {
+        _webChatRoomStore.remove(roomId);
+        _webChatMemberStore.removeWhere(
+          (_, member) => member.chatRoomId == roomId,
+        );
+      }
+    }
 
-  Future<void> toggleChatRoomPinned(String roomId) async {}
+    for (final room in rooms) {
+      final existing = _webChatRoomStore[room.id];
+      final roomToSave = room.copyWith(
+        isPinned: existing?.isPinned ?? room.isPinned,
+      );
+      _webChatRoomStore[room.id] = roomToSave;
 
-  Future<List<SnChatRoom>> getAllChatRooms() async => const [];
+      final realm = room.realm;
+      if (realm != null) {
+        _webRealmStore[realm.id] = realm;
+      }
 
-  Future<SnChatRoom?> getChatRoomById(String id) async => null;
+      for (final member in room.members ?? const <SnChatMember>[]) {
+        _webChatMemberStore[member.id] = member;
+      }
+    }
+  }
+
+  Future<void> toggleChatRoomPinned(String roomId) async {
+    final room = _webChatRoomStore[roomId];
+    if (room == null) return;
+    _webChatRoomStore[roomId] = room.copyWith(isPinned: !room.isPinned);
+  }
+
+  Future<List<SnChatRoom>> getAllChatRooms() async =>
+      _webChatRoomStore.values.toList();
+
+  Future<SnChatRoom?> getChatRoomById(String id) async => _webChatRoomStore[id];
 
   Future<List<SnChatGroup>> getChatGroups(String accountId) async {
     final groups = _webChatGroupStore[accountId] ?? const [];
@@ -107,20 +151,32 @@ class AppDatabase {
   }
 
   Future<List<SnChatMember>> getMembersByRoomId(String roomId) async =>
-      const [];
+      _webChatMemberStore.values
+          .where((member) => member.chatRoomId == roomId)
+          .toList();
 
   Future<SnChatMember?> getMemberByRoomAndAccount(
     String roomId,
     String accountId,
-  ) async => null;
+  ) async {
+    for (final member in _webChatMemberStore.values) {
+      if (member.chatRoomId == roomId && member.accountId == accountId) {
+        return member;
+      }
+    }
+    return null;
+  }
 
-  Future<SnChatMember?> getMemberById(String id) async => null;
+  Future<SnChatMember?> getMemberById(String id) async =>
+      _webChatMemberStore[id];
 
-  Future<List<SnRealm>> getAllRealms() async => const [];
+  Future<List<SnRealm>> getAllRealms() async => _webRealmStore.values.toList();
 
-  Future<SnRealm?> getRealmById(String id) async => null;
+  Future<SnRealm?> getRealmById(String id) async => _webRealmStore[id];
 
-  Future<void> saveMember(SnChatMember member) async {}
+  Future<void> saveMember(SnChatMember member) async {
+    _webChatMemberStore[member.id] = member;
+  }
 
   // ---------------------------------------------------------------------------
   // Post drafts
