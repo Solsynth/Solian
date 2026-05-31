@@ -791,12 +791,10 @@ std::optional<std::string> IslandDesktopPresencePlugin::ComputeArtworkHash(
         HashAlgorithmNames::Sha256());
     auto buffer = CryptographicBuffer::CreateFromByteArray(image_bytes);
     auto hash_buffer = algorithm.HashData(buffer);
-    auto hash_bytes = CryptographicBuffer::CopyToByteArray(hash_buffer);
-    std::vector<uint8_t> hash_vec;
-    for (auto b : hash_bytes) {
-      hash_vec.push_back(b);
-    }
-    return ToHex(hash_vec.data(), hash_vec.size());
+    DataReader reader = DataReader::FromBuffer(hash_buffer);
+    std::vector<uint8_t> hash_bytes(hash_buffer.Length());
+    reader.ReadBytes(hash_bytes);
+    return ToHex(hash_bytes.data(), hash_bytes.size());
   } catch (...) {
     return std::nullopt;
   }
