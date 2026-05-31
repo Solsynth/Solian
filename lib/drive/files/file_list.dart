@@ -30,6 +30,7 @@ import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/drive/file_permissions.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:super_context_menu/super_context_menu.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:island/drive/widgets/usage_overview.dart';
 
@@ -1369,84 +1370,106 @@ class _DriveTabChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: isSelected
-          ? colorScheme.primaryContainer
-          : colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(12),
-      child: Listener(
-        onPointerDown: (event) {
-          if (event.kind == PointerDeviceKind.mouse &&
-              event.buttons == kMiddleMouseButton) {
-            onClose();
-          }
-        },
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 2, 8, 2),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 18),
-                const Gap(8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 120),
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+    return ContextMenuWidget(
+      menuProvider: (_) {
+        return Menu(
+          children: [
+            if (file != null) ...[
+              MenuAction(
+                title: 'Inspect',
+                image: MenuImage.icon(Symbols.info),
+                callback: () {
+                  CloudFileActionsSheet.show(
+                    context: context,
+                    item: file!,
+                    onRenamed: onRenameFile,
+                    onRevealParentFolder: () => onRevealParentFolder(file!),
+                  );
+                },
+              ),
+              MenuSeparator(),
+              MenuAction(
+                title: 'download'.tr(),
+                image: MenuImage.icon(Symbols.download),
+                callback: () {
+                  // Download is handled by the dedicated button
+                },
+              ),
+            ],
+            MenuAction(
+              title: 'close'.tr(),
+              image: MenuImage.icon(Symbols.close),
+              callback: onClose,
+            ),
+          ],
+        );
+      },
+      child: Material(
+        color: isSelected
+            ? colorScheme.primaryContainer
+            : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        child: Listener(
+          onPointerDown: (event) {
+            if (event.kind == PointerDeviceKind.mouse &&
+                event.buttons == kMiddleMouseButton) {
+              onClose();
+            }
+          },
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 2, 8, 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 18),
+                  const Gap(8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 120),
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                const Gap(4),
-                if (file != null) ...[
-                  Consumer(
-                    builder: (context, ref, _) => IconButton(
+                  const Gap(4),
+                  if (file != null) ...[
+                    Consumer(
+                      builder: (context, ref, _) => IconButton(
+                        visualDensity: VisualDensity.compact,
+                        iconSize: 18,
+                        splashRadius: 16,
+                        tooltip: 'download'.tr(),
+                        onPressed: () => ref
+                            .read(driveFileDownloaderProvider)
+                            .downloadFile(
+                              file!,
+                              useDownloadsFolder:
+                                  HardwareKeyboard.instance.isShiftPressed,
+                            ),
+                        icon: const Icon(Symbols.download),
+                      ),
+                    ),
+                    IconButton(
                       visualDensity: VisualDensity.compact,
                       iconSize: 18,
                       splashRadius: 16,
-                      tooltip: 'download'.tr(),
-                      onPressed: () => ref
-                          .read(driveFileDownloaderProvider)
-                          .downloadFile(
-                            file!,
-                            useDownloadsFolder:
-                                HardwareKeyboard.instance.isShiftPressed,
-                          ),
-                      icon: const Icon(Symbols.download),
+                      tooltip: 'close'.tr(),
+                      onPressed: onClose,
+                      icon: const Icon(Symbols.close),
                     ),
-                  ),
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    iconSize: 18,
-                    splashRadius: 16,
-                    tooltip: 'actionSheet'.tr(),
-                    onPressed: () => CloudFileActionsSheet.show(
-                      context: context,
-                      item: file!,
-                      onRenamed: onRenameFile,
-                      onRevealParentFolder: () => onRevealParentFolder(file!),
+                  ] else
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      iconSize: 18,
+                      splashRadius: 16,
+                      onPressed: onClose,
+                      icon: const Icon(Symbols.close),
                     ),
-                    icon: const Icon(Symbols.more_horiz),
-                  ),
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    iconSize: 18,
-                    splashRadius: 16,
-                    tooltip: 'close'.tr(),
-                    onPressed: onClose,
-                    icon: const Icon(Symbols.close),
-                  ),
-                ] else
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    iconSize: 18,
-                    splashRadius: 16,
-                    onPressed: onClose,
-                    icon: const Icon(Symbols.close),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
