@@ -52,12 +52,20 @@ class TourStatusNotifier extends _$TourStatusNotifier {
   }
 
   Future<Widget?> showTour(String tourId) async {
-    if (!isTourShown(tourId)) {
-      final newState = {...state, tourId: true};
-      await _saveState(newState);
-      return kAllTours.firstWhere((e) => e.id == tourId).widget;
+    if (isTourShown(tourId)) return null;
+
+    Tour? tour;
+    for (final item in kAllTours) {
+      if (item.id == tourId) {
+        tour = item;
+        break;
+      }
     }
-    return null;
+    if (tour == null) return null;
+
+    final newState = {...state, tourId: true};
+    await _saveState(newState);
+    return tour.widget;
   }
 
   Future<void> resetTours() async {

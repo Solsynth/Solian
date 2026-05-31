@@ -42,7 +42,6 @@ class StartupProgressBar extends StatelessWidget {
 }
 
 class StartupProgressIcon extends StatelessWidget {
-  final int percentage;
   final bool isBusy;
   final bool isErrored;
   final bool isDismissable;
@@ -51,7 +50,6 @@ class StartupProgressIcon extends StatelessWidget {
 
   const StartupProgressIcon({
     super.key,
-    required this.percentage,
     required this.isBusy,
     required this.isErrored,
     required this.isDismissable,
@@ -87,15 +85,9 @@ class StartupProgressIcon extends StatelessWidget {
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: isBusy
-              ? Text(
-                  '$percentage%',
-                  key: ValueKey(percentage),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.primary,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+              ? const SizedBox(
+                  key: ValueKey('busy-placeholder'),
+                  height: 18,
                 )
               : isErrored && !isDismissable
               ? Icon(
