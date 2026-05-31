@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.solsynth.solian</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0</project_license>
+  <name>Solian</name>
+  <summary>A peaceful social network</summary>
+
+  <description>
+    <p>Solian (also known as Solar Network) is a social networking platform, designed to help you express yourself freely and connect with others.</p>
+  </description>
+
+  <launchable type="desktop-id">dev.solsynth.solian.desktop</launchable>
+
+  <url type="homepage">https://src.solsynth.dev/SoSYS/Solian</url>
+
+  <developer id="dev.solsynth">
+    <name>Solsynth</name>
+  </developer>
+
+  <provides>
+    <binary>island</binary>
+  </provides>
+
+  <releases>
+    <release version="3.9.0" date="2026-01-01" />
+  </releases>
+</component>
