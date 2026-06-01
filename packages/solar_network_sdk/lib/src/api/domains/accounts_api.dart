@@ -105,6 +105,18 @@ class AccountsApi extends BaseApi {
     await post('$_basePath/accounts/me/badges/$badgeId/active');
   }
 
+  /// Fetches the public badges manifest.
+  ///
+  /// Returns metadata for all progression badges (colors, icons, labels).
+  /// No authentication required; response is cached for 1 hour server-side.
+  Future<List<BadgeManifestEntry>> getBadgesManifest() async {
+    final response = await get<Map<String, dynamic>>('/.well-known/badges');
+    final badges = response.data?['badges'] as List<dynamic>? ?? [];
+    return badges
+        .map((e) => BadgeManifestEntry.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   // ==========================================
   // Relationship endpoints
   // ==========================================

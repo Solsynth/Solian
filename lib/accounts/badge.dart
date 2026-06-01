@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/network.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class BadgeInfo {
@@ -55,7 +57,35 @@ const Map<String, BadgeInfo> kBadgeTemplates = {
   ),
 };
 
-Color getBadgeColor(SnAccountBadge badge) {
+final badgesManifestProvider = FutureProvider.autoDispose<List<BadgeManifestEntry>>((
+  ref,
+) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.getBadgesManifest();
+});
+
+final badgeManifestMapProvider = Provider.autoDispose<Map<String, BadgeManifestEntry>>((
+  ref,
+) {
+  final manifest = ref.watch(badgesManifestProvider);
+  return manifest.whenOrNull(data: (entries) {
+        return {for (final e in entries) e.identifier: e};
+      }) ??
+      {};
+});
+
+Color? _parseHexColor(String? hex) {
+  if (hex == null || hex.isEmpty) return null;
+  var value = hex.replaceFirst('#', '');
+  if (value.length == 6) value = 'ff$value';
+  if (value.length != 8) return null;
+  return Color(int.parse(value, radix: 16));
+}
+
+Color getBadgeColor(
+  SnAccountBadge badge, {
+  Map<String, BadgeManifestEntry>? manifest,
+}) {
   if (badge.type == 'sponsor') {
     final level =
         int.tryParse(
@@ -68,6 +98,54 @@ Color getBadgeColor(SnAccountBadge badge) {
     const goldenColor = Color(0xFFDAA520);
     return Color.lerp(redColor, goldenColor, t)!;
   }
+
+  if (manifest != null) {
+    final entry = manifest[badge.type];
+    final manifestColor = _parseHexColor(entry?.color);
+    if (manifestColor != null) return manifestColor;
+  }
+
   final template = kBadgeTemplates[badge.type];
   return template?.color ?? Colors.blue;
+}
+
+String getBadgeName(
+  SnAccountBadge badge, {
+  Map<String, BadgeManifestEntry>? manifest,
+}) {
+  if (manifest != null) {
+    final entry = manifest[badge.type];
+    if (entry?.label != null && entry!.label!.isNotEmpty) return entry.label!;
+  }
+  final template = kBadgeTemplates[badge.type];
+  return template?.name ?? badge.label ?? 'unknown';
+}
+
+String? getBadgeDescription(
+  SnAccountBadge badge, {
+  Map<String, BadgeManifestEntry>? manifest,
+}) {
+  final parts = <String>[];
+  if (manifest != null) {
+    final entry = manifest[badge.type];
+    if (entry?.caption != null && entry!.caption!.isNotEmpty) {
+      parts.add(entry.caption!);
+    }
+  }
+  if (parts.isEmpty) {
+    final template = kBadgeTemplates[badge.type];
+    if (template != null) parts.add(template.description);
+  }
+  if (badge.caption != null && badge.caption!.isNotEmpty) {
+    parts.add(badge.caption!);
+  }
+  return parts.isNotEmpty ? parts.join('\n') : null;
+}
+
+String? getBadgeIconUrl(
+  SnAccountBadge badge, {
+  Map<String, BadgeManifestEntry>? manifest,
+}) {
+  if (manifest == null) return null;
+  return manifest[badge.type]?.iconUrl;
 }

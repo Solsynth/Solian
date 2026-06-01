@@ -1,69 +1,90 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/badge.dart';
+import 'package:island/core/config.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-class BadgeList extends StatelessWidget {
+class BadgeList extends ConsumerWidget {
   final List<SnAccountBadge> badges;
   const BadgeList({super.key, required this.badges});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final manifest = ref.watch(badgeManifestMapProvider);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: badges.map((badge) => BadgeItem(badge: badge)).toList(),
+      children: badges
+          .map((badge) => BadgeItem(badge: badge, manifest: manifest))
+          .toList(),
     );
   }
 }
 
-Color _getSponsorColor(int level) {
-  // Level 0 = red, level 36+ = golden
-  // Interpolate from red to golden based on level
-  final clampedLevel = level.clamp(0, 36);
-  final t = clampedLevel / 36.0;
-
-  // Red to Golden (goldenrod - more orange-gold, less yellow)
-  const redColor = Colors.red;
-  const goldenColor = Color(0xFFDAA520); // Goldenrod
-
-  return Color.lerp(redColor, goldenColor, t)!;
-}
-
-class BadgeItem extends StatelessWidget {
+class BadgeItem extends ConsumerWidget {
   final SnAccountBadge badge;
-  const BadgeItem({super.key, required this.badge});
+  final Map<String, BadgeManifestEntry> manifest;
+
+  const BadgeItem({super.key, required this.badge, this.manifest = const {}});
 
   @override
-  Widget build(BuildContext context) {
-    final template = kBadgeTemplates[badge.type];
-    final name = template?.name.tr() ?? badge.label ?? 'unknown'.tr();
-    final templateDesc = template?.description.tr();
-    final badgeCaption = badge.caption;
-    final description = [
-      if (templateDesc != null && templateDesc.isNotEmpty) templateDesc,
-      if (badgeCaption != null && badgeCaption.isNotEmpty) badgeCaption,
-    ].join('\n');
-
-    // Determine badge color - special handling for sponsor badges
-    Color badgeColor;
-    if (badge.type == 'sponsor') {
-      final level = int.tryParse(badge.meta['level'] as String? ?? '0') ?? 0;
-      badgeColor = _getSponsorColor(level);
-    } else {
-      badgeColor = template?.color ?? Colors.blue;
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final name = getBadgeName(badge, manifest: manifest);
+    final description = getBadgeDescription(badge, manifest: manifest);
+    final badgeColor = getBadgeColor(badge, manifest: manifest);
+    final iconUrl = getBadgeIconUrl(badge, manifest: manifest);
 
     return Tooltip(
-      message: '$name\n$description',
+      message: description != null ? '$name\n$description' : name,
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           color: badgeColor.withOpacity(0.2),
           shape: BoxShape.circle,
         ),
-        child: Icon(template?.icon ?? Icons.stars, color: badgeColor, size: 20),
+        child: _BadgeIcon(
+          iconUrl: iconUrl,
+          color: badgeColor,
+          fallbackIcon: kBadgeTemplates[badge.type]?.icon ?? Icons.stars,
+          size: 20,
+        ),
       ),
     );
+  }
+}
+
+class _BadgeIcon extends ConsumerWidget {
+  final String? iconUrl;
+  final Color color;
+  final IconData fallbackIcon;
+  final double size;
+
+  const _BadgeIcon({
+    required this.iconUrl,
+    required this.color,
+    required this.fallbackIcon,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (iconUrl != null && iconUrl!.isNotEmpty) {
+      final serverUrl = ref.watch(serverUrlProvider);
+      final fullUrl = iconUrl!.startsWith('http')
+          ? iconUrl!
+          : '$serverUrl$iconUrl';
+
+      return SvgPicture.network(
+        fullUrl,
+        width: size,
+        height: size,
+        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        placeholderBuilder: (_) =>
+            Icon(fallbackIcon, size: size, color: color),
+      );
+    }
+
+    return Icon(fallbackIcon, color: color, size: size);
   }
 }
