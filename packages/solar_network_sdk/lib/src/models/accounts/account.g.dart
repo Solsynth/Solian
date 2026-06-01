@@ -254,6 +254,55 @@ Map<String, dynamic> _$SnAccountBadgeToJson(_SnAccountBadge instance) =>
       'deleted_at': instance.deletedAt?.toIso8601String(),
     };
 
+_BadgeManifestSeries _$BadgeManifestSeriesFromJson(Map<String, dynamic> json) =>
+    _BadgeManifestSeries(
+      identifier: json['identifier'] as String,
+      title: json['title'] as String?,
+      order: (json['order'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$BadgeManifestSeriesToJson(
+  _BadgeManifestSeries instance,
+) => <String, dynamic>{
+  'identifier': instance.identifier,
+  'title': instance.title,
+  'order': instance.order,
+};
+
+_BadgeManifestEntry _$BadgeManifestEntryFromJson(Map<String, dynamic> json) =>
+    _BadgeManifestEntry(
+      identifier: json['identifier'] as String,
+      achievementIdentifier: json['achievement_identifier'] as String?,
+      label: json['label'] as String?,
+      caption: json['caption'] as String?,
+      icon: json['icon'] as String?,
+      color: json['color'] as String?,
+      iconUrl: json['icon_url'] as String?,
+      localizationKey: json['localization_key'] as String?,
+      category: json['category'] as String?,
+      series: json['series'] == null
+          ? null
+          : BadgeManifestSeries.fromJson(
+              json['series'] as Map<String, dynamic>,
+            ),
+      hidden: json['hidden'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$BadgeManifestEntryToJson(_BadgeManifestEntry instance) =>
+    <String, dynamic>{
+      'identifier': instance.identifier,
+      'achievement_identifier': instance.achievementIdentifier,
+      'label': instance.label,
+      'caption': instance.caption,
+      'icon': instance.icon,
+      'color': instance.color,
+      'icon_url': instance.iconUrl,
+      'localization_key': instance.localizationKey,
+      'category': instance.category,
+      'series': instance.series?.toJson(),
+      'hidden': instance.hidden,
+    };
+
 _SnContactMethod _$SnContactMethodFromJson(Map<String, dynamic> json) =>
     _SnContactMethod(
       id: json['id'] as String,
