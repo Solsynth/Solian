@@ -356,6 +356,8 @@ class ChatRoomScreen extends HookConsumerWidget {
     final lastAtLatestRef = useRef<bool?>(true);
     useEffect(() {
       final controller = scrollControllerRef.value;
+      var retryCount = 0;
+
       void updateAtLatestState() {
         if (!controller.hasClients || controller.positions.length != 1) return;
         final atLatest = controller.positions.first.pixels <= 80;
@@ -364,10 +366,21 @@ class ChatRoomScreen extends HookConsumerWidget {
         isAtLatestMessages.value = atLatest;
       }
 
+      void syncWhenAttached() {
+        if (!controller.hasClients || controller.positions.length != 1) {
+          if (retryCount < 10) {
+            retryCount += 1;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) syncWhenAttached();
+            });
+          }
+          return;
+        }
+        updateAtLatestState();
+      }
+
       controller.addListener(updateAtLatestState);
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => updateAtLatestState(),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => syncWhenAttached());
       return () => controller.removeListener(updateAtLatestState);
     }, []);
 
@@ -700,6 +713,11 @@ class ChatRoomScreen extends HookConsumerWidget {
       if (anchorIndex > 0) return list[anchorIndex].id;
       return null;
     })();
+    final effectiveLastReadAnchorMessageId =
+        visibleLastReadAnchorMessageId ==
+            chatState.dismissedLastReadAnchorMessageId
+        ? null
+        : visibleLastReadAnchorMessageId;
 
     // Update last read anchor in state when calculated
     useEffect(() {
@@ -852,27 +870,29 @@ class ChatRoomScreen extends HookConsumerWidget {
                         top: false,
                         bottom: false,
                         child: AnimatedOpacity(
-                          opacity: visibleLastReadAnchorMessageId != null
+                          opacity: effectiveLastReadAnchorMessageId != null
                               ? 1.0
                               : 0.0,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                           child: AnimatedScale(
-                            scale: visibleLastReadAnchorMessageId != null
+                            scale: effectiveLastReadAnchorMessageId != null
                                 ? 1.0
                                 : 0.8,
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
                             child: FloatingActionButton.small(
                               heroTag: 'followBack',
-                              onPressed: visibleLastReadAnchorMessageId != null
+                              onPressed:
+                                  effectiveLastReadAnchorMessageId != null
                                   ? jumpToLastReadAnchor
                                   : null,
-                              elevation: visibleLastReadAnchorMessageId != null
+                              elevation:
+                                  effectiveLastReadAnchorMessageId != null
                                   ? 2
                                   : 0,
                               backgroundColor:
-                                  visibleLastReadAnchorMessageId != null
+                                  effectiveLastReadAnchorMessageId != null
                                   ? null
                                   : Colors.transparent,
                               child: const Icon(Icons.bookmark_added_outlined),
@@ -1544,18 +1564,18 @@ class _PinnedMessagesBarState extends State<_PinnedMessagesBar> {
           Icon(
             Symbols.attach_file,
             size: 14,
-            color:
-                Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.6),
           ),
           const SizedBox(width: 4),
           Text(
             'hasAttachments'.plural(attachments.length),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withOpacity(0.6),
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withOpacity(0.6),
+            ),
           ),
         ],
       );
