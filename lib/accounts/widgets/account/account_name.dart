@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/badge.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -412,7 +414,7 @@ class StellarMembershipMark extends StatelessWidget {
   }
 }
 
-class ActiveBadgeMark extends StatelessWidget {
+class ActiveBadgeMark extends ConsumerWidget {
   final SnAccountBadge badge;
   final bool hideOverlay;
   final double size;
@@ -424,24 +426,39 @@ class ActiveBadgeMark extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final template = kBadgeTemplates[badge.type];
-    final name = template?.name.tr() ?? badge.label ?? 'unknown'.tr();
-    final templateDesc = template?.description.tr();
-    final badgeCaption = badge.caption;
-    final description = [
-      if (templateDesc != null && templateDesc.isNotEmpty) templateDesc,
-      if (badgeCaption != null && badgeCaption.isNotEmpty) badgeCaption,
-    ].join('\n');
+  Widget build(BuildContext context, WidgetRef ref) {
+    final manifest = ref.watch(badgeManifestMapProvider);
+    final name = getBadgeName(badge, manifest: manifest).tr();
+    final description = getBadgeDescription(badge, manifest: manifest);
+    final badgeColor = getBadgeColor(badge, manifest: manifest);
+    final iconUrl = getBadgeIconUrl(badge, manifest: manifest);
 
-    final badgeColor = getBadgeColor(badge);
-
-    final icon = Icon(
-      template?.icon ?? Icons.stars,
-      size: size,
-      color: badgeColor,
-      fill: 1,
-    );
+    final Widget icon;
+    if (iconUrl != null && iconUrl.isNotEmpty) {
+      final serverUrl = ref.watch(serverUrlProvider);
+      final fullUrl = iconUrl.startsWith('http')
+          ? iconUrl
+          : '$serverUrl$iconUrl';
+      icon = SvgPicture.network(
+        fullUrl,
+        width: size,
+        height: size,
+        colorFilter: ColorFilter.mode(badgeColor, BlendMode.srcIn),
+        placeholderBuilder: (_) => Icon(
+          kBadgeTemplates[badge.type]?.icon ?? Icons.stars,
+          size: size,
+          color: badgeColor,
+          fill: 1,
+        ),
+      );
+    } else {
+      icon = Icon(
+        kBadgeTemplates[badge.type]?.icon ?? Icons.stars,
+        size: size,
+        color: badgeColor,
+        fill: 1,
+      );
+    }
 
     return hideOverlay
         ? icon
@@ -449,7 +466,7 @@ class ActiveBadgeMark extends StatelessWidget {
             richMessage: TextSpan(
               text: name,
               children: [
-                if (description.isNotEmpty) ...[
+                if (description != null && description.isNotEmpty) ...[
                   TextSpan(text: '\n'),
                   TextSpan(
                     text: description,
