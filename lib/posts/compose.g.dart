@@ -25,6 +25,8 @@ _PostComposeInitialState _$PostComposeInitialStateFromJson(
   forwardingTo: json['forwarding_to'] == null
       ? null
       : SnPost.fromJson(json['forwarding_to'] as Map<String, dynamic>),
+  calendarEventId: json['calendar_event_id'] as String?,
+  notableDayId: json['notable_day_id'] as String?,
 );
 
 Map<String, dynamic> _$PostComposeInitialStateToJson(
@@ -38,4 +40,6 @@ Map<String, dynamic> _$PostComposeInitialStateToJson(
   'visibility': instance.visibility,
   'replying_to': instance.replyingTo?.toJson(),
   'forwarding_to': instance.forwardingTo?.toJson(),
+  'calendar_event_id': instance.calendarEventId,
+  'notable_day_id': instance.notableDayId,
 };

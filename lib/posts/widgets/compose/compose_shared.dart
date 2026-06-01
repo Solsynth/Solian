@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:island/core/config.dart';
+import 'package:island/posts/widgets/compose/compose_calendar_event_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/posts/widgets/compose/compose_location_sheet.dart';
@@ -64,6 +65,10 @@ class ComposeState {
   final ValueNotifier<String?> thumbnailId;
   // Collection IDs to assign the post to on creation
   final ValueNotifier<List<String>> collectionIds;
+  // Linked calendar event id for this compose session (nullable)
+  final ValueNotifier<String?> calendarEventId;
+  // Linked notable day id for this compose session (nullable)
+  final ValueNotifier<String?> notableDayId;
   Timer? _autoSaveTimer;
 
   ComposeState({
@@ -93,6 +98,8 @@ class ComposeState {
     String? meetId,
     String? thumbnailId,
     List<String>? collectionIds,
+    String? calendarEventId,
+    String? notableDayId,
   }) : pollId = ValueNotifier<String?>(pollId),
        fundId = ValueNotifier<String?>(fundId),
        fitnessReference = ValueNotifier<String?>(fitnessReference),
@@ -102,6 +109,8 @@ class ComposeState {
        meetId = ValueNotifier<String?>(meetId),
        thumbnailId = ValueNotifier<String?>(thumbnailId),
        collectionIds = ValueNotifier<List<String>>(collectionIds ?? []),
+       calendarEventId = ValueNotifier<String?>(calendarEventId),
+       notableDayId = ValueNotifier<String?>(notableDayId),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId);
 
   void startAutoSave(WidgetRef ref) {
@@ -146,6 +155,8 @@ class ComposeLogic {
     String? locationAddress;
     String? locationWkt;
     String? meetId;
+    String? calendarEventId;
+    String? notableDayId;
     if (originalPost?.meta?['embeds'] is List) {
       final embeds = (originalPost!.meta!['embeds'] as List)
           .cast<Map<String, dynamic>>();
@@ -175,6 +186,18 @@ class ComposeLogic {
       try {
         final meetEmbed = embeds.firstWhere((e) => e['type'] == 'meet');
         meetId = meetEmbed['id']?.toString();
+      } catch (_) {}
+      try {
+        final calendarEventEmbed = embeds.firstWhere(
+          (e) => e['type'] == 'calendar_event',
+        );
+        calendarEventId = calendarEventEmbed['id']?.toString();
+      } catch (_) {}
+      try {
+        final notableDayEmbed = embeds.firstWhere(
+          (e) => e['type'] == 'notable_day',
+        );
+        notableDayId = notableDayEmbed['id']?.toString();
       } catch (_) {}
     }
 
@@ -232,6 +255,8 @@ class ComposeLogic {
       meetId: meetId,
       thumbnailId: thumbnailId,
       collectionIds: collectionIds,
+      calendarEventId: calendarEventId,
+      notableDayId: notableDayId,
     );
   }
 
@@ -361,6 +386,10 @@ class ComposeLogic {
         },
       if (state.meetId.value != null)
         {'type': 'meet', 'id': state.meetId.value},
+      if (state.calendarEventId.value != null)
+        {'type': 'calendar_event', 'id': state.calendarEventId.value},
+      if (state.notableDayId.value != null)
+        {'type': 'notable_day', 'id': state.notableDayId.value},
     ];
     final meta = <String, dynamic>{
       if (state.postType == 1 && state.thumbnailId.value != null)
@@ -480,6 +509,10 @@ class ComposeLogic {
       if (state.locationWkt.value != null)
         'location_wkt': state.locationWkt.value,
       if (state.meetId.value != null) 'meet_id': state.meetId.value,
+      if (state.calendarEventId.value != null)
+        'calendar_event_id': state.calendarEventId.value,
+      if (state.notableDayId.value != null)
+        'notable_day_id': state.notableDayId.value,
       if (state.postType == 1 && state.thumbnailId.value != null)
         'thumbnail_id': state.thumbnailId.value,
       if (state.embedView.value != null)
@@ -883,6 +916,27 @@ class ComposeLogic {
     state.meetId.value = meet;
   }
 
+  static Future<void> pickCalendarEvent(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    if (state.calendarEventId.value != null) {
+      state.calendarEventId.value = null;
+      return;
+    }
+
+    final event = await showModalBottomSheet<SnUserCalendarEvent>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => const ComposeCalendarEventSheet(),
+    );
+
+    if (event == null) return;
+    state.calendarEventId.value = event.id;
+  }
+
   /// Unified submit method that returns the created/updated post.
   static Future<SnPost> performSubmit(
     WidgetRef ref,
@@ -986,6 +1040,10 @@ class ComposeLogic {
         if (state.locationWkt.value != null)
           'location_wkt': state.locationWkt.value,
         if (state.meetId.value != null) 'meet_id': state.meetId.value,
+        if (state.calendarEventId.value != null)
+          'calendar_event_id': state.calendarEventId.value,
+        if (state.notableDayId.value != null)
+          'notable_day_id': state.notableDayId.value,
         if (state.postType == 1 && state.thumbnailId.value != null)
           'thumbnail_id': state.thumbnailId.value,
         if (state.embedView.value != null)
@@ -1207,6 +1265,8 @@ class ComposeLogic {
     state.meetId.dispose();
     state.thumbnailId.dispose();
     state.collectionIds.dispose();
+    state.calendarEventId.dispose();
+    state.notableDayId.dispose();
     state.cloudDraftId.dispose();
   }
 }
