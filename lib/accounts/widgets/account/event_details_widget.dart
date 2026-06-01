@@ -192,6 +192,11 @@ class EventDetailsWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // Use localizable key for display name if available
+    final displayName = day.localizableKey != null && day.localizableKey!.isNotEmpty
+        ? day.localizableKey!.tr()
+        : (day.globalName.isNotEmpty ? day.globalName : day.localName);
+
     return Card(
       margin: EdgeInsets.zero,
       color: colorScheme.tertiaryContainer,
@@ -213,7 +218,7 @@ class EventDetailsWidget extends StatelessWidget {
                 const Gap(12),
                 Expanded(
                   child: Text(
-                    day.globalName.isNotEmpty ? day.globalName : day.localName,
+                    displayName,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: colorScheme.onTertiaryContainer,
                       fontWeight: FontWeight.w600,
@@ -222,8 +227,7 @@ class EventDetailsWidget extends StatelessWidget {
                 ),
               ],
             ),
-            if (day.localName.isNotEmpty &&
-                day.localName != day.globalName) ...[
+            if (day.localName.isNotEmpty && day.localName != displayName) ...[
               const Gap(4),
               Padding(
                 padding: const EdgeInsets.only(left: 30),

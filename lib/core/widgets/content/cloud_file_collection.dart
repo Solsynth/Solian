@@ -318,7 +318,9 @@ class CloudFileList extends HookConsumerWidget {
     if (files.length == 1) {
       final isImage = files.first.mimeType.startsWith('image');
       final isAudio = files.first.mimeType.startsWith('audio');
-      final isFolder = files.first.isFolder;
+      final isFile =
+          files.first.isFolder ||
+          files.first.mimeType.startsWith('application');
       final ratio = files.first.ratio as num?;
       final widgetItem = ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -344,7 +346,7 @@ class CloudFileList extends HookConsumerWidget {
         ),
         child: (ratio == null && isImage)
             ? IntrinsicWidth(child: IntrinsicHeight(child: widgetItem))
-            : (ratio == null && (isAudio || isFolder))
+            : (ratio == null && (isAudio || isFile))
             ? IntrinsicHeight(child: widgetItem)
             : AspectRatio(
                 aspectRatio: ratio?.toDouble() ?? 1,

@@ -580,27 +580,63 @@ class AccountsApi extends BaseApi {
   /// Gets upcoming event countdowns for the authenticated user.
   ///
   /// [take] - Number of countdowns to return (default 5).
-  Future<List<SnEventCountdownItem>> getEventCountdowns({int take = 5}) async {
+  /// [offset] - Pagination offset.
+  /// [includeNotableDays] - Whether to include notable days (default true).
+  /// [tag] - Filter notable days by tag (Holiday, Event, Anniversary, Memorial, Festival).
+  Future<PaginatedResult<SnEventCountdownItem>> getEventCountdowns({
+    int take = 5,
+    int offset = 0,
+    bool includeNotableDays = true,
+    String? tag,
+  }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/accounts/me/calendar/countdown',
-      queryParameters: {'take': take},
+      queryParameters: {
+        'take': take,
+        'offset': offset,
+        'includeNotableDays': includeNotableDays,
+        if (tag != null) 'tag': tag,
+      },
     );
-    return parseList(response, SnEventCountdownItem.fromJson);
+    final totalCount = int.parse(
+      response.headers.value('X-Total') ?? '0',
+    );
+    return PaginatedResult(
+      items: parseList(response, SnEventCountdownItem.fromJson),
+      totalCount: totalCount,
+    );
   }
 
   /// Gets upcoming event countdowns for another user.
   ///
   /// [username] - Username to fetch countdowns for.
   /// [take] - Number of countdowns to return (default 5).
-  Future<List<SnEventCountdownItem>> getUserEventCountdowns(
+  /// [offset] - Pagination offset.
+  /// [includeNotableDays] - Whether to include notable days (default true).
+  /// [tag] - Filter notable days by tag (Holiday, Event, Anniversary, Memorial, Festival).
+  Future<PaginatedResult<SnEventCountdownItem>> getUserEventCountdowns(
     String username, {
     int take = 5,
+    int offset = 0,
+    bool includeNotableDays = true,
+    String? tag,
   }) async {
     final response = await get<List<dynamic>>(
       '$_basePath/accounts/$username/calendar/countdown',
-      queryParameters: {'take': take},
+      queryParameters: {
+        'take': take,
+        'offset': offset,
+        'includeNotableDays': includeNotableDays,
+        if (tag != null) 'tag': tag,
+      },
     );
-    return parseList(response, SnEventCountdownItem.fromJson);
+    final totalCount = int.parse(
+      response.headers.value('X-Total') ?? '0',
+    );
+    return PaginatedResult(
+      items: parseList(response, SnEventCountdownItem.fromJson),
+      totalCount: totalCount,
+    );
   }
 
   // ==========================================

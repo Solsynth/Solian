@@ -75,6 +75,8 @@ _DashboardConfig _$DashboardConfigFromJson(Map<String, dynamic> json) =>
           .toList(),
       showSearchBar: json['show_search_bar'] as bool,
       showClockAndCountdown: json['show_clock_and_countdown'] as bool,
+      countdownIncludeNotableDays:
+          json['countdown_include_notable_days'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$DashboardConfigToJson(_DashboardConfig instance) =>
@@ -83,6 +85,7 @@ Map<String, dynamic> _$DashboardConfigToJson(_DashboardConfig instance) =>
       'horizontal_layouts': instance.horizontalLayouts,
       'show_search_bar': instance.showSearchBar,
       'show_clock_and_countdown': instance.showClockAndCountdown,
+      'countdown_include_notable_days': instance.countdownIncludeNotableDays,
     };
 
 _ExploreSettings _$ExploreSettingsFromJson(Map<String, dynamic> json) =>
