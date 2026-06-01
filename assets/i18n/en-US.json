@@ -3426,5 +3426,8 @@
   "startupCopyright": "{} © Solsynth",
   "startupStageDebugHang": "Debug: Waiting indefinitely (test)",
   "startupPreviousStage": "Previous: {}",
-  "startupNextStage": "Next: {}"
+  "startupNextStage": "Next: {}",
+  "eventApperance": "Appearance",
+  "eventIcon": "Icon",
+  "eventBackground": "Background"
 }

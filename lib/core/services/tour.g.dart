@@ -42,7 +42,7 @@ final class TourStatusNotifierProvider
 }
 
 String _$tourStatusNotifierHash() =>
-    r'ee712e1f8010311df8f24838814ab5c451f9e593';
+    r'db884b917cddcbeffbeacead1485e8b258685de3';
 
 abstract class _$TourStatusNotifier extends $Notifier<Map<String, bool>> {
   Map<String, bool> build();

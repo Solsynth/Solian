@@ -16,7 +16,6 @@ import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/account_pod.dart';
-import 'package:island/accounts/widgets/account/event_countdown_sheet.dart';
 import 'package:island/chat/widgets/chat_room_list_tile.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
@@ -591,12 +590,7 @@ class ClockCard extends HookConsumerWidget {
       ),
       child: InkWell(
         onTap: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useRootNavigator: true,
-            builder: (context) => const EventCountdownSheet(),
-          );
+          context.router.push(EventHubRoute(name: 'me'));
         },
         child: Padding(
           padding: compact
@@ -1000,6 +994,20 @@ class TodayOracleCard extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Symbols.calendar_month, size: 20),
+                    visualDensity: const VisualDensity(
+                      horizontal: -4,
+                      vertical: -4,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      context.router.push(
+                        EventHubRoute(name: 'me'),
+                      );
+                    },
                   ),
                 ],
               ).padding(horizontal: 16, vertical: 12),

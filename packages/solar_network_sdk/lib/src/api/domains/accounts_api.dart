@@ -436,6 +436,8 @@ class AccountsApi extends BaseApi {
   /// [visibility] - Visibility level (0=Private, 100=Friends, 200=Public).
   /// [recurrence] - Recurrence pattern.
   /// [meta] - Custom metadata.
+  /// [iconId] - File ID for event icon.
+  /// [backgroundId] - File ID for event background image.
   Future<SnUserCalendarEvent> createCalendarEvent({
     required String title,
     required DateTime startTime,
@@ -446,6 +448,8 @@ class AccountsApi extends BaseApi {
     int visibility = SnEventVisibility.private,
     SnRecurrencePattern? recurrence,
     Map<String, dynamic>? meta,
+    String? iconId,
+    String? backgroundId,
   }) async {
     final response = await post<Map<String, dynamic>>(
       '$_basePath/accounts/me/calendar/events',
@@ -473,6 +477,8 @@ class AccountsApi extends BaseApi {
               'month_of_year': recurrence.monthOfYear,
           },
         'meta': ?meta,
+        'icon_id': ?iconId,
+        'background_id': ?backgroundId,
       },
     );
 
@@ -504,6 +510,8 @@ class AccountsApi extends BaseApi {
     int? visibility,
     SnRecurrencePattern? recurrence,
     Map<String, dynamic>? meta,
+    String? iconId,
+    String? backgroundId,
   }) async {
     final data = <String, dynamic>{
       'title': ?title,
@@ -531,6 +539,8 @@ class AccountsApi extends BaseApi {
                   'month_of_year': recurrence.monthOfYear,
               },
       'meta': ?meta,
+      'icon_id': ?iconId,
+      'background_id': ?backgroundId,
     };
 
     final response = await put<Map<String, dynamic>>(

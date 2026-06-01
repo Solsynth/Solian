@@ -1,9 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/widgets/account/event_calendar_content.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/route.gr.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -70,16 +70,8 @@ class FortuneGraphWidget extends HookConsumerWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => SheetScaffold(
-                      titleText: 'eventCalendar'.tr(),
-                      child: EventCalendarContent(
-                        name: eventCalandarUser!,
-                        isSheet: true,
-                      ),
-                    ),
+                  context.router.push(
+                    EventCalendarRoute(name: eventCalandarUser!),
                   );
                 },
               ),
