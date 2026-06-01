@@ -3,11 +3,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/accounts/widgets/account/event_calendar_content.dart';
 import 'package:island/core/network.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
-import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
@@ -106,7 +104,9 @@ class CheckInWidget extends ConsumerWidget {
                       }
                       final report = result.fortuneReport;
                       return Text(
-                        report?.summary ?? report?.poem ?? 'checkInViewTemple'.tr(),
+                        report?.summary ??
+                            report?.poem ??
+                            'checkInViewTemple'.tr(),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ).fontSize(11);
@@ -157,14 +157,7 @@ class CheckInWidget extends ConsumerWidget {
                   vertical: -2,
                 ),
                 onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => SheetScaffold(
-                      titleText: 'eventCalendar'.tr(),
-                      child: EventCalendarContent(name: 'me', isSheet: true),
-                    ),
-                  );
+                  context.router.push(EventHubRoute(name: 'me'));
                 },
                 icon: const Icon(Symbols.event),
               ),

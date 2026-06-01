@@ -42,7 +42,7 @@ final class DriveTaskWsHandlerProvider
 }
 
 String _$driveTaskWsHandlerHash() =>
-    r'2e74fff852ab6e98a6f40f63c63ca86316aff6bc';
+    r'459779552816d9f2e6dbe83751551a2436f5c25f';
 
 abstract class _$DriveTaskWsHandler extends $Notifier<void> {
   void build();

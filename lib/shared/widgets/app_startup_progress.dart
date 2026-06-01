@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 class StartupProgressBar extends StatelessWidget {
   final double progress;
@@ -85,28 +86,28 @@ class StartupProgressIcon extends StatelessWidget {
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: isBusy
-              ? const SizedBox(
-                  key: ValueKey('busy-placeholder'),
-                  height: 18,
-                )
+              ? const SizedBox(key: ValueKey('busy-placeholder'), height: 18)
               : isErrored && !isDismissable
               ? Icon(
                   isWaitingForConnectivity
-                      ? Icons.wifi_off_rounded
-                      : Icons.error_outline,
+                      ? Symbols.wifi_off_rounded
+                      : Symbols.error_outline,
                   size: 18,
                   color: colorScheme.error,
+                  fill: 1,
                 )
               : isErrored && isDismissable
               ? Icon(
-                  Icons.warning_amber_rounded,
+                  Symbols.warning_amber_rounded,
                   size: 18,
                   color: colorScheme.error,
+                  fill: 1,
                 )
               : Icon(
-                  Icons.check_circle_outline,
+                  Symbols.check_circle_outline,
                   size: 18,
                   color: colorScheme.primary,
+                  fill: 1,
                 ),
         ),
       ],

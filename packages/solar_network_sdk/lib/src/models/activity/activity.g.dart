@@ -190,6 +190,14 @@ _SnUserCalendarEvent _$SnUserCalendarEventFromJson(Map<String, dynamic> json) =>
               json['recurrence'] as Map<String, dynamic>,
             ),
       meta: json['meta'] as Map<String, dynamic>?,
+      icon: json['icon'] == null
+          ? null
+          : SnCloudFileReference.fromJson(json['icon'] as Map<String, dynamic>),
+      background: json['background'] == null
+          ? null
+          : SnCloudFileReference.fromJson(
+              json['background'] as Map<String, dynamic>,
+            ),
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -211,6 +219,8 @@ Map<String, dynamic> _$SnUserCalendarEventToJson(
   'visibility': instance.visibility,
   'recurrence': instance.recurrence?.toJson(),
   'meta': instance.meta,
+  'icon': instance.icon?.toJson(),
+  'background': instance.background?.toJson(),
   'account_id': instance.accountId,
   'created_at': instance.createdAt.toIso8601String(),
   'updated_at': instance.updatedAt.toIso8601String(),
