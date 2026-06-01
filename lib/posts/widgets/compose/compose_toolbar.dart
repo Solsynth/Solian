@@ -147,6 +147,10 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.pickMeet(ref, state, context);
     }
 
+    void pickCalendarEvent() {
+      ComposeLogic.pickCalendarEvent(ref, state, context);
+    }
+
     void showDraftManager() {
       showModalBottomSheet(
         context: context,
@@ -306,6 +310,25 @@ class ComposeToolbar extends HookConsumerWidget {
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStatePropertyAll(
                                     state.meetId.value != null
+                                        ? colorScheme.primary.withOpacity(0.15)
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // Calendar event button with visual state when linked
+                          ListenableBuilder(
+                            listenable: state.calendarEventId,
+                            builder: (context, _) {
+                              return IconButton(
+                                onPressed: pickCalendarEvent,
+                                icon: const Icon(Symbols.calendar_month),
+                                tooltip: 'calendarEvent'.tr(),
+                                color: colorScheme.primary,
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStatePropertyAll(
+                                    state.calendarEventId.value != null
                                         ? colorScheme.primary.withOpacity(0.15)
                                         : null,
                                   ),

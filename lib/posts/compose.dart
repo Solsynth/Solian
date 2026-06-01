@@ -15,6 +15,8 @@ sealed class PostComposeInitialState with _$PostComposeInitialState {
     int? visibility,
     SnPost? replyingTo,
     SnPost? forwardingTo,
+    String? calendarEventId,
+    String? notableDayId,
   }) = _PostComposeInitialState;
 
   factory PostComposeInitialState.fromJson(Map<String, dynamic> json) =>

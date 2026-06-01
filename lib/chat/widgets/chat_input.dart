@@ -16,6 +16,7 @@ import "package:island/e2ee/e2ee.dart";
 import "package:island/chat/messages_notifier.dart";
 import "package:island/chat/pods/chat_online_count.dart";
 import "package:island/posts/widgets/compose/compose_fund.dart";
+import "package:island/posts/widgets/compose/compose_calendar_event_sheet.dart";
 import "package:island/posts/widgets/compose/compose_location_sheet.dart";
 import "package:island/posts/widgets/compose/compose_meet_sheet.dart";
 import "package:island/posts/widgets/compose/compose_poll.dart";
@@ -597,6 +598,8 @@ class _ExpandedSection extends StatefulWidget {
   final Function({String? name, String? address, String? wkt})?
   onLocationSelected;
   final Function(String?)? onMeetSelected;
+  final String? selectedCalendarEventId;
+  final Function(String?)? onCalendarEventSelected;
   final bool isE2eeRoom;
   final VoidCallback onEnableVoiceMode;
 
@@ -626,6 +629,8 @@ class _ExpandedSection extends StatefulWidget {
     this.selectedMeetId,
     this.onLocationSelected,
     this.onMeetSelected,
+    this.selectedCalendarEventId,
+    this.onCalendarEventSelected,
     this.isE2eeRoom = false,
     required this.onEnableVoiceMode,
   });
@@ -872,19 +877,55 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                               ),
                             ),
                           ),
-                        if (!widget.isE2eeRoom)
+                          if (!widget.isE2eeRoom)
+                            InkWell(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(8),
+                              ),
+                              onTap: () async {
+                                final meetId = await showModalBottomSheet<String>(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (context) => const ComposeMeetSheet(),
+                                );
+                                if (meetId != null) {
+                                  widget.onMeetSelected?.call(meetId);
+                                }
+                              },
+                              child: Card(
+                                margin: EdgeInsets.zero,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainer,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Symbols.groups),
+                                    const Gap(4),
+                                    Text(
+                                      'meet'.tr(),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           InkWell(
                             borderRadius: const BorderRadius.all(
                               Radius.circular(8),
                             ),
                             onTap: () async {
-                              final meetId = await showModalBottomSheet<String>(
-                                context: context,
-                                isScrollControlled: true,
-                                builder: (context) => const ComposeMeetSheet(),
-                              );
-                              if (meetId != null) {
-                                widget.onMeetSelected?.call(meetId);
+                              final event =
+                                  await showModalBottomSheet<SnUserCalendarEvent>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) =>
+                                        const ComposeCalendarEventSheet(),
+                                  );
+                              if (event != null) {
+                                widget.onCalendarEventSelected?.call(event.id);
                               }
                             },
                             child: Card(
@@ -895,10 +936,10 @@ class _ExpandedSectionState extends State<_ExpandedSection>
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Symbols.groups),
+                                  Icon(Symbols.calendar_month),
                                   const Gap(4),
                                   Text(
-                                    'meet'.tr(),
+                                    'calendarEvent'.tr(),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodySmall,
@@ -1226,6 +1267,8 @@ class ChatInput extends HookConsumerWidget {
   final Function({String? name, String? address, String? wkt})?
   onLocationSelected;
   final Function(String?)? onMeetSelected;
+  final String? selectedCalendarEventId;
+  final Function(String?)? onCalendarEventSelected;
   final bool isMessageListScrolling;
 
   const ChatInput({
@@ -1257,6 +1300,8 @@ class ChatInput extends HookConsumerWidget {
     this.selectedMeetId,
     this.onLocationSelected,
     this.onMeetSelected,
+    this.selectedCalendarEventId,
+    this.onCalendarEventSelected,
     required this.isMessageListScrolling,
   });
 
@@ -2646,6 +2691,8 @@ class ChatInput extends HookConsumerWidget {
                               selectedMeetId: selectedMeetId,
                               onLocationSelected: onLocationSelected,
                               onMeetSelected: onMeetSelected,
+                              selectedCalendarEventId: selectedCalendarEventId,
+                              onCalendarEventSelected: onCalendarEventSelected,
                               isE2eeRoom: roomEncryptKey != null,
                               onEnableVoiceMode: () {
                                 isVoiceMode.value = true;
