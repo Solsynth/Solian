@@ -166,6 +166,106 @@ List<SnChatGroup> _normalizeChatGroups(List<SnChatGroup> groups) {
   return [for (var i = 0; i < sorted.length; i++) sorted[i].copyWith(order: i)];
 }
 
+List<SnChatMember> _getValidMembers(SnChatRoom room, SnAccount? userInfo) {
+  var validMembers = room.members ?? <SnChatMember>[];
+  if (validMembers.isNotEmpty && userInfo != null) {
+    validMembers = validMembers
+        .where((e) => e.accountId != userInfo.id)
+        .toList();
+  }
+  return validMembers;
+}
+
+Set<String> _getOnlineFriendIds(AsyncValue<List<SnFriendOverviewItem>> friendsOverview) {
+  if (!friendsOverview.hasValue) return <String>{};
+  return friendsOverview.value!
+      .where((f) => showsOnlinePresence(f.status))
+      .map((f) => f.account.id)
+      .toSet();
+}
+
+String _getRoomTitle(
+  SnChatRoom room,
+  List<SnChatMember> validMembers, {
+  bool useAlias = false,
+  Map<String, String>? aliases,
+}) {
+  if (room.type == 1 && room.name == null) {
+    if (validMembers.isNotEmpty) {
+      final memberNames = <String>[];
+      for (final member in validMembers) {
+        final alias = aliases?[member.accountId];
+        memberNames.add(
+          (alias != null && alias.isNotEmpty) ? alias : member.account.nick,
+        );
+      }
+      return memberNames.join(', ');
+    }
+    return 'DM';
+  }
+  return room.name ?? '';
+}
+
+void _navigateToChatRoom(BuildContext context, String roomId) {
+  if (isWideScreen(context)) {
+    context.router.navigate(ChatRoomRoute(id: roomId));
+  } else {
+    context.router.push(ChatRoomRoute(id: roomId));
+  }
+}
+
+Widget _buildChatRoomContextMenu({
+  required BuildContext context,
+  required WidgetRef ref,
+  required SnChatRoom room,
+  required AppDatabase db,
+  required Dio client,
+  required String? accountId,
+  required List<SnChatGroup> chatGroups,
+  required Future<void> Function() onChatGroupsChanged,
+  required Widget child,
+}) {
+  return ContextMenuWidget(
+    menuProvider: (_) {
+      return Menu(
+        children: [
+          MenuAction(
+            title: room.isPinned ? 'Unpin Room' : 'Pin Room',
+            image: MenuImage.icon(
+              room.isPinned ? Symbols.keep_off : Symbols.keep,
+            ),
+            callback: () async {
+              await db.toggleChatRoomPinned(room.id);
+              ref.invalidate(chatRoomJoinedProvider);
+              await onChatGroupsChanged();
+            },
+          ),
+          if (accountId != null)
+            MenuAction(
+              title: 'Move To Group',
+              image: MenuImage.icon(Symbols.folder_open),
+              callback: () async {
+                final changedGroup = await _showAssignChatGroupSheet(
+                  context,
+                  client: client,
+                  db: db,
+                  accountId: accountId,
+                  room: room,
+                  groups: chatGroups,
+                );
+                if (changedGroup) {
+                  ref.invalidate(chatRoomJoinedProvider);
+                  await onChatGroupsChanged();
+                }
+              },
+            ),
+        ],
+      );
+    },
+    child: child,
+  );
+}
+
 class _PinnedChatRoomTile extends HookConsumerWidget {
   final SnChatRoom room;
   final bool isActive;
@@ -192,88 +292,39 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
         .watch(chatSummaryProvider)
         .whenData((summaries) => summaries[room.id]);
 
-    var validMembers = room.members ?? [];
-    if (validMembers.isNotEmpty) {
-      final userInfo = ref.watch(userInfoProvider);
-      if (userInfo.value != null) {
-        validMembers = validMembers
-            .where((e) => e.accountId != userInfo.value!.id)
-            .toList();
-      }
-    }
+    final userInfo = ref.watch(userInfoProvider);
+    final validMembers = _getValidMembers(room, userInfo.value);
 
     final friendsOverview = ref.watch(friendsOverviewProvider);
-    final onlineFriendIds = useMemoized(() {
-      if (!friendsOverview.hasValue) return <String>{};
-      return friendsOverview.value!
-          .where((f) => showsOnlinePresence(f.status))
-          .map((f) => f.account.id)
-          .toSet();
-    }, [friendsOverview.hasValue ? friendsOverview.value : null]);
+    final onlineFriendIds = useMemoized(() => _getOnlineFriendIds(friendsOverview), [friendsOverview.value]);
     final isOnline = isDirect &&
         validMembers.any((m) => onlineFriendIds.contains(m.accountId));
 
-    String titleText;
-    if (isDirect && room.name == null) {
-      if (validMembers.isNotEmpty) {
-        final memberNames = <String>[];
-        for (final member in validMembers) {
-          final aliasAsync = ref.watch(
-            relationshipAliasProvider(member.accountId),
-          );
-          final alias = aliasAsync.hasValue ? aliasAsync.value : null;
-          memberNames.add(
-            (alias != null && alias.isNotEmpty) ? alias : member.account.nick,
-          );
+    // Build aliases map for title computation
+    final aliases = useMemoized(() {
+      final map = <String, String>{};
+      for (final member in validMembers) {
+        final aliasAsync = ref.read(relationshipAliasProvider(member.accountId));
+        if (aliasAsync.hasValue && aliasAsync.value != null) {
+          map[member.accountId] = aliasAsync.value!;
         }
-        titleText = memberNames.join(', ');
-      } else {
-        titleText = 'DM';
       }
-    } else {
-      titleText = room.name ?? '';
-    }
+      return map;
+    }, [validMembers]);
+    final titleText = _getRoomTitle(room, validMembers, useAlias: true, aliases: aliases);
 
     final db = ref.watch(databaseProvider);
     final client = ref.watch(apiClientProvider);
 
-    return ContextMenuWidget(
-      menuProvider: (_) {
-        return Menu(
-          children: [
-            MenuAction(
-              title: room.isPinned ? 'Unpin Room' : 'Pin Room',
-              image: MenuImage.icon(
-                room.isPinned ? Symbols.keep_off : Symbols.keep,
-              ),
-              callback: () async {
-                await db.toggleChatRoomPinned(room.id);
-                ref.invalidate(chatRoomJoinedProvider);
-                await onChatGroupsChanged();
-              },
-            ),
-            if (accountId != null)
-              MenuAction(
-                title: 'Move To Group',
-                image: MenuImage.icon(Symbols.folder_open),
-                callback: () async {
-                  final changedGroup = await _showAssignChatGroupSheet(
-                    context,
-                    client: client,
-                    db: db,
-                    accountId: accountId!,
-                    room: room,
-                    groups: chatGroups,
-                  );
-                  if (changedGroup) {
-                    ref.invalidate(chatRoomJoinedProvider);
-                    await onChatGroupsChanged();
-                  }
-                },
-              ),
-          ],
-        );
-      },
+    return _buildChatRoomContextMenu(
+      context: context,
+      ref: ref,
+      room: room,
+      db: db,
+      client: client,
+      accountId: accountId,
+      chatGroups: chatGroups,
+      onChatGroupsChanged: onChatGroupsChanged,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -450,43 +501,15 @@ class ChatListBodyWidget extends HookConsumerWidget {
     final friendsOverview = ref.watch(friendsOverviewProvider);
 
     Widget buildRoomTile(SnChatRoom room) {
-      return ContextMenuWidget(
-        menuProvider: (_) {
-          return Menu(
-            children: [
-              MenuAction(
-                title: room.isPinned ? 'Unpin Room' : 'Pin Room',
-                image: MenuImage.icon(
-                  room.isPinned ? Symbols.keep_off : Symbols.keep,
-                ),
-                callback: () async {
-                  await db.toggleChatRoomPinned(room.id);
-                  ref.invalidate(chatRoomJoinedProvider);
-                  await onChatGroupsChanged();
-                },
-              ),
-              if (accountId != null)
-                MenuAction(
-                  title: 'Move To Group',
-                  image: MenuImage.icon(Symbols.folder_open),
-                  callback: () async {
-                    final changedGroup = await _showAssignChatGroupSheet(
-                      context,
-                      client: client,
-                      db: db,
-                      accountId: accountId!,
-                      room: room,
-                      groups: chatGroups,
-                    );
-                    if (changedGroup) {
-                      ref.invalidate(chatRoomJoinedProvider);
-                      await onChatGroupsChanged();
-                    }
-                  },
-                ),
-            ],
-          );
-        },
+      return _buildChatRoomContextMenu(
+        context: context,
+        ref: ref,
+        room: room,
+        db: db,
+        client: client,
+        accountId: accountId,
+        chatGroups: chatGroups,
+        onChatGroupsChanged: onChatGroupsChanged,
         child: ChatRoomListTile(
           room: room,
           isDirect: room.type == 1,
@@ -497,13 +520,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                   .value
                   ?.isPushNotificationsSuppressed(room.id) ??
               false,
-          onTap: () {
-            if (isWideScreen(context)) {
-              context.router.navigate(ChatRoomRoute(id: room.id));
-            } else {
-              context.router.push(ChatRoomRoute(id: room.id));
-            }
-          },
+          onTap: () => _navigateToChatRoom(context, room.id),
         ),
       );
     }
@@ -530,13 +547,7 @@ class ChatListBodyWidget extends HookConsumerWidget {
                     .toList(),
                 [sortedItems, selectedTabValue],
               );
-              final onlineFriendIds = useMemoized(() {
-                if (!friendsOverview.hasValue) return <String>{};
-                return friendsOverview.value!
-                    .where((f) => showsOnlinePresence(f.status))
-                    .map((f) => f.account.id)
-                    .toSet();
-              }, [friendsOverview.hasValue ? friendsOverview.value : null]);
+              final onlineFriendIds = useMemoized(() => _getOnlineFriendIds(friendsOverview), [friendsOverview.value]);
               final pinnedItems = useMemoized(() {
                 final pinned = <SnChatRoom>[];
                 for (final item in filteredItems) {
@@ -650,6 +661,11 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                   isActive: activeChatId == room.id,
                                   isDirect: room.type == 1,
                                   onTap: () {
+                                    ref.read(chatSummaryProvider.future).then((summary) {
+                                      if ((summary[room.id]?.unreadCount ?? 0) > 0) {
+                                        ref.read(chatSummaryProvider.notifier).clearUnreadCount(room.id);
+                                      }
+                                    });
                                     if (isWideScreen(context)) {
                                       context.router.navigate(
                                         ChatRoomRoute(id: room.id),
@@ -1654,24 +1670,6 @@ class _CollapsedChatListBody extends HookConsumerWidget {
     final db = ref.watch(databaseProvider);
     final client = ref.watch(apiClientProvider);
 
-    void openRoom(String roomId) {
-      if (isWideScreen(context)) {
-        context.router.navigate(ChatRoomRoute(id: roomId));
-      } else {
-        context.router.push(ChatRoomRoute(id: roomId));
-      }
-    }
-
-    List<SnChatMember> getValidMembers(SnChatRoom room) {
-      var validMembers = room.members ?? <SnChatMember>[];
-      if (validMembers.isNotEmpty && userInfo.value != null) {
-        validMembers = validMembers
-            .where((e) => e.accountId != userInfo.value!.id)
-            .toList();
-      }
-      return validMembers;
-    }
-
     String getRoomTitle(SnChatRoom room, List<SnChatMember> validMembers) {
       final lockPrefix = room.encryptionMode != 0 ? '🔒 ' : '';
       if (room.type == 1 && room.name == null) {
@@ -1748,50 +1746,22 @@ class _CollapsedChatListBody extends HookConsumerWidget {
 
         Widget buildRoomIconButton(SnChatRoom room) {
           final unread = summariesData[room.id]?.unreadCount ?? 0;
-          final validMembers = getValidMembers(room);
+          final validMembers = _getValidMembers(room, userInfo.value);
           final title = getRoomTitle(room, validMembers);
           return withSelectedIndicator(
             isSelected: activeChatId == room.id,
-            child: ContextMenuWidget(
-              menuProvider: (_) {
-                return Menu(
-                  children: [
-                    MenuAction(
-                      title: room.isPinned ? 'Unpin Room' : 'Pin Room',
-                      image: MenuImage.icon(
-                        room.isPinned ? Symbols.keep_off : Symbols.keep,
-                      ),
-                      callback: () async {
-                        await db.toggleChatRoomPinned(room.id);
-                        ref.invalidate(chatRoomJoinedProvider);
-                        await onChatGroupsChanged();
-                      },
-                    ),
-                    if (accountId != null)
-                      MenuAction(
-                        title: 'Move To Group',
-                        image: MenuImage.icon(Symbols.folder_open),
-                        callback: () async {
-                          final changedGroup = await _showAssignChatGroupSheet(
-                            context,
-                            client: client,
-                            db: db,
-                            accountId: accountId!,
-                            room: room,
-                            groups: chatGroups,
-                          );
-                          if (changedGroup) {
-                            ref.invalidate(chatRoomJoinedProvider);
-                            await onChatGroupsChanged();
-                          }
-                        },
-                      ),
-                  ],
-                );
-              },
+            child: _buildChatRoomContextMenu(
+              context: context,
+              ref: ref,
+              room: room,
+              db: db,
+              client: client,
+              accountId: accountId,
+              chatGroups: chatGroups,
+              onChatGroupsChanged: onChatGroupsChanged,
               child: IconButton(
                 tooltip: title,
-                onPressed: () => openRoom(room.id),
+                onPressed: () => _navigateToChatRoom(context, room.id),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints.tightFor(
                   width: 48,
@@ -1837,7 +1807,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                 child: PopupMenuButton<SnChatRoom>(
                   tooltip: section.group.name,
                   position: PopupMenuPosition.under,
-                  onSelected: (room) => openRoom(room.id),
+                  onSelected: (room) => _navigateToChatRoom(context, room.id),
                   itemBuilder: (context) => [
                     PopupMenuItem<SnChatRoom>(
                       enabled: false,
@@ -1862,7 +1832,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                     ),
                     ...rooms.map((room) {
                       final unread = summariesData[room.id]?.unreadCount ?? 0;
-                      final validMembers = getValidMembers(room);
+                      final validMembers = _getValidMembers(room, userInfo.value);
                       return PopupMenuItem<SnChatRoom>(
                         value: room,
                         child: Row(
@@ -1937,7 +1907,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                 child: PopupMenuButton<SnChatRoom>(
                   tooltip: realm?.name ?? 'Group',
                   position: PopupMenuPosition.under,
-                  onSelected: (room) => openRoom(room.id),
+                  onSelected: (room) => _navigateToChatRoom(context, room.id),
                   itemBuilder: (context) => [
                     PopupMenuItem<SnChatRoom>(
                       enabled: false,
@@ -1957,7 +1927,7 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                     ),
                     ...rooms.map((room) {
                       final unread = summariesData[room.id]?.unreadCount ?? 0;
-                      final validMembers = getValidMembers(room);
+                      final validMembers = _getValidMembers(room, userInfo.value);
                       return PopupMenuItem<SnChatRoom>(
                         value: room,
                         child: Row(
