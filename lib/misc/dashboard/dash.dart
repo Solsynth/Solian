@@ -566,7 +566,13 @@ class ClockCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final time = useState(DateTime.now());
     final timer = useRef<Timer?>(null);
-    final countdowns = ref.watch(eventCountdownsProvider(take: 5));
+    final appSettings = ref.watch(appSettingsProvider);
+    final query = EventCountdownQuery(
+      username: 'me',
+      includeNotableDays:
+          appSettings.dashboardConfig?.countdownIncludeNotableDays ?? true,
+    );
+    final countdowns = ref.watch(eventCountdownListProvider(query));
 
     // Determine icon based on time of day
     final int hour = time.value.hour;
@@ -645,9 +651,9 @@ class ClockCard extends HookConsumerWidget {
                             spacing: 5,
                             children: [
                               countdowns.when(
-                                data: (items) => items.isEmpty
+                                data: (state) => state.items.isEmpty
                                     ? Text('countdownEmpty').tr().fontSize(12)
-                                    : _buildCountdownText(context, items.first),
+                                    : _buildCountdownText(context, state.items.first),
                                 error: (err, _) =>
                                     Text(err.toString()).fontSize(12),
                                 loading: () =>

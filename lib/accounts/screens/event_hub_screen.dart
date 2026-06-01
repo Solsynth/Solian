@@ -10,11 +10,10 @@ import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/widgets/account/event_calendar_content.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:slide_countdown/slide_countdown.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
-
-enum _CountdownFilter { all, week, month, year }
 
 @RoutePage()
 class EventHubScreen extends HookConsumerWidget {
@@ -53,7 +52,15 @@ class _WideLayout extends StatelessWidget {
           ),
         ),
         // Right column - Countdown
-        Expanded(flex: 1, child: _CountdownContent(name: name)),
+        Expanded(
+          flex: 1,
+          child: Material(
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainer.withOpacity(0.5),
+            child: _CountdownContent(name: name),
+          ),
+        ),
       ],
     );
   }
@@ -110,53 +117,92 @@ class _CountdownContent extends HookConsumerWidget {
 
   const _CountdownContent({required this.name});
 
+  static const _availableTags = [
+    null, // All
+    'Holiday',
+    'Event',
+    'Anniversary',
+    'Memorial',
+    'Festival',
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedFilter = useState<_CountdownFilter>(_CountdownFilter.all);
+    final includeNotableDays = useState(true);
+    final selectedTag = useState<String?>(null);
+    final query = EventCountdownQuery(
+      username: name,
+      includeNotableDays: includeNotableDays.value,
+      tag: selectedTag.value,
+    );
 
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(0.8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Material(
-            color: Theme.of(context).colorScheme.surfaceContainer,
-            elevation: 1,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SegmentedButton<_CountdownFilter>(
-                segments: [
-                  ButtonSegment(
-                    value: _CountdownFilter.all,
-                    label: Text('countdownAll'.tr()),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Material(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          elevation: 1,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'includeNotableDays'.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                    Switch(
+                      value: includeNotableDays.value,
+                      onChanged: (value) {
+                        includeNotableDays.value = value;
+                      },
+                    ),
+                  ],
+                ),
+                const Gap(8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _availableTags.map((tag) {
+                      final isSelected = selectedTag.value == tag;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(
+                            tag == null
+                                ? 'countdownTagAll'.tr()
+                                : 'countdownTag$tag'.tr(),
+                          ),
+                          selected: isSelected,
+                          onSelected: (_) {
+                            selectedTag.value = tag;
+                          },
+                          showCheckmark: false,
+                        ),
+                      );
+                    }).toList(),
                   ),
-                  ButtonSegment(
-                    value: _CountdownFilter.week,
-                    label: Text('countdownWeek'.tr()),
-                  ),
-                  ButtonSegment(
-                    value: _CountdownFilter.month,
-                    label: Text('countdownMonth'.tr()),
-                  ),
-                  ButtonSegment(
-                    value: _CountdownFilter.year,
-                    label: Text('countdownYear'.tr()),
-                  ),
-                ],
-                selected: {selectedFilter.value},
-                onSelectionChanged: (selection) {
-                  selectedFilter.value = selection.first;
-                },
-              ),
+                ),
+              ],
             ),
           ),
-          const _TimeProgressPageView(),
-          const Gap(8),
-          Expanded(
-            child: _CountdownList(filter: selectedFilter.value, username: name),
+        ),
+        const _TimeProgressPageView(),
+        const Gap(8),
+        Expanded(
+          child: PaginationList<SnEventCountdownItem>(
+            provider: eventCountdownListProvider(query),
+            notifier: eventCountdownListProvider(query).notifier,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            itemBuilder: (context, index, item) {
+              return _CountdownCard(item: item);
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -403,108 +449,32 @@ class _TimeProgressCard extends HookWidget {
 
 enum _BlockState { past, today, future }
 
-class _CountdownList extends HookConsumerWidget {
-  final _CountdownFilter filter;
-  final String? username;
-
-  const _CountdownList({required this.filter, this.username});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final countdownsAsync = _getCountdownsProvider(ref);
-
-    useEffect(() {
-      final timer = Timer.periodic(const Duration(minutes: 1), (_) {
-        ref.invalidate(eventCountdownsProvider);
-      });
-      return timer.cancel;
-    }, []);
-
-    return countdownsAsync.when(
-      data: (countdowns) {
-        if (countdowns.isEmpty) {
-          return _buildEmptyState(context);
-        }
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          itemCount: countdowns.length,
-          itemBuilder: (context, index) {
-            return _CountdownCard(item: countdowns[index]);
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Symbols.error,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const Gap(16),
-            Text('error'.tr(), style: Theme.of(context).textTheme.titleMedium),
-            const Gap(8),
-            Text(
-              error.toString(),
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  AsyncValue<List<SnEventCountdownItem>> _getCountdownsProvider(WidgetRef ref) {
-    switch (filter) {
-      case _CountdownFilter.week:
-        return ref.watch(weekCountdownsProvider(username: username));
-      case _CountdownFilter.month:
-        return ref.watch(monthCountdownsProvider(username: username));
-      case _CountdownFilter.year:
-        return ref.watch(yearCountdownsProvider(username: username));
-      case _CountdownFilter.all:
-        return ref.watch(eventCountdownsProvider(take: 20, username: username));
-    }
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Symbols.event_busy,
-            size: 64,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const Gap(16),
-          Text(
-            'countdownEmpty'.tr(),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const Gap(8),
-          Text(
-            'countdownEmptyHint'.tr(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _CountdownCard extends StatelessWidget {
   final SnEventCountdownItem item;
 
   const _CountdownCard({required this.item});
+
+  bool get _isPast => item.startTime.isBefore(DateTime.now());
+
+  Duration get _durationSince => DateTime.now().difference(item.startTime);
+
+  String _formatDuration(BuildContext context, Duration duration) {
+    if (duration.inDays > 365) {
+      final years = duration.inDays ~/ 365;
+      return '{}y'.tr(args: [years.toString()]);
+    }
+    if (duration.inDays > 30) {
+      final months = duration.inDays ~/ 30;
+      return '{}mo'.tr(args: [months.toString()]);
+    }
+    if (duration.inDays > 0) {
+      return '{}d'.tr(args: [duration.inDays.toString()]);
+    }
+    if (duration.inHours > 0) {
+      return '{}h'.tr(args: [duration.inHours.toString()]);
+    }
+    return '{}m'.tr(args: [duration.inMinutes.toString()]);
+  }
 
   double _calculateYearProgress() {
     final now = DateTime.now();
@@ -514,6 +484,27 @@ class _CountdownCard extends StatelessWidget {
 
     if (eventDuration <= 0) return 1.0;
     return (elapsedDuration / eventDuration).clamp(0.0, 1.0);
+  }
+
+  Widget _buildPastDuration(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final durationText = _formatDuration(context, _durationSince);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        'countdownPast'.tr(args: [durationText]),
+        style: textTheme.labelSmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
   }
 
   @override
@@ -636,6 +627,8 @@ class _CountdownCard extends StatelessWidget {
                   ],
                 ),
               )
+            else if (_isPast)
+              _buildPastDuration(context)
             else
               SizedBox(
                 width: 110,
