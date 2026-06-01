@@ -9,38 +9,36 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i92;
-import 'package:flutter/foundation.dart' as _i93;
-import 'package:flutter/material.dart' as _i94;
+import 'package:auto_route/auto_route.dart' as _i90;
+import 'package:flutter/foundation.dart' as _i91;
+import 'package:flutter/material.dart' as _i92;
 import 'package:island/accounts/account_screen.dart' as _i2;
 import 'package:island/accounts/screens/action_logs.dart' as _i7;
 import 'package:island/accounts/screens/affiliation_detail.dart' as _i8;
 import 'package:island/accounts/screens/affiliations.dart' as _i9;
 import 'package:island/accounts/screens/badges.dart' as _i14;
 import 'package:island/accounts/screens/check_in.dart' as _i25;
-import 'package:island/accounts/screens/event_calendar_screen.dart' as _i47;
-import 'package:island/accounts/screens/event_countdown_screen.dart' as _i48;
-import 'package:island/accounts/screens/event_hub_screen.dart' as _i49;
-import 'package:island/accounts/screens/leveling.dart' as _i61;
+import 'package:island/accounts/screens/event_hub_screen.dart' as _i47;
+import 'package:island/accounts/screens/leveling.dart' as _i59;
 import 'package:island/accounts/screens/me/account_qr.dart' as _i4;
 import 'package:island/accounts/screens/me/account_settings.dart' as _i5;
 import 'package:island/accounts/screens/me/profile_update.dart' as _i6;
-import 'package:island/accounts/screens/meet.dart' as _i63;
-import 'package:island/accounts/screens/physical_passport.dart' as _i67;
+import 'package:island/accounts/screens/meet.dart' as _i61;
+import 'package:island/accounts/screens/physical_passport.dart' as _i65;
 import 'package:island/accounts/screens/profile.dart' as _i3;
-import 'package:island/accounts/screens/progress.dart' as _i74;
-import 'package:island/accounts/screens/punishments.dart' as _i76;
-import 'package:island/accounts/screens/relationship.dart' as _i79;
+import 'package:island/accounts/screens/progress.dart' as _i72;
+import 'package:island/accounts/screens/punishments.dart' as _i74;
+import 'package:island/accounts/screens/relationship.dart' as _i77;
 import 'package:island/auth/captcha.dart' as _i19;
 import 'package:island/auth/create_account.dart' as _i26;
-import 'package:island/auth/login.dart' as _i62;
+import 'package:island/auth/login.dart' as _i60;
 import 'package:island/chat/widgets/call_screen.dart' as _i18;
 import 'package:island/chat/widgets/chat_detail_screen.dart' as _i21;
 import 'package:island/chat/widgets/chat_list_screen.dart' as _i22;
 import 'package:island/chat/widgets/chat_room_form.dart' as _i45;
 import 'package:island/chat/widgets/chat_room_screen.dart' as _i23;
 import 'package:island/chat/widgets/chat_room_storage_screen.dart' as _i24;
-import 'package:island/chat/widgets/chat_search_screen.dart' as _i80;
+import 'package:island/chat/widgets/chat_search_screen.dart' as _i78;
 import 'package:island/creators/screens/hub.dart' as _i28;
 import 'package:island/creators/screens/poll/poll_list.dart' as _i29;
 import 'package:island/creators/screens/posts/post_collections_manage.dart'
@@ -64,59 +62,59 @@ import 'package:island/developers/screens/hub.dart' as _i42;
 import 'package:island/developers/screens/new_app.dart' as _i38;
 import 'package:island/developers/screens/new_bot.dart' as _i41;
 import 'package:island/developers/screens/new_project.dart' as _i44;
-import 'package:island/discovery/explore.dart' as _i50;
+import 'package:island/discovery/explore.dart' as _i48;
 import 'package:island/discovery/screens/article_detail.dart' as _i12;
 import 'package:island/discovery/screens/articles.dart' as _i13;
-import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i52;
-import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i53;
-import 'package:island/discovery/search.dart' as _i88;
-import 'package:island/drive/files/file_detail.dart' as _i54;
-import 'package:island/drive/files/file_list.dart' as _i55;
-import 'package:island/fediverse/actor_profile.dart' as _i51;
-import 'package:island/fitness/screens/fitness_dashboard_screen.dart' as _i56;
-import 'package:island/fitness/screens/goal_create_screen.dart' as _i57;
-import 'package:island/fitness/screens/goal_detail_screen.dart' as _i58;
-import 'package:island/fitness/screens/goals_screen.dart' as _i59;
-import 'package:island/fitness/screens/health_sync_screen.dart' as _i60;
-import 'package:island/fitness/screens/metric_detail_screen.dart' as _i64;
-import 'package:island/fitness/screens/metric_record_screen.dart' as _i65;
-import 'package:island/fitness/screens/metrics_screen.dart' as _i66;
-import 'package:island/fitness/screens/workout_record_screen.dart' as _i90;
-import 'package:island/fitness/screens/workouts_screen.dart' as _i91;
+import 'package:island/discovery/screens/feeds/feed_detail.dart' as _i50;
+import 'package:island/discovery/screens/feeds/feed_marketplace.dart' as _i51;
+import 'package:island/discovery/search.dart' as _i86;
+import 'package:island/drive/files/file_detail.dart' as _i52;
+import 'package:island/drive/files/file_list.dart' as _i53;
+import 'package:island/fediverse/actor_profile.dart' as _i49;
+import 'package:island/fitness/screens/fitness_dashboard_screen.dart' as _i54;
+import 'package:island/fitness/screens/goal_create_screen.dart' as _i55;
+import 'package:island/fitness/screens/goal_detail_screen.dart' as _i56;
+import 'package:island/fitness/screens/goals_screen.dart' as _i57;
+import 'package:island/fitness/screens/health_sync_screen.dart' as _i58;
+import 'package:island/fitness/screens/metric_detail_screen.dart' as _i62;
+import 'package:island/fitness/screens/metric_record_screen.dart' as _i63;
+import 'package:island/fitness/screens/metrics_screen.dart' as _i64;
+import 'package:island/fitness/screens/workout_record_screen.dart' as _i88;
+import 'package:island/fitness/screens/workouts_screen.dart' as _i89;
 import 'package:island/misc/about.dart' as _i1;
 import 'package:island/misc/cf_ip_speed_test_screen.dart' as _i20;
 import 'package:island/misc/dashboard/dash.dart' as _i34;
-import 'package:island/misc/settings.dart' as _i81;
-import 'package:island/misc/tabs_screen.dart' as _i84;
-import 'package:island/polls/polls_widgets/poll/poll_submit_page.dart' as _i69;
-import 'package:island/polls/screens/poll_editor.dart' as _i68;
-import 'package:island/posts/compose.dart' as _i96;
+import 'package:island/misc/settings.dart' as _i79;
+import 'package:island/misc/tabs_screen.dart' as _i82;
+import 'package:island/polls/polls_widgets/poll/poll_submit_page.dart' as _i67;
+import 'package:island/polls/screens/poll_editor.dart' as _i66;
+import 'package:island/posts/compose.dart' as _i94;
 import 'package:island/posts/screens/bookmarks.dart' as _i15;
 import 'package:island/posts/screens/compose_article.dart' as _i11;
-import 'package:island/posts/screens/post_categories_list.dart' as _i70;
-import 'package:island/posts/screens/post_category_detail.dart' as _i71;
-import 'package:island/posts/screens/post_detail.dart' as _i72;
-import 'package:island/posts/screens/publisher_profile.dart' as _i75;
-import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i73;
-import 'package:island/realms/screens/realm_detail.dart' as _i77;
-import 'package:island/realms/screens/realms.dart' as _i78;
-import 'package:island/stickers/screens/pack_detail.dart' as _i82;
-import 'package:island/stickers/screens/sticker_marketplace.dart' as _i83;
-import 'package:island/thoughts/screens/think.dart' as _i85;
-import 'package:island/tickets/screens/ticket_detail.dart' as _i86;
-import 'package:island/tickets/screens/ticket_list.dart' as _i87;
-import 'package:island/wallets/wallet.dart' as _i89;
-import 'package:solar_network_sdk/solar_network_sdk.dart' as _i95;
+import 'package:island/posts/screens/post_categories_list.dart' as _i68;
+import 'package:island/posts/screens/post_category_detail.dart' as _i69;
+import 'package:island/posts/screens/post_detail.dart' as _i70;
+import 'package:island/posts/screens/publisher_profile.dart' as _i73;
+import 'package:island/posts/widgets/compose/post_shuffle.dart' as _i71;
+import 'package:island/realms/screens/realm_detail.dart' as _i75;
+import 'package:island/realms/screens/realms.dart' as _i76;
+import 'package:island/stickers/screens/pack_detail.dart' as _i80;
+import 'package:island/stickers/screens/sticker_marketplace.dart' as _i81;
+import 'package:island/thoughts/screens/think.dart' as _i83;
+import 'package:island/tickets/screens/ticket_detail.dart' as _i84;
+import 'package:island/tickets/screens/ticket_list.dart' as _i85;
+import 'package:island/wallets/wallet.dart' as _i87;
+import 'package:solar_network_sdk/solar_network_sdk.dart' as _i93;
 
 /// generated route for
 /// [_i1.AboutScreen]
-class AboutRoute extends _i92.PageRouteInfo<void> {
-  const AboutRoute({List<_i92.PageRouteInfo>? children})
+class AboutRoute extends _i90.PageRouteInfo<void> {
+  const AboutRoute({List<_i90.PageRouteInfo>? children})
     : super(AboutRoute.name, initialChildren: children);
 
   static const String name = 'AboutRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i1.AboutScreen();
@@ -126,13 +124,13 @@ class AboutRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.AccountListScreen]
-class AccountListRoute extends _i92.PageRouteInfo<void> {
-  const AccountListRoute({List<_i92.PageRouteInfo>? children})
+class AccountListRoute extends _i90.PageRouteInfo<void> {
+  const AccountListRoute({List<_i90.PageRouteInfo>? children})
     : super(AccountListRoute.name, initialChildren: children);
 
   static const String name = 'AccountListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i2.AccountListScreen();
@@ -142,11 +140,11 @@ class AccountListRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i3.AccountProfileScreen]
-class AccountProfileRoute extends _i92.PageRouteInfo<AccountProfileRouteArgs> {
+class AccountProfileRoute extends _i90.PageRouteInfo<AccountProfileRouteArgs> {
   AccountProfileRoute({
-    _i93.Key? key,
+    _i91.Key? key,
     required String name,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          AccountProfileRoute.name,
          args: AccountProfileRouteArgs(key: key, name: name),
@@ -156,7 +154,7 @@ class AccountProfileRoute extends _i92.PageRouteInfo<AccountProfileRouteArgs> {
 
   static const String name = 'AccountProfileRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -172,7 +170,7 @@ class AccountProfileRoute extends _i92.PageRouteInfo<AccountProfileRouteArgs> {
 class AccountProfileRouteArgs {
   const AccountProfileRouteArgs({this.key, required this.name});
 
-  final _i93.Key? key;
+  final _i91.Key? key;
 
   final String name;
 
@@ -194,13 +192,13 @@ class AccountProfileRouteArgs {
 
 /// generated route for
 /// [_i4.AccountQrScreen]
-class AccountQrRoute extends _i92.PageRouteInfo<void> {
-  const AccountQrRoute({List<_i92.PageRouteInfo>? children})
+class AccountQrRoute extends _i90.PageRouteInfo<void> {
+  const AccountQrRoute({List<_i90.PageRouteInfo>? children})
     : super(AccountQrRoute.name, initialChildren: children);
 
   static const String name = 'AccountQrRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i4.AccountQrScreen();
@@ -210,13 +208,13 @@ class AccountQrRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.AccountScreen]
-class AccountRoute extends _i92.PageRouteInfo<void> {
-  const AccountRoute({List<_i92.PageRouteInfo>? children})
+class AccountRoute extends _i90.PageRouteInfo<void> {
+  const AccountRoute({List<_i90.PageRouteInfo>? children})
     : super(AccountRoute.name, initialChildren: children);
 
   static const String name = 'AccountRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i2.AccountScreen();
@@ -226,13 +224,13 @@ class AccountRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i5.AccountSettingsScreen]
-class AccountSettingsRoute extends _i92.PageRouteInfo<void> {
-  const AccountSettingsRoute({List<_i92.PageRouteInfo>? children})
+class AccountSettingsRoute extends _i90.PageRouteInfo<void> {
+  const AccountSettingsRoute({List<_i90.PageRouteInfo>? children})
     : super(AccountSettingsRoute.name, initialChildren: children);
 
   static const String name = 'AccountSettingsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i5.AccountSettingsScreen();
@@ -242,13 +240,13 @@ class AccountSettingsRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i6.AccountUpdateProfileScreen]
-class AccountUpdateProfileRoute extends _i92.PageRouteInfo<void> {
-  const AccountUpdateProfileRoute({List<_i92.PageRouteInfo>? children})
+class AccountUpdateProfileRoute extends _i90.PageRouteInfo<void> {
+  const AccountUpdateProfileRoute({List<_i90.PageRouteInfo>? children})
     : super(AccountUpdateProfileRoute.name, initialChildren: children);
 
   static const String name = 'AccountUpdateProfileRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i6.AccountUpdateProfileScreen();
@@ -258,13 +256,13 @@ class AccountUpdateProfileRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i7.ActionLogsScreen]
-class ActionLogsRoute extends _i92.PageRouteInfo<void> {
-  const ActionLogsRoute({List<_i92.PageRouteInfo>? children})
+class ActionLogsRoute extends _i90.PageRouteInfo<void> {
+  const ActionLogsRoute({List<_i90.PageRouteInfo>? children})
     : super(ActionLogsRoute.name, initialChildren: children);
 
   static const String name = 'ActionLogsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i7.ActionLogsScreen();
@@ -275,11 +273,11 @@ class ActionLogsRoute extends _i92.PageRouteInfo<void> {
 /// generated route for
 /// [_i8.AffiliationDetailScreen]
 class AffiliationDetailRoute
-    extends _i92.PageRouteInfo<AffiliationDetailRouteArgs> {
+    extends _i90.PageRouteInfo<AffiliationDetailRouteArgs> {
   AffiliationDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          AffiliationDetailRoute.name,
          args: AffiliationDetailRouteArgs(key: key, id: id),
@@ -289,7 +287,7 @@ class AffiliationDetailRoute
 
   static const String name = 'AffiliationDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -305,7 +303,7 @@ class AffiliationDetailRoute
 class AffiliationDetailRouteArgs {
   const AffiliationDetailRouteArgs({this.key, required this.id});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String id;
 
@@ -327,13 +325,13 @@ class AffiliationDetailRouteArgs {
 
 /// generated route for
 /// [_i9.AffiliationScreen]
-class AffiliationRoute extends _i92.PageRouteInfo<void> {
-  const AffiliationRoute({List<_i92.PageRouteInfo>? children})
+class AffiliationRoute extends _i90.PageRouteInfo<void> {
+  const AffiliationRoute({List<_i90.PageRouteInfo>? children})
     : super(AffiliationRoute.name, initialChildren: children);
 
   static const String name = 'AffiliationRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i9.AffiliationScreen();
@@ -343,13 +341,13 @@ class AffiliationRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i10.AppSecretsScreen]
-class AppSecretsRoute extends _i92.PageRouteInfo<AppSecretsRouteArgs> {
+class AppSecretsRoute extends _i90.PageRouteInfo<AppSecretsRouteArgs> {
   AppSecretsRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String publisherName,
     required String projectId,
     required String appId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          AppSecretsRoute.name,
          args: AppSecretsRouteArgs(
@@ -363,7 +361,7 @@ class AppSecretsRoute extends _i92.PageRouteInfo<AppSecretsRouteArgs> {
 
   static const String name = 'AppSecretsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<AppSecretsRouteArgs>();
@@ -385,7 +383,7 @@ class AppSecretsRouteArgs {
     required this.appId,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String publisherName;
 
@@ -418,12 +416,12 @@ class AppSecretsRouteArgs {
 
 /// generated route for
 /// [_i11.ArticleComposeScreen]
-class ArticleComposeRoute extends _i92.PageRouteInfo<ArticleComposeRouteArgs> {
+class ArticleComposeRoute extends _i90.PageRouteInfo<ArticleComposeRouteArgs> {
   ArticleComposeRoute({
-    _i94.Key? key,
-    _i95.SnPost? originalPost,
-    _i96.PostComposeInitialState? initialState,
-    List<_i92.PageRouteInfo>? children,
+    _i92.Key? key,
+    _i93.SnPost? originalPost,
+    _i94.PostComposeInitialState? initialState,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          ArticleComposeRoute.name,
          args: ArticleComposeRouteArgs(
@@ -436,7 +434,7 @@ class ArticleComposeRoute extends _i92.PageRouteInfo<ArticleComposeRouteArgs> {
 
   static const String name = 'ArticleComposeRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ArticleComposeRouteArgs>(
@@ -458,11 +456,11 @@ class ArticleComposeRouteArgs {
     this.initialState,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
-  final _i95.SnPost? originalPost;
+  final _i93.SnPost? originalPost;
 
-  final _i96.PostComposeInitialState? initialState;
+  final _i94.PostComposeInitialState? initialState;
 
   @override
   String toString() {
@@ -485,11 +483,11 @@ class ArticleComposeRouteArgs {
 
 /// generated route for
 /// [_i12.ArticleDetailScreen]
-class ArticleDetailRoute extends _i92.PageRouteInfo<ArticleDetailRouteArgs> {
+class ArticleDetailRoute extends _i90.PageRouteInfo<ArticleDetailRouteArgs> {
   ArticleDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String articleId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          ArticleDetailRoute.name,
          args: ArticleDetailRouteArgs(key: key, articleId: articleId),
@@ -499,7 +497,7 @@ class ArticleDetailRoute extends _i92.PageRouteInfo<ArticleDetailRouteArgs> {
 
   static const String name = 'ArticleDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -515,7 +513,7 @@ class ArticleDetailRoute extends _i92.PageRouteInfo<ArticleDetailRouteArgs> {
 class ArticleDetailRouteArgs {
   const ArticleDetailRouteArgs({this.key, required this.articleId});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String articleId;
 
@@ -537,11 +535,11 @@ class ArticleDetailRouteArgs {
 
 /// generated route for
 /// [_i11.ArticleEditScreen]
-class ArticleEditRoute extends _i92.PageRouteInfo<ArticleEditRouteArgs> {
+class ArticleEditRoute extends _i90.PageRouteInfo<ArticleEditRouteArgs> {
   ArticleEditRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          ArticleEditRoute.name,
          args: ArticleEditRouteArgs(key: key, id: id),
@@ -551,7 +549,7 @@ class ArticleEditRoute extends _i92.PageRouteInfo<ArticleEditRouteArgs> {
 
   static const String name = 'ArticleEditRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -566,7 +564,7 @@ class ArticleEditRoute extends _i92.PageRouteInfo<ArticleEditRouteArgs> {
 class ArticleEditRouteArgs {
   const ArticleEditRouteArgs({this.key, required this.id});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String id;
 
@@ -588,13 +586,13 @@ class ArticleEditRouteArgs {
 
 /// generated route for
 /// [_i13.ArticleStandScreen]
-class ArticleStandRoute extends _i92.PageRouteInfo<void> {
-  const ArticleStandRoute({List<_i92.PageRouteInfo>? children})
+class ArticleStandRoute extends _i90.PageRouteInfo<void> {
+  const ArticleStandRoute({List<_i90.PageRouteInfo>? children})
     : super(ArticleStandRoute.name, initialChildren: children);
 
   static const String name = 'ArticleStandRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i13.ArticleStandScreen();
@@ -604,13 +602,13 @@ class ArticleStandRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i14.BadgesScreen]
-class BadgesRoute extends _i92.PageRouteInfo<void> {
-  const BadgesRoute({List<_i92.PageRouteInfo>? children})
+class BadgesRoute extends _i90.PageRouteInfo<void> {
+  const BadgesRoute({List<_i90.PageRouteInfo>? children})
     : super(BadgesRoute.name, initialChildren: children);
 
   static const String name = 'BadgesRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i14.BadgesScreen();
@@ -620,13 +618,13 @@ class BadgesRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i15.BookmarksScreen]
-class BookmarksRoute extends _i92.PageRouteInfo<void> {
-  const BookmarksRoute({List<_i92.PageRouteInfo>? children})
+class BookmarksRoute extends _i90.PageRouteInfo<void> {
+  const BookmarksRoute({List<_i90.PageRouteInfo>? children})
     : super(BookmarksRoute.name, initialChildren: children);
 
   static const String name = 'BookmarksRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i15.BookmarksScreen();
@@ -636,13 +634,13 @@ class BookmarksRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i16.BotKeysScreen]
-class BotKeysRoute extends _i92.PageRouteInfo<BotKeysRouteArgs> {
+class BotKeysRoute extends _i90.PageRouteInfo<BotKeysRouteArgs> {
   BotKeysRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String publisherName,
     required String projectId,
     required String botId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          BotKeysRoute.name,
          args: BotKeysRouteArgs(
@@ -656,7 +654,7 @@ class BotKeysRoute extends _i92.PageRouteInfo<BotKeysRouteArgs> {
 
   static const String name = 'BotKeysRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<BotKeysRouteArgs>();
@@ -678,7 +676,7 @@ class BotKeysRouteArgs {
     required this.botId,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String publisherName;
 
@@ -711,12 +709,12 @@ class BotKeysRouteArgs {
 
 /// generated route for
 /// [_i17.BotsScreen]
-class BotsRoute extends _i92.PageRouteInfo<BotsRouteArgs> {
+class BotsRoute extends _i90.PageRouteInfo<BotsRouteArgs> {
   BotsRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String publisherName,
     required String projectId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          BotsRoute.name,
          args: BotsRouteArgs(
@@ -729,7 +727,7 @@ class BotsRoute extends _i92.PageRouteInfo<BotsRouteArgs> {
 
   static const String name = 'BotsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<BotsRouteArgs>();
@@ -749,7 +747,7 @@ class BotsRouteArgs {
     required this.projectId,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String publisherName;
 
@@ -776,11 +774,11 @@ class BotsRouteArgs {
 
 /// generated route for
 /// [_i18.CallScreen]
-class CallRoute extends _i92.PageRouteInfo<CallRouteArgs> {
+class CallRoute extends _i90.PageRouteInfo<CallRouteArgs> {
   CallRoute({
-    _i94.Key? key,
-    required _i95.SnChatRoom room,
-    List<_i92.PageRouteInfo>? children,
+    _i92.Key? key,
+    required _i93.SnChatRoom room,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          CallRoute.name,
          args: CallRouteArgs(key: key, room: room),
@@ -789,7 +787,7 @@ class CallRoute extends _i92.PageRouteInfo<CallRouteArgs> {
 
   static const String name = 'CallRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<CallRouteArgs>();
@@ -801,9 +799,9 @@ class CallRoute extends _i92.PageRouteInfo<CallRouteArgs> {
 class CallRouteArgs {
   const CallRouteArgs({this.key, required this.room});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
-  final _i95.SnChatRoom room;
+  final _i93.SnChatRoom room;
 
   @override
   String toString() {
@@ -823,13 +821,13 @@ class CallRouteArgs {
 
 /// generated route for
 /// [_i19.CaptchaScreen]
-class CaptchaRoute extends _i92.PageRouteInfo<void> {
-  const CaptchaRoute({List<_i92.PageRouteInfo>? children})
+class CaptchaRoute extends _i90.PageRouteInfo<void> {
+  const CaptchaRoute({List<_i90.PageRouteInfo>? children})
     : super(CaptchaRoute.name, initialChildren: children);
 
   static const String name = 'CaptchaRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i19.CaptchaScreen();
@@ -839,13 +837,13 @@ class CaptchaRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i20.CfIpSpeedTestScreen]
-class CfIpSpeedTestRoute extends _i92.PageRouteInfo<void> {
-  const CfIpSpeedTestRoute({List<_i92.PageRouteInfo>? children})
+class CfIpSpeedTestRoute extends _i90.PageRouteInfo<void> {
+  const CfIpSpeedTestRoute({List<_i90.PageRouteInfo>? children})
     : super(CfIpSpeedTestRoute.name, initialChildren: children);
 
   static const String name = 'CfIpSpeedTestRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i20.CfIpSpeedTestScreen();
@@ -855,11 +853,11 @@ class CfIpSpeedTestRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i21.ChatDetailScreen]
-class ChatDetailRoute extends _i92.PageRouteInfo<ChatDetailRouteArgs> {
+class ChatDetailRoute extends _i90.PageRouteInfo<ChatDetailRouteArgs> {
   ChatDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          ChatDetailRoute.name,
          args: ChatDetailRouteArgs(key: key, id: id),
@@ -869,7 +867,7 @@ class ChatDetailRoute extends _i92.PageRouteInfo<ChatDetailRouteArgs> {
 
   static const String name = 'ChatDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -884,7 +882,7 @@ class ChatDetailRoute extends _i92.PageRouteInfo<ChatDetailRouteArgs> {
 class ChatDetailRouteArgs {
   const ChatDetailRouteArgs({this.key, required this.id});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String id;
 
@@ -906,13 +904,13 @@ class ChatDetailRouteArgs {
 
 /// generated route for
 /// [_i22.ChatListScreen]
-class ChatListRoute extends _i92.PageRouteInfo<void> {
-  const ChatListRoute({List<_i92.PageRouteInfo>? children})
+class ChatListRoute extends _i90.PageRouteInfo<void> {
+  const ChatListRoute({List<_i90.PageRouteInfo>? children})
     : super(ChatListRoute.name, initialChildren: children);
 
   static const String name = 'ChatListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i22.ChatListScreen();
@@ -922,11 +920,11 @@ class ChatListRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i23.ChatRoomScreen]
-class ChatRoomRoute extends _i92.PageRouteInfo<ChatRoomRouteArgs> {
+class ChatRoomRoute extends _i90.PageRouteInfo<ChatRoomRouteArgs> {
   ChatRoomRoute({
-    _i93.Key? key,
+    _i91.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          ChatRoomRoute.name,
          args: ChatRoomRouteArgs(key: key, id: id),
@@ -936,7 +934,7 @@ class ChatRoomRoute extends _i92.PageRouteInfo<ChatRoomRouteArgs> {
 
   static const String name = 'ChatRoomRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -951,7 +949,7 @@ class ChatRoomRoute extends _i92.PageRouteInfo<ChatRoomRouteArgs> {
 class ChatRoomRouteArgs {
   const ChatRoomRouteArgs({this.key, required this.id});
 
-  final _i93.Key? key;
+  final _i91.Key? key;
 
   final String id;
 
@@ -973,13 +971,13 @@ class ChatRoomRouteArgs {
 
 /// generated route for
 /// [_i24.ChatRoomStorageScreen]
-class ChatRoomStorageRoute extends _i92.PageRouteInfo<void> {
-  const ChatRoomStorageRoute({List<_i92.PageRouteInfo>? children})
+class ChatRoomStorageRoute extends _i90.PageRouteInfo<void> {
+  const ChatRoomStorageRoute({List<_i90.PageRouteInfo>? children})
     : super(ChatRoomStorageRoute.name, initialChildren: children);
 
   static const String name = 'ChatRoomStorageRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i24.ChatRoomStorageScreen();
@@ -989,13 +987,13 @@ class ChatRoomStorageRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i22.ChatScreen]
-class ChatRoute extends _i92.PageRouteInfo<void> {
-  const ChatRoute({List<_i92.PageRouteInfo>? children})
+class ChatRoute extends _i90.PageRouteInfo<void> {
+  const ChatRoute({List<_i90.PageRouteInfo>? children})
     : super(ChatRoute.name, initialChildren: children);
 
   static const String name = 'ChatRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i22.ChatScreen();
@@ -1005,13 +1003,13 @@ class ChatRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i25.CheckInScreen]
-class CheckInRoute extends _i92.PageRouteInfo<void> {
-  const CheckInRoute({List<_i92.PageRouteInfo>? children})
+class CheckInRoute extends _i90.PageRouteInfo<void> {
+  const CheckInRoute({List<_i90.PageRouteInfo>? children})
     : super(CheckInRoute.name, initialChildren: children);
 
   static const String name = 'CheckInRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i25.CheckInScreen();
@@ -1021,13 +1019,13 @@ class CheckInRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i26.CreateAccountScreen]
-class CreateAccountRoute extends _i92.PageRouteInfo<void> {
-  const CreateAccountRoute({List<_i92.PageRouteInfo>? children})
+class CreateAccountRoute extends _i90.PageRouteInfo<void> {
+  const CreateAccountRoute({List<_i90.PageRouteInfo>? children})
     : super(CreateAccountRoute.name, initialChildren: children);
 
   static const String name = 'CreateAccountRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i26.CreateAccountScreen();
@@ -1038,11 +1036,11 @@ class CreateAccountRoute extends _i92.PageRouteInfo<void> {
 /// generated route for
 /// [_i27.CreatorFeedListScreen]
 class CreatorFeedListRoute
-    extends _i92.PageRouteInfo<CreatorFeedListRouteArgs> {
+    extends _i90.PageRouteInfo<CreatorFeedListRouteArgs> {
   CreatorFeedListRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          CreatorFeedListRoute.name,
          args: CreatorFeedListRouteArgs(key: key, pubName: pubName),
@@ -1052,7 +1050,7 @@ class CreatorFeedListRoute
 
   static const String name = 'CreatorFeedListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1068,7 +1066,7 @@ class CreatorFeedListRoute
 class CreatorFeedListRouteArgs {
   const CreatorFeedListRouteArgs({this.key, required this.pubName});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1090,13 +1088,13 @@ class CreatorFeedListRouteArgs {
 
 /// generated route for
 /// [_i28.CreatorHubListScreen]
-class CreatorHubListRoute extends _i92.PageRouteInfo<void> {
-  const CreatorHubListRoute({List<_i92.PageRouteInfo>? children})
+class CreatorHubListRoute extends _i90.PageRouteInfo<void> {
+  const CreatorHubListRoute({List<_i90.PageRouteInfo>? children})
     : super(CreatorHubListRoute.name, initialChildren: children);
 
   static const String name = 'CreatorHubListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i28.CreatorHubListScreen();
@@ -1106,13 +1104,13 @@ class CreatorHubListRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i28.CreatorHubScreen]
-class CreatorHubRoute extends _i92.PageRouteInfo<void> {
-  const CreatorHubRoute({List<_i92.PageRouteInfo>? children})
+class CreatorHubRoute extends _i90.PageRouteInfo<void> {
+  const CreatorHubRoute({List<_i90.PageRouteInfo>? children})
     : super(CreatorHubRoute.name, initialChildren: children);
 
   static const String name = 'CreatorHubRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i28.CreatorHubScreen();
@@ -1123,11 +1121,11 @@ class CreatorHubRoute extends _i92.PageRouteInfo<void> {
 /// generated route for
 /// [_i29.CreatorPollListScreen]
 class CreatorPollListRoute
-    extends _i92.PageRouteInfo<CreatorPollListRouteArgs> {
+    extends _i90.PageRouteInfo<CreatorPollListRouteArgs> {
   CreatorPollListRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          CreatorPollListRoute.name,
          args: CreatorPollListRouteArgs(key: key, pubName: pubName),
@@ -1137,7 +1135,7 @@ class CreatorPollListRoute
 
   static const String name = 'CreatorPollListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1153,7 +1151,7 @@ class CreatorPollListRoute
 class CreatorPollListRouteArgs {
   const CreatorPollListRouteArgs({this.key, required this.pubName});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1176,11 +1174,11 @@ class CreatorPollListRouteArgs {
 /// generated route for
 /// [_i30.CreatorPostCollectionsScreen]
 class CreatorPostCollectionsRoute
-    extends _i92.PageRouteInfo<CreatorPostCollectionsRouteArgs> {
+    extends _i90.PageRouteInfo<CreatorPostCollectionsRouteArgs> {
   CreatorPostCollectionsRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          CreatorPostCollectionsRoute.name,
          args: CreatorPostCollectionsRouteArgs(key: key, pubName: pubName),
@@ -1190,7 +1188,7 @@ class CreatorPostCollectionsRoute
 
   static const String name = 'CreatorPostCollectionsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1210,7 +1208,7 @@ class CreatorPostCollectionsRoute
 class CreatorPostCollectionsRouteArgs {
   const CreatorPostCollectionsRouteArgs({this.key, required this.pubName});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1233,11 +1231,11 @@ class CreatorPostCollectionsRouteArgs {
 /// generated route for
 /// [_i31.CreatorPostListScreen]
 class CreatorPostListRoute
-    extends _i92.PageRouteInfo<CreatorPostListRouteArgs> {
+    extends _i90.PageRouteInfo<CreatorPostListRouteArgs> {
   CreatorPostListRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          CreatorPostListRoute.name,
          args: CreatorPostListRouteArgs(key: key, pubName: pubName),
@@ -1247,7 +1245,7 @@ class CreatorPostListRoute
 
   static const String name = 'CreatorPostListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1263,7 +1261,7 @@ class CreatorPostListRoute
 class CreatorPostListRouteArgs {
   const CreatorPostListRouteArgs({this.key, required this.pubName});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1286,11 +1284,11 @@ class CreatorPostListRouteArgs {
 /// generated route for
 /// [_i32.CreatorStickerListScreen]
 class CreatorStickerListRoute
-    extends _i92.PageRouteInfo<CreatorStickerListRouteArgs> {
+    extends _i90.PageRouteInfo<CreatorStickerListRouteArgs> {
   CreatorStickerListRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          CreatorStickerListRoute.name,
          args: CreatorStickerListRouteArgs(key: key, pubName: pubName),
@@ -1300,7 +1298,7 @@ class CreatorStickerListRoute
 
   static const String name = 'CreatorStickerListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1320,7 +1318,7 @@ class CreatorStickerListRoute
 class CreatorStickerListRouteArgs {
   const CreatorStickerListRouteArgs({this.key, required this.pubName});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1343,12 +1341,12 @@ class CreatorStickerListRouteArgs {
 /// generated route for
 /// [_i33.CreatorStickerPackDetailScreen]
 class CreatorStickerPackDetailRoute
-    extends _i92.PageRouteInfo<CreatorStickerPackDetailRouteArgs> {
+    extends _i90.PageRouteInfo<CreatorStickerPackDetailRouteArgs> {
   CreatorStickerPackDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String packId,
     required String pubName,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          CreatorStickerPackDetailRoute.name,
          args: CreatorStickerPackDetailRouteArgs(
@@ -1362,7 +1360,7 @@ class CreatorStickerPackDetailRoute
 
   static const String name = 'CreatorStickerPackDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1388,7 +1386,7 @@ class CreatorStickerPackDetailRouteArgs {
     required this.pubName,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String packId;
 
@@ -1414,13 +1412,13 @@ class CreatorStickerPackDetailRouteArgs {
 
 /// generated route for
 /// [_i34.DashboardScreen]
-class DashboardRoute extends _i92.PageRouteInfo<void> {
-  const DashboardRoute({List<_i92.PageRouteInfo>? children})
+class DashboardRoute extends _i90.PageRouteInfo<void> {
+  const DashboardRoute({List<_i90.PageRouteInfo>? children})
     : super(DashboardRoute.name, initialChildren: children);
 
   static const String name = 'DashboardRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i34.DashboardScreen();
@@ -1431,13 +1429,13 @@ class DashboardRoute extends _i92.PageRouteInfo<void> {
 /// generated route for
 /// [_i35.DeveloperAppDetailScreen]
 class DeveloperAppDetailRoute
-    extends _i92.PageRouteInfo<DeveloperAppDetailRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperAppDetailRouteArgs> {
   DeveloperAppDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
     required String projectId,
     required String appId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperAppDetailRoute.name,
          args: DeveloperAppDetailRouteArgs(
@@ -1456,7 +1454,7 @@ class DeveloperAppDetailRoute
 
   static const String name = 'DeveloperAppDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1485,7 +1483,7 @@ class DeveloperAppDetailRouteArgs {
     required this.appId,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1516,14 +1514,14 @@ class DeveloperAppDetailRouteArgs {
 /// generated route for
 /// [_i36.DeveloperAppEditScreen]
 class DeveloperAppEditRoute
-    extends _i92.PageRouteInfo<DeveloperAppEditRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperAppEditRouteArgs> {
   DeveloperAppEditRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
     required String projectId,
     String? id,
     bool isModal = false,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperAppEditRoute.name,
          args: DeveloperAppEditRouteArgs(
@@ -1543,7 +1541,7 @@ class DeveloperAppEditRoute
 
   static const String name = 'DeveloperAppEditRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1574,7 +1572,7 @@ class DeveloperAppEditRouteArgs {
     this.isModal = false,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1612,12 +1610,12 @@ class DeveloperAppEditRouteArgs {
 /// generated route for
 /// [_i37.DeveloperAppListScreen]
 class DeveloperAppListRoute
-    extends _i92.PageRouteInfo<DeveloperAppListRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperAppListRouteArgs> {
   DeveloperAppListRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String publisherName,
     required String projectId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperAppListRoute.name,
          args: DeveloperAppListRouteArgs(
@@ -1631,7 +1629,7 @@ class DeveloperAppListRoute
 
   static const String name = 'DeveloperAppListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1657,7 +1655,7 @@ class DeveloperAppListRouteArgs {
     required this.projectId,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String publisherName;
 
@@ -1685,13 +1683,13 @@ class DeveloperAppListRouteArgs {
 /// generated route for
 /// [_i38.DeveloperAppNewScreen]
 class DeveloperAppNewRoute
-    extends _i92.PageRouteInfo<DeveloperAppNewRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperAppNewRouteArgs> {
   DeveloperAppNewRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String publisherName,
     required String projectId,
     bool isModal = false,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperAppNewRoute.name,
          args: DeveloperAppNewRouteArgs(
@@ -1705,7 +1703,7 @@ class DeveloperAppNewRoute
 
   static const String name = 'DeveloperAppNewRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<DeveloperAppNewRouteArgs>();
@@ -1727,7 +1725,7 @@ class DeveloperAppNewRouteArgs {
     this.isModal = false,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String publisherName;
 
@@ -1761,13 +1759,13 @@ class DeveloperAppNewRouteArgs {
 /// generated route for
 /// [_i39.DeveloperBotDetailScreen]
 class DeveloperBotDetailRoute
-    extends _i92.PageRouteInfo<DeveloperBotDetailRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperBotDetailRouteArgs> {
   DeveloperBotDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
     required String projectId,
     required String botId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperBotDetailRoute.name,
          args: DeveloperBotDetailRouteArgs(
@@ -1786,7 +1784,7 @@ class DeveloperBotDetailRoute
 
   static const String name = 'DeveloperBotDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1815,7 +1813,7 @@ class DeveloperBotDetailRouteArgs {
     required this.botId,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1846,14 +1844,14 @@ class DeveloperBotDetailRouteArgs {
 /// generated route for
 /// [_i40.DeveloperBotEditScreen]
 class DeveloperBotEditRoute
-    extends _i92.PageRouteInfo<DeveloperBotEditRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperBotEditRouteArgs> {
   DeveloperBotEditRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
     required String projectId,
     String? id,
     bool isModal = false,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperBotEditRoute.name,
          args: DeveloperBotEditRouteArgs(
@@ -1873,7 +1871,7 @@ class DeveloperBotEditRoute
 
   static const String name = 'DeveloperBotEditRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1904,7 +1902,7 @@ class DeveloperBotEditRouteArgs {
     this.isModal = false,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -1942,13 +1940,13 @@ class DeveloperBotEditRouteArgs {
 /// generated route for
 /// [_i41.DeveloperBotNewScreen]
 class DeveloperBotNewRoute
-    extends _i92.PageRouteInfo<DeveloperBotNewRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperBotNewRouteArgs> {
   DeveloperBotNewRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String publisherName,
     required String projectId,
     bool isModal = false,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperBotNewRoute.name,
          args: DeveloperBotNewRouteArgs(
@@ -1963,7 +1961,7 @@ class DeveloperBotNewRoute
 
   static const String name = 'DeveloperBotNewRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -1991,7 +1989,7 @@ class DeveloperBotNewRouteArgs {
     this.isModal = false,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String publisherName;
 
@@ -2024,13 +2022,13 @@ class DeveloperBotNewRouteArgs {
 
 /// generated route for
 /// [_i42.DeveloperHubListScreen]
-class DeveloperHubListRoute extends _i92.PageRouteInfo<void> {
-  const DeveloperHubListRoute({List<_i92.PageRouteInfo>? children})
+class DeveloperHubListRoute extends _i90.PageRouteInfo<void> {
+  const DeveloperHubListRoute({List<_i90.PageRouteInfo>? children})
     : super(DeveloperHubListRoute.name, initialChildren: children);
 
   static const String name = 'DeveloperHubListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i42.DeveloperHubListScreen();
@@ -2040,12 +2038,12 @@ class DeveloperHubListRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i42.DeveloperHubScreen]
-class DeveloperHubRoute extends _i92.PageRouteInfo<DeveloperHubRouteArgs> {
+class DeveloperHubRoute extends _i90.PageRouteInfo<DeveloperHubRouteArgs> {
   DeveloperHubRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     String? initialPublisherName,
     String? initialProjectId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperHubRoute.name,
          args: DeveloperHubRouteArgs(
@@ -2058,7 +2056,7 @@ class DeveloperHubRoute extends _i92.PageRouteInfo<DeveloperHubRouteArgs> {
 
   static const String name = 'DeveloperHubRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<DeveloperHubRouteArgs>(
@@ -2080,7 +2078,7 @@ class DeveloperHubRouteArgs {
     this.initialProjectId,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String? initialPublisherName;
 
@@ -2108,12 +2106,12 @@ class DeveloperHubRouteArgs {
 /// generated route for
 /// [_i43.DeveloperProjectEditScreen]
 class DeveloperProjectEditRoute
-    extends _i92.PageRouteInfo<DeveloperProjectEditRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperProjectEditRouteArgs> {
   DeveloperProjectEditRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pubName,
     String? id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperProjectEditRoute.name,
          args: DeveloperProjectEditRouteArgs(
@@ -2127,7 +2125,7 @@ class DeveloperProjectEditRoute
 
   static const String name = 'DeveloperProjectEditRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -2152,7 +2150,7 @@ class DeveloperProjectEditRouteArgs {
     this.id,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pubName;
 
@@ -2177,11 +2175,11 @@ class DeveloperProjectEditRouteArgs {
 /// generated route for
 /// [_i44.DeveloperProjectNewScreen]
 class DeveloperProjectNewRoute
-    extends _i92.PageRouteInfo<DeveloperProjectNewRouteArgs> {
+    extends _i90.PageRouteInfo<DeveloperProjectNewRouteArgs> {
   DeveloperProjectNewRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String publisherName,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          DeveloperProjectNewRoute.name,
          args: DeveloperProjectNewRouteArgs(
@@ -2194,7 +2192,7 @@ class DeveloperProjectNewRoute
 
   static const String name = 'DeveloperProjectNewRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -2214,7 +2212,7 @@ class DeveloperProjectNewRoute
 class DeveloperProjectNewRouteArgs {
   const DeveloperProjectNewRouteArgs({this.key, required this.publisherName});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String publisherName;
 
@@ -2236,8 +2234,8 @@ class DeveloperProjectNewRouteArgs {
 
 /// generated route for
 /// [_i45.EditChatScreen]
-class EditChatRoute extends _i92.PageRouteInfo<EditChatRouteArgs> {
-  EditChatRoute({_i94.Key? key, String? id, List<_i92.PageRouteInfo>? children})
+class EditChatRoute extends _i90.PageRouteInfo<EditChatRouteArgs> {
+  EditChatRoute({_i92.Key? key, String? id, List<_i90.PageRouteInfo>? children})
     : super(
         EditChatRoute.name,
         args: EditChatRouteArgs(key: key, id: id),
@@ -2246,7 +2244,7 @@ class EditChatRoute extends _i92.PageRouteInfo<EditChatRouteArgs> {
 
   static const String name = 'EditChatRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<EditChatRouteArgs>(
@@ -2260,7 +2258,7 @@ class EditChatRoute extends _i92.PageRouteInfo<EditChatRouteArgs> {
 class EditChatRouteArgs {
   const EditChatRouteArgs({this.key, this.id});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String? id;
 
@@ -2282,11 +2280,11 @@ class EditChatRouteArgs {
 
 /// generated route for
 /// [_i46.EditPublisherScreen]
-class EditPublisherRoute extends _i92.PageRouteInfo<EditPublisherRouteArgs> {
+class EditPublisherRoute extends _i90.PageRouteInfo<EditPublisherRouteArgs> {
   EditPublisherRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     String? name,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          EditPublisherRoute.name,
          args: EditPublisherRouteArgs(key: key, name: name),
@@ -2295,7 +2293,7 @@ class EditPublisherRoute extends _i92.PageRouteInfo<EditPublisherRouteArgs> {
 
   static const String name = 'EditPublisherRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<EditPublisherRouteArgs>(
@@ -2309,7 +2307,7 @@ class EditPublisherRoute extends _i92.PageRouteInfo<EditPublisherRouteArgs> {
 class EditPublisherRouteArgs {
   const EditPublisherRouteArgs({this.key, this.name});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String? name;
 
@@ -2330,116 +2328,12 @@ class EditPublisherRouteArgs {
 }
 
 /// generated route for
-/// [_i47.EventCalendarScreen]
-class EventCalendarRoute extends _i92.PageRouteInfo<EventCalendarRouteArgs> {
-  EventCalendarRoute({
-    _i94.Key? key,
-    required String name,
-    List<_i92.PageRouteInfo>? children,
-  }) : super(
-         EventCalendarRoute.name,
-         args: EventCalendarRouteArgs(key: key, name: name),
-         rawPathParams: {'name': name},
-         initialChildren: children,
-       );
-
-  static const String name = 'EventCalendarRoute';
-
-  static _i92.PageInfo page = _i92.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<EventCalendarRouteArgs>(
-        orElse: () =>
-            EventCalendarRouteArgs(name: pathParams.getString('name')),
-      );
-      return _i47.EventCalendarScreen(key: args.key, name: args.name);
-    },
-  );
-}
-
-class EventCalendarRouteArgs {
-  const EventCalendarRouteArgs({this.key, required this.name});
-
-  final _i94.Key? key;
-
-  final String name;
-
-  @override
-  String toString() {
-    return 'EventCalendarRouteArgs{key: $key, name: $name}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! EventCalendarRouteArgs) return false;
-    return key == other.key && name == other.name;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ name.hashCode;
-}
-
-/// generated route for
-/// [_i48.EventCountdownScreen]
-class EventCountdownRoute extends _i92.PageRouteInfo<EventCountdownRouteArgs> {
-  EventCountdownRoute({
-    _i94.Key? key,
-    required String name,
-    List<_i92.PageRouteInfo>? children,
-  }) : super(
-         EventCountdownRoute.name,
-         args: EventCountdownRouteArgs(key: key, name: name),
-         rawPathParams: {'name': name},
-         initialChildren: children,
-       );
-
-  static const String name = 'EventCountdownRoute';
-
-  static _i92.PageInfo page = _i92.PageInfo(
-    name,
-    builder: (data) {
-      final pathParams = data.inheritedPathParams;
-      final args = data.argsAs<EventCountdownRouteArgs>(
-        orElse: () =>
-            EventCountdownRouteArgs(name: pathParams.getString('name')),
-      );
-      return _i48.EventCountdownScreen(key: args.key, name: args.name);
-    },
-  );
-}
-
-class EventCountdownRouteArgs {
-  const EventCountdownRouteArgs({this.key, required this.name});
-
-  final _i94.Key? key;
-
-  final String name;
-
-  @override
-  String toString() {
-    return 'EventCountdownRouteArgs{key: $key, name: $name}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! EventCountdownRouteArgs) return false;
-    return key == other.key && name == other.name;
-  }
-
-  @override
-  int get hashCode => key.hashCode ^ name.hashCode;
-}
-
-/// generated route for
-/// [_i49.EventHubScreen]
-class EventHubRoute extends _i92.PageRouteInfo<EventHubRouteArgs> {
+/// [_i47.EventHubScreen]
+class EventHubRoute extends _i90.PageRouteInfo<EventHubRouteArgs> {
   EventHubRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String name,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          EventHubRoute.name,
          args: EventHubRouteArgs(key: key, name: name),
@@ -2449,14 +2343,14 @@ class EventHubRoute extends _i92.PageRouteInfo<EventHubRouteArgs> {
 
   static const String name = 'EventHubRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
       final args = data.argsAs<EventHubRouteArgs>(
         orElse: () => EventHubRouteArgs(name: pathParams.getString('name')),
       );
-      return _i49.EventHubScreen(key: args.key, name: args.name);
+      return _i47.EventHubScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -2464,7 +2358,7 @@ class EventHubRoute extends _i92.PageRouteInfo<EventHubRouteArgs> {
 class EventHubRouteArgs {
   const EventHubRouteArgs({this.key, required this.name});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String name;
 
@@ -2485,30 +2379,30 @@ class EventHubRouteArgs {
 }
 
 /// generated route for
-/// [_i50.ExploreScreen]
-class ExploreRoute extends _i92.PageRouteInfo<void> {
-  const ExploreRoute({List<_i92.PageRouteInfo>? children})
+/// [_i48.ExploreScreen]
+class ExploreRoute extends _i90.PageRouteInfo<void> {
+  const ExploreRoute({List<_i90.PageRouteInfo>? children})
     : super(ExploreRoute.name, initialChildren: children);
 
   static const String name = 'ExploreRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i50.ExploreScreen();
+      return const _i48.ExploreScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i51.FediverseActorProfileScreen]
+/// [_i49.FediverseActorProfileScreen]
 class FediverseActorProfileRoute
-    extends _i92.PageRouteInfo<FediverseActorProfileRouteArgs> {
+    extends _i90.PageRouteInfo<FediverseActorProfileRouteArgs> {
   FediverseActorProfileRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String id,
     String? fullHandle,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          FediverseActorProfileRoute.name,
          args: FediverseActorProfileRouteArgs(
@@ -2522,7 +2416,7 @@ class FediverseActorProfileRoute
 
   static const String name = 'FediverseActorProfileRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -2530,7 +2424,7 @@ class FediverseActorProfileRoute
         orElse: () =>
             FediverseActorProfileRouteArgs(id: pathParams.getString('id')),
       );
-      return _i51.FediverseActorProfileScreen(
+      return _i49.FediverseActorProfileScreen(
         key: args.key,
         id: args.id,
         fullHandle: args.fullHandle,
@@ -2546,7 +2440,7 @@ class FediverseActorProfileRouteArgs {
     this.fullHandle,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String id;
 
@@ -2569,13 +2463,13 @@ class FediverseActorProfileRouteArgs {
 }
 
 /// generated route for
-/// [_i52.FeedMarketplaceDetailScreen]
+/// [_i50.FeedMarketplaceDetailScreen]
 class FeedMarketplaceDetailRoute
-    extends _i92.PageRouteInfo<FeedMarketplaceDetailRouteArgs> {
+    extends _i90.PageRouteInfo<FeedMarketplaceDetailRouteArgs> {
   FeedMarketplaceDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          FeedMarketplaceDetailRoute.name,
          args: FeedMarketplaceDetailRouteArgs(key: key, id: id),
@@ -2585,7 +2479,7 @@ class FeedMarketplaceDetailRoute
 
   static const String name = 'FeedMarketplaceDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -2593,7 +2487,7 @@ class FeedMarketplaceDetailRoute
         orElse: () =>
             FeedMarketplaceDetailRouteArgs(id: pathParams.getString('feedId')),
       );
-      return _i52.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
+      return _i50.FeedMarketplaceDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2601,7 +2495,7 @@ class FeedMarketplaceDetailRoute
 class FeedMarketplaceDetailRouteArgs {
   const FeedMarketplaceDetailRouteArgs({this.key, required this.id});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String id;
 
@@ -2622,29 +2516,29 @@ class FeedMarketplaceDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i53.FeedMarketplaceScreen]
-class FeedMarketplaceRoute extends _i92.PageRouteInfo<void> {
-  const FeedMarketplaceRoute({List<_i92.PageRouteInfo>? children})
+/// [_i51.FeedMarketplaceScreen]
+class FeedMarketplaceRoute extends _i90.PageRouteInfo<void> {
+  const FeedMarketplaceRoute({List<_i90.PageRouteInfo>? children})
     : super(FeedMarketplaceRoute.name, initialChildren: children);
 
   static const String name = 'FeedMarketplaceRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i53.FeedMarketplaceScreen();
+      return const _i51.FeedMarketplaceScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i54.FileDetailScreen]
-class FileDetailRoute extends _i92.PageRouteInfo<FileDetailRouteArgs> {
+/// [_i52.FileDetailScreen]
+class FileDetailRoute extends _i90.PageRouteInfo<FileDetailRouteArgs> {
   FileDetailRoute({
-    _i93.Key? key,
+    _i91.Key? key,
     required String id,
     String? heroTag,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          FileDetailRoute.name,
          args: FileDetailRouteArgs(key: key, id: id, heroTag: heroTag),
@@ -2653,11 +2547,11 @@ class FileDetailRoute extends _i92.PageRouteInfo<FileDetailRouteArgs> {
 
   static const String name = 'FileDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<FileDetailRouteArgs>();
-      return _i54.FileDetailScreen(
+      return _i52.FileDetailScreen(
         key: args.key,
         id: args.id,
         heroTag: args.heroTag,
@@ -2669,7 +2563,7 @@ class FileDetailRoute extends _i92.PageRouteInfo<FileDetailRouteArgs> {
 class FileDetailRouteArgs {
   const FileDetailRouteArgs({this.key, required this.id, this.heroTag});
 
-  final _i93.Key? key;
+  final _i91.Key? key;
 
   final String id;
 
@@ -2692,44 +2586,44 @@ class FileDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i55.FileListScreen]
-class FileListRoute extends _i92.PageRouteInfo<void> {
-  const FileListRoute({List<_i92.PageRouteInfo>? children})
+/// [_i53.FileListScreen]
+class FileListRoute extends _i90.PageRouteInfo<void> {
+  const FileListRoute({List<_i90.PageRouteInfo>? children})
     : super(FileListRoute.name, initialChildren: children);
 
   static const String name = 'FileListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i55.FileListScreen();
+      return const _i53.FileListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i56.FitnessDashboardScreen]
-class FitnessDashboardRoute extends _i92.PageRouteInfo<void> {
-  const FitnessDashboardRoute({List<_i92.PageRouteInfo>? children})
+/// [_i54.FitnessDashboardScreen]
+class FitnessDashboardRoute extends _i90.PageRouteInfo<void> {
+  const FitnessDashboardRoute({List<_i90.PageRouteInfo>? children})
     : super(FitnessDashboardRoute.name, initialChildren: children);
 
   static const String name = 'FitnessDashboardRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i56.FitnessDashboardScreen();
+      return const _i54.FitnessDashboardScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i57.GoalCreateScreen]
-class GoalCreateRoute extends _i92.PageRouteInfo<GoalCreateRouteArgs> {
+/// [_i55.GoalCreateScreen]
+class GoalCreateRoute extends _i90.PageRouteInfo<GoalCreateRouteArgs> {
   GoalCreateRoute({
-    _i94.Key? key,
-    _i95.SnFitnessGoal? goal,
-    List<_i92.PageRouteInfo>? children,
+    _i92.Key? key,
+    _i93.SnFitnessGoal? goal,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          GoalCreateRoute.name,
          args: GoalCreateRouteArgs(key: key, goal: goal),
@@ -2738,13 +2632,13 @@ class GoalCreateRoute extends _i92.PageRouteInfo<GoalCreateRouteArgs> {
 
   static const String name = 'GoalCreateRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<GoalCreateRouteArgs>(
         orElse: () => const GoalCreateRouteArgs(),
       );
-      return _i57.GoalCreateScreen(key: args.key, goal: args.goal);
+      return _i55.GoalCreateScreen(key: args.key, goal: args.goal);
     },
   );
 }
@@ -2752,9 +2646,9 @@ class GoalCreateRoute extends _i92.PageRouteInfo<GoalCreateRouteArgs> {
 class GoalCreateRouteArgs {
   const GoalCreateRouteArgs({this.key, this.goal});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
-  final _i95.SnFitnessGoal? goal;
+  final _i93.SnFitnessGoal? goal;
 
   @override
   String toString() {
@@ -2773,12 +2667,12 @@ class GoalCreateRouteArgs {
 }
 
 /// generated route for
-/// [_i58.GoalDetailScreen]
-class GoalDetailRoute extends _i92.PageRouteInfo<GoalDetailRouteArgs> {
+/// [_i56.GoalDetailScreen]
+class GoalDetailRoute extends _i90.PageRouteInfo<GoalDetailRouteArgs> {
   GoalDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          GoalDetailRoute.name,
          args: GoalDetailRouteArgs(key: key, id: id),
@@ -2788,14 +2682,14 @@ class GoalDetailRoute extends _i92.PageRouteInfo<GoalDetailRouteArgs> {
 
   static const String name = 'GoalDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
       final args = data.argsAs<GoalDetailRouteArgs>(
         orElse: () => GoalDetailRouteArgs(id: pathParams.getString('id')),
       );
-      return _i58.GoalDetailScreen(key: args.key, id: args.id);
+      return _i56.GoalDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2803,7 +2697,7 @@ class GoalDetailRoute extends _i92.PageRouteInfo<GoalDetailRouteArgs> {
 class GoalDetailRouteArgs {
   const GoalDetailRouteArgs({this.key, required this.id});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String id;
 
@@ -2824,76 +2718,76 @@ class GoalDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i59.GoalsScreen]
-class GoalsRoute extends _i92.PageRouteInfo<void> {
-  const GoalsRoute({List<_i92.PageRouteInfo>? children})
+/// [_i57.GoalsScreen]
+class GoalsRoute extends _i90.PageRouteInfo<void> {
+  const GoalsRoute({List<_i90.PageRouteInfo>? children})
     : super(GoalsRoute.name, initialChildren: children);
 
   static const String name = 'GoalsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i59.GoalsScreen();
+      return const _i57.GoalsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i60.HealthSyncScreen]
-class HealthSyncRoute extends _i92.PageRouteInfo<void> {
-  const HealthSyncRoute({List<_i92.PageRouteInfo>? children})
+/// [_i58.HealthSyncScreen]
+class HealthSyncRoute extends _i90.PageRouteInfo<void> {
+  const HealthSyncRoute({List<_i90.PageRouteInfo>? children})
     : super(HealthSyncRoute.name, initialChildren: children);
 
   static const String name = 'HealthSyncRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i60.HealthSyncScreen();
+      return const _i58.HealthSyncScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i61.LevelingScreen]
-class LevelingRoute extends _i92.PageRouteInfo<void> {
-  const LevelingRoute({List<_i92.PageRouteInfo>? children})
+/// [_i59.LevelingScreen]
+class LevelingRoute extends _i90.PageRouteInfo<void> {
+  const LevelingRoute({List<_i90.PageRouteInfo>? children})
     : super(LevelingRoute.name, initialChildren: children);
 
   static const String name = 'LevelingRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i61.LevelingScreen();
+      return const _i59.LevelingScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i62.LoginScreen]
-class LoginRoute extends _i92.PageRouteInfo<void> {
-  const LoginRoute({List<_i92.PageRouteInfo>? children})
+/// [_i60.LoginScreen]
+class LoginRoute extends _i90.PageRouteInfo<void> {
+  const LoginRoute({List<_i90.PageRouteInfo>? children})
     : super(LoginRoute.name, initialChildren: children);
 
   static const String name = 'LoginRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i62.LoginScreen();
+      return const _i60.LoginScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i63.MeetDetailScreen]
-class MeetDetailRoute extends _i92.PageRouteInfo<MeetDetailRouteArgs> {
+/// [_i61.MeetDetailScreen]
+class MeetDetailRoute extends _i90.PageRouteInfo<MeetDetailRouteArgs> {
   MeetDetailRoute({
-    _i93.Key? key,
+    _i91.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          MeetDetailRoute.name,
          args: MeetDetailRouteArgs(key: key, id: id),
@@ -2903,14 +2797,14 @@ class MeetDetailRoute extends _i92.PageRouteInfo<MeetDetailRouteArgs> {
 
   static const String name = 'MeetDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
       final args = data.argsAs<MeetDetailRouteArgs>(
         orElse: () => MeetDetailRouteArgs(id: pathParams.getString('id')),
       );
-      return _i63.MeetDetailScreen(key: args.key, id: args.id);
+      return _i61.MeetDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -2918,7 +2812,7 @@ class MeetDetailRoute extends _i92.PageRouteInfo<MeetDetailRouteArgs> {
 class MeetDetailRouteArgs {
   const MeetDetailRouteArgs({this.key, required this.id});
 
-  final _i93.Key? key;
+  final _i91.Key? key;
 
   final String id;
 
@@ -2939,28 +2833,28 @@ class MeetDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i63.MeetScreen]
-class MeetRoute extends _i92.PageRouteInfo<void> {
-  const MeetRoute({List<_i92.PageRouteInfo>? children})
+/// [_i61.MeetScreen]
+class MeetRoute extends _i90.PageRouteInfo<void> {
+  const MeetRoute({List<_i90.PageRouteInfo>? children})
     : super(MeetRoute.name, initialChildren: children);
 
   static const String name = 'MeetRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i63.MeetScreen();
+      return const _i61.MeetScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i64.MetricDetailScreen]
-class MetricDetailRoute extends _i92.PageRouteInfo<MetricDetailRouteArgs> {
+/// [_i62.MetricDetailScreen]
+class MetricDetailRoute extends _i90.PageRouteInfo<MetricDetailRouteArgs> {
   MetricDetailRoute({
-    _i94.Key? key,
-    required _i95.FitnessMetricType metricType,
-    List<_i92.PageRouteInfo>? children,
+    _i92.Key? key,
+    required _i93.FitnessMetricType metricType,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          MetricDetailRoute.name,
          args: MetricDetailRouteArgs(key: key, metricType: metricType),
@@ -2969,11 +2863,11 @@ class MetricDetailRoute extends _i92.PageRouteInfo<MetricDetailRouteArgs> {
 
   static const String name = 'MetricDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<MetricDetailRouteArgs>();
-      return _i64.MetricDetailScreen(
+      return _i62.MetricDetailScreen(
         key: args.key,
         metricType: args.metricType,
       );
@@ -2984,9 +2878,9 @@ class MetricDetailRoute extends _i92.PageRouteInfo<MetricDetailRouteArgs> {
 class MetricDetailRouteArgs {
   const MetricDetailRouteArgs({this.key, required this.metricType});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
-  final _i95.FitnessMetricType metricType;
+  final _i93.FitnessMetricType metricType;
 
   @override
   String toString() {
@@ -3005,12 +2899,12 @@ class MetricDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i65.MetricRecordScreen]
-class MetricRecordRoute extends _i92.PageRouteInfo<MetricRecordRouteArgs> {
+/// [_i63.MetricRecordScreen]
+class MetricRecordRoute extends _i90.PageRouteInfo<MetricRecordRouteArgs> {
   MetricRecordRoute({
-    _i94.Key? key,
-    _i95.FitnessMetricType? initialType,
-    List<_i92.PageRouteInfo>? children,
+    _i92.Key? key,
+    _i93.FitnessMetricType? initialType,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          MetricRecordRoute.name,
          args: MetricRecordRouteArgs(key: key, initialType: initialType),
@@ -3019,13 +2913,13 @@ class MetricRecordRoute extends _i92.PageRouteInfo<MetricRecordRouteArgs> {
 
   static const String name = 'MetricRecordRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<MetricRecordRouteArgs>(
         orElse: () => const MetricRecordRouteArgs(),
       );
-      return _i65.MetricRecordScreen(
+      return _i63.MetricRecordScreen(
         key: args.key,
         initialType: args.initialType,
       );
@@ -3036,9 +2930,9 @@ class MetricRecordRoute extends _i92.PageRouteInfo<MetricRecordRouteArgs> {
 class MetricRecordRouteArgs {
   const MetricRecordRouteArgs({this.key, this.initialType});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
-  final _i95.FitnessMetricType? initialType;
+  final _i93.FitnessMetricType? initialType;
 
   @override
   String toString() {
@@ -3057,30 +2951,30 @@ class MetricRecordRouteArgs {
 }
 
 /// generated route for
-/// [_i66.MetricsScreen]
-class MetricsRoute extends _i92.PageRouteInfo<void> {
-  const MetricsRoute({List<_i92.PageRouteInfo>? children})
+/// [_i64.MetricsScreen]
+class MetricsRoute extends _i90.PageRouteInfo<void> {
+  const MetricsRoute({List<_i90.PageRouteInfo>? children})
     : super(MetricsRoute.name, initialChildren: children);
 
   static const String name = 'MetricsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i66.MetricsScreen();
+      return const _i64.MetricsScreen();
     },
   );
 }
 
 /// generated route for
 /// [_i45.NewChatScreen]
-class NewChatRoute extends _i92.PageRouteInfo<void> {
-  const NewChatRoute({List<_i92.PageRouteInfo>? children})
+class NewChatRoute extends _i90.PageRouteInfo<void> {
+  const NewChatRoute({List<_i90.PageRouteInfo>? children})
     : super(NewChatRoute.name, initialChildren: children);
 
   static const String name = 'NewChatRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i45.NewChatScreen();
@@ -3090,13 +2984,13 @@ class NewChatRoute extends _i92.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i46.NewPublisherScreen]
-class NewPublisherRoute extends _i92.PageRouteInfo<void> {
-  const NewPublisherRoute({List<_i92.PageRouteInfo>? children})
+class NewPublisherRoute extends _i90.PageRouteInfo<void> {
+  const NewPublisherRoute({List<_i90.PageRouteInfo>? children})
     : super(NewPublisherRoute.name, initialChildren: children);
 
   static const String name = 'NewPublisherRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       return const _i46.NewPublisherScreen();
@@ -3105,29 +2999,29 @@ class NewPublisherRoute extends _i92.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i67.PhysicalPassportScreen]
-class PhysicalPassportRoute extends _i92.PageRouteInfo<void> {
-  const PhysicalPassportRoute({List<_i92.PageRouteInfo>? children})
+/// [_i65.PhysicalPassportScreen]
+class PhysicalPassportRoute extends _i90.PageRouteInfo<void> {
+  const PhysicalPassportRoute({List<_i90.PageRouteInfo>? children})
     : super(PhysicalPassportRoute.name, initialChildren: children);
 
   static const String name = 'PhysicalPassportRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i67.PhysicalPassportScreen();
+      return const _i65.PhysicalPassportScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i68.PollEditorScreen]
-class PollEditorRoute extends _i92.PageRouteInfo<PollEditorRouteArgs> {
+/// [_i66.PollEditorScreen]
+class PollEditorRoute extends _i90.PageRouteInfo<PollEditorRouteArgs> {
   PollEditorRoute({
-    _i93.Key? key,
+    _i91.Key? key,
     String? initialPollId,
     String? initialPublisher,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          PollEditorRoute.name,
          args: PollEditorRouteArgs(
@@ -3140,13 +3034,13 @@ class PollEditorRoute extends _i92.PageRouteInfo<PollEditorRouteArgs> {
 
   static const String name = 'PollEditorRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<PollEditorRouteArgs>(
         orElse: () => const PollEditorRouteArgs(),
       );
-      return _i68.PollEditorScreen(
+      return _i66.PollEditorScreen(
         key: args.key,
         initialPollId: args.initialPollId,
         initialPublisher: args.initialPublisher,
@@ -3162,7 +3056,7 @@ class PollEditorRouteArgs {
     this.initialPublisher,
   });
 
-  final _i93.Key? key;
+  final _i91.Key? key;
 
   final String? initialPollId;
 
@@ -3188,14 +3082,14 @@ class PollEditorRouteArgs {
 }
 
 /// generated route for
-/// [_i69.PollSubmitPage]
-class PollSubmitRoute extends _i92.PageRouteInfo<PollSubmitRouteArgs> {
+/// [_i67.PollSubmitPage]
+class PollSubmitRoute extends _i90.PageRouteInfo<PollSubmitRouteArgs> {
   PollSubmitRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String pollId,
     bool isReadonly = false,
     bool isInitiallyExpanded = true,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          PollSubmitRoute.name,
          args: PollSubmitRouteArgs(
@@ -3210,14 +3104,14 @@ class PollSubmitRoute extends _i92.PageRouteInfo<PollSubmitRouteArgs> {
 
   static const String name = 'PollSubmitRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
       final args = data.argsAs<PollSubmitRouteArgs>(
         orElse: () => PollSubmitRouteArgs(pollId: pathParams.getString('id')),
       );
-      return _i69.PollSubmitPage(
+      return _i67.PollSubmitPage(
         key: args.key,
         pollId: args.pollId,
         isReadonly: args.isReadonly,
@@ -3235,7 +3129,7 @@ class PollSubmitRouteArgs {
     this.isInitiallyExpanded = true,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String pollId;
 
@@ -3267,30 +3161,30 @@ class PollSubmitRouteArgs {
 }
 
 /// generated route for
-/// [_i70.PostCategoriesListScreen]
-class PostCategoriesListRoute extends _i92.PageRouteInfo<void> {
-  const PostCategoriesListRoute({List<_i92.PageRouteInfo>? children})
+/// [_i68.PostCategoriesListScreen]
+class PostCategoriesListRoute extends _i90.PageRouteInfo<void> {
+  const PostCategoriesListRoute({List<_i90.PageRouteInfo>? children})
     : super(PostCategoriesListRoute.name, initialChildren: children);
 
   static const String name = 'PostCategoriesListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i70.PostCategoriesListScreen();
+      return const _i68.PostCategoriesListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i71.PostCategoryDetailScreen]
+/// [_i69.PostCategoryDetailScreen]
 class PostCategoryDetailRoute
-    extends _i92.PageRouteInfo<PostCategoryDetailRouteArgs> {
+    extends _i90.PageRouteInfo<PostCategoryDetailRouteArgs> {
   PostCategoryDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String slug,
     required bool isCategory,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          PostCategoryDetailRoute.name,
          args: PostCategoryDetailRouteArgs(
@@ -3303,11 +3197,11 @@ class PostCategoryDetailRoute
 
   static const String name = 'PostCategoryDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<PostCategoryDetailRouteArgs>();
-      return _i71.PostCategoryDetailScreen(
+      return _i69.PostCategoryDetailScreen(
         key: args.key,
         slug: args.slug,
         isCategory: args.isCategory,
@@ -3323,7 +3217,7 @@ class PostCategoryDetailRouteArgs {
     required this.isCategory,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String slug;
 
@@ -3348,12 +3242,12 @@ class PostCategoryDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i72.PostDetailScreen]
-class PostDetailRoute extends _i92.PageRouteInfo<PostDetailRouteArgs> {
+/// [_i70.PostDetailScreen]
+class PostDetailRoute extends _i90.PageRouteInfo<PostDetailRouteArgs> {
   PostDetailRoute({
-    _i93.Key? key,
+    _i91.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          PostDetailRoute.name,
          args: PostDetailRouteArgs(key: key, id: id),
@@ -3363,14 +3257,14 @@ class PostDetailRoute extends _i92.PageRouteInfo<PostDetailRouteArgs> {
 
   static const String name = 'PostDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
       final args = data.argsAs<PostDetailRouteArgs>(
         orElse: () => PostDetailRouteArgs(id: pathParams.getString('id')),
       );
-      return _i72.PostDetailScreen(key: args.key, id: args.id);
+      return _i70.PostDetailScreen(key: args.key, id: args.id);
     },
   );
 }
@@ -3378,7 +3272,7 @@ class PostDetailRoute extends _i92.PageRouteInfo<PostDetailRouteArgs> {
 class PostDetailRouteArgs {
   const PostDetailRouteArgs({this.key, required this.id});
 
-  final _i93.Key? key;
+  final _i91.Key? key;
 
   final String id;
 
@@ -3399,45 +3293,45 @@ class PostDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i73.PostShuffleScreen]
-class PostShuffleRoute extends _i92.PageRouteInfo<void> {
-  const PostShuffleRoute({List<_i92.PageRouteInfo>? children})
+/// [_i71.PostShuffleScreen]
+class PostShuffleRoute extends _i90.PageRouteInfo<void> {
+  const PostShuffleRoute({List<_i90.PageRouteInfo>? children})
     : super(PostShuffleRoute.name, initialChildren: children);
 
   static const String name = 'PostShuffleRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i73.PostShuffleScreen();
+      return const _i71.PostShuffleScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i74.ProgressScreen]
-class ProgressRoute extends _i92.PageRouteInfo<void> {
-  const ProgressRoute({List<_i92.PageRouteInfo>? children})
+/// [_i72.ProgressScreen]
+class ProgressRoute extends _i90.PageRouteInfo<void> {
+  const ProgressRoute({List<_i90.PageRouteInfo>? children})
     : super(ProgressRoute.name, initialChildren: children);
 
   static const String name = 'ProgressRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i74.ProgressScreen();
+      return const _i72.ProgressScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i75.PublisherProfileScreen]
+/// [_i73.PublisherProfileScreen]
 class PublisherProfileRoute
-    extends _i92.PageRouteInfo<PublisherProfileRouteArgs> {
+    extends _i90.PageRouteInfo<PublisherProfileRouteArgs> {
   PublisherProfileRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String name,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          PublisherProfileRoute.name,
          args: PublisherProfileRouteArgs(key: key, name: name),
@@ -3447,7 +3341,7 @@ class PublisherProfileRoute
 
   static const String name = 'PublisherProfileRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -3455,7 +3349,7 @@ class PublisherProfileRoute
         orElse: () =>
             PublisherProfileRouteArgs(name: pathParams.getString('name')),
       );
-      return _i75.PublisherProfileScreen(key: args.key, name: args.name);
+      return _i73.PublisherProfileScreen(key: args.key, name: args.name);
     },
   );
 }
@@ -3463,7 +3357,7 @@ class PublisherProfileRoute
 class PublisherProfileRouteArgs {
   const PublisherProfileRouteArgs({this.key, required this.name});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String name;
 
@@ -3484,28 +3378,28 @@ class PublisherProfileRouteArgs {
 }
 
 /// generated route for
-/// [_i76.PunishmentsScreen]
-class PunishmentsRoute extends _i92.PageRouteInfo<void> {
-  const PunishmentsRoute({List<_i92.PageRouteInfo>? children})
+/// [_i74.PunishmentsScreen]
+class PunishmentsRoute extends _i90.PageRouteInfo<void> {
+  const PunishmentsRoute({List<_i90.PageRouteInfo>? children})
     : super(PunishmentsRoute.name, initialChildren: children);
 
   static const String name = 'PunishmentsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i76.PunishmentsScreen();
+      return const _i74.PunishmentsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i77.RealmDetailScreen]
-class RealmDetailRoute extends _i92.PageRouteInfo<RealmDetailRouteArgs> {
+/// [_i75.RealmDetailScreen]
+class RealmDetailRoute extends _i90.PageRouteInfo<RealmDetailRouteArgs> {
   RealmDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String slug,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          RealmDetailRoute.name,
          args: RealmDetailRouteArgs(key: key, slug: slug),
@@ -3515,14 +3409,14 @@ class RealmDetailRoute extends _i92.PageRouteInfo<RealmDetailRouteArgs> {
 
   static const String name = 'RealmDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
       final args = data.argsAs<RealmDetailRouteArgs>(
         orElse: () => RealmDetailRouteArgs(slug: pathParams.getString('slug')),
       );
-      return _i77.RealmDetailScreen(key: args.key, slug: args.slug);
+      return _i75.RealmDetailScreen(key: args.key, slug: args.slug);
     },
   );
 }
@@ -3530,7 +3424,7 @@ class RealmDetailRoute extends _i92.PageRouteInfo<RealmDetailRouteArgs> {
 class RealmDetailRouteArgs {
   const RealmDetailRouteArgs({this.key, required this.slug});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String slug;
 
@@ -3551,44 +3445,44 @@ class RealmDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i78.RealmListScreen]
-class RealmListRoute extends _i92.PageRouteInfo<void> {
-  const RealmListRoute({List<_i92.PageRouteInfo>? children})
+/// [_i76.RealmListScreen]
+class RealmListRoute extends _i90.PageRouteInfo<void> {
+  const RealmListRoute({List<_i90.PageRouteInfo>? children})
     : super(RealmListRoute.name, initialChildren: children);
 
   static const String name = 'RealmListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i78.RealmListScreen();
+      return const _i76.RealmListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i79.RelationshipScreen]
-class RelationshipRoute extends _i92.PageRouteInfo<void> {
-  const RelationshipRoute({List<_i92.PageRouteInfo>? children})
+/// [_i77.RelationshipScreen]
+class RelationshipRoute extends _i90.PageRouteInfo<void> {
+  const RelationshipRoute({List<_i90.PageRouteInfo>? children})
     : super(RelationshipRoute.name, initialChildren: children);
 
   static const String name = 'RelationshipRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i79.RelationshipScreen();
+      return const _i77.RelationshipScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i80.SearchMessagesScreen]
-class SearchMessagesRoute extends _i92.PageRouteInfo<SearchMessagesRouteArgs> {
+/// [_i78.SearchMessagesScreen]
+class SearchMessagesRoute extends _i90.PageRouteInfo<SearchMessagesRouteArgs> {
   SearchMessagesRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String roomId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          SearchMessagesRoute.name,
          args: SearchMessagesRouteArgs(key: key, roomId: roomId),
@@ -3598,7 +3492,7 @@ class SearchMessagesRoute extends _i92.PageRouteInfo<SearchMessagesRouteArgs> {
 
   static const String name = 'SearchMessagesRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -3606,7 +3500,7 @@ class SearchMessagesRoute extends _i92.PageRouteInfo<SearchMessagesRouteArgs> {
         orElse: () =>
             SearchMessagesRouteArgs(roomId: pathParams.getString('id')),
       );
-      return _i80.SearchMessagesScreen(key: args.key, roomId: args.roomId);
+      return _i78.SearchMessagesScreen(key: args.key, roomId: args.roomId);
     },
   );
 }
@@ -3614,7 +3508,7 @@ class SearchMessagesRoute extends _i92.PageRouteInfo<SearchMessagesRouteArgs> {
 class SearchMessagesRouteArgs {
   const SearchMessagesRouteArgs({this.key, required this.roomId});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String roomId;
 
@@ -3635,29 +3529,29 @@ class SearchMessagesRouteArgs {
 }
 
 /// generated route for
-/// [_i81.SettingsScreen]
-class SettingsRoute extends _i92.PageRouteInfo<void> {
-  const SettingsRoute({List<_i92.PageRouteInfo>? children})
+/// [_i79.SettingsScreen]
+class SettingsRoute extends _i90.PageRouteInfo<void> {
+  const SettingsRoute({List<_i90.PageRouteInfo>? children})
     : super(SettingsRoute.name, initialChildren: children);
 
   static const String name = 'SettingsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i81.SettingsScreen();
+      return const _i79.SettingsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i82.StickerMarketplacePackDetailScreen]
+/// [_i80.StickerMarketplacePackDetailScreen]
 class StickerMarketplacePackDetailRoute
-    extends _i92.PageRouteInfo<StickerMarketplacePackDetailRouteArgs> {
+    extends _i90.PageRouteInfo<StickerMarketplacePackDetailRouteArgs> {
   StickerMarketplacePackDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String id,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          StickerMarketplacePackDetailRoute.name,
          args: StickerMarketplacePackDetailRouteArgs(key: key, id: id),
@@ -3667,7 +3561,7 @@ class StickerMarketplacePackDetailRoute
 
   static const String name = 'StickerMarketplacePackDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -3676,7 +3570,7 @@ class StickerMarketplacePackDetailRoute
           id: pathParams.getString('id'),
         ),
       );
-      return _i82.StickerMarketplacePackDetailScreen(
+      return _i80.StickerMarketplacePackDetailScreen(
         key: args.key,
         id: args.id,
       );
@@ -3687,7 +3581,7 @@ class StickerMarketplacePackDetailRoute
 class StickerMarketplacePackDetailRouteArgs {
   const StickerMarketplacePackDetailRouteArgs({this.key, required this.id});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String id;
 
@@ -3708,60 +3602,60 @@ class StickerMarketplacePackDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i83.StickerMarketplaceScreen]
-class StickerMarketplaceRoute extends _i92.PageRouteInfo<void> {
-  const StickerMarketplaceRoute({List<_i92.PageRouteInfo>? children})
+/// [_i81.StickerMarketplaceScreen]
+class StickerMarketplaceRoute extends _i90.PageRouteInfo<void> {
+  const StickerMarketplaceRoute({List<_i90.PageRouteInfo>? children})
     : super(StickerMarketplaceRoute.name, initialChildren: children);
 
   static const String name = 'StickerMarketplaceRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i83.StickerMarketplaceScreen();
+      return const _i81.StickerMarketplaceScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i84.TabsScreen]
-class TabsRoute extends _i92.PageRouteInfo<void> {
-  const TabsRoute({List<_i92.PageRouteInfo>? children})
+/// [_i82.TabsScreen]
+class TabsRoute extends _i90.PageRouteInfo<void> {
+  const TabsRoute({List<_i90.PageRouteInfo>? children})
     : super(TabsRoute.name, initialChildren: children);
 
   static const String name = 'TabsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i84.TabsScreen();
+      return const _i82.TabsScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i85.ThoughtScreen]
-class ThoughtRoute extends _i92.PageRouteInfo<void> {
-  const ThoughtRoute({List<_i92.PageRouteInfo>? children})
+/// [_i83.ThoughtScreen]
+class ThoughtRoute extends _i90.PageRouteInfo<void> {
+  const ThoughtRoute({List<_i90.PageRouteInfo>? children})
     : super(ThoughtRoute.name, initialChildren: children);
 
   static const String name = 'ThoughtRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i85.ThoughtScreen();
+      return const _i83.ThoughtScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i86.TicketDetailScreen]
-class TicketDetailRoute extends _i92.PageRouteInfo<TicketDetailRouteArgs> {
+/// [_i84.TicketDetailScreen]
+class TicketDetailRoute extends _i90.PageRouteInfo<TicketDetailRouteArgs> {
   TicketDetailRoute({
-    _i94.Key? key,
+    _i92.Key? key,
     required String ticketId,
-    List<_i92.PageRouteInfo>? children,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          TicketDetailRoute.name,
          args: TicketDetailRouteArgs(key: key, ticketId: ticketId),
@@ -3771,7 +3665,7 @@ class TicketDetailRoute extends _i92.PageRouteInfo<TicketDetailRouteArgs> {
 
   static const String name = 'TicketDetailRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -3779,7 +3673,7 @@ class TicketDetailRoute extends _i92.PageRouteInfo<TicketDetailRouteArgs> {
         orElse: () =>
             TicketDetailRouteArgs(ticketId: pathParams.getString('ticketId')),
       );
-      return _i86.TicketDetailScreen(key: args.key, ticketId: args.ticketId);
+      return _i84.TicketDetailScreen(key: args.key, ticketId: args.ticketId);
     },
   );
 }
@@ -3787,7 +3681,7 @@ class TicketDetailRoute extends _i92.PageRouteInfo<TicketDetailRouteArgs> {
 class TicketDetailRouteArgs {
   const TicketDetailRouteArgs({this.key, required this.ticketId});
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
   final String ticketId;
 
@@ -3808,29 +3702,29 @@ class TicketDetailRouteArgs {
 }
 
 /// generated route for
-/// [_i87.TicketListScreen]
-class TicketListRoute extends _i92.PageRouteInfo<void> {
-  const TicketListRoute({List<_i92.PageRouteInfo>? children})
+/// [_i85.TicketListScreen]
+class TicketListRoute extends _i90.PageRouteInfo<void> {
+  const TicketListRoute({List<_i90.PageRouteInfo>? children})
     : super(TicketListRoute.name, initialChildren: children);
 
   static const String name = 'TicketListRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i87.TicketListScreen();
+      return const _i85.TicketListScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i88.UniversalSearchScreen]
+/// [_i86.UniversalSearchScreen]
 class UniversalSearchRoute
-    extends _i92.PageRouteInfo<UniversalSearchRouteArgs> {
+    extends _i90.PageRouteInfo<UniversalSearchRouteArgs> {
   UniversalSearchRoute({
-    _i94.Key? key,
-    _i88.SearchTab initialTab = _i88.SearchTab.posts,
-    List<_i92.PageRouteInfo>? children,
+    _i92.Key? key,
+    _i86.SearchTab initialTab = _i86.SearchTab.posts,
+    List<_i90.PageRouteInfo>? children,
   }) : super(
          UniversalSearchRoute.name,
          args: UniversalSearchRouteArgs(key: key, initialTab: initialTab),
@@ -3839,13 +3733,13 @@ class UniversalSearchRoute
 
   static const String name = 'UniversalSearchRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<UniversalSearchRouteArgs>(
         orElse: () => const UniversalSearchRouteArgs(),
       );
-      return _i88.UniversalSearchScreen(
+      return _i86.UniversalSearchScreen(
         key: args.key,
         initialTab: args.initialTab,
       );
@@ -3856,12 +3750,12 @@ class UniversalSearchRoute
 class UniversalSearchRouteArgs {
   const UniversalSearchRouteArgs({
     this.key,
-    this.initialTab = _i88.SearchTab.posts,
+    this.initialTab = _i86.SearchTab.posts,
   });
 
-  final _i94.Key? key;
+  final _i92.Key? key;
 
-  final _i88.SearchTab initialTab;
+  final _i86.SearchTab initialTab;
 
   @override
   String toString() {
@@ -3880,49 +3774,49 @@ class UniversalSearchRouteArgs {
 }
 
 /// generated route for
-/// [_i89.WalletScreen]
-class WalletRoute extends _i92.PageRouteInfo<void> {
-  const WalletRoute({List<_i92.PageRouteInfo>? children})
+/// [_i87.WalletScreen]
+class WalletRoute extends _i90.PageRouteInfo<void> {
+  const WalletRoute({List<_i90.PageRouteInfo>? children})
     : super(WalletRoute.name, initialChildren: children);
 
   static const String name = 'WalletRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i89.WalletScreen();
+      return const _i87.WalletScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i90.WorkoutRecordScreen]
-class WorkoutRecordRoute extends _i92.PageRouteInfo<void> {
-  const WorkoutRecordRoute({List<_i92.PageRouteInfo>? children})
+/// [_i88.WorkoutRecordScreen]
+class WorkoutRecordRoute extends _i90.PageRouteInfo<void> {
+  const WorkoutRecordRoute({List<_i90.PageRouteInfo>? children})
     : super(WorkoutRecordRoute.name, initialChildren: children);
 
   static const String name = 'WorkoutRecordRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i90.WorkoutRecordScreen();
+      return const _i88.WorkoutRecordScreen();
     },
   );
 }
 
 /// generated route for
-/// [_i91.WorkoutsScreen]
-class WorkoutsRoute extends _i92.PageRouteInfo<void> {
-  const WorkoutsRoute({List<_i92.PageRouteInfo>? children})
+/// [_i89.WorkoutsScreen]
+class WorkoutsRoute extends _i90.PageRouteInfo<void> {
+  const WorkoutsRoute({List<_i90.PageRouteInfo>? children})
     : super(WorkoutsRoute.name, initialChildren: children);
 
   static const String name = 'WorkoutsRoute';
 
-  static _i92.PageInfo page = _i92.PageInfo(
+  static _i90.PageInfo page = _i90.PageInfo(
     name,
     builder: (data) {
-      return const _i91.WorkoutsScreen();
+      return const _i89.WorkoutsScreen();
     },
   );
 }
