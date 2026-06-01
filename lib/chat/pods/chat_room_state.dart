@@ -37,6 +37,7 @@ class ChatRoomState {
   final String? selectedLocationAddress;
   final String? selectedLocationWkt;
   final String? selectedMeetId;
+  final String? selectedCalendarEventId;
 
   // Scroll state (not persisted - fresh on each navigation)
   final bool isScrollingToMessage;
@@ -61,6 +62,7 @@ class ChatRoomState {
     this.selectedLocationAddress,
     this.selectedLocationWkt,
     this.selectedMeetId,
+    this.selectedCalendarEventId,
     this.isScrollingToMessage = false,
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
@@ -82,6 +84,7 @@ class ChatRoomState {
     String? selectedLocationAddress,
     String? selectedLocationWkt,
     String? selectedMeetId,
+    String? selectedCalendarEventId,
     bool? isScrollingToMessage,
     DateTime? roomOpenTime,
     String? lastReadAnchorMessageId,
@@ -93,6 +96,7 @@ class ChatRoomState {
     bool clearFund = false,
     bool clearLocation = false,
     bool clearMeet = false,
+    bool clearCalendarEvent = false,
     bool clearLastReadAnchor = false,
     bool clearDismissedLastReadAnchor = false,
   }) {
@@ -125,6 +129,9 @@ class ChatRoomState {
       selectedMeetId: clearMeet
           ? null
           : (selectedMeetId ?? this.selectedMeetId),
+      selectedCalendarEventId: clearCalendarEvent
+          ? null
+          : (selectedCalendarEventId ?? this.selectedCalendarEventId),
       isScrollingToMessage: isScrollingToMessage ?? this.isScrollingToMessage,
       roomOpenTime: roomOpenTime ?? this.roomOpenTime,
       lastReadAnchorMessageId: clearLastReadAnchor
@@ -392,6 +399,13 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     state = state.copyWith(selectedMeetId: meetId, clearMeet: meetId == null);
   }
 
+  void setCalendarEvent(String? calendarEventId) {
+    state = state.copyWith(
+      selectedCalendarEventId: calendarEventId,
+      clearCalendarEvent: calendarEventId == null,
+    );
+  }
+
   void clearInput() {
     messageController.clear();
     state = state.copyWith(
@@ -402,6 +416,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       clearFund: true,
       clearLocation: true,
       clearMeet: true,
+      clearCalendarEvent: true,
       attachments: [],
     );
   }
@@ -489,7 +504,8 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
         state.selectedLocationName == null &&
         state.selectedLocationAddress == null &&
         state.selectedLocationWkt == null &&
-        state.selectedMeetId == null) {
+        state.selectedMeetId == null &&
+        state.selectedCalendarEventId == null) {
       return;
     }
 
@@ -505,6 +521,7 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       locationAddress: state.selectedLocationAddress,
       locationWkt: state.selectedLocationWkt,
       meetId: state.selectedMeetId,
+      calendarEventId: state.selectedCalendarEventId,
       editingTo: state.messageEditingTo,
       forwardingTo: state.messageForwardingTo,
       replyingTo: state.messageReplyingTo,

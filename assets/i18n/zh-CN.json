@@ -3066,6 +3066,7 @@
   "calendarEventTitleRequired": "请输入日程标题",
   "calendarEventEndTimeError": "结束时间必须在开始时间之后",
   "calendarEvent": "日程",
+  "calendarEventLinked": "已关联日程",
   "noCalendarEvents": "暂无日程",
   "calendarEventUnavailable": "日程不可用",
   "notableDay": "纪念日",

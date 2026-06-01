@@ -204,6 +204,38 @@ sealed class SnAccountBadge with _$SnAccountBadge {
 }
 
 @freezed
+sealed class BadgeManifestSeries with _$BadgeManifestSeries {
+  const factory BadgeManifestSeries({
+    required String identifier,
+    required String? title,
+    @Default(0) int order,
+  }) = _BadgeManifestSeries;
+
+  factory BadgeManifestSeries.fromJson(Map<String, dynamic> json) =>
+      _$BadgeManifestSeriesFromJson(json);
+}
+
+@freezed
+sealed class BadgeManifestEntry with _$BadgeManifestEntry {
+  const factory BadgeManifestEntry({
+    required String identifier,
+    String? achievementIdentifier,
+    required String? label,
+    String? caption,
+    String? icon,
+    String? color,
+    String? iconUrl,
+    String? localizationKey,
+    String? category,
+    BadgeManifestSeries? series,
+    @Default(false) bool hidden,
+  }) = _BadgeManifestEntry;
+
+  factory BadgeManifestEntry.fromJson(Map<String, dynamic> json) =>
+      _$BadgeManifestEntryFromJson(json);
+}
+
+@freezed
 sealed class SnContactMethod with _$SnContactMethod {
   const factory SnContactMethod({
     required String id,

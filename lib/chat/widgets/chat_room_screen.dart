@@ -1052,6 +1052,7 @@ class ChatRoomScreen extends HookConsumerWidget {
                               chatStateNotifier.setFund(null);
                               chatStateNotifier.setLocation();
                               chatStateNotifier.setMeet(null);
+                              chatStateNotifier.setCalendarEvent(null);
                             },
                             messageEditingTo: chatState.messageEditingTo,
                             messageReplyingTo: chatState.messageReplyingTo,
@@ -1080,6 +1081,12 @@ class ChatRoomScreen extends HookConsumerWidget {
                                 ),
                             onMeetSelected: (meetId) =>
                                 chatStateNotifier.setMeet(meetId),
+                            selectedCalendarEventId:
+                                chatState.selectedCalendarEventId,
+                            onCalendarEventSelected: (calendarEventId) =>
+                                chatStateNotifier.setCalendarEvent(
+                                  calendarEventId,
+                                ),
                             isMessageListScrolling: !isAtLatestMessages.value,
                             onPickFile: (isPhoto) {
                               if (isPhoto) {

@@ -73,6 +73,7 @@ class MessageSender {
     String? locationAddress,
     String? locationWkt,
     String? meetId,
+    String? calendarEventId,
     Function(LocalChatMessage message)? onPending,
     Function(String messageId, Map<int, double?>)? onProgress,
   }) async {
@@ -121,6 +122,7 @@ class MessageSender {
         locationAddress: locationAddress,
         locationWkt: locationWkt,
         meetId: meetId,
+        calendarEventId: calendarEventId,
       );
 
       _logger.info('[send:$clientMessageId] Sending to server');
@@ -454,6 +456,7 @@ class MessageSender {
     String? locationAddress,
     String? locationWkt,
     String? meetId,
+    String? calendarEventId,
   }) async {
     if (_e2eeService?.isE2eeRoom == true) {
       final result = await _e2eeService!.buildMessagePayload(
@@ -493,6 +496,9 @@ class MessageSender {
     }
     if (meetId != null) {
       payload['meet_id'] = meetId;
+    }
+    if (calendarEventId != null) {
+      payload['calendar_event_id'] = calendarEventId;
     }
 
     return (

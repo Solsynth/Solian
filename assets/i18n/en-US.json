@@ -1187,6 +1187,7 @@
   "calendarEventTitleRequired": "Event title is required",
   "calendarEventEndTimeError": "End time must be after start time",
   "calendarEvent": "Calendar Event",
+  "calendarEventLinked": "Calendar event linked",
   "noCalendarEvents": "No calendar events",
   "calendarEventUnavailable": "Calendar event unavailable",
   "notableDay": "Notable Day",
