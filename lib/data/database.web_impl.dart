@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:island/data/message.dart';
+import 'package:island/stickers/models/sticker.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class AppDatabase {
@@ -12,6 +13,7 @@ class AppDatabase {
   final Map<String, SnChatMember> _webChatMemberStore = {};
   final Map<String, SnRealm> _webRealmStore = {};
   final Map<String, List<SnChatGroup>> _webChatGroupStore = {};
+  final Map<String, SnSticker> _webStickerLookupStore = {};
 
   Future<void> close() async {}
 
@@ -23,6 +25,7 @@ class AppDatabase {
     _webRealmStore.clear();
     _webRelationshipStore.clear();
     _webChatGroupStore.clear();
+    _webStickerLookupStore.clear();
   }
 
   Future<Map<String, int>> getDatabaseStats() async {
@@ -33,6 +36,7 @@ class AppDatabase {
       'realms': _webRealmStore.length,
       'relationships': _webRelationshipStore.length,
       'postDrafts': _webDraftStore.length,
+      'stickerLookups': _webStickerLookupStore.length,
     };
   }
 
@@ -217,6 +221,22 @@ class AppDatabase {
 
   Future<SnPost?> getPostDraftById(String id) async {
     return _webDraftStore[id];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sticker lookups
+  // ---------------------------------------------------------------------------
+
+  Future<SnSticker?> getStickerLookup(String identifier) async {
+    return _webStickerLookupStore[identifier];
+  }
+
+  Future<void> setStickerLookup(String identifier, SnSticker sticker) async {
+    _webStickerLookupStore[identifier] = sticker;
+  }
+
+  Future<void> clearStickerLookups() async {
+    _webStickerLookupStore.clear();
   }
 
   // ---------------------------------------------------------------------------

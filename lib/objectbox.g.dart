@@ -615,6 +615,49 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(7, 4633006183410813102),
+    name: 'StickerLookupEntity',
+    lastPropertyId: const obx_int.IdUid(5, 7865606278669430545),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 4247977823785475131),
+        name: 'obxId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7627231164332001377),
+        name: 'uid',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(15, 742572860041903729),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 4222578831425351276),
+        name: 'stickerId',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(16, 5287084145654996155),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 97195578110906178),
+        name: 'stickerJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 7865606278669430545),
+        name: 'updatedAtMs',
+        type: 6,
+        flags: 8,
+        indexId: const obx_int.IdUid(17, 6132083275743481083),
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -660,8 +703,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(6, 3095537178895020388),
-    lastIndexId: const obx_int.IdUid(14, 2002931559330577197),
+    lastEntityId: const obx_int.IdUid(7, 4633006183410813102),
+    lastIndexId: const obx_int.IdUid(17, 6132083275743481083),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -1449,6 +1492,62 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    StickerLookupEntity: obx_int.EntityDefinition<StickerLookupEntity>(
+      model: _entities[6],
+      toOneRelations: (StickerLookupEntity object) => [],
+      toManyRelations: (StickerLookupEntity object) => {},
+      getId: (StickerLookupEntity object) => object.obxId,
+      setId: (StickerLookupEntity object, int id) {
+        object.obxId = id;
+      },
+      objectToFB: (StickerLookupEntity object, fb.Builder fbb) {
+        final uidOffset = fbb.writeString(object.uid);
+        final stickerIdOffset = fbb.writeString(object.stickerId);
+        final stickerJsonOffset = fbb.writeString(object.stickerJson);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.obxId);
+        fbb.addOffset(1, uidOffset);
+        fbb.addOffset(2, stickerIdOffset);
+        fbb.addOffset(3, stickerJsonOffset);
+        fbb.addInt64(4, object.updatedAtMs);
+        fbb.finish(fbb.endTable());
+        return object.obxId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final obxIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uidParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final stickerIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final stickerJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final updatedAtMsParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
+        final object = StickerLookupEntity(
+          obxId: obxIdParam,
+          uid: uidParam,
+          stickerId: stickerIdParam,
+          stickerJson: stickerJsonParam,
+          updatedAtMs: updatedAtMsParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1903,5 +2002,33 @@ class RelationshipEntity_ {
   /// See [RelationshipEntity.alias].
   static final alias = obx.QueryStringProperty<RelationshipEntity>(
     _entities[5].properties[12],
+  );
+}
+
+/// [StickerLookupEntity] entity fields to define ObjectBox queries.
+class StickerLookupEntity_ {
+  /// See [StickerLookupEntity.obxId].
+  static final obxId = obx.QueryIntegerProperty<StickerLookupEntity>(
+    _entities[6].properties[0],
+  );
+
+  /// See [StickerLookupEntity.uid].
+  static final uid = obx.QueryStringProperty<StickerLookupEntity>(
+    _entities[6].properties[1],
+  );
+
+  /// See [StickerLookupEntity.stickerId].
+  static final stickerId = obx.QueryStringProperty<StickerLookupEntity>(
+    _entities[6].properties[2],
+  );
+
+  /// See [StickerLookupEntity.stickerJson].
+  static final stickerJson = obx.QueryStringProperty<StickerLookupEntity>(
+    _entities[6].properties[3],
+  );
+
+  /// See [StickerLookupEntity.updatedAtMs].
+  static final updatedAtMs = obx.QueryIntegerProperty<StickerLookupEntity>(
+    _entities[6].properties[4],
   );
 }
