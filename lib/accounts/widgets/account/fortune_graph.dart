@@ -71,7 +71,7 @@ class FortuneGraphWidget extends HookConsumerWidget {
                 constraints: const BoxConstraints(),
                 onPressed: () {
                   context.router.push(
-                    EventCalendarRoute(name: eventCalandarUser!),
+                    EventHubRoute(name: eventCalandarUser!),
                   );
                 },
               ),
