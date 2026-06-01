@@ -331,18 +331,23 @@ class _CountdownList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final countdownsAsync = _getCountdownsProvider(ref);
+    final query = EventCountdownQuery(
+      username: username,
+      includeNotableDays: true,
+    );
+    final countdownsAsync = ref.watch(eventCountdownListProvider(query));
 
     // Auto-refresh when countdown ends
     useEffect(() {
       final timer = Timer.periodic(const Duration(minutes: 1), (_) {
-        ref.invalidate(eventCountdownsProvider);
+        ref.invalidate(eventCountdownListProvider(query));
       });
       return timer.cancel;
     }, []);
 
     return countdownsAsync.when(
-      data: (countdowns) {
+      data: (state) {
+        final countdowns = _filterCountdowns(state.items);
         if (countdowns.isEmpty) {
           return _buildEmptyState(context);
         }
@@ -378,16 +383,18 @@ class _CountdownList extends HookConsumerWidget {
     );
   }
 
-  AsyncValue<List<SnEventCountdownItem>> _getCountdownsProvider(WidgetRef ref) {
+  List<SnEventCountdownItem> _filterCountdowns(
+    List<SnEventCountdownItem> items,
+  ) {
     switch (filter) {
       case _CountdownFilter.week:
-        return ref.watch(weekCountdownsProvider(username: username));
+        return items.where((item) => item.daysRemaining <= 7).toList();
       case _CountdownFilter.month:
-        return ref.watch(monthCountdownsProvider(username: username));
+        return items.where((item) => item.daysRemaining <= 30).toList();
       case _CountdownFilter.year:
-        return ref.watch(yearCountdownsProvider(username: username));
+        return items.where((item) => item.daysRemaining <= 365).toList();
       case _CountdownFilter.all:
-        return ref.watch(eventCountdownsProvider(take: 20, username: username));
+        return items;
     }
   }
 

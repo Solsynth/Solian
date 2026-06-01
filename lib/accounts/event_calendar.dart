@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/network.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -150,54 +153,81 @@ Future<SnUserCalendarEvent> calendarEvent(Ref ref, String eventId) async {
   return await client.accounts.getCalendarEvent(eventId);
 }
 
-/// Provider for fetching upcoming event countdowns
-@riverpod
-Future<List<SnEventCountdownItem>> eventCountdowns(
-  Ref ref, {
-  int take = 5,
-  String? username,
-}) async {
-  final client = ref.watch(solarNetworkClientProvider);
+/// Query parameters for event countdowns
+class EventCountdownQuery {
+  final String? username;
+  final bool includeNotableDays;
+  final String? tag;
 
-  if (username != null && username != 'me') {
-    return await client.accounts.getUserEventCountdowns(username, take: take);
+  const EventCountdownQuery({
+    this.username,
+    this.includeNotableDays = true,
+    this.tag,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EventCountdownQuery &&
+          runtimeType == other.runtimeType &&
+          username == other.username &&
+          includeNotableDays == other.includeNotableDays &&
+          tag == other.tag;
+
+  @override
+  int get hashCode => username.hashCode ^ includeNotableDays.hashCode ^ tag.hashCode;
+}
+
+/// Provider for paginated event countdowns
+final eventCountdownListProvider = AsyncNotifierProvider.autoDispose.family(
+  EventCountdownListNotifier.new,
+);
+
+class EventCountdownListNotifier
+    extends AsyncNotifier<PaginationState<SnEventCountdownItem>>
+    with AsyncPaginationController<SnEventCountdownItem> {
+  static const int pageSize = 20;
+
+  final EventCountdownQuery query;
+  EventCountdownListNotifier(this.query);
+
+  @override
+  FutureOr<PaginationState<SnEventCountdownItem>> build() async {
+    final items = await fetch();
+    return PaginationState(
+      items: items,
+      isLoading: false,
+      isReloading: false,
+      totalCount: totalCount,
+      hasMore: hasMore,
+      cursor: cursor,
+    );
   }
 
-  return await client.accounts.getEventCountdowns(take: take);
-}
+  @override
+  Future<List<SnEventCountdownItem>> fetch() async {
+    final client = ref.read(solarNetworkClientProvider);
 
-/// Provider for countdowns within the next week
-@riverpod
-Future<List<SnEventCountdownItem>> weekCountdowns(
-  Ref ref, {
-  String? username,
-}) async {
-  final allCountdowns = await ref.watch(
-    eventCountdownsProvider(take: 20, username: username).future,
-  );
-  return allCountdowns.where((item) => item.daysRemaining <= 7).toList();
-}
+    PaginatedResult<SnEventCountdownItem> result;
+    if (query.username != null && query.username != 'me') {
+      result = await client.accounts.getUserEventCountdowns(
+        query.username!,
+        take: pageSize,
+        offset: fetchedCount,
+        includeNotableDays: query.includeNotableDays,
+        tag: query.tag,
+      );
+    } else {
+      result = await client.accounts.getEventCountdowns(
+        take: pageSize,
+        offset: fetchedCount,
+        includeNotableDays: query.includeNotableDays,
+        tag: query.tag,
+      );
+    }
 
-/// Provider for countdowns within the next month
-@riverpod
-Future<List<SnEventCountdownItem>> monthCountdowns(
-  Ref ref, {
-  String? username,
-}) async {
-  final allCountdowns = await ref.watch(
-    eventCountdownsProvider(take: 20, username: username).future,
-  );
-  return allCountdowns.where((item) => item.daysRemaining <= 30).toList();
-}
+    totalCount = result.totalCount;
 
-/// Provider for countdowns within the next year
-@riverpod
-Future<List<SnEventCountdownItem>> yearCountdowns(
-  Ref ref, {
-  String? username,
-}) async {
-  final allCountdowns = await ref.watch(
-    eventCountdownsProvider(take: 50, username: username).future,
-  );
-  return allCountdowns.where((item) => item.daysRemaining <= 365).toList();
+    return result.items;
+  }
 }

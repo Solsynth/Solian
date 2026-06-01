@@ -876,7 +876,7 @@ as int?,
 /// @nodoc
 mixin _$DashboardConfig implements DiagnosticableTreeMixin {
 
- List<String> get verticalLayouts; List<String> get horizontalLayouts; bool get showSearchBar; bool get showClockAndCountdown;
+ List<String> get verticalLayouts; List<String> get horizontalLayouts; bool get showSearchBar; bool get showClockAndCountdown; bool get countdownIncludeNotableDays;
 /// Create a copy of DashboardConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -890,21 +890,21 @@ $DashboardConfigCopyWith<DashboardConfig> get copyWith => _$DashboardConfigCopyW
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'DashboardConfig'))
-    ..add(DiagnosticsProperty('verticalLayouts', verticalLayouts))..add(DiagnosticsProperty('horizontalLayouts', horizontalLayouts))..add(DiagnosticsProperty('showSearchBar', showSearchBar))..add(DiagnosticsProperty('showClockAndCountdown', showClockAndCountdown));
+    ..add(DiagnosticsProperty('verticalLayouts', verticalLayouts))..add(DiagnosticsProperty('horizontalLayouts', horizontalLayouts))..add(DiagnosticsProperty('showSearchBar', showSearchBar))..add(DiagnosticsProperty('showClockAndCountdown', showClockAndCountdown))..add(DiagnosticsProperty('countdownIncludeNotableDays', countdownIncludeNotableDays));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardConfig&&const DeepCollectionEquality().equals(other.verticalLayouts, verticalLayouts)&&const DeepCollectionEquality().equals(other.horizontalLayouts, horizontalLayouts)&&(identical(other.showSearchBar, showSearchBar) || other.showSearchBar == showSearchBar)&&(identical(other.showClockAndCountdown, showClockAndCountdown) || other.showClockAndCountdown == showClockAndCountdown));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardConfig&&const DeepCollectionEquality().equals(other.verticalLayouts, verticalLayouts)&&const DeepCollectionEquality().equals(other.horizontalLayouts, horizontalLayouts)&&(identical(other.showSearchBar, showSearchBar) || other.showSearchBar == showSearchBar)&&(identical(other.showClockAndCountdown, showClockAndCountdown) || other.showClockAndCountdown == showClockAndCountdown)&&(identical(other.countdownIncludeNotableDays, countdownIncludeNotableDays) || other.countdownIncludeNotableDays == countdownIncludeNotableDays));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(verticalLayouts),const DeepCollectionEquality().hash(horizontalLayouts),showSearchBar,showClockAndCountdown);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(verticalLayouts),const DeepCollectionEquality().hash(horizontalLayouts),showSearchBar,showClockAndCountdown,countdownIncludeNotableDays);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'DashboardConfig(verticalLayouts: $verticalLayouts, horizontalLayouts: $horizontalLayouts, showSearchBar: $showSearchBar, showClockAndCountdown: $showClockAndCountdown)';
+  return 'DashboardConfig(verticalLayouts: $verticalLayouts, horizontalLayouts: $horizontalLayouts, showSearchBar: $showSearchBar, showClockAndCountdown: $showClockAndCountdown, countdownIncludeNotableDays: $countdownIncludeNotableDays)';
 }
 
 
@@ -915,7 +915,7 @@ abstract mixin class $DashboardConfigCopyWith<$Res>  {
   factory $DashboardConfigCopyWith(DashboardConfig value, $Res Function(DashboardConfig) _then) = _$DashboardConfigCopyWithImpl;
 @useResult
 $Res call({
- List<String> verticalLayouts, List<String> horizontalLayouts, bool showSearchBar, bool showClockAndCountdown
+ List<String> verticalLayouts, List<String> horizontalLayouts, bool showSearchBar, bool showClockAndCountdown, bool countdownIncludeNotableDays
 });
 
 
@@ -932,12 +932,13 @@ class _$DashboardConfigCopyWithImpl<$Res>
 
 /// Create a copy of DashboardConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? verticalLayouts = null,Object? horizontalLayouts = null,Object? showSearchBar = null,Object? showClockAndCountdown = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? verticalLayouts = null,Object? horizontalLayouts = null,Object? showSearchBar = null,Object? showClockAndCountdown = null,Object? countdownIncludeNotableDays = null,}) {
   return _then(_self.copyWith(
 verticalLayouts: null == verticalLayouts ? _self.verticalLayouts : verticalLayouts // ignore: cast_nullable_to_non_nullable
 as List<String>,horizontalLayouts: null == horizontalLayouts ? _self.horizontalLayouts : horizontalLayouts // ignore: cast_nullable_to_non_nullable
 as List<String>,showSearchBar: null == showSearchBar ? _self.showSearchBar : showSearchBar // ignore: cast_nullable_to_non_nullable
 as bool,showClockAndCountdown: null == showClockAndCountdown ? _self.showClockAndCountdown : showClockAndCountdown // ignore: cast_nullable_to_non_nullable
+as bool,countdownIncludeNotableDays: null == countdownIncludeNotableDays ? _self.countdownIncludeNotableDays : countdownIncludeNotableDays // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -1020,10 +1021,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<String> verticalLayouts,  List<String> horizontalLayouts,  bool showSearchBar,  bool showClockAndCountdown)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<String> verticalLayouts,  List<String> horizontalLayouts,  bool showSearchBar,  bool showClockAndCountdown,  bool countdownIncludeNotableDays)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DashboardConfig() when $default != null:
-return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBar,_that.showClockAndCountdown);case _:
+return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBar,_that.showClockAndCountdown,_that.countdownIncludeNotableDays);case _:
   return orElse();
 
 }
@@ -1041,10 +1042,10 @@ return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBa
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<String> verticalLayouts,  List<String> horizontalLayouts,  bool showSearchBar,  bool showClockAndCountdown)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<String> verticalLayouts,  List<String> horizontalLayouts,  bool showSearchBar,  bool showClockAndCountdown,  bool countdownIncludeNotableDays)  $default,) {final _that = this;
 switch (_that) {
 case _DashboardConfig():
-return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBar,_that.showClockAndCountdown);}
+return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBar,_that.showClockAndCountdown,_that.countdownIncludeNotableDays);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1058,10 +1059,10 @@ return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBa
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<String> verticalLayouts,  List<String> horizontalLayouts,  bool showSearchBar,  bool showClockAndCountdown)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<String> verticalLayouts,  List<String> horizontalLayouts,  bool showSearchBar,  bool showClockAndCountdown,  bool countdownIncludeNotableDays)?  $default,) {final _that = this;
 switch (_that) {
 case _DashboardConfig() when $default != null:
-return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBar,_that.showClockAndCountdown);case _:
+return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBar,_that.showClockAndCountdown,_that.countdownIncludeNotableDays);case _:
   return null;
 
 }
@@ -1073,7 +1074,7 @@ return $default(_that.verticalLayouts,_that.horizontalLayouts,_that.showSearchBa
 @JsonSerializable()
 
 class _DashboardConfig with DiagnosticableTreeMixin implements DashboardConfig {
-   _DashboardConfig({required final  List<String> verticalLayouts, required final  List<String> horizontalLayouts, required this.showSearchBar, required this.showClockAndCountdown}): _verticalLayouts = verticalLayouts,_horizontalLayouts = horizontalLayouts;
+   _DashboardConfig({required final  List<String> verticalLayouts, required final  List<String> horizontalLayouts, required this.showSearchBar, required this.showClockAndCountdown, this.countdownIncludeNotableDays = true}): _verticalLayouts = verticalLayouts,_horizontalLayouts = horizontalLayouts;
   factory _DashboardConfig.fromJson(Map<String, dynamic> json) => _$DashboardConfigFromJson(json);
 
  final  List<String> _verticalLayouts;
@@ -1092,6 +1093,7 @@ class _DashboardConfig with DiagnosticableTreeMixin implements DashboardConfig {
 
 @override final  bool showSearchBar;
 @override final  bool showClockAndCountdown;
+@override@JsonKey() final  bool countdownIncludeNotableDays;
 
 /// Create a copy of DashboardConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -1107,21 +1109,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'DashboardConfig'))
-    ..add(DiagnosticsProperty('verticalLayouts', verticalLayouts))..add(DiagnosticsProperty('horizontalLayouts', horizontalLayouts))..add(DiagnosticsProperty('showSearchBar', showSearchBar))..add(DiagnosticsProperty('showClockAndCountdown', showClockAndCountdown));
+    ..add(DiagnosticsProperty('verticalLayouts', verticalLayouts))..add(DiagnosticsProperty('horizontalLayouts', horizontalLayouts))..add(DiagnosticsProperty('showSearchBar', showSearchBar))..add(DiagnosticsProperty('showClockAndCountdown', showClockAndCountdown))..add(DiagnosticsProperty('countdownIncludeNotableDays', countdownIncludeNotableDays));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardConfig&&const DeepCollectionEquality().equals(other._verticalLayouts, _verticalLayouts)&&const DeepCollectionEquality().equals(other._horizontalLayouts, _horizontalLayouts)&&(identical(other.showSearchBar, showSearchBar) || other.showSearchBar == showSearchBar)&&(identical(other.showClockAndCountdown, showClockAndCountdown) || other.showClockAndCountdown == showClockAndCountdown));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardConfig&&const DeepCollectionEquality().equals(other._verticalLayouts, _verticalLayouts)&&const DeepCollectionEquality().equals(other._horizontalLayouts, _horizontalLayouts)&&(identical(other.showSearchBar, showSearchBar) || other.showSearchBar == showSearchBar)&&(identical(other.showClockAndCountdown, showClockAndCountdown) || other.showClockAndCountdown == showClockAndCountdown)&&(identical(other.countdownIncludeNotableDays, countdownIncludeNotableDays) || other.countdownIncludeNotableDays == countdownIncludeNotableDays));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_verticalLayouts),const DeepCollectionEquality().hash(_horizontalLayouts),showSearchBar,showClockAndCountdown);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_verticalLayouts),const DeepCollectionEquality().hash(_horizontalLayouts),showSearchBar,showClockAndCountdown,countdownIncludeNotableDays);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'DashboardConfig(verticalLayouts: $verticalLayouts, horizontalLayouts: $horizontalLayouts, showSearchBar: $showSearchBar, showClockAndCountdown: $showClockAndCountdown)';
+  return 'DashboardConfig(verticalLayouts: $verticalLayouts, horizontalLayouts: $horizontalLayouts, showSearchBar: $showSearchBar, showClockAndCountdown: $showClockAndCountdown, countdownIncludeNotableDays: $countdownIncludeNotableDays)';
 }
 
 
@@ -1132,7 +1134,7 @@ abstract mixin class _$DashboardConfigCopyWith<$Res> implements $DashboardConfig
   factory _$DashboardConfigCopyWith(_DashboardConfig value, $Res Function(_DashboardConfig) _then) = __$DashboardConfigCopyWithImpl;
 @override @useResult
 $Res call({
- List<String> verticalLayouts, List<String> horizontalLayouts, bool showSearchBar, bool showClockAndCountdown
+ List<String> verticalLayouts, List<String> horizontalLayouts, bool showSearchBar, bool showClockAndCountdown, bool countdownIncludeNotableDays
 });
 
 
@@ -1149,12 +1151,13 @@ class __$DashboardConfigCopyWithImpl<$Res>
 
 /// Create a copy of DashboardConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? verticalLayouts = null,Object? horizontalLayouts = null,Object? showSearchBar = null,Object? showClockAndCountdown = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? verticalLayouts = null,Object? horizontalLayouts = null,Object? showSearchBar = null,Object? showClockAndCountdown = null,Object? countdownIncludeNotableDays = null,}) {
   return _then(_DashboardConfig(
 verticalLayouts: null == verticalLayouts ? _self._verticalLayouts : verticalLayouts // ignore: cast_nullable_to_non_nullable
 as List<String>,horizontalLayouts: null == horizontalLayouts ? _self._horizontalLayouts : horizontalLayouts // ignore: cast_nullable_to_non_nullable
 as List<String>,showSearchBar: null == showSearchBar ? _self.showSearchBar : showSearchBar // ignore: cast_nullable_to_non_nullable
 as bool,showClockAndCountdown: null == showClockAndCountdown ? _self.showClockAndCountdown : showClockAndCountdown // ignore: cast_nullable_to_non_nullable
+as bool,countdownIncludeNotableDays: null == countdownIncludeNotableDays ? _self.countdownIncludeNotableDays : countdownIncludeNotableDays // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

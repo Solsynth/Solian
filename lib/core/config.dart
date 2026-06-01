@@ -397,6 +397,7 @@ sealed class DashboardConfig with _$DashboardConfig {
     required List<String> horizontalLayouts,
     required bool showSearchBar,
     required bool showClockAndCountdown,
+    @Default(true) bool countdownIncludeNotableDays,
   }) = _DashboardConfig;
 
   factory DashboardConfig.fromJson(Map<String, dynamic> json) =>
