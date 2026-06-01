@@ -176,7 +176,9 @@ List<SnChatMember> _getValidMembers(SnChatRoom room, SnAccount? userInfo) {
   return validMembers;
 }
 
-Set<String> _getOnlineFriendIds(AsyncValue<List<SnFriendOverviewItem>> friendsOverview) {
+Set<String> _getOnlineFriendIds(
+  AsyncValue<List<SnFriendOverviewItem>> friendsOverview,
+) {
   if (!friendsOverview.hasValue) return <String>{};
   return friendsOverview.value!
       .where((f) => showsOnlinePresence(f.status))
@@ -296,22 +298,33 @@ class _PinnedChatRoomTile extends HookConsumerWidget {
     final validMembers = _getValidMembers(room, userInfo.value);
 
     final friendsOverview = ref.watch(friendsOverviewProvider);
-    final onlineFriendIds = useMemoized(() => _getOnlineFriendIds(friendsOverview), [friendsOverview.value]);
-    final isOnline = isDirect &&
+    final onlineFriendIds = useMemoized(
+      () => _getOnlineFriendIds(friendsOverview),
+      [friendsOverview.value],
+    );
+    final isOnline =
+        isDirect &&
         validMembers.any((m) => onlineFriendIds.contains(m.accountId));
 
     // Build aliases map for title computation
     final aliases = useMemoized(() {
       final map = <String, String>{};
       for (final member in validMembers) {
-        final aliasAsync = ref.read(relationshipAliasProvider(member.accountId));
+        final aliasAsync = ref.read(
+          relationshipAliasProvider(member.accountId),
+        );
         if (aliasAsync.hasValue && aliasAsync.value != null) {
           map[member.accountId] = aliasAsync.value!;
         }
       }
       return map;
     }, [validMembers]);
-    final titleText = _getRoomTitle(room, validMembers, useAlias: true, aliases: aliases);
+    final titleText = _getRoomTitle(
+      room,
+      validMembers,
+      useAlias: true,
+      aliases: aliases,
+    );
 
     final db = ref.watch(databaseProvider);
     final client = ref.watch(apiClientProvider);
@@ -547,10 +560,15 @@ class ChatListBodyWidget extends HookConsumerWidget {
                     .toList(),
                 [sortedItems, selectedTabValue],
               );
-              final onlineFriendIds = useMemoized(() => _getOnlineFriendIds(friendsOverview), [friendsOverview.value]);
+              final onlineFriendIds = useMemoized(
+                () => _getOnlineFriendIds(friendsOverview),
+                [friendsOverview.value],
+              );
               final pinnedItems = useMemoized(() {
+                final seen = <String>{};
                 final pinned = <SnChatRoom>[];
                 for (final item in filteredItems) {
+                  if (!seen.add(item.id)) continue;
                   if (item.isPinned) {
                     pinned.add(item);
                   } else if (item.type == 1 &&
@@ -641,10 +659,10 @@ class ChatListBodyWidget extends HookConsumerWidget {
                         ),
                       // Always show pinned chats in horizontal scrollable section
                       if (pinnedItems.isNotEmpty)
-                        Container(
+                        Material(
                           color: Theme.of(
                             context,
-                          ).colorScheme.surfaceContainerHigh,
+                          ).colorScheme.surfaceContainerHigh.withOpacity(0.8),
                           child: SizedBox(
                             height: 88,
                             child: ListView.builder(
@@ -661,9 +679,14 @@ class ChatListBodyWidget extends HookConsumerWidget {
                                   isActive: activeChatId == room.id,
                                   isDirect: room.type == 1,
                                   onTap: () {
-                                    ref.read(chatSummaryProvider.future).then((summary) {
-                                      if ((summary[room.id]?.unreadCount ?? 0) > 0) {
-                                        ref.read(chatSummaryProvider.notifier).clearUnreadCount(room.id);
+                                    ref.read(chatSummaryProvider.future).then((
+                                      summary,
+                                    ) {
+                                      if ((summary[room.id]?.unreadCount ?? 0) >
+                                          0) {
+                                        ref
+                                            .read(chatSummaryProvider.notifier)
+                                            .clearUnreadCount(room.id);
                                       }
                                     });
                                     if (isWideScreen(context)) {
@@ -1705,7 +1728,10 @@ class _CollapsedChatListBody extends HookConsumerWidget {
       );
     }
 
-    Widget withSelectedIndicator({required Widget child, required bool isSelected}) {
+    Widget withSelectedIndicator({
+      required Widget child,
+      required bool isSelected,
+    }) {
       return SizedBox(
         width: 48,
         height: 48,
@@ -1832,7 +1858,10 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                     ),
                     ...rooms.map((room) {
                       final unread = summariesData[room.id]?.unreadCount ?? 0;
-                      final validMembers = _getValidMembers(room, userInfo.value);
+                      final validMembers = _getValidMembers(
+                        room,
+                        userInfo.value,
+                      );
                       return PopupMenuItem<SnChatRoom>(
                         value: room,
                         child: Row(
@@ -1927,7 +1956,10 @@ class _CollapsedChatListBody extends HookConsumerWidget {
                     ),
                     ...rooms.map((room) {
                       final unread = summariesData[room.id]?.unreadCount ?? 0;
-                      final validMembers = _getValidMembers(room, userInfo.value);
+                      final validMembers = _getValidMembers(
+                        room,
+                        userInfo.value,
+                      );
                       return PopupMenuItem<SnChatRoom>(
                         value: room,
                         child: Row(
