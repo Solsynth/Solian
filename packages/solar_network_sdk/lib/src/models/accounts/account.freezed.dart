@@ -1988,6 +1988,580 @@ as DateTime?,
 
 
 /// @nodoc
+mixin _$BadgeManifestSeries {
+
+ String get identifier; String? get title; int get order;
+/// Create a copy of BadgeManifestSeries
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$BadgeManifestSeriesCopyWith<BadgeManifestSeries> get copyWith => _$BadgeManifestSeriesCopyWithImpl<BadgeManifestSeries>(this as BadgeManifestSeries, _$identity);
+
+  /// Serializes this BadgeManifestSeries to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BadgeManifestSeries&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,identifier,title,order);
+
+@override
+String toString() {
+  return 'BadgeManifestSeries(identifier: $identifier, title: $title, order: $order)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $BadgeManifestSeriesCopyWith<$Res>  {
+  factory $BadgeManifestSeriesCopyWith(BadgeManifestSeries value, $Res Function(BadgeManifestSeries) _then) = _$BadgeManifestSeriesCopyWithImpl;
+@useResult
+$Res call({
+ String identifier, String? title, int order
+});
+
+
+
+
+}
+/// @nodoc
+class _$BadgeManifestSeriesCopyWithImpl<$Res>
+    implements $BadgeManifestSeriesCopyWith<$Res> {
+  _$BadgeManifestSeriesCopyWithImpl(this._self, this._then);
+
+  final BadgeManifestSeries _self;
+  final $Res Function(BadgeManifestSeries) _then;
+
+/// Create a copy of BadgeManifestSeries
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? title = freezed,Object? order = null,}) {
+  return _then(_self.copyWith(
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [BadgeManifestSeries].
+extension BadgeManifestSeriesPatterns on BadgeManifestSeries {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _BadgeManifestSeries value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _BadgeManifestSeries() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _BadgeManifestSeries value)  $default,){
+final _that = this;
+switch (_that) {
+case _BadgeManifestSeries():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _BadgeManifestSeries value)?  $default,){
+final _that = this;
+switch (_that) {
+case _BadgeManifestSeries() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String? title,  int order)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _BadgeManifestSeries() when $default != null:
+return $default(_that.identifier,_that.title,_that.order);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String? title,  int order)  $default,) {final _that = this;
+switch (_that) {
+case _BadgeManifestSeries():
+return $default(_that.identifier,_that.title,_that.order);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String? title,  int order)?  $default,) {final _that = this;
+switch (_that) {
+case _BadgeManifestSeries() when $default != null:
+return $default(_that.identifier,_that.title,_that.order);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _BadgeManifestSeries implements BadgeManifestSeries {
+  const _BadgeManifestSeries({required this.identifier, required this.title, this.order = 0});
+  factory _BadgeManifestSeries.fromJson(Map<String, dynamic> json) => _$BadgeManifestSeriesFromJson(json);
+
+@override final  String identifier;
+@override final  String? title;
+@override@JsonKey() final  int order;
+
+/// Create a copy of BadgeManifestSeries
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$BadgeManifestSeriesCopyWith<_BadgeManifestSeries> get copyWith => __$BadgeManifestSeriesCopyWithImpl<_BadgeManifestSeries>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$BadgeManifestSeriesToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BadgeManifestSeries&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,identifier,title,order);
+
+@override
+String toString() {
+  return 'BadgeManifestSeries(identifier: $identifier, title: $title, order: $order)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$BadgeManifestSeriesCopyWith<$Res> implements $BadgeManifestSeriesCopyWith<$Res> {
+  factory _$BadgeManifestSeriesCopyWith(_BadgeManifestSeries value, $Res Function(_BadgeManifestSeries) _then) = __$BadgeManifestSeriesCopyWithImpl;
+@override @useResult
+$Res call({
+ String identifier, String? title, int order
+});
+
+
+
+
+}
+/// @nodoc
+class __$BadgeManifestSeriesCopyWithImpl<$Res>
+    implements _$BadgeManifestSeriesCopyWith<$Res> {
+  __$BadgeManifestSeriesCopyWithImpl(this._self, this._then);
+
+  final _BadgeManifestSeries _self;
+  final $Res Function(_BadgeManifestSeries) _then;
+
+/// Create a copy of BadgeManifestSeries
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? title = freezed,Object? order = null,}) {
+  return _then(_BadgeManifestSeries(
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$BadgeManifestEntry {
+
+ String get identifier; String? get achievementIdentifier; String? get label; String? get caption; String? get icon; String? get color; String? get iconUrl; String? get localizationKey; String? get category; BadgeManifestSeries? get series; bool get hidden;
+/// Create a copy of BadgeManifestEntry
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$BadgeManifestEntryCopyWith<BadgeManifestEntry> get copyWith => _$BadgeManifestEntryCopyWithImpl<BadgeManifestEntry>(this as BadgeManifestEntry, _$identity);
+
+  /// Serializes this BadgeManifestEntry to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BadgeManifestEntry&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.achievementIdentifier, achievementIdentifier) || other.achievementIdentifier == achievementIdentifier)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.localizationKey, localizationKey) || other.localizationKey == localizationKey)&&(identical(other.category, category) || other.category == category)&&(identical(other.series, series) || other.series == series)&&(identical(other.hidden, hidden) || other.hidden == hidden));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,identifier,achievementIdentifier,label,caption,icon,color,iconUrl,localizationKey,category,series,hidden);
+
+@override
+String toString() {
+  return 'BadgeManifestEntry(identifier: $identifier, achievementIdentifier: $achievementIdentifier, label: $label, caption: $caption, icon: $icon, color: $color, iconUrl: $iconUrl, localizationKey: $localizationKey, category: $category, series: $series, hidden: $hidden)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $BadgeManifestEntryCopyWith<$Res>  {
+  factory $BadgeManifestEntryCopyWith(BadgeManifestEntry value, $Res Function(BadgeManifestEntry) _then) = _$BadgeManifestEntryCopyWithImpl;
+@useResult
+$Res call({
+ String identifier, String? achievementIdentifier, String? label, String? caption, String? icon, String? color, String? iconUrl, String? localizationKey, String? category, BadgeManifestSeries? series, bool hidden
+});
+
+
+$BadgeManifestSeriesCopyWith<$Res>? get series;
+
+}
+/// @nodoc
+class _$BadgeManifestEntryCopyWithImpl<$Res>
+    implements $BadgeManifestEntryCopyWith<$Res> {
+  _$BadgeManifestEntryCopyWithImpl(this._self, this._then);
+
+  final BadgeManifestEntry _self;
+  final $Res Function(BadgeManifestEntry) _then;
+
+/// Create a copy of BadgeManifestEntry
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? identifier = null,Object? achievementIdentifier = freezed,Object? label = freezed,Object? caption = freezed,Object? icon = freezed,Object? color = freezed,Object? iconUrl = freezed,Object? localizationKey = freezed,Object? category = freezed,Object? series = freezed,Object? hidden = null,}) {
+  return _then(_self.copyWith(
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,achievementIdentifier: freezed == achievementIdentifier ? _self.achievementIdentifier : achievementIdentifier // ignore: cast_nullable_to_non_nullable
+as String?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
+as String?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as String?,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,iconUrl: freezed == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
+as String?,localizationKey: freezed == localizationKey ? _self.localizationKey : localizationKey // ignore: cast_nullable_to_non_nullable
+as String?,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
+as BadgeManifestSeries?,hidden: null == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+/// Create a copy of BadgeManifestEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$BadgeManifestSeriesCopyWith<$Res>? get series {
+    if (_self.series == null) {
+    return null;
+  }
+
+  return $BadgeManifestSeriesCopyWith<$Res>(_self.series!, (value) {
+    return _then(_self.copyWith(series: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [BadgeManifestEntry].
+extension BadgeManifestEntryPatterns on BadgeManifestEntry {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _BadgeManifestEntry value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _BadgeManifestEntry() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _BadgeManifestEntry value)  $default,){
+final _that = this;
+switch (_that) {
+case _BadgeManifestEntry():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _BadgeManifestEntry value)?  $default,){
+final _that = this;
+switch (_that) {
+case _BadgeManifestEntry() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String identifier,  String? achievementIdentifier,  String? label,  String? caption,  String? icon,  String? color,  String? iconUrl,  String? localizationKey,  String? category,  BadgeManifestSeries? series,  bool hidden)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _BadgeManifestEntry() when $default != null:
+return $default(_that.identifier,_that.achievementIdentifier,_that.label,_that.caption,_that.icon,_that.color,_that.iconUrl,_that.localizationKey,_that.category,_that.series,_that.hidden);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String identifier,  String? achievementIdentifier,  String? label,  String? caption,  String? icon,  String? color,  String? iconUrl,  String? localizationKey,  String? category,  BadgeManifestSeries? series,  bool hidden)  $default,) {final _that = this;
+switch (_that) {
+case _BadgeManifestEntry():
+return $default(_that.identifier,_that.achievementIdentifier,_that.label,_that.caption,_that.icon,_that.color,_that.iconUrl,_that.localizationKey,_that.category,_that.series,_that.hidden);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String identifier,  String? achievementIdentifier,  String? label,  String? caption,  String? icon,  String? color,  String? iconUrl,  String? localizationKey,  String? category,  BadgeManifestSeries? series,  bool hidden)?  $default,) {final _that = this;
+switch (_that) {
+case _BadgeManifestEntry() when $default != null:
+return $default(_that.identifier,_that.achievementIdentifier,_that.label,_that.caption,_that.icon,_that.color,_that.iconUrl,_that.localizationKey,_that.category,_that.series,_that.hidden);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _BadgeManifestEntry implements BadgeManifestEntry {
+  const _BadgeManifestEntry({required this.identifier, this.achievementIdentifier, required this.label, this.caption, this.icon, this.color, this.iconUrl, this.localizationKey, this.category, this.series, this.hidden = false});
+  factory _BadgeManifestEntry.fromJson(Map<String, dynamic> json) => _$BadgeManifestEntryFromJson(json);
+
+@override final  String identifier;
+@override final  String? achievementIdentifier;
+@override final  String? label;
+@override final  String? caption;
+@override final  String? icon;
+@override final  String? color;
+@override final  String? iconUrl;
+@override final  String? localizationKey;
+@override final  String? category;
+@override final  BadgeManifestSeries? series;
+@override@JsonKey() final  bool hidden;
+
+/// Create a copy of BadgeManifestEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$BadgeManifestEntryCopyWith<_BadgeManifestEntry> get copyWith => __$BadgeManifestEntryCopyWithImpl<_BadgeManifestEntry>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$BadgeManifestEntryToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BadgeManifestEntry&&(identical(other.identifier, identifier) || other.identifier == identifier)&&(identical(other.achievementIdentifier, achievementIdentifier) || other.achievementIdentifier == achievementIdentifier)&&(identical(other.label, label) || other.label == label)&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&(identical(other.localizationKey, localizationKey) || other.localizationKey == localizationKey)&&(identical(other.category, category) || other.category == category)&&(identical(other.series, series) || other.series == series)&&(identical(other.hidden, hidden) || other.hidden == hidden));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,identifier,achievementIdentifier,label,caption,icon,color,iconUrl,localizationKey,category,series,hidden);
+
+@override
+String toString() {
+  return 'BadgeManifestEntry(identifier: $identifier, achievementIdentifier: $achievementIdentifier, label: $label, caption: $caption, icon: $icon, color: $color, iconUrl: $iconUrl, localizationKey: $localizationKey, category: $category, series: $series, hidden: $hidden)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$BadgeManifestEntryCopyWith<$Res> implements $BadgeManifestEntryCopyWith<$Res> {
+  factory _$BadgeManifestEntryCopyWith(_BadgeManifestEntry value, $Res Function(_BadgeManifestEntry) _then) = __$BadgeManifestEntryCopyWithImpl;
+@override @useResult
+$Res call({
+ String identifier, String? achievementIdentifier, String? label, String? caption, String? icon, String? color, String? iconUrl, String? localizationKey, String? category, BadgeManifestSeries? series, bool hidden
+});
+
+
+@override $BadgeManifestSeriesCopyWith<$Res>? get series;
+
+}
+/// @nodoc
+class __$BadgeManifestEntryCopyWithImpl<$Res>
+    implements _$BadgeManifestEntryCopyWith<$Res> {
+  __$BadgeManifestEntryCopyWithImpl(this._self, this._then);
+
+  final _BadgeManifestEntry _self;
+  final $Res Function(_BadgeManifestEntry) _then;
+
+/// Create a copy of BadgeManifestEntry
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? identifier = null,Object? achievementIdentifier = freezed,Object? label = freezed,Object? caption = freezed,Object? icon = freezed,Object? color = freezed,Object? iconUrl = freezed,Object? localizationKey = freezed,Object? category = freezed,Object? series = freezed,Object? hidden = null,}) {
+  return _then(_BadgeManifestEntry(
+identifier: null == identifier ? _self.identifier : identifier // ignore: cast_nullable_to_non_nullable
+as String,achievementIdentifier: freezed == achievementIdentifier ? _self.achievementIdentifier : achievementIdentifier // ignore: cast_nullable_to_non_nullable
+as String?,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
+as String?,caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
+as String?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as String?,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,iconUrl: freezed == iconUrl ? _self.iconUrl : iconUrl // ignore: cast_nullable_to_non_nullable
+as String?,localizationKey: freezed == localizationKey ? _self.localizationKey : localizationKey // ignore: cast_nullable_to_non_nullable
+as String?,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
+as BadgeManifestSeries?,hidden: null == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+/// Create a copy of BadgeManifestEntry
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$BadgeManifestSeriesCopyWith<$Res>? get series {
+    if (_self.series == null) {
+    return null;
+  }
+
+  return $BadgeManifestSeriesCopyWith<$Res>(_self.series!, (value) {
+    return _then(_self.copyWith(series: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$SnContactMethod {
 
  String get id; int get type; DateTime? get verifiedAt; bool get isPrimary; bool get isPublic; String get content; String get accountId; DateTime get createdAt; DateTime get updatedAt; DateTime? get deletedAt;

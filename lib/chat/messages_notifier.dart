@@ -970,6 +970,7 @@ class MessagesNotifier extends _$MessagesNotifier {
     String? locationAddress,
     String? locationWkt,
     String? meetId,
+    String? calendarEventId,
     SnChatMessage? editingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? replyingTo,
@@ -982,7 +983,8 @@ class MessagesNotifier extends _$MessagesNotifier {
         locationName == null &&
         locationAddress == null &&
         locationWkt == null &&
-        meetId == null) {
+        meetId == null &&
+        calendarEventId == null) {
       return;
     }
 
@@ -1000,6 +1002,7 @@ class MessagesNotifier extends _$MessagesNotifier {
       locationAddress: locationAddress,
       locationWkt: locationWkt,
       meetId: meetId,
+      calendarEventId: calendarEventId,
       onPending: editingTo == null
           ? (pending) {
               pendingMessageId = pending.id;
