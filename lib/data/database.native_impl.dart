@@ -7,6 +7,7 @@ import 'package:island/data/message.dart';
 import 'package:island/data/objectbox/entities.dart';
 import 'package:island/objectbox.g.dart';
 import 'package:logging/logging.dart';
+import 'package:island/stickers/models/sticker.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 class AppDatabase {
@@ -86,6 +87,7 @@ class AppDatabase {
         'realms': 0,
         'relationships': 0,
         'postDrafts': _webDraftStore.length,
+        'stickerLookups': 0,
       };
     }
     final store = await _getStore();
@@ -97,6 +99,7 @@ class AppDatabase {
         'realms': 0,
         'relationships': 0,
         'postDrafts': 0,
+        'stickerLookups': 0,
       };
     }
     return {
@@ -106,6 +109,7 @@ class AppDatabase {
       'realms': store.box<RealmEntity>().count(),
       'relationships': store.box<RelationshipEntity>().count(),
       'postDrafts': store.box<PostDraftEntity>().count(),
+      'stickerLookups': store.box<StickerLookupEntity>().count(),
     };
   }
 
@@ -122,6 +126,7 @@ class AppDatabase {
       store.box<RealmEntity>().removeAll();
       store.box<RelationshipEntity>().removeAll();
       store.box<PostDraftEntity>().removeAll();
+      store.box<StickerLookupEntity>().removeAll();
       store.close();
     }
     _storeFuture = null;
@@ -787,6 +792,62 @@ class AppDatabase {
     final store = await _getStore();
     if (store == null) return;
     store.box<PostDraftEntity>().removeAll();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sticker lookups
+  // ---------------------------------------------------------------------------
+
+  Future<SnSticker?> getStickerLookup(String identifier) async {
+    if (_isWeb) return null;
+    final store = await _getStore();
+    if (store == null) return null;
+    final query = store
+        .box<StickerLookupEntity>()
+        .query(StickerLookupEntity_.uid.equals(identifier))
+        .build();
+    final entity = query.findFirst();
+    query.close();
+    if (entity == null) return null;
+    try {
+      return SnSticker.fromJson(
+        Map<String, dynamic>.from(jsonDecode(entity.stickerJson) as Map),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> setStickerLookup(String identifier, SnSticker sticker) async {
+    if (_isWeb) return;
+    final store = await _getStore();
+    if (store == null) return;
+    final box = store.box<StickerLookupEntity>();
+    final query = box
+        .query(StickerLookupEntity_.uid.equals(identifier))
+        .build();
+    final existing = query.findFirst();
+    query.close();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final entity =
+        existing ??
+        StickerLookupEntity(
+          uid: identifier,
+          stickerId: sticker.id,
+          stickerJson: jsonEncode(sticker.toJson()),
+          updatedAtMs: now,
+        );
+    entity.stickerId = sticker.id;
+    entity.stickerJson = jsonEncode(sticker.toJson());
+    entity.updatedAtMs = now;
+    box.put(entity);
+  }
+
+  Future<void> clearStickerLookups() async {
+    if (_isWeb) return;
+    final store = await _getStore();
+    if (store == null) return;
+    store.box<StickerLookupEntity>().removeAll();
   }
 
   Future<SnPost?> getPostDraftById(String id) async {

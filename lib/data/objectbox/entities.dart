@@ -227,6 +227,31 @@ class RelationshipEntity {
 }
 
 @Entity()
+class StickerLookupEntity {
+  StickerLookupEntity({
+    this.obxId = 0,
+    required this.uid,
+    required this.stickerId,
+    required this.stickerJson,
+    required this.updatedAtMs,
+  });
+
+  @Id()
+  int obxId;
+
+  @Unique()
+  String uid;
+
+  @Index()
+  String stickerId;
+
+  String stickerJson;
+
+  @Index()
+  int updatedAtMs;
+}
+
+@Entity()
 class PostDraftEntity {
   PostDraftEntity({
     this.obxId = 0,

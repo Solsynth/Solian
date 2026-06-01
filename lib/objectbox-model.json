@@ -519,10 +519,50 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "7:4633006183410813102",
+      "lastPropertyId": "5:7865606278669430545",
+      "name": "StickerLookupEntity",
+      "properties": [
+        {
+          "id": "1:4247977823785475131",
+          "name": "obxId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7627231164332001377",
+          "name": "uid",
+          "indexId": "15:742572860041903729",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:4222578831425351276",
+          "name": "stickerId",
+          "indexId": "16:5287084145654996155",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "4:97195578110906178",
+          "name": "stickerJson",
+          "type": 9
+        },
+        {
+          "id": "5:7865606278669430545",
+          "name": "updatedAtMs",
+          "indexId": "17:6132083275743481083",
+          "type": 6,
+          "flags": 8
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "6:3095537178895020388",
-  "lastIndexId": "14:2002931559330577197",
+  "lastEntityId": "7:4633006183410813102",
+  "lastIndexId": "17:6132083275743481083",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

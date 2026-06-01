@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/profile.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/database.dart';
 import 'package:island/shared/widgets/content/markdown_remote_image.dart';
 import 'package:island/posts/screens/publisher_profile.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -37,6 +38,16 @@ final stickerLookupProvider = FutureProvider.family<SnSticker?, String>((
   final cached = _stickerLookupCache[key];
   if (cached != null) return cached;
 
+  final db = ref.read(databaseProvider);
+  try {
+    final dbSticker = await db.getStickerLookup(key);
+    if (dbSticker != null) {
+      _stickerLookupCache[key] = dbSticker;
+      _stickerLookupCache[dbSticker.id] = dbSticker;
+      return dbSticker;
+    }
+  } catch (_) {}
+
   try {
     final client = ref.watch(apiClientProvider);
     final response = await client.get(
@@ -47,6 +58,10 @@ final stickerLookupProvider = FutureProvider.family<SnSticker?, String>((
     );
     _stickerLookupCache[key] = sticker;
     _stickerLookupCache[sticker.id] = sticker;
+    try {
+      await db.setStickerLookup(key, sticker);
+      await db.setStickerLookup(sticker.id, sticker);
+    } catch (_) {}
     return sticker;
   } catch (_) {
     return null;
