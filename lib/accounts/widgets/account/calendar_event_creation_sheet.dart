@@ -5,6 +5,8 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/widgets/content/image_picker_editor.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -64,6 +66,12 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
       initialEvent?.visibility ?? SnEventVisibility.private,
     );
 
+    // Icon and background states
+    final icon = useState<IDisplayableCloudFile?>(initialEvent?.icon);
+    final background = useState<IDisplayableCloudFile?>(
+      initialEvent?.background,
+    );
+
     // Recurrence states
     final recurrenceFrequency = useState<int>(
       initialEvent?.recurrence?.frequency ?? SnRecurrenceFrequency.none,
@@ -79,6 +87,35 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
     );
 
     final submitting = useState(false);
+
+    Future<void> pickImage(String type) async {
+      final result = await showImagePickerEditor(
+        context,
+        config: type == 'background'
+            ? const ImageEditorConfig(
+                allowedAspectRatios: [ImageAspectRatio(width: 16, height: 9)],
+                allowMultiple: false,
+                allowCompression: true,
+                defaultCompressionQuality: 85,
+              )
+            : const ImageEditorConfig(
+                allowedAspectRatios: [ImageAspectRatio.square],
+                allowMultiple: false,
+                allowCompression: true,
+                defaultCompressionQuality: 90,
+              ),
+        title: type == 'background'
+            ? 'eventBackground'.tr()
+            : 'eventIcon'.tr(),
+      );
+      if (result == null) return;
+      final cloudFile = result as SnCloudFile;
+      if (type == 'icon') {
+        icon.value = cloudFile;
+      } else {
+        background.value = cloudFile;
+      }
+    }
 
     Future<void> deleteEvent() async {
       if (initialEvent == null) return;
@@ -148,6 +185,8 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
             isAllDay: isAllDay.value,
             visibility: visibility.value,
             recurrence: recurrence,
+            iconId: icon.value?.id,
+            backgroundId: background.value?.id,
           );
         } else {
           await client.accounts.createCalendarEvent(
@@ -163,6 +202,8 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
             isAllDay: isAllDay.value,
             visibility: visibility.value,
             recurrence: recurrence,
+            iconId: icon.value?.id,
+            backgroundId: background.value?.id,
           );
         }
 
@@ -316,6 +357,39 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
               textInputAction: TextInputAction.done,
               onTapOutside: (_) =>
                   FocusManager.instance.primaryFocus?.unfocus(),
+            ),
+            const Gap(24),
+
+            // Icon & Background Section
+            buildSectionTitle('eventAppearance'.tr(), Symbols.palette),
+            const Gap(12),
+            Row(
+              children: [
+                // Icon picker
+                Expanded(
+                  child: _ImagePickerTile(
+                    label: 'eventIcon'.tr(),
+                    icon: Symbols.image,
+                    file: icon.value,
+                    onTap: () => pickImage('icon'),
+                    onRemove:
+                        icon.value != null ? () => icon.value = null : null,
+                  ),
+                ),
+                const Gap(12),
+                // Background picker
+                Expanded(
+                  child: _ImagePickerTile(
+                    label: 'eventBackground'.tr(),
+                    icon: Symbols.wallpaper,
+                    file: background.value,
+                    onTap: () => pickImage('background'),
+                    onRemove: background.value != null
+                        ? () => background.value = null
+                        : null,
+                  ),
+                ),
+              ],
             ),
             const Gap(24),
 
@@ -651,6 +725,84 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
             ],
 
             Gap(MediaQuery.of(context).padding.bottom + 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImagePickerTile extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final IDisplayableCloudFile? file;
+  final VoidCallback onTap;
+  final VoidCallback? onRemove;
+
+  const _ImagePickerTile({
+    required this.label,
+    required this.icon,
+    required this.file,
+    required this.onTap,
+    this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            if (file != null)
+              Positioned.fill(
+                child: CloudFileWidget(
+                  item: file!,
+                  fit: BoxFit.cover,
+                ),
+              )
+            else
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, size: 28, color: colorScheme.onSurfaceVariant),
+                    const Gap(4),
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (onRemove != null)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton.filled(
+                  icon: const Icon(Symbols.close, size: 16),
+                  onPressed: onRemove,
+                  style: IconButton.styleFrom(
+                    backgroundColor: colorScheme.surface.withOpacity(0.8),
+                    foregroundColor: colorScheme.onSurface,
+                    minimumSize: const Size(28, 28),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

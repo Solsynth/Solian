@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:solar_network_sdk/src/models/accounts/account.dart';
+import 'package:solar_network_sdk/src/models/drive/file.dart';
 
 part 'activity.freezed.dart';
 part 'activity.g.dart';
@@ -146,6 +147,8 @@ sealed class SnUserCalendarEvent with _$SnUserCalendarEvent {
     @Default(SnEventVisibility.private) int visibility,
     SnRecurrencePattern? recurrence,
     Map<String, dynamic>? meta,
+    SnCloudFileReference? icon,
+    SnCloudFileReference? background,
     required String accountId,
     required DateTime createdAt,
     required DateTime updatedAt,
