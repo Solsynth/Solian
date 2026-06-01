@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/network.dart';
 import 'package:island/fitness/pods/fitness_providers.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/creators/screens/poll/poll_list.dart';
@@ -166,6 +167,26 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget> {
                   ? const Text('Meet was unavailable...')
                   : _MeetEmbedCard(
                       meetId: embedData['id'],
+                      margin: EdgeInsets.symmetric(
+                        horizontal: widget.renderingPadding.horizontal,
+                        vertical: 8,
+                      ),
+                    ),
+            'calendar_event' =>
+              embedData['id'] == null
+                  ? const Text('Calendar event was unavailable...')
+                  : _CalendarEventEmbedCard(
+                      eventId: embedData['id'],
+                      margin: EdgeInsets.symmetric(
+                        horizontal: widget.renderingPadding.horizontal,
+                        vertical: 8,
+                      ),
+                    ),
+            'notable_day' =>
+              embedData['id'] == null
+                  ? const Text('Notable day was unavailable...')
+                  : _NotableDayEmbedCard(
+                      notableDayId: embedData['id'],
                       margin: EdgeInsets.symmetric(
                         horizontal: widget.renderingPadding.horizontal,
                         vertical: 8,
@@ -2641,6 +2662,227 @@ class _MeetStatusChip extends StatelessWidget {
           color: fg,
           fontWeight: FontWeight.w600,
           fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
+final calendarEventDetailProvider =
+    FutureProvider.autoDispose.family<SnUserCalendarEvent, String>((
+      ref,
+      eventId,
+    ) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      return client.accounts.getCalendarEvent(eventId);
+    });
+
+class _CalendarEventEmbedCard extends ConsumerWidget {
+  final String eventId;
+  final EdgeInsets margin;
+
+  const _CalendarEventEmbedCard({required this.eventId, required this.margin});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventAsync = ref.watch(calendarEventDetailProvider(eventId));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: margin,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          // Navigate to event hub or show detail
+        },
+        child: eventAsync.when(
+          data: (event) {
+            final now = DateTime.now();
+            final isPast = event.startTime.isBefore(now);
+            final daysDiff = event.startTime.difference(now).inDays;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (event.background != null)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: Image.network(
+                      event.background!.storageUrl ?? '',
+                      height: 100,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: event.icon != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  event.icon!.storageUrl ?? '',
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => Icon(
+                                    Symbols.calendar_month,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                Symbols.calendar_month,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              event.title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              DateFormat.yMMMd().format(event.startTime),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (event.description != null &&
+                                event.description!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                event.description!,
+                                style: theme.textTheme.bodySmall,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isPast
+                                    ? colorScheme.surfaceContainerHighest
+                                    : colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                isPast
+                                    ? 'countdownPast'.tr(
+                                        args: ['${daysDiff.abs()}d'],
+                                      )
+                                    : 'countdownFuture'.tr(
+                                        args: ['${daysDiff}d'],
+                                      ),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: isPast
+                                      ? colorScheme.onSurfaceVariant
+                                      : colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Symbols.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('calendarEventUnavailable'.tr()),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NotableDayEmbedCard extends StatelessWidget {
+  final String notableDayId;
+  final EdgeInsets margin;
+
+  const _NotableDayEmbedCard({
+    required this.notableDayId,
+    required this.margin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Notable days don't have a detail endpoint, so we show a simple card
+    // The notable day data should come from the embed itself
+    return Card(
+      margin: margin,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: colorScheme.tertiaryContainer,
+              child: Icon(
+                Symbols.celebration,
+                color: colorScheme.onTertiaryContainer,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'notableDay'.tr(),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'notableDayEmbedHint'.tr(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Symbols.celebration,
+              color: colorScheme.tertiary,
+            ),
+          ],
         ),
       ),
     );
