@@ -44,6 +44,7 @@ class ChatRoomState {
   // Read receipt state
   final DateTime roomOpenTime;
   final String? lastReadAnchorMessageId;
+  final String? dismissedLastReadAnchorMessageId;
 
   const ChatRoomState({
     this.isSelectionMode = false,
@@ -63,6 +64,7 @@ class ChatRoomState {
     this.isScrollingToMessage = false,
     required this.roomOpenTime,
     this.lastReadAnchorMessageId,
+    this.dismissedLastReadAnchorMessageId,
   });
 
   ChatRoomState copyWith({
@@ -83,6 +85,7 @@ class ChatRoomState {
     bool? isScrollingToMessage,
     DateTime? roomOpenTime,
     String? lastReadAnchorMessageId,
+    String? dismissedLastReadAnchorMessageId,
     bool clearEditingTo = false,
     bool clearReplyingTo = false,
     bool clearForwardingTo = false,
@@ -91,6 +94,7 @@ class ChatRoomState {
     bool clearLocation = false,
     bool clearMeet = false,
     bool clearLastReadAnchor = false,
+    bool clearDismissedLastReadAnchor = false,
   }) {
     return ChatRoomState(
       isSelectionMode: isSelectionMode ?? this.isSelectionMode,
@@ -126,6 +130,10 @@ class ChatRoomState {
       lastReadAnchorMessageId: clearLastReadAnchor
           ? null
           : (lastReadAnchorMessageId ?? this.lastReadAnchorMessageId),
+      dismissedLastReadAnchorMessageId: clearDismissedLastReadAnchor
+          ? null
+          : (dismissedLastReadAnchorMessageId ??
+                this.dismissedLastReadAnchorMessageId),
     );
   }
 }
@@ -681,11 +689,21 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     state = state.copyWith(
       lastReadAnchorMessageId: messageId,
       clearLastReadAnchor: messageId == null,
+      dismissedLastReadAnchorMessageId:
+          state.dismissedLastReadAnchorMessageId == messageId
+          ? state.dismissedLastReadAnchorMessageId
+          : null,
+      clearDismissedLastReadAnchor:
+          messageId == null ||
+          state.dismissedLastReadAnchorMessageId != null &&
+              state.dismissedLastReadAnchorMessageId != messageId,
     );
   }
 
   void dismissLastReadMarker() {
-    state = state.copyWith(clearLastReadAnchor: true);
+    final currentAnchor = state.lastReadAnchorMessageId;
+    if (currentAnchor == null) return;
+    state = state.copyWith(dismissedLastReadAnchorMessageId: currentAnchor);
   }
 }
 

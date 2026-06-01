@@ -94,19 +94,7 @@ class RoomMessageList extends HookConsumerWidget {
     final chatStateNotifier = ref.read(chatRoomStateProvider(roomId).notifier);
     const messageKeyPrefix = 'message-';
 
-    final lastReadMarkerKey = useState<String?>(null);
-    final isLastReadMarkerDismissed = useState(false);
-
-    useEffect(() {
-      if (chatState.lastReadAnchorMessageId != lastReadMarkerKey.value) {
-        lastReadMarkerKey.value = chatState.lastReadAnchorMessageId;
-        isLastReadMarkerDismissed.value = false;
-      }
-      return null;
-    }, [chatState.lastReadAnchorMessageId]);
-
     final handleDismiss = useCallback(() {
-      isLastReadMarkerDismissed.value = true;
       chatStateNotifier.dismissLastReadMarker();
     }, [chatStateNotifier]);
 
@@ -215,7 +203,9 @@ class RoomMessageList extends HookConsumerWidget {
         );
         final showLastReadMarker =
             chatState.lastReadAnchorMessageId != null &&
-            message.id == chatState.lastReadAnchorMessageId;
+            message.id == chatState.lastReadAnchorMessageId &&
+            chatState.dismissedLastReadAnchorMessageId !=
+                chatState.lastReadAnchorMessageId;
 
         Widget buildMessage(
           LocalChatMessage item,
@@ -276,53 +266,48 @@ class RoomMessageList extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (showLastReadMarker)
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: isLastReadMarkerDismissed.value ? 0.0 : 1.0,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.bookmark_added,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'newMessageBelow'.tr(),
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              ),
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.bookmark_added,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'newMessageBelow'.tr(),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                       ),
-                      if (chatState.lastReadAnchorMessageId != null)
-                        IconButton(
-                          onPressed: handleDismiss,
-                          icon: Icon(
-                            Icons.close,
-                            size: 18,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                    ),
+                    if (chatState.lastReadAnchorMessageId != null)
+                      IconButton(
+                        onPressed: handleDismiss,
+                        icon: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
-                    ],
-                  ),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                  ],
                 ),
               ),
             messageContent,
