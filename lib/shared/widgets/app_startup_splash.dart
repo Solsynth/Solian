@@ -287,39 +287,36 @@ class StartupSplashScreen extends HookConsumerWidget {
                 top: 0,
                 child: Align(
                   alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: isBusy.value
-                              ? Text(
-                                  '$percentage%',
-                                  key: ValueKey(percentage),
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.primary,
-                                    fontFeatures: const [
-                                      FontFeature.tabularFigures(),
-                                    ],
-                                  ),
-                                )
-                              : const SizedBox(
-                                  key: ValueKey('idle-progress-label'),
-                                  height: 18,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: isBusy.value
+                            ? Text(
+                                '$percentage%',
+                                key: ValueKey(percentage),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.primary,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
                                 ),
-                        ),
-                        const SizedBox(height: 8),
-                        StartupProgressBar(
-                          progress: progress,
-                          isErrored: isErrored.value,
-                          colorScheme: colorScheme,
-                        ),
-                      ],
-                    ),
+                              )
+                            : const SizedBox(
+                                key: ValueKey('idle-progress-label'),
+                                height: 18,
+                              ),
+                      ),
+                      const SizedBox(height: 8),
+                      StartupProgressBar(
+                        progress: progress,
+                        isErrored: isErrored.value,
+                        colorScheme: colorScheme,
+                      ),
+                    ],
                   ),
                 ),
               ),
