@@ -2669,12 +2669,22 @@ class _MeetStatusChip extends StatelessWidget {
 }
 
 final calendarEventDetailProvider =
-    FutureProvider.autoDispose.family<SnUserCalendarEvent, String>((
+    FutureProvider.autoDispose.family<SnUserCalendarEvent, (String, String)>((
       ref,
-      eventId,
+      params,
+    ) async {
+      final (username, eventId) = params;
+      final client = ref.watch(solarNetworkClientProvider);
+      return client.accounts.getUserCalendarEvent(username, eventId);
+    });
+
+final accountByIdProvider =
+    FutureProvider.autoDispose.family<SnAccount, String>((
+      ref,
+      accountId,
     ) async {
       final client = ref.watch(solarNetworkClientProvider);
-      return client.accounts.getCalendarEvent(eventId);
+      return client.accounts.getAccountById(accountId);
     });
 
 class _CalendarEventEmbedCard extends ConsumerWidget {
@@ -2685,7 +2695,8 @@ class _CalendarEventEmbedCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventAsync = ref.watch(calendarEventDetailProvider(eventId));
+    // First fetch the event using the authenticated endpoint to get the account
+    final eventAsync = ref.watch(calendarEventDetailProvider(('me', eventId)));
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -2693,7 +2704,18 @@ class _CalendarEventEmbedCard extends ConsumerWidget {
       margin: margin,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => _showCalendarEventDetailSheet(context, ref, eventId),
+        onTap: () {
+          final event = eventAsync.value;
+          if (event?.account == null) return;
+
+          // Navigate to the event detail page using the account username
+          context.router.push(
+            CalendarEventDetailRoute(
+              username: event!.account!.name,
+              eventId: eventId,
+            ),
+          );
+        },
         child: eventAsync.when(
           data: (event) {
             final now = DateTime.now();
@@ -2820,310 +2842,6 @@ class _CalendarEventEmbedCard extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: Text('calendarEventUnavailable'.tr()),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-void _showCalendarEventDetailSheet(
-  BuildContext context,
-  WidgetRef ref,
-  String eventId,
-) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (context) => _CalendarEventDetailSheet(eventId: eventId),
-  );
-}
-
-class _CalendarEventDetailSheet extends ConsumerWidget {
-  final String eventId;
-
-  const _CalendarEventDetailSheet({required this.eventId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final eventAsync = ref.watch(calendarEventDetailProvider(eventId));
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return eventAsync.when(
-      data: (event) {
-        final now = DateTime.now();
-        final isPast = event.startTime.isBefore(now);
-        final daysDiff = event.startTime.difference(now).inDays;
-
-        return SheetScaffold(
-          titleText: event.title,
-          heightFactor: 0.75,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Header Card with Icon and Background
-              Card(
-                elevation: 0,
-                color: colorScheme.primaryContainer,
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  children: [
-                    if (event.background != null)
-                      Image.network(
-                        event.background!.storageUrl ?? '',
-                        height: 120,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: colorScheme.onPrimaryContainer
-                                .withOpacity(0.1),
-                            child: event.icon != null
-                                ? ClipOval(
-                                    child: Image.network(
-                                      event.icon!.storageUrl ?? '',
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) => Icon(
-                                        Symbols.calendar_month,
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
-                                    ),
-                                  )
-                                : Icon(
-                                    Symbols.calendar_month,
-                                    size: 28,
-                                    color: colorScheme.onPrimaryContainer,
-                                  ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  event.title,
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isPast
-                                        ? colorScheme.onPrimaryContainer
-                                              .withOpacity(0.1)
-                                        : colorScheme.onPrimaryContainer
-                                              .withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    isPast
-                                        ? 'countdownPast'.tr(
-                                            args: ['${daysDiff.abs()} days'],
-                                          )
-                                        : 'countdownFuture'.tr(
-                                            args: ['$daysDiff days'],
-                                          ),
-                                    style: theme.textTheme.labelMedium
-                                        ?.copyWith(
-                                          color: colorScheme.onPrimaryContainer,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Date & Time Section
-              Text(
-                'eventDateTime'.tr(),
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(color: colorScheme.outlineVariant),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                color: colorScheme.surface,
-                child: Column(
-                  children: [
-                    _buildDetailTile(
-                      context,
-                      icon: Symbols.calendar_today,
-                      title: 'eventStartTime'.tr(),
-                      subtitle: DateFormat.yMMMd()
-                          .add_jm()
-                          .format(event.startTime),
-                    ),
-                    if (!event.isAllDay) ...[
-                      Divider(
-                        height: 1,
-                        indent: 56,
-                        endIndent: 16,
-                        color: colorScheme.outlineVariant,
-                      ),
-                      _buildDetailTile(
-                        context,
-                        icon: Symbols.schedule,
-                        title: 'eventEndTime'.tr(),
-                        subtitle: DateFormat.yMMMd()
-                            .add_jm()
-                            .format(event.endTime),
-                      ),
-                    ],
-                    if (event.isAllDay) ...[
-                      Divider(
-                        height: 1,
-                        indent: 56,
-                        endIndent: 16,
-                        color: colorScheme.outlineVariant,
-                      ),
-                      _buildDetailTile(
-                        context,
-                        icon: Symbols.today,
-                        title: 'eventAllDay'.tr(),
-                        subtitle: 'eventAllDayDescription'.tr(),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              // Description
-              if (event.description != null &&
-                  event.description!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'eventDescription'.tr(),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(color: colorScheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  color: colorScheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Symbols.description,
-                          size: 20,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            event.description!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface,
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-
-              // Location
-              if (event.location != null && event.location!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'eventLocation'.tr(),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(color: colorScheme.outlineVariant),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  color: colorScheme.surface,
-                  child: _buildDetailTile(
-                    context,
-                    icon: Symbols.location_on,
-                    title: 'location'.tr(),
-                    subtitle: event.location!,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-      loading: () => SheetScaffold(
-        titleText: 'loading'.tr(),
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, _) => SheetScaffold(
-        titleText: 'errorGeneric'.tr(),
-        child: Center(child: Text('calendarEventUnavailable'.tr())),
-      ),
-    );
-  }
-
-  Widget _buildDetailTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return ListTile(
-      leading: Icon(icon, color: colorScheme.primary),
-      title: Text(
-        title,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );

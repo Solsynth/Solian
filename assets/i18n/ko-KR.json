@@ -2083,6 +2083,7 @@
   "eventLocationHint": "일정 장소 입력(선택)",
   "eventStartTime": "시작 시간",
   "eventEndTime": "종료 시간",
+  "eventTime": "시간",
   "eventAllDay": "종일",
   "eventAllDayDescription": "종일 일정입니다",
   "eventDateTime": "날짜 및 시간",

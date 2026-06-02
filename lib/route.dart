@@ -60,6 +60,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: AccountProfileRoute.page, path: '/accounts/:name'),
     AutoRoute(page: UniversalSearchRoute.page, path: '/search'),
     AutoRoute(page: EventHubRoute.page, path: '/calendar/:name'),
+    AutoRoute(
+      page: CalendarEventDetailRoute.page,
+      path: '/calendar/:name/events/:id',
+    ),
 
     AutoRoute(page: RealmDetailRoute.page, path: '/realms/:slug'),
     AutoRoute(page: PollSubmitRoute.page, path: '/polls/:id'),

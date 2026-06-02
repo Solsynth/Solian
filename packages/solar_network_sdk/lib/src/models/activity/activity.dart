@@ -150,6 +150,7 @@ sealed class SnUserCalendarEvent with _$SnUserCalendarEvent {
     SnCloudFileReference? icon,
     SnCloudFileReference? background,
     required String accountId,
+    SnAccount? account,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deletedAt,

@@ -1806,6 +1806,7 @@
   "eventLocationHint": "予定の場所を入力（任意）",
   "eventStartTime": "開始時刻",
   "eventEndTime": "終了時刻",
+  "eventTime": "時間",
   "eventAllDay": "終日",
   "eventAllDayDescription": "終日の予定です",
   "eventDateTime": "日時",
