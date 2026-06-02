@@ -217,6 +217,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
   @override
   Widget build(BuildContext context) {
     final tabsRouter = AutoTabsRouter.of(context);
+    final mediaQuery = MediaQuery.of(context);
 
     final token = ref.watch(tokenProvider);
     final userInfo = ref.watch(userInfoProvider);
@@ -536,6 +537,22 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       );
     }
 
+    final mobileTabBody = MediaQuery(
+      // Preserve the original bottom safe area for nested app scaffolds.
+      data: mediaQuery.copyWith(
+        padding: mediaQuery.padding.copyWith(
+          bottom: mediaQuery.viewPadding.bottom,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+        child: widget.child,
+      ),
+    );
+
     final scaffold = Scaffold(
       key: rootScaffoldKey,
       backgroundColor: Colors.transparent,
@@ -545,13 +562,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
           ? Drawer(child: buildNavigationDrawerContent())
           : null,
       drawerEnableOpenDragGesture: isDrawerEnabled,
-      body: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-        child: widget.child,
-      ),
+      body: mobileTabBody,
       bottomNavigationBar: ConditionalBottomNav(
         routes: bottomNavRoutes,
         child: NavigationBar(
