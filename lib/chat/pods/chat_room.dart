@@ -77,6 +77,27 @@ int _safeToInt(dynamic value, {int fallback = 0}) {
   return fallback;
 }
 
+SnChatMessage _mergeUpdatedRemoteMessage(
+  SnChatMessage existingRemote,
+  SnChatMessage updateRemote, {
+  required DateTime editedAt,
+}) {
+  final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
+  mergedMeta.addAll(updateRemote.meta);
+  mergedMeta.remove('message_id');
+  final isLinkPreviewUpdate = updateRemote.type == 'messages.update.links';
+
+  return existingRemote.copyWith(
+    content: isLinkPreviewUpdate ? existingRemote.content : updateRemote.content,
+    attachments: updateRemote.attachments,
+    membersMentioned: updateRemote.membersMentioned,
+    repliedMessageId: updateRemote.repliedMessageId,
+    forwardedMessageId: updateRemote.forwardedMessageId,
+    meta: mergedMeta,
+    editedAt: editedAt,
+  );
+}
+
 int _parseEncryptionMode(dynamic value) {
   if (value is String) {
     switch (value) {
@@ -351,22 +372,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
           if (existingMsg != null) {
             final existingRemote = existingMsg.toRemoteMessage();
-            final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
-            mergedMeta.addAll(message.meta);
-            mergedMeta.remove('message_id');
-
             final updatePayload = LocalChatMessage.fromRemoteMessage(
               message,
               MessageStatus.sent,
             ).toRemoteMessage();
 
-            final updatedRemote = existingRemote.copyWith(
-              content: updatePayload.content,
-              attachments: updatePayload.attachments,
-              membersMentioned: updatePayload.membersMentioned,
-              repliedMessageId: updatePayload.repliedMessageId,
-              forwardedMessageId: updatePayload.forwardedMessageId,
-              meta: mergedMeta,
+            final updatedRemote = _mergeUpdatedRemoteMessage(
+              existingRemote,
+              updatePayload,
               editedAt: message.createdAt,
             );
 
@@ -526,22 +539,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     if (existingMsg == null) return;
 
     final existingRemote = existingMsg.toRemoteMessage();
-    final mergedMeta = Map<String, dynamic>.of(existingRemote.meta);
-    mergedMeta.addAll(message.meta);
-    mergedMeta.remove('message_id');
-
     final updatePayload = LocalChatMessage.fromRemoteMessage(
       message,
       MessageStatus.sent,
     ).toRemoteMessage();
 
-    final updatedRemote = existingRemote.copyWith(
-      content: updatePayload.content,
-      attachments: updatePayload.attachments,
-      membersMentioned: updatePayload.membersMentioned,
-      repliedMessageId: updatePayload.repliedMessageId,
-      forwardedMessageId: updatePayload.forwardedMessageId,
-      meta: mergedMeta,
+    final updatedRemote = _mergeUpdatedRemoteMessage(
+      existingRemote,
+      updatePayload,
       editedAt: message.createdAt,
     );
 
