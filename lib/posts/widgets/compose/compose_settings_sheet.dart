@@ -56,6 +56,7 @@ class ComposeSettingsSheet extends HookConsumerWidget {
     final postCategories = ref.watch(postCategoriesProvider);
     final userRealms = ref.watch(realmsJoinedProvider);
     final publisherName = state.currentPublisher.value?.name;
+    final isIndividualPublisher = state.currentPublisher.value?.type == 0;
     final publisherCollections =
         publisherName != null && publisherName.isNotEmpty
         ? ref.watch(publisherCollectionsProvider(publisherName))
@@ -632,48 +633,98 @@ class ComposeSettingsSheet extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              items: [
-                DropdownItem<int>(
-                  value: 0,
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.public),
-                      const SizedBox(width: 12),
-                      Text('postVisibilityPublic'.tr()),
-                    ],
-                  ).padding(left: 16, right: 8),
-                ),
-                DropdownItem<int>(
-                  value: 1,
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.group),
-                      const SizedBox(width: 12),
-                      Text('postVisibilityFriends'.tr()),
-                    ],
-                  ).padding(left: 16, right: 8),
-                ),
-                DropdownItem<int>(
-                  value: 2,
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.link_off),
-                      const SizedBox(width: 12),
-                      Text('postVisibilityUnlisted'.tr()),
-                    ],
-                  ).padding(left: 16, right: 8),
-                ),
-                DropdownItem<int>(
-                  value: 3,
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.lock),
-                      const SizedBox(width: 12),
-                      Text('postVisibilityPrivate'.tr()),
-                    ],
-                  ).padding(left: 16, right: 8),
-                ),
-              ],
+              items:
+                  [
+                    (
+                      value: 0,
+                      icon: Symbols.public,
+                      title: 'postVisibilityPublic',
+                      description: 'postVisibilityPublicDescription',
+                      requiresIndividual: false,
+                    ),
+                    (
+                      value: 1,
+                      icon: Symbols.group,
+                      title: 'postVisibilityFriends',
+                      description: 'postVisibilityFriendsDescription',
+                      requiresIndividual: true,
+                    ),
+                    (
+                      value: 2,
+                      icon: Symbols.link_off,
+                      title: 'postVisibilityUnlisted',
+                      description: 'postVisibilityUnlistedDescription',
+                      requiresIndividual: false,
+                    ),
+                    (
+                      value: 3,
+                      icon: Symbols.lock,
+                      title: 'postVisibilityPrivate',
+                      description: 'postVisibilityPrivateDescription',
+                      requiresIndividual: false,
+                    ),
+                    (
+                      value: 4,
+                      icon: Symbols.favorite,
+                      title: 'postVisibilityCloseFriends',
+                      description: 'postVisibilityCloseFriendsDescription',
+                      requiresIndividual: true,
+                    ),
+                    (
+                      value: 5,
+                      icon: Symbols.public,
+                      title: 'postVisibilityQuitePublic',
+                      description: 'postVisibilityQuitePublicDescription',
+                      requiresIndividual: false,
+                    ),
+                  ].map((option) {
+                    final enabled =
+                        !option.requiresIndividual || isIndividualPublisher;
+                    return DropdownItem<int>(
+                      height: 66,
+                      value: option.value,
+                      enabled: enabled,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            option.icon,
+                            color: enabled
+                                ? null
+                                : Theme.of(context).disabledColor,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  option.title.tr(),
+                                  style: TextStyle(
+                                    color: enabled
+                                        ? null
+                                        : Theme.of(context).disabledColor,
+                                  ),
+                                ),
+                                Text(
+                                  option.description.tr(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: enabled
+                                        ? Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color
+                                        : Theme.of(context).disabledColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ).padding(horizontal: 16, vertical: 12),
+                    );
+                  }).toList(),
               valueListenable: ValueNotifier(currentVisibility),
               onChanged: (value) {
                 if (value != null) {
@@ -682,35 +733,21 @@ class ComposeSettingsSheet extends HookConsumerWidget {
               },
               selectedItemBuilder: (context) {
                 return [
-                  Row(
+                  (icon: Symbols.public, title: 'postVisibilityPublic'),
+                  (icon: Symbols.group, title: 'postVisibilityFriends'),
+                  (icon: Symbols.link_off, title: 'postVisibilityUnlisted'),
+                  (icon: Symbols.lock, title: 'postVisibilityPrivate'),
+                  (icon: Symbols.favorite, title: 'postVisibilityCloseFriends'),
+                  (icon: Symbols.public, title: 'postVisibilityQuitePublic'),
+                ].map((option) {
+                  return Row(
                     children: [
-                      const Icon(Symbols.public),
+                      Icon(option.icon),
                       const SizedBox(width: 12),
-                      Text('postVisibilityPublic'.tr()),
+                      Flexible(child: Text(option.title.tr())),
                     ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Symbols.group),
-                      const SizedBox(width: 12),
-                      Text('postVisibilityFriends'.tr()),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Symbols.link_off),
-                      const SizedBox(width: 12),
-                      Text('postVisibilityUnlisted'.tr()),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Symbols.lock),
-                      const SizedBox(width: 12),
-                      Text('postVisibilityPrivate'.tr()),
-                    ],
-                  ),
-                ];
+                  );
+                }).toList();
               },
               buttonStyleData: const FormFieldButtonStyleData(
                 padding: EdgeInsets.only(left: 16, right: 8),
