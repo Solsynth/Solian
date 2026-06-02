@@ -101,7 +101,7 @@ class _SteamHeroImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameId = meta['game_id']?.toString();
+    final gameId = meta['game_id']?.toString().replaceAll('"', '');
     if (gameId == null) return const SizedBox.shrink();
 
     final heroUrl =
