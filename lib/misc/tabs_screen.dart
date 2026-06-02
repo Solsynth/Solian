@@ -217,7 +217,7 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
   @override
   Widget build(BuildContext context) {
     final tabsRouter = AutoTabsRouter.of(context);
-    final mediaQuery = MediaQuery.of(context);
+    final rootBottomViewPadding = MediaQuery.of(context).viewPadding.bottom;
 
     final token = ref.watch(tokenProvider);
     final userInfo = ref.watch(userInfoProvider);
@@ -537,20 +537,26 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       );
     }
 
-    final mobileTabBody = MediaQuery(
-      // Preserve the original bottom safe area for nested app scaffolds.
-      data: mediaQuery.copyWith(
-        padding: mediaQuery.padding.copyWith(
-          bottom: mediaQuery.viewPadding.bottom,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-        child: widget.child,
-      ),
+    final mobileTabBody = Builder(
+      builder: (context) {
+        final bodyMediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          // Keep Scaffold's injected bottom inset for the tab bar and restore
+          // the original device safe area for nested app scaffolds.
+          data: bodyMediaQuery.copyWith(
+            padding: bodyMediaQuery.padding.copyWith(
+              bottom: bodyMediaQuery.padding.bottom + rootBottomViewPadding,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+            child: widget.child,
+          ),
+        );
+      },
     );
 
     final scaffold = Scaffold(
