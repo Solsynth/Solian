@@ -1122,6 +1122,7 @@
   "webFeeds": "Web Feeds",
   "polls": "Polls",
   "sharePostSlogan": "Explore more on the Solar Network",
+  "shareEventSlogan": "Track important days on the Solar Network",
   "filesListAdditional": {
     "one": "+{} file remaining",
     "other": "+{} files remaining"
