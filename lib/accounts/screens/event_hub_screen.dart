@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/widgets/account/event_calendar_content.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -198,7 +199,7 @@ class _CountdownContent extends HookConsumerWidget {
             notifier: eventCountdownListProvider(query).notifier,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemBuilder: (context, index, item) {
-              return _CountdownCard(item: item);
+              return _CountdownCard(item: item, username: name);
             },
           ),
         ),
@@ -451,8 +452,9 @@ enum _BlockState { past, today, future }
 
 class _CountdownCard extends StatelessWidget {
   final SnEventCountdownItem item;
+  final String username;
 
-  const _CountdownCard({required this.item});
+  const _CountdownCard({required this.item, required this.username});
 
   bool get _isPast => item.startTime.isBefore(DateTime.now());
 
@@ -518,35 +520,47 @@ class _CountdownCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: isUserEvent
-                    ? colorScheme.primaryContainer
-                    : colorScheme.tertiaryContainer,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const Gap(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    item.title,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: isUserEvent && item.eventId != null
+            ? () {
+                context.router.push(
+                  CalendarEventDetailRoute(
+                    username: username,
+                    eventId: item.eventId!,
                   ),
+                );
+              }
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isUserEvent
+                      ? colorScheme.primaryContainer
+                      : colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.title,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   const Gap(6),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(2),
@@ -647,6 +661,7 @@ class _CountdownCard extends StatelessWidget {
               ),
           ],
         ),
+      ),
       ),
     );
   }

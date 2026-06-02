@@ -507,6 +507,20 @@ class AccountsApi extends BaseApi {
     return SnUserCalendarEvent.fromJson(response.data!);
   }
 
+  /// Gets a specific calendar event by username and event ID.
+  ///
+  /// [username] - Account username.
+  /// [id] - Event ID.
+  Future<SnUserCalendarEvent> getUserCalendarEvent(
+    String username,
+    String id,
+  ) async {
+    final response = await get<Map<String, dynamic>>(
+      '$_basePath/accounts/$username/calendar/events/$id',
+    );
+    return SnUserCalendarEvent.fromJson(response.data!);
+  }
+
   /// Updates an existing calendar event.
   ///
   /// [id] - Event ID.

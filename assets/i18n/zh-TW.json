@@ -2854,6 +2854,7 @@
   "eventLocationHint": "輸入行程地點（選填）",
   "eventStartTime": "開始時間",
   "eventEndTime": "結束時間",
+  "eventTime": "時間",
   "eventAllDay": "全天",
   "eventAllDayDescription": "這是一個全天行程",
   "eventDateTime": "日期與時間",
