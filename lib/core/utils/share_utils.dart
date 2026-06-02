@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/account/calendar_event_screenshot.dart';
 import 'package:island/accounts/widgets/check_in/check_in_result_screenshot.dart';
 import 'package:island/core/config.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -127,6 +128,58 @@ Future<void> shareCheckInAsScreenshot(
         AnalyticsService().logEvent('checkin_shared', {
           'share_method': 'screenshot',
           'level': result.level,
+        });
+      });
+}
+
+Future<void> shareCalendarEventAsScreenshot(
+  BuildContext context,
+  WidgetRef ref,
+  SnUserCalendarEvent event,
+) async {
+  if (kIsWeb) return;
+
+  final screenshotController = ScreenshotController();
+
+  showLoadingModal(context);
+  await screenshotController
+      .captureFromLongWidget(
+        UncontrolledProviderScope(
+          container: ProviderScope.containerOf(context),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              width: 400,
+              child: CalendarEventScreenshot(event: event),
+            ),
+          ),
+        ),
+        context: context,
+        pixelRatio: MediaQuery.of(context).devicePixelRatio,
+        delay: const Duration(seconds: 1),
+      )
+      .then((Uint8List? image) async {
+        if (image == null) return;
+        final directory = await getTemporaryDirectory();
+        final imagePath = await File(
+          '${directory.path}/calendar-event-image.png',
+        ).create();
+        await imagePath.writeAsBytes(image);
+
+        if (!context.mounted) return;
+        hideLoadingModal(context);
+        final box = context.findRenderObject() as RenderBox?;
+        await Share.shareXFiles([
+          XFile(imagePath.path),
+        ], sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+      })
+      .catchError((err) {
+        if (context.mounted) hideLoadingModal(context);
+        showErrorAlert(err);
+      })
+      .whenComplete(() {
+        AnalyticsService().logEvent('calendar_event_shared', {
+          'share_method': 'screenshot',
         });
       });
 }
