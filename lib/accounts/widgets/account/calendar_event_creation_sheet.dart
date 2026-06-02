@@ -79,8 +79,18 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
     final recurrenceInterval = useState<int>(
       initialEvent?.recurrence?.interval ?? 1,
     );
+    final recurrenceOccurrences = useState<int?>(
+      initialEvent?.recurrence?.occurrences,
+    );
     final recurrenceEndDate = useState<DateTime?>(
       initialEvent?.recurrence?.endDate,
+    );
+    final recurrenceEndMode = useState<_RecurrenceEndMode>(
+      initialEvent?.recurrence?.occurrences != null
+          ? _RecurrenceEndMode.afterOccurrences
+          : initialEvent?.recurrence?.endDate != null
+          ? _RecurrenceEndMode.onDate
+          : _RecurrenceEndMode.none,
     );
     final selectedDaysOfWeek = useState<Set<String>>(
       initialEvent?.recurrence?.daysOfWeek?.toSet() ?? {},
@@ -104,9 +114,7 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
                 allowCompression: true,
                 defaultCompressionQuality: 90,
               ),
-        title: type == 'background'
-            ? 'eventBackground'.tr()
-            : 'eventIcon'.tr(),
+        title: type == 'background' ? 'eventBackground'.tr() : 'eventIcon'.tr(),
       );
       if (result == null) return;
       final cloudFile = result as SnCloudFile;
@@ -163,7 +171,13 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
           recurrence = SnRecurrencePattern(
             frequency: recurrenceFrequency.value,
             interval: recurrenceInterval.value,
-            endDate: recurrenceEndDate.value,
+            endDate: recurrenceEndMode.value == _RecurrenceEndMode.onDate
+                ? recurrenceEndDate.value
+                : null,
+            occurrences:
+                recurrenceEndMode.value == _RecurrenceEndMode.afterOccurrences
+                ? recurrenceOccurrences.value
+                : null,
             daysOfWeek: selectedDaysOfWeek.value.isNotEmpty
                 ? selectedDaysOfWeek.value.toList()
                 : null,
@@ -265,7 +279,117 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
       );
       if (date != null) {
         recurrenceEndDate.value = date;
+        recurrenceEndMode.value = _RecurrenceEndMode.onDate;
       }
+    }
+
+    int? dayNameToWeekday(String day) {
+      return switch (day) {
+        'Monday' => DateTime.monday,
+        'Tuesday' => DateTime.tuesday,
+        'Wednesday' => DateTime.wednesday,
+        'Thursday' => DateTime.thursday,
+        'Friday' => DateTime.friday,
+        'Saturday' => DateTime.saturday,
+        'Sunday' => DateTime.sunday,
+        _ => null,
+      };
+    }
+
+    DateTime addMonthsClamped(DateTime date, int months) {
+      final monthIndex = date.month - 1 + months;
+      final year = date.year + (monthIndex ~/ 12);
+      final month = (monthIndex % 12) + 1;
+      final lastDayOfMonth = DateTime(year, month + 1, 0).day;
+      final day = date.day.clamp(1, lastDayOfMonth).toInt();
+      return DateTime(
+        year,
+        month,
+        day,
+        date.hour,
+        date.minute,
+        date.second,
+        date.millisecond,
+        date.microsecond,
+      );
+    }
+
+    int weeksSinceAnchor(DateTime anchor, DateTime date) {
+      final anchorDate = DateTime(anchor.year, anchor.month, anchor.day);
+      final dateValue = DateTime(date.year, date.month, date.day);
+      final anchorWeekStart = anchorDate.subtract(
+        Duration(days: anchorDate.weekday - 1),
+      );
+      final dateWeekStart = dateValue.subtract(
+        Duration(days: dateValue.weekday - 1),
+      );
+      return dateWeekStart.difference(anchorWeekStart).inDays ~/ 7;
+    }
+
+    DateTime? nextRecurrenceDate(DateTime current) {
+      final frequency = recurrenceFrequency.value;
+      final interval = recurrenceInterval.value > 0
+          ? recurrenceInterval.value
+          : 1;
+
+      switch (frequency) {
+        case SnRecurrenceFrequency.daily:
+          return current.add(Duration(days: interval));
+        case SnRecurrenceFrequency.weekly:
+          final weekdays = selectedDaysOfWeek.value
+              .map(dayNameToWeekday)
+              .whereType<int>()
+              .toSet();
+          final effectiveWeekdays = weekdays.isNotEmpty
+              ? weekdays
+              : {startTime.value.weekday};
+          var candidate = current.add(const Duration(days: 1));
+          for (var i = 0; i < 4000; i++) {
+            if (candidate.isAfter(startTime.value) &&
+                effectiveWeekdays.contains(candidate.weekday) &&
+                weeksSinceAnchor(startTime.value, candidate) % interval == 0) {
+              return candidate;
+            }
+            candidate = candidate.add(const Duration(days: 1));
+          }
+          return null;
+        case SnRecurrenceFrequency.monthly:
+          return addMonthsClamped(current, interval);
+        case SnRecurrenceFrequency.yearly:
+          return addMonthsClamped(current, interval * 12);
+        default:
+          return null;
+      }
+    }
+
+    List<DateTime> buildRecurrencePreview({int maxItems = 3}) {
+      if (recurrenceFrequency.value == SnRecurrenceFrequency.none) {
+        return const [];
+      }
+
+      final countLimit =
+          recurrenceEndMode.value == _RecurrenceEndMode.afterOccurrences &&
+              recurrenceOccurrences.value != null &&
+              recurrenceOccurrences.value! > 0
+          ? recurrenceOccurrences.value!
+          : maxItems;
+
+      final result = <DateTime>[startTime.value];
+      while (result.length < countLimit) {
+        final next = nextRecurrenceDate(result.last);
+        if (next == null) break;
+
+        if (recurrenceEndMode.value == _RecurrenceEndMode.onDate &&
+            recurrenceEndDate.value != null &&
+            next.isAfter(recurrenceEndDate.value!)) {
+          break;
+        }
+
+        result.add(next);
+        if (result.length >= maxItems) break;
+      }
+
+      return result;
     }
 
     Widget buildSectionTitle(String title, IconData icon) {
@@ -372,8 +496,9 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
                     icon: Symbols.image,
                     file: icon.value,
                     onTap: () => pickImage('icon'),
-                    onRemove:
-                        icon.value != null ? () => icon.value = null : null,
+                    onRemove: icon.value != null
+                        ? () => icon.value = null
+                        : null,
                   ),
                 ),
                 const Gap(12),
@@ -570,6 +695,21 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
               onChanged: (value) {
                 if (value != null) {
                   recurrenceFrequency.value = value;
+                  if (value == SnRecurrenceFrequency.weekly &&
+                      selectedDaysOfWeek.value.isEmpty) {
+                    selectedDaysOfWeek.value = {
+                      switch (startTime.value.weekday) {
+                        DateTime.monday => 'Monday',
+                        DateTime.tuesday => 'Tuesday',
+                        DateTime.wednesday => 'Wednesday',
+                        DateTime.thursday => 'Thursday',
+                        DateTime.friday => 'Friday',
+                        DateTime.saturday => 'Saturday',
+                        DateTime.sunday => 'Sunday',
+                        _ => 'Monday',
+                      },
+                    };
+                  }
                 }
               },
             ),
@@ -676,48 +816,173 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
                         ],
                       ),
                       const Gap(16),
-                      ListTile(
-                        title: Text(
-                          'recurrenceEndDate'.tr(),
-                          style: theme.textTheme.labelLarge,
+                      DropdownButtonFormField<_RecurrenceEndMode>(
+                        value: recurrenceEndMode.value,
+                        decoration: InputDecoration(
+                          labelText: 'Ends',
+                          prefixIcon: const Icon(Symbols.repeat),
                         ),
-                        subtitle: Text(
-                          recurrenceEndDate.value != null
-                              ? DateFormat.yMd().format(
-                                  recurrenceEndDate.value!,
-                                )
-                              : 'recurrenceNoEndDate'.tr(),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                        items: [
+                          DropdownMenuItem(
+                            value: _RecurrenceEndMode.none,
+                            child: Text('No end date'),
                           ),
-                        ),
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: colorScheme.tertiaryContainer,
-                            borderRadius: BorderRadius.circular(10),
+                          DropdownMenuItem(
+                            value: _RecurrenceEndMode.onDate,
+                            child: Text('End date'),
                           ),
-                          child: Icon(
-                            Symbols.event,
-                            color: colorScheme.onTertiaryContainer,
+                          DropdownMenuItem(
+                            value: _RecurrenceEndMode.afterOccurrences,
+                            child: Text('After N times'),
                           ),
-                        ),
-                        trailing: recurrenceEndDate.value != null
-                            ? IconButton(
-                                icon: const Icon(Symbols.clear),
-                                onPressed: () => recurrenceEndDate.value = null,
-                              )
-                            : Icon(
-                                Symbols.chevron_right,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: colorScheme.outlineVariant),
-                        ),
-                        onTap: pickRecurrenceEndDate,
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          recurrenceEndMode.value = value;
+                          if (value == _RecurrenceEndMode.none) {
+                            recurrenceEndDate.value = null;
+                            recurrenceOccurrences.value = null;
+                          }
+                          if (value == _RecurrenceEndMode.onDate) {
+                            recurrenceOccurrences.value = null;
+                          }
+                          if (value == _RecurrenceEndMode.afterOccurrences) {
+                            recurrenceEndDate.value = null;
+                            recurrenceOccurrences.value ??= 1;
+                          }
+                        },
                       ),
+                      const Gap(12),
+                      if (recurrenceEndMode.value ==
+                          _RecurrenceEndMode.afterOccurrences)
+                        TextField(
+                          keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.next,
+                          controller: TextEditingController(
+                            text:
+                                recurrenceOccurrences.value?.toString() ?? '1',
+                          ),
+                          onChanged: (value) {
+                            final occurrences = int.tryParse(value);
+                            if (occurrences != null && occurrences > 0) {
+                              recurrenceOccurrences.value = occurrences;
+                            }
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'After N times',
+                            hintText: '1',
+                            prefixIcon: const Icon(Symbols.numbers),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      if (recurrenceEndMode.value == _RecurrenceEndMode.onDate)
+                        ListTile(
+                          title: Text(
+                            'End date',
+                            style: theme.textTheme.labelLarge,
+                          ),
+                          subtitle: Text(
+                            recurrenceEndDate.value != null
+                                ? DateFormat.yMd().format(
+                                    recurrenceEndDate.value!,
+                                  )
+                                : 'No end date',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: colorScheme.tertiaryContainer,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Symbols.event,
+                              color: colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                          trailing: recurrenceEndDate.value != null
+                              ? IconButton(
+                                  icon: const Icon(Symbols.clear),
+                                  onPressed: () =>
+                                      recurrenceEndDate.value = null,
+                                )
+                              : Icon(
+                                  Symbols.chevron_right,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: colorScheme.outlineVariant),
+                          ),
+                          onTap: pickRecurrenceEndDate,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            if (recurrenceFrequency.value != SnRecurrenceFrequency.none) ...[
+              const Gap(16),
+              Card(
+                margin: EdgeInsets.zero,
+                color: colorScheme.surfaceContainerHighest,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Preview', style: theme.textTheme.labelLarge),
+                      const Gap(12),
+                      ...buildRecurrencePreview().asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final occurrence = entry.value;
+                        final label = switch (index) {
+                          0 => 'First time',
+                          1 => 'Next time',
+                          2 => 'Third time',
+                          _ => '${index + 1}',
+                        };
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 110,
+                                child: Text(
+                                  label,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const Gap(12),
+                              Expanded(
+                                child: Text(
+                                  isAllDay.value
+                                      ? DateFormat.yMMMd().format(occurrence)
+                                      : DateFormat.yMMMd().add_jm().format(
+                                          occurrence,
+                                        ),
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -731,6 +996,8 @@ class CalendarEventCreationSheet extends HookConsumerWidget {
     );
   }
 }
+
+enum _RecurrenceEndMode { none, onDate, afterOccurrences }
 
 class _ImagePickerTile extends StatelessWidget {
   final String label;
@@ -767,10 +1034,7 @@ class _ImagePickerTile extends StatelessWidget {
           children: [
             if (file != null)
               Positioned.fill(
-                child: CloudFileWidget(
-                  item: file!,
-                  fit: BoxFit.cover,
-                ),
+                child: CloudFileWidget(item: file!, fit: BoxFit.cover),
               )
             else
               Center(

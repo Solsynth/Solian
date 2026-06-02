@@ -387,6 +387,14 @@ _SnEventCountdownItem _$SnEventCountdownItemFromJson(
   isOngoing: json['is_ongoing'] as bool,
   meta: json['meta'] as Map<String, dynamic>?,
   accountId: json['account_id'] as String?,
+  background: json['background'] == null
+      ? null
+      : SnCloudFileReference.fromJson(
+          json['background'] as Map<String, dynamic>,
+        ),
+  icon: json['icon'] == null
+      ? null
+      : SnCloudFileReference.fromJson(json['icon'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$SnEventCountdownItemToJson(
@@ -405,4 +413,6 @@ Map<String, dynamic> _$SnEventCountdownItemToJson(
   'is_ongoing': instance.isOngoing,
   'meta': instance.meta,
   'account_id': instance.accountId,
+  'background': instance.background?.toJson(),
+  'icon': instance.icon?.toJson(),
 };
