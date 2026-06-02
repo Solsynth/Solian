@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:auto_route/auto_route.dart' hide AutoLeadingButton;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -225,41 +226,62 @@ class TicketDetailScreen extends HookConsumerWidget {
           PopupMenuButton<int>(
             icon: const Icon(Symbols.more_vert),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 0,
                 child: Row(
-                  children: [Icon(Symbols.play_arrow), Gap(8), Text('Open')],
+                  children: [
+                    Icon(
+                      Symbols.play_arrow,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    Gap(8),
+                    Text('Open'),
+                  ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 1,
                 child: Row(
                   children: [
-                    Icon(Symbols.pending),
+                    Icon(
+                      Symbols.pending,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     Gap(8),
                     Text('In Progress'),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 2,
                 child: Row(
                   children: [
-                    Icon(Symbols.check_circle),
+                    Icon(
+                      Symbols.check_circle,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     Gap(8),
                     Text('Resolved'),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 3,
                 child: Row(
-                  children: [Icon(Symbols.cancel), Gap(8), Text('Closed')],
+                  children: [
+                    Icon(
+                      Symbols.cancel,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    Gap(8),
+                    Text('Closed'),
+                  ],
                 ),
               ),
             ],
             onSelected: updateStatus,
           ),
+          const Gap(8),
         ],
       ),
       body: FutureBuilder<SnTicket>(
@@ -324,176 +346,113 @@ class TicketDetailScreen extends HookConsumerWidget {
   }
 
   Widget _buildTicketHeader(BuildContext context, SnTicket ticket) {
-    final ticketType = TicketType.fromValue(ticket.type);
-    final ticketStatus = TicketStatus.fromValue(ticket.status);
-    final ticketPriority = TicketPriority.fromValue(ticket.priority);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title
-          Text(
-            ticket.title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const Gap(12),
-
-          // Content/Description
-          if (ticket.content != null && ticket.content!.isNotEmpty) ...[
+    return Material(
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withOpacity(0.8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title with inline metadata
             Text(
-              ticket.content!,
-              style: Theme.of(context).textTheme.bodyMedium,
+              ticket.title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
-            const Gap(12),
-          ],
-
-          // Status badges row
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              // Type badge
-              _buildBadge(
-                context,
-                ticketType.displayName,
-                _getTypeColor(context, ticket.type),
-                Symbols.category,
-              ),
-              // Status badge
-              _buildBadge(
-                context,
-                ticketStatus.displayName,
-                _getStatusColor(context, ticket.status),
-                _getStatusIcon(ticket.status),
-              ),
-              // Priority badge
-              _buildBadge(
-                context,
-                ticketPriority.displayName,
-                _getPriorityColor(context, ticket.priority),
-                _getPriorityIcon(ticket.priority),
-              ),
-            ],
-          ),
-          const Gap(12),
-
-          // Created info
-          Row(
-            children: [
-              Icon(
-                Symbols.schedule,
-                size: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            if (ticket.content != null && ticket.content!.isNotEmpty) ...[
               const Gap(4),
               Text(
-                'Created ${ticket.createdAt.formatRelative(context)}',
+                ticket.content!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
-          ),
-
-          // Files section
-          if (ticket.fileIds.isNotEmpty) ...[
-            const Gap(12),
-            const Divider(),
             const Gap(8),
-            Text(
-              'Attachments (${ticket.fileIds.length})',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            // Chips row
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _CompactChip(
+                  label: TicketType.values[ticket.type].displayName,
+                  color: _getTypeColor(context, ticket.type),
+                ),
+                _CompactChip(
+                  label: TicketPriority.values[ticket.priority].displayName,
+                  color: _getPriorityColor(context, ticket.priority),
+                ),
+                _CompactChip(
+                  label: TicketStatus.fromValue(ticket.status).displayName,
+                  color: _getStatusColor(context, ticket.status),
+                ),
+              ],
             ),
             const Gap(8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: ticket.fileIds.map((fileId) {
-                return Chip(
-                  avatar: const Icon(Symbols.attach_file, size: 18),
-                  label: Text(
-                    fileId.length > 8 ? fileId.substring(0, 8) : fileId,
+            // Metadata row
+            Row(
+              children: [
+                Icon(
+                  Symbols.schedule,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const Gap(4),
+                Text(
+                  '${ticket.createdAt.formatRelative(context)} · ${ticket.createdAt.formatSystem()}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                );
-              }).toList(),
+                ),
+              ],
             ),
-          ],
-
-          if (ticket.resources.whereType<String>().any((e) => e.trim().isNotEmpty)) ...[
-            const Gap(12),
-            const Divider(),
-            const Gap(8),
-            Text(
-              'Linked resources',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const Gap(8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: ticket.resources
-                  .whereType<String>()
-                  .map((resource) => resource.trim())
-                  .where((resource) => resource.isNotEmpty)
-                  .map((resource) {
-                    return Tooltip(
-                      message: resource,
-                      child: Chip(
-                        avatar: const Icon(Symbols.link, size: 18),
-                        label: Text(
-                          resource.length > 32
-                              ? '${resource.substring(0, 29)}...'
-                              : resource,
-                          overflow: TextOverflow.ellipsis,
+            // Files and resources inline
+            if (ticket.fileIds.isNotEmpty ||
+                ticket.resources.whereType<String>().any(
+                  (e) => e.trim().isNotEmpty,
+                )) ...[
+              const Gap(8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  if (ticket.fileIds.isNotEmpty)
+                    _CompactChip(
+                      label:
+                          '${ticket.fileIds.length} attachment${ticket.fileIds.length > 1 ? 's' : ''}',
+                      color: Theme.of(context).colorScheme.outline,
+                      icon: Symbols.attach_file,
+                    ),
+                  ...ticket.resources
+                      .whereType<String>()
+                      .map((r) => r.trim())
+                      .where((r) => r.isNotEmpty)
+                      .map(
+                        (r) => GestureDetector(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: r));
+                            showSnackBar('Copied to clipboard');
+                          },
+                          child: _CompactChip(
+                            label: r.length > 20
+                                ? '${r.substring(0, 17)}...'
+                                : r,
+                            color: Theme.of(context).colorScheme.outline,
+                            icon: Symbols.link,
+                          ),
                         ),
                       ),
-                    );
-                  })
-                  .toList(),
-            ),
+                ],
+              ),
+            ],
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBadge(
-    BuildContext context,
-    String label,
-    Color color,
-    IconData icon,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const Gap(4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -748,21 +707,6 @@ class TicketDetailScreen extends HookConsumerWidget {
     }
   }
 
-  IconData _getStatusIcon(int status) {
-    switch (status) {
-      case 0:
-        return Symbols.radio_button_unchecked;
-      case 1:
-        return Symbols.pending;
-      case 2:
-        return Symbols.check_circle;
-      case 3:
-        return Symbols.cancel;
-      default:
-        return Symbols.help;
-    }
-  }
-
   Color _getPriorityColor(BuildContext context, int priority) {
     final colorScheme = Theme.of(context).colorScheme;
     switch (priority) {
@@ -776,21 +720,6 @@ class TicketDetailScreen extends HookConsumerWidget {
         return colorScheme.error;
       default:
         return colorScheme.outline;
-    }
-  }
-
-  IconData _getPriorityIcon(int priority) {
-    switch (priority) {
-      case 0:
-        return Symbols.arrow_downward;
-      case 1:
-        return Symbols.remove;
-      case 2:
-        return Symbols.arrow_upward;
-      case 3:
-        return Symbols.priority_high;
-      default:
-        return Symbols.remove;
     }
   }
 }
@@ -852,6 +781,42 @@ class _AttachmentPreview extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CompactChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData? icon;
+
+  const _CompactChip({required this.label, required this.color, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: color),
+            const Gap(4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
