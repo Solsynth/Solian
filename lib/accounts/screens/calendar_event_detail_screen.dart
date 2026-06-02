@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -107,7 +108,7 @@ class CalendarEventDetailScreen extends ConsumerWidget {
   }
 }
 
-class _CalendarEventDetailContent extends ConsumerWidget {
+class _CalendarEventDetailContent extends HookConsumerWidget {
   final SnUserCalendarEvent event;
   final bool isOwner;
   final VoidCallback? onEdit;
@@ -125,6 +126,21 @@ class _CalendarEventDetailContent extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final hasBackground = event.background != null;
+    final occurrenceSummary = useMemoized(_buildOccurrenceSummary);
+    final selectedOccurrenceKind = useState<_OccurrenceSelection>(
+      occurrenceSummary.next != null
+          ? _OccurrenceSelection.next
+          : occurrenceSummary.first != null
+          ? _OccurrenceSelection.first
+          : _OccurrenceSelection.last,
+    );
+    final selectedOccurrence = occurrenceSummary.resolve(
+      selectedOccurrenceKind.value,
+    );
+    final displayStartTime =
+        selectedOccurrence?.startTime ?? event.startTime.toLocal();
+    final displayEndTime =
+        selectedOccurrence?.endTime ?? event.endTime.toLocal();
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -137,7 +153,14 @@ class _CalendarEventDetailContent extends ConsumerWidget {
               Symbols.share,
               color: hasBackground ? Colors.white : colorScheme.onSurface,
             ),
-            onPressed: () => shareCalendarEventAsScreenshot(context, ref, event),
+            onPressed: () => shareCalendarEventAsScreenshot(
+              context,
+              ref,
+              event,
+              displayStartTime: displayStartTime,
+              displayEndTime: displayEndTime,
+              selectedOccurrenceIndex: selectedOccurrence?.index,
+            ),
             tooltip: 'share'.tr(),
           ),
           if (isOwner) ...[
@@ -278,13 +301,27 @@ class _CalendarEventDetailContent extends ConsumerWidget {
                                   context,
                                   theme,
                                   colorScheme,
+                                  displayStartTime,
+                                  displayEndTime,
                                 ),
+                                if (occurrenceSummary.hasAnySelection) ...[
+                                  const SizedBox(height: 12),
+                                  _buildOccurrenceSegmentedButton(
+                                    theme,
+                                    colorScheme,
+                                    occurrenceSummary,
+                                    selectedOccurrenceKind.value,
+                                    (value) =>
+                                        selectedOccurrenceKind.value = value,
+                                  ),
+                                ],
                                 const SizedBox(height: 16),
                                 // Properties Grid
                                 _buildPropertiesGrid(
                                   context,
                                   theme,
                                   colorScheme,
+                                  selectedOccurrence,
                                 ),
                               ],
                             ),
@@ -307,123 +344,145 @@ class _CalendarEventDetailContent extends ConsumerWidget {
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
+    DateTime startTime,
+    DateTime endTime,
   ) {
-    final startDay = event.startTime.toLocal();
-    final endDay = event.endTime.toLocal();
+    final startDay = startTime;
+    final endDay = endTime;
     final isSameDay = DateUtils.isSameDay(startDay, endDay);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
-      child: Card(
-        elevation: 4,
-        color: colorScheme.surfaceContainerHigh,
-        child: Column(
-          spacing: 16,
-          children: [
-            Material(
-              color: colorScheme.surfaceContainer.withOpacity(0.8),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isSameDay)
-                    Text(
-                      DateFormat.yMMMMd().format(startDay),
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontSize: 14,
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    )
-                  else if (startDay.year == endDay.year &&
-                      startDay.month == endDay.month)
-                    Text(
-                      '${DateFormat.yMMMMd().format(startDay)} – ${DateFormat.d().format(endDay)}',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontSize: 14,
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    )
-                  else
-                    Text(
-                      '${DateFormat.yMMMd().format(startDay)} – ${DateFormat.yMMMd().format(endDay)}',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontSize: 14,
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                ],
-              ).padding(horizontal: 12, vertical: 8),
-            ),
-            _LiveCountdown(
-              startTime: event.startTime,
-              endTime: event.endTime,
-              theme: theme,
-              colorScheme: colorScheme,
-            ),
-            if (event.isAllDay)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Symbols.today,
-                      size: 14,
-                      color: colorScheme.onSecondaryContainer,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'eventAllDay'.tr(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSecondaryContainer,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (event.account != null)
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          final offsetAnimation = Tween<Offset>(
+            begin: const Offset(0.0, 0.04),
+            end: Offset.zero,
+          ).animate(animation);
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(position: offsetAnimation, child: child),
+          );
+        },
+        child: Card(
+          key: ValueKey(
+            '${startTime.toIso8601String()}|${endTime.toIso8601String()}',
+          ),
+          elevation: 4,
+          color: colorScheme.surfaceContainerHigh,
+          child: Column(
+            spacing: 16,
+            children: [
               Material(
                 color: colorScheme.surfaceContainer.withOpacity(0.8),
                 borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(12),
+                  top: Radius.circular(12),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ProfilePictureWidget(file: event.account!.profile.picture),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AccountName(account: event.account!),
-                        Text(
-                          event.account!.profile.bio,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                    if (isSameDay)
+                      Text(
+                        DateFormat.yMMMMd().format(startDay),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontSize: 14,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
+                      )
+                    else if (startDay.year == endDay.year &&
+                        startDay.month == endDay.month)
+                      Text(
+                        '${DateFormat.yMMMMd().format(startDay)} – ${DateFormat.d().format(endDay)}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontSize: 14,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )
+                    else
+                      Text(
+                        '${DateFormat.yMMMd().format(startDay)} – ${DateFormat.yMMMd().format(endDay)}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontSize: 14,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                   ],
                 ).padding(horizontal: 12, vertical: 8),
-              )
-            else
-              const SizedBox.shrink(),
-          ],
+              ),
+              _LiveCountdown(
+                startTime: startTime,
+                endTime: endTime,
+                theme: theme,
+                colorScheme: colorScheme,
+              ),
+              if (event.isAllDay)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.today,
+                        size: 14,
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'eventAllDay'.tr(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (event.account != null)
+                Material(
+                  color: colorScheme.surfaceContainer.withOpacity(0.8),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      ProfilePictureWidget(
+                        file: event.account!.profile.picture,
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AccountName(account: event.account!),
+                          Text(
+                            event.account!.profile.bio,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ).padding(horizontal: 12, vertical: 8),
+                )
+              else
+                const SizedBox.shrink(),
+            ],
+          ),
         ),
       ),
     );
@@ -433,6 +492,7 @@ class _CalendarEventDetailContent extends ConsumerWidget {
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
+    _OccurrenceInstance? selectedOccurrence,
   ) {
     final properties = <_PropertyItem>[
       // Time (if not all day)
@@ -441,8 +501,8 @@ class _CalendarEventDetailContent extends ConsumerWidget {
           icon: Symbols.schedule,
           tooltip: 'eventTime'.tr(),
           value: _formatTimeRange(
-            event.startTime.toLocal(),
-            event.endTime.toLocal(),
+            selectedOccurrence?.startTime ?? event.startTime.toLocal(),
+            selectedOccurrence?.endTime ?? event.endTime.toLocal(),
           ),
         ),
       // Location
@@ -464,6 +524,17 @@ class _CalendarEventDetailContent extends ConsumerWidget {
           icon: Symbols.repeat,
           tooltip: 'eventRecurrence'.tr(),
           value: _getRecurrenceText(event.recurrence!),
+        ),
+      if (selectedOccurrence != null)
+        _PropertyItem(
+          icon: Symbols.tag,
+          tooltip: 'eventRecurrence'.tr(),
+          value: 'occurrenceSelectedTime'.tr(
+            args: [
+              selectedOccurrence.index.toString(),
+              _getOrdinalSuffix(selectedOccurrence.index),
+            ],
+          ),
         ),
     ];
 
@@ -499,6 +570,49 @@ class _CalendarEventDetailContent extends ConsumerWidget {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildOccurrenceSegmentedButton(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    _OccurrenceSummary summary,
+    _OccurrenceSelection selected,
+    ValueChanged<_OccurrenceSelection> onChanged,
+  ) {
+    return SegmentedButton<_OccurrenceSelection>(
+      showSelectedIcon: false,
+      segments: [
+        ButtonSegment(
+          value: _OccurrenceSelection.first,
+          enabled: summary.first != null,
+          label: Text('occurrenceFirstTime'.tr()),
+        ),
+        ButtonSegment(
+          value: _OccurrenceSelection.last,
+          enabled: summary.last != null,
+          label: Text('occurrenceLastTime'.tr()),
+        ),
+        ButtonSegment(
+          value: _OccurrenceSelection.next,
+          enabled: summary.next != null,
+          label: Text('occurrenceNextTime'.tr()),
+        ),
+      ],
+      selected: {selected},
+      onSelectionChanged: (selection) {
+        if (selection.isNotEmpty) {
+          onChanged(selection.first);
+        }
+      },
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primaryContainer;
+          }
+          return colorScheme.surfaceContainerHigh;
+        }),
+      ),
     );
   }
 
@@ -540,6 +654,189 @@ class _CalendarEventDetailContent extends ConsumerWidget {
     }
     return frequency;
   }
+
+  _OccurrenceSummary _buildOccurrenceSummary() {
+    final recurrence = event.recurrence;
+    if (recurrence == null ||
+        recurrence.frequency == SnRecurrenceFrequency.none) {
+      return const _OccurrenceSummary();
+    }
+
+    final instances = <_OccurrenceInstance>[];
+    final originalStart = event.startTime.toLocal();
+    final originalEnd = event.endTime.toLocal();
+    final duration = originalEnd.difference(originalStart);
+    final hardLimit =
+        recurrence.occurrences != null && recurrence.occurrences! > 0
+        ? recurrence.occurrences!
+        : 1000;
+
+    var current = originalStart;
+    for (var index = 1; index <= hardLimit; index++) {
+      if (recurrence.endDate != null &&
+          current.isAfter(recurrence.endDate!.toLocal())) {
+        break;
+      }
+      instances.add(
+        _OccurrenceInstance(
+          index: index,
+          startTime: current,
+          endTime: current.add(duration),
+        ),
+      );
+      final next = _nextRecurrenceDate(current, recurrence);
+      if (next == null) break;
+      current = next;
+    }
+
+    final now = DateTime.now();
+    final next = instances.cast<_OccurrenceInstance?>().firstWhere(
+      (item) => item != null && item.endTime.isAfter(now),
+      orElse: () => instances.isNotEmpty ? instances.last : null,
+    );
+    final last = instances.reversed.cast<_OccurrenceInstance?>().firstWhere(
+      (item) => item != null && !item.startTime.isAfter(now),
+      orElse: () => instances.isNotEmpty ? instances.first : null,
+    );
+
+    return _OccurrenceSummary(
+      first: instances.isNotEmpty ? instances.first : null,
+      last: last,
+      next: next,
+    );
+  }
+
+  DateTime? _nextRecurrenceDate(
+    DateTime current,
+    SnRecurrencePattern recurrence,
+  ) {
+    final interval = recurrence.interval > 0 ? recurrence.interval : 1;
+
+    switch (recurrence.frequency) {
+      case SnRecurrenceFrequency.daily:
+        return current.add(Duration(days: interval));
+      case SnRecurrenceFrequency.weekly:
+        return _nextWeeklyRecurrenceDate(current, recurrence, interval);
+      case SnRecurrenceFrequency.monthly:
+        return _addMonthsClamped(current, interval);
+      case SnRecurrenceFrequency.yearly:
+        return _addMonthsClamped(current, interval * 12);
+      default:
+        return null;
+    }
+  }
+
+  DateTime? _nextWeeklyRecurrenceDate(
+    DateTime current,
+    SnRecurrencePattern recurrence,
+    int interval,
+  ) {
+    final weekdays = (recurrence.daysOfWeek ?? const <String>[])
+        .map(_dayNameToWeekday)
+        .whereType<int>()
+        .toSet();
+    final effectiveWeekdays = weekdays.isNotEmpty
+        ? weekdays
+        : {event.startTime.toLocal().weekday};
+
+    var candidate = current.add(const Duration(days: 1));
+    for (var i = 0; i < 4000; i++) {
+      if (candidate.isAfter(event.startTime.toLocal()) &&
+          effectiveWeekdays.contains(candidate.weekday) &&
+          _weeksSinceAnchor(event.startTime.toLocal(), candidate) % interval ==
+              0) {
+        return candidate;
+      }
+      candidate = candidate.add(const Duration(days: 1));
+    }
+    return null;
+  }
+
+  int? _dayNameToWeekday(String day) {
+    return switch (day) {
+      'Monday' => DateTime.monday,
+      'Tuesday' => DateTime.tuesday,
+      'Wednesday' => DateTime.wednesday,
+      'Thursday' => DateTime.thursday,
+      'Friday' => DateTime.friday,
+      'Saturday' => DateTime.saturday,
+      'Sunday' => DateTime.sunday,
+      _ => null,
+    };
+  }
+
+  int _weeksSinceAnchor(DateTime anchor, DateTime date) {
+    final anchorDate = DateTime(anchor.year, anchor.month, anchor.day);
+    final dateValue = DateTime(date.year, date.month, date.day);
+    final anchorWeekStart = anchorDate.subtract(
+      Duration(days: anchorDate.weekday - 1),
+    );
+    final dateWeekStart = dateValue.subtract(
+      Duration(days: dateValue.weekday - 1),
+    );
+    return dateWeekStart.difference(anchorWeekStart).inDays ~/ 7;
+  }
+
+  DateTime _addMonthsClamped(DateTime date, int months) {
+    final monthIndex = date.month - 1 + months;
+    final year = date.year + (monthIndex ~/ 12);
+    final month = (monthIndex % 12) + 1;
+    final lastDayOfMonth = DateTime(year, month + 1, 0).day;
+    final day = date.day.clamp(1, lastDayOfMonth).toInt();
+    return DateTime(
+      year,
+      month,
+      day,
+      date.hour,
+      date.minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
+  }
+
+  String _getOrdinalSuffix(int number) {
+    final mod100 = number % 100;
+    if (mod100 >= 11 && mod100 <= 13) return 'th';
+    return switch (number % 10) {
+      1 => 'st',
+      2 => 'nd',
+      3 => 'rd',
+      _ => 'th',
+    };
+  }
+}
+
+enum _OccurrenceSelection { first, last, next }
+
+class _OccurrenceSummary {
+  final _OccurrenceInstance? first;
+  final _OccurrenceInstance? last;
+  final _OccurrenceInstance? next;
+
+  const _OccurrenceSummary({this.first, this.last, this.next});
+
+  bool get hasAnySelection => first != null || last != null || next != null;
+
+  _OccurrenceInstance? resolve(_OccurrenceSelection selection) {
+    return switch (selection) {
+      _OccurrenceSelection.first => first ?? next ?? last,
+      _OccurrenceSelection.last => last ?? next ?? first,
+      _OccurrenceSelection.next => next ?? first ?? last,
+    };
+  }
+}
+
+class _OccurrenceInstance {
+  final int index;
+  final DateTime startTime;
+  final DateTime endTime;
+
+  const _OccurrenceInstance({
+    required this.index,
+    required this.startTime,
+    required this.endTime,
+  });
 }
 
 class _LiveCountdown extends StatefulWidget {

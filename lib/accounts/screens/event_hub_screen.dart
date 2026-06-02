@@ -9,11 +9,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/widgets/account/event_calendar_content.dart';
 import 'package:island/core/services/responsive.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:slide_countdown/slide_countdown.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 @RoutePage()
@@ -458,210 +458,224 @@ class _CountdownCard extends StatelessWidget {
 
   bool get _isPast => item.startTime.isBefore(DateTime.now());
 
-  Duration get _durationSince => DateTime.now().difference(item.startTime);
+  Duration get _durationUntil =>
+      item.startTime.difference(DateTime.now()).abs();
 
-  String _formatDuration(BuildContext context, Duration duration) {
-    if (duration.inDays > 365) {
-      final years = duration.inDays ~/ 365;
-      return '{}y'.tr(args: [years.toString()]);
-    }
-    if (duration.inDays > 30) {
-      final months = duration.inDays ~/ 30;
-      return '{}mo'.tr(args: [months.toString()]);
-    }
-    if (duration.inDays > 0) {
-      return '{}d'.tr(args: [duration.inDays.toString()]);
-    }
-    if (duration.inHours > 0) {
-      return '{}h'.tr(args: [duration.inHours.toString()]);
-    }
-    return '{}m'.tr(args: [duration.inMinutes.toString()]);
+  String _formatDuration(Duration duration) {
+    if (duration.inDays > 365) return '${duration.inDays ~/ 365}y';
+    if (duration.inDays > 30) return '${duration.inDays ~/ 30}mo';
+    if (duration.inDays > 0) return '${duration.inDays}d';
+    if (duration.inHours > 0) return '${duration.inHours}h';
+    return '${duration.inMinutes}m';
   }
 
-  double _calculateYearProgress() {
-    final now = DateTime.now();
-    final yearStart = DateTime(now.year, 1, 1);
-    final elapsedDuration = now.difference(yearStart).inMilliseconds;
-    final eventDuration = item.startTime.difference(yearStart).inMilliseconds;
-
-    if (eventDuration <= 0) return 1.0;
-    return (elapsedDuration / eventDuration).clamp(0.0, 1.0);
-  }
-
-  Widget _buildPastDuration(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final durationText = _formatDuration(context, _durationSince);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        'countdownPast'.tr(args: [durationText]),
-        style: textTheme.labelSmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
+  List<Color> _gradientColors(bool isUserEvent) {
+    if (isUserEvent) {
+      return [const Color(0xFF6366F1), const Color(0xFF8B5CF6)];
+    }
+    return [const Color(0xFFF59E0B), const Color(0xFFEF4444)];
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
     final isUserEvent = item.eventType == SnEventCountdownType.userEvent;
-    final icon = isUserEvent ? Symbols.event : Symbols.celebration;
-    final iconColor = isUserEvent ? colorScheme.primary : colorScheme.tertiary;
+    final defaultIcon = isUserEvent ? Symbols.event : Symbols.celebration;
+    final colors = _gradientColors(isUserEvent);
+    final duration = _durationUntil;
+    final durationText = _formatDuration(duration);
+    final hasBackground = item.background != null;
+    final hasIcon = item.icon != null;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: isUserEvent && item.eventId != null
-            ? () {
-                context.router.push(
-                  CalendarEventDetailRoute(
-                    username: username,
-                    eventId: item.eventId!,
-                  ),
-                );
-              }
-            : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: InkWell(
+          onTap: isUserEvent && item.eventId != null
+              ? () {
+                  context.router.push(
+                    CalendarEventDetailRoute(
+                      username: username,
+                      eventId: item.eventId!,
+                    ),
+                  );
+                }
+              : null,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isUserEvent
-                      ? colorScheme.primaryContainer
-                      : colorScheme.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(10),
+              // Background
+              if (hasBackground)
+                CloudFileWidget(
+                  item: item.background!,
+                  fit: BoxFit.cover,
+                  useInternalGate: false,
+                )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: colors,
+                    ),
+                  ),
                 ),
-                child: Icon(icon, color: iconColor, size: 20),
+              // Pattern overlay
+              if (!hasBackground)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.1,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: Icon(
+                          defaultIcon,
+                          size: 120,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              // Gradient shadow
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.5),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              const Gap(12),
-              Expanded(
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      item.title,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  const Gap(6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      value: _calculateYearProgress(),
-                      minHeight: 4,
-                      backgroundColor: colorScheme.surfaceContainerHighest,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        isUserEvent
-                            ? colorScheme.primary
-                            : colorScheme.tertiary,
-                      ),
-                    ),
-                  ),
-                  const Gap(6),
-                  Row(
-                    children: [
-                      Icon(
-                        Symbols.calendar_today,
-                        size: 12,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const Gap(4),
-                      Text(
-                        DateFormat.MMMd().format(item.startTime.toLocal()),
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          padding: hasIcon ? EdgeInsets.zero : const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: hasIcon
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: CloudFileWidget(
+                                    item: item.icon!,
+                                    fit: BoxFit.cover,
+                                    useInternalGate: false,
+                                  ),
+                                )
+                              : Icon(defaultIcon, color: Colors.white, size: 18),
                         ),
-                      ),
-                      if (item.location != null) ...[
                         const Gap(8),
-                        Icon(
-                          Symbols.location_on,
-                          size: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const Gap(4),
-                        Flexible(
-                          child: Text(
-                            item.location!,
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                        if (item.isOngoing)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              'countdownOngoing'.tr(),
+                              style: textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            _isPast
+                                ? 'countdownPast'.tr(args: [durationText])
+                                : 'countdownFuture'.tr(args: [durationText]),
+                            style: textTheme.labelMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const Gap(12),
-            if (item.isOngoing)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Symbols.play_circle,
-                      color: colorScheme.primary,
-                      size: 14,
                     ),
-                    const Gap(4),
+                    const Spacer(),
                     Text(
-                      'countdownOngoing'.tr(),
-                      style: textTheme.labelSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
+                      item.title,
+                      style: textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Gap(6),
+                    Row(
+                      children: [
+                        Icon(
+                          Symbols.calendar_today,
+                          size: 14,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                        const Gap(4),
+                        Text(
+                          DateFormat.yMMMd().format(item.startTime.toLocal()),
+                          style: textTheme.labelMedium?.copyWith(
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                        if (item.location != null) ...[
+                          const Gap(12),
+                          Icon(
+                            Symbols.location_on,
+                            size: 14,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                          const Gap(4),
+                          Flexible(
+                            child: Text(
+                              item.location!,
+                              style: textTheme.labelMedium?.copyWith(
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
-              )
-            else if (_isPast)
-              _buildPastDuration(context)
-            else
-              SizedBox(
-                width: 110,
-                child: SlideCountdown(
-                  decoration: const BoxDecoration(),
-                  style: textTheme.titleSmall!.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  separatorStyle: textTheme.titleSmall!.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  padding: EdgeInsets.zero,
-                  duration: item.startTime.difference(DateTime.now()),
-                ),
               ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

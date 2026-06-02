@@ -475,7 +475,7 @@ class AccountsApi extends BaseApi {
         'visibility': visibility,
         if (recurrence != null)
           'recurrence': {
-            'frequency': _recurrenceFrequencyToString(recurrence.frequency),
+            'frequency': recurrence.frequency,
             'interval': recurrence.interval,
             if (recurrence.endDate != null)
               'end_date': recurrence.endDate!.toUtc().toIso8601String(),
@@ -551,7 +551,7 @@ class AccountsApi extends BaseApi {
         'recurrence': recurrence.frequency == SnRecurrenceFrequency.none
             ? null
             : {
-                'frequency': _recurrenceFrequencyToString(recurrence.frequency),
+                'frequency': recurrence.frequency,
                 'interval': recurrence.interval,
                 if (recurrence.endDate != null)
                   'end_date': recurrence.endDate!.toUtc().toIso8601String(),
@@ -584,21 +584,6 @@ class AccountsApi extends BaseApi {
     await delete('$_basePath/accounts/me/calendar/events/$id');
   }
 
-  String _recurrenceFrequencyToString(int frequency) {
-    switch (frequency) {
-      case SnRecurrenceFrequency.daily:
-        return 'Daily';
-      case SnRecurrenceFrequency.weekly:
-        return 'Weekly';
-      case SnRecurrenceFrequency.monthly:
-        return 'Monthly';
-      case SnRecurrenceFrequency.yearly:
-        return 'Yearly';
-      default:
-        return 'None';
-    }
-  }
-
   // ==========================================
   // Event Countdown endpoints
   // ==========================================
@@ -624,9 +609,7 @@ class AccountsApi extends BaseApi {
         if (tag != null) 'tag': tag,
       },
     );
-    final totalCount = int.parse(
-      response.headers.value('X-Total') ?? '0',
-    );
+    final totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     return PaginatedResult(
       items: parseList(response, SnEventCountdownItem.fromJson),
       totalCount: totalCount,
@@ -656,9 +639,7 @@ class AccountsApi extends BaseApi {
         if (tag != null) 'tag': tag,
       },
     );
-    final totalCount = int.parse(
-      response.headers.value('X-Total') ?? '0',
-    );
+    final totalCount = int.parse(response.headers.value('X-Total') ?? '0');
     return PaginatedResult(
       items: parseList(response, SnEventCountdownItem.fromJson),
       totalCount: totalCount,

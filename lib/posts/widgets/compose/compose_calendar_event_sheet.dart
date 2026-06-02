@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/event_calendar.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -57,16 +58,13 @@ class ComposeCalendarEventSheet extends HookConsumerWidget {
                               ).colorScheme.primaryContainer,
                               child: event.icon != null
                                   ? ClipOval(
-                                      child: Image.network(
-                                        event.icon!.storageUrl ?? '',
+                                      child: SizedBox(
                                         width: 40,
                                         height: 40,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => Icon(
-                                          Symbols.calendar_month,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimaryContainer,
+                                        child: CloudFileWidget(
+                                          item: event.icon!,
+                                          fit: BoxFit.cover,
+                                          useInternalGate: false,
                                         ),
                                       ),
                                     )

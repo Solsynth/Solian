@@ -3431,7 +3431,7 @@ $SnAccountStatusCopyWith<$Res>? get status {
 /// @nodoc
 mixin _$SnEventCountdownItem {
 
- String? get eventId; int get eventType; String get title; String? get description; String? get location; DateTime get startTime; DateTime get endTime; bool get isAllDay; int get daysRemaining; int get hoursRemaining; bool get isOngoing; Map<String, dynamic>? get meta; String? get accountId;
+ String? get eventId; int get eventType; String get title; String? get description; String? get location; DateTime get startTime; DateTime get endTime; bool get isAllDay; int get daysRemaining; int get hoursRemaining; bool get isOngoing; Map<String, dynamic>? get meta; String? get accountId; SnCloudFileReference? get background; SnCloudFileReference? get icon;
 /// Create a copy of SnEventCountdownItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3444,16 +3444,16 @@ $SnEventCountdownItemCopyWith<SnEventCountdownItem> get copyWith => _$SnEventCou
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEventCountdownItem&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.daysRemaining, daysRemaining) || other.daysRemaining == daysRemaining)&&(identical(other.hoursRemaining, hoursRemaining) || other.hoursRemaining == hoursRemaining)&&(identical(other.isOngoing, isOngoing) || other.isOngoing == isOngoing)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SnEventCountdownItem&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.daysRemaining, daysRemaining) || other.daysRemaining == daysRemaining)&&(identical(other.hoursRemaining, hoursRemaining) || other.hoursRemaining == hoursRemaining)&&(identical(other.isOngoing, isOngoing) || other.isOngoing == isOngoing)&&const DeepCollectionEquality().equals(other.meta, meta)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.background, background) || other.background == background)&&(identical(other.icon, icon) || other.icon == icon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,eventId,eventType,title,description,location,startTime,endTime,isAllDay,daysRemaining,hoursRemaining,isOngoing,const DeepCollectionEquality().hash(meta),accountId);
+int get hashCode => Object.hash(runtimeType,eventId,eventType,title,description,location,startTime,endTime,isAllDay,daysRemaining,hoursRemaining,isOngoing,const DeepCollectionEquality().hash(meta),accountId,background,icon);
 
 @override
 String toString() {
-  return 'SnEventCountdownItem(eventId: $eventId, eventType: $eventType, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, daysRemaining: $daysRemaining, hoursRemaining: $hoursRemaining, isOngoing: $isOngoing, meta: $meta, accountId: $accountId)';
+  return 'SnEventCountdownItem(eventId: $eventId, eventType: $eventType, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, daysRemaining: $daysRemaining, hoursRemaining: $hoursRemaining, isOngoing: $isOngoing, meta: $meta, accountId: $accountId, background: $background, icon: $icon)';
 }
 
 
@@ -3464,11 +3464,11 @@ abstract mixin class $SnEventCountdownItemCopyWith<$Res>  {
   factory $SnEventCountdownItemCopyWith(SnEventCountdownItem value, $Res Function(SnEventCountdownItem) _then) = _$SnEventCountdownItemCopyWithImpl;
 @useResult
 $Res call({
- String? eventId, int eventType, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int daysRemaining, int hoursRemaining, bool isOngoing, Map<String, dynamic>? meta, String? accountId
+ String? eventId, int eventType, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int daysRemaining, int hoursRemaining, bool isOngoing, Map<String, dynamic>? meta, String? accountId, SnCloudFileReference? background, SnCloudFileReference? icon
 });
 
 
-
+$SnCloudFileReferenceCopyWith<$Res>? get background;$SnCloudFileReferenceCopyWith<$Res>? get icon;
 
 }
 /// @nodoc
@@ -3481,7 +3481,7 @@ class _$SnEventCountdownItemCopyWithImpl<$Res>
 
 /// Create a copy of SnEventCountdownItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? eventId = freezed,Object? eventType = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? daysRemaining = null,Object? hoursRemaining = null,Object? isOngoing = null,Object? meta = freezed,Object? accountId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? eventId = freezed,Object? eventType = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? daysRemaining = null,Object? hoursRemaining = null,Object? isOngoing = null,Object? meta = freezed,Object? accountId = freezed,Object? background = freezed,Object? icon = freezed,}) {
   return _then(_self.copyWith(
 eventId: freezed == eventId ? _self.eventId : eventId // ignore: cast_nullable_to_non_nullable
 as String?,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
@@ -3496,10 +3496,36 @@ as int,hoursRemaining: null == hoursRemaining ? _self.hoursRemaining : hoursRema
 as int,isOngoing: null == isOngoing ? _self.isOngoing : isOngoing // ignore: cast_nullable_to_non_nullable
 as bool,meta: freezed == meta ? _self.meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,
   ));
 }
+/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get background {
+    if (_self.background == null) {
+    return null;
+  }
 
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
+    return _then(_self.copyWith(background: value));
+  });
+}/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
+  });
+}
 }
 
 
@@ -3578,10 +3604,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId,  SnCloudFileReference? background,  SnCloudFileReference? icon)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SnEventCountdownItem() when $default != null:
-return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId);case _:
+return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId,_that.background,_that.icon);case _:
   return orElse();
 
 }
@@ -3599,10 +3625,10 @@ return $default(_that.eventId,_that.eventType,_that.title,_that.description,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId,  SnCloudFileReference? background,  SnCloudFileReference? icon)  $default,) {final _that = this;
 switch (_that) {
 case _SnEventCountdownItem():
-return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId);}
+return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId,_that.background,_that.icon);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -3616,10 +3642,10 @@ return $default(_that.eventId,_that.eventType,_that.title,_that.description,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? eventId,  int eventType,  String title,  String? description,  String? location,  DateTime startTime,  DateTime endTime,  bool isAllDay,  int daysRemaining,  int hoursRemaining,  bool isOngoing,  Map<String, dynamic>? meta,  String? accountId,  SnCloudFileReference? background,  SnCloudFileReference? icon)?  $default,) {final _that = this;
 switch (_that) {
 case _SnEventCountdownItem() when $default != null:
-return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId);case _:
+return $default(_that.eventId,_that.eventType,_that.title,_that.description,_that.location,_that.startTime,_that.endTime,_that.isAllDay,_that.daysRemaining,_that.hoursRemaining,_that.isOngoing,_that.meta,_that.accountId,_that.background,_that.icon);case _:
   return null;
 
 }
@@ -3631,7 +3657,7 @@ return $default(_that.eventId,_that.eventType,_that.title,_that.description,_tha
 @JsonSerializable()
 
 class _SnEventCountdownItem implements SnEventCountdownItem {
-  const _SnEventCountdownItem({this.eventId, required this.eventType, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, required this.daysRemaining, required this.hoursRemaining, required this.isOngoing, final  Map<String, dynamic>? meta, this.accountId}): _meta = meta;
+  const _SnEventCountdownItem({this.eventId, required this.eventType, required this.title, this.description, this.location, required this.startTime, required this.endTime, this.isAllDay = false, required this.daysRemaining, required this.hoursRemaining, required this.isOngoing, final  Map<String, dynamic>? meta, this.accountId, this.background, this.icon}): _meta = meta;
   factory _SnEventCountdownItem.fromJson(Map<String, dynamic> json) => _$SnEventCountdownItemFromJson(json);
 
 @override final  String? eventId;
@@ -3655,6 +3681,8 @@ class _SnEventCountdownItem implements SnEventCountdownItem {
 }
 
 @override final  String? accountId;
+@override final  SnCloudFileReference? background;
+@override final  SnCloudFileReference? icon;
 
 /// Create a copy of SnEventCountdownItem
 /// with the given fields replaced by the non-null parameter values.
@@ -3669,16 +3697,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEventCountdownItem&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.daysRemaining, daysRemaining) || other.daysRemaining == daysRemaining)&&(identical(other.hoursRemaining, hoursRemaining) || other.hoursRemaining == hoursRemaining)&&(identical(other.isOngoing, isOngoing) || other.isOngoing == isOngoing)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.accountId, accountId) || other.accountId == accountId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SnEventCountdownItem&&(identical(other.eventId, eventId) || other.eventId == eventId)&&(identical(other.eventType, eventType) || other.eventType == eventType)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.location, location) || other.location == location)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.isAllDay, isAllDay) || other.isAllDay == isAllDay)&&(identical(other.daysRemaining, daysRemaining) || other.daysRemaining == daysRemaining)&&(identical(other.hoursRemaining, hoursRemaining) || other.hoursRemaining == hoursRemaining)&&(identical(other.isOngoing, isOngoing) || other.isOngoing == isOngoing)&&const DeepCollectionEquality().equals(other._meta, _meta)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.background, background) || other.background == background)&&(identical(other.icon, icon) || other.icon == icon));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,eventId,eventType,title,description,location,startTime,endTime,isAllDay,daysRemaining,hoursRemaining,isOngoing,const DeepCollectionEquality().hash(_meta),accountId);
+int get hashCode => Object.hash(runtimeType,eventId,eventType,title,description,location,startTime,endTime,isAllDay,daysRemaining,hoursRemaining,isOngoing,const DeepCollectionEquality().hash(_meta),accountId,background,icon);
 
 @override
 String toString() {
-  return 'SnEventCountdownItem(eventId: $eventId, eventType: $eventType, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, daysRemaining: $daysRemaining, hoursRemaining: $hoursRemaining, isOngoing: $isOngoing, meta: $meta, accountId: $accountId)';
+  return 'SnEventCountdownItem(eventId: $eventId, eventType: $eventType, title: $title, description: $description, location: $location, startTime: $startTime, endTime: $endTime, isAllDay: $isAllDay, daysRemaining: $daysRemaining, hoursRemaining: $hoursRemaining, isOngoing: $isOngoing, meta: $meta, accountId: $accountId, background: $background, icon: $icon)';
 }
 
 
@@ -3689,11 +3717,11 @@ abstract mixin class _$SnEventCountdownItemCopyWith<$Res> implements $SnEventCou
   factory _$SnEventCountdownItemCopyWith(_SnEventCountdownItem value, $Res Function(_SnEventCountdownItem) _then) = __$SnEventCountdownItemCopyWithImpl;
 @override @useResult
 $Res call({
- String? eventId, int eventType, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int daysRemaining, int hoursRemaining, bool isOngoing, Map<String, dynamic>? meta, String? accountId
+ String? eventId, int eventType, String title, String? description, String? location, DateTime startTime, DateTime endTime, bool isAllDay, int daysRemaining, int hoursRemaining, bool isOngoing, Map<String, dynamic>? meta, String? accountId, SnCloudFileReference? background, SnCloudFileReference? icon
 });
 
 
-
+@override $SnCloudFileReferenceCopyWith<$Res>? get background;@override $SnCloudFileReferenceCopyWith<$Res>? get icon;
 
 }
 /// @nodoc
@@ -3706,7 +3734,7 @@ class __$SnEventCountdownItemCopyWithImpl<$Res>
 
 /// Create a copy of SnEventCountdownItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? eventId = freezed,Object? eventType = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? daysRemaining = null,Object? hoursRemaining = null,Object? isOngoing = null,Object? meta = freezed,Object? accountId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? eventId = freezed,Object? eventType = null,Object? title = null,Object? description = freezed,Object? location = freezed,Object? startTime = null,Object? endTime = null,Object? isAllDay = null,Object? daysRemaining = null,Object? hoursRemaining = null,Object? isOngoing = null,Object? meta = freezed,Object? accountId = freezed,Object? background = freezed,Object? icon = freezed,}) {
   return _then(_SnEventCountdownItem(
 eventId: freezed == eventId ? _self.eventId : eventId // ignore: cast_nullable_to_non_nullable
 as String?,eventType: null == eventType ? _self.eventType : eventType // ignore: cast_nullable_to_non_nullable
@@ -3721,11 +3749,37 @@ as int,hoursRemaining: null == hoursRemaining ? _self.hoursRemaining : hoursRema
 as int,isOngoing: null == isOngoing ? _self.isOngoing : isOngoing // ignore: cast_nullable_to_non_nullable
 as bool,meta: freezed == meta ? _self._meta : meta // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,background: freezed == background ? _self.background : background // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as SnCloudFileReference?,
   ));
 }
 
+/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get background {
+    if (_self.background == null) {
+    return null;
+  }
 
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.background!, (value) {
+    return _then(_self.copyWith(background: value));
+  });
+}/// Create a copy of SnEventCountdownItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SnCloudFileReferenceCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
+    return null;
+  }
+
+  return $SnCloudFileReferenceCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
+  });
+}
 }
 
 // dart format on
