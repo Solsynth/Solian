@@ -74,6 +74,7 @@ class CheckInWidget extends ConsumerWidget {
       margin:
           margin ?? EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
       child: Row(
+        spacing: 8,
         children: [
           Expanded(
             child: Column(

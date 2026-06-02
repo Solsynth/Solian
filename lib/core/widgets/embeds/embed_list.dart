@@ -2095,15 +2095,10 @@ class _PollEmbedCard extends ConsumerWidget {
         ),
         data: (poll) => InkWell(
           onTap: isInteractive
-              ? () => context.router.push(
-                    PollSubmitRoute(pollId: pollId!),
-                  )
+              ? () => context.router.push(PollSubmitRoute(pollId: pollId!))
               : null,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2122,11 +2117,9 @@ class _PollEmbedCard extends ConsumerWidget {
                     child: Text(
                       poll.description!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.color
-                            ?.withOpacity(0.7),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.color?.withOpacity(0.7),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -2668,21 +2661,15 @@ class _MeetStatusChip extends StatelessWidget {
   }
 }
 
-final calendarEventDetailProvider =
-    FutureProvider.autoDispose.family<SnUserCalendarEvent, (String, String)>((
-      ref,
-      params,
-    ) async {
+final calendarEventDetailProvider = FutureProvider.autoDispose
+    .family<SnUserCalendarEvent, (String, String)>((ref, params) async {
       final (username, eventId) = params;
       final client = ref.watch(solarNetworkClientProvider);
       return client.accounts.getUserCalendarEvent(username, eventId);
     });
 
-final accountByIdProvider =
-    FutureProvider.autoDispose.family<SnAccount, String>((
-      ref,
-      accountId,
-    ) async {
+final accountByIdProvider = FutureProvider.autoDispose
+    .family<SnAccount, String>((ref, accountId) async {
       final client = ref.watch(solarNetworkClientProvider);
       return client.accounts.getAccountById(accountId);
     });
@@ -2696,7 +2683,9 @@ class _CalendarEventEmbedCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // First fetch the event using the authenticated endpoint to get the account
-    final eventAsync = ref.watch(calendarEventDetailProvider(('me', eventId)));
+    final eventAsync = ref.watch(
+      calendarEventDetailProvider(('unknown', eventId)),
+    );
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -2898,10 +2887,7 @@ class _NotableDayEmbedCard extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Symbols.celebration,
-              color: colorScheme.tertiary,
-            ),
+            Icon(Symbols.celebration, color: colorScheme.tertiary),
           ],
         ),
       ),
