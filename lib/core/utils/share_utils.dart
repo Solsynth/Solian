@@ -135,8 +135,11 @@ Future<void> shareCheckInAsScreenshot(
 Future<void> shareCalendarEventAsScreenshot(
   BuildContext context,
   WidgetRef ref,
-  SnUserCalendarEvent event,
-) async {
+  SnUserCalendarEvent event, {
+  DateTime? displayStartTime,
+  DateTime? displayEndTime,
+  int? selectedOccurrenceIndex,
+}) async {
   if (kIsWeb) return;
 
   final screenshotController = ScreenshotController();
@@ -150,7 +153,12 @@ Future<void> shareCalendarEventAsScreenshot(
             textDirection: TextDirection.ltr,
             child: SizedBox(
               width: 400,
-              child: CalendarEventScreenshot(event: event),
+              child: CalendarEventScreenshot(
+                event: event,
+                displayStartTime: displayStartTime,
+                displayEndTime: displayEndTime,
+                selectedOccurrenceIndex: selectedOccurrenceIndex,
+              ),
             ),
           ),
         ),

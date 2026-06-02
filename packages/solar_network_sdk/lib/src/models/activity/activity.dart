@@ -259,6 +259,8 @@ sealed class SnEventCountdownItem with _$SnEventCountdownItem {
     required bool isOngoing,
     Map<String, dynamic>? meta,
     String? accountId,
+    SnCloudFileReference? background,
+    SnCloudFileReference? icon,
   }) = _SnEventCountdownItem;
 
   factory SnEventCountdownItem.fromJson(Map<String, dynamic> json) =>

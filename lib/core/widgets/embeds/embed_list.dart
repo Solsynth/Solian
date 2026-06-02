@@ -11,6 +11,7 @@ import 'package:island/fitness/pods/fitness_providers.dart';
 import 'package:island/route.gr.dart';
 import 'package:island/creators/screens/poll/poll_list.dart';
 import 'package:island/core/widgets/embeds/link.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/wallets/widgets/fund_envelope.dart';
 import 'package:island/accounts/meet_service.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
@@ -2719,12 +2720,14 @@ class _CalendarEventEmbedCard extends ConsumerWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(12),
                     ),
-                    child: Image.network(
-                      event.background!.storageUrl ?? '',
+                    child: SizedBox(
                       height: 100,
                       width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                      child: CloudFileWidget(
+                        item: event.background!,
+                        fit: BoxFit.cover,
+                        useInternalGate: false,
+                      ),
                     ),
                   ),
                 Padding(
@@ -2736,14 +2739,13 @@ class _CalendarEventEmbedCard extends ConsumerWidget {
                         backgroundColor: colorScheme.primaryContainer,
                         child: event.icon != null
                             ? ClipOval(
-                                child: Image.network(
-                                  event.icon!.storageUrl ?? '',
+                                child: SizedBox(
                                   width: 40,
                                   height: 40,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => Icon(
-                                    Symbols.calendar_month,
-                                    color: colorScheme.onPrimaryContainer,
+                                  child: CloudFileWidget(
+                                    item: event.icon!,
+                                    fit: BoxFit.cover,
+                                    useInternalGate: false,
                                   ),
                                 ),
                               )

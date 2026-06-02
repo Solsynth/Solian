@@ -11,8 +11,17 @@ import 'package:styled_widget/styled_widget.dart';
 
 class CalendarEventScreenshot extends StatelessWidget {
   final SnUserCalendarEvent event;
+  final DateTime? displayStartTime;
+  final DateTime? displayEndTime;
+  final int? selectedOccurrenceIndex;
 
-  const CalendarEventScreenshot({super.key, required this.event});
+  const CalendarEventScreenshot({
+    super.key,
+    required this.event,
+    this.displayStartTime,
+    this.displayEndTime,
+    this.selectedOccurrenceIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -138,8 +147,8 @@ class CalendarEventScreenshot extends StatelessWidget {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final start = event.startTime.toLocal();
-    final end = event.endTime.toLocal();
+    final start = displayStartTime ?? event.startTime.toLocal();
+    final end = displayEndTime ?? event.endTime.toLocal();
     final isSameDay = DateUtils.isSameDay(start, end);
 
     return Container(
@@ -239,6 +248,19 @@ class CalendarEventScreenshot extends StatelessWidget {
         ),
       );
     }
+    if (selectedOccurrenceIndex != null) {
+      items.add(
+        _PropertyData(
+          icon: Symbols.tag,
+          text: 'occurrenceSelectedTime'.tr(
+            args: [
+              selectedOccurrenceIndex.toString(),
+              _getOrdinalSuffix(selectedOccurrenceIndex!),
+            ],
+          ),
+        ),
+      );
+    }
 
     if (items.isEmpty) return const SizedBox.shrink();
 
@@ -331,6 +353,17 @@ class CalendarEventScreenshot extends StatelessWidget {
       return '$frequency (every ${recurrence.interval})';
     }
     return frequency;
+  }
+
+  String _getOrdinalSuffix(int number) {
+    final mod100 = number % 100;
+    if (mod100 >= 11 && mod100 <= 13) return 'th';
+    return switch (number % 10) {
+      1 => 'st',
+      2 => 'nd',
+      3 => 'rd',
+      _ => 'th',
+    };
   }
 }
 
