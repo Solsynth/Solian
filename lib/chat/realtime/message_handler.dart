@@ -471,10 +471,11 @@ class RealtimeMessageHandler {
     final mergedMeta = Map<String, dynamic>.of(existing.toRemoteMessage().meta);
     mergedMeta.addAll(updateRemote.meta);
     mergedMeta.remove('message_id');
+    final isLinkPreviewUpdate = updateEvent.type == 'messages.update.links';
 
     return LocalChatMessage.fromRemoteMessage(
       existing.toRemoteMessage().copyWith(
-        content: updateRemote.content,
+        content: isLinkPreviewUpdate ? existing.content : updateRemote.content,
         attachments: updateRemote.attachments,
         membersMentioned: updateRemote.membersMentioned,
         repliedMessageId: updateRemote.repliedMessageId,
