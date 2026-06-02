@@ -1,10 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/badge.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -433,32 +431,12 @@ class ActiveBadgeMark extends ConsumerWidget {
     final badgeColor = getBadgeColor(badge, manifest: manifest);
     final iconUrl = getBadgeIconUrl(badge, manifest: manifest);
 
-    final Widget icon;
-    if (iconUrl != null && iconUrl.isNotEmpty) {
-      final serverUrl = ref.watch(serverUrlProvider);
-      final fullUrl = iconUrl.startsWith('http')
-          ? iconUrl
-          : '$serverUrl$iconUrl';
-      icon = SvgPicture.network(
-        fullUrl,
-        width: size,
-        height: size,
-        colorFilter: ColorFilter.mode(badgeColor, BlendMode.srcIn),
-        placeholderBuilder: (_) => Icon(
-          kBadgeTemplates[badge.type]?.icon ?? Icons.stars,
-          size: size,
-          color: badgeColor,
-          fill: 1,
-        ),
-      );
-    } else {
-      icon = Icon(
-        kBadgeTemplates[badge.type]?.icon ?? Icons.stars,
-        size: size,
-        color: badgeColor,
-        fill: 1,
-      );
-    }
+    final icon = CachedBadgeIcon(
+      iconUrl: iconUrl,
+      color: badgeColor,
+      fallbackIcon: kBadgeTemplates[badge.type]?.icon ?? Icons.stars,
+      size: size,
+    );
 
     return hideOverlay
         ? icon

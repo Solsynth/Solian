@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -57,22 +62,22 @@ const Map<String, BadgeInfo> kBadgeTemplates = {
   ),
 };
 
-final badgesManifestProvider = FutureProvider.autoDispose<List<BadgeManifestEntry>>((
-  ref,
-) async {
-  final client = ref.watch(solarNetworkClientProvider);
-  return await client.accounts.getBadgesManifest();
-});
+final badgesManifestProvider =
+    FutureProvider.autoDispose<List<BadgeManifestEntry>>((ref) async {
+      final client = ref.watch(solarNetworkClientProvider);
+      return await client.accounts.getBadgesManifest();
+    });
 
-final badgeManifestMapProvider = Provider.autoDispose<Map<String, BadgeManifestEntry>>((
-  ref,
-) {
-  final manifest = ref.watch(badgesManifestProvider);
-  return manifest.whenOrNull(data: (entries) {
-        return {for (final e in entries) e.identifier: e};
-      }) ??
-      {};
-});
+final badgeManifestMapProvider =
+    Provider.autoDispose<Map<String, BadgeManifestEntry>>((ref) {
+      final manifest = ref.watch(badgesManifestProvider);
+      return manifest.whenOrNull(
+            data: (entries) {
+              return {for (final e in entries) e.identifier: e};
+            },
+          ) ??
+          {};
+    });
 
 Color? _parseHexColor(String? hex) {
   if (hex == null || hex.isEmpty) return null;
@@ -125,21 +130,23 @@ String? getBadgeDescription(
   SnAccountBadge badge, {
   Map<String, BadgeManifestEntry>? manifest,
 }) {
-  final parts = <String>[];
-  if (manifest != null) {
-    final entry = manifest[badge.type];
-    if (entry?.caption != null && entry!.caption!.isNotEmpty) {
-      parts.add(entry.caption!);
-    }
+  final primary = manifest?[badge.type]?.caption;
+  final fallback = kBadgeTemplates[badge.type]?.description;
+  final badgeCaption = badge.caption;
+
+  final desc = (primary != null && primary.isNotEmpty)
+      ? primary
+      : (fallback != null && fallback.isNotEmpty)
+          ? fallback
+          : null;
+
+  if (badgeCaption != null &&
+      badgeCaption.isNotEmpty &&
+      badgeCaption != desc) {
+    return desc != null ? '$desc\n$badgeCaption' : badgeCaption;
   }
-  if (parts.isEmpty) {
-    final template = kBadgeTemplates[badge.type];
-    if (template != null) parts.add(template.description);
-  }
-  if (badge.caption != null && badge.caption!.isNotEmpty) {
-    parts.add(badge.caption!);
-  }
-  return parts.isNotEmpty ? parts.join('\n') : null;
+
+  return desc;
 }
 
 String? getBadgeIconUrl(
@@ -148,4 +155,130 @@ String? getBadgeIconUrl(
 }) {
   if (manifest == null) return null;
   return manifest[badge.type]?.iconUrl;
+}
+
+class CachedBadgeIcon extends ConsumerWidget {
+  final String? iconUrl;
+  final Color color;
+  final IconData fallbackIcon;
+  final double size;
+
+  const CachedBadgeIcon({
+    super.key,
+    required this.iconUrl,
+    required this.color,
+    required this.fallbackIcon,
+    this.size = 20,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (iconUrl == null || iconUrl!.isEmpty) {
+      return Icon(fallbackIcon, color: color, size: size);
+    }
+
+    final serverUrl = ref.watch(serverUrlProvider);
+    final fullUrl = iconUrl!.startsWith('http')
+        ? iconUrl!
+        : '$serverUrl$iconUrl';
+
+    return _CachedSvgIcon(
+      url: fullUrl,
+      color: color,
+      fallbackIcon: fallbackIcon,
+      size: size,
+    );
+  }
+}
+
+class _CachedSvgIcon extends StatefulWidget {
+  final String url;
+  final Color color;
+  final IconData fallbackIcon;
+  final double size;
+
+  const _CachedSvgIcon({
+    required this.url,
+    required this.color,
+    required this.fallbackIcon,
+    required this.size,
+  });
+
+  @override
+  State<_CachedSvgIcon> createState() => _CachedSvgIconState();
+}
+
+class _CachedSvgIconState extends State<_CachedSvgIcon> {
+  File? _cachedFile;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCachedSvg();
+  }
+
+  @override
+  void didUpdateWidget(_CachedSvgIcon oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _loadCachedSvg();
+    }
+  }
+
+  Future<void> _loadCachedSvg() async {
+    try {
+      final fileInfo = await DefaultCacheManager().getFileFromCache(widget.url);
+      if (!mounted) return;
+
+      if (fileInfo != null) {
+        setState(() {
+          _cachedFile = fileInfo.file;
+          _loading = false;
+        });
+      } else {
+        final downloaded = await DefaultCacheManager().downloadFile(widget.url);
+        if (!mounted) return;
+        setState(() {
+          _cachedFile = downloaded.file;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: Center(
+          child: SizedBox(
+            width: widget.size * 0.6,
+            height: widget.size * 0.6,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5,
+              color: widget.color.withOpacity(0.5),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_cachedFile != null) {
+      return SvgPicture.file(
+        _cachedFile!,
+        width: widget.size,
+        height: widget.size,
+        colorFilter: ColorFilter.mode(widget.color, BlendMode.srcIn),
+        placeholderBuilder: (_) =>
+            Icon(widget.fallbackIcon, size: widget.size, color: widget.color),
+      );
+    }
+
+    return Icon(widget.fallbackIcon, color: widget.color, size: widget.size);
+  }
 }
