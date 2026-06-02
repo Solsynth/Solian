@@ -9,6 +9,7 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/calendar_event_creation_sheet.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/utils/share_utils.dart';
 import 'package:island/core/widgets/embeds/embed_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -106,7 +107,7 @@ class CalendarEventDetailScreen extends ConsumerWidget {
   }
 }
 
-class _CalendarEventDetailContent extends StatelessWidget {
+class _CalendarEventDetailContent extends ConsumerWidget {
   final SnUserCalendarEvent event;
   final bool isOwner;
   final VoidCallback? onEdit;
@@ -120,7 +121,7 @@ class _CalendarEventDetailContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final hasBackground = event.background != null;
@@ -131,6 +132,14 @@ class _CalendarEventDetailContent extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: Icon(
+              Symbols.share,
+              color: hasBackground ? Colors.white : colorScheme.onSurface,
+            ),
+            onPressed: () => shareCalendarEventAsScreenshot(context, ref, event),
+            tooltip: 'share'.tr(),
+          ),
           if (isOwner) ...[
             IconButton(
               icon: Icon(
@@ -148,8 +157,8 @@ class _CalendarEventDetailContent extends StatelessWidget {
               onPressed: onDelete,
               tooltip: 'delete'.tr(),
             ),
-            const Gap(8),
           ],
+          const Gap(8),
         ],
       ),
       body: Stack(
