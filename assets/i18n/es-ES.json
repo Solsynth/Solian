@@ -1713,6 +1713,7 @@
   "eventLocationHint": "Introduce la ubicación (opcional)",
   "eventStartTime": "Hora de inicio",
   "eventEndTime": "Hora de fin",
+  "eventTime": "Hora",
   "eventAllDay": "Todo el día",
   "eventAllDayDescription": "Este es un evento de todo el día",
   "eventDateTime": "Fecha y hora",

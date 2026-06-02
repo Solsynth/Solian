@@ -3079,6 +3079,7 @@
   "eventLocationHint": "输入日程地点（可选）",
   "eventStartTime": "开始时间",
   "eventEndTime": "结束时间",
+  "eventTime": "时间",
   "eventAllDay": "全天",
   "eventAllDayDescription": "这是一个全天日程",
   "eventDateTime": "日期与时间",

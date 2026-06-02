@@ -1715,6 +1715,7 @@
   "eventLocationHint": "輸入地（選）",
   "eventStartTime": "始時",
   "eventEndTime": "終時",
+  "eventTime": "時",
   "eventAllDay": "全日",
   "eventAllDayDescription": "全日之程",
   "eventDateTime": "日期時",
