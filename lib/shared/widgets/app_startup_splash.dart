@@ -113,7 +113,10 @@ class StartupSplashScreen extends HookConsumerWidget {
             final user = await ref.read(userInfoProvider.future);
             if (!context.mounted || user == null) return;
             final apiClient = ref.read(solarNetworkClientProvider).dio;
-            await subscribePushNotification(apiClient, context: context);
+            await subscribePushNotification(
+              apiClient,
+              context: context,
+            ).timeout(const Duration(seconds: 1), onTimeout: () {});
           },
         ),
         _BootstrapStage(
