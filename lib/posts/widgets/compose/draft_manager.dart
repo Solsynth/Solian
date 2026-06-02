@@ -431,6 +431,10 @@ class _DraftItem extends StatelessWidget {
         return 'postVisibilityUnlisted';
       case 3:
         return 'postVisibilityPrivate';
+      case 4:
+        return 'postVisibilityCloseFriends';
+      case 5:
+        return 'postVisibilityQuitePublic';
       default:
         return 'postVisibilityPublic';
     }
