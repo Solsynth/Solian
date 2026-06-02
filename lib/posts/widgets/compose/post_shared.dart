@@ -289,6 +289,10 @@ class PostVisibilityHelpers {
         return Symbols.link_off;
       case 3:
         return Symbols.lock;
+      case 4:
+        return Symbols.favorite;
+      case 5:
+        return Symbols.public;
       default:
         return Symbols.public;
     }
@@ -302,6 +306,10 @@ class PostVisibilityHelpers {
         return 'postVisibilityUnlisted';
       case 3:
         return 'postVisibilityPrivate';
+      case 4:
+        return 'postVisibilityCloseFriends';
+      case 5:
+        return 'postVisibilityQuitePublic';
       default:
         return 'postVisibilityPublic';
     }
