@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/badge.dart';
-import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
@@ -199,10 +197,14 @@ class _BadgeCard extends ConsumerWidget {
                   color: badgeColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: _BadgeCardIcon(
-                  iconUrl: iconUrl,
-                  color: badgeColor,
-                  fallbackIcon: kBadgeTemplates[badge.type]?.icon ?? Symbols.stars,
+                child: Center(
+                  child: CachedBadgeIcon(
+                    iconUrl: iconUrl,
+                    color: badgeColor,
+                    fallbackIcon:
+                        kBadgeTemplates[badge.type]?.icon ?? Symbols.stars,
+                    size: 28,
+                  ),
                 ),
               ),
               const Gap(16),
@@ -293,38 +295,5 @@ class _BadgeCard extends ConsumerWidget {
         ],
       ),
     );
-  }
-}
-
-class _BadgeCardIcon extends ConsumerWidget {
-  final String? iconUrl;
-  final Color color;
-  final IconData fallbackIcon;
-
-  const _BadgeCardIcon({
-    required this.iconUrl,
-    required this.color,
-    required this.fallbackIcon,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (iconUrl != null && iconUrl!.isNotEmpty) {
-      final serverUrl = ref.watch(serverUrlProvider);
-      final fullUrl = iconUrl!.startsWith('http')
-          ? iconUrl!
-          : '$serverUrl$iconUrl';
-
-      return SvgPicture.network(
-        fullUrl,
-        width: 28,
-        height: 28,
-        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-        placeholderBuilder: (_) =>
-            Icon(fallbackIcon, color: color, size: 28),
-      );
-    }
-
-    return Icon(fallbackIcon, color: color, size: 28);
   }
 }
