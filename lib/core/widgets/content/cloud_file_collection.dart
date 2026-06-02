@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:auto_route/auto_route.dart';
 import 'package:dismissible_page/dismissible_page.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
@@ -11,6 +12,7 @@ import 'package:island/core/config.dart';
 import 'package:island/core/widgets/content/cloud_file_lightbox.dart';
 import 'package:island/core/widgets/content/sensitive.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
+import 'package:island/route.gr.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -330,10 +332,21 @@ class CloudFileList extends HookConsumerWidget {
           isImage: isImage,
           disableZoomIn: disableZoomIn,
           onTap: () {
-            if (!isImage) {
+            if (files.first.isFolder) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => FolderContentsSheet(
+                  folderId: files.first.id,
+                  folderName: files.first.name,
+                ),
+              );
               return;
             }
-            openLightbox(0);
+            if (isFile) {
+              context.router.push(FileDetailRoute(id: files.first.id));
+            }
+            if (isImage) openLightbox(0);
           },
         ),
       );
@@ -402,10 +415,24 @@ class CloudFileList extends HookConsumerWidget {
                       ),
                   ],
                   onTap: (index) {
-                    if (!(files[index].mimeType.startsWith('image'))) {
+                    if (files[index].isFolder) {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => FolderContentsSheet(
+                          folderId: files[index].id,
+                          folderName: files[index].name,
+                        ),
+                      );
                       return;
                     }
-                    openLightbox(index);
+                    final isFile = files[index].isFolder ||
+                        files[index].mimeType.startsWith('application');
+                    final isImage = files[index].mimeType.startsWith('image');
+                    if (isFile) {
+                      context.router.push(FileDetailRoute(id: files[index].id));
+                    }
+                    if (isImage) openLightbox(index);
                   },
                 );
               },
