@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:island/core/services/responsive.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class StartupProgressBar extends StatelessWidget {
@@ -16,28 +17,49 @@ class StartupProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const barHeight = 3.0;
+    final wide = isWideScreen(context);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.zero,
-      child: SizedBox(
-        height: barHeight,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: progress),
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, _) {
-            return LinearProgressIndicator(
-              value: value,
-              borderRadius: BorderRadius.zero,
-              stopIndicatorRadius: 0,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation(
-                isErrored ? colorScheme.error : colorScheme.primary,
-              ),
-            );
-          },
+    Widget buildBar({required bool reversed}) {
+      return ClipRRect(
+        borderRadius: BorderRadius.zero,
+        child: SizedBox(
+          height: barHeight,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: progress),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) {
+              final bar = LinearProgressIndicator(
+                value: value,
+                borderRadius: BorderRadius.zero,
+                stopIndicatorRadius: 0,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation(
+                  isErrored ? colorScheme.error : colorScheme.primary,
+                ),
+              );
+              if (reversed) {
+                return Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()..scale(-1.0, 1.0),
+                  child: bar,
+                );
+              }
+              return bar;
+            },
+          ),
         ),
-      ),
+      );
+    }
+
+    if (!wide) return buildBar(reversed: false);
+
+    return Row(
+      children: [
+        Expanded(child: buildBar(reversed: false)),
+        const SizedBox(width: 4),
+        Expanded(child: buildBar(reversed: true)),
+      ],
     );
   }
 }
@@ -95,6 +117,13 @@ class StartupProgressIcon extends StatelessWidget {
                   size: 18,
                   color: colorScheme.error,
                   fill: 1,
+                  shadows: [
+                    Shadow(
+                      color: colorScheme.error.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 )
               : isErrored && isDismissable
               ? Icon(
@@ -102,12 +131,26 @@ class StartupProgressIcon extends StatelessWidget {
                   size: 18,
                   color: colorScheme.error,
                   fill: 1,
+                  shadows: [
+                    Shadow(
+                      color: colorScheme.error.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 )
               : Icon(
                   Symbols.check_circle_outline,
                   size: 18,
                   color: colorScheme.primary,
                   fill: 1,
+                  shadows: [
+                    Shadow(
+                      color: colorScheme.primary.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
         ),
       ],
