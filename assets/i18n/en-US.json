@@ -1226,6 +1226,8 @@
   "calendarEventLinked": "Calendar event linked",
   "noCalendarEvents": "No calendar events",
   "calendarEventUnavailable": "Calendar event unavailable",
+  "calendarEventSubscribe": "Subscribe to events",
+  "calendarEventUnsubscribe": "Unsubscribe from events",
   "notableDay": "Notable Day",
   "notableDayEmbedHint": "A notable day or holiday",
   "eventTitle": "Title",

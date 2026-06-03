@@ -379,3 +379,127 @@ final class CalendarEventFamily extends $Family
   @override
   String toString() => r'calendarEventProvider';
 }
+
+/// Provider for the list of account IDs the current user has subscribed to
+
+@ProviderFor(calendarSubscriptions)
+final calendarSubscriptionsProvider = CalendarSubscriptionsProvider._();
+
+/// Provider for the list of account IDs the current user has subscribed to
+
+final class CalendarSubscriptionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<String>>,
+          List<String>,
+          FutureOr<List<String>>
+        >
+    with $FutureModifier<List<String>>, $FutureProvider<List<String>> {
+  /// Provider for the list of account IDs the current user has subscribed to
+  CalendarSubscriptionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'calendarSubscriptionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$calendarSubscriptionsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<String>> create(Ref ref) {
+    return calendarSubscriptions(ref);
+  }
+}
+
+String _$calendarSubscriptionsHash() =>
+    r'00c449239ed0a938fb553d079f280800bda3db3e';
+
+/// Checks if the current user is subscribed to a specific account's calendar
+
+@ProviderFor(isCalendarSubscribed)
+final isCalendarSubscribedProvider = IsCalendarSubscribedFamily._();
+
+/// Checks if the current user is subscribed to a specific account's calendar
+
+final class IsCalendarSubscribedProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  /// Checks if the current user is subscribed to a specific account's calendar
+  IsCalendarSubscribedProvider._({
+    required IsCalendarSubscribedFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'isCalendarSubscribedProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$isCalendarSubscribedHash();
+
+  @override
+  String toString() {
+    return r'isCalendarSubscribedProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<bool> create(Ref ref) {
+    final argument = this.argument as String;
+    return isCalendarSubscribed(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is IsCalendarSubscribedProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$isCalendarSubscribedHash() =>
+    r'f912fbf6bebcf675bb35f39bb80dbb918fcb8a2c';
+
+/// Checks if the current user is subscribed to a specific account's calendar
+
+final class IsCalendarSubscribedFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<bool>, String> {
+  IsCalendarSubscribedFamily._()
+    : super(
+        retry: null,
+        name: r'isCalendarSubscribedProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Checks if the current user is subscribed to a specific account's calendar
+
+  IsCalendarSubscribedProvider call(String accountId) =>
+      IsCalendarSubscribedProvider._(argument: accountId, from: this);
+
+  @override
+  String toString() => r'isCalendarSubscribedProvider';
+}
