@@ -585,6 +585,40 @@ class AccountsApi extends BaseApi {
   }
 
   // ==========================================
+  // Calendar Subscription endpoints
+  // ==========================================
+
+  /// Lists account IDs the current user has subscribed to.
+  Future<List<String>> listCalendarSubscriptions() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/calendar/subscriptions',
+    );
+    return (response.data ?? []).cast<String>();
+  }
+
+  /// Subscribes to another user's public events.
+  ///
+  /// [accountId] - The target account to subscribe to.
+  Future<void> subscribeToCalendar(String accountId) async {
+    await post('$_basePath/accounts/me/calendar/subscriptions/$accountId');
+  }
+
+  /// Unsubscribes from another user's events.
+  ///
+  /// [accountId] - The target account to unsubscribe from.
+  Future<void> unsubscribeFromCalendar(String accountId) async {
+    await delete('$_basePath/accounts/me/calendar/subscriptions/$accountId');
+  }
+
+  /// Gets a list of account IDs subscribed to the current user's events.
+  Future<List<String>> listCalendarSubscribers() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/accounts/me/calendar/subscriptions/subscribers',
+    );
+    return (response.data ?? []).cast<String>();
+  }
+
+  // ==========================================
   // Event Countdown endpoints
   // ==========================================
 

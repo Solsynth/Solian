@@ -231,3 +231,17 @@ class EventCountdownListNotifier
     return result.items;
   }
 }
+
+/// Provider for the list of account IDs the current user has subscribed to
+@riverpod
+Future<List<String>> calendarSubscriptions(Ref ref) async {
+  final client = ref.watch(solarNetworkClientProvider);
+  return await client.accounts.listCalendarSubscriptions();
+}
+
+/// Checks if the current user is subscribed to a specific account's calendar
+@riverpod
+Future<bool> isCalendarSubscribed(Ref ref, String accountId) async {
+  final subscriptions = await ref.watch(calendarSubscriptionsProvider.future);
+  return subscriptions.contains(accountId);
+}

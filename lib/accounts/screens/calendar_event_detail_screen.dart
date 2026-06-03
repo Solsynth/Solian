@@ -7,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/event_calendar.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/calendar_event_creation_sheet.dart';
 import 'package:island/core/network.dart';
@@ -42,9 +43,14 @@ class CalendarEventDetailScreen extends ConsumerWidget {
         data: (event) {
           final isOwner =
               currentUser != null && event.accountId == currentUser.id;
+          final isPublic = event.visibility == 200;
+          final canSubscribe =
+              currentUser != null && !isOwner && isPublic;
+
           return _CalendarEventDetailContent(
             event: event,
             isOwner: isOwner,
+            canSubscribe: canSubscribe,
             onEdit: () async {
               final result = await showModalBottomSheet<bool>(
                 context: context,
@@ -111,12 +117,14 @@ class CalendarEventDetailScreen extends ConsumerWidget {
 class _CalendarEventDetailContent extends HookConsumerWidget {
   final SnUserCalendarEvent event;
   final bool isOwner;
+  final bool canSubscribe;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const _CalendarEventDetailContent({
     required this.event,
     this.isOwner = false,
+    this.canSubscribe = false,
     this.onEdit,
     this.onDelete,
   });
@@ -142,12 +150,70 @@ class _CalendarEventDetailContent extends HookConsumerWidget {
     final displayEndTime =
         selectedOccurrence?.endTime ?? event.endTime.toLocal();
 
+    final isSubscribedAsync = canSubscribe
+        ? ref.watch(isCalendarSubscribedProvider(event.accountId))
+        : const AsyncValue<bool>.data(false);
+    final isSubscribed = isSubscribedAsync.whenOrNull(data: (v) => v) ?? false;
+    final isToggling = useState(false);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          if (canSubscribe)
+            isSubscribedAsync.when(
+              data: (_) => IconButton(
+                icon: isToggling.value
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: hasBackground
+                              ? Colors.white
+                              : colorScheme.onSurface,
+                        ),
+                      )
+                    : Icon(
+                        isSubscribed
+                            ? Symbols.notifications_active
+                            : Symbols.notifications,
+                        color: hasBackground
+                            ? Colors.white
+                            : colorScheme.onSurface,
+                      ),
+                onPressed: isToggling.value
+                    ? null
+                    : () async {
+                        isToggling.value = true;
+                        try {
+                          final client = ref.read(solarNetworkClientProvider);
+                          if (isSubscribed) {
+                            await client.accounts
+                                .unsubscribeFromCalendar(event.accountId);
+                          } else {
+                            await client.accounts
+                                .subscribeToCalendar(event.accountId);
+                          }
+                          ref.invalidate(isCalendarSubscribedProvider);
+                          ref.invalidate(calendarSubscriptionsProvider);
+                        } catch (e) {
+                          if (context.mounted) {
+                            showErrorAlert(e);
+                          }
+                        } finally {
+                          isToggling.value = false;
+                        }
+                      },
+                tooltip: isSubscribed
+                    ? 'calendarEventUnsubscribe'.tr()
+                    : 'calendarEventSubscribe'.tr(),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
           IconButton(
             icon: Icon(
               Symbols.share,
