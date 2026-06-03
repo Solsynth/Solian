@@ -638,124 +638,239 @@ class _ChatRoomMemberActionSheet extends HookConsumerWidget {
         activeTimeoutUntil != null &&
         activeTimeoutUntil.isAfter(DateTime.now());
 
+    final timeoutActions = <Widget>[
+      if (hasActiveTimeout)
+        _MemberActionListTile(
+          leading: Icon(
+            Symbols.timer_off,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          title: Text('cancelTimeout'.tr()),
+          isDanger: true,
+          onTap: loading.value
+              ? null
+              : () => _removeTimeout(context, ref),
+        ),
+      _MemberActionListTile(
+        leading: const Icon(Symbols.timer_10),
+        title: const Text('10m'),
+        subtitle: Text('timeoutFor10Minutes'.tr()),
+        onTap: loading.value
+            ? null
+            : () => _applyTimeout(
+                context,
+                ref,
+                const Duration(minutes: 10),
+              ),
+      ),
+      _MemberActionListTile(
+        leading: const Icon(Symbols.timer),
+        title: const Text('1hr'),
+        subtitle: Text('timeoutFor1Hour'.tr()),
+        onTap: loading.value
+            ? null
+            : () => _applyTimeout(context, ref, const Duration(hours: 1)),
+      ),
+      _MemberActionListTile(
+        leading: const Icon(Symbols.timer_3_alt_1),
+        title: const Text('1d'),
+        subtitle: Text('timeoutFor1Day'.tr()),
+        onTap: loading.value
+            ? null
+            : () => _applyTimeout(context, ref, const Duration(days: 1)),
+      ),
+      _MemberActionListTile(
+        leading: const Icon(Symbols.tune),
+        title: Text('custom'.tr()),
+        subtitle: Text('timeoutCustom'.tr()),
+        onTap: loading.value
+            ? null
+            : () => _showCustomTimeoutDialog(context, ref),
+      ),
+    ];
+
+    final membershipActions = <Widget>[
+      _MemberActionListTile(
+        leading: Icon(
+          Symbols.person_remove,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        title: Text(
+          isPendingInvite ? 'removeInvite'.tr() : 'removeChatMember'.tr(),
+        ),
+        isDanger: true,
+        onTap: loading.value ? null : () => _removeMember(context, ref),
+      ),
+    ];
+
     return SheetScaffold(
       titleText: 'memberActions'.tr(),
       heightFactor: 0.7,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        children: [
-          // Member info header
-          ListTile(
-            leading: ProfilePictureWidget(
-              file: member.account.profile.picture,
-              radius: 20,
-            ),
-            title: AccountName(account: member.account),
-            subtitle: isPendingInvite
-                ? Text('invitePending'.tr())
-                : (hasActiveTimeout
-                      ? Text(
-                          'timedOutUntil'.tr(
-                            args: [activeTimeoutUntil.formatSystem()],
-                          ),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        )
-                      : null),
-          ),
-          const Divider(),
-          // Timeout actions section
-          if (canModerate && !isPendingInvite) ...[
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text(
-                'timeoutActions'.tr(),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-            if (hasActiveTimeout)
-              ListTile(
-                leading: Icon(
-                  Symbols.timer_off,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                title: Text('cancelTimeout'.tr()),
-                textColor: Theme.of(context).colorScheme.error,
-                enabled: !loading.value,
-                onTap: loading.value
-                    ? null
-                    : () => _removeTimeout(context, ref),
-              ),
-            ListTile(
-              leading: const Icon(Symbols.timer_10),
-              title: const Text('10m'),
-              subtitle: Text('timeoutFor10Minutes'.tr()),
-              enabled: !loading.value,
-              onTap: loading.value
-                  ? null
-                  : () => _applyTimeout(
-                      context,
-                      ref,
-                      const Duration(minutes: 10),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Row(
+                children: [
+                  ProfilePictureWidget(
+                    file: member.account.profile.picture,
+                    radius: 20,
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AccountName(
+                          account: member.account,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        if (isPendingInvite)
+                          Text(
+                            'invitePending'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          )
+                        else if (hasActiveTimeout)
+                          Text(
+                            'timedOutUntil'.tr(
+                              args: [activeTimeoutUntil.formatSystem()],
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                          ),
+                      ],
                     ),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Symbols.timer),
-              title: const Text('1hr'),
-              subtitle: Text('timeoutFor1Hour'.tr()),
-              enabled: !loading.value,
-              onTap: loading.value
-                  ? null
-                  : () => _applyTimeout(context, ref, const Duration(hours: 1)),
-            ),
-            ListTile(
-              leading: const Icon(Symbols.timer_3_alt_1),
-              title: const Text('1d'),
-              subtitle: Text('timeoutFor1Day'.tr()),
-              enabled: !loading.value,
-              onTap: loading.value
-                  ? null
-                  : () => _applyTimeout(context, ref, const Duration(days: 1)),
-            ),
-            ListTile(
-              leading: const Icon(Symbols.tune),
-              title: Text('custom'.tr()),
-              subtitle: Text('timeoutCustom'.tr()),
-              enabled: !loading.value,
-              onTap: loading.value
-                  ? null
-                  : () => _showCustomTimeoutDialog(context, ref),
-            ),
-            const Divider(),
+            if (canModerate && !isPendingInvite) ...[
+              _MemberActionSection(
+                title: 'timeoutActions'.tr(),
+                children: timeoutActions,
+              ),
+            ],
+            if (canModerate) ...[
+              _MemberActionSection(
+                title: 'membershipActions'.tr(),
+                children: membershipActions,
+              ),
+            ],
+            Gap(MediaQuery.of(context).padding.bottom + 32),
           ],
-          // Membership actions section
-          if (canModerate) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text(
-                'membershipActions'.tr(),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MemberActionSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _MemberActionSection({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Text(
+              title,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.primary,
               ),
             ),
-            ListTile(
-              leading: Icon(
-                Symbols.person_remove,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: Text(
-                isPendingInvite ? 'removeInvite'.tr() : 'removeMember'.tr(),
-              ),
-              textColor: Theme.of(context).colorScheme.error,
-              enabled: !loading.value,
-              onTap: loading.value ? null : () => _removeMember(context, ref),
-            ),
-          ],
+          ),
+          Material(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: Column(mainAxisSize: MainAxisSize.min, children: children),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _MemberActionListTile extends StatelessWidget {
+  final Widget leading;
+  final Widget title;
+  final Widget? subtitle;
+  final VoidCallback? onTap;
+  final bool isDanger;
+
+  const _MemberActionListTile({
+    required this.leading,
+    required this.title,
+    this.subtitle,
+    this.onTap,
+    this.isDanger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground = isDanger
+        ? theme.colorScheme.error
+        : theme.colorScheme.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: foreground),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground),
+            child: Row(
+              children: [
+                SizedBox(width: 24, height: 24, child: leading),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      title,
+                      if (subtitle != null)
+                        DefaultTextStyle.merge(
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          child: subtitle!,
+                        ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Symbols.chevron_right,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
