@@ -134,6 +134,31 @@ class _LoginCheckScreen extends HookConsumerWidget {
       return null;
     }, [challenge]);
 
+    // Listen for cross-device approval/decline via WebSocket
+    useEffect(() {
+      if (challenge == null || challenge!.stepRemain <= 0) return null;
+      final ws = ref.read(websocketProvider);
+      final sub = ws.dataStream.listen((packet) {
+        if (packet.data == null) return;
+        final packetChallengeId = packet.data!['challenge_id'] as String?;
+        if (packetChallengeId != challenge?.id) return;
+
+        if (packet.type == 'auth.challenge.approved') {
+          Future(() {
+            if (isBusy.value) return;
+            isBusy.value = true;
+            getToken().catchError((err) {
+              showErrorAlert(err);
+              isBusy.value = false;
+            });
+          });
+        } else if (packet.type == 'auth.challenge.declined') {
+          showErrorAlert('challengeDeclinedError'.tr());
+        }
+      });
+      return sub.cancel;
+    }, [challenge?.id, challenge?.stepRemain]);
+
     if (factor == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
