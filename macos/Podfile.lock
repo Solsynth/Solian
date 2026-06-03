@@ -16,55 +16,55 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
-  - Firebase/CoreOnly (12.13.0):
-    - FirebaseCore (~> 12.13.0)
-  - Firebase/Messaging (12.13.0):
+  - Firebase/CoreOnly (12.14.0):
+    - FirebaseCore (~> 12.14.0)
+  - Firebase/Messaging (12.14.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 12.13.0)
-  - firebase_analytics (12.4.1):
+    - FirebaseMessaging (~> 12.14.0)
+  - firebase_analytics (12.4.2):
     - firebase_core
-    - FirebaseAnalytics (= 12.13.0)
+    - FirebaseAnalytics (= 12.14.0)
     - FlutterMacOS
-  - firebase_core (4.9.0):
-    - Firebase/CoreOnly (~> 12.13.0)
+  - firebase_core (4.10.0):
+    - Firebase/CoreOnly (~> 12.14.0)
     - FlutterMacOS
-  - firebase_messaging (16.2.2):
-    - Firebase/CoreOnly (~> 12.13.0)
-    - Firebase/Messaging (~> 12.13.0)
+  - firebase_messaging (16.3.0):
+    - Firebase/CoreOnly (~> 12.14.0)
+    - Firebase/Messaging (~> 12.14.0)
     - firebase_core
     - FlutterMacOS
-  - FirebaseAnalytics (12.13.0):
-    - FirebaseAnalytics/Default (= 12.13.0)
-    - FirebaseCore (~> 12.13.0)
-    - FirebaseInstallations (~> 12.13.0)
+  - FirebaseAnalytics (12.14.0):
+    - FirebaseAnalytics/Default (= 12.14.0)
+    - FirebaseCore (~> 12.14.0)
+    - FirebaseInstallations (~> 12.14.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - FirebaseAnalytics/Default (12.13.0):
-    - FirebaseCore (~> 12.13.0)
-    - FirebaseInstallations (~> 12.13.0)
-    - GoogleAppMeasurement/Default (= 12.13.0)
+  - FirebaseAnalytics/Default (12.14.0):
+    - FirebaseCore (~> 12.14.0)
+    - FirebaseInstallations (~> 12.14.0)
+    - GoogleAppMeasurement/Default (= 12.14.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - FirebaseCore (12.13.0):
-    - FirebaseCoreInternal (~> 12.13.0)
+  - FirebaseCore (12.14.0):
+    - FirebaseCoreInternal (~> 12.14.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
-  - FirebaseCoreInternal (12.13.0):
+  - FirebaseCoreInternal (12.14.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
-  - FirebaseInstallations (12.13.0):
-    - FirebaseCore (~> 12.13.0)
+  - FirebaseInstallations (12.14.0):
+    - FirebaseCore (~> 12.14.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
-  - FirebaseMessaging (12.13.0):
-    - FirebaseCore (~> 12.13.0)
-    - FirebaseInstallations (~> 12.13.0)
+  - FirebaseMessaging (12.14.0):
+    - FirebaseCore (~> 12.14.0)
+    - FirebaseInstallations (~> 12.14.0)
     - GoogleDataTransport (~> 10.1)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/Environment (~> 8.1)
@@ -96,23 +96,23 @@ PODS:
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
-  - GoogleAppMeasurement/Core (12.13.0):
+  - GoogleAppMeasurement/Core (12.14.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/Default (12.13.0):
-    - GoogleAdsOnDeviceConversion (~> 3.5.0)
-    - GoogleAppMeasurement/Core (= 12.13.0)
-    - GoogleAppMeasurement/IdentitySupport (= 12.13.0)
+  - GoogleAppMeasurement/Default (12.14.0):
+    - GoogleAdsOnDeviceConversion (~> 3.6.0)
+    - GoogleAppMeasurement/Core (= 12.14.0)
+    - GoogleAppMeasurement/IdentitySupport (= 12.14.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - GoogleAppMeasurement/IdentitySupport (12.13.0):
-    - GoogleAppMeasurement/Core (= 12.13.0)
+  - GoogleAppMeasurement/IdentitySupport (12.14.0):
+    - GoogleAppMeasurement/Core (= 12.14.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
     - GoogleUtilities/Network (~> 8.1)
@@ -198,7 +198,7 @@ PODS:
   - PromisesObjC (2.4.0)
   - protocol_handler_macos (0.0.1):
     - FlutterMacOS
-  - record_macos (1.2.1):
+  - record_macos (2.0.0):
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
@@ -416,15 +416,15 @@ SPEC CHECKSUMS:
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_saver: 0b49fcd0f67d6e24737b757ee1eb1d3d8ca392fb
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
-  Firebase: 7d62445aeabdaea36f7d372f33052fed9a72514f
-  firebase_analytics: c3bd011844d7ff74fa0aa16947d3986184701bea
-  firebase_core: 8a780c7f989df0ca42dcd55332fc1b203f11f848
-  firebase_messaging: 3cb926039fe036f6b92834334d6e23ab33007f1f
-  FirebaseAnalytics: 853fa849aca9e418f163c2de5ed0a867efa4fddf
-  FirebaseCore: 58905958aa00a061397a0fd759ae4b55bddb3576
-  FirebaseCoreInternal: 37bee58388fc6d183f0ab1b32d69ae44f2cf8aad
-  FirebaseInstallations: 134bde50e477628ded76070efdb12d515d53f948
-  FirebaseMessaging: 30564b85d2f81a96f9d312bd23acf8186ff092ae
+  Firebase: 7cc10425300768ec86292688af5cb228f0604bde
+  firebase_analytics: ee3d3fba486e108ac43f00373e1ba21ef55f65a6
+  firebase_core: 6c25555337efe4f9288389c14373ddd107790d90
+  firebase_messaging: 42a62d26647e5068cb1fbb083a01e59c702b983f
+  FirebaseAnalytics: 99364329a3ea4d1ab4a3744b5464371b7351c481
+  FirebaseCore: 4939b340b9c598dc1f965d68f8fe57e630b65407
+  FirebaseCoreInternal: 090369a5fffd7423cf88006ab4d2ccc2173a8db9
+  FirebaseInstallations: 7cdc919e29dc54306edeffdbdc1eed1a40d7d1e7
+  FirebaseMessaging: 4803888ce3002188f24e19faa8d2326261538426
   flutter_blue_plus_darwin: 20a08bfeaa0f7804d524858d3d8744bcc1b6dbc3
   flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   flutter_local_notifications: 1fc7ffb10a83d6a2eeeeddb152d43f1944b0aad0
@@ -435,7 +435,7 @@ SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
-  GoogleAppMeasurement: 01e991b4c0c025dd66558dbc5133b5d70ccdf88e
+  GoogleAppMeasurement: 1987ffa55055dfb22c52e363c31aa50c1e11d349
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
@@ -459,7 +459,7 @@ SPEC CHECKSUMS:
   pro_image_editor: e4f2ca0bcf5d755d81620d531b00e0906ccaa0ae
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
-  record_macos: 5d55909f9650314be6424ffd6b123ac75a08c3c1
+  record_macos: 2e43c16b84ce188b8137754ee648322a2dcdf7fa
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   Sentry: 108fdbb76299c4189af12246bf0308c09c278922
   sentry_flutter: 32e67cb4756ce3de42bbd56581fa935922ff328f

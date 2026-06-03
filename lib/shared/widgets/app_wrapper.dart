@@ -12,6 +12,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:island/auth/web_auth/auth_request_sheet.dart';
 import 'package:island/auth/web_auth/web_auth_server.dart';
+import 'package:island/auth/challenge_approval_sheet.dart';
+import 'package:island/auth/challenge_ws_listener.dart';
 import 'package:island/accounts/progression_ws.dart';
 import 'package:island/accounts/pods/friend_status_listener.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
@@ -43,6 +45,7 @@ import 'package:island/core/widgets/content/network_status_sheet.dart';
 import 'package:island/core/tour/tour.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:snow_fall_animation/snow_fall_animation.dart';
+import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
@@ -273,6 +276,14 @@ class AppWrapper extends HookConsumerWidget {
         if (ctx.mounted) _showWebAuthSheet(ctx, event);
       });
 
+      ref.read(challengeWsListenerProvider).start();
+      final challengeSubs = eventBus.on<ChallengePendingEvent>().listen((
+        event,
+      ) {
+        final ctx = ref.read(routerProvider).navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) _showChallengeApprovalSheet(ctx, event);
+      });
+
       return () {
         ref.read(rpcServerProvider).stop();
         deeplinkService.dispose();
@@ -288,6 +299,7 @@ class AppWrapper extends HookConsumerWidget {
         notificationSheetSubs.cancel();
         thoughtSheetSubs.cancel();
         webAuthSubs.cancel();
+        challengeSubs.cancel();
       };
     }, []);
 
@@ -512,6 +524,21 @@ class AppWrapper extends HookConsumerWidget {
     final random = Random.secure();
     final values = List<int>.generate(32, (i) => random.nextInt(256));
     return base64Url.encode(values);
+  }
+
+  void _showChallengeApprovalSheet(
+    BuildContext context,
+    ChallengePendingEvent event,
+  ) {
+    final challenge = SnAuthChallenge.fromJson(
+      Map<String, dynamic>.from(event.data),
+    );
+    // Don't show if the challenge is already expired
+    if (challenge.expiredAt != null &&
+        challenge.expiredAt!.isBefore(DateTime.now())) {
+      return;
+    }
+    ChallengeApprovalSheet.show(context, challenge);
   }
 
   void _handleDeepLink(Uri uri, WidgetRef ref, BuildContext context) async {

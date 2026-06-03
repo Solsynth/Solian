@@ -53,6 +53,47 @@ class AuthApi extends BaseApi {
   }
 
   // ==========================================
+  // Challenge approval endpoints
+  // ==========================================
+
+  /// Gets all pending challenges for the current user that are awaiting
+  /// approval from another device.
+  Future<List<SnAuthChallenge>> getPendingChallenges() async {
+    final response = await get<List<dynamic>>(
+      '$_basePath/auth/challenge/pending',
+    );
+    return parseList(response, SnAuthChallenge.fromJson);
+  }
+
+  /// Approves a pending challenge from another device.
+  ///
+  /// [challengeId] - The ID of the challenge to approve.
+  /// [pinCode] - The user's PIN code (required if account has PIN configured).
+  Future<void> approveChallenge({
+    required String challengeId,
+    String? pinCode,
+  }) async {
+    await post(
+      '$_basePath/auth/challenge/$challengeId/approve',
+      data: {'pin_code': pinCode},
+    );
+  }
+
+  /// Declines a pending challenge from another device.
+  ///
+  /// [challengeId] - The ID of the challenge to decline.
+  /// [pinCode] - The user's PIN code (required if account has PIN configured).
+  Future<void> declineChallenge({
+    required String challengeId,
+    String? pinCode,
+  }) async {
+    await post(
+      '$_basePath/auth/challenge/$challengeId/decline',
+      data: {'pin_code': pinCode},
+    );
+  }
+
+  // ==========================================
   // Session endpoints
   // ==========================================
 

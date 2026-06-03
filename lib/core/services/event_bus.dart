@@ -105,6 +105,13 @@ class OidcAuthCallbackEvent {
   const OidcAuthCallbackEvent(this.challengeId);
 }
 
+/// Event fired when a cross-device login approval request is received
+class ChallengePendingEvent {
+  final Map<String, dynamic> data;
+
+  const ChallengePendingEvent(this.data);
+}
+
 /// Event fired to trigger the command palette
 class CommandPaletteTriggerEvent {
   const CommandPaletteTriggerEvent();
