@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 3.9.0+227
+version: 3.9.0+228
 
 environment:
   sdk: ">3.10.0"
@@ -77,11 +77,11 @@ dependencies:
   disk_space_2: ^1.0.12
   riverpod_annotation: ^4.0.2
   image_picker_platform_interface: ^2.11.1
-  image_picker_android: ^0.8.13+17
+  image_picker_android: ^0.8.13+19
   super_context_menu: ^0.9.1
   modal_bottom_sheet: ^3.0.0
-  firebase_messaging: ^16.2.2
-  firebase_core: ^4.9.0
+  firebase_messaging: ^16.3.0
+  firebase_core: ^4.10.0
   web_socket_channel: ^3.0.3
   material_symbols_icons: ^4.2928.1
   objectbox: ^5.3.2
@@ -90,7 +90,7 @@ dependencies:
   open_file: ^3.5.11
   collection: ^1.19.1
   markdown_editor_plus: ^0.2.15
-  pro_image_editor: ^12.4.4
+  pro_image_editor: ^12.4.5
   table_calendar: ^3.2.0
   relative_time: ^5.0.0
   lunar: ^1.7.8
@@ -99,7 +99,7 @@ dependencies:
   avatar_stack: ^3.0.0
   markdown_widget: ^2.3.2+8
   visibility_detector: ^0.4.0+2
-  flutter_native_splash: ^2.4.7
+  flutter_native_splash: ^2.4.8
   photo_view: ^0.15.0
   gal: ^2.3.2
 
@@ -108,20 +108,20 @@ dependencies:
   livekit_client: ^2.5.4
   pasteboard: ^0.5.0
   flutter_colorpicker: ^1.1.0
-  image: ^4.8.0
-  record: ^6.2.1
+  image: ^4.9.1
+  record: ^7.0.0
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.2.0
   flutter_staggered_grid_view: ^0.7.0
   flutter_popup_card: ^0.1.2
   timezone: ^0.11.0
-  flutter_timezone: ^5.0.2
+  flutter_timezone: ^5.1.0
   fl_chart: ^1.2.0
-  sign_in_with_apple: ^8.0.0
+  sign_in_with_apple: ^8.1.0
   flutter_svg: ^2.3.0
   native_exif: ^0.8.0
   local_auth: ^3.0.1
-  flutter_secure_storage: ^10.3.0
+  flutter_secure_storage: ^10.3.1
   openmls: ^1.3.0
   flutter_math_fork: ^0.7.4
   flutter_nfc_kit: ^3.6.2
@@ -134,15 +134,15 @@ dependencies:
   waveform_flutter: ^1.2.0
   flutter_app_update: ^3.2.3
   archive: ^4.0.9
-  process_run: ^1.3.3+1
-  firebase_analytics: ^12.4.1
+  process_run: ^1.3.4
+  firebase_analytics: ^12.4.2
   material_color_utilities: ^0.13.0
   screenshot: ^3.0.0
   flutter_card_swiper: ^7.2.0
   file_saver: ^0.4.0
   tray_manager: ^0.5.2
   flutter_webrtc: ^1.2.1
-  flutter_local_notifications: ^21.0.0
+  flutter_local_notifications: ^22.0.0-dev.3
   wakelock_plus: ^1.5.2
   slide_countdown: ^2.0.2
   shelf: ^1.4.2
@@ -158,7 +158,7 @@ dependencies:
   pointycastle: ^4.0.0
   desktop_drop: ^0.7.1
   flutter_animate: ^4.5.2
-  flutter_blue_plus: ^2.3.3
+  flutter_blue_plus: ^2.3.5
   bluetooth_low_energy: ^6.2.1
   flutter_map: ^8.3.0
   geolocator: ^14.0.2
@@ -169,7 +169,7 @@ dependencies:
   skeletonizer: ^2.1.3
   latlong2: ^0.9.1
   map_launcher: ^4.5.0
-  permission_handler: ^12.0.1
+  permission_handler: ^12.0.3
   shake: ^3.0.0
   in_app_review: ^2.0.12
   snow_fall_animation: ^0.0.1+3
@@ -185,7 +185,7 @@ dependencies:
   health: ^13.1.4
   logging: ^1.3.0
   connectivity_plus: ^6.1.5
-  sentry_flutter: ^9.20.0
+  sentry_flutter: ^9.21.0
 
 dev_dependencies:
   flutter_test:
