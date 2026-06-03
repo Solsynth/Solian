@@ -26,6 +26,16 @@ _SnAuthChallenge _$SnAuthChallengeFromJson(Map<String, dynamic> json) =>
       countryCode: json['country_code'] as String?,
       country: json['country'] as String?,
       city: json['city'] as String?,
+      deviceId: json['device_id'] as String?,
+      deviceName: json['device_name'] as String?,
+      platform: (json['platform'] as num?)?.toInt(),
+      approvedAt: json['approved_at'] == null
+          ? null
+          : DateTime.parse(json['approved_at'] as String),
+      declinedAt: json['declined_at'] == null
+          ? null
+          : DateTime.parse(json['declined_at'] as String),
+      approvedBySessionId: json['approved_by_session_id'] as String?,
       accountId: json['account_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -50,6 +60,12 @@ Map<String, dynamic> _$SnAuthChallengeToJson(_SnAuthChallenge instance) =>
       'country_code': instance.countryCode,
       'country': instance.country,
       'city': instance.city,
+      'device_id': instance.deviceId,
+      'device_name': instance.deviceName,
+      'platform': instance.platform,
+      'approved_at': instance.approvedAt?.toIso8601String(),
+      'declined_at': instance.declinedAt?.toIso8601String(),
+      'approved_by_session_id': instance.approvedBySessionId,
       'account_id': instance.accountId,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
