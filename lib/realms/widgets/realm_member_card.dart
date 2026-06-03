@@ -457,90 +457,211 @@ class _RealmMemberActionSheet extends HookConsumerWidget {
     final loading = useState(false);
     final role = member.role;
 
+    final roleActions = <Widget>[
+      if (role != 0)
+        _RealmActionListTile(
+          leading: const Icon(Symbols.person),
+          title: Text('realmRoleMember'.tr()),
+          subtitle: Text('setAsMember'.tr()),
+          onTap: loading.value
+              ? null
+              : () => _updateRole(context, ref, 0),
+        ),
+      if (role < 100)
+        _RealmActionListTile(
+          leading: const Icon(Symbols.admin_panel_settings),
+          title: Text('realmRoleAdmin'.tr()),
+          subtitle: Text('setAsAdmin'.tr()),
+          onTap: loading.value
+              ? null
+              : () => _updateRole(context, ref, 50),
+        ),
+      if (role < 50)
+        _RealmActionListTile(
+          leading: const Icon(Symbols.shield_person),
+          title: Text('realmRoleOwner'.tr()),
+          subtitle: Text('setAsOwner'.tr()),
+          onTap: loading.value
+              ? null
+              : () => _updateRole(context, ref, 100),
+        ),
+    ];
+
+    final membershipActions = <Widget>[
+      _RealmActionListTile(
+        leading: Icon(
+          Symbols.person_remove,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        title: Text('removeRealmMember'.tr()),
+        isDanger: true,
+        onTap: loading.value ? null : () => _removeMember(context, ref),
+      ),
+    ];
+
     return SheetScaffold(
       titleText: 'memberActions'.tr(),
       heightFactor: 0.6,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Row(
+                children: [
+                  ProfilePictureWidget(
+                    file: member.account?.profile.picture,
+                    radius: 20,
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (member.account != null)
+                          AccountName(
+                            account: member.account!,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          )
+                        else
+                          Text(
+                            '@${member.accountId}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        Text(
+                          _getRoleLabel(role),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (canModerate && roleActions.isNotEmpty) ...[
+              _RealmActionSection(
+                title: 'roleActions'.tr(),
+                children: roleActions,
+              ),
+            ],
+            if (canModerate) ...[
+              _RealmActionSection(
+                title: 'membershipActions'.tr(),
+                children: membershipActions,
+              ),
+            ],
+            Gap(MediaQuery.of(context).padding.bottom + 32),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RealmActionSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _RealmActionSection({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Member info header
-          ListTile(
-            leading: ProfilePictureWidget(
-              file: member.account?.profile.picture,
-              radius: 20,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Text(
+              title,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
             ),
-            title: member.account != null
-                ? AccountName(account: member.account!)
-                : Text('@${member.accountId}'),
-            subtitle: Text(_getRoleLabel(role)),
           ),
-          const Divider(),
-          // Role management section
-          if (canModerate) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text(
-                'roleActions'.tr(),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-            if (role != 0)
-              ListTile(
-                leading: const Icon(Symbols.person),
-                title: Text('realmRoleMember'.tr()),
-                subtitle: Text('setAsMember'.tr()),
-                enabled: !loading.value,
-                onTap: loading.value
-                    ? null
-                    : () => _updateRole(context, ref, 0),
-              ),
-            if (role < 100)
-              ListTile(
-                leading: const Icon(Symbols.admin_panel_settings),
-                title: Text('realmRoleAdmin'.tr()),
-                subtitle: Text('setAsAdmin'.tr()),
-                enabled: !loading.value,
-                onTap: loading.value
-                    ? null
-                    : () => _updateRole(context, ref, 50),
-              ),
-            if (role < 50)
-              ListTile(
-                leading: const Icon(Symbols.shield_person),
-                title: Text('realmRoleOwner'.tr()),
-                subtitle: Text('setAsOwner'.tr()),
-                enabled: !loading.value,
-                onTap: loading.value
-                    ? null
-                    : () => _updateRole(context, ref, 100),
-              ),
-            const Divider(),
-          ],
-          // Membership actions section
-          if (canModerate) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text(
-                'membershipActions'.tr(),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(
-                Symbols.person_remove,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: Text('removeMember'.tr()),
-              textColor: Theme.of(context).colorScheme.error,
-              enabled: !loading.value,
-              onTap: loading.value ? null : () => _removeMember(context, ref),
-            ),
-          ],
+          Material(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: Column(mainAxisSize: MainAxisSize.min, children: children),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _RealmActionListTile extends StatelessWidget {
+  final Widget leading;
+  final Widget title;
+  final Widget? subtitle;
+  final VoidCallback? onTap;
+  final bool isDanger;
+
+  const _RealmActionListTile({
+    required this.leading,
+    required this.title,
+    this.subtitle,
+    this.onTap,
+    this.isDanger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground = isDanger
+        ? theme.colorScheme.error
+        : theme.colorScheme.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: foreground),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground),
+            child: Row(
+              children: [
+                SizedBox(width: 24, height: 24, child: leading),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      title,
+                      if (subtitle != null)
+                        DefaultTextStyle.merge(
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          child: subtitle!,
+                        ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Symbols.chevron_right,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
