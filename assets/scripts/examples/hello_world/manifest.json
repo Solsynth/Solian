@@ -1,0 +1,12 @@
+{
+  "id": "com.example.hello_world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "author": "Island",
+  "description": "Minimal example plugin. Registers a single command.",
+  "entry": "main.py",
+  "permissions": [
+    "commandsRegister",
+    "notify"
+  ]
+}

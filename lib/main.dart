@@ -26,6 +26,7 @@ import 'package:island/core/services/widget_sync_service.dart';
 import 'package:island/core/services/timezone.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
+import 'package:island/plugin/plugin.dart';
 import 'package:logging/logging.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,8 +37,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:protocol_handler/protocol_handler.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-// 注意：不再导入 python_service
 
 final List<LogRecord> _earlyLogs = [];
 const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
@@ -124,10 +123,28 @@ void main(List<String> args) async {
       );
     }
 
+    try {
+      Logger.root.info("[Plugin] Initializing plugin system...");
+      final manager = PluginManager();
+      manager.registerApi('hooks', HooksApi());
+      manager.registerApi('events', EventsApi());
+      manager.registerApi('commands', CommandsApi());
+      manager.registerApi('notify', NotifyApi());
+      manager.registerApi('ui', UiApi());
+      await manager.initialize();
+      PluginEventBridge().activate();
+      Logger.root.info(
+        "[Plugin] Plugin system ready with ${manager.plugins.length} plugins",
+      );
+    } catch (err) {
+      Logger.root.severe(
+        "[Plugin] Failed to initialize plugin system...",
+        err,
+      );
+    }
+
     final prefs = await SharedPreferences.getInstance();
     HttpOverrides.global = createAppHttpOverridesFromPrefs(prefs);
-
-    // 移除 Python 初始化代码
 
     if (!kIsWeb &&
         (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {

@@ -1,0 +1,14 @@
+{
+  "id": "com.example.content_filter",
+  "name": "Content Filter",
+  "version": "1.0.0",
+  "author": "Island",
+  "description": "Censors banned words in posts and messages before they are sent.",
+  "entry": "main.py",
+  "permissions": [
+    "eventsSubscribe",
+    "commandsRegister",
+    "uiRender"
+  ],
+  "background": false
+}

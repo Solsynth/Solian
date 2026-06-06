@@ -21,6 +21,8 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/core/debug_sheet.dart';
+import 'package:island/plugin/apis/commands_api.dart';
+import 'package:island/plugin/plugin_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
@@ -177,6 +179,29 @@ class CommandPaletteWidget extends HookConsumerWidget {
               .take(5) // Limit to 5 results
               .toList();
 
+    // Plugin commands
+    final pluginCommandsApi =
+        PluginManager().getApi<CommandsApi>();
+    final filteredPluginCommands = searchQuery.value.isEmpty
+        ? <SpecialAction>[]
+        : (pluginCommandsApi?.commands ?? [])
+              .where((cmd) {
+                final query = searchQuery.value.toLowerCase();
+                return cmd.name.toLowerCase().contains(query) ||
+                    cmd.description.toLowerCase().contains(query);
+              })
+              .map((cmd) => SpecialAction(
+                    name: '/${cmd.name}',
+                    description: cmd.description,
+                    icon: Symbols.extension,
+                    searchableAliases: [cmd.name],
+                    action: () {
+                      pluginCommandsApi!.executeCommand(cmd);
+                    },
+                  ))
+              .take(5)
+              .toList();
+
     final filteredFallbacks =
         searchQuery.value.isNotEmpty &&
             filteredChats.isEmpty &&
@@ -185,11 +210,12 @@ class CommandPaletteWidget extends HookConsumerWidget {
         ? _getFallbackActions(ref, context, searchQuery.value)
         : <FallbackAction>[];
 
-    // Combine results: fallbacks first, then chats, special actions, routes
+    // Combine results: fallbacks first, then chats, special actions, plugin commands, routes
     final allResults = [
       ...filteredFallbacks,
       ...filteredChats,
       ...filteredSpecialActions,
+      ...filteredPluginCommands,
       ...filteredRoutes,
     ];
 

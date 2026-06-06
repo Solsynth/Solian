@@ -197,6 +197,13 @@ final List<RouteItem> kAvailableRoutes = [
     icon: Symbols.settings,
   ),
   RouteItem(
+    name: 'Plugins',
+    path: '/plugins',
+    description: 'Manage plugins and the inline editor',
+    searchableAliases: ['plugins', 'plugin', 'python', 'scripts', 'extensions'],
+    icon: Symbols.extension,
+  ),
+  RouteItem(
     name: 'about'.tr(),
     path: '/about',
     description: 'about'.tr(),
