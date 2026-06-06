@@ -63,14 +63,14 @@ commands.register_command(
     "note-clear",
     "Clear all saved notes",
     "cmd_note_clear",
-    icon="delete",
+    "delete",
 )
 
 commands.register_command(
     "note-stats",
     "Show notes statistics",
     "cmd_note_stats",
-    icon="bar_chart",
+    "bar_chart",
 )
 
 # ── Lifecycle ──────────────────────────────────────────────────────────────────

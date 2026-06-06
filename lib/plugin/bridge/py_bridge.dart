@@ -80,9 +80,15 @@ class PyBridge {
   // ---------------------------------------------------------------------------
 
   /// Create or get a Python module by name.
+  /// If the module already exists (e.g. after hot restart), returns the existing one.
   Pointer<py_TValue> newModule(String name) {
     final namePtr = name.toNativeUtf8().cast<Char>();
     try {
+      // Check if module already exists
+      final existing = pocket.py_getmodule(namePtr);
+      if (existing != nullptr) {
+        return existing;
+      }
       return pocket.py_newmodule(namePtr);
     } finally {
       calloc.free(namePtr);
@@ -98,6 +104,14 @@ class PyBridge {
     } finally {
       calloc.free(namePtr);
     }
+  }
+
+  /// Reset all pocketpy VMs. Clears all modules, globals, and state.
+  /// Use on hot restart to get a clean slate.
+  void resetVM() {
+    pocket.py_resetallvm();
+    _initialized = false;
+    _log.info('Pocketpy VM reset');
   }
 
   // ---------------------------------------------------------------------------

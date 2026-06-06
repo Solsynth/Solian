@@ -25,6 +25,7 @@ import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/shared/widgets/alert.dart';
+import 'package:island/plugin/plugin_hooks.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
 
@@ -1052,6 +1053,17 @@ class ComposeLogic {
           'collection_ids': state.collectionIds.value,
       };
 
+      // Run plugin hooks before publishing
+      final hookResult = PluginHooks().runBeforePostCreate(
+        Map<String, dynamic>.from(payload),
+      );
+      if (hookResult.cancelled) {
+        showSnackBar('Post blocked by plugin: ${hookResult.cancelledBy}');
+        state.submitting.value = false;
+        throw Exception('Post blocked by plugin');
+      }
+      final effectivePayload = hookResult.data ?? payload;
+
       final publisherName = state.currentPublisher.value?.name;
       if (publisherName == null || publisherName.isEmpty) {
         throw Exception('Publisher is required');
@@ -1065,7 +1077,7 @@ class ComposeLogic {
           '/sphere/posts/${state.cloudDraftId.value}',
           queryParameters: {'pub': publisherName},
           data: {
-            ...payload,
+            ...effectivePayload,
             'drafted_at': DateTime.now().toUtc().toIso8601String(),
             'published_at': null,
           },
@@ -1080,7 +1092,7 @@ class ComposeLogic {
         final response = await client.dio.request(
           endpoint,
           queryParameters: {'pub': publisherName},
-          data: payload,
+          data: effectivePayload,
           options: Options(method: isNewPost ? 'POST' : 'PATCH'),
         );
         post = SnPost.fromJson(response.data);

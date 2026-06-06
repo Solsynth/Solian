@@ -126,6 +126,8 @@ void main(List<String> args) async {
     try {
       Logger.root.info("[Plugin] Initializing plugin system...");
       final manager = PluginManager();
+      // Clear stale state from previous hot restart
+      manager.dispose();
       manager.registerApi('hooks', HooksApi());
       manager.registerApi('events', EventsApi());
       manager.registerApi('commands', CommandsApi());
