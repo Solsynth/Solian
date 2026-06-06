@@ -1,0 +1,14 @@
+{
+  "id": "com.example.nekoizer",
+  "name": "Nekoizer",
+  "version": "1.0.0",
+  "author": "Island",
+  "description": "Add a '喵' to every single messages and posts.",
+  "entry": "main.py",
+  "permissions": [
+    "eventsSubscribe",
+    "commandsRegister",
+    "uiRender"
+  ],
+  "background": false
+}

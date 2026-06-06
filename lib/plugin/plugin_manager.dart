@@ -12,6 +12,10 @@ import 'package:pocketpy/pocketpy_bindings_generated.dart';
 import 'package:island/plugin/bridge/py_bridge.dart';
 import 'package:island/plugin/models/plugin_manifest.dart';
 import 'package:island/plugin/apis/plugin_api.dart';
+import 'package:island/plugin/apis/hooks_api.dart';
+import 'package:island/plugin/apis/commands_api.dart';
+import 'package:island/plugin/apis/events_api.dart';
+import 'package:island/plugin/background_runner.dart';
 
 final _log = Logger('PluginManager');
 
@@ -359,7 +363,7 @@ class PluginManager {
     } else {
       instance.state = PluginState.error;
       instance.lastError = _py.formatException() ?? 'Unknown error';
-      _log.warning('Inline plugin failed: $pluginId - ${instance.lastError}');
+      _log.severe('Inline plugin failed: $pluginId - ${instance.lastError}');
     }
 
     return instance;
@@ -398,7 +402,6 @@ class PluginManager {
     if (instance.module == null) return;
 
     // Known function mappings: namespace -> [function_names]
-    // These match what each API's register() method binds to the module.
     // Only APIs with sub-functions need namespace objects.
     // APIs that bind top-level functions (like `notify`) are skipped.
     final apiFunctions = <String, List<String>>{
@@ -418,6 +421,9 @@ class PluginManager {
         .toList();
     if (namespaces.isEmpty) return;
 
+    // Build Python code that creates namespace objects with wrapper functions.
+    // Native functions are bound at module level; this wraps them into namespaces
+    // using def closures so argument passing works correctly.
     final buf = StringBuffer();
     buf.writeln('class _NS:');
     buf.writeln('  pass');
@@ -426,15 +432,24 @@ class PluginManager {
       buf.writeln('$ns = _NS()');
     }
 
+    // Build Python wrapper code for each API function.
+    // Wrappers convert keyword arguments to positional since native funcs only take positional.
     for (final ns in namespaces) {
       for (final fn in apiFunctions[ns]!) {
-        buf.writeln('try: $ns.$fn = $fn');
+        buf.writeln('def _wrap_${ns}_$fn(*a, **kw):');
+        buf.writeln('  a = list(a)');
+        buf.writeln('  for v in kw.values(): a.append(v)');
+        buf.writeln('  return $fn(*a)');
+        buf.writeln('try: $ns.$fn = _wrap_${ns}_$fn');
         buf.writeln('except: pass');
       }
     }
 
     final code = buf.toString();
-    _py.exec(code, filename: '<api_namespaces>', module: instance.module);
+    final ok = _py.exec(code, filename: '<api_namespaces>', module: instance.module);
+    if (!ok) {
+      _log.warning('Failed to create API namespaces: ${_py.formatException()}');
+    }
   }
 
   /// Register plugin metadata as read-only globals in the module.
@@ -506,5 +521,18 @@ class PluginManager {
     _plugins.clear();
     _apis.clear();
     _initialized = false;
+    _inlineCounter = 0;
+    _activePluginId = null;
+
+    // Clear static state on API classes
+    HooksApi.reset();
+    CommandsApi.reset();
+    EventsApi.reset();
+    BackgroundTaskApi.reset();
+
+    // Reset the pocketpy VM to clear all native modules
+    _py.resetVM();
+
+    _log.info('PluginManager disposed');
   }
 }
