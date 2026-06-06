@@ -17,6 +17,7 @@ class PluginCommand {
   final String handlerName;
   final String? icon;
   final Pointer<py_TValue>? module;
+  final Pointer<py_TValue>? funcRef;
 
   const PluginCommand({
     required this.pluginId,
@@ -25,6 +26,7 @@ class PluginCommand {
     required this.handlerName,
     this.icon,
     this.module,
+    this.funcRef,
   });
 }
 
@@ -56,6 +58,11 @@ class CommandsApi extends PluginApi {
   static CommandsApi? _activeInstance;
   static Pointer<py_TValue>? _activeModule;
 
+  static void reset() {
+    _activeInstance = null;
+    _activeModule = null;
+  }
+
   static bool _registerCommand(int argc, py_StackRef argv) {
     if (argc < 3) return false;
     final py = PyBridge.instance;
@@ -77,7 +84,7 @@ class CommandsApi extends PluginApi {
       module: _activeModule,
     ));
 
-    _log.info('Plugin $pluginId registered command: $name');
+    _log.info('Plugin $pluginId registered command: $name -> $handler (module: ${_activeModule != null})');
     return true;
   }
 
@@ -85,11 +92,11 @@ class CommandsApi extends PluginApi {
   Object? executeCommand(PluginCommand command) {
     final py = PyBridge.instance;
 
-    // Look for the handler in the plugin's module, not __main__
-    Pointer<py_TValue>? funcRef;
+    // Use stored function reference if available
+    Pointer<py_TValue>? funcRef = command.funcRef;
 
-    if (command.module != null) {
-      // Try to get the function from the module's __dict__
+    // Fallback: look up in module by name
+    if (funcRef == null && command.module != null) {
       final nameId = py.name(command.handlerName);
       final itemRef = pocket.py_getdict(command.module!, nameId);
       if (itemRef != nullptr) {

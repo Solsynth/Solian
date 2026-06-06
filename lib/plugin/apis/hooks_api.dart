@@ -1,4 +1,6 @@
 import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+import 'package:pocketpy/pocketpy.dart';
 import 'package:pocketpy/pocketpy_bindings_generated.dart';
 import 'package:logging/logging.dart';
 import 'package:island/plugin/bridge/py_bridge.dart';
@@ -14,12 +16,14 @@ class PluginHookHandler {
   final String hookName;
   final String handlerName;
   final Pointer<py_TValue>? module;
+  final Pointer<py_TValue>? funcRef;
 
   const PluginHookHandler({
     required this.pluginId,
     required this.hookName,
     required this.handlerName,
     this.module,
+    this.funcRef,
   });
 }
 
@@ -78,11 +82,26 @@ class HooksApi extends PluginApi {
   static HooksApi? _activeInstance;
   static Pointer<py_TValue>? _activeModule;
 
+  static void reset() {
+    _activeInstance = null;
+    _activeModule = null;
+  }
+
   static bool _registerHook(String hookName, int argc, py_StackRef argv) {
     if (argc < 1) return false;
-    final py = PyBridge.instance;
-    final handlerName = py.toDart(argv.elementAt(0))?.toString();
-    if (handlerName == null) return false;
+    final arg = argv.elementAt(0);
+
+    // Store the function reference directly (arg points to the function on the stack)
+    final funcRef = arg.cast<py_TValue>();
+
+    // Extract the function name using py_str
+    String handlerName = '<unknown>';
+    if (pocket.py_str(arg)) {
+      final strPtr = pocket.py_tostr(pocket.py_retval());
+      if (strPtr != nullptr) {
+        handlerName = strPtr.cast<Utf8>().toDartString();
+      }
+    }
 
     final pluginId = PluginManager.activePluginId ?? 'unknown';
 
@@ -91,6 +110,7 @@ class HooksApi extends PluginApi {
       hookName: hookName,
       handlerName: handlerName,
       module: _activeModule,
+      funcRef: funcRef,
     ));
 
     _log.info('Plugin $pluginId registered hook: $hookName -> $handlerName');
