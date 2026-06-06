@@ -1,0 +1,13 @@
+{
+  "id": "com.example.quick_notes",
+  "name": "Quick Notes",
+  "version": "1.0.0",
+  "author": "Island",
+  "description": "Jot down quick notes from the command palette.",
+  "entry": "main.py",
+  "permissions": [
+    "commandsRegister",
+    "notify",
+    "uiRender"
+  ]
+}

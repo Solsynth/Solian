@@ -1802,6 +1802,46 @@ class SettingsScreen extends HookConsumerWidget {
 
     categories.add(
       _SettingCategory(
+        icon: Symbols.extension,
+        title: 'Plugins',
+        localizedTitleKey: 'settingsCategoryPlugins',
+        searchTerms: [
+          'plugins',
+          'python',
+          'scripts',
+          'extensions',
+          'automation',
+          'hooks',
+        ],
+        children: [
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsManagePlugins').tr(),
+            subtitle: Text('settingsManagePluginsDescription').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.extension),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              context.router.push(const PluginManagerRoute());
+            },
+          ),
+          ListTile(
+            minLeadingWidth: 48,
+            title: Text('settingsPluginEditor').tr(),
+            subtitle: Text('settingsPluginEditorDescription').tr(),
+            contentPadding: const EdgeInsets.only(left: 24, right: 17),
+            leading: const Icon(Symbols.code),
+            trailing: const Icon(Symbols.chevron_right),
+            onTap: () {
+              context.router.push(const PluginEditorRoute());
+            },
+          ),
+        ],
+      ),
+    );
+
+    categories.add(
+      _SettingCategory(
         icon: Symbols.info,
         title: 'About',
         localizedTitleKey: 'about',
