@@ -79,8 +79,8 @@ sealed class PluginManifest with _$PluginManifest {
     /// Short description.
     @Default('') String description,
 
-    /// Entry point Python file relative to the plugin directory.
-    @Default('main.py') String entry,
+    /// Entry point JavaScript file relative to the plugin directory.
+    @Default('main.js') String entry,
 
     /// List of permissions this plugin requires.
     @Default([]) List<PluginPermission> permissions,

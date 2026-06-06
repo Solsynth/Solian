@@ -86,12 +86,13 @@ class PluginEditorScreen extends HookConsumerWidget {
                   fontSize: 14,
                 ),
                 decoration: const InputDecoration(
-                  labelText: 'Python Code',
+                  labelText: 'JavaScript Code',
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
-                  hintText: '# Write your plugin code here\n'
-                      'def on_load():\n'
-                      '    print("Hello from plugin!")\n',
+                  hintText: '// Write your plugin code here\n'
+                      'function on_load() {\n'
+                      '    console.log("Hello from plugin!");\n'
+                      '}\n',
                 ),
               ),
             ),

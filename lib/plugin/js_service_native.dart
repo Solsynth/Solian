@@ -3,9 +3,9 @@ import 'package:island/plugin/models/plugin_manifest.dart';
 
 bool _isInitialized = false;
 
-bool isPythonAvailable() => _isInitialized;
+bool isJsAvailable() => _isInitialized;
 
-Future<void> initPython() async {
+Future<void> initJs() async {
   if (_isInitialized) return;
   try {
     await PluginManager().initialize();
@@ -15,7 +15,7 @@ Future<void> initPython() async {
   }
 }
 
-Future<void> evalPythonCode(String code) async {
+Future<void> evalJsCode(String code) async {
   if (!_isInitialized) return;
   final manager = PluginManager();
   manager.installInlinePlugin(

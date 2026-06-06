@@ -1,15 +1,12 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:pocketpy/pocketpy.dart';
-import 'package:pocketpy/pocketpy_bindings_generated.dart';
 
-import 'package:island/plugin/bridge/py_bridge.dart';
+import 'package:island/plugin/bridge/js_bridge.dart';
 import 'package:island/plugin/models/plugin_manifest.dart';
 import 'package:island/plugin/apis/plugin_api.dart';
 import 'package:island/plugin/apis/hooks_api.dart';
@@ -24,14 +21,14 @@ class PluginInstance {
   final PluginManifest manifest;
   final String directoryPath;
   PluginState state;
-  Pointer<py_TValue>? module;
+  JsRuntime? runtime;
   String? lastError;
 
   PluginInstance({
     required this.manifest,
     required this.directoryPath,
     this.state = PluginState.discovered,
-    this.module,
+    this.runtime,
     this.lastError,
   });
 }
@@ -42,7 +39,7 @@ class PluginManager {
   factory PluginManager() => _instance;
   PluginManager._();
 
-  final PyBridge _py = PyBridge.instance;
+  final JsBridge _bridge = JsBridge.instance;
   final Map<String, PluginInstance> _plugins = {};
   final Map<String, PluginApi> _apis = {};
   bool _initialized = false;
@@ -75,11 +72,6 @@ class PluginManager {
   /// Initialize the plugin manager and load all plugins.
   Future<void> initialize() async {
     if (_initialized) return;
-
-    _py.initialize();
-
-    // Register built-in APIs
-    // (External code should call registerApi() before initialize(), or after)
 
     // Discover and load plugins from all sources
     await _discoverPlugins();
@@ -133,19 +125,21 @@ class PluginManager {
     }
   }
 
-  /// Load bundled Python scripts from assets/scripts/.
+  /// Load bundled JavaScript scripts from assets/scripts/.
   Future<void> _loadBundledScripts() async {
     try {
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
       final allAssets = manifest.listAssets();
       final scripts = allAssets
-          .where((a) => a.startsWith('assets/scripts/') && a.endsWith('.py'))
+          .where((a) => a.startsWith('assets/scripts/') && a.endsWith('.js'))
           .toList()
         ..sort();
 
       for (final assetPath in scripts) {
         final content = await rootBundle.loadString(assetPath);
-        _py.exec(content, filename: assetPath);
+        final runtimeName = 'bundled:${assetPath.split('/').last}';
+        final runtime = _bridge.createRuntime(runtimeName);
+        runtime.exec(content, filename: assetPath);
         _log.info('Executed bundled script: $assetPath');
       }
     } catch (e) {
@@ -168,9 +162,9 @@ class PluginManager {
     }
 
     try {
-      // Create a dedicated module for this plugin
-      final moduleName = 'plugin_${pluginId.replaceAll('.', '_')}';
-      instance.module = _py.newModule(moduleName);
+      // Create a dedicated JS runtime for this plugin
+      final runtimeName = 'plugin:$pluginId';
+      instance.runtime = _bridge.createRuntime(runtimeName);
 
       // Register sandboxed APIs based on permissions
       _registerPluginApis(instance);
@@ -186,11 +180,14 @@ class PluginManager {
       }
 
       final source = await entryFile.readAsString();
-      final ok = _py.exec(source, filename: entryPath, module: instance.module);
+      final result = instance.runtime!.execWithOutput(
+        source,
+        filename: entryPath,
+      );
 
-      if (!ok) {
+      if (!result.success) {
         instance.state = PluginState.error;
-        instance.lastError = _py.formatException() ?? 'Unknown error';
+        instance.lastError = result.error ?? 'Unknown error';
         _log.warning('Plugin failed to load: $pluginId - ${instance.lastError}');
         return false;
       }
@@ -218,8 +215,10 @@ class PluginManager {
       _callPluginHook(instance, 'on_unload');
     } catch (_) {}
 
+    // Dispose the JS runtime
+    instance.runtime?.dispose();
+    instance.runtime = null;
     instance.state = PluginState.discovered;
-    instance.module = null;
     instance.lastError = null;
     _log.info('Plugin unloaded: $pluginId');
   }
@@ -325,7 +324,7 @@ class PluginManager {
     _log.info('Uninstalled plugin: $pluginId');
   }
 
-  /// Install a plugin from an inline Python source string.
+  /// Install a plugin from an inline JavaScript source string.
   /// Creates a temporary plugin with a generated ID.
   PluginInstance installInlinePlugin({
     required String name,
@@ -334,7 +333,6 @@ class PluginManager {
     List<PluginPermission> permissions = const [],
   }) {
     final baseId = id ?? 'inline.${name.toLowerCase().replaceAll(' ', '_')}';
-    // Use a counter suffix to avoid module name collisions on re-run
     _inlineCounter++;
     final pluginId = '$baseId.$_inlineCounter';
 
@@ -349,29 +347,34 @@ class PluginManager {
     );
     _plugins[pluginId] = instance;
 
-    // Create module and register APIs
-    final moduleName = 'plugin_${pluginId.replaceAll('.', '_')}';
-    instance.module = _py.newModule(moduleName);
+    // Create runtime and register APIs
+    final runtimeName = 'plugin:$pluginId';
+    instance.runtime = _bridge.createRuntime(runtimeName);
     _registerPluginApis(instance);
 
     // Execute inline source
-    final ok = _py.exec(source, filename: '<inline:$pluginId>', module: instance.module);
-    if (ok) {
+    final result = instance.runtime!.execWithOutput(
+      source,
+      filename: '<inline:$pluginId>',
+    );
+
+    if (result.success) {
       _callPluginHook(instance, 'on_load');
       instance.state = PluginState.active;
       _log.info('Inline plugin activated: $pluginId');
     } else {
       instance.state = PluginState.error;
-      instance.lastError = _py.formatException() ?? 'Unknown error';
+      instance.lastError = result.error ?? 'Unknown error';
       _log.severe('Inline plugin failed: $pluginId - ${instance.lastError}');
     }
 
     return instance;
   }
 
-  /// Register API bridges into a plugin's module based on its permissions.
+  /// Register API bridges into a plugin's runtime based on its permissions.
   void _registerPluginApis(PluginInstance instance) {
-    if (instance.module == null) return;
+    final runtime = instance.runtime;
+    if (runtime == null) return;
     final perms = instance.manifest.permissions.toSet();
 
     // Set the active plugin ID so API callbacks can identify the plugin
@@ -383,111 +386,111 @@ class PluginManager {
       // Check if this API requires any permission
       if (api.requiredPermissions.isEmpty ||
           api.requiredPermissions.any(perms.contains)) {
-        api.register(instance.module!, _py);
+        api.register(runtime);
       }
     }
 
-    // Create namespace objects so Python code can call e.g. commands.register_command()
+    // Create namespace objects so JS code can call e.g. commands.register_command()
     _createApiNamespaces(instance);
 
-    // Always register the plugin's own metadata
+    // Register the plugin's own metadata
     _registerPluginMetadata(instance);
 
     _activePluginId = null;
   }
 
-  /// Create Python namespace objects for each registered API.
+  /// Create JavaScript namespace objects for each registered API.
   /// After this, plugin code can use `commands.register_command(...)` etc.
   void _createApiNamespaces(PluginInstance instance) {
-    if (instance.module == null) return;
+    final runtime = instance.runtime;
+    if (runtime == null) return;
 
-    // Known function mappings: namespace -> [function_names]
-    // Only APIs with sub-functions need namespace objects.
-    // APIs that bind top-level functions (like `notify`) are skipped.
-    final apiFunctions = <String, List<String>>{
-      'hooks': [
-        'before_post_create',
-        'before_message_send',
-        'before_post_display',
-        'before_message_display',
-      ],
-      'events': ['subscribe', 'list_events'],
-      'commands': ['register_command'],
-      'ui': ['card', 'list_items', 'button', 'text', 'section', 'divider'],
-    };
-
-    final namespaces = apiFunctions.keys
-        .where((ns) => _apis.containsKey(ns))
-        .toList();
-    if (namespaces.isEmpty) return;
-
-    // Build Python code that creates namespace objects with wrapper functions.
-    // Native functions are bound at module level; this wraps them into namespaces
-    // using def closures so argument passing works correctly.
+    // Build JS code that creates namespace objects with wrapper functions.
+    // sendMessage channels are the bridge; this creates ergonomic JS wrappers.
     final buf = StringBuffer();
-    buf.writeln('class _NS:');
-    buf.writeln('  pass');
 
-    for (final ns in namespaces) {
-      buf.writeln('$ns = _NS()');
-    }
+    buf.writeln('var hooks = {};');
+    buf.writeln('hooks.before_post_create = function(handler) {');
+    buf.writeln('  sendMessage("api:hooks:before_post_create", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln('};');
+    buf.writeln('hooks.before_message_send = function(handler) {');
+    buf.writeln('  sendMessage("api:hooks:before_message_send", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln('};');
+    buf.writeln('hooks.before_post_display = function(handler) {');
+    buf.writeln('  sendMessage("api:hooks:before_post_display", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln('};');
+    buf.writeln('hooks.before_message_display = function(handler) {');
+    buf.writeln('  sendMessage("api:hooks:before_message_display", JSON.stringify({handler: handler.name || handler.toString()}));');
+    buf.writeln('};');
 
-    // Build Python wrapper code for each API function.
-    // Wrappers convert keyword arguments to positional since native funcs only take positional.
-    for (final ns in namespaces) {
-      for (final fn in apiFunctions[ns]!) {
-        buf.writeln('def _wrap_${ns}_$fn(*a, **kw):');
-        buf.writeln('  a = list(a)');
-        buf.writeln('  for v in kw.values(): a.append(v)');
-        buf.writeln('  return $fn(*a)');
-        buf.writeln('try: $ns.$fn = _wrap_${ns}_$fn');
-        buf.writeln('except: pass');
-      }
-    }
+    buf.writeln('var commands = {};');
+    buf.writeln('commands.register_command = function(name, description, handler, icon) {');
+    buf.writeln('  sendMessage("api:commands:register_command", JSON.stringify({name: name, description: description, handler: handler, icon: icon || null}));');
+    buf.writeln('};');
+
+    buf.writeln('var events = {};');
+    buf.writeln('events.subscribe = function(eventName, handler) {');
+    buf.writeln('  sendMessage("api:events:subscribe", JSON.stringify({event: eventName, handler: handler}));');
+    buf.writeln('};');
+    buf.writeln('events.list_events = function() {');
+    buf.writeln('  return sendMessage("api:events:list_events", "[]");');
+    buf.writeln('};');
+
+    buf.writeln('function notify(title, body) {');
+    buf.writeln('  sendMessage("api:notify", JSON.stringify({title: title, body: body}));');
+    buf.writeln('}');
+
+    buf.writeln('var ui = {};');
+    buf.writeln('ui.card = function(title, body, actions) {');
+    buf.writeln('  var result = sendMessage("api:ui:card", JSON.stringify({title: title, body: body, actions: actions || []}));');
+    buf.writeln('  return result;');
+    buf.writeln('};');
+    buf.writeln('ui.list_items = function(items) {');
+    buf.writeln('  return sendMessage("api:ui:list_items", JSON.stringify({items: items}));');
+    buf.writeln('};');
+    buf.writeln('ui.button = function(label, callback) {');
+    buf.writeln('  return sendMessage("api:ui:button", JSON.stringify({label: label, callback: callback || null}));');
+    buf.writeln('};');
+    buf.writeln('ui.text = function(content) {');
+    buf.writeln('  return sendMessage("api:ui:text", JSON.stringify({content: content}));');
+    buf.writeln('};');
+    buf.writeln('ui.section = function(title, children) {');
+    buf.writeln('  return sendMessage("api:ui:section", JSON.stringify({title: title, children: children || []}));');
+    buf.writeln('};');
+    buf.writeln('ui.divider = function() {');
+    buf.writeln('  return sendMessage("api:ui:divider", "{}");');
+    buf.writeln('};');
+
+    buf.writeln('var tasks = {};');
+    buf.writeln('tasks.schedule = function(intervalSeconds, handler) {');
+    buf.writeln('  sendMessage("api:tasks:schedule", JSON.stringify({interval: intervalSeconds, handler: handler}));');
+    buf.writeln('};');
 
     final code = buf.toString();
-    final ok = _py.exec(code, filename: '<api_namespaces>', module: instance.module);
+    final ok = runtime.exec(code, filename: '<api_namespaces>');
     if (!ok) {
-      _log.warning('Failed to create API namespaces: ${_py.formatException()}');
+      _log.warning('Failed to create API namespaces');
     }
   }
 
-  /// Register plugin metadata as read-only globals in the module.
+  /// Register plugin metadata as read-only globals in the runtime.
   void _registerPluginMetadata(PluginInstance instance) {
-    if (instance.module == null) return;
+    final runtime = instance.runtime;
+    if (runtime == null) return;
 
-    // Set __plugin_id__ in the plugin's module (not __main__)
-    final idOut = _py.pushTmp();
-    _py.newStr(idOut, instance.manifest.id);
-    final nameId = _py.name('__plugin_id__');
-    pocket.py_setdict(instance.module!, nameId, idOut);
-    _py.pop();
+    runtime.setGlobal('__plugin_id__', instance.manifest.id);
   }
 
-  /// Call a named hook function in a plugin's module, if it exists.
+  /// Call a named hook function in a plugin's runtime, if it exists.
   void _callPluginHook(PluginInstance instance, String hookName) {
-    if (instance.module == null) return;
+    final runtime = instance.runtime;
+    if (runtime == null) return;
 
-    // Look for the function in the plugin's module, not __main__
-    final nameId = _py.name(hookName);
-    final funcRef = pocket.py_getdict(instance.module!, nameId);
-    if (funcRef == nullptr) return;
-
-    // Check if it's callable
-    final type = pocket.py_typeof(funcRef);
-    if (type != py_PredefinedType.tp_function &&
-        type != py_PredefinedType.tp_nativefunc) {
-      return;
-    }
-
-    // Call it
-    final ok = pocket.py_call(funcRef, 0, nullptr);
-    if (!ok) {
-      _log.warning(
-        'Plugin ${instance.manifest.id} hook $hookName failed: '
-        '${_py.formatException() ?? "unknown error"}',
-      );
-    }
+    // Check if the function exists and call it
+    runtime.exec(
+      'if (typeof $hookName === "function") { $hookName(); }',
+      filename: '<hook:$hookName>',
+    );
   }
 
   /// Fire an event to all active plugins that have events permission.
@@ -500,17 +503,23 @@ class PluginManager {
 
       _callPluginHook(instance, 'on_$eventName');
       if (data != null) {
-        // Call with data argument
+        // Call handle_<event> with data argument
         final handlerName = 'handle_$eventName';
-        final funcRef = _py.getGlobal(handlerName);
-        if (funcRef != null) {
-          final dataOut = _py.pushTmp();
-          _py.fromDart(dataOut, data);
-          pocket.py_call(funcRef, 1, dataOut);
-          _py.pop();
+        final runtime = instance.runtime;
+        if (runtime != null) {
+          final dataJson = jsonEncode(data);
+          runtime.exec(
+            'if (typeof $handlerName === "function") { $handlerName(JSON.parse(${_jsStringLiteral(dataJson)})); }',
+            filename: '<event:$eventName>',
+          );
         }
       }
     }
+  }
+
+  /// Escape a string for use as a JavaScript string literal.
+  String _jsStringLiteral(String s) {
+    return "'${s.replaceAll("\\", "\\\\").replaceAll("'", "\\'").replaceAll("\n", "\\n").replaceAll("\r", "\\r")}'";
   }
 
   /// Dispose all plugins and clean up resources.
@@ -530,8 +539,8 @@ class PluginManager {
     EventsApi.reset();
     BackgroundTaskApi.reset();
 
-    // Reset the pocketpy VM to clear all native modules
-    _py.resetVM();
+    // Dispose all JS runtimes
+    _bridge.disposeAll();
 
     _log.info('PluginManager disposed');
   }

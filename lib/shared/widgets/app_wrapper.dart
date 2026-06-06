@@ -182,16 +182,16 @@ class AppWrapper extends HookConsumerWidget {
       return null;
     }, [hasConnectivity, token, websocketState]);
 
-    // TODO reenable this till the python service is stable
+    // TODO reenable this till the js service is stable
     // useEffect(() {
     //   if (!kIsWeb) {
     //     Future(() async {
-    //       await python.initPython();
-    //       if (python.isPythonAvailable()) {
-    //         Logger.root.info("[pocketpy] Initialized from AppWrapper");
+    //       await initJs();
+    //       if (isJsAvailable()) {
+    //         Logger.root.info("[flutter_js] Initialized from AppWrapper");
     //       } else {
     //         Logger.root.info(
-    //           "[pocketpy] Not available (folder missing or init failed)",
+    //           "[flutter_js] Not available (folder missing or init failed)",
     //         );
     //       }
     //     });
