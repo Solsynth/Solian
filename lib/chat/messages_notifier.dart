@@ -20,6 +20,7 @@ import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
 import "package:logging/logging.dart";
 import "package:island/shared/widgets/alert.dart";
+import "package:island/plugin/plugin_hooks.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import "package:island/accounts/screens/profile.dart";
@@ -988,9 +989,17 @@ class MessagesNotifier extends _$MessagesNotifier {
       return;
     }
 
+    // Run plugin hooks before sending
+    final hookResult = PluginHooks().runBeforeMessageSend(content);
+    if (hookResult.cancelled) {
+      showSnackBar('Message blocked by plugin: ${hookResult.cancelledBy}');
+      return;
+    }
+    final effectiveContent = hookResult.data ?? content;
+
     String? pendingMessageId;
     final result = await _sender.sendTextMessage(
-      content: content,
+      content: effectiveContent,
       attachments: attachments,
       sender: _identity,
       editingTo: editingTo,

@@ -119,7 +119,7 @@ commands.register_command(
     "filter-reset",
     "Reset filter statistics",
     "cmd_filter_reset",
-    icon="refresh",
+    "refresh",
 )
 
 # ── Lifecycle ──────────────────────────────────────────────────────────────────

@@ -85,12 +85,15 @@ class PluginHooks {
     final manager = PluginManager();
     final hooksApi = manager.getApi<HooksApi>();
     if (hooksApi == null) {
+      _log.info('Hook $hookName: no HooksApi registered');
       return HookResult.proceed(data);
     }
 
     final handlers = hooksApi.handlers
         .where((h) => h.hookName == hookName)
         .toList();
+
+    _log.info('Hook $hookName: found ${handlers.length} handlers');
 
     if (handlers.isEmpty) {
       return HookResult.proceed(data);
@@ -119,10 +122,11 @@ class PluginHooks {
     Map<String, dynamic> data,
   ) {
     try {
-      // Find the handler function in the plugin's module, not __main__
-      Pointer<py_TValue>? funcRef;
+      // Use stored function reference directly if available
+      Pointer<py_TValue>? funcRef = handler.funcRef;
 
-      if (handler.module != null) {
+      // Fallback: look up by name in module
+      if (funcRef == null && handler.module != null) {
         final nameId = _py.name(handler.handlerName);
         final itemRef = pocket.py_getdict(handler.module!, nameId);
         if (itemRef != nullptr) {
@@ -147,17 +151,19 @@ class PluginHooks {
           type != py_PredefinedType.tp_nativefunc) {
         _log.warning(
           'Hook handler ${handler.handlerName} is not callable '
-          '(plugin: ${handler.pluginId})',
+          '(type: $type, plugin: ${handler.pluginId})',
         );
         return data;
       }
 
-      // Convert data to Python dict and put in register _0
-      final dataOut = _py.reg(0);
-      _py.fromDart(dataOut, data);
+      // Convert data to Python dict and push onto stack
+      final tmpSlot = _py.pushTmp();
+      _py.fromDart(tmpSlot, data);
 
       // Call the handler with 1 argument
-      final ok = pocket.py_call(funcRef, 1, dataOut);
+      final ok = pocket.py_call(funcRef, 1, tmpSlot);
+      // Pop the temp slot
+      _py.pop();
       if (!ok) {
         _log.warning(
           'Hook handler ${handler.handlerName} raised an exception: '

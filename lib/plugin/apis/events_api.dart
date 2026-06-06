@@ -56,6 +56,10 @@ class EventsApi extends PluginApi {
 
   static EventsApi? _activeInstance;
 
+  static void reset() {
+    _activeInstance = null;
+  }
+
   static bool _subscribe(int argc, py_StackRef argv) {
     if (argc < 2) return false;
     final py = PyBridge.instance;
