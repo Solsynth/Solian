@@ -20,7 +20,7 @@ mixin _$PluginManifest {
  String get name;/// Semver version string.
  String get version;/// Plugin author.
  String get author;/// Short description.
- String get description;/// Entry point Python file relative to the plugin directory.
+ String get description;/// Entry point JavaScript file relative to the plugin directory.
  String get entry;/// List of permissions this plugin requires.
  List<PluginPermission> get permissions;/// Whether this plugin should run as a background task.
  bool get background;/// Optional icon name (Material Symbols).
@@ -222,7 +222,7 @@ return $default(_that.id,_that.name,_that.version,_that.author,_that.description
 @JsonSerializable()
 
 class _PluginManifest implements PluginManifest {
-  const _PluginManifest({required this.id, required this.name, this.version = '1.0.0', this.author = '', this.description = '', this.entry = 'main.py', final  List<PluginPermission> permissions = const [], this.background = false, this.icon, this.homepage}): _permissions = permissions;
+  const _PluginManifest({required this.id, required this.name, this.version = '1.0.0', this.author = '', this.description = '', this.entry = 'main.js', final  List<PluginPermission> permissions = const [], this.background = false, this.icon, this.homepage}): _permissions = permissions;
   factory _PluginManifest.fromJson(Map<String, dynamic> json) => _$PluginManifestFromJson(json);
 
 /// Unique reverse-domain identifier, e.g. "com.example.myplugin".
@@ -235,7 +235,7 @@ class _PluginManifest implements PluginManifest {
 @override@JsonKey() final  String author;
 /// Short description.
 @override@JsonKey() final  String description;
-/// Entry point Python file relative to the plugin directory.
+/// Entry point JavaScript file relative to the plugin directory.
 @override@JsonKey() final  String entry;
 /// List of permissions this plugin requires.
  final  List<PluginPermission> _permissions;

@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:ffi';
-import 'package:pocketpy/pocketpy.dart';
-import 'package:pocketpy/pocketpy_bindings_generated.dart';
+import 'dart:convert';
 import 'package:logging/logging.dart';
-import 'package:island/plugin/bridge/py_bridge.dart';
+import 'package:island/plugin/bridge/js_bridge.dart';
 import 'package:island/plugin/models/plugin_manifest.dart';
 import 'package:island/plugin/apis/plugin_api.dart';
 import 'package:island/plugin/plugin_manager.dart';
@@ -27,7 +25,7 @@ class PluginBackgroundTask {
   });
 }
 
-/// Exposes background task scheduling to Python plugins.
+/// Exposes background task scheduling to JavaScript plugins.
 ///
 /// Provides:
 /// - `tasks.schedule(interval_seconds, handler_name)` - schedule a periodic task
@@ -41,13 +39,36 @@ class BackgroundTaskApi extends PluginApi {
       {PluginPermission.tasksSchedule};
 
   @override
-  void register(Pointer<py_TValue> module, PyBridge py) {
+  void register(JsRuntime runtime) {
     _activeInstance = this;
-    py.bindFunc(
-      module,
-      'schedule',
-      Pointer.fromFunction(_schedule, false),
-    );
+
+    runtime.onMessage('api:tasks:schedule', (args) {
+      try {
+        final data = args is String ? jsonDecode(args) : args;
+        final intervalSeconds = data['interval'];
+        final handlerName = data['handler']?.toString();
+
+        if (intervalSeconds == null || handlerName == null) return;
+        if (intervalSeconds is! num || intervalSeconds <= 0) return;
+
+        final pluginId = PluginManager.activePluginId ?? 'unknown';
+
+        final task = PluginBackgroundTask(
+          pluginId: pluginId,
+          handlerName: handlerName,
+          interval: Duration(milliseconds: (intervalSeconds * 1000).toInt()),
+        );
+
+        task.timer = Timer.periodic(task.interval, (_) {
+          _executeTask(task);
+        });
+
+        _activeInstance?._tasks.add(task);
+        _log.info('Plugin $pluginId scheduled task: $handlerName every ${intervalSeconds}s');
+      } catch (e) {
+        _log.warning('Failed to schedule task: $e');
+      }
+    });
   }
 
   static BackgroundTaskApi? _activeInstance;
@@ -56,55 +77,38 @@ class BackgroundTaskApi extends PluginApi {
     _activeInstance = null;
   }
 
-  static bool _schedule(int argc, py_StackRef argv) {
-    if (argc < 2) return false;
-    final py = PyBridge.instance;
-    final intervalSeconds = py.toDart(argv.elementAt(0));
-    final handlerName = py.toDart(argv.elementAt(1))?.toString();
-
-    if (intervalSeconds == null || handlerName == null) return false;
-    if (intervalSeconds is! num || intervalSeconds <= 0) return false;
-
-    final pluginId = PluginManager.activePluginId ?? 'unknown';
-
-    final task = PluginBackgroundTask(
-      pluginId: pluginId,
-      handlerName: handlerName,
-      interval: Duration(milliseconds: (intervalSeconds * 1000).toInt()),
-    );
-
-    task.timer = Timer.periodic(task.interval, (_) {
-      _executeTask(task);
-    });
-
-    _activeInstance?._tasks.add(task);
-    _log.info('Plugin $pluginId scheduled task: $handlerName every ${intervalSeconds}s');
-    return true;
-  }
-
   static void _executeTask(PluginBackgroundTask task) {
     if (task.running) return; // Skip if previous run still going
     task.running = true;
 
     try {
-      final py = PyBridge.instance;
-      final funcRef = py.getGlobal(task.handlerName);
-      if (funcRef == null) {
-        _log.warning('Task handler not found: ${task.handlerName}');
+      final manager = PluginManager();
+      final instance = manager.plugins[task.pluginId];
+      final runtime = instance?.runtime;
+
+      if (runtime == null) {
+        _log.warning('Task handler ${task.handlerName}: no runtime for plugin ${task.pluginId}');
         return;
       }
 
-      // Use watchdog for background tasks (30s timeout)
-      py.watchdogBegin(30000);
-      try {
-        final ok = pocket.py_call(funcRef, 0, nullptr);
-        if (!ok) {
-          _log.warning(
-            'Task ${task.handlerName} failed: ${py.formatException()}',
-          );
+      // Execute with a timeout
+      final completer = Completer<void>();
+      final timer = Timer(const Duration(seconds: 30), () {
+        if (!completer.isCompleted) {
+          _log.warning('Task ${task.handlerName} timed out after 30s');
+          completer.complete();
         }
-      } finally {
-        py.watchdogEnd();
+      });
+
+      try {
+        runtime.callFunction(task.handlerName);
+      } catch (e) {
+        _log.warning('Task ${task.handlerName} failed: $e');
+      }
+
+      timer.cancel();
+      if (!completer.isCompleted) {
+        completer.complete();
       }
     } catch (e) {
       _log.severe('Task ${task.handlerName} threw: $e');

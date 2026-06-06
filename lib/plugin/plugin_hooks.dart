@@ -1,8 +1,5 @@
-import 'dart:ffi';
-import 'package:pocketpy/pocketpy.dart';
-import 'package:pocketpy/pocketpy_bindings_generated.dart';
+import 'dart:convert';
 import 'package:logging/logging.dart';
-import 'package:island/plugin/bridge/py_bridge.dart';
 import 'package:island/plugin/apis/hooks_api.dart';
 import 'package:island/plugin/plugin_manager.dart';
 
@@ -40,10 +37,8 @@ class PluginHooks {
   factory PluginHooks() => _instance;
   PluginHooks._();
 
-  final PyBridge _py = PyBridge.instance;
-
   /// Run the `before_post_create` hook chain.
-  /// Returns the modified payload, or cancelled if a handler returns None.
+  /// Returns the modified payload, or cancelled if a handler returns null.
   HookResult<Map<String, dynamic>> runBeforePostCreate(
     Map<String, dynamic> payload,
   ) {
@@ -51,7 +46,7 @@ class PluginHooks {
   }
 
   /// Run the `before_message_send` hook chain.
-  /// Returns the modified content string, or cancelled if a handler returns None.
+  /// Returns the modified content string, or cancelled if a handler returns null.
   HookResult<String> runBeforeMessageSend(String content) {
     final result = _runHook('before_message_send', {'content': content});
     if (result.cancelled) {
@@ -77,7 +72,7 @@ class PluginHooks {
 
   /// Run a named hook chain with a Map payload.
   /// Each handler receives the data, can modify it, and returns the result.
-  /// If any handler returns None, the chain is cancelled.
+  /// If any handler returns null, the chain is cancelled.
   HookResult<Map<String, dynamic>> _runHook(
     String hookName,
     Map<String, dynamic> data,
@@ -122,72 +117,47 @@ class PluginHooks {
     Map<String, dynamic> data,
   ) {
     try {
-      // Use stored function reference directly if available
-      Pointer<py_TValue>? funcRef = handler.funcRef;
+      // Find the plugin's runtime
+      final manager = PluginManager();
+      final instance = manager.plugins[handler.pluginId];
+      final runtime = instance?.runtime;
 
-      // Fallback: look up by name in module
-      if (funcRef == null && handler.module != null) {
-        final nameId = _py.name(handler.handlerName);
-        final itemRef = pocket.py_getdict(handler.module!, nameId);
-        if (itemRef != nullptr) {
-          funcRef = itemRef;
-        }
-      }
-
-      // Fallback: try global scope
-      funcRef ??= _py.getGlobal(handler.handlerName);
-
-      if (funcRef == null) {
+      if (runtime == null) {
         _log.warning(
-          'Hook handler ${handler.handlerName} not found '
-          '(plugin: ${handler.pluginId})',
+          'Hook handler ${handler.handlerName}: no runtime for plugin ${handler.pluginId}',
         );
         return data; // Skip, don't cancel
       }
 
-      // Check if it's callable
-      final type = pocket.py_typeof(funcRef);
-      if (type != py_PredefinedType.tp_function &&
-          type != py_PredefinedType.tp_nativefunc) {
+      // Call the handler function in JS, passing data as JSON
+      final dataJson = jsonEncode(data);
+      // Use a temp global to avoid escaping issues
+      runtime.exec('var __hook_data__ = $dataJson;');
+      final result = runtime.callFunction(handler.handlerName, [data]);
+
+      if (result == null) {
         _log.warning(
-          'Hook handler ${handler.handlerName} is not callable '
-          '(type: $type, plugin: ${handler.pluginId})',
+          'Hook handler ${handler.handlerName} returned null '
+          '(plugin: ${handler.pluginId})',
         );
-        return data;
-      }
-
-      // Convert data to Python dict and push onto stack
-      final tmpSlot = _py.pushTmp();
-      _py.fromDart(tmpSlot, data);
-
-      // Call the handler with 1 argument
-      final ok = pocket.py_call(funcRef, 1, tmpSlot);
-      // Pop the temp slot
-      _py.pop();
-      if (!ok) {
-        _log.warning(
-          'Hook handler ${handler.handlerName} raised an exception: '
-          '${_py.formatException() ?? "unknown"}',
-        );
-        return data; // Skip on error, don't cancel
-      }
-
-      // Get return value
-      final retval = pocket.py_retval();
-      final returnType = pocket.py_typeof(retval);
-
-      // None means cancel
-      if (returnType == py_PredefinedType.tp_NoneType) {
-        return null;
+        return null; // Cancel
       }
 
       // Convert result back to Dart Map
-      final result = _py.toDart(retval);
       if (result is Map<String, dynamic>) {
         return result;
       }
       if (result is Map) {
         return result.map((k, v) => MapEntry(k.toString(), v));
+      }
+      if (result is String) {
+        try {
+          final decoded = jsonDecode(result);
+          if (decoded is Map<String, dynamic>) return decoded;
+          if (decoded is Map) {
+            return decoded.map((k, v) => MapEntry(k.toString(), v));
+          }
+        } catch (_) {}
       }
 
       _log.warning(
