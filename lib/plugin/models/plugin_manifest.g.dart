@@ -13,7 +13,7 @@ _PluginManifest _$PluginManifestFromJson(Map<String, dynamic> json) =>
       version: json['version'] as String? ?? '1.0.0',
       author: json['author'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      entry: json['entry'] as String? ?? 'main.py',
+      entry: json['entry'] as String? ?? 'main.js',
       permissions:
           (json['permissions'] as List<dynamic>?)
               ?.map((e) => $enumDecode(_$PluginPermissionEnumMap, e))

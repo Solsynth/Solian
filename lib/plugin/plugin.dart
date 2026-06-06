@@ -1,4 +1,4 @@
-export 'bridge/py_bridge.dart';
+export 'bridge/js_bridge.dart';
 export 'models/plugin_manifest.dart';
 export 'plugin_manager.dart';
 export 'plugin_event_bridge.dart';

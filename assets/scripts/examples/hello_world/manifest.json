@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "author": "Island",
   "description": "Minimal example plugin. Registers a single command.",
-  "entry": "main.py",
+  "entry": "main.js",
   "permissions": [
     "commandsRegister",
     "notify"

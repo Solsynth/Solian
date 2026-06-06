@@ -1,8 +1,6 @@
-import 'dart:ffi';
-import 'package:pocketpy/pocketpy.dart';
-import 'package:pocketpy/pocketpy_bindings_generated.dart';
+import 'dart:convert';
 import 'package:logging/logging.dart';
-import 'package:island/plugin/bridge/py_bridge.dart';
+import 'package:island/plugin/bridge/js_bridge.dart';
 import 'package:island/plugin/models/plugin_manifest.dart';
 import 'package:island/plugin/apis/plugin_api.dart';
 import 'package:island/plugin/plugin_manager.dart';
@@ -16,8 +14,6 @@ class PluginCommand {
   final String description;
   final String handlerName;
   final String? icon;
-  final Pointer<py_TValue>? module;
-  final Pointer<py_TValue>? funcRef;
 
   const PluginCommand({
     required this.pluginId,
@@ -25,12 +21,10 @@ class PluginCommand {
     required this.description,
     required this.handlerName,
     this.icon,
-    this.module,
-    this.funcRef,
   });
 }
 
-/// Exposes command registration to Python plugins.
+/// Exposes command registration to JavaScript plugins.
 ///
 /// Provides:
 /// - `commands.register_command(name, description, handler, icon=None)` - register a command
@@ -45,88 +39,51 @@ class CommandsApi extends PluginApi {
       {PluginPermission.commandsRegister};
 
   @override
-  void register(Pointer<py_TValue> module, PyBridge py) {
+  void register(JsRuntime runtime) {
     _activeInstance = this;
-    _activeModule = module;
-    py.bindFunc(
-      module,
-      'register_command',
-      Pointer.fromFunction(_registerCommand, false),
-    );
+
+    runtime.onMessage('api:commands:register_command', (args) {
+      try {
+        final data = args is String ? jsonDecode(args) : args;
+        final name = data['name']?.toString();
+        final description = data['description']?.toString();
+        final handler = data['handler']?.toString();
+        final icon = data['icon']?.toString();
+
+        if (name == null || description == null || handler == null) return;
+
+        final pluginId = PluginManager.activePluginId ?? 'unknown';
+
+        _activeInstance?._commands.add(PluginCommand(
+          pluginId: pluginId,
+          name: name,
+          description: description,
+          handlerName: handler,
+          icon: icon,
+        ));
+
+        _log.info('Plugin $pluginId registered command: $name -> $handler');
+      } catch (e) {
+        _log.warning('Failed to register command: $e');
+      }
+    });
   }
 
   static CommandsApi? _activeInstance;
-  static Pointer<py_TValue>? _activeModule;
 
   static void reset() {
     _activeInstance = null;
-    _activeModule = null;
-  }
-
-  static bool _registerCommand(int argc, py_StackRef argv) {
-    if (argc < 3) return false;
-    final py = PyBridge.instance;
-    final name = py.toDart(argv.elementAt(0))?.toString();
-    final description = py.toDart(argv.elementAt(1))?.toString();
-    final handler = py.toDart(argv.elementAt(2))?.toString();
-    final icon = argc > 3 ? py.toDart(argv.elementAt(3))?.toString() : null;
-
-    if (name == null || description == null || handler == null) return false;
-
-    final pluginId = PluginManager.activePluginId ?? 'unknown';
-
-    _activeInstance?._commands.add(PluginCommand(
-      pluginId: pluginId,
-      name: name,
-      description: description,
-      handlerName: handler,
-      icon: icon,
-      module: _activeModule,
-    ));
-
-    _log.info('Plugin $pluginId registered command: $name -> $handler (module: ${_activeModule != null})');
-    return true;
   }
 
   /// Execute a plugin command. Returns the result from the handler.
-  Object? executeCommand(PluginCommand command) {
-    final py = PyBridge.instance;
-
-    // Use stored function reference if available
-    Pointer<py_TValue>? funcRef = command.funcRef;
-
-    // Fallback: look up in module by name
-    if (funcRef == null && command.module != null) {
-      final nameId = py.name(command.handlerName);
-      final itemRef = pocket.py_getdict(command.module!, nameId);
-      if (itemRef != nullptr) {
-        funcRef = itemRef;
-      }
-    }
-
-    // Fallback: try global scope
-    funcRef ??= py.getGlobal(command.handlerName);
-
-    if (funcRef == null) {
-      _log.warning('Handler not found: ${command.handlerName}');
+  Object? executeCommand(PluginCommand command, JsRuntime runtime) {
+    try {
+      final result = runtime.callFunction(command.handlerName);
+      return result;
+    } catch (e) {
+      _log.warning('Command ${command.name} failed: $e');
       return null;
     }
-
-    // Check if it's callable
-    final type = pocket.py_typeof(funcRef);
-    if (type != py_PredefinedType.tp_function &&
-        type != py_PredefinedType.tp_nativefunc) {
-      _log.warning('Handler is not callable: ${command.handlerName}');
-      return null;
-    }
-
-    final ok = pocket.py_call(funcRef, 0, nullptr);
-    if (!ok) {
-      _log.warning('Command ${command.name} failed: ${py.formatException()}');
-      return null;
-    }
-
-    return py.toDart(pocket.py_retval());
   }
 
   /// Clear commands for a specific plugin.

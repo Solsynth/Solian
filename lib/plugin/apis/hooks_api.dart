@@ -1,9 +1,6 @@
-import 'dart:ffi';
-import 'package:ffi/ffi.dart';
-import 'package:pocketpy/pocketpy.dart';
-import 'package:pocketpy/pocketpy_bindings_generated.dart';
+import 'dart:convert';
 import 'package:logging/logging.dart';
-import 'package:island/plugin/bridge/py_bridge.dart';
+import 'package:island/plugin/bridge/js_bridge.dart';
 import 'package:island/plugin/models/plugin_manifest.dart';
 import 'package:island/plugin/apis/plugin_api.dart';
 import 'package:island/plugin/plugin_manager.dart';
@@ -15,19 +12,15 @@ class PluginHookHandler {
   final String pluginId;
   final String hookName;
   final String handlerName;
-  final Pointer<py_TValue>? module;
-  final Pointer<py_TValue>? funcRef;
 
   const PluginHookHandler({
     required this.pluginId,
     required this.hookName,
     required this.handlerName,
-    this.module,
-    this.funcRef,
   });
 }
 
-/// Exposes content-transforming hooks to Python plugins.
+/// Exposes content-transforming hooks to JavaScript plugins.
 ///
 /// Plugins can intercept and modify data before it reaches the server:
 /// - `hooks.before_post_create(handler)` — modify post payload before creation
@@ -35,14 +28,15 @@ class PluginHookHandler {
 /// - `hooks.before_post_display(handler)` — modify post data before rendering
 /// - `hooks.before_message_display(handler)` — modify message before rendering
 ///
-/// Handler signature in Python:
-/// ```python
-/// def my_handler(data: dict) -> dict:
-///     data["content"] = data["content"].upper()
-///     return data
+/// Handler signature in JavaScript:
+/// ```javascript
+/// function myHandler(data) {
+///     data.content = data.content.toUpperCase();
+///     return data;
+/// }
 /// ```
 ///
-/// Return `None` from a handler to cancel the operation entirely.
+/// Return `null` from a handler to cancel the operation entirely.
 class HooksApi extends PluginApi {
   final List<PluginHookHandler> _handlers = [];
 
@@ -53,81 +47,48 @@ class HooksApi extends PluginApi {
       {PluginPermission.eventsSubscribe};
 
   @override
-  void register(Pointer<py_TValue> module, PyBridge py) {
+  void register(JsRuntime runtime) {
     _activeInstance = this;
-    _activeModule = module;
 
-    py.bindFunc(
-      module,
-      'before_post_create',
-      Pointer.fromFunction(_registerBeforePostCreate, false),
-    );
-    py.bindFunc(
-      module,
-      'before_message_send',
-      Pointer.fromFunction(_registerBeforeMessageSend, false),
-    );
-    py.bindFunc(
-      module,
-      'before_post_display',
-      Pointer.fromFunction(_registerBeforePostDisplay, false),
-    );
-    py.bindFunc(
-      module,
-      'before_message_display',
-      Pointer.fromFunction(_registerBeforeMessageDisplay, false),
-    );
+    runtime.onMessage('api:hooks:before_post_create', (args) {
+      _registerHookFromMessage('before_post_create', args);
+    });
+    runtime.onMessage('api:hooks:before_message_send', (args) {
+      _registerHookFromMessage('before_message_send', args);
+    });
+    runtime.onMessage('api:hooks:before_post_display', (args) {
+      _registerHookFromMessage('before_post_display', args);
+    });
+    runtime.onMessage('api:hooks:before_message_display', (args) {
+      _registerHookFromMessage('before_message_display', args);
+    });
   }
 
   static HooksApi? _activeInstance;
-  static Pointer<py_TValue>? _activeModule;
 
   static void reset() {
     _activeInstance = null;
-    _activeModule = null;
   }
 
-  static bool _registerHook(String hookName, int argc, py_StackRef argv) {
-    if (argc < 1) return false;
-    final arg = argv.elementAt(0);
+  void _registerHookFromMessage(String hookName, dynamic args) {
+    try {
+      final data = args is String ? jsonDecode(args) : args;
+      final handlerName = data['handler']?.toString();
+      if (handlerName == null) return;
 
-    // Store the function reference directly (arg points to the function on the stack)
-    final funcRef = arg.cast<py_TValue>();
+      final pluginId = PluginManager.activePluginId ?? 'unknown';
 
-    // Extract the function name using py_str
-    String handlerName = '<unknown>';
-    if (pocket.py_str(arg)) {
-      final strPtr = pocket.py_tostr(pocket.py_retval());
-      if (strPtr != nullptr) {
-        handlerName = strPtr.cast<Utf8>().toDartString();
-      }
+      _activeInstance?._handlers.add(PluginHookHandler(
+        pluginId: pluginId,
+        hookName: hookName,
+        handlerName: handlerName,
+      ));
+
+      _log.info('Plugin $pluginId registered hook: $hookName -> $handlerName');
+    } catch (e) {
+      _log.warning('Failed to register hook $hookName: $e');
     }
-
-    final pluginId = PluginManager.activePluginId ?? 'unknown';
-
-    _activeInstance?._handlers.add(PluginHookHandler(
-      pluginId: pluginId,
-      hookName: hookName,
-      handlerName: handlerName,
-      module: _activeModule,
-      funcRef: funcRef,
-    ));
-
-    _log.info('Plugin $pluginId registered hook: $hookName -> $handlerName');
-    return true;
   }
-
-  static bool _registerBeforePostCreate(int argc, py_StackRef argv) =>
-      _registerHook('before_post_create', argc, argv);
-
-  static bool _registerBeforeMessageSend(int argc, py_StackRef argv) =>
-      _registerHook('before_message_send', argc, argv);
-
-  static bool _registerBeforePostDisplay(int argc, py_StackRef argv) =>
-      _registerHook('before_post_display', argc, argv);
-
-  static bool _registerBeforeMessageDisplay(int argc, py_StackRef argv) =>
-      _registerHook('before_message_display', argc, argv);
 
   /// Clear hooks for a specific plugin.
   void clearHooks(String pluginId) {
