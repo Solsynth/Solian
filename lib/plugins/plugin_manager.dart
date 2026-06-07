@@ -217,8 +217,13 @@ class PluginManager {
       _callPluginHook(instance, 'on_unload');
     } catch (_) {}
 
-    // Dispose the JS runtime
-    instance.runtime?.dispose();
+    // Clean up registered hooks, commands, and events
+    getApi<HooksApi>()?.clearHooks(pluginId);
+    getApi<CommandsApi>()?.clearCommands(pluginId);
+    getApi<EventsApi>()?.clearHandlers(pluginId);
+
+    // Dispose the JS runtime via bridge (single point of disposal)
+    _bridge.disposeRuntime('plugin:$pluginId');
     instance.runtime = null;
     instance.state = PluginState.discovered;
     instance.lastError = null;
@@ -253,13 +258,17 @@ class PluginManager {
   /// Re-discover plugins from all sources and load them.
   /// Returns the number of newly discovered plugins.
   Future<int> reload() async {
-    final before = Set<String>.of(_plugins.keys);
+    // Safely unload all active plugins first to avoid JSContext crashes.
+    for (final id in _plugins.keys.toList()) {
+      unloadPlugin(id);
+    }
+    _plugins.clear();
     _initialized = false;
+
     await initialize();
     await loadAll();
-    final added = _plugins.keys.where((id) => !before.contains(id)).length;
-    _log.info('Reloaded plugins: ${_plugins.length} total, $added new');
-    return added;
+    _log.info('Reloaded plugins: ${_plugins.length} total');
+    return _plugins.length;
   }
 
   /// Install a plugin from an arbitrary local folder path.
@@ -293,10 +302,10 @@ class PluginManager {
       final json = jsonDecode(await manifestFile.readAsString());
       final manifest = PluginManifest.fromJson(json as Map<String, dynamic>);
 
-      // Check if already installed
+      // If already installed, unload the old one first
       if (_plugins.containsKey(manifest.id)) {
-        _log.info('Plugin already installed: ${manifest.id}');
-        return false;
+        _log.info('Plugin already installed, replacing: ${manifest.id}');
+        uninstallPlugin(manifest.id);
       }
 
       // Copy to plugins directory
@@ -470,6 +479,15 @@ class PluginManager {
 
     buf.writeln('function notify(title, body) {');
     buf.writeln('  sendMessage("api:notify", JSON.stringify({title: title, body: body}));');
+    buf.writeln('}');
+    buf.writeln('function showAlert(message, title) {');
+    buf.writeln('  sendMessage("api:alert:show_alert", JSON.stringify({message: message, title: title || "Info"}));');
+    buf.writeln('}');
+    buf.writeln('function showError(message) {');
+    buf.writeln('  sendMessage("api:alert:show_error", JSON.stringify({message: message}));');
+    buf.writeln('}');
+    buf.writeln('function showConfirm(message, title) {');
+    buf.writeln('  sendMessage("api:alert:show_confirm", JSON.stringify({message: message, title: title || "Confirm"}));');
     buf.writeln('}');
 
     buf.writeln('var ui = {};');

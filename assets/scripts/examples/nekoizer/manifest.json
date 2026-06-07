@@ -4,11 +4,12 @@
   "version": "1.0.0",
   "author": "Island",
   "description": "Add a '喵' to every single messages and posts.",
-  "entry": "main.py",
+  "entry": "main.js",
   "permissions": [
     "eventsSubscribe",
     "commandsRegister",
-    "uiRender"
+    "uiRender",
+    "notify"
   ],
   "background": false
 }

@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'dart:convert';
 import 'package:island/core/models/route_item.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/pods/chat_summary.dart';
 import 'package:island/core/config.dart';
@@ -186,7 +188,8 @@ class CommandPaletteWidget extends HookConsumerWidget {
         ? <SpecialAction>[]
         : (pluginCommandsApi?.commands ?? [])
               .where((cmd) {
-                final query = searchQuery.value.toLowerCase();
+                final query = searchQuery.value.toLowerCase()
+                    .replaceFirst(RegExp(r'^/'), '');
                 return cmd.name.toLowerCase().contains(query) ||
                     cmd.description.toLowerCase().contains(query);
               })
@@ -198,7 +201,10 @@ class CommandPaletteWidget extends HookConsumerWidget {
                     action: () {
                       final runtime = PluginManager().plugins[cmd.pluginId]?.runtime;
                       if (runtime != null) {
-                        pluginCommandsApi!.executeCommand(cmd, runtime);
+                        final result = pluginCommandsApi!.executeCommand(cmd, runtime);
+                        if (result != null) {
+                          _showCommandResult(context, result);
+                        }
                       }
                     },
                   ))
@@ -437,6 +443,26 @@ class CommandPaletteWidget extends HookConsumerWidget {
   void _navigateToRoute(BuildContext context, WidgetRef ref, RouteItem route) {
     onDismiss();
     ref.read(routerProvider).navigatePath(route.path);
+  }
+
+  void _showCommandResult(BuildContext context, Object result) {
+    // Parse UI descriptor from plugin if it's a JSON string
+    String title = 'Command Result';
+    String body = result.toString();
+
+    if (result is String) {
+      try {
+        final decoded = jsonDecode(result);
+        if (decoded is Map<String, dynamic>) {
+          title = decoded['title']?.toString() ?? title;
+          body = decoded['body']?.toString() ??
+              decoded['content']?.toString() ??
+              body;
+        }
+      } catch (_) {}
+    }
+
+    showInfoAlert(body, title);
   }
 
   void _executeItem(BuildContext context, WidgetRef ref, dynamic item) {
