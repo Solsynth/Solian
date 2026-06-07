@@ -140,6 +140,9 @@ class DashboardGrid extends HookConsumerWidget {
 
     final dragging = useState(false);
 
+    // Check if user is authenticated
+    final isAuthenticated = userInfo.value != null;
+
     return DropTarget(
       onDragDone: (detail) {
         dragging.value = false;
@@ -162,57 +165,59 @@ class DashboardGrid extends HookConsumerWidget {
                   ? math.min(640, MediaQuery.sizeOf(context).height * 0.65)
                   : MediaQuery.sizeOf(context).height,
             ),
-            padding: isWide
-                ? EdgeInsets.only(top: devicePadding.top)
-                : EdgeInsets.only(top: 24 + devicePadding.top),
-            child: Column(
-              spacing: 16,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Clock card spans full width (only if enabled in settings)
-                if (isWide &&
-                    (appSettings.dashboardConfig?.showClockAndCountdown ??
-                        true))
-                  ClockCard().padding(horizontal: 24)
-                else if (!isWide)
-                  Row(
+            padding: isAuthenticated
+                ? (isWide
+                    ? EdgeInsets.only(top: devicePadding.top)
+                    : EdgeInsets.only(top: 24 + devicePadding.top))
+                : EdgeInsets.zero,
+            child: isAuthenticated
+                ? Column(
+                    spacing: 16,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Gap(8),
-                      if (appSettings.dashboardConfig?.showClockAndCountdown ??
-                          true)
-                        Expanded(child: ClockCard(compact: true)),
-                      if (appSettings.dashboardConfig?.showSearchBar ?? true)
-                        IconButton(
-                          onPressed: () {
-                            eventBus.fire(CommandPaletteTriggerEvent());
-                          },
-                          icon: const Icon(Symbols.search),
-                          tooltip: 'searchAnything'.tr(),
+                      // Clock card spans full width (only if enabled in settings)
+                      if (isWide &&
+                          (appSettings.dashboardConfig?.showClockAndCountdown ??
+                              true))
+                        ClockCard().padding(horizontal: 24)
+                      else if (!isWide)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Gap(8),
+                            if (appSettings.dashboardConfig?.showClockAndCountdown ??
+                                true)
+                              Expanded(child: ClockCard(compact: true)),
+                            if (appSettings.dashboardConfig?.showSearchBar ?? true)
+                              IconButton(
+                                onPressed: () {
+                                  eventBus.fire(CommandPaletteTriggerEvent());
+                                },
+                                icon: const Icon(Symbols.search),
+                                tooltip: 'searchAnything'.tr(),
+                              ),
+                          ],
+                        ).padding(horizontal: 24),
+                      // Row with two cards side by side (only if enabled in settings)
+                      if (isWide &&
+                          (appSettings.dashboardConfig?.showSearchBar ?? true))
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isWide ? 24 : 16),
+                          child: SearchBar(
+                            hintText: 'searchAnything'.tr(),
+                            constraints: const BoxConstraints(minHeight: 56),
+                            leading: const Icon(
+                              Symbols.search,
+                            ).padding(horizontal: 24),
+                            readOnly: true,
+                            onTap: () {
+                              eventBus.fire(CommandPaletteTriggerEvent());
+                            },
+                          ),
                         ),
-                    ],
-                  ).padding(horizontal: 24),
-                // Row with two cards side by side (only if enabled in settings)
-                if (isWide &&
-                    (appSettings.dashboardConfig?.showSearchBar ?? true))
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16),
-                    child: SearchBar(
-                      hintText: 'searchAnything'.tr(),
-                      constraints: const BoxConstraints(minHeight: 56),
-                      leading: const Icon(
-                        Symbols.search,
-                      ).padding(horizontal: 24),
-                      readOnly: true,
-                      onTap: () {
-                        eventBus.fire(CommandPaletteTriggerEvent());
-                      },
-                    ),
-                  ),
-                if (userInfo.value != null)
-                  Expanded(
-                    child:
-                        (isWide
+                      Expanded(
+                        child: (isWide
                                 ? _HoverHorizontalScrollArea(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
@@ -230,16 +235,15 @@ class DashboardGrid extends HookConsumerWidget {
                               topLeft: isWide ? 0 : 12,
                               topRight: isWide ? 0 : 12,
                             ),
+                      ),
+                    ],
                   )
-                else
-                  Center(
+                : Center(
                     child: _UnauthorizedCard(isWide: isWide),
-                  ).padding(horizontal: isWide ? 24 : 16),
-              ],
-            ),
+                  ),
           ),
           // Customize button (positioned for wide screens only)
-          if (isWide)
+          if (isWide && isAuthenticated)
             Positioned(
               bottom: 16,
               right: 16,
@@ -1212,172 +1216,67 @@ class _UnauthorizedCard extends HookConsumerWidget {
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.5),
-          width: 1,
-        ),
-      ),
       color: colorScheme.surface,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.primaryContainer.withOpacity(0.3),
-              colorScheme.surface,
-              colorScheme.secondaryContainer.withOpacity(0.2),
-            ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: isWide ? 48 : 32,
+          vertical: isWide ? 40 : 32,
         ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isWide ? 56 : 32,
-            vertical: isWide ? 48 : 36,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Decorative icon container
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.primaryContainer.withOpacity(0.4),
-                  border: Border.all(
-                    color: colorScheme.primary.withOpacity(0.2),
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Symbols.dashboard_rounded,
-                    size: 48,
-                    color: colorScheme.primary,
-                    fill: 1,
-                  ),
-                ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Symbols.person,
+              size: 64,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const Gap(24),
+            Text(
+              'welcomeToSolarNetwork'.tr(),
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
               ),
-              const Gap(24),
-              Text(
-                'welcomeToSolarNetwork'.tr(),
-                style: textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                  letterSpacing: -0.5,
+              textAlign: TextAlign.center,
+            ),
+            const Gap(12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: Text(
+                'Login to access your personalized dashboard with friends, notifications, chats, and more!',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const Gap(12),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: Text(
-                  'Login to access your personalized dashboard with friends, notifications, chats, and more!',
-                  style: textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const Gap(28),
-              // Feature highlights
-              if (isWide) ...[
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _FeatureChip(
-                      icon: Symbols.people,
-                      label: 'friends'.tr(),
-                      colorScheme: colorScheme,
-                    ),
-                    _FeatureChip(
-                      icon: Symbols.notifications,
-                      label: 'notifications'.tr(),
-                      colorScheme: colorScheme,
-                    ),
-                    _FeatureChip(
-                      icon: Symbols.chat,
-                      label: 'chats'.tr(),
-                      colorScheme: colorScheme,
-                    ),
-                  ],
-                ),
-                const Gap(24),
-              ],
-              FilledButton.icon(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    isScrollControlled: true,
-                    builder: (context) => const LoginModal(),
-                  );
-                },
-                icon: const Icon(Symbols.login, size: 20),
-                label: Text('login'.tr()),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FeatureChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final ColorScheme colorScheme;
-
-  const _FeatureChip({
-    required this.icon,
-    required this.label,
-    required this.colorScheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
             ),
-          ),
-        ],
+            const Gap(32),
+            FilledButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  useRootNavigator: true,
+                  isScrollControlled: true,
+                  builder: (context) => const LoginModal(),
+                );
+              },
+              icon: const Icon(Symbols.login, size: 20),
+              label: Text('login'.tr()),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
