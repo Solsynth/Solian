@@ -190,7 +190,12 @@ class JsBridge {
   JsRuntime createRuntime(String name) {
     if (_runtimes.containsKey(name)) {
       _log.warning('Runtime $name already exists, disposing old one');
-      _runtimes[name]!.dispose();
+      final old = _runtimes.remove(name);
+      try {
+        old?.dispose();
+      } catch (e) {
+        _log.warning('Failed to dispose old runtime $name: $e');
+      }
     }
 
     final runtime = getJavascriptRuntime();

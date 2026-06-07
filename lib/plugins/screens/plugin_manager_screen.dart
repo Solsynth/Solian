@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/plugins/plugin_manager.dart';
 import 'package:island/plugins/models/plugin_manifest.dart';
+import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -145,26 +146,13 @@ class PluginManagerContent extends HookConsumerWidget {
                   refresh();
                 },
                 onUninstall: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Uninstall plugin'),
-                      content: Text(
-                        'Remove "${entry.value.manifest.name}"? This cannot be undone.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel'),
-                        ),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Uninstall'),
-                        ),
-                      ],
-                    ),
+                  final confirm = await showConfirmAlert(
+                    'Remove "${entry.value.manifest.name}"? This cannot be undone.',
+                    'Uninstall plugin',
+                    icon: Symbols.delete_forever,
+                    isDanger: true,
                   );
-                  if (confirm == true) {
+                  if (confirm) {
                     await manager.uninstallPlugin(entry.key);
                     refresh();
                   }
@@ -248,7 +236,6 @@ class _PluginTile extends StatelessWidget {
     final manifest = instance.manifest;
     final isActive = instance.state == PluginState.active;
     final isError = instance.state == PluginState.error;
-    final isDisabled = instance.state == PluginState.disabled;
 
     final (icon, iconBg, iconFg) = switch (instance.state) {
       PluginState.active => (Symbols.check_circle, cs.primaryContainer, cs.onPrimaryContainer),
@@ -356,7 +343,7 @@ class _PluginTile extends StatelessWidget {
                 children: [
                   Switch(
                     value: isActive,
-                    onChanged: isDisabled ? null : onToggle,
+                    onChanged: onToggle,
                   ),
                   PopupMenuButton<String>(
                     icon: Icon(Symbols.more_vert,
