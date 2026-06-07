@@ -196,7 +196,10 @@ class CommandPaletteWidget extends HookConsumerWidget {
                     icon: Symbols.extension,
                     searchableAliases: [cmd.name],
                     action: () {
-                      pluginCommandsApi!.executeCommand(cmd);
+                      final runtime = PluginManager().plugins[cmd.pluginId]?.runtime;
+                      if (runtime != null) {
+                        pluginCommandsApi!.executeCommand(cmd, runtime);
+                      }
                     },
                   ))
               .take(5)

@@ -247,8 +247,10 @@ class AppWrapper extends HookConsumerWidget {
         ),
       );
 
-      ref.read(rpcServerStateProvider.notifier).start();
-      ref.read(webAuthServerStateProvider.notifier).start();
+      Future(() {
+        ref.read(rpcServerStateProvider.notifier).start();
+        ref.read(webAuthServerStateProvider.notifier).start();
+      });
 
       final composeSheetSubs = eventBus.on<ShowComposeSheetEvent>().listen((
         event,
