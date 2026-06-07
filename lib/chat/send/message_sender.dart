@@ -621,4 +621,74 @@ class MessageSender {
   Options? get _mlsOptions => _e2eeService?.isE2eeRoom == true
       ? Options(headers: {'X-Client-Ability': 'chat.mls.v2'})
       : null;
+
+  // ── Placeholder Message Methods ──────────────────────────────────────────
+
+  /// Creates a placeholder message for streaming or uploading.
+  ///
+  /// [kind] - "streaming" or "uploading".
+  /// Returns the created placeholder message with its ID.
+  Future<SnChatMessage?> createPlaceholder(String kind) async {
+    try {
+      final dio = _ref.read(apiClientProvider);
+      final response = await dio.post(
+        '/messager/chat/$_roomId/messages/placeholder',
+        data: {'kind': kind},
+      );
+      return SnChatMessage.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      _logger.warning('Failed to create placeholder: $e');
+      return null;
+    }
+  }
+
+  /// Sends a placeholder update via WebSocket.
+  ///
+  /// [messageId] - The placeholder message ID.
+  /// [contentChunk] - Text to append (streaming kind).
+  /// [progress] - Upload progress 0.0–1.0 (uploading kind).
+  void updatePlaceholder(
+    String messageId, {
+    String? contentChunk,
+    double? progress,
+  }) {
+    final wsState = _ref.read(websocketStateProvider.notifier);
+
+    final packet = WebSocketPacket(
+      type: 'messages.placeholder.update',
+      endpoint: 'DysonNetwork.Messager',
+      data: {
+        'message_id': messageId,
+        if (contentChunk != null) 'content_chunk': contentChunk,
+        if (progress != null) 'progress': progress,
+      },
+    );
+
+    wsState.sendMessage(jsonEncode(packet));
+  }
+
+  /// Finalizes a placeholder, converting it to a real message.
+  ///
+  /// [messageId] - The placeholder message ID.
+  /// [content] - Optional final content (defaults to accumulated).
+  /// [attachmentsId] - Optional file IDs to attach.
+  void finalizePlaceholder(
+    String messageId, {
+    String? content,
+    List<String>? attachmentsId,
+  }) {
+    final wsState = _ref.read(websocketStateProvider.notifier);
+
+    final packet = WebSocketPacket(
+      type: 'messages.placeholder.finalize',
+      endpoint: 'DysonNetwork.Messager',
+      data: {
+        'message_id': messageId,
+        if (content != null) 'content': content,
+        if (attachmentsId != null) 'attachments_id': attachmentsId,
+      },
+    );
+
+    wsState.sendMessage(jsonEncode(packet));
+  }
 }
