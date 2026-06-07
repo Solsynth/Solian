@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-class SheetScaffold extends StatelessWidget {
+class SheetScaffold extends StatefulWidget {
   final Widget? title;
   final String? titleText;
   final Widget? leading;
@@ -11,6 +11,7 @@ class SheetScaffold extends StatelessWidget {
   final double? height;
   final VoidCallback? onClose;
   final bool showHeader;
+  
   const SheetScaffold({
     super.key,
     required this.child,
@@ -25,64 +26,91 @@ class SheetScaffold extends StatelessWidget {
   });
 
   @override
+  State<SheetScaffold> createState() => _SheetScaffoldState();
+}
+
+class _SheetScaffoldState extends State<SheetScaffold> {
+  bool _isScrolled = false;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: MediaQuery.of(context).viewInsets,
       constraints: BoxConstraints(
-        maxHeight: height ?? MediaQuery.of(context).size.height * heightFactor,
+        maxHeight: widget.height ?? MediaQuery.of(context).size.height * widget.heightFactor,
       ),
       child: Column(
         children: [
-          if (showHeader) ...[
-            Padding(
-              padding: EdgeInsets.only(
-                top: 16,
-                left: 20,
-                right: 16,
-                bottom: 12,
+          if (widget.showHeader) ...[
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                color: _isScrolled
+                    ? Theme.of(context).colorScheme.surfaceContainerHigh
+                    : Colors.transparent,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
               ),
-              child: Row(
-                children: [
-                  if (leading != null) ...[leading!, const SizedBox(width: 8)],
-                  if (title != null || titleText != null)
-                    Expanded(
-                      child:
-                          title ??
-                          Text(
-                            titleText!,
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.5,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                    )
-                  else
-                    const Spacer(),
-                  ...actions,
-                  IconButton(
-                    icon: Icon(
-                      Symbols.close,
-                      color: Theme.of(context).colorScheme.onSurface,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: 16,
+                  left: 20,
+                  right: 16,
+                  bottom: 12,
+                ),
+                child: Row(
+                  children: [
+                    if (widget.leading != null) ...[widget.leading!, const SizedBox(width: 8)],
+                    if (widget.title != null || widget.titleText != null)
+                      Expanded(
+                        child:
+                            widget.title ??
+                            Text(
+                              widget.titleText!,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: -0.5,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                      )
+                    else
+                      const Spacer(),
+                    ...widget.actions,
+                    IconButton(
+                      icon: Icon(
+                        Symbols.close,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      onPressed: () => widget.onClose != null
+                          ? widget.onClose?.call()
+                          : Navigator.pop(context),
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size(36, 36),
+                      ),
                     ),
-                    onPressed: () => onClose != null
-                        ? onClose?.call()
-                        : Navigator.pop(context),
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(36, 36),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Divider(
-              height: 1,
-              thickness: 1 / MediaQuery.devicePixelRatioOf(context),
             ),
           ],
-          Expanded(child: child),
+          Expanded(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                final isScrolled = notification.metrics.pixels > 0;
+                if (isScrolled != _isScrolled) {
+                  setState(() {
+                    _isScrolled = isScrolled;
+                  });
+                }
+                return false;
+              },
+              child: widget.child,
+            ),
+          ),
         ],
       ),
     );
