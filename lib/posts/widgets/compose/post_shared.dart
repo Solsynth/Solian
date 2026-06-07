@@ -955,6 +955,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
   final bool isInteractive;
   final EdgeInsets renderingPadding;
   final bool isCollapsible;
+  final bool hideOverlay;
   final void Function(String)? onPostTap;
 
   const ReferencedPostWidget({
@@ -963,6 +964,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
     this.isInteractive = true,
     this.renderingPadding = EdgeInsets.zero,
     this.isCollapsible = true,
+    this.hideOverlay = false,
     this.onPostTap,
   });
 
@@ -1032,6 +1034,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
                 showLowerLine: true,
                 renderingPadding: EdgeInsets.zero,
                 isInteractive: isInteractive,
+                hideOverlay: hideOverlay,
               ),
             if (isGone)
               Row(
@@ -1461,10 +1464,10 @@ class PostHeader extends HookConsumerWidget {
                   ),
                   Text(
                     !isFullPost && isRelativeTime
-                        ? (item.publishedAt ?? item.createdAt)!.formatRelative(
+                        ? (item.publishedAt ?? item.createdAt)?.formatRelative(
                             context,
-                          )
-                        : (item.publishedAt ?? item.createdAt)!.formatSystem(),
+                          ) ?? ''
+                        : (item.publishedAt ?? item.createdAt)?.formatSystem() ?? '',
                   ).fontSize(10),
                 ],
               ),

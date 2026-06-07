@@ -31,16 +31,23 @@ Future<void> sharePostAsScreenshot(
   showLoadingModal(context);
   await screenshotController
       .captureFromLongWidget(
-        UncontrolledProviderScope(
-          container: ProviderScope.containerOf(context),
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox(
-              width: 520,
-              child: PostItemScreenshot(
-                item: post,
-                isFullPost: true,
-                thread: thread,
+        MediaQuery(
+          data: MediaQuery.of(context),
+          child: ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(
+                ref.watch(sharedPreferencesProvider),
+              ),
+            ],
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 520,
+                child: PostItemScreenshot(
+                  item: post,
+                  isFullPost: true,
+                  thread: thread,
+                ),
               ),
             ),
           ),
@@ -87,17 +94,20 @@ Future<void> shareCheckInAsScreenshot(
   showLoadingModal(context);
   await screenshotController
       .captureFromLongWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(
-              ref.watch(sharedPreferencesProvider),
-            ),
-          ],
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox(
-              width: 400,
-              child: CheckInResultScreenshot(user: user, result: result),
+        MediaQuery(
+          data: MediaQuery.of(context),
+          child: ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(
+                ref.watch(sharedPreferencesProvider),
+              ),
+            ],
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 400,
+                child: CheckInResultScreenshot(user: user, result: result),
+              ),
             ),
           ),
         ),
@@ -147,17 +157,24 @@ Future<void> shareCalendarEventAsScreenshot(
   showLoadingModal(context);
   await screenshotController
       .captureFromLongWidget(
-        UncontrolledProviderScope(
-          container: ProviderScope.containerOf(context),
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox(
-              width: 400,
-              child: CalendarEventScreenshot(
-                event: event,
-                displayStartTime: displayStartTime,
-                displayEndTime: displayEndTime,
-                selectedOccurrenceIndex: selectedOccurrenceIndex,
+        MediaQuery(
+          data: MediaQuery.of(context),
+          child: ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(
+                ref.watch(sharedPreferencesProvider),
+              ),
+            ],
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 400,
+                child: CalendarEventScreenshot(
+                  event: event,
+                  displayStartTime: displayStartTime,
+                  displayEndTime: displayEndTime,
+                  selectedOccurrenceIndex: selectedOccurrenceIndex,
+                ),
               ),
             ),
           ),
