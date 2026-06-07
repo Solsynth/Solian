@@ -21,8 +21,8 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/widgets/draggable_log_overlay.dart';
 import 'package:island/core/debug_sheet.dart';
-import 'package:island/plugin/apis/commands_api.dart';
-import 'package:island/plugin/plugin_manager.dart';
+import 'package:island/plugins/apis/commands_api.dart';
+import 'package:island/plugins/plugin_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 

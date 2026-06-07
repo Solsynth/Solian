@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:logging/logging.dart';
-import 'package:island/plugin/apis/hooks_api.dart';
-import 'package:island/plugin/plugin_manager.dart';
+import 'package:island/plugins/apis/hooks_api.dart';
+import 'package:island/plugins/plugin_manager.dart';
 
 final _log = Logger('PluginHooks');
 

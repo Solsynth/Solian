@@ -20,7 +20,7 @@ import "package:island/chat/e2ee_message_service.dart";
 import "package:island/e2ee/e2ee.dart";
 import "package:logging/logging.dart";
 import "package:island/shared/widgets/alert.dart";
-import "package:island/plugin/plugin_hooks.dart";
+import "package:island/plugins/plugin_hooks.dart";
 import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:uuid/uuid.dart";
 import "package:island/accounts/screens/profile.dart";
