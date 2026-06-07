@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:crypto/crypto.dart';
@@ -1737,6 +1738,7 @@ class FileDownloadService {
     await FileSaver.instance.saveFile(
       name: _getFileName(item, extName),
       file: File(tempFilePath),
+      mimeType: MimeType.values.firstWhereOrNull((e) => e.type == item.mimeType) ?? MimeType.custom,
     );
     return null;
   }
@@ -1835,6 +1837,7 @@ class FileDownloadService {
             await FileSaver.instance.saveFile(
               name: _getFileName(item, extName),
               file: File(downloaded.filePath),
+              mimeType: MimeType.values.firstWhereOrNull((e) => e.type == item.mimeType) ?? MimeType.custom,
             );
           }
           tasks.updateTask(
@@ -1924,6 +1927,7 @@ class FileDownloadService {
         await FileSaver.instance.saveFile(
           name: _getFileName(item, extName),
           file: File(downloaded.filePath),
+          mimeType: MimeType.values.firstWhereOrNull((e) => e.type == item.mimeType) ?? MimeType.custom,
         );
       }
       tasks.updateTask(taskId, status: AppTaskStatus.completed, progress: 1.0);

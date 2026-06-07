@@ -16,6 +16,7 @@ import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/widgets/content/exif_info_overlay.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/core/widgets/content/image_control_overlay.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -180,6 +181,47 @@ class GenericFileContent extends HookConsumerWidget {
 
   const GenericFileContent({required this.item, super.key});
 
+  void _openWebPreview(BuildContext context) {
+    final url = 'https://solian.app/files/${item.id}';
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            AppBar(
+              title: Text(item.name),
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Symbols.refresh),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+            Expanded(
+              child: InAppWebView(
+                initialUrlRequest: URLRequest(url: WebUri(url)),
+                initialSettings: InAppWebViewSettings(
+                  useShouldOverrideUrlLoading: true,
+                  mediaPlaybackRequiresUserGesture: false,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Center(
@@ -224,7 +266,13 @@ class GenericFileContent extends HookConsumerWidget {
                 icon: const Icon(Symbols.download),
                 label: Text('download').tr(),
               ),
-              const Gap(16),
+              const Gap(12),
+              FilledButton.tonalIcon(
+                onPressed: () => _openWebPreview(context),
+                icon: const Icon(Symbols.open_in_browser),
+                label: Text('previewInWeb'.tr()),
+              ),
+              const Gap(12),
               OutlinedButton.icon(
                 onPressed: () {
                   showModalBottomSheet(

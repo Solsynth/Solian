@@ -37,7 +37,6 @@ class TabsScreen extends StatelessWidget {
         WalletRoute(),
         ThoughtRoute(),
         CreatorHubRoute(),
-        DeveloperHubRoute(),
       ],
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
@@ -202,15 +201,6 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       navigationIcon: Symbols.design_services_rounded,
       iconBuilder: (selected) =>
           Icon(Symbols.design_services_rounded, fill: selected ? 1 : null),
-    ),
-    _TabDestination(
-      id: 'developers',
-      routeIndex: 9,
-      routePath: '/developers',
-      label: 'developerHub'.tr(),
-      navigationIcon: Symbols.data_object_rounded,
-      iconBuilder: (selected) =>
-          Icon(Symbols.data_object_rounded, fill: selected ? 1 : null),
     ),
   ];
 

@@ -501,10 +501,7 @@ class MessageSender {
       payload['calendar_event_id'] = calendarEventId;
     }
 
-    return (
-      payload: payload,
-      plaintextEnvelope: null,
-    );
+    return (payload: payload, plaintextEnvelope: null);
   }
 
   Future<SnChatMessage> _sendToServer({
@@ -659,8 +656,8 @@ class MessageSender {
       endpoint: 'DysonNetwork.Messager',
       data: {
         'message_id': messageId,
-        if (contentChunk != null) 'content_chunk': contentChunk,
-        if (progress != null) 'progress': progress,
+        'content_chunk': ?contentChunk,
+        'progress': ?progress,
       },
     );
 
@@ -684,8 +681,8 @@ class MessageSender {
       endpoint: 'DysonNetwork.Messager',
       data: {
         'message_id': messageId,
-        if (content != null) 'content': content,
-        if (attachmentsId != null) 'attachments_id': attachmentsId,
+        'content': ?content,
+        'attachments_id': ?attachmentsId,
       },
     );
 
