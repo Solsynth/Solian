@@ -60,7 +60,8 @@ class MessageSyncService {
       filter: filter,
     );
 
-    final shouldFetchRemote = forceRemote ||
+    final shouldFetchRemote =
+        forceRemote ||
         cached.isEmpty ||
         (cached.length < PaginationConfig.pageSize && !filter.hasSearch);
 
@@ -114,15 +115,14 @@ class MessageSyncService {
     while (_computeHasMore(combined.length) &&
         combined.length < PaginationConfig.eagerPrefetchThreshold &&
         passes < PaginationConfig.maxEagerPrefetchPasses) {
-      final remaining = PaginationConfig.eagerPrefetchThreshold - combined.length;
+      final remaining =
+          PaginationConfig.eagerPrefetchThreshold - combined.length;
       final take = remaining.clamp(
         PaginationConfig.pageSize,
         PaginationConfig.batchSize,
       );
 
-      _logger.info(
-        'Eager prefetch pass $passes: loading $take more messages',
-      );
+      _logger.info('Eager prefetch pass $passes: loading $take more messages');
 
       final more = await loadMore(
         currentCount: combined.length,
@@ -176,6 +176,7 @@ class MessageSyncService {
     }
 
     // Fetch more from remote
+    if (currentCount > _lastApiOffset) _lastApiOffset = currentCount;
     final remoteMessages = await _fetchAndCacheRemote(
       offset: _lastApiOffset,
       limit: PaginationConfig.batchSize,
@@ -186,11 +187,7 @@ class MessageSyncService {
     }
 
     // Re-fetch from cache to get merged result
-    return _loadFromCache(
-      offset: currentCount,
-      limit: take,
-      filter: filter,
-    );
+    return _loadFromCache(offset: currentCount, limit: take, filter: filter);
   }
 
   // ── Jump to Message ──────────────────────────────────────────────────────
@@ -218,13 +215,20 @@ class MessageSyncService {
         return JumpResult.notFound();
       }
 
-      message = LocalChatMessage.fromRemoteMessage(decrypted, MessageStatus.sent);
+      message = LocalChatMessage.fromRemoteMessage(
+        decrypted,
+        MessageStatus.sent,
+      );
       await _repository.saveMessage(message);
     }
 
     // Calculate offset to center the target message
-    final newerCount = await _repository.countMessagesNewerThan(message.createdAt);
-    final offset = (newerCount - chunkSize ~/ 2).clamp(0, double.infinity).toInt();
+    final newerCount = await _repository.countMessagesNewerThan(
+      message.createdAt,
+    );
+    final offset = (newerCount - chunkSize ~/ 2)
+        .clamp(0, double.infinity)
+        .toInt();
 
     // Load messages around the target
     final surroundingMessages = await _loadFromCache(
@@ -284,7 +288,10 @@ class MessageSyncService {
         pendingContent: pending?.content,
       );
 
-      var local = LocalChatMessage.fromRemoteMessage(withPlaintext, MessageStatus.sent);
+      var local = LocalChatMessage.fromRemoteMessage(
+        withPlaintext,
+        MessageStatus.sent,
+      );
 
       // Merge with existing data if available
       if (existing != null) {
@@ -425,7 +432,8 @@ class MessageSyncService {
       meta: incoming.meta,
       membersMentioned: incoming.membersMentioned,
       editedAt: incoming.editedAt ?? existing.editedAt,
-      attachments: incoming.attachments.isEmpty && existing.attachments.isNotEmpty
+      attachments:
+          incoming.attachments.isEmpty && existing.attachments.isNotEmpty
           ? existing.attachments
           : incoming.attachments,
       reactions: incoming.reactions,
@@ -491,7 +499,10 @@ class MessageSyncService {
     return message;
   }
 
-  bool _needsAttachmentRefresh(LocalChatMessage existing, SnChatMessage remote) {
+  bool _needsAttachmentRefresh(
+    LocalChatMessage existing,
+    SnChatMessage remote,
+  ) {
     return existing.attachments.isEmpty && remote.attachments.isNotEmpty;
   }
 
@@ -532,9 +543,6 @@ class JumpResult {
     this.found = true,
   });
 
-  factory JumpResult.notFound() => const JumpResult(
-        messages: [],
-        targetIndex: -1,
-        found: false,
-      );
+  factory JumpResult.notFound() =>
+      const JumpResult(messages: [], targetIndex: -1, found: false);
 }

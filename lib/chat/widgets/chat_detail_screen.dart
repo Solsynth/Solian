@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/accounts/widgets/account/account_picker.dart';
 import 'package:island/accounts/widgets/account/status.dart';
+import 'package:island/chat/messages_notifier.dart';
 import 'package:island/chat/pods/chat_room.dart';
 import 'package:island/chat/widgets/chat_room_form.dart';
 import 'package:island/chat/widgets/chat_room_member_card.dart';
@@ -306,19 +307,6 @@ class ChatDetailScreen extends HookConsumerWidget {
       }
     }
 
-    void setChatBreak(DateTime until) async {
-      try {
-        final client = ref.watch(apiClientProvider);
-        await client.patch(
-          '/messager/chat/$id/members/me/notify',
-          data: {'break_until': until.toUtc().toIso8601String()},
-        );
-        ref.invalidate(chatRoomIdentityProvider(id));
-      } catch (err) {
-        showErrorAlert(err);
-      }
-    }
-
     void showNotifyLevelBottomSheet(SnChatMember identity) {
       showModalBottomSheet(
         isScrollControlled: true,
@@ -361,126 +349,6 @@ class ChatDetailScreen extends HookConsumerWidget {
               ),
             ],
           ),
-        ),
-      );
-    }
-
-    void showChatBreakDialog() {
-      final now = DateTime.now();
-      final durationController = TextEditingController();
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('chatBreak').tr(),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('chatBreakDescription').tr(),
-              const Gap(16),
-              ListTile(
-                title: const Text('chatBreakClearButton').tr(),
-                subtitle: const Text('chatBreakClear').tr(),
-                leading: const Icon(Icons.notifications_active),
-                onTap: () {
-                  setChatBreak(now);
-                  Navigator.pop(context);
-                  if (context.mounted) {
-                    showSnackBar('chatBreakCleared'.tr());
-                  }
-                },
-              ),
-              ListTile(
-                title: const Text('chatBreak5m').tr(),
-                subtitle: const Text(
-                  'chatBreakHour',
-                ).tr(args: ['chatBreak5m'.tr()]),
-                leading: const Icon(Symbols.circle),
-                onTap: () {
-                  setChatBreak(now.add(const Duration(minutes: 5)));
-                  Navigator.pop(context);
-                  if (context.mounted) {
-                    showSnackBar('chatBreakSet'.tr(args: ['5m']));
-                  }
-                },
-              ),
-              ListTile(
-                title: const Text('chatBreak10m').tr(),
-                subtitle: const Text(
-                  'chatBreakHour',
-                ).tr(args: ['chatBreak10m'.tr()]),
-                leading: const Icon(Symbols.circle),
-                onTap: () {
-                  setChatBreak(now.add(const Duration(minutes: 10)));
-                  Navigator.pop(context);
-                  if (context.mounted) {
-                    showSnackBar('chatBreakSet'.tr(args: ['10m']));
-                  }
-                },
-              ),
-              ListTile(
-                title: const Text('chatBreak15m').tr(),
-                subtitle: const Text(
-                  'chatBreakHour',
-                ).tr(args: ['chatBreak15m'.tr()]),
-                leading: const Icon(Symbols.timer_3),
-                onTap: () {
-                  setChatBreak(now.add(const Duration(minutes: 15)));
-                  Navigator.pop(context);
-                  if (context.mounted) {
-                    showSnackBar('chatBreakSet'.tr(args: ['15m']));
-                  }
-                },
-              ),
-              ListTile(
-                title: const Text('chatBreak30m').tr(),
-                subtitle: const Text(
-                  'chatBreakHour',
-                ).tr(args: ['chatBreak30m'.tr()]),
-                leading: const Icon(Symbols.timer),
-                onTap: () {
-                  setChatBreak(now.add(const Duration(minutes: 30)));
-                  Navigator.pop(context);
-                  if (context.mounted) {
-                    showSnackBar('chatBreakSet'.tr(args: ['30m']));
-                  }
-                },
-              ),
-              const Gap(8),
-              TextField(
-                controller: durationController,
-                decoration: InputDecoration(
-                  labelText: 'chatBreakCustomMinutes'.tr(),
-                  hintText: 'chatBreakEnterMinutes'.tr(),
-
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.check),
-                    onPressed: () {
-                      final minutes = int.tryParse(durationController.text);
-                      if (minutes != null && minutes > 0) {
-                        setChatBreak(now.add(Duration(minutes: minutes)));
-                        Navigator.pop(context);
-                        if (context.mounted) {
-                          showSnackBar(
-                            'chatBreakSet'.tr(args: ['${minutes}m']),
-                          );
-                        }
-                      }
-                    },
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                onTapOutside: (_) =>
-                    FocusManager.instance.primaryFocus?.unfocus(),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('cancel').tr(),
-            ),
-          ],
         ),
       );
     }
@@ -618,7 +486,16 @@ class ChatDetailScreen extends HookConsumerWidget {
                                     ).format(identity.breakUntil!),
                                   )
                                 : const Text('chatBreakNone').tr(),
-                            onTap: () => showChatBreakDialog(),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) => _ChatBreakSheet(
+                                  roomId: id,
+                                  currentBreakUntil: identity.breakUntil,
+                                ),
+                              );
+                            },
                           ),
                         ],
                         ListTile(
@@ -644,6 +521,23 @@ class ChatDetailScreen extends HookConsumerWidget {
                                 context.pop(result);
                               }
                             }
+                          },
+                        ),
+                        ListTile(
+                          contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                          leading: const Icon(Symbols.cloud_download),
+                          trailing: const Icon(Symbols.chevron_right),
+                          title: const Text('downloadMoreMessages').tr(),
+                          subtitle: const Text(
+                            'downloadMoreMessagesDescription',
+                          ).tr(),
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) =>
+                                  _DownloadMessagesSheet(roomId: id),
+                            );
                           },
                         ),
                       ],
@@ -987,8 +881,7 @@ class ChatMemberListFilter {
 
   @override
   bool operator ==(Object other) {
-    return other is ChatMemberListFilter &&
-        other.accountName == accountName;
+    return other is ChatMemberListFilter && other.accountName == accountName;
   }
 
   @override
@@ -1172,26 +1065,9 @@ class _ChatMemberListSheet extends HookConsumerWidget {
                   ],
                   onSubmitted: (_) => applyMemberFilter(),
                 ),
-                if (currentFilter.hasFilters) ...[
-                  const Gap(10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      InputChip(
-                        label: Text('Name: ${currentFilter.accountName}'),
-                        onDeleted: () async {
-                          searchController.clear();
-                          await applyMemberFilter();
-                        },
-                      ),
-                    ],
-                  ),
-                ],
               ],
             ),
           ),
-          const Divider(height: 1),
           Expanded(
             child: PaginationList(
               provider: chatMemberListProvider(roomId),
@@ -1407,6 +1283,416 @@ class _ChatIdentityEditorSheet extends HookConsumerWidget {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatBreakSheet extends HookConsumerWidget {
+  final String roomId;
+  final DateTime? currentBreakUntil;
+
+  const _ChatBreakSheet({required this.roomId, this.currentBreakUntil});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final customMinutesController = useTextEditingController();
+    final isSettingBreak = useState(false);
+    final now = DateTime.now();
+    final hasActiveBreak =
+        currentBreakUntil != null && currentBreakUntil!.isAfter(now);
+
+    Future<void> setChatBreak(DateTime until) async {
+      isSettingBreak.value = true;
+      try {
+        final client = ref.read(apiClientProvider);
+        await client.patch(
+          '/messager/chat/$roomId/members/me/notify',
+          data: {'break_until': until.toUtc().toIso8601String()},
+        );
+        ref.invalidate(chatRoomIdentityProvider(roomId));
+        if (context.mounted) {
+          if (until.isBefore(now) || until.isAtSameMomentAs(now)) {
+            showSnackBar('chatBreakCleared'.tr());
+          } else {
+            final diff = until.difference(now);
+            String duration;
+            if (diff.inHours > 0) {
+              duration = '${diff.inHours}h ${diff.inMinutes % 60}m';
+            } else {
+              duration = '${diff.inMinutes}m';
+            }
+            showSnackBar('chatBreakSet'.tr(args: [duration]));
+          }
+          Navigator.pop(context);
+        }
+      } catch (err) {
+        if (context.mounted) {
+          showErrorAlert(err);
+        }
+      } finally {
+        isSettingBreak.value = false;
+      }
+    }
+
+    void setCustomBreak() {
+      final minutes = int.tryParse(customMinutesController.text);
+      if (minutes != null && minutes > 0) {
+        setChatBreak(now.add(Duration(minutes: minutes)));
+      }
+    }
+
+    final quickBreakOptions = [
+      {
+        'titleKey': 'chatBreak5m',
+        'icon': Symbols.alarm,
+        'duration': const Duration(minutes: 5),
+      },
+      {
+        'titleKey': 'chatBreak10m',
+        'icon': Symbols.alarm,
+        'duration': const Duration(minutes: 10),
+      },
+      {
+        'titleKey': 'chatBreak15m',
+        'icon': Symbols.timer_3,
+        'duration': const Duration(minutes: 15),
+      },
+      {
+        'titleKey': 'chatBreak30m',
+        'icon': Symbols.timer,
+        'duration': const Duration(minutes: 30),
+      },
+      {
+        'titleKey': 'chatBreak1h',
+        'icon': Symbols.timer_10,
+        'duration': const Duration(hours: 1),
+      },
+      {
+        'titleKey': 'chatBreak2h',
+        'icon': Symbols.timer_10,
+        'duration': const Duration(hours: 2),
+      },
+    ];
+
+    return SheetScaffold(
+      heightFactor: 0.6,
+      titleText: 'chatBreak'.tr(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          top: 8,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Current break status
+            if (hasActiveBreak) ...[
+              Card(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Symbols.do_not_disturb_on,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                      const Gap(12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'chatBreakActive'.tr(),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSecondaryContainer,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const Gap(4),
+                            Text(
+                              DateFormat(
+                                'yyyy-MM-dd HH:mm',
+                              ).format(currentBreakUntil!),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSecondaryContainer,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      FilledButton.tonal(
+                        onPressed: isSettingBreak.value
+                            ? null
+                            : () => setChatBreak(now),
+                        child: isSettingBreak.value
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('chatBreakClearButton').tr(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Gap(16),
+            ],
+
+            // Quick duration section
+            Text(
+              'chatBreakQuickOptions'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            ).padding(horizontal: 20),
+            const Gap(4),
+            Column(
+              children: [
+                for (final option in quickBreakOptions)
+                  ListTile(
+                    leading: Icon(option['icon'] as IconData),
+                    title: Text(option['titleKey'] as String).tr(),
+                    trailing: Icon(
+                      Symbols.chevron_right,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 0,
+                    ),
+                    onTap: isSettingBreak.value
+                        ? null
+                        : () => setChatBreak(
+                            now.add(option['duration'] as Duration),
+                          ),
+                  ),
+              ],
+            ),
+            const Gap(24),
+
+            // Custom duration section
+            Text(
+              'chatBreakCustom'.tr(),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            ).padding(horizontal: 20),
+            const Gap(12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: customMinutesController,
+                    decoration: InputDecoration(
+                      labelText: 'chatBreakCustomMinutes'.tr(),
+                      hintText: 'chatBreakEnterMinutes'.tr(),
+                      prefixIcon: const Icon(Symbols.timer),
+                      suffixText: 'minutes'.tr(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    onSubmitted: (_) => setCustomBreak(),
+                  ),
+                  const Gap(12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: isSettingBreak.value ? null : setCustomBreak,
+                      icon: isSettingBreak.value
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Symbols.check),
+                      label: Text('setBreak'.tr()),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Gap(16),
+
+            // Description
+            Text(
+              'chatBreakDescription'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ).padding(horizontal: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DownloadMessagesSheet extends HookConsumerWidget {
+  final String roomId;
+  const _DownloadMessagesSheet({required this.roomId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDownloading = useState(false);
+    final downloadProgress = useState<String?>(null);
+    final totalDownloaded = useState<int>(0);
+    final totalMessages = ref.watch(totalMessagesCountProvider(roomId));
+
+    Future<void> downloadMessages(int requestedCount) async {
+      isDownloading.value = true;
+      downloadProgress.value = 'downloading'.tr();
+      totalDownloaded.value = 0;
+
+      const batchSize = 500;
+
+      try {
+        final database = ref.read(databaseProvider);
+        final initialCount = await database.getTotalMessagesForRoom(roomId);
+
+        // Sync messages from server in batches – this fetches and caches to DB
+        final messagesNotifier = ref.read(messagesProvider(roomId).notifier);
+        var currentOffset = initialCount;
+        var downloaded = 0;
+        var remaining = requestedCount;
+
+        while (remaining > 0) {
+          final take = remaining > batchSize ? batchSize : remaining;
+          await messagesNotifier.listMessages(
+            take: take,
+            offset: currentOffset,
+          );
+
+          final afterSyncCount = await database.getTotalMessagesForRoom(roomId);
+          final downloadedThisBatch = afterSyncCount - currentOffset;
+
+          if (downloadedThisBatch <= 0) {
+            break;
+          }
+
+          downloaded += downloadedThisBatch;
+          currentOffset = afterSyncCount;
+          remaining = requestedCount - downloaded;
+
+          if (downloadedThisBatch < take) {
+            break;
+          }
+        }
+
+        totalDownloaded.value = downloaded;
+
+        // Refresh the local count display
+        ref.invalidate(totalMessagesCountProvider(roomId));
+
+        if (context.mounted) {
+          if (downloaded > 0) {
+            showSnackBar('downloadComplete'.tr(args: [downloaded.toString()]));
+          } else {
+            showSnackBar('noNewMessages'.tr());
+          }
+          Navigator.pop(context);
+        }
+      } catch (err) {
+        if (context.mounted) {
+          showErrorAlert(err);
+        }
+      } finally {
+        isDownloading.value = false;
+        downloadProgress.value = null;
+      }
+    }
+
+    return SheetScaffold(
+      heightFactor: 0.5,
+      titleText: 'downloadMoreMessages'.tr(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'downloadMoreMessagesDescription'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ).padding(horizontal: 24),
+            totalMessages
+                .when(
+                  data: (count) => Text(
+                    'currentMessagesCount'.tr(args: [count.toString()]),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                )
+                .padding(horizontal: 24),
+            const Gap(24),
+            if (isDownloading.value) ...[
+              const Center(
+                child: Column(
+                  children: [CircularProgressIndicator(), SizedBox(height: 16)],
+                ),
+              ),
+              if (downloadProgress.value != null)
+                Center(
+                  child: Text(
+                    downloadProgress.value!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              const Gap(16),
+            ] else ...[
+              Text(
+                'selectBatchSize'.tr(),
+                style: Theme.of(context).textTheme.titleSmall,
+              ).padding(horizontal: 24),
+              const Gap(4),
+              Column(
+                children: [
+                  for (final count in [100, 500, 1000, 2000, 5000])
+                    ListTile(
+                      leading: const Icon(Symbols.download),
+                      title: Text('$count messages'),
+                      trailing: const Icon(Symbols.chevron_right),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 0,
+                      ),
+                      onTap: isDownloading.value
+                          ? null
+                          : () => downloadMessages(count),
+                    ),
+                ],
+              ),
+              Text(
+                'downloadBatchSizeHint'.tr(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ).padding(horizontal: 24),
+            ],
           ],
         ),
       ),
