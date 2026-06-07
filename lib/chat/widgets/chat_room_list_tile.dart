@@ -85,7 +85,9 @@ class ChatRoomListTile extends HookConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: onSecondaryTapDown,
-      child: ListTile(
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
         selected: selected,
         selectedTileColor: Theme.of(
           context,
@@ -154,6 +156,7 @@ class ChatRoomListTile extends HookConsumerWidget {
           });
           onTap?.call();
         },
+        ),
       ),
     );
   }
