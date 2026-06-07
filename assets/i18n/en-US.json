@@ -1719,6 +1719,8 @@
   "fileMetadata": "File Metadata",
   "resend": "Resend",
   "fileInfoTitle": "File Information",
+  "fileActions": "File Actions",
+  "inspect": "Inspect",
   "permissions": "Permissions",
   "manage": "Manage",
   "children": "Children",
