@@ -10,6 +10,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:island/core/widgets/content/cloud_file_actions_sheet.dart';
 import 'package:island/core/widgets/content/file_info_sheet.dart';
 import 'package:island/drive/screens/file_list.dart';
@@ -789,8 +790,9 @@ class FileListView extends HookConsumerWidget {
             MenuAction(
               title: 'share'.tr(),
               image: MenuImage.icon(Symbols.share),
-              callback: () {
-                // TODO: implement share
+              callback: () async {
+                final url = fileItem.file.storageUrl ?? fileItem.file.id;
+                await Share.share(url);
               },
             ),
             MenuAction(
@@ -1282,8 +1284,9 @@ class FileListView extends HookConsumerWidget {
                     MenuAction(
                       title: 'share'.tr(),
                       image: MenuImage.icon(Symbols.share),
-                      callback: () {
-                        // TODO: implement share
+                      callback: () async {
+                        final url = file.storageUrl ?? file.id;
+                        await Share.share(url);
                       },
                     ),
                     MenuAction(
