@@ -25,7 +25,7 @@ import 'package:island/tasks/tasks_notifier.dart';
 import 'package:island/drive/drive_service.dart';
 import 'package:island/posts/compose_storage_db.dart';
 import 'package:island/shared/widgets/alert.dart';
-import 'package:island/plugin/plugin_hooks.dart';
+import 'package:island/plugins/plugin_hooks.dart';
 import 'package:island/drive/screens/file_pool.dart';
 import 'package:pasteboard/pasteboard.dart';
 

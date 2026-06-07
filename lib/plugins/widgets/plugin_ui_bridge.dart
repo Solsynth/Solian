@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:island/plugin/apis/ui_api.dart';
+import 'package:island/plugins/apis/ui_api.dart';
 
 final _log = Logger('PluginUiBridge');
 

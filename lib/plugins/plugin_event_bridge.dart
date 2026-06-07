@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:island/core/services/event_bus.dart' as app;
-import 'package:island/plugin/plugin_manager.dart';
-import 'package:island/plugin/models/plugin_manifest.dart';
+import 'package:island/plugins/plugin_manager.dart';
+import 'package:island/plugins/models/plugin_manifest.dart';
 
 final _log = Logger('PluginEventBridge');
 

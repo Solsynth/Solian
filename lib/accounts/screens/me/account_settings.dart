@@ -605,6 +605,28 @@ class AccountSettingsScreen extends HookConsumerWidget {
           context.router.push(const PunishmentsRoute());
         },
       ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.auto_fix_high),
+        title: Text('affiliations').tr(),
+        subtitle: Text('affiliationsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          context.router.push(const AffiliationRoute());
+        },
+      ),
+      ListTile(
+        minLeadingWidth: 48,
+        leading: const Icon(Symbols.report),
+        title: Text('tickets').tr(),
+        subtitle: Text('ticketsDescription').tr().fontSize(12),
+        contentPadding: const EdgeInsets.only(left: 24, right: 17),
+        trailing: const Icon(Symbols.chevron_right),
+        onTap: () {
+          context.router.push(const TicketListRoute());
+        },
+      ),
     ];
 
     final dangerZoneSettings = [

@@ -296,20 +296,6 @@ class AccountFeatureWidget extends HookConsumerWidget {
                       context.router.push(const FeedMarketplaceRoute());
                     },
                   },
-                  {
-                    'icon': Symbols.auto_fix_high,
-                    'title': 'affiliations',
-                    'onTap': () {
-                      context.router.push(const AffiliationRoute());
-                    },
-                  },
-                  {
-                    'icon': Symbols.report,
-                    'title': 'tickets',
-                    'onTap': () {
-                      context.router.push(const TicketListRoute());
-                    },
-                  },
                 ];
                 return Column(
                   children: menuItems.map((item) {
