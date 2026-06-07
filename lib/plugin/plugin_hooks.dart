@@ -129,11 +129,23 @@ class PluginHooks {
         return data; // Skip, don't cancel
       }
 
-      // Call the handler function in JS, passing data as JSON
+      // Call the handler function in JS, passing data as JSON.
+      // Wrap in JSON.stringify so JS objects come back as parseable JSON
+      // instead of "[object Object]".
       final dataJson = jsonEncode(data);
-      // Use a temp global to avoid escaping issues
-      runtime.exec('var __hook_data__ = $dataJson;');
-      final result = runtime.callFunction(handler.handlerName, [data]);
+      final resultRaw = runtime.eval(
+        'JSON.stringify(${handler.handlerName}($dataJson))',
+      );
+      Object? result;
+      if (resultRaw is String && resultRaw != 'undefined') {
+        try {
+          result = jsonDecode(resultRaw);
+        } catch (_) {
+          result = resultRaw;
+        }
+      } else {
+        result = resultRaw;
+      }
 
       if (result == null) {
         _log.warning(

@@ -16,6 +16,7 @@ function nekoizeMessage(data) {
   if (content && !content.endsWith("喵")) {
     data.content = content + " 喵";
   }
+  notify("Nekoizer", "Hook fired! content: " + data.content);
   return data;
 }
 
