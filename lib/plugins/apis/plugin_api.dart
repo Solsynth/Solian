@@ -1,5 +1,5 @@
-import 'package:island/plugin/bridge/js_bridge.dart';
-import 'package:island/plugin/models/plugin_manifest.dart';
+import 'package:island/plugins/bridge/js_bridge.dart';
+import 'package:island/plugins/models/plugin_manifest.dart';
 
 /// Base class for API bridges that expose Dart functionality to JavaScript plugins.
 ///

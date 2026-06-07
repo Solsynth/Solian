@@ -5,16 +5,20 @@
 
 function nekoizePost(data) {
   var content = data.content || "";
-  if (content && !content.endsWith("喵")) {
-    data.content = content + " 喵";
+  if (content) {
+    data.content = content.split("\n").map(function(line) {
+      return line && !line.endsWith("喵") ? line + "喵" : line;
+    }).join("\n");
   }
   return data;
 }
 
 function nekoizeMessage(data) {
   var content = data.content || "";
-  if (content && !content.endsWith("喵")) {
-    data.content = content + " 喵";
+  if (content) {
+    data.content = content.split("\n").map(function(line) {
+      return line && !line.endsWith("喵") ? line + "喵" : line;
+    }).join("\n");
   }
   notify("Nekoizer", "Hook fired! content: " + data.content);
   return data;

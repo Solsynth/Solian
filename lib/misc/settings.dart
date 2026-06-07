@@ -36,6 +36,7 @@ import 'package:open_file/open_file.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:island/core/config.dart';
 import 'package:island/drive/screens/file_pool.dart';
+import 'package:island/plugins/screens/plugin_manager_screen.dart';
 import 'package:island/route.gr.dart';
 
 @RoutePage()
@@ -1807,12 +1808,16 @@ class SettingsScreen extends HookConsumerWidget {
         localizedTitleKey: 'settingsCategoryPlugins',
         searchTerms: [
           'plugins',
-          'python',
+          'javascript',
           'scripts',
           'extensions',
           'automation',
           'hooks',
+          'commands',
+          'events',
         ],
+        embedInWide: isWide,
+        wideContent: (context) => const PluginManagerContent(),
         children: [
           ListTile(
             minLeadingWidth: 48,
@@ -1822,18 +1827,16 @@ class SettingsScreen extends HookConsumerWidget {
             leading: const Icon(Symbols.extension),
             trailing: const Icon(Symbols.chevron_right),
             onTap: () {
-              context.router.push(const PluginManagerRoute());
-            },
-          ),
-          ListTile(
-            minLeadingWidth: 48,
-            title: Text('settingsPluginEditor').tr(),
-            subtitle: Text('settingsPluginEditorDescription').tr(),
-            contentPadding: const EdgeInsets.only(left: 24, right: 17),
-            leading: const Icon(Symbols.code),
-            trailing: const Icon(Symbols.chevron_right),
-            onTap: () {
-              context.router.push(const PluginEditorRoute());
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                builder: (_) => SheetScaffold(
+                  titleText: 'Plugins',
+                  heightFactor: 0.85,
+                  child: const PluginManagerContent(),
+                ),
+              );
             },
           ),
         ],

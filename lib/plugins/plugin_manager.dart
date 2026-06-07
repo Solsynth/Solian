@@ -6,13 +6,13 @@ import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:island/plugin/bridge/js_bridge.dart';
-import 'package:island/plugin/models/plugin_manifest.dart';
-import 'package:island/plugin/apis/plugin_api.dart';
-import 'package:island/plugin/apis/hooks_api.dart';
-import 'package:island/plugin/apis/commands_api.dart';
-import 'package:island/plugin/apis/events_api.dart';
-import 'package:island/plugin/background_runner.dart';
+import 'package:island/plugins/bridge/js_bridge.dart';
+import 'package:island/plugins/models/plugin_manifest.dart';
+import 'package:island/plugins/apis/plugin_api.dart';
+import 'package:island/plugins/apis/hooks_api.dart';
+import 'package:island/plugins/apis/commands_api.dart';
+import 'package:island/plugins/apis/events_api.dart';
+import 'package:island/plugins/background_runner.dart';
 
 final _log = Logger('PluginManager');
 
@@ -248,6 +248,34 @@ class PluginManager {
     for (final id in _plugins.keys.toList()) {
       await loadPlugin(id);
     }
+  }
+
+  /// Re-discover plugins from all sources and load them.
+  /// Returns the number of newly discovered plugins.
+  Future<int> reload() async {
+    final before = Set<String>.of(_plugins.keys);
+    _initialized = false;
+    await initialize();
+    await loadAll();
+    final added = _plugins.keys.where((id) => !before.contains(id)).length;
+    _log.info('Reloaded plugins: ${_plugins.length} total, $added new');
+    return added;
+  }
+
+  /// Install a plugin from an arbitrary local folder path.
+  /// Validates that the folder contains a manifest.json.
+  Future<bool> installFromFolder(String folderPath) async {
+    final dir = Directory(folderPath);
+    if (!await dir.exists()) {
+      _log.warning('Folder does not exist: $folderPath');
+      return false;
+    }
+    final manifestFile = File(path.join(folderPath, 'manifest.json'));
+    if (!await manifestFile.exists()) {
+      _log.warning('No manifest.json in $folderPath');
+      return false;
+    }
+    return installPlugin(folderPath);
   }
 
   /// Install a plugin from a directory (copies to plugins dir).
