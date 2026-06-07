@@ -182,23 +182,6 @@ class AppWrapper extends HookConsumerWidget {
       return null;
     }, [hasConnectivity, token, websocketState]);
 
-    // TODO reenable this till the js service is stable
-    // useEffect(() {
-    //   if (!kIsWeb) {
-    //     Future(() async {
-    //       await initJs();
-    //       if (isJsAvailable()) {
-    //         Logger.root.info("[flutter_js] Initialized from AppWrapper");
-    //       } else {
-    //         Logger.root.info(
-    //           "[flutter_js] Not available (folder missing or init failed)",
-    //         );
-    //       }
-    //     });
-    //   }
-    //   return null;
-    // }, []);
-
     useEffect(() {
       final ntySubs = setupNotificationListener(context, ref);
       final sharingService = SharingIntentService();
