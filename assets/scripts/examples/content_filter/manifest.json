@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "author": "Island",
   "description": "Censors banned words in posts and messages before they are sent.",
-  "entry": "main.py",
+  "entry": "main.js",
   "permissions": [
     "eventsSubscribe",
     "commandsRegister",
